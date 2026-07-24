@@ -1,250 +1,93 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import { JSX, h } from "preact";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
+import { View } from "react-native";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
+import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { lb, LensBuilder } from "lens-shmens";
 import {
-  IPlannerFullText,
-  IPlannerState,
-  IPlannerUi,
-  IPlannerUiFocusedExercise,
-} from "../../pages/planner/models/types";
-import { Modal } from "../modal";
-import { lb, lbu, LensBuilder } from "lens-shmens";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
-import { useMemo } from "preact/hooks";
-import { CollectionUtils } from "../../utils/collection";
-import { Button } from "../button";
-import { IconMusclesW } from "../icons/iconMusclesW";
-import { IconGraphsE } from "../icons/iconGraphsE";
-import { IconMusclesD } from "../icons/iconMusclesD";
+  PlannerProgram_generateFullText,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_evaluateText,
+} from "../../pages/planner/models/plannerProgram";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
-import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
-import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
-import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
-import { PlannerEditorCustomCta } from "../../pages/planner/components/plannerEditorCustomCta";
+import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
+import { Settings_getTheme } from "../../models/settings";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
   settings: ISettings;
-  fulltext: IPlannerFullText;
   ui: IPlannerUi;
-  lbUi: LensBuilder<IPlannerState, IPlannerUi, {}>;
+  lbUi: LensBuilder<IPlannerState, IPlannerUi, {}, undefined>;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
 export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
-  function save(): void {
-    const lensGetters = { fulltext: lb<IPlannerState>().p("fulltext").get() };
-    props.plannerDispatch([
-      lbu<IPlannerState, typeof lensGetters>(lensGetters)
-        .p("current")
-        .p("program")
-        .p("weeks")
-        .recordModify((oldWeeks, getters) => {
-          const text = getters.fulltext?.text;
-          if (text == null) {
-            return oldWeeks;
-          }
-          return PlannerProgram.evaluateText(text);
-        }),
-      lb<IPlannerState>().p("fulltext").record(undefined),
-    ]);
-  }
-
-  function cancel(): void {
-    props.plannerDispatch([lb<IPlannerState>().p("fulltext").record(undefined)]);
-  }
-
-  const currentLine = props.fulltext.currentLine;
+  const [fulltext, setFulltext] = useState(() => PlannerProgram_generateFullText(props.plannerProgram.weeks));
+  const expectedRegenRef = useRef(fulltext);
+  const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerState>().p("ui");
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fulltext.text, props.settings);
-  }, [props.fulltext.text, props.settings.exercises]);
+    return PlannerProgram_evaluateFull(fulltext, props.settings);
+  }, [fulltext, props.settings]);
+  const settingsRef = useRef(props.settings);
 
-  const weekIndex =
-    evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
-      : -1;
-  const dayIndex =
-    weekIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
-      : -1;
+  useEffect(() => {
+    const regen = PlannerProgram_generateFullText(props.plannerProgram.weeks);
+    if (regen === expectedRegenRef.current) {
+      return;
+    }
+    expectedRegenRef.current = regen;
+    setFulltext(regen);
+  }, [props.plannerProgram.weeks]);
 
-  const exerciseIndex =
-    dayIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(
-          evaluatedWeeks.data[weekIndex].days[dayIndex].exercises,
-          (d) => d.line <= currentLine
-        )
-      : -1;
-
-  const focusedExercise: IPlannerUiFocusedExercise | undefined =
-    weekIndex !== -1 && dayIndex !== -1 && evaluatedWeeks.success && exerciseIndex !== -1
-      ? {
-          weekIndex,
-          dayIndex,
-          exerciseLine: evaluatedWeeks.data[weekIndex].days[dayIndex].exercises[exerciseIndex].line,
-        }
-      : undefined;
-
-  const evalResults = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
+  useEffect(() => {
+    settingsRef.current = props.settings;
+    const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram_evaluateFull(fulltext, settingsRef.current);
+    const newError = evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error;
+    if (
+      props.ui.fullTextError?.message !== newError?.message ||
+      props.ui.fullTextError?.line !== newError?.line ||
+      props.ui.fullTextError?.offset !== newError?.offset
+    ) {
+      props.plannerDispatch(lbUi.p("fullTextError").record(newError), "Update full text error");
+    }
+  }, [props.settings]);
 
   return (
-    <div className="relative">
-      <div
-        className="sticky top-0 z-10 px-4 py-1 bg-white border-b sm:hidden border-grayv2-100"
-        style={{ top: "3.7rem" }}
-      >
-        <div className="flex items-center justify-end">
-          <div className="flex-1 mr-2">
-            <Button name="cancel-full-planner" kind="grayv2" buttonSize="sm" className="px-4" onClick={() => cancel()}>
-              Cancel
-            </Button>
-            <Button
-              disabled={!evaluatedWeeks.success}
-              title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
-              data-cy="editor-v2-save-full"
-              name="save-full-planner"
-              kind="orange"
-              buttonSize="sm"
-              className="px-4 ml-2"
-              onClick={() => {
-                if (evaluatedWeeks.success) {
-                  save();
-                }
-              }}
-            >
-              Save
-            </Button>
-          </div>
-          <div>
-            <button
-              disabled={weekIndex === -1}
-              onClick={() => {
-                if (weekIndex !== -1) {
-                  props.plannerDispatch(props.lbUi.p("showWeekStats").record(true));
-                }
-              }}
-              className={`${weekIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
-            >
-              <IconMusclesW color={weekIndex !== -1 ? "#3C5063" : "#D2D8DE"} size={22} />
-            </button>
-            <button
-              disabled={dayIndex === -1}
-              onClick={() => {
-                if (dayIndex !== -1) {
-                  props.plannerDispatch(props.lbUi.p("showDayStats").record(true));
-                }
-              }}
-              className={`${dayIndex === -1 ? "cursor-not-allowed" : ""} p-2`}
-            >
-              <IconMusclesD color={dayIndex !== -1 ? "#3C5063" : "#D2D8DE"} size={22} />
-            </button>
-            <button
-              disabled={!focusedExercise}
-              onClick={() => {
-                if (focusedExercise) {
-                  props.plannerDispatch(props.lbUi.p("showExerciseStats").record(true));
-                }
-              }}
-              className={`${!focusedExercise ? "cursor-not-allowed" : ""} p-2`}
-            >
-              <IconGraphsE color={focusedExercise ? "#3C5063" : "#D2D8DE"} width={16} height={22} />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col px-4 pt-4 md:flex-row">
-        <div className="flex-1 min-w-0">
-          <h2 className="mb-1 text-lg font-bold">Edit program as plain text</h2>
-          <PlannerEditorView
-            name="Program"
-            customExercises={props.settings.exercises}
-            exerciseFullNames={exerciseFullNames}
-            equipment={props.settings.equipment}
-            error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
-            value={props.fulltext.text}
-            onCustomErrorCta={(err) => (
-              <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.plannerDispatch} err={err} />
-            )}
-            onChange={(e) => props.plannerDispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e))}
-            lineNumbers={true}
-            onBlur={(e, text) => {}}
-            onLineChange={(line) => {
-              props.plannerDispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line));
-            }}
-          />
-        </div>
-        <div className="mt-2 mb-8 text-center">
-          <Button
-            disabled={!evaluatedWeeks.success}
-            title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
-            name="save-full-planner-bottom"
-            kind="orange"
-            onClick={() => {
-              if (evaluatedWeeks.success) {
-                save();
-              }
-            }}
-          >
-            Save
-          </Button>
-        </div>
-      </div>
-      {props.ui.showExerciseStats && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => {
-            props.plannerDispatch(props.lbUi.p("showExerciseStats").record(false));
-          }}
-        >
-          {focusedExercise?.exerciseLine != null && (
-            <PlannerExerciseStats
-              dispatch={props.plannerDispatch}
-              settings={props.settings}
-              evaluatedWeeks={evalResults}
-              weekIndex={weekIndex}
-              dayIndex={dayIndex}
-              exerciseLine={focusedExercise?.exerciseLine}
-            />
+    <View className="relative">
+      <View className="px-4 pt-4">
+        <PlannerEditorView
+          name="Program"
+          theme={Settings_getTheme(props.settings)}
+          autoHeight={true}
+          minHeight={200}
+          customExercises={props.settings.exercises}
+          exerciseFullNames={exerciseFullNames}
+          error={
+            props.ui.fullTextError ? props.ui.fullTextError : evaluatedWeeks.success ? undefined : evaluatedWeeks.error
+          }
+          value={fulltext}
+          onCustomErrorCta={(err) => (
+            <EditProgramCustomErrorCta dayData={{ week: 1, dayInWeek: 1 }} dispatch={props.plannerDispatch} err={err} />
           )}
-        </Modal>
-      )}
-      {props.ui.showDayStats && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => {
-            props.plannerDispatch(props.lbUi.p("showDayStats").record(false));
+          onChange={(text) => {
+            setFulltext(text);
+            const weeks = PlannerProgram_evaluateText(text);
+            expectedRegenRef.current = PlannerProgram_generateFullText(weeks);
+            const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram_evaluateFull(text, settingsRef.current);
+            props.plannerDispatch(
+              [
+                lbUi.p("fullTextError").record(evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error),
+                lbProgram.p("weeks").record(weeks),
+              ],
+              "Update full program text"
+            );
           }}
-        >
-          {weekIndex !== -1 && dayIndex !== -1 && (
-            <PlannerDayStats
-              dispatch={props.plannerDispatch}
-              focusedExercise={focusedExercise}
-              settings={props.settings}
-              evaluatedDay={evalResults[weekIndex][dayIndex]}
-            />
-          )}
-        </Modal>
-      )}
-      {props.ui.showWeekStats && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => {
-            props.plannerDispatch(props.lbUi.p("showWeekStats").record(false));
-          }}
-        >
-          {weekIndex !== -1 && (
-            <PlannerWeekStats
-              dispatch={props.plannerDispatch}
-              evaluatedDays={evalResults[weekIndex]}
-              settings={props.settings}
-            />
-          )}
-        </Modal>
-      )}
-    </div>
+          lineNumbers={true}
+          onBlur={(_e, _text) => {}}
+          onLineChange={(_line) => {}}
+        />
+      </View>
+    </View>
   );
 }

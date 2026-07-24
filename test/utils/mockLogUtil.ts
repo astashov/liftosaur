@@ -1,8 +1,15 @@
 import { ILogUtil } from "../../lambda/utils/log";
+import Rollbar from "rollbar";
+import { UidFactory_generateUid } from "../../src/utils/generator";
 
 export class MockLogUtil implements ILogUtil {
-  public readonly logs: string[] = [];
+  public logs: string[] = [];
   public userid?: string;
+  public id: string;
+
+  constructor() {
+    this.id = UidFactory_generateUid(4);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public log(...str: any[]): void {
@@ -12,4 +19,6 @@ export class MockLogUtil implements ILogUtil {
   public setUser(userid: string): void {
     this.userid = userid;
   }
+
+  public setRollbar(rollbar: Rollbar): void {}
 }

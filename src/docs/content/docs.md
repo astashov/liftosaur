@@ -286,6 +286,24 @@ state.nextWeight = calculate1RM(150lb, 5);
 
 It would assign `175lb` to `state.nextWeight`. The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
 
+#### `increment`
+
+It's a function that accepts weight, and returns incremented weight - minimum possible increment of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the next
+fixed weight on the equipment.
+
+```javascript
+weights[1] = increment(completedWeights[1]);
+```
+
+#### `decrement`
+
+It's a function that accepts weight, and returns decremented weight - minimum possible decrement of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the previous
+fixed weight on the equipment.
+
+```javascript
+weights[1] = decrement(completedWeights[1]);
+```
+
 #### `rpeMultiplier`
 
 Used for calculating the multiplier of 1RM given the reps and RPE. Like for example, for 13 reps at 9 RPE, it'd
@@ -326,26 +344,35 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Sums all values. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 if (sum(completedReps) >= 15) {
   state.weight += 5lb;
 };
+state.total = sum(1, 2, 3);
+state.allReps = sum(reps, completedReps);
+state.adjusted = sum(10, completedReps);
 ```
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the minimum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.minWeight = min(weights);
+state.smallest = min(7, 2, 5);
+state.lowest = min(reps, completedReps);
+state.capped = min(10, completedReps);
 ```
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the maximum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);
+state.biggest = max(2, 7, 5);
+state.highest = max(reps, completedReps);
+state.floored = max(1, completedReps);
 ```

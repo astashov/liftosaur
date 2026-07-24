@@ -1,204 +1,260 @@
-import { h, JSX } from "preact";
-import { IDispatch } from "../ducks/types";
+import { JSX, useMemo, useState } from "react";
+import { View, Pressable } from "react-native";
+import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
+import { Text } from "./primitives/text";
 import { GraphExercise } from "./graphExercise";
-import { History } from "../models/history";
-import { useState } from "preact/hooks";
-import { ModalGraphs } from "./modalGraphs";
-import { ObjectUtils } from "../utils/object";
-import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
+import { History_getGraphsAggregates } from "../models/history";
+import { ObjectUtils_keys } from "../utils/object";
+import { IScreenMuscle } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
-import { ILoading } from "../models/state";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
-import { IScreen, Screen } from "../models/screen";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { IconFilter } from "./icons/iconFilter";
-import { HelpGraphs } from "./help/helpGraphs";
-import { Collector } from "../utils/collector";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
-import { CollectionUtils } from "../utils/collection";
-import { Exercise } from "../models/exercise";
+import { Exercise_fromKey } from "../models/exercise";
+import { navigateToModal } from "../navigation/navigationService";
+import { useProgressiveItems } from "../utils/useProgressiveItems";
+import { useTrackedState, useTrackedDispatch, untrack } from "../navigation/TrackedStateContext";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { useTimedMemo } from "../utils/useTimedMemo";
 
-interface IProps {
-  dispatch: IDispatch;
-  loading: ILoading;
-  settings: ISettings;
-  screenStack: IScreen[];
-  stats: IStats;
-  history: IHistoryRecord[];
-}
+const navRightButtons = [
+  <Pressable
+    key="filter"
+    data-testid="graphs-modify"
+    testID="graphs-modify"
+    className="p-2 nm-graphs-navbar-filter"
+    onPress={() => navigateToModal("graphsModal")}
+  >
+    <IconFilter />
+  </Pressable>,
+];
 
-export function ScreenGraphs(props: IProps): JSX.Element {
-  const { settings } = props;
+export function ScreenGraphs(): JSX.Element {
+  usePerfRenderCount("ScreenGraphs");
+  const trackedState = useTrackedState();
+  const dispatch = useTrackedDispatch();
+
+  // Subscribe to the three state slices we need; untrack so useMemo deps see stable refs.
+  const settings = untrack(trackedState.storage.settings);
+  const stats = untrack(trackedState.storage.stats);
+  const history = untrack(trackedState.storage.history);
+
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const maxSets = History.findAllMaxSetsPerId(props.history);
-  const exerciseTypes = ObjectUtils.keys(maxSets).map(Exercise.fromKey);
-  const hasBodyweight = props.settings.graphs.some((g) => g.id === "weight");
-  let bodyweightData: [number, number][] = [];
+  const hasBodyweight = settings.graphs.graphs.some((g) => g.id === "weight");
 
-  const historyCollector = Collector.build(CollectionUtils.sortBy(props.history, "id"))
-    .addFn(History.collectMuscleGroups(props.settings))
-    .addFn(History.collectProgramChangeTimes());
-  const [muscleGroupsData, programChangeTimes] = historyCollector.run();
+  const { muscleGroupsData, programChangeTimes } = useTimedMemo(
+    "screenGraphs.graphsAggregates",
+    () => History_getGraphsAggregates(history, settings),
+    [history, settings]
+  );
 
-  if (hasBodyweight && isWithBodyweight) {
-    bodyweightData = getWeightDataForGraph(props.stats.weight.weight || [], props.settings);
-  }
-  let maxX = 0;
-  let minX = Infinity;
-  for (const hr of props.history) {
-    if (maxX < hr.startTime) {
-      maxX = hr.startTime;
-    }
-    if (minX > hr.startTime) {
-      minX = hr.startTime;
-    }
-  }
-  if (isSameXAxis) {
-    for (const key of ObjectUtils.keys(props.stats.weight)) {
-      for (const value of props.stats.weight[key] || []) {
-        if (minX > value.timestamp) {
-          minX = value.timestamp;
+  const bodyweightData = useTimedMemo<[number, number][]>(
+    "screenGraphs.bodyweightData",
+    () => {
+      if (hasBodyweight && isWithBodyweight) {
+        return getWeightDataForGraph(stats.weight.weight || [], settings);
+      }
+      return [];
+    },
+    [hasBodyweight, isWithBodyweight, stats.weight.weight, settings]
+  );
+
+  const { minX, maxX } = useTimedMemo(
+    "screenGraphs.minMaxX",
+    () => {
+      let max = 0;
+      let min = Infinity;
+      for (const hr of history) {
+        if (max < hr.startTime) {
+          max = hr.startTime;
         }
-        if (maxX < value.timestamp) {
-          maxX = value.timestamp;
+        if (min > hr.startTime) {
+          min = hr.startTime;
         }
       }
-    }
-    for (const key of ObjectUtils.keys(props.stats.length)) {
-      for (const value of props.stats.length[key] || []) {
-        if (minX > value.timestamp) {
-          minX = value.timestamp;
-        } else if (maxX < value.timestamp) {
-          maxX = value.timestamp;
+      if (isSameXAxis) {
+        for (const key of ObjectUtils_keys(stats.weight)) {
+          for (const value of stats.weight[key] || []) {
+            if (min > value.timestamp) {
+              min = value.timestamp;
+            }
+            if (max < value.timestamp) {
+              max = value.timestamp;
+            }
+          }
+        }
+        for (const key of ObjectUtils_keys(stats.length)) {
+          for (const value of stats.length[key] || []) {
+            if (min > value.timestamp) {
+              min = value.timestamp;
+            } else if (max < value.timestamp) {
+              max = value.timestamp;
+            }
+          }
         }
       }
-    }
+      return { minX: min, maxX: max };
+    },
+    [history, stats.weight, stats.length, isSameXAxis]
+  );
+
+  useNavOptions({
+    navTitle: "Graphs",
+    navHelpKey: "graphs",
+    navRightButtons,
+  });
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(() => ({ activeId, setActive: setActiveId }), [activeId]);
+
+  const visibleGraphs = useProgressiveItems(settings.graphs.graphs, {
+    initialBatch: 3,
+    batchSize: 3,
+    debugLabel: "Graphs",
+  });
+
+  const roundedMinX = useTimedMemo("screenGraphs.roundedMinX", () => Math.round(minX / 1000), [minX]);
+  const roundedMaxX = useTimedMemo("screenGraphs.roundedMaxX", () => Math.round(maxX / 1000), [maxX]);
+  const bodyweightForGraphs = hasBodyweight && isWithBodyweight ? bodyweightData : undefined;
+  const programChangeTimesForGraphs = isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined;
+
+  const preparedGraphs = useTimedMemo(
+    "screenGraphs.preparedGraphs",
+    () => {
+      return visibleGraphs.map((graph) => {
+        if (graph.type === "exercise") {
+          return { graph, exercise: Exercise_fromKey(graph.id), collection: undefined };
+        }
+        if (graph.type === "statsWeight") {
+          return {
+            graph,
+            exercise: undefined,
+            collection: getWeightDataForGraph(stats.weight[graph.id] || [], settings),
+          };
+        }
+        if (graph.type === "statsLength") {
+          return {
+            graph,
+            exercise: undefined,
+            collection: getLengthDataForGraph(stats.length[graph.id] || [], settings),
+          };
+        }
+        if (graph.type === "muscleGroup") {
+          return { graph, exercise: undefined, collection: undefined };
+        }
+        return {
+          graph,
+          exercise: undefined,
+          collection: getPercentageDataForGraph(stats.percentage[graph.id] || [], settings),
+        };
+      });
+    },
+    [visibleGraphs, stats.weight, stats.length, stats.percentage, settings]
+  );
+
+  if (settings.graphs.graphs.length === 0) {
+    return (
+      <View className="p-8">
+        <Text className="text-2xl font-bold text-center text-gray-600">
+          Select graphs you want to display by tapping filter icon at right top corner.
+        </Text>
+      </View>
+    );
   }
 
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          helpContent={<HelpGraphs />}
-          rightButtons={[
-            <button
-              data-cy="graphs-modify"
-              className="p-2 nm-graphs-navbar-filter"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <IconFilter />
-            </button>,
-          ]}
-          screenStack={props.screenStack}
-          title="Graphs"
-        />
-      }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
-      addons={
-        <ModalGraphs
-          settings={props.settings}
-          isHidden={!isModalOpen}
-          exerciseTypes={exerciseTypes}
-          stats={props.stats}
-          graphs={props.settings.graphs}
-          onClose={() => setIsModalOpen(false)}
-          dispatch={props.dispatch}
-        />
-      }
-    >
-      {props.settings.graphs.length === 0 ? (
-        <div className="p-8 text-2xl font-bold text-center text-gray-600">
-          Select graphs you want to display by tapping <IconFilter /> icon at right top corner.
-        </div>
-      ) : (
-        <section className="pb-4">
-          {props.settings.graphs.map((graph) => {
-            if (graph.type === "exercise") {
-              return (
-                <div className="mb-2">
-                  <GraphExercise
-                    initialType={props.settings.graphsSettings.defaultType}
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
-                    isWithOneRm={isWithOneRm}
-                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
-                    settings={props.settings}
-                    isWithProgramLines={isWithProgramLines}
-                    history={props.history}
-                    exercise={Exercise.fromKey(graph.id)}
-                    dispatch={props.dispatch}
-                  />
-                </div>
-              );
-            } else if (graph.type === "statsWeight") {
-              const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
-              return (
-                <div className="mb-2">
-                  <GraphStats
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    units={props.settings.units}
-                    key={`${graph.id}_${isSameXAxis}`}
-                    settings={props.settings}
-                    collection={collection}
-                    statsKey={graph.id}
-                  />
-                </div>
-              );
-            } else if (graph.type === "statsLength") {
-              const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
-              return (
-                <div className="mb-2">
-                  <GraphStats
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    units={props.settings.lengthUnits}
-                    key={graph.id}
-                    settings={props.settings}
-                    collection={collection}
-                    statsKey={graph.id}
-                  />
-                </div>
-              );
-            } else if (graph.type === "muscleGroup") {
-              const muscleGroup = graph.id as IScreenMuscle | "total";
-              return (
-                <GraphMuscleGroup
-                  initialType={props.settings.graphsSettings.defaultMuscleGroupType}
-                  programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
-                  data={muscleGroupsData[muscleGroup]}
-                  muscleGroup={muscleGroup}
-                  settings={props.settings}
+    <ActiveGraphContext.Provider value={activeGraphValue}>
+      <View className="pt-8 pb-4">
+        {preparedGraphs.map((entry, i) => {
+          const { graph, exercise, collection } = entry;
+          const id = `${graph.type}-${graph.id}-${i}`;
+          if (graph.type === "exercise" && exercise) {
+            return (
+              <View
+                key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
+                className="mx-4 mb-2"
+              >
+                <GraphExercise
+                  id={id}
+                  initialType={settings.graphsSettings.defaultType}
+                  isSameXAxis={isSameXAxis}
+                  minX={roundedMinX}
+                  maxX={roundedMaxX}
+                  bodyweightData={bodyweightForGraphs}
+                  isWithOneRm={isWithOneRm}
+                  settings={settings}
+                  isWithProgramLines={isWithProgramLines}
+                  history={history}
+                  exercise={exercise}
+                  dispatch={dispatch}
                 />
-              );
-            } else {
-              const collection = getPercentageDataForGraph(props.stats.percentage[graph.id] || [], props.settings);
-              return (
-                <div className="mb-2">
-                  <GraphStats
-                    isSameXAxis={isSameXAxis}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    units="%"
-                    key={graph.id}
-                    settings={props.settings}
-                    collection={collection}
-                    statsKey={graph.id}
-                  />
-                </div>
-              );
-            }
-          })}
-        </section>
-      )}
-    </Surface>
+              </View>
+            );
+          } else if (graph.type === "statsWeight" && collection) {
+            return (
+              <View key={`${graph.id}_${isSameXAxis}`} className="mx-4 mb-2">
+                <GraphStats
+                  id={id}
+                  isSameXAxis={isSameXAxis}
+                  minX={roundedMinX}
+                  maxX={roundedMaxX}
+                  units={settings.units}
+                  settings={settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              </View>
+            );
+          } else if (graph.type === "statsLength" && collection) {
+            return (
+              <View key={graph.id} className="mx-4 mb-2">
+                <GraphStats
+                  id={id}
+                  isSameXAxis={isSameXAxis}
+                  minX={roundedMinX}
+                  maxX={roundedMaxX}
+                  units={settings.lengthUnits}
+                  settings={settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              </View>
+            );
+          } else if (graph.type === "muscleGroup") {
+            const muscleGroup = graph.id as IScreenMuscle | "total";
+            return (
+              <View key={graph.id} className="mx-4 mb-2">
+                <GraphMuscleGroup
+                  key={graph.id}
+                  id={id}
+                  initialType={settings.graphsSettings.defaultMuscleGroupType}
+                  programChangeTimes={programChangeTimesForGraphs}
+                  data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
+                  muscleGroup={muscleGroup}
+                  settings={settings}
+                />
+              </View>
+            );
+          } else if (collection) {
+            return (
+              <View key={graph.id} className="mx-4 mb-2">
+                <GraphStats
+                  id={id}
+                  isSameXAxis={isSameXAxis}
+                  minX={roundedMinX}
+                  maxX={roundedMaxX}
+                  units="%"
+                  settings={settings}
+                  collection={collection}
+                  statsKey={graph.id}
+                />
+              </View>
+            );
+          } else {
+            return null;
+          }
+        })}
+      </View>
+    </ActiveGraphContext.Provider>
   );
 }

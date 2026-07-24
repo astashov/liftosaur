@@ -1,14 +1,21 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_finishExercise,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("Program Preview", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1");
+  await PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("preview-program").click();
   await expect(page.getByTestId("program-name")).toHaveText("Basic Beginner Routine");
   await expect(page.getByTestId("program-author")).toHaveText("By /r/fitness");
   await expect(page.getByTestId("preview-day-workout-a").first().getByTestId("preview-day-name")).toHaveText(
-    "Week 1 - Workout A"
+    "Workout A"
   );
 
   await expect(
@@ -18,77 +25,72 @@ test("Program Preview", async ({ page }) => {
       .getByTestId("bent-over-row")
       .getByTestId("history-entry-sets-next")
       .first()
-  ).toHaveText("2x5");
-  await expect(
-    page
-      .getByTestId("preview-day-workout-a")
-      .first()
-      .getByTestId("bent-over-row")
-      .getByTestId("history-entry-weight")
-      .first()
-  ).toHaveText("95");
+  ).toHaveText("2 × 5 × 95lb");
   await page
     .getByTestId("preview-day-workout-a")
     .first()
     .getByTestId("bent-over-row")
     .getByTestId("program-preview-edit-exercise")
     .click();
-  await expect(page.getByTestId("menu-item-value-successes")).toHaveValue("0");
-  await expect(page.getByTestId("menu-item-value-failures")).toHaveValue("0");
   await page.getByTestId("modal-edit-mode-save-statvars").click();
   await page.getByTestId("menu-item-value-enable-playground").click();
 
-  await PlaywrightUtils.clickAll(
-    page.getByTestId("preview-day-workout-a").getByTestId("bent-over-row").getByTestId("set-nonstarted")
+  await PlaywrightUtils_finishExercise(
+    page,
+    "bent-over-row",
+    [1, 1, { amrap: { reps: 5 } }],
+    page.getByTestId("preview-day-workout-a").first()
   );
-  await page
-    .getByTestId("preview-day-workout-a")
-    .getByTestId("bent-over-row")
-    .getByTestId("set-amrap-nonstarted")
-    .first()
-    .click();
-  await page.getByTestId("modal-amrap-input").and(page.locator(":visible")).clear();
-  await page.getByTestId("modal-amrap-input").and(page.locator(":visible")).type("5");
-  await page.getByTestId("modal-amrap-submit").and(page.locator(":visible")).click();
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bent-over-row`).nth(0).click();
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bent-over-row").getByTestId("variable-changes-key-weights")
-  ).toHaveText("weights: += 2.5lb");
+    page
+      .getByTestId("preview-day-workout-a")
+      .getByTestId("entry-bent-over-row")
+      .getByTestId("variable-changes-key-weights[1]")
+  ).toHaveText("weights[1]: 97.5lb");
 
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await page
     .getByTestId("preview-day-workout-a")
-    .getByTestId("bench-press")
+    .getByTestId("entry-bench-press")
     .getByTestId("program-preview-complete-exercise")
     .first()
     .click();
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bench-press").getByTestId("set-completed")
+    page.getByTestId("preview-day-workout-a").getByTestId("entry-bench-press").getByTestId("set-completed")
   ).toHaveCount(2);
   await expect(
-    page.getByTestId("preview-day-workout-a").getByTestId("bench-press").getByTestId("set-amrap-completed")
+    page.getByTestId("preview-day-workout-a").getByTestId("entry-bench-press").getByTestId("set-amrap-completed")
   ).toHaveCount(1);
 
   await page.getByTestId("preview-day-workout-a").first().getByTestId("finish-day-details-playground").click();
 
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bent-over-row`).nth(0).click();
   await expect(
     page
       .getByTestId("preview-day-workout-a")
       .first()
-      .getByTestId("bent-over-row")
-      .getByTestId("weight-value")
+      .getByTestId("entry-bent-over-row")
+      .getByTestId("input-set-weight-field")
       .filter({ hasText: "97.5" })
   ).toHaveCount(3);
+  await page.getByTestId("preview-day-workout-a").getByTestId(`workout-tab-bench-press`).nth(0).click();
   await expect(
     page
       .getByTestId("preview-day-workout-a")
       .first()
-      .getByTestId("bench-press")
-      .getByTestId("weight-value")
+      .getByTestId("entry-bench-press")
+      .getByTestId("input-set-weight-field")
       .filter({ hasText: "47.5" })
   ).toHaveCount(3);
   await expect(
-    page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-nonstarted")
+    page.getByTestId("preview-day-workout-a").first().getByTestId("entry-bench-press").getByTestId("set-nonstarted")
   ).toHaveCount(3);
   await expect(
-    page.getByTestId("preview-day-workout-a").first().getByTestId("bench-press").getByTestId("set-amrap-nonstarted")
+    page
+      .getByTestId("preview-day-workout-a")
+      .first()
+      .getByTestId("entry-bench-press")
+      .getByTestId("set-amrap-nonstarted")
   ).toHaveCount(1);
 });

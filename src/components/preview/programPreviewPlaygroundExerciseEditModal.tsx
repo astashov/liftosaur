@@ -1,117 +1,158 @@
-import { JSX, h, Fragment } from "preact";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";
-import { Weight } from "../../models/weight";
-import { IProgramExercise, IProgramStateMetadata, ISettings, IExerciseDataValue } from "../../types";
-import { ObjectUtils } from "../../utils/object";
-import { ProgramExercise } from "../../models/programExercise";
+import { Weight_is, Weight_isPct } from "../../models/weight";
+import { IProgramStateMetadata, ISettings, IExerciseDataValue, IProgramState } from "../../types";
+import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseRM } from "../exerciseRm";
-import { Exercise } from "../../models/exercise";
+import { Exercise_get } from "../../models/exercise";
+import { IPlannerProgramExercise } from "../../pages/planner/models/types";
+import {
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_getStateMetadata,
+} from "../../pages/planner/models/plannerProgramExercise";
 
 interface IProgramPreviewPlaygroundExerciseEditModalProps {
-  programExercise: IProgramExercise;
+  programExercise: IPlannerProgramExercise;
+  hideVariables?: boolean;
   onClose: () => void;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   onEditVariable: (variableKey: keyof IExerciseDataValue, newValue: number) => void;
-  isPlanner: boolean;
   settings: ISettings;
+}
+
+export function ProgramPreviewPlaygroundExerciseEditContent(
+  props: IProgramPreviewPlaygroundExerciseEditModalProps
+): JSX.Element | null {
+  const programExercise = props.programExercise;
+  const state = PlannerProgramExercise_getState(props.programExercise);
+  const stateMetadata = PlannerProgramExercise_getStateMetadata(props.programExercise);
+  const hasStateVariables = ObjectUtils_keys(state).length > 0;
+  const pendingStateVarsRef = useRef<Record<string, string>>({});
+  const [pendingRm, setPendingRm] = useState<string | undefined>(undefined);
+  if (!programExercise.exerciseType) {
+    return null;
+  }
+  const exercise = Exercise_get(programExercise.exerciseType, props.settings.exercises);
+  return (
+    <View style={{ minWidth: 240 }}>
+      {!props.hideVariables && (
+        <ExerciseRM
+          name="1 Rep Max"
+          rmKey="rm1"
+          exercise={exercise}
+          settings={props.settings}
+          displayValue={pendingRm}
+          onEditVariable={(v) => {
+            setPendingRm(String(v));
+          }}
+          onInput={(v) => {
+            setPendingRm(v);
+          }}
+        />
+      )}
+      {(hasStateVariables || props.hideVariables) && (
+        <>
+          <Text className="mb-2 text-lg font-bold text-center">Edit state variables</Text>
+          {hasStateVariables ? (
+            <ProgramStateVariables
+              settings={props.settings}
+              state={state}
+              stateMetadata={stateMetadata}
+              onEditStateVariable={props.onEditStateVariable}
+              pendingRef={pendingStateVarsRef}
+            />
+          ) : (
+            <View className="px-4 py-2">
+              <Text className="text-sm italic text-center text-text-secondary">No state variables</Text>
+            </View>
+          )}
+        </>
+      )}
+      <View className="items-center mt-4">
+        <Button
+          name="details-workout-playground-save-statvars"
+          kind="purple"
+          onClick={() => {
+            if (pendingRm != null) {
+              const num = parseFloat(pendingRm);
+              if (!isNaN(num)) {
+                props.onEditVariable("rm1", num);
+              }
+            }
+            for (const [key, value] of Object.entries(pendingStateVarsRef.current)) {
+              props.onEditStateVariable(key, value);
+            }
+            props.onClose();
+          }}
+          data-testid="modal-edit-mode-save-statvars"
+          testID="modal-edit-mode-save-statvars"
+        >
+          Done
+        </Button>
+      </View>
+    </View>
+  );
 }
 
 export function ProgramPreviewPlaygroundExerciseEditModal(
   props: IProgramPreviewPlaygroundExerciseEditModalProps
-): JSX.Element {
-  const programExercise = props.programExercise;
-  const hasStateVariables = ObjectUtils.keys(programExercise.state).length > 0;
-  const hasRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
-  if (!hasStateVariables && !hasRm1 && !props.isPlanner) {
-    return <></>;
-  }
-  const exercise = Exercise.get(programExercise.exerciseType, props.settings.exercises);
+): JSX.Element | null {
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
-      <div style={{ minWidth: "15rem" }}>
-        {(props.isPlanner || hasRm1) && (
-          <>
-            <ExerciseRM
-              name="1 Rep Max"
-              rmKey="rm1"
-              exercise={exercise}
-              settings={props.settings}
-              onEditVariable={(value) => {
-                props.onEditVariable("rm1", value);
-              }}
-            />
-          </>
-        )}
-        {hasStateVariables && (
-          <>
-            <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
-            <ProgramStateVariables
-              settings={props.settings}
-              programExercise={programExercise}
-              stateMetadata={programExercise.stateMetadata}
-              onEditStateVariable={props.onEditStateVariable}
-            />
-          </>
-        )}
-        <div className="mt-4 text-center">
-          <Button
-            name="details-workout-playground-save-statvars"
-            kind="orange"
-            onClick={props.onClose}
-            data-cy="modal-edit-mode-save-statvars"
-          >
-            Done
-          </Button>
-        </div>
-      </div>
+      <ProgramPreviewPlaygroundExerciseEditContent {...props} />
     </Modal>
   );
 }
 
 interface IStateProps {
-  programExercise: IProgramExercise;
+  state: IProgramState;
   stateMetadata?: IProgramStateMetadata;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
+  pendingRef?: React.RefObject<Record<string, string>>;
 }
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
-  const { programExercise } = props;
-  const reuseLogicId = programExercise.reuseLogic?.selected;
-  const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
-
   return (
-    <section className="px-4 py-2 bg-purple-100 rounded-2xl">
-      {ObjectUtils.keys(state).map((stateKey, i) => {
-        const value = state[stateKey];
-        const displayValue = Weight.is(value) ? value.value : value;
+    <View className="px-4 py-2 bg-background-cardpurple rounded-2xl">
+      {ObjectUtils_keys(props.state).map((stateKey, i) => {
+        const value = props.state[stateKey];
+        const displayValue = Weight_is(value) || Weight_isPct(value) ? value.value : value;
 
         return (
           <MenuItemEditable
+            key={stateKey}
             name={stateKey}
-            isBorderless={i === Object.keys(state).length - 1}
+            isBorderless={i === Object.keys(props.state).length - 1}
             nextLine={
               props.stateMetadata?.[stateKey]?.userPrompted ? (
-                <div style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-grayv2-main">
-                  User Prompted
-                </div>
+                <View style={{ marginTop: -12 }} className="mb-1">
+                  <Text className="text-xs text-text-secondary">User Prompted</Text>
+                </View>
               ) : undefined
             }
             isNameBold={true}
             type="number"
             value={displayValue.toString()}
-            valueUnits={Weight.is(value) ? value.unit : undefined}
+            valueUnits={Weight_is(value) || Weight_isPct(value) ? value.unit : undefined}
             hasClear={false}
-            onChange={(newValue) => {
-              if (newValue) {
-                props.onEditStateVariable(stateKey, newValue);
+            onChange={(v) => {
+              if (props.pendingRef && v != null) {
+                props.pendingRef.current[stateKey] = v;
+              }
+            }}
+            onInput={(v) => {
+              if (props.pendingRef) {
+                props.pendingRef.current[stateKey] = v;
               }
             }}
           />
         );
       })}
-    </section>
+    </View>
   );
 }

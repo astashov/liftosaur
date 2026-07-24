@@ -1,0 +1,69 @@
+import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../../components/primitives/text";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { Button } from "../../components/button";
+import { ExercisePickerOptionsMuscles } from "../../components/exercisePicker/exercisePickerOptionsMuscles";
+import { IMuscle } from "../../types";
+import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
+import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
+
+export function NavModalExerciseMusclesPicker(): JSX.Element {
+  const { state } = useAppState();
+  const navigation = useNavigation();
+  const modalDispatch = useModalDispatch();
+  const data = useModalData("exerciseMusclesPickerModal");
+  const [selectedMuscles, setSelectedMuscles] = useState<IMuscle[]>(data?.selectedMuscles ?? []);
+
+  const onClose = (): void => {
+    Modal_setResult(modalDispatch, "exerciseMusclesPickerModal", selectedMuscles);
+    Modal_clear(modalDispatch, "exerciseMusclesPickerModal");
+    navigation.goBack();
+  };
+
+  if (!data) {
+    return <></>;
+  }
+
+  const header = (
+    <View collapsable={false} className="flex-row items-center py-4">
+      <Text className="flex-1 text-base font-semibold leading-6 text-center">{data.title}</Text>
+      <View className="absolute right-4">
+        <Button
+          kind="purple"
+          data-testid="done-selecting-muscles"
+          testID="done-selecting-muscles"
+          name="done-selecting-muscles"
+          buttonSize="md"
+          onPress={onClose}
+        >
+          Done
+        </Button>
+      </View>
+    </View>
+  );
+
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet header={header}>
+        <ExercisePickerOptionsMuscles
+          selectedValues={selectedMuscles}
+          onSelect={(muscle) => {
+            setSelectedMuscles((prev) => {
+              const current = new Set(prev);
+              if (current.has(muscle)) {
+                current.delete(muscle);
+              } else {
+                current.add(muscle);
+              }
+              return Array.from(current).sort();
+            });
+          }}
+          settings={state.storage.settings}
+        />
+      </FormSheet>
+    </SheetScreenContainer>
+  );
+}

@@ -1,18 +1,44 @@
 /* eslint-disable @typescript-eslint/unified-signatures */
 import { LiftoscriptEvaluator, NodeName, LiftoscriptSyntaxError } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
-import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
-import { Weight } from "./models/weight";
-import { IUnit, IWeight, IProgramState, IPercentage } from "./types";
+import {
+  IScriptBindings,
+  IScriptFnContext,
+  Progress_createEmptyScriptBindings,
+  Progress_createScriptFunctions,
+} from "./models/progress";
+import { IScriptFunctions } from "./liftoscriptFns";
+import { Weight_build } from "./models/weight";
+import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
-import { IState } from "./models/state";
 import { IProgramMode } from "./models/program";
 import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
+import { Dialog_alert } from "./utils/dialog";
+import memoize from "micro-memoize";
 
 declare let Rollbar: RB;
 
 const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
+
+// Parsing a Liftoscript expression with Lezer is expensive, and the same progress/update
+// scripts are scanned repeatedly (e.g. the same exercise instance in every week/day, and on
+// every tour/render pass). Cache by (script, name) since the result is pure.
+const hasKeywordMemoized = memoize(
+  (script: string, name: string): boolean => {
+    const expr = LiftoscriptParser.parse(script);
+    const cursor = expr.cursor();
+    do {
+      if (cursor.node.type.name === NodeName.Keyword) {
+        if (LiftoscriptEvaluator.getValue(script, cursor.node) === name) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
+  },
+  { maxSize: 200 }
+);
 
 export class ScriptRunner {
   private readonly script: string;
@@ -45,6 +71,35 @@ export class ScriptRunner {
     this.mode = mode;
   }
 
+  public static isValid(
+    script: string,
+    state: IProgramState,
+    dayData: IDayData,
+    settings: ISettings,
+    exerciseType?: IExerciseType
+  ): LiftoscriptSyntaxError | undefined {
+    const liftoscriptEvaluator = new ScriptRunner(
+      script,
+      state,
+      {},
+      Progress_createEmptyScriptBindings(dayData, settings),
+      Progress_createScriptFunctions(settings),
+      settings.units,
+      { exerciseType: exerciseType, unit: settings.units, prints: [] },
+      "planner"
+    );
+    try {
+      liftoscriptEvaluator.parse();
+    } catch (e) {
+      if (e instanceof LiftoscriptSyntaxError) {
+        return e;
+      } else {
+        throw e;
+      }
+    }
+    return undefined;
+  }
+
   public parse(): [LiftoscriptEvaluator, Tree] {
     const liftoscriptTree = LiftoscriptParser.parse(this.script);
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
@@ -59,6 +114,21 @@ export class ScriptRunner {
     );
     liftoscriptEvaluator.parse(liftoscriptTree.topNode);
     return [liftoscriptEvaluator, liftoscriptTree];
+  }
+
+  public switchWeightsToUnit(toUnit: IUnit): string {
+    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptEvaluator = new LiftoscriptEvaluator(
+      this.script,
+      this.state,
+      this.otherStates,
+      this.bindings,
+      this.fns,
+      this.context,
+      this.units,
+      this.mode
+    );
+    return liftoscriptEvaluator.switchWeightsToUnit(liftoscriptTree.topNode, toUnit);
   }
 
   public getStateVariableKeys(): Set<string> {
@@ -76,17 +146,25 @@ export class ScriptRunner {
     return liftoscriptEvaluator.getStateVariableKeys(liftoscriptTree.topNode);
   }
 
-  public static hasKeyword(script: string, name: string): boolean {
+  public static hasStateVariable(script: string, name: string): boolean {
     const expr = LiftoscriptParser.parse(script);
     const cursor = expr.cursor();
     do {
-      if (cursor.node.type.name === NodeName.Keyword) {
-        if (LiftoscriptEvaluator.getValue(script, cursor.node) === name) {
-          return true;
+      if (cursor.node.type.name === NodeName.StateVariable) {
+        const keywordNode = cursor.node.getChild(NodeName.Keyword);
+        if (keywordNode != null) {
+          const value = LiftoscriptEvaluator.getValue(script, keywordNode);
+          if (value === name) {
+            return true;
+          }
         }
       }
     } while (cursor.next());
     return false;
+  }
+
+  public static hasKeyword(script: string, name: string): boolean {
+    return hasKeywordMemoized(script, name);
   }
 
   public static safe<T>(cb: () => T, errorMsg: (e: Error) => string, defaultValue: T, disabled?: boolean): T {
@@ -98,9 +176,7 @@ export class ScriptRunner {
         const lastAlertTs = lastAlertDisplayedTs[e.message];
         console.error(e);
         if (lastAlertTs == null || lastAlertTs < Date.now() - 1000 * 60 * 1) {
-          if (typeof window !== "undefined") {
-            alert(errorMsg(e));
-          }
+          Dialog_alert(errorMsg(e));
           this.reportError("Error during Liftoscript execution", e);
           lastAlertDisplayedTs[e.message] = Date.now();
         }
@@ -156,10 +232,10 @@ export class ScriptRunner {
       if (typeof result === "boolean") {
         throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0);
       } else if (typeof result === "number") {
-        return Weight.build(result, this.units);
+        return Weight_build(result, this.units);
       } else {
         if (result.value < 0) {
-          return Weight.build(0, this.units);
+          return Weight_build(0, this.units);
         } else {
           return result;
         }
@@ -175,8 +251,6 @@ export class ScriptRunner {
     }
     const payload = {
       error: error ? { message: error.message, name: error.name, stack: error.stack } : undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      screen: JSON.stringify(((window as any)?.state as IState)?.screenStack),
     };
     Rollbar.error(msg, payload);
   }

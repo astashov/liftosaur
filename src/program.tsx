@@ -1,12 +1,13 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
-import { IProgramContentSyncerProps, ProgramContentSyncer } from "./pages/program/programContentSyncer";
-import { HydrateUtils } from "./utils/hydrate";
+import { IProgramOrPlannerSyncerProps, ProgramOrPlannerSyncer } from "./pages/program/programOrPlannerSyncer";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
+import { DeviceId_get } from "./utils/deviceId";
 
-function main(): void {
-  HydrateUtils.hydratePage<IProgramContentSyncerProps>((pageWrapperProps, data) => (
+async function main(): Promise<void> {
+  const deviceId = await DeviceId_get();
+  HydrateUtils_hydratePage<IProgramOrPlannerSyncerProps>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
-      <ProgramContentSyncer {...data} client={window.fetch.bind(window)} />
+      <ProgramOrPlannerSyncer {...data} deviceId={deviceId} client={window.fetch.bind(window)} />
     </PageWrapper>
   ));
 }

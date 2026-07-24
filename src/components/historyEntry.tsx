@@ -1,57 +1,75 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
-import { Exercise, equipmentName } from "../models/exercise";
-import { Weight } from "../models/weight";
+import { JSX, memo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
+import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
+import { Weight_roundConvertTo } from "../models/weight";
 import { IHistoryEntry, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
+import { IHistoryEntryPersonalRecords } from "../models/history";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { ObjectUtils_values } from "../utils/object";
 
 interface IHistoryEntryProps {
   entry: IHistoryEntry;
-  isNext: boolean;
+  prs?: IHistoryEntryPersonalRecords;
+  isOngoing?: boolean;
   isLast?: boolean;
+  isNext: boolean;
   settings: ISettings;
   showNotes: boolean;
 }
 
-export const HistoryEntryView = memo(
-  (props: IHistoryEntryProps): JSX.Element => {
-    const { entry, isNext, isLast, settings, showNotes } = props;
-    const exercise = Exercise.get(entry.exercise, settings.exercises);
-    return (
-      <div
-        data-cy="history-entry-exercise"
-        className={`flex flex-row items-center flex-1 py-1 ${!isLast ? "border-b border-grayv2-100" : ""}`}
+export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element => {
+  const { entry, isNext, settings, showNotes, isOngoing, isLast } = props;
+  const exercise = Exercise_get(entry.exercise, settings.exercises);
+  const exerciseUnit = Equipment_getUnitOrDefaultForExerciseType(settings, exercise);
+  const isPr = ObjectUtils_values(props.prs || {}).some((v) => v);
+  return (
+    <View data-testid="history-entry-exercise" testID="history-entry-exercise" className="flex-row items-center gap-2">
+      <View
+        data-testid="history-entry-exercise-img"
+        testID="history-entry-exercise-img"
+        className="items-center justify-center py-1 my-1 rounded-lg bg-background-image"
+        style={{ minWidth: 36 }}
       >
-        <div data-cy="history-entry-exercise-img" style={{ minWidth: "2.25rem" }}>
-          <ExerciseImage settings={props.settings} className="w-6 mr-3" exerciseType={exercise} size="small" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center">
-            <div className="pr-2" style={{ width: "40%" }}>
-              <div data-cy="history-entry-exercise-name" className="font-bold">
-                {exercise.name}
-              </div>
-              <div className="text-xs text-grayv2-main">
-                {equipmentName(exercise.equipment, props.settings.equipment)}
-              </div>
-            </div>
-            <div className="flex-1">
-              <HistoryRecordSetsView
-                sets={entry.sets.map((set) => ({
-                  ...set,
-                  weight: isNext
-                    ? Weight.roundConvertTo(set.weight, props.settings, entry.exercise.equipment)
+        <ExerciseImage settings={props.settings} className="w-8" exerciseType={exercise} size="small" />
+      </View>
+      <View
+        className={`flex-1 py-2 ${
+          !isLast
+            ? `border-b ${isNext ? (isOngoing ? "border-border-cardyellow" : "border-border-cardpurple") : "border-border-neutral"}`
+            : ""
+        }`}
+      >
+        <View className="flex-row items-center gap-2 min-h-8">
+          <View className="flex-1 shrink" style={{ minWidth: "45%" }}>
+            <Text
+              data-testid="history-entry-exercise-name"
+              testID="history-entry-exercise-name"
+              className="text-sm font-semibold"
+            >
+              {Exercise_nameWithEquipment(exercise, props.settings)}
+              {isPr && " \u{1F3C6}"}
+            </Text>
+          </View>
+          <View className="shrink">
+            <HistoryRecordSetsView
+              sets={entry.sets.map((set) => ({
+                ...set,
+                weight:
+                  isNext && set.weight
+                    ? Weight_roundConvertTo(set.weight, props.settings, exerciseUnit, entry.exercise)
                     : set.weight,
-                }))}
-                settings={props.settings}
-                isNext={isNext}
-              />
-            </div>
-          </div>
-          {showNotes && entry.notes && <p className="mt-1 text-sm text-grayv2-main">{entry.notes}</p>}
-        </div>
-      </div>
-    );
-  }
-);
+              }))}
+              prs={props.prs}
+              units={props.settings.units}
+              isNext={isNext}
+            />
+          </View>
+        </View>
+        {showNotes && entry.notes && <Text className="mt-1 text-sm text-text-secondary">{entry.notes}</Text>}
+      </View>
+    </View>
+  );
+});

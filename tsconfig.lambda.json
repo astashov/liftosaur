@@ -2,10 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2018",
-    "noEmit": false,
+    "noEmit": true,
     "declaration": false,
     "sourceMap": false,
-    "outDir": "./dist-lambda"
+    "outDir": "./dist-lambda",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
-  "include": ["lambda/**/*"]
+  "include": ["lambda/**/*", "uniwind-types.d.ts", "src/types/reactNative.d.ts"]
 }

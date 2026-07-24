@@ -1,0 +1,241 @@
+---
+name: liftoscript
+description: Write idiomatic Liftoscript code for weightlifting programs. Use when creating or editing program files in programs/builtin/.
+disable-model-invocation: true
+argument-hint: [program name]
+---
+
+# Write Liftoscript Program
+
+Write a Liftoscript program for: $ARGUMENTS
+
+Before writing any code, read these reference files:
+
+1. `llms/liftoscript.md` — full language reference
+2. `llms/liftoscript_examples.md` — complete program examples
+3. `llms/exercises.md` — built-in exercise list (always prefer built-in exercises)
+4. `src/models/builtinPrograms.ts` — valid values for frontmatter fields
+5. Browse `programs/builtin/` for format and quality reference
+
+## Idiomatic Liftoscript Patterns
+
+### Templates are the foundation
+
+Define templates with `used: none` once, then reuse everywhere with `...templateName`. This is the #1 pattern for DRY code.
+
+```
+cluster / used: none / 4x6 / 67% / 60s / progress: custom(increment: 5lb) {~
+  if (completedReps >= reps && week == 6) {
+    rm1 += state.increment
+  }
+~}
+
+Bench Press[1-6] / ...cluster
+Squat[1-6] / ...cluster / progress: custom(increment: 10lb) { ...cluster }
+```
+
+Key rules:
+- `used: none` only needs to be declared **once** per template (in Week 1). Do NOT repeat it when redefining the template in later weeks.
+- Templates can have arbitrary names — they don't need to match an exercise.
+- Override specific parts (progress, weight, timer) on the reusing exercise while inheriting everything else.
+
+### Repeat exercises with `[1-N]`, define only in Week 1
+
+Exercises that appear every week should use `[fromWeek-toWeek]` syntax and only be written out in Week 1. Later weeks only redefine templates:
+
+```
+# Week 1
+## Day 1
+t1 / used: none / 3x5 / 75% / progress: lp(5lb)
+Squat[1-4] / ...t1
+Bench Press[1-4] / ...t1
+
+## Day 2
+Deadlift[1-4] / ...t1
+
+# Week 2
+## Day 1
+t1 / 3x4 / 80%
+## Day 2
+
+# Week 3
+## Day 1
+t1 / 3x3 / 85%
+## Day 2
+```
+
+**Critical**: Empty `## Day` headers are REQUIRED in later weeks for repeated exercises to show up. Without them, those days won't exist.
+
+### Week range syntax `[from-to]`
+
+`Exercise[1-6]` means the exercise repeats from week 1 through week 6. `Exercise[5-6]` means it starts from week 5 and runs through week 6 — useful for exercises that replace others partway through a program.
+
+**CRITICAL: `[1,3,5]` is NOT week selection.** Comma-separated numbers in brackets are parsed as forced display ordering, not "only on these weeks." `[1,3,5]` means "forced order position 1, weeks 3-5." If you need an exercise on non-contiguous weeks (e.g., weeks 1, 3, and 5 only), you must define it explicitly in each of those week headers — there is no shorthand for non-contiguous weeks.
+
+Forced ordering (`Exercise[1,1-6]`) is usually unnecessary. Use `Exercise[1-6]` unless you have multiple exercises starting on different days/weeks that need explicit ordering. The first number is a forced display order — only add it when the order would be ambiguous.
+
+### Supersets
+
+Use `superset: A` where `A` is an identifier shared across exercises in the same group. The scope is per-day, so you can reuse the same label across different days:
+
+```
+Bench Press[1-6] / ...cluster / superset: A
+Squat[1-6] / ...cluster / superset: A
+Pull Up[1-6] / ...cluster / superset: A
+```
+
+**Pre-exhaust supersets** (isolation → compound with truly zero rest, e.g., Mike Mentzer's Heavy Duty): set `0s` timer on the first exercise and `warmup: none` on the second. The default superset rest is 15s (enough to move between equipment), but pre-exhaust requires absolutely no recovery time. The second exercise skips warmup since the muscles are already warm from the isolation.
+
+```
+Chest Fly / 1x6 / 20lb 0s / superset: chest / progress: dp(5lb, 6, 10)
+Incline Bench Press / 1x6 / 95lb / warmup: none / superset: chest / progress: dp(5lb, 6, 10)
+```
+
+### Progression patterns
+
+**Linear progression** — simplest, for beginners:
+```
+Squat / 3x5 / 135lb / progress: lp(5lb)
+```
+
+**Double progression** — increase reps in range, then bump weight. NEVER use rep ranges in set notation with `dp()`:
+```
+Bench Press / 3x8 / 135lb / progress: dp(5lb, 8, 12)   // correct
+Bench Press / 3x8-12 / progress: dp(5lb, 8, 12)         // WRONG
+```
+
+**Custom progression** — for percentage-based or block programs. Use `rm1 +=` to preserve percentage relationships:
+```
+main / used: none / 1x5 58%, 1x5 67%, 1x5+ 76% / progress: custom(increment: 5lb) {~
+  if (completedReps >= reps && week == 3) {
+    rm1 += state.increment
+  }
+~}
+```
+
+**Reusing progress logic** with different parameters:
+```
+Squat[1-3] / ...main
+Bench Press[1-3] / ...main / progress: custom(increment: 5lb) { ...main }
+```
+
+When reusing, only specify state variables that differ from the template. Omitted variables inherit the template's values.
+
+### Percentage-based programs
+
+Use `rm1 += state.increment` (not `weights +=`) so that all percentage-based sets adjust proportionally. The `weights +=` approach breaks percentage relationships.
+
+### Week/day guards in custom progress
+
+Progress is defined **once per exercise/label combination** and fires after **every workout day** that has that exercise. In a 4-day program, the progress fires 4 times per week. Use `week` and `dayInWeek` to control WHEN it fires:
+
+```
+// Fire only on the last day of the last week in a 6-week block
+if (completedReps >= reps && dayInWeek == 3 && week == 6) {
+  rm1 += state.increment
+}
+```
+
+**CRITICAL: `weights +=` applies to ALL weeks and ALL days by default** (wildcard target `[*:*:*:*]`). In multi-day programs, you MUST guard with `dayInWeek` to prevent the increment from firing multiple times per week:
+
+```
+// WRONG — fires 4 times per week, adding 4x the increment
+if (week == 1) { weights += 10lb }
+
+// CORRECT — fires only on the last day of each week
+if (week == 1 && dayInWeek == 4) { weights += 10lb }
+```
+
+This applies to any `weights +=` in a progress block where the exercise appears on multiple days per week.
+
+### Warmups
+
+- Default warmups are auto-added. Use `warmup: none` for bodyweight exercises (Pull Up, Chin Up, Dip, etc.) or exercises where warmups don't make sense.
+- Custom warmups: `warmup: 1x5 45lb, 1x3 135lb, 1x1 80%` (percentages are of first working set, not 1RM).
+
+### Set variations (stage-based progression)
+
+Separate set schemes with `/` and switch between them via `setVariationIndex`:
+
+```
+t1 / used: none / 4x3, 1x3+ / 5x2, 1x2+ / 9x1, 1x1+ / 75% / progress: custom() {~
+  if (completedReps >= reps) {
+    weights = completedWeights[ns] + 5lb
+  } else {
+    setVariationIndex += 1
+  }
+~}
+```
+
+### Exercise variations (progression ladders)
+
+Switch the **movement itself** (not the set scheme) by listing exercises separated by `|` and advancing `exerciseVariationIndex`. Useful for calisthenics ladders (r/bodyweightfitness RR). The current movement is marked with `!` (first is current by default); `exerciseVariationIndex` is 1-based and wraps mod length.
+
+```
+Split Squat | Bulgarian Split Squat | Pistol Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+```
+
+- Sets/reps/weights/progress are SHARED across variations - only the movement changes. Combine with set variations for a per-movement scheme. `%`/RPE resolve against the current variation's own 1RM.
+- A multi-variation exercise CANNOT be a reuse target (move shared sets into a `used: none` template); it CAN be a reuse consumer. The label comes from the first variation only.
+
+### Starting weights
+
+- If the program uses 1RM percentages, use `%` notation: `3x5 / 75%`
+- If the program uses RPE, use `@` notation: `3x5 @8`
+- Otherwise, ALWAYS set a default starting weight: `3x8 / 135lb`. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
+- **Non-default equipment**: `startingWeightLb` is calibrated for the default equipment (e.g., Shrug defaults to dumbbell at 45lb, Bicep Curl defaults to dumbbell at 20lb). When using a non-default variant like `Shrug, Barbell` or `Bicep Curl, Barbell`, always specify an explicit starting weight since the default will be wrong (e.g., `Shrug, Barbell / 1x6 / 135lb`).
+
+### Labels for same exercise with different roles
+
+If the same exercise appears in different contexts (e.g., heavy and light), use labels:
+
+```
+power: Bench Press / 3x3 / 85% / progress: dp(5lb, 3, 5)
+hyper: Bench Press / 3x10 / 60% / progress: dp(5lb, 10, 15)
+```
+
+### AMRAP sets
+
+Add `+` after the rep count: `4x3, 1x3+`. The last set becomes as-many-reps-as-possible.
+
+### Ask weight
+
+Add `+` after a weight to prompt the user to confirm: `3x8 100lb+`. To ask for weight when none is explicit (e.g. inferred from RPE), use `?+`:
+```
+Squat / 3x8 @8 ?+
+```
+
+### Rest times
+
+Specify per-exercise or per-set: `3x5 / 120s` or `1x5 60s, 3x5 120s`.
+
+## Validation
+
+After writing, ALWAYS validate:
+
+```bash
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/validate_liftoscript.ts programs/builtin/<id>.md
+```
+
+Use validation output to sanity-check:
+- **Workout duration** — does it match claims in the description?
+- **Weekly volume per muscle group** — any glaring gaps to mention in pros/cons?
+
+Fix errors and re-validate until it passes.
+
+## Common Mistakes
+
+1. Repeating `used: none` on template redefinitions in later weeks
+2. Missing empty `## Day` headers in later weeks (exercises won't appear)
+3. Using `weights +=` in percentage-based programs (use `rm1 +=` instead)
+4. Using rep ranges with `dp()`: `3x8-12 / dp(...)` is WRONG
+5. Using `[1,3,5]` thinking it selects weeks 1, 3, and 5 — it's actually forced ordering, not week selection. For non-contiguous weeks, define the exercise explicitly in each week header.
+6. Adding forced order numbers when not needed: `[1,1-6]` vs `[1-6]`
+7. Forgetting `warmup: none` on bodyweight exercises
+8. Defining exercises in every week instead of using `[1-N]` and template redefinitions
+9. Using `weights +=` without `dayInWeek` guard in multi-day programs — it fires once per day, so `weights += 10lb` on a 4-day program adds 40lb per week instead of 10lb
+10. Omitting rest timers from template overrides in later weeks — rest timers are NOT inherited across weeks. If the initial template defines `/ 120s`, every week override must also include `/ 120s` or the timer will be lost for that week.

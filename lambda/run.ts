@@ -1,20 +1,24 @@
 import {
   getHandler,
-  getLftFreeformLambda,
-  getLftFreeformLambdaDev,
   getLftStatsLambda,
   getLftStatsLambdaDev,
+  getLftReconcilePaymentsLambda,
+  getLftReconcilePaymentsLambdaDev,
 } from "./index";
+import { getStreamingHandler } from "./streamingHandler";
 import fetch from "node-fetch";
 import { LogUtil } from "./utils/log";
-import { buildDi } from "./utils/di";
+import { buildDi, IDI } from "./utils/di";
 
-const log = new LogUtil();
-const di = buildDi(log, fetch);
-export const handler = getHandler(di);
+const diBuilder = (): IDI => buildDi(new LogUtil(), fetch);
 
-export const LftFreeformLambdaDev = getLftFreeformLambdaDev(di);
-export const LftFreeformLambda = getLftFreeformLambda(di);
+export const handler = getHandler(diBuilder);
 
-export const LftStatsLambdaDev = getLftStatsLambdaDev(di);
-export const LftStatsLambda = getLftStatsLambda(di);
+export const LftStatsLambdaDev = getLftStatsLambdaDev(diBuilder);
+export const LftStatsLambda = getLftStatsLambda(diBuilder);
+
+export const LftReconcilePaymentsLambdaDev = getLftReconcilePaymentsLambdaDev(diBuilder);
+export const LftReconcilePaymentsLambda = getLftReconcilePaymentsLambda(diBuilder);
+
+// Lambda Function URL handler for streaming
+export const streamingHandler = getStreamingHandler(diBuilder);

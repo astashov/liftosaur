@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Liftosaur: Google Auth Callback</title>
+  </head>
+  <body>
+    <script>
+      if (window.opener != null) {
+        window.opener.postMessage(window.location.href);
+        window.close();
+      }
+    </script>
+  </body>
+</html>

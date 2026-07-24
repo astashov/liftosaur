@@ -1,11 +1,11 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 
 interface IProps {
   title: string;
   name: string;
-  icon: JSX.Element;
+  icon?: JSX.Element;
   isFirst?: boolean;
-  description: string | JSX.Element;
+  description?: string | JSX.Element;
   className?: string;
   onClick: () => void;
 }
@@ -13,17 +13,18 @@ interface IProps {
 export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <button
-      data-cy={`bottom-sheet-${props.name}`}
-      className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-grayv2-100 mt-4" : ""} ${
+      data-testid={`bottom-sheet-${props.name}`}
+      style={{ outline: "none" }}
+      className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-border-neutral mt-4" : ""} ${
         props.className
       } nm-${props.name}`}
       onClick={props.onClick}
     >
       <div className={`flex items-center ${!props.isFirst ? "pt-4" : ""}`}>
-        <div>{props.icon}</div>
+        {props.icon && <div>{props.icon}</div>}
         <div className="flex-1 pl-3">{props.title}</div>
       </div>
-      <div className="pt-2 text-xs text-grayv2-main">{props.description}</div>
+      {props.description && <div className="pt-2 text-xs text-text-secondary">{props.description}</div>}
     </button>
   );
 }

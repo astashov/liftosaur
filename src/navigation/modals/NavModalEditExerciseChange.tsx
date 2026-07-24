@@ -1,0 +1,128 @@
+import { JSX, useCallback, useEffect } from "react";
+import { View } from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
+import { Text } from "../../components/primitives/text";
+import { Button } from "../../components/button";
+import { IState } from "../../models/state";
+import { lb } from "lens-shmens";
+import { IPlannerState } from "../../pages/planner/models/types";
+import { buildPlannerDispatch } from "../../utils/plannerDispatch";
+import { pickerStateFromPlannerExercise } from "../../components/editProgram/editProgramUtils";
+import type { IRootStackParamList } from "../types";
+
+export function NavModalEditExerciseChange(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navigation = useNavigation();
+  const route = useRoute<{
+    key: string;
+    name: "editExerciseChangeModal";
+    params: IRootStackParamList["editExerciseChangeModal"];
+  }>();
+  const { programId } = route.params;
+  const settings = state.storage.settings;
+
+  const plannerState = state.editProgramStates?.[programId];
+  const lbUi = lb<IPlannerState>().p("ui");
+  const plannerDispatch = useCallback(
+    plannerState
+      ? buildPlannerDispatch(dispatch, lb<IState>().p("editProgramStates").p(programId), plannerState)
+      : () => {},
+    [dispatch, programId, plannerState]
+  );
+
+  const editExerciseModal = plannerState?.ui?.editExerciseModal;
+
+  const onClose = (): void => {
+    if (plannerState) {
+      plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal");
+    }
+    navigation.goBack();
+  };
+
+  const shouldGoBack = !plannerState || !editExerciseModal;
+  useEffect(() => {
+    if (shouldGoBack) {
+      navigation.goBack();
+    }
+  }, [shouldGoBack]);
+
+  if (shouldGoBack) {
+    return <></>;
+  }
+
+  return (
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet
+        header={
+          <View className="py-2 text-center">
+            <Text className="text-lg font-semibold text-center">Change Exercise</Text>
+          </View>
+        }
+      >
+        <View className="flex-row w-full py-2" style={{ gap: 16 }}>
+          <View className="flex-1">
+            <Button
+              className="text-center"
+              name="edit-exercise-change-one"
+              data-testid="edit-exercise-change-one"
+              testID="edit-exercise-change-one"
+              kind="purple"
+              onClick={() => {
+                const plannerExercise = editExerciseModal!.plannerExercise;
+                navigation.goBack();
+                setTimeout(() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        exerciseKey: plannerExercise.key,
+                        dayData: plannerExercise.dayData,
+                        change: "one",
+                      }),
+                    ],
+                    "Change exercise for one instance"
+                  );
+                }, 50);
+              }}
+            >
+              Change only for this week/day
+            </Button>
+          </View>
+          <View className="flex-1">
+            <Button
+              className="text-center"
+              name="edit-exercise-change-all"
+              data-testid="edit-exercise-change-all"
+              testID="edit-exercise-change-all"
+              kind="purple"
+              onClick={() => {
+                const plannerExercise = editExerciseModal!.plannerExercise;
+                navigation.goBack();
+                setTimeout(() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        exerciseKey: plannerExercise.key,
+                        dayData: plannerExercise.dayData,
+                        change: "all",
+                      }),
+                    ],
+                    "Change exercise for all instances"
+                  );
+                }, 50);
+              }}
+            >
+              Change across whole program
+            </Button>
+          </View>
+        </View>
+      </FormSheet>
+    </ModalScreenContainer>
+  );
+}

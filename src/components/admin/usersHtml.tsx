@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { UsersContent, IProcessedUser } from "./usersContent";
 import { AdminHtml, renderAdminHtml } from "./adminHtml";
 

@@ -1,146 +1,410 @@
-import { CollectionUtils } from "../utils/collection";
-import { Weight } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IEquipment, ISettings } from "../types";
+import { CollectionUtils_groupBy, CollectionUtils_inGroupsOf } from "../utils/collection";
+import {
+  Weight_display,
+  Weight_eqNull,
+  Weight_gte,
+  Weight_print,
+  Weight_printNull,
+  Weight_multiply,
+  Weight_build,
+  Weight_convertTo,
+  Weight_add,
+} from "./weight";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
+import { ObjectUtils_clone } from "../utils/object";
+import { UidFactory_generateUid } from "../utils/generator";
+import { Progress_getNextEntry } from "./progress";
 
 export type IProgramReps = number;
 
-export namespace Reps {
-  export function display(sets: ISet[], isNext: boolean = false): string {
-    if (areSameReps(sets, isNext)) {
-      return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
+export type ISetsStatus = "success" | "in-range" | "failed" | "not-finished";
+
+export interface IDisplaySet {
+  dimReps?: boolean;
+  dimRpe?: boolean;
+  dimWeight?: boolean;
+  dimTimer?: boolean;
+  reps: string;
+  weight?: string;
+  rpe?: string;
+  askWeight?: boolean;
+  unit?: string;
+  isCompleted?: boolean;
+  isRpeFailed?: boolean;
+  isInRange?: boolean;
+  timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
+}
+
+export function Reps_display(sets: ISet[], isNext: boolean = false): string {
+  if (Reps_areSameReps(sets, isNext)) {
+    return `${sets.length}x${sets[0].completedReps || sets[0].reps}`;
+  } else {
+    const arr = sets.map((s) => (isNext ? Reps_displayReps(s) : Reps_displayCompletedReps(s)));
+    const groups = CollectionUtils_inGroupsOf(5, arr);
+    return groups.map((g) => g.join("/")).join("/ ");
+  }
+}
+
+function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
+  return (
+    a.reps === b.reps &&
+    a.weight === b.weight &&
+    a.rpe === b.rpe &&
+    a.askWeight === b.askWeight &&
+    a.timer === b.timer &&
+    a.setTimer === b.setTimer &&
+    a.isOverflowSetTimer === b.isOverflowSetTimer &&
+    a.auto === b.auto
+  );
+}
+
+export function Reps_groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
+  return CollectionUtils_groupBy(displaySets, (last, set) => {
+    return !isSameDisplaySet(last, set);
+  });
+}
+
+export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): IDisplaySet {
+  const completedOrRequiredWeight = set.completedWeight ?? set.weight;
+  return {
+    reps: isNext ? Reps_displayReps(set) : Reps_displayCompletedReps(set),
+    rpe: set.completedRpe?.toString() ?? set.rpe?.toString(),
+    weight: isNext
+      ? set.weight && set.originalWeight
+        ? Weight_display(set.weight, false)
+        : undefined
+      : completedOrRequiredWeight
+        ? Weight_display(completedOrRequiredWeight, false)
+        : undefined,
+    unit: completedOrRequiredWeight?.unit ?? units,
+    askWeight: set.askWeight,
+    isCompleted: Reps_isCompletedSet(set),
+    isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
+    isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
+    setTimer: isNext ? set.setTimer : (set.completedSetTimer ?? set.setTimer),
+    isOverflowSetTimer: isNext ? set.isOverflowSetTimer : undefined,
+    timer: isNext ? set.timer : undefined,
+    auto: set.auto,
+  };
+}
+
+export function Reps_addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet, isWarmup?: boolean): ISet[] {
+  lastSet = sets[sets.length - 1] || lastSet;
+  if (lastSet == null) {
+    lastSet = Reps_newSet(isUnilateral, 0);
+  } else {
+    if (isWarmup) {
+      lastSet = {
+        ...ObjectUtils_clone(lastSet),
+        reps: lastSet.completedReps ?? lastSet.reps,
+        weight: lastSet.completedWeight ?? lastSet.weight,
+      };
     } else {
-      const arr = sets.map((s) => (isNext ? displayReps(s) : displayCompletedReps(s)));
-      const groups = CollectionUtils.inGroupsOf(5, arr);
-      return groups.map((g) => g.join("/")).join("/ ");
+      lastSet = {
+        ...ObjectUtils_clone(lastSet),
+        reps: lastSet.reps ?? lastSet.completedReps,
+        weight: lastSet.weight ?? lastSet.completedWeight,
+        originalWeight: lastSet.originalWeight ?? lastSet.weight ?? lastSet.completedWeight,
+        completedReps: undefined,
+        completedRepsLeft: undefined,
+        completedWeight: undefined,
+        completedRpe: undefined,
+        completedSetTimer: undefined,
+      };
     }
   }
+  const maxIndex = Math.max(-1, ...sets.map((s) => s.index || 0));
 
-  export function displayReps(set: ISet): string {
-    const reps = set.minReps != null ? `${set.minReps}-${set.reps}` : `${set.reps}`;
-    return set.isAmrap ? `${reps}+` : `${reps}`;
+  return [
+    ...sets,
+    { ...ObjectUtils_clone(lastSet), id: UidFactory_generateUid(6), isCompleted: false, index: maxIndex + 1 },
+  ];
+}
+
+export function Reps_isSameSet(set1: ISet, set2: ISet): boolean {
+  return Weight_eqNull(set1.weight, set2.weight) && set1.completedReps === set2.completedReps && set1.rpe === set2.rpe;
+}
+
+export function Reps_displayReps(set: ISet): string {
+  const reps = set.minReps != null ? `${set.minReps}-${set.reps ?? 0}` : `${set.reps ?? 0}`;
+  return set.isAmrap ? `${reps}+` : `${reps}`;
+}
+
+export function Reps_displayCompletedReps(set: ISet): string {
+  return set.completedReps != null
+    ? `${set.completedRepsLeft != null ? `${set.completedRepsLeft}/` : ""}${set.completedReps}`
+    : "-";
+}
+
+export function Reps_areSameReps(sets: ISet[], isNext: boolean): boolean {
+  const firstRep = sets[0]?.reps;
+  if (sets.length > 0) {
+    return sets.every(
+      (s) => (isNext ? s.reps : s.completedReps) != null && (isNext ? s.reps : s.completedReps) === firstRep
+    );
+  } else {
+    return false;
   }
+}
 
-  export function displayCompletedReps(set: ISet): string {
-    return set.completedReps != null ? `${set.completedReps}` : "-";
+export function Reps_isEmpty(sets: ISet[]): boolean {
+  return sets.every((s) => !s.isCompleted);
+}
+
+export function Reps_newSet(isUnilateral: boolean, index: number): ISet {
+  return {
+    vtype: "set",
+    index,
+    id: UidFactory_generateUid(6),
+    originalWeight: undefined,
+    weight: undefined,
+    isUnilateral,
+    reps: undefined,
+    isAmrap: false,
+    askWeight: false,
+    isCompleted: false,
+  };
+}
+
+export function Reps_isCompleted(sets: ISet[]): boolean {
+  return sets.length > 0 && sets.every((set) => Reps_isCompletedSet(set));
+}
+
+export function Reps_setWarmupStatus(sets: ISet[]): ISetsStatus {
+  if (sets.length === 0) {
+    return "not-finished";
   }
-
-  export function areSameReps(sets: ISet[], isNext: boolean): boolean {
-    const firstRep = sets[0]?.reps;
-    if (sets.length > 0) {
-      return sets.every(
-        (s) => (isNext ? s.reps : s.completedReps) != null && (isNext ? s.reps : s.completedReps) === firstRep
-      );
-    } else {
-      return false;
-    }
+  if (Reps_isFinished(sets)) {
+    return "success";
+  } else {
+    return "not-finished";
   }
+}
 
-  export function isEmpty(sets: ISet[]): boolean {
-    return sets.every((s) => s.completedReps == null);
+export function Reps_setsStatus(sets: ISet[]): ISetsStatus {
+  if (Reps_isCompleted(sets)) {
+    return "success";
+  } else if (Reps_isInRangeCompleted(sets)) {
+    return "in-range";
+  } else if (!Reps_isFinished(sets)) {
+    return "not-finished";
+  } else {
+    return "failed";
   }
+}
 
-  export function isCompleted(sets: ISet[]): boolean {
-    return sets.every((set) => Reps.isCompletedSet(set));
-  }
-
-  export function isCompletedSet(set: ISet): boolean {
-    if (set.completedReps != null) {
-      return set.completedReps >= set.reps;
-    } else {
-      return false;
-    }
-  }
-
-  export function isInRangeCompletedSet(set: ISet): boolean {
+export function Reps_isCompletedSet(set: ISet): boolean {
+  if (set.completedReps != null && set.completedWeight != null) {
     return (
-      set.completedReps != null &&
-      (set.minReps != null ? set.completedReps >= set.minReps : set.completedReps >= set.reps)
+      !!set.isCompleted &&
+      (set.reps == null || set.completedReps >= set.reps) &&
+      (set.weight == null || Weight_gte(set.completedWeight, set.weight))
     );
+  } else {
+    return false;
   }
+}
 
-  export function isFinished(sets: ISet[]): boolean {
-    return sets.every((s) => isFinishedSet(s));
-  }
-
-  export function isFinishedSet(s: ISet): boolean {
-    return s.completedReps != null;
-  }
-
-  export function isInRangeCompleted(sets: ISet[]): boolean {
-    return sets.some((s) => s.minReps != null) && sets.every((s) => Reps.isInRangeCompletedSet(s));
-  }
-
-  export function roundSets(sets: ISet[], settings: ISettings, equipment?: IEquipment): ISet[] {
-    return sets.map((set) => {
-      return { ...set, weight: Weight.roundConvertTo(set.weight, settings, equipment) };
-    });
-  }
-
-  export function group(sets: ISet[], isNext?: boolean): ISet[][] {
-    return sets.reduce<ISet[][]>(
-      (memo, set) => {
-        let lastGroup = memo[memo.length - 1];
-        const last = lastGroup[lastGroup.length - 1];
-        if (
-          last != null &&
-          (!Weight.eq(last.weight, set.weight) ||
-            last.reps !== set.reps ||
-            last.minReps !== set.minReps ||
-            last.completedReps !== set.completedReps ||
-            last.askWeight !== set.askWeight ||
-            (isNext && last.isAmrap !== set.isAmrap) ||
-            last.rpe !== set.rpe ||
-            last.completedRpe !== set.completedRpe)
-        ) {
-          memo.push([]);
-          lastGroup = memo[memo.length - 1];
-        }
-        lastGroup.push(set);
-        return memo;
-      },
-      [[]]
+export function Reps_isInRangeCompletedSet(set: ISet): boolean {
+  if (set.completedReps != null && set.completedWeight != null) {
+    return (
+      (set.weight == null || Weight_gte(set.completedWeight, set.weight)) &&
+      (set.minReps != null ? set.completedReps >= set.minReps : set.reps == null || set.completedReps >= set.reps)
     );
+  } else {
+    return false;
   }
+}
 
-  export function findNextSet(entry: IHistoryEntry): ISet | undefined {
-    return [...entry.warmupSets, ...entry.sets].filter((s) => s.completedReps == null)[0];
+export function Reps_isStarted(sets: ISet[]): boolean {
+  return sets.length > 0 && sets.some((s) => Reps_isFinishedSet(s));
+}
+
+export function Reps_isFinished(sets: ISet[]): boolean {
+  return sets.length > 0 && sets.every((s) => Reps_isFinishedSet(s));
+}
+
+export function Reps_isEmptyOrFinished(sets: ISet[]): boolean {
+  return sets.length === 0 || Reps_isFinished(sets);
+}
+
+export function Reps_isFinishedSet(s: ISet): boolean {
+  return !!s.isCompleted;
+}
+
+export function Reps_toKey(set: ISet): string {
+  return `${Weight_printNull(set.weight)}-${Weight_printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRepsLeft}-${set.completedRpe}-${set.isCompleted}`;
+}
+
+export function Reps_isInRangeCompleted(sets: ISet[]): boolean {
+  return sets.some((s) => s.minReps != null) && sets.every((s) => Reps_isInRangeCompletedSet(s));
+}
+
+export function Reps_enforceCompletedSet(set: ISet): ISet {
+  return {
+    ...set,
+    isCompleted: set.completedReps == null || set.completedWeight == null ? false : !!set.isCompleted,
+  };
+}
+
+export function Reps_maxUnilateralCompletedReps(set: ISet): number | undefined {
+  if (set.isUnilateral) {
+    return Math.max(set.completedReps ?? 0, set.completedRepsLeft ?? 0);
+  } else {
+    return set.completedReps;
   }
+}
 
-  export function findNextEntryAndSet(
-    historyRecord: IHistoryRecord,
-    entryIndex: number
-  ):
-    | {
-        entry: IHistoryEntry;
-        set: ISet;
+export function Reps_avgUnilateralCompletedReps(set: ISet): number | undefined {
+  if (set.isUnilateral) {
+    return Math.round(((set.completedReps ?? 0) + (set.completedRepsLeft ?? 0)) / 2);
+  } else {
+    return set.completedReps;
+  }
+}
+
+export function Reps_setVolume(set: ISet, unit: IUnit): IWeight {
+  const totalReps =
+    set.isUnilateral || set.completedRepsLeft != null
+      ? (set.completedReps ?? 0) + (set.completedRepsLeft ?? 0)
+      : (set.completedReps ?? 0);
+  return Weight_multiply(set.completedWeight ?? set.weight ?? Weight_build(0, unit), totalReps);
+}
+
+export function Reps_group(sets: ISet[], isNext?: boolean): ISet[][] {
+  return sets.reduce<ISet[][]>(
+    (memo, set) => {
+      let lastGroup = memo[memo.length - 1];
+      const last = lastGroup[lastGroup.length - 1];
+      if (
+        last != null &&
+        (!Weight_eqNull(last.weight, set.weight) ||
+          last.reps !== set.reps ||
+          last.minReps !== set.minReps ||
+          last.completedReps !== set.completedReps ||
+          last.completedRepsLeft !== set.completedRepsLeft ||
+          !Weight_eqNull(last.completedWeight, set.completedWeight) ||
+          last.askWeight !== set.askWeight ||
+          (isNext && last.isAmrap !== set.isAmrap) ||
+          last.rpe !== set.rpe ||
+          last.completedRpe !== set.completedRpe ||
+          last.setTimer !== set.setTimer ||
+          (isNext && last.timer !== set.timer) ||
+          (isNext && last.isOverflowSetTimer !== set.isOverflowSetTimer) ||
+          last.auto !== set.auto ||
+          (!isNext && last.completedSetTimer !== set.completedSetTimer))
+      ) {
+        memo.push([]);
+        lastGroup = memo[memo.length - 1];
       }
-    | undefined {
-    const entry = historyRecord.entries[entryIndex];
-    if (entry == null) {
-      return undefined;
-    }
+      lastGroup.push(set);
+      return memo;
+    },
+    [[]]
+  );
+}
 
-    let nextSet = findNextSet(entry);
-    if (nextSet != null) {
-      return { entry, set: nextSet };
-    }
+export function Reps_findNextSet(entry: IHistoryEntry): ISet | undefined {
+  return [...entry.warmupSets, ...entry.sets].filter((s) => !s.isCompleted)[0];
+}
 
-    const nextEntry = historyRecord.entries.filter((e) => !Reps.isFinished(e.sets))[0];
-    if (nextEntry != null) {
-      nextSet = findNextSet(nextEntry);
-      if (nextSet) {
-        return { entry: nextEntry, set: nextSet };
-      }
-    }
+export function Reps_findNextSetIndex(entry: IHistoryEntry): number {
+  return [...entry.warmupSets, ...entry.sets].findIndex((s) => !s.isCompleted);
+}
 
+export function Reps_findNextEntryAndSet(
+  historyRecord: IHistoryRecord,
+  entryIndex: number,
+  mode: "workout" | "warmup"
+):
+  | {
+      entry: IHistoryEntry;
+      set: ISet;
+    }
+  | undefined {
+  const entry = historyRecord.entries[entryIndex];
+  if (entry == null) {
+    return undefined;
+  }
+  const nextEntry = Progress_getNextEntry(historyRecord, entry, mode, true);
+  if (nextEntry == null) {
     return undefined;
   }
 
-  export function volume(sets: ISet[]): IWeight {
-    const unit = sets[0]?.weight?.unit || "lb";
-    return sets.reduce(
-      (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps ?? 0)),
-      Weight.build(0, unit)
-    );
+  const nextSet = Reps_findNextSet(nextEntry);
+  if (nextSet != null) {
+    return { entry: nextEntry, set: nextSet };
   }
+
+  return undefined;
+}
+
+export function Reps_findNextEntryAndSetIndex(
+  historyRecord: IHistoryRecord,
+  entryIndex: number,
+  mode: "workout" | "warmup"
+):
+  | {
+      entryIndex: number;
+      setIndex: number;
+    }
+  | undefined {
+  const entry = historyRecord.entries[entryIndex];
+  if (entry == null) {
+    return undefined;
+  }
+  const nextEntry = Progress_getNextEntry(historyRecord, entry, mode, true);
+  if (nextEntry == null) {
+    return undefined;
+  }
+
+  const nextSet = Reps_findNextSetIndex(nextEntry);
+
+  return { entryIndex: historyRecord.entries.indexOf(nextEntry), setIndex: nextSet };
+}
+
+export function Reps_groupConsecutive<T>(items: T[], keyFn: (item: T) => string): [T, number][] {
+  const groups: [T, number][] = [];
+  let lastKey: string | undefined;
+  for (const item of items) {
+    const key = keyFn(item);
+    if (lastKey == null || lastKey !== key) {
+      groups.push([item, 0]);
+    }
+    groups[groups.length - 1][1] += 1;
+    lastKey = key;
+  }
+  return groups;
+}
+
+export function Reps_completedSetKey(set: ISet): string {
+  const reps = set.completedReps ?? 0;
+  const repsLeft = set.isUnilateral ? (set.completedRepsLeft ?? 0) : -1;
+  const w = set.completedWeight ? Weight_print(set.completedWeight) : "none";
+  const rpe = set.completedRpe ?? -1;
+  const label = set.label ?? "";
+  return `${reps}-${repsLeft}-${w}-${rpe}-${label}`;
+}
+
+export function Reps_targetSetKey(set: ISet): string {
+  const reps = set.reps ?? 0;
+  const minReps = set.minReps ?? -1;
+  const w = set.weight ? Weight_print(set.weight) : "none";
+  const rpe = set.rpe ?? -1;
+  const logRpe = set.logRpe ? 1 : 0;
+  const timer = set.timer ?? -1;
+  const amrap = set.isAmrap ? 1 : 0;
+  const label = set.label ?? "";
+  const askWeight = set.askWeight ? 1 : 0;
+  return `${reps}-${minReps}-${w}-${askWeight}-${rpe}-${logRpe}-${timer}-${amrap}-${label}`;
+}
+
+export function Reps_volume(sets: ISet[], unit: IUnit): IWeight {
+  return Weight_convertTo(
+    sets.reduce((memo, set) => Weight_add(memo, Reps_setVolume(set, unit)), Weight_build(0, unit)),
+    unit
+  );
 }

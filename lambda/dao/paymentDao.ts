@@ -1,0 +1,86 @@
+import { Utils_getEnv } from "../utils";
+import { IDI } from "../utils/di";
+
+const tableNames = {
+  dev: {
+    payments: "lftPaymentsDev",
+  },
+  prod: {
+    payments: "lftPayments",
+  },
+} as const;
+
+export interface IPaymentDao {
+  userId: string;
+  timestamp: number;
+  originalTransactionId: string;
+  transactionId: string;
+  productId: string;
+  amount: number;
+  tax?: number;
+  currency?: string;
+  type: "apple" | "google";
+  source: "verifier" | "webhook" | "reconciler";
+  paymentType: "purchase" | "renewal" | "refund";
+  isFreeTrialPayment: boolean;
+  subscriptionStartTimestamp?: number;
+  offerIdentifier?: string;
+  // Play Console license-tester / test purchase. Stored, but hidden from the payments dashboard and
+  // excluded from affiliate revenue so test purchases don't pollute reporting or affiliate payouts.
+  isTest?: boolean;
+}
+
+export class PaymentDao {
+  constructor(private readonly di: IDI) {}
+
+  public async add(payment: IPaymentDao): Promise<void> {
+    const date = new Date(2025, 8, 9);
+    if (payment.timestamp < date.getTime()) {
+      return;
+    }
+    const env = Utils_getEnv();
+    await this.di.dynamo.put({
+      tableName: tableNames[env].payments,
+      item: payment,
+    });
+  }
+
+  public async doesExist(transactionId: string): Promise<boolean> {
+    const env = Utils_getEnv();
+    const existingPayments = await this.di.dynamo.query<IPaymentDao>({
+      tableName: tableNames[env].payments,
+      indexName: `lftPaymentsTransactionId${env === "dev" ? "Dev" : ""}`,
+      expression: "transactionId = :transactionId",
+      values: { ":transactionId": transactionId },
+      limit: 1,
+    });
+
+    return existingPayments.length > 0;
+  }
+
+  public async addIfNotExists(payment: IPaymentDao): Promise<boolean> {
+    if (await this.doesExist(payment.transactionId)) {
+      return false;
+    }
+    await this.add(payment);
+    return true;
+  }
+
+  public async getByUserId(userId: string, limit?: number): Promise<IPaymentDao[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.query<IPaymentDao>({
+      tableName: tableNames[env].payments,
+      expression: "userId = :userId",
+      values: { ":userId": userId },
+      scanIndexForward: false,
+      limit,
+    });
+  }
+
+  public async getAllPayments(): Promise<IPaymentDao[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.scan<IPaymentDao>({
+      tableName: tableNames[env].payments,
+    });
+  }
+}

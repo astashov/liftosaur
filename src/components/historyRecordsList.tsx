@@ -1,77 +1,43 @@
-import { Fragment, h, JSX } from "preact";
+import { JSX, Fragment } from "react";
 import { IDispatch } from "../ducks/types";
-import { Progress } from "../models/progress";
-import { IAllComments, IAllLikes, IFriendUser } from "../models/state";
-import { IHistoryRecord, ISettings } from "../types";
+import { IPersonalRecords } from "../models/history";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { HistoryRecordView } from "./historyRecord";
+import { Program_evaluate, Program_getProgramDay } from "../models/program";
+import { View } from "react-native";
 
 interface IHistoryRecordsListProps {
   history: IHistoryRecord[];
-  progress?: IHistoryRecord;
+  program: IProgram;
+  isOngoing: boolean;
+  prs: IPersonalRecords;
   settings: ISettings;
-  friendsHistory: Partial<Record<string, IFriendUser>>;
-  currentUserId?: string;
-  comments: IAllComments;
-  likes: IAllLikes;
+  firstDayOfWeeks: number[];
   dispatch: IDispatch;
-  visibleRecords: number;
-}
-
-interface IAttributedHistoryRecord {
-  user: "self" | IFriendUser;
-  record: IHistoryRecord;
+  subscription: ISubscription;
 }
 
 export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element {
-  const { history, settings, friendsHistory, dispatch, visibleRecords } = props;
-  const combinedHistory = [
-    ...history.slice(0, visibleRecords),
-    ...(settings.shouldShowFriendsHistory ? Object.values(friendsHistory) : []),
-  ].reduce<IAttributedHistoryRecord[]>((memo, item) => {
-    if ("storage" in item!) {
-      for (const hr of item.storage.history) {
-        memo.push({ user: item, record: hr });
-      }
-    } else {
-      memo.push({ user: "self", record: item! });
-    }
-    return memo;
-  }, []);
-  combinedHistory.sort((a, b) => {
-    if (Progress.isCurrent(a.record)) {
-      return -1;
-    } else if (Progress.isCurrent(b.record)) {
-      return 1;
-    } else {
-      return new Date(Date.parse(b.record.date)).getTime() - new Date(Date.parse(a.record.date)).getTime();
-    }
-  });
+  const { history, settings, dispatch } = props;
+  const program = Program_evaluate(props.program, props.settings);
+  const programDay = Program_getProgramDay(program, program.nextDay);
   return (
     <Fragment>
-      {combinedHistory.map((historyRecord) =>
-        historyRecord.user === "self" ? (
-          <HistoryRecordView
-            isOngoing={!!(Progress.isCurrent(historyRecord.record) && props.progress)}
-            settings={settings}
-            historyRecord={historyRecord.record}
-            userId={props.currentUserId}
-            likes={props.likes}
-            dispatch={dispatch}
-            comments={props.comments}
-          />
-        ) : (
-          <HistoryRecordView
-            isOngoing={!!(Progress.isCurrent(historyRecord.record) && props.progress)}
-            comments={props.comments}
-            settings={historyRecord.user.storage.settings}
-            nickname={historyRecord.user.nickname || historyRecord.user.id}
-            friendId={historyRecord.user.id}
-            likes={props.likes}
-            historyRecord={historyRecord.record}
-            dispatch={dispatch}
-          />
-        )
-      )}
+      {history.map((record) => {
+        return (
+          <View className="mx-4 mb-6" key={record.id}>
+            <HistoryRecordView
+              isOngoing={props.isOngoing}
+              showTitle={true}
+              programDay={programDay}
+              prs={props.prs}
+              settings={settings}
+              historyRecord={record}
+              dispatch={dispatch}
+            />
+          </View>
+        );
+      })}
     </Fragment>
   );
 }

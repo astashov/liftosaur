@@ -1,352 +1,417 @@
 import { runMigrations } from "../migrations/runner";
-import * as t from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
+import * as v from "valibot";
 import { getLatestMigrationVersion } from "../migrations/migrations";
-import { UidFactory } from "../utils/generator";
-import { TStorage, IStorage, IPartialStorage } from "../types";
-import { Settings } from "../models/settings";
+import { UidFactory_generateUid } from "../utils/generator";
+import { Settings_build } from "../models/settings";
 import { IEither } from "../utils/types";
 import RB from "rollbar";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
-import { CollectionUtils } from "../utils/collection";
-import deepmerge from "deepmerge";
-import { Equipment } from "./equipment";
-import { ObjectUtils } from "../utils/object";
-import { Program } from "./program";
-import { DateUtils } from "../utils/date";
-import { Exercise } from "./exercise";
+import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
+import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
+import {
+  IHistoryRecord,
+  IStorage,
+  IPartialStorage,
+  IHearAboutUs,
+  STORAGE_VERSION_TYPES,
+  VStorage,
+  VHistoryRecord,
+} from "../types";
+import {
+  CollectionUtils_groupByKeyUniq,
+  CollectionUtils_compact,
+  CollectionUtils_immutableSort,
+} from "../utils/collection";
+import { IVersions, VersionTracker } from "./versionTracker";
+import { lg } from "../utils/posthog";
+import { Diagnostics_getLastActions, Diagnostics_setLastValidationErrors } from "../utils/diagnostics";
 
 declare let Rollbar: RB;
 
-export namespace Storage {
-  export function validate(
-    data: Record<string, unknown>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    type: t.Type<any, any, any>,
-    name: string
-  ): IEither<IStorage, string[]> {
-    const decoded = type.decode(data);
-    if ("left" in decoded) {
-      const error = PathReporter.report(decoded);
-      return { success: false, error };
-    } else {
-      return { success: true, data: decoded.right };
-    }
+function formatIssuePath(issue: v.GenericIssue): string {
+  if (!issue.path || issue.path.length === 0) {
+    return "";
   }
-
-  export function validateAndReport(
-    data: Record<string, unknown>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    type: t.Type<any, any, any>,
-    name: string
-  ): IEither<IStorage, string[]> {
-    const result = validate(data, type, name);
-    if (!result.success) {
-      const error = result.error;
-      if (Rollbar != null) {
-        Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
+  return issue.path
+    .map((segment) => {
+      const key = (segment as { key: unknown }).key;
+      if (typeof key === "number") {
+        return `[${key}]`;
       }
-      console.error(`Error decoding ${name}`);
-      console.log(data);
-      error.forEach((e) => console.error(e));
+      return String(key);
+    })
+    .reduce((acc, part) => {
+      if (part.startsWith("[")) {
+        return `${acc}${part}`;
+      }
+      return acc ? `${acc}.${part}` : part;
+    }, "");
+}
+
+export function Storage_validate<T>(data: unknown, schema: v.GenericSchema<T>, name: string): IEither<T, string[]> {
+  const result = v.safeParse(schema, data, { abortEarly: false });
+  if (result.success) {
+    // Return the input as T (not result.output) so unknown fields are preserved at every
+    // nesting level — valibot's v.object strips unknown keys; io-ts did not, and storage may
+    // carry forward-compatible fields we do not want to silently drop. Trade-off: any
+    // v.transform / coercion added to schemas in the future will run but be discarded here.
+    return { success: true, data: data as T };
+  }
+  const errors = result.issues.map((issue) => {
+    const path = formatIssuePath(issue);
+    const head = path ? `${name}.${path}` : name;
+    return `${head}: ${issue.message}`;
+  });
+  return { success: false, error: errors };
+}
+
+export function Storage_validateStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
+  const result = Storage_validate(data, VStorage, "storage");
+  if (result.success) {
+    return { success: true, data: result.data as unknown as IStorage };
+  }
+  return result;
+}
+
+export function Storage_validateAndReportStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
+  const result = Storage_validateAndReport(data, VStorage, "storage");
+  if (result.success) {
+    return { success: true, data: result.data as unknown as IStorage };
+  }
+  return result;
+}
+
+export function Storage_fillVersions<T extends IPartialStorage | IStorage>(storage: T, deviceId?: string): T {
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+  const timestamp = Date.now();
+  const filledVersions = versionTracker.fillVersions(storage, storage._versions || {}, timestamp);
+  return {
+    ...storage,
+    _versions: filledVersions,
+  };
+}
+
+export function Storage_validateAndReport<T>(
+  data: unknown,
+  schema: v.GenericSchema<T>,
+  name: string
+): IEither<T, string[]> {
+  const result = Storage_validate(data, schema, name);
+  if (!result.success) {
+    const error = result.error;
+    lg("ls-corrupted-storage", { lastActions: JSON.stringify(Diagnostics_getLastActions()) });
+    Diagnostics_setLastValidationErrors(error);
+    if (typeof Rollbar !== "undefined" && Rollbar != null) {
+      Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
+    }
+    console.error(`Error decoding ${name}`);
+    console.log(data);
+    error.forEach((e) => console.error(e));
+  }
+  return result;
+}
+
+export function Storage_get(
+  maybeStorage?: Record<string, unknown>,
+  shouldReportError?: boolean
+): IEither<IStorage, string[]> {
+  if (maybeStorage) {
+    let finalStorage = runMigrations(maybeStorage as IStorage);
+    const firstValidateResult = Storage_validate(finalStorage, VStorage, "storage");
+    if (!firstValidateResult.success) {
+      maybeStorage.version = "20250322014249";
+      finalStorage = runMigrations(maybeStorage as IStorage);
+    }
+    const result = shouldReportError
+      ? Storage_validateAndReport(finalStorage, VStorage, "storage")
+      : Storage_validate(finalStorage, VStorage, "storage");
+    if (result.success) {
+      return { success: true, data: result.data as unknown as IStorage };
     }
     return result;
+  } else {
+    return { success: false, error: ["Provided data is empty"] };
   }
+}
 
-  export async function get(
-    client: Window["fetch"],
-    maybeStorage?: Record<string, unknown>,
-    shouldReportError?: boolean
-  ): Promise<IEither<IStorage, string[]>> {
-    if (maybeStorage) {
-      let finalStorage = await runMigrations(client, maybeStorage as IStorage);
-      const firstValidateResult = validate(finalStorage, TStorage, "storage");
-      if (!firstValidateResult.success) {
-        maybeStorage.version = "20230612190339";
-        finalStorage = await runMigrations(client, maybeStorage as IStorage);
-      }
-      const result = shouldReportError
-        ? validateAndReport(finalStorage, TStorage, "storage")
-        : validate(finalStorage, TStorage, "storage");
-      return result;
-    } else {
-      return { success: false, error: ["Provided data is empty"] };
-    }
+export function Storage_getHistoryRecord(
+  record: Record<string, unknown>,
+  shouldReportError?: boolean
+): IEither<IHistoryRecord, string[]> {
+  const storage = Storage_getDefault();
+  storage.version = "20251230101232";
+  storage.history = [record as unknown as IHistoryRecord];
+  const migrated = runMigrations(storage);
+  const migratedRecord = migrated.history[0];
+  if (!migratedRecord) {
+    return { success: false, error: ["Failed to migrate history record"] };
   }
+  const result = shouldReportError
+    ? Storage_validateAndReport(migratedRecord as unknown as Record<string, unknown>, VHistoryRecord, "progress")
+    : Storage_validate(migratedRecord as unknown as Record<string, unknown>, VHistoryRecord, "progress");
+  if (result.success) {
+    return { success: true, data: migratedRecord };
+  }
+  return { success: false, error: result.error };
+}
 
-  export function getDefault(): IStorage {
-    const dateNow = Date.now();
+export function Storage_getDefault(): IStorage {
+  const dateNow = Date.now();
+  return {
+    id: dateNow,
+    originalId: dateNow,
+    currentProgramId: undefined,
+    reviewRequests: [],
+    signupRequests: [],
+    deletedHistory: [],
+    deletedPrograms: [],
+    deletedStats: [],
+    tempUserId: UidFactory_generateUid(10),
+    affiliates: {},
+    progress: [],
+    stats: {
+      weight: { weight: [] },
+      length: {
+        neck: [],
+        shoulders: [],
+        bicepLeft: [],
+        bicepRight: [],
+        forearmLeft: [],
+        forearmRight: [],
+        chest: [],
+        waist: [],
+        hips: [],
+        thighLeft: [],
+        thighRight: [],
+        calfLeft: [],
+        calfRight: [],
+      },
+      percentage: { bodyfat: [] },
+    },
+    settings: Settings_build(),
+    history: [],
+    version: getLatestMigrationVersion(),
+    subscription: { apple: [], google: [] },
+    programs: [],
+    helps: [],
+    email: undefined,
+    whatsNew: DateUtils_formatYYYYMMDD(Date.now(), ""),
+  };
+}
+
+export function Storage_setAffiliate(dispatch: IDispatch, source: string, type: "coupon" | "program"): void {
+  updateState(
+    dispatch,
+    [
+      lb<IState>()
+        .p("storage")
+        .p("affiliates")
+        .recordModify((affiliates) => {
+          if (affiliates[source] != null) {
+            return affiliates;
+          }
+          return { ...affiliates, [source]: { id: source, timestamp: Date.now(), type, vtype: "affiliate" } };
+        }),
+    ],
+    "Set affiliate"
+  );
+}
+
+export function Storage_isChanged(aStorage?: IStorage, bStorage?: IStorage): boolean {
+  if ((!aStorage && bStorage) || (!bStorage && aStorage)) {
+    return true;
+  }
+  if (!aStorage && !bStorage) {
+    return false;
+  }
+  const { originalId: _aOriginalId, id: _aId, _versions: _aVersions, ...cleanedAStorage } = aStorage!;
+  const { originalId: _bOriginalId, id: _bId, _versions: _bVersions, ...cleanedBStorage } = bStorage!;
+  const changed = !ObjectUtils_isEqual(cleanedAStorage, cleanedBStorage, ["version"]);
+  return changed;
+}
+
+export function Storage_isFullStorage(storage: IStorage | IPartialStorage): storage is IStorage {
+  return storage.programs != null && storage.history != null && storage.stats != null;
+}
+
+export function Storage_partialStorageToStorage(partialStorage: IPartialStorage): IStorage {
+  if (partialStorage.history != null && partialStorage.programs != null && partialStorage.stats != null) {
+    return partialStorage as IStorage;
+  } else {
     return {
-      id: dateNow,
-      originalId: dateNow,
-      currentProgramId: undefined,
-      reviewRequests: [],
-      signupRequests: [],
-      deletedHistory: [],
-      deletedPrograms: [],
-      deletedStats: [],
-      tempUserId: UidFactory.generateUid(10),
-      affiliates: {},
-      stats: {
-        weight: { weight: [] },
-        length: {
-          neck: [],
-          shoulders: [],
-          bicepLeft: [],
-          bicepRight: [],
-          forearmLeft: [],
-          forearmRight: [],
-          chest: [],
-          waist: [],
-          hips: [],
-          thighLeft: [],
-          thighRight: [],
-          calfLeft: [],
-          calfRight: [],
-        },
-        percentage: { bodyfat: [] },
+      ...partialStorage,
+      history: partialStorage.history || [],
+      programs: partialStorage.programs || [],
+      stats: partialStorage.stats || {
+        length: {},
+        percentage: {},
+        weight: {},
       },
-      settings: Settings.build(),
-      history: [],
-      version: getLatestMigrationVersion(),
-      subscription: { apple: {}, google: {} },
-      programs: [],
-      helps: [],
-      email: undefined,
-      whatsNew: DateUtils.formatYYYYMMDD(Date.now(), ""),
     };
   }
+}
 
-  export function setAffiliate(dispatch: IDispatch, source?: string): void {
-    if (source) {
-      updateState(dispatch, [
-        lb<IState>()
-          .p("storage")
-          .p("affiliates")
-          .recordModify((affiliates) => ({ [source]: Date.now(), ...affiliates })),
-      ]);
-    }
+export function Storage_updateVersions(
+  oldStorage: IPartialStorage,
+  newStorage: IPartialStorage,
+  deviceId?: string
+): IVersions<IStorage> {
+  const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
+  const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+  const timestamp = Date.now();
+  if (
+    oldCleanedStorage.tempUserId === newCleanedStorage.tempUserId &&
+    oldCleanedStorage.version === newCleanedStorage.version
+  ) {
+    return versionTracker.updateVersions(
+      oldCleanedStorage,
+      newCleanedStorage,
+      oldStorage._versions || {},
+      newStorage._versions || {},
+      timestamp
+    );
+  } else {
+    return newVersions || {};
+  }
+}
+
+export function Storage_mergeStorage(oldStorage: IStorage, newStorage: IStorage, deviceId?: string): IStorage {
+  const migratedOldStorage = runMigrations(oldStorage);
+  const migratedNewStorage = runMigrations(newStorage);
+  const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = migratedOldStorage;
+  const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = migratedNewStorage;
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+  const updatedVersions = versionTracker.mergeVersions(oldVersions || {}, newVersions || {});
+  const updatedCleanedStorage = versionTracker.mergeByVersions(
+    oldCleanedStorage,
+    oldVersions || {},
+    newVersions || {},
+    newCleanedStorage
+  );
+  const updatedStorage: IStorage = {
+    ...updatedCleanedStorage,
+    id: Math.max(newId || Date.now(), oldId || Date.now()),
+    originalId: Math.max(newOriginalId ?? 0, oldOriginalId ?? 0),
+    _versions: updatedVersions,
+  };
+  const sortedProgress = sortProgressByIndex(updatedStorage.progress);
+  return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
+}
+
+function sortProgressByIndex(progress: undefined): undefined;
+function sortProgressByIndex(progress: IHistoryRecord[]): IHistoryRecord[];
+function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRecord[] | undefined;
+function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRecord[] | undefined {
+  if (!progress || progress.length === 0) {
+    return progress;
+  }
+  const head = progress[0];
+  if (!head.entries || head.entries.length === 0) {
+    return progress;
   }
 
-  export function isChanged(aStorage: IStorage, bStorage: IStorage): boolean {
-    const { originalId: _aOriginalId, id: _aId, ...cleanedAStorage } = aStorage;
-    const { originalId: _bOriginalId, id: _bId, ...cleanedBStorage } = bStorage;
-    const changed = !ObjectUtils.isEqual(cleanedAStorage, cleanedBStorage, ["diffPaths", "version"]);
-    return changed;
-  }
+  const byIndex = (a: { index: number }, b: { index: number }): number => a.index - b.index;
 
-  export function isFullStorage(storage: IStorage | IPartialStorage): storage is IStorage {
-    return storage.programs != null && storage.history != null && storage.stats != null;
-  }
-
-  export function updateIds(storage: IStorage | IPartialStorage): void {
-    storage.originalId = storage.id;
-    for (const program of storage.programs || []) {
-      for (const exercise of program.exercises) {
-        exercise.diffPaths = [];
+  let entriesWithSortedSets = head.entries;
+  for (let i = 0; i < head.entries.length; i++) {
+    const entry = head.entries[i];
+    const sortedSets = CollectionUtils_immutableSort(entry.sets, byIndex);
+    if (sortedSets !== entry.sets) {
+      if (entriesWithSortedSets === head.entries) {
+        entriesWithSortedSets = head.entries.slice();
       }
+      entriesWithSortedSets[i] = { ...entry, sets: sortedSets };
     }
   }
 
-  export function partialStorageToStorage(partialStorage: IPartialStorage): IStorage {
-    if (partialStorage.history != null && partialStorage.programs != null && partialStorage.stats != null) {
-      return partialStorage as IStorage;
-    } else {
-      return {
-        ...partialStorage,
-        history: partialStorage.history || [],
-        programs: partialStorage.programs || [],
-        stats: partialStorage.stats || {
-          length: {},
-          percentage: {},
-          weight: {},
-        },
-      };
-    }
+  const sortedEntries = CollectionUtils_immutableSort(entriesWithSortedSets, byIndex);
+  if (sortedEntries === head.entries) {
+    return progress;
   }
+  return [{ ...head, entries: sortedEntries }, ...progress.slice(1)];
+}
 
-  export function mergeStorage(
-    oldStorage: IStorage,
-    newStorage: IStorage,
-    enforceNew: boolean = false,
-    fields?: string[]
-  ): IStorage {
-    const deletedHistory = new Set([...oldStorage.deletedHistory, ...newStorage.deletedHistory]);
-    const deletedStats = new Set([...oldStorage.deletedStats, ...newStorage.deletedStats]);
-    const deletedPrograms = new Set([...oldStorage.deletedPrograms, ...newStorage.deletedPrograms]);
-
-    function merge<T extends keyof IStorage>(key: T): IStorage[T] {
-      return fields && fields.indexOf(key) === -1 ? oldStorage[key] : newStorage[key];
-    }
-
-    function merge2<T extends keyof IStorage, V extends keyof IStorage[T]>(key: T, key2: V): IStorage[T][V] {
-      const k = `${key}.${key2}`;
-      return fields && fields.indexOf(k) === -1 ? oldStorage[key][key2] : newStorage[key][key2];
-    }
-
-    function mergeAs<T extends keyof IStorage>(
-      key: T,
-      cb: (a: IStorage[T], b: IStorage[T]) => IStorage[T]
-    ): IStorage[T] {
-      return fields && fields.indexOf(key) === -1 ? oldStorage[key] : cb(oldStorage[key], newStorage[key]);
-    }
-
-    function mergeAs2<T extends keyof IStorage, V extends keyof IStorage[T]>(
-      key: T,
-      key2: V,
-      cb: (a: IStorage[T][V], b: IStorage[T][V]) => IStorage[T][V]
-    ): IStorage[T][V] {
-      const k = `${key}.${key2}`;
-      return fields && fields.indexOf(k) === -1
-        ? oldStorage[key][key2]
-        : cb(oldStorage[key][key2], newStorage[key][key2]);
-    }
-
-    const storage: IStorage = {
-      ...oldStorage,
-      ...newStorage,
-      id: merge("id"),
-      originalId: merge("originalId"),
-      email: merge("email"),
-      reviewRequests: merge("reviewRequests"),
-      signupRequests: merge("signupRequests"),
-      affiliates: merge("affiliates"),
-      deletedHistory: Array.from(deletedHistory),
-      deletedPrograms: Array.from(deletedPrograms),
-      deletedStats: Array.from(deletedStats),
-      stats: {
-        weight: {
-          weight: CollectionUtils.concatBy(
-            oldStorage.stats.weight.weight || [],
-            newStorage.stats.weight.weight || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-        },
-        length: {
-          neck: CollectionUtils.concatBy(
-            oldStorage.stats.length.neck || [],
-            newStorage.stats.length.neck || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          shoulders: CollectionUtils.concatBy(
-            oldStorage.stats.length.shoulders || [],
-            newStorage.stats.length.shoulders || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          bicepLeft: CollectionUtils.concatBy(
-            oldStorage.stats.length.bicepLeft || [],
-            newStorage.stats.length.bicepLeft || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          bicepRight: CollectionUtils.concatBy(
-            oldStorage.stats.length.bicepRight || [],
-            newStorage.stats.length.bicepRight || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          forearmLeft: CollectionUtils.concatBy(
-            oldStorage.stats.length.forearmLeft || [],
-            newStorage.stats.length.forearmLeft || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          forearmRight: CollectionUtils.concatBy(
-            oldStorage.stats.length.forearmRight || [],
-            newStorage.stats.length.forearmRight || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          chest: CollectionUtils.concatBy(
-            oldStorage.stats.length.chest || [],
-            newStorage.stats.length.chest || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          waist: CollectionUtils.concatBy(
-            oldStorage.stats.length.waist || [],
-            newStorage.stats.length.waist || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          hips: CollectionUtils.concatBy(
-            oldStorage.stats.length.hips || [],
-            newStorage.stats.length.hips || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          thighLeft: CollectionUtils.concatBy(
-            oldStorage.stats.length.thighLeft || [],
-            newStorage.stats.length.thighLeft || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          thighRight: CollectionUtils.concatBy(
-            oldStorage.stats.length.thighRight || [],
-            newStorage.stats.length.thighRight || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          calfLeft: CollectionUtils.concatBy(
-            oldStorage.stats.length.calfLeft || [],
-            newStorage.stats.length.calfLeft || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-          calfRight: CollectionUtils.concatBy(
-            oldStorage.stats.length.calfRight || [],
-            newStorage.stats.length.calfRight || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-        },
-        percentage: {
-          bodyfat: CollectionUtils.concatBy(
-            oldStorage.stats.percentage.bodyfat || [],
-            newStorage.stats.percentage.bodyfat || [],
-            (el) => `${el.timestamp}`
-          ).filter((el) => !deletedStats.has(el.timestamp)),
-        },
-      },
-      settings: {
-        equipment: mergeAs2("settings", "equipment", (a, b) => Equipment.mergeEquipment(a, b)),
-        graphsSettings: merge2("settings", "graphsSettings"),
-        graphOptions: merge2("settings", "graphOptions"),
-        exerciseStatsSettings: merge2("settings", "exerciseStatsSettings"),
-        lengthUnits: merge2("settings", "lengthUnits"),
-        statsEnabled: merge2("settings", "statsEnabled"),
-        exercises: mergeAs2("settings", "exercises", (a, b) => Exercise.mergeExercises(a, b)),
-        graphs: mergeAs2("settings", "graphs", (_, b) => b || []),
-        timers: deepmerge(oldStorage.settings.timers, newStorage.settings.timers),
-        units: merge2("settings", "units"),
-        isPublicProfile: merge2("settings", "isPublicProfile"),
-        shouldShowFriendsHistory: merge2("settings", "shouldShowFriendsHistory"),
-        nickname: merge2("settings", "nickname"),
-        vibration: merge2("settings", "vibration"),
-        volume: merge2("settings", "volume"),
-        alwaysOnDisplay: merge2("settings", "alwaysOnDisplay"),
-        exerciseData: merge2("settings", "exerciseData"),
-        planner: merge2("settings", "planner"),
-      },
-      subscription: mergeAs("subscription", (a, b) => ({
-        apple: { ...a.apple, ...b.apple },
-        google: { ...a.google, ...b.google },
-      })),
-      tempUserId: mergeAs("tempUserId", (a, b) => b || a || UidFactory.generateUid(10)),
-      currentProgramId: merge("currentProgramId"),
-      history: CollectionUtils.concatBy(oldStorage.history, newStorage.history, (el) => el.date).filter(
-        (el) => !deletedHistory.has(el.startTime)
-      ),
-      version: merge("version"),
-      programs: mergeAs("programs", (a, b) =>
-        CollectionUtils.concatBy(
-          a,
-          b.map((p) => {
-            const oldProgram = a.find((op) => op.id === p.id);
-            if (oldProgram) {
-              const mergedProgram = Program.mergePrograms(oldProgram, p, enforceNew);
-              return mergedProgram;
-            } else {
-              return p;
-            }
-          }),
-          (e) => e.id
-        ).filter((p) => !p.clonedAt || !deletedPrograms.has(p.clonedAt))
-      ),
-      helps: Array.from(new Set([...newStorage.helps, ...oldStorage.helps])),
-      whatsNew: merge("whatsNew"),
-    };
+export function Storage_applyStorageUpdate2(storage: IStorage, update: IStorageUpdate2, deviceId?: string): IStorage {
+  if (!update.storage || Object.keys(update.storage).length === 0) {
     return storage;
   }
+
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
+  const currentVersions = storage._versions || {};
+  const incomingVersions = update.versions || {};
+
+  const mergedVersions = versionTracker.mergeVersions(currentVersions, incomingVersions);
+  const mergedStorage = versionTracker.mergeByVersions(
+    storage,
+    currentVersions,
+    incomingVersions,
+    update.storage as Partial<IStorage>
+  );
+
+  const updatedStorage: IStorage = {
+    ...mergedStorage,
+    _versions: mergedVersions,
+  };
+
+  const sortedProgress = sortProgressByIndex(updatedStorage.progress);
+  return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
+}
+
+function mergeHearAboutUs(a?: IHearAboutUs, b?: IHearAboutUs): IHearAboutUs | undefined {
+  if (a == null) {
+    return b;
+  }
+  if (b == null) {
+    return a;
+  }
+  const requests = Array.from(new Set([...(a.requests || []), ...(b.requests || [])]));
+  const done = a.done || b.done;
+  const result = (b.result?.ts ?? -1) >= (a.result?.ts ?? -1) ? (b.result ?? a.result) : (a.result ?? b.result);
+  return { result, requests, done };
+}
+
+export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {
+  const { stats, ...update } = updateWithStats;
+
+  const deletedGyms = new Set([...storage.settings.deletedGyms, ...(update.settings?.deletedGyms || [])]);
+  const lastGyms = CollectionUtils_groupByKeyUniq(storage.settings.gyms || [], "id");
+  const newGyms = CollectionUtils_groupByKeyUniq(update.settings?.gyms || [], "id");
+  const gymsObj = { ...lastGyms, ...newGyms };
+  const gymsArr = CollectionUtils_compact(ObjectUtils_values(gymsObj)).filter((g) => !deletedGyms.has(g.id));
+
+  const deletedHistory = Array.from(new Set([...storage.deletedHistory, ...(update.deletedHistory || [])]));
+  const deletedPrograms = Array.from(new Set([...storage.deletedPrograms, ...(update.deletedPrograms || [])]));
+  const deletedStats = Array.from(new Set([...storage.deletedStats, ...(update.deletedStats || [])]));
+  const reviewRequests = Array.from(new Set([...storage.reviewRequests, ...(update.reviewRequests || [])]));
+  const signupRequests = Array.from(new Set([...storage.signupRequests, ...(update.signupRequests || [])]));
+  const hearAboutUs = mergeHearAboutUs(storage.hearAboutUs, update.hearAboutUs);
+  const helps = Array.from(new Set([...storage.helps, ...(update.helps || [])]));
+
+  const exercises = { ...storage.settings.exercises, ...(update.settings?.exercises || {}) };
+  const exerciseData = { ...storage.settings.exerciseData, ...(update.settings?.exerciseData || {}) };
+
+  const newStorage: IPartialStorage = {
+    ...storage,
+    ...update,
+    deletedHistory,
+    deletedPrograms,
+    deletedStats,
+    reviewRequests,
+    signupRequests,
+    hearAboutUs,
+    helps,
+    settings: {
+      ...storage.settings,
+      ...update.settings,
+      exercises,
+      exerciseData,
+      gyms: gymsArr,
+    },
+  };
+
+  return newStorage;
 }

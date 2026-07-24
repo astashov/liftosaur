@@ -1,11 +1,10 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
-import { StringUtils } from "../utils/string";
+import { JSX, useEffect, useRef } from "react";
+import { StringUtils_dashcase, StringUtils_truncate } from "../utils/string";
 
 interface IProps {
   isExpanded: boolean;
   values: [string, string][];
-  defaultSelectedValue: string | null;
+  defaultSelectedValue: string | null | undefined;
   numberOfVisibleItems: number;
   itemHeight: number;
   onSelect: (value: string) => void;
@@ -14,8 +13,8 @@ interface IProps {
 export function ScrollBarrell(props: IProps): JSX.Element {
   const height = props.itemHeight * props.numberOfVisibleItems;
   const numberOfDummyItems = Math.floor(props.numberOfVisibleItems / 2);
-  const containerRef = useRef<HTMLDivElement>();
-  const barrelRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barrelRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
   const isDefaultSet = useRef<boolean>(false);
   const isTurnedOn = useRef<boolean>(props.isExpanded);
@@ -76,7 +75,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
 
   return (
     <div
-      className="relative overflow-hidden border-t border-grayv2-100"
+      className="relative overflow-hidden border-t border-border-neutral"
       ref={containerRef}
       style={{
         transition: "height 150ms ease-in-out, visibility 150ms linear",
@@ -85,7 +84,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       }}
     >
       <div
-        className="absolute w-full scroll-barrell-selected bg-grayv2-100"
+        className="absolute w-full scroll-barrell-selected bg-background-subtle"
         style={{
           height: `${props.itemHeight}px`,
           top: "50%",
@@ -96,47 +95,38 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       <div
         className="relative w-full h-full overflow-scroll"
         ref={barrelRef}
-        style={{ overflowScrolling: "touch", scrollSnapType: "y mandatory" }}
+        style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "y mandatory" }}
       >
-        {Array.apply(null, Array(numberOfDummyItems)).map(() => (
+        {Array.apply(null, Array(numberOfDummyItems)).map((_, i) => (
           <div
+            key={`top-${i}`}
             className="flex items-center justify-center w-full"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
           />
         ))}
         {props.values.map(([value, label], index) => (
           <button
-            data-cy={`scroll-barrel-item-${StringUtils.dashcase(value)}`}
+            key={value}
+            data-testid={`scroll-barrel-item-${StringUtils_dashcase(label)}`}
             className="flex items-center justify-center w-full cursor-pointer scroll-barrel-item"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
             onClick={() => {
               props.onSelect(value);
-              barrelRef.current.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
+              barrelRef.current?.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >
-            {StringUtils.truncate(label, 35)}
+            {StringUtils_truncate(label, 35)}
           </button>
         ))}
-        {Array.apply(null, Array(numberOfDummyItems)).map(() => (
+        {Array.apply(null, Array(numberOfDummyItems)).map((_, i) => (
           <div
+            key={`bottom-${i}`}
             className="flex items-center justify-center w-full"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
           />
         ))}
       </div>
-      <div
-        className="absolute inset-0 pointer-events-none "
-        style={{
-          background: `linear-gradient(0deg, ${[
-            "rgba(255,255,255,1) 0px",
-            "rgba(255,255,255,1) 5%",
-            "rgba(255,255,255,0) 30%",
-            "rgba(255,255,255,0) 60%",
-            "rgba(255,255,255,1) 95%",
-            "rgba(255,255,255,1) 100%",
-          ].join(",")})`,
-        }}
-      />
+      <div className="absolute inset-0 pointer-events-none barrel-bg" />
     </div>
   );
 }

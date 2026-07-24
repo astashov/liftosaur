@@ -1,17 +1,13 @@
-/* eslint-disable @typescript-eslint/ban-types */
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { lb, lbu, LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
-import { IconHelp } from "../../components/icons/iconHelp";
 import { IconPreview } from "../../components/icons/iconPreview";
-import { IconSpinner } from "../../components/icons/iconSpinner";
-import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
-import { Exercise } from "../../models/exercise";
+import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
+import { Settings_getTheme } from "../../models/settings";
+import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
 import { PlannerEditorCustomCta } from "./components/plannerEditorCustomCta";
@@ -19,7 +15,11 @@ import { PlannerEditorView } from "./components/plannerEditorView";
 import { PlannerExerciseStats } from "./components/plannerExerciseStats";
 import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
-import { PlannerProgram } from "./models/plannerProgram";
+import {
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_fullToWeekEvalResult,
+} from "./models/plannerProgram";
 import { IPlannerFullText, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
 import { IconGraphsE } from "../../components/icons/iconGraphsE";
 import { IconMusclesD } from "../../components/icons/iconMusclesD";
@@ -29,55 +29,58 @@ export interface IPlannerContentFullProps {
   fullText: IPlannerFullText;
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
-  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}>;
+  lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
   service: Service;
 }
 
 export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element {
   function save(): void {
     const lensGetters = { fulltext: lb<IPlannerState>().p("fulltext").get() };
-    props.dispatch([
-      lbu<IPlannerState, typeof lensGetters>(lensGetters)
-        .p("current")
-        .p("program")
-        .p("weeks")
-        .recordModify((oldWeeks, getters) => {
-          const text = getters.fulltext?.text;
-          if (text == null) {
-            return oldWeeks;
-          }
-          return PlannerProgram.evaluateText(text);
-        }),
-      lb<IPlannerState>().p("fulltext").record(undefined),
-    ]);
+    props.dispatch(
+      [
+        lbu<IPlannerState, typeof lensGetters>(lensGetters)
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .p("weeks")
+          .recordModify((oldWeeks, getters) => {
+            const text = getters.fulltext?.text;
+            if (text == null) {
+              return oldWeeks;
+            }
+            return PlannerProgram_evaluateText(text);
+          }),
+        lb<IPlannerState>().p("fulltext").record(undefined),
+      ],
+      "Save full program"
+    );
   }
 
   function cancel(): void {
-    props.dispatch([lb<IPlannerState>().p("fulltext").record(undefined)]);
+    props.dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "Cancel fulltext edit");
   }
 
   const currentLine = props.fullText.currentLine;
   const [showWeekStats, setShowWeekStats] = useState(false);
   const [showDayStats, setShowDayStats] = useState(false);
   const [showExerciseStats, setShowExerciseStats] = useState(false);
-  const [reformatterSpinner, setReformatterSpinner] = useState(false);
 
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
+    return PlannerProgram_evaluateFull(props.fullText.text, props.settings);
   }, [props.fullText.text, props.settings.exercises]);
 
   const weekIndex =
     evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
       : -1;
   const dayIndex =
     weekIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
       : -1;
 
   const exerciseIndex =
     dayIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(
+      ? CollectionUtils_findIndexReverse(
           evaluatedWeeks.data[weekIndex].days[dayIndex].exercises,
           (d) => d.line <= currentLine
         )
@@ -92,13 +95,13 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         }
       : undefined;
 
-  const evalResults = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
+  const evalResults = PlannerProgram_fullToWeekEvalResult(evaluatedWeeks);
 
   if (evaluatedWeeks.success) {
     for (const week of evaluatedWeeks.data) {
       for (const day of week.days) {
         for (const plannerExercise of day.exercises) {
-          const exercise = Exercise.findByName(plannerExercise.name, {});
+          const exercise = Exercise_findByName(plannerExercise.name, {});
           if (exercise) {
             exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
           }
@@ -127,7 +130,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
 
   return (
     <div className="relative">
-      <div className="sticky top-0 z-30 bg-white border-b sm:hidden border-grayv2-100">
+      <div className="sticky top-0 z-30 border-b bg-background-default sm:hidden border-border-neutral">
         <div className="flex items-center justify-end">
           <div className="flex-1 mr-2">
             <Button
@@ -145,7 +148,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
               name="save-full-planner"
-              kind="orange"
+              kind="purple"
               buttonSize="sm"
               className="px-4 ml-2"
               onClick={() => {
@@ -154,7 +157,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
                 }
               }}
             >
-              Save
+              Apply
             </Button>
           </div>
           <div>
@@ -163,7 +166,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               className="p-2 align-middle"
               onClick={() => {
                 if (evaluatedWeeks.success) {
-                  props.dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true));
+                  props.dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true), "Show preview");
                 }
               }}
             >
@@ -209,47 +212,21 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         <div className="flex-1 min-w-0" ref={editorRef}>
           <PlannerEditorView
             name="Program"
+            theme={Settings_getTheme(props.settings)}
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
-            equipment={props.settings.equipment}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}
             value={props.fullText.text}
             onCustomErrorCta={(err) => (
               <PlannerEditorCustomCta isInvertedColors={true} dispatch={props.dispatch} err={err} />
             )}
-            onChange={(e) => props.dispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e))}
+            onChange={(e) => props.dispatch(lb<IPlannerState>().pi("fulltext").p("text").record(e), "Update fulltext")}
             lineNumbers={true}
             onBlur={(e, text) => {}}
             onLineChange={(line) => {
-              props.dispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line));
+              props.dispatch(lb<IPlannerState>().pi("fulltext").p("currentLine").record(line), "Update current line");
             }}
           />
-          <div className="text-sm text-right" style={{ marginTop: "-0.25rem" }}>
-            {reformatterSpinner && <IconSpinner width={12} height={12} />}
-            <LinkButton
-              name="planner-reformat-full"
-              className="ml-1 text-xs font-normal align-middle"
-              onClick={async () => {
-                setReformatterSpinner(true);
-                const result = await props.service.postPlannerReformatterFull(props.fullText.text);
-                setReformatterSpinner(false);
-                window.isUndoing = true;
-                props.dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(result)], "stop-is-undoing");
-              }}
-            >
-              Reformat
-            </LinkButton>
-            <button
-              className="ml-1 align-middle nm-planner-reformat"
-              onClick={() =>
-                alert(
-                  "It'll try to format the program properly using ChatGPT - so that each exercise goes on a separate line, with proper sets x reps formatting. It's not 100% accurate, it'll do its best attempt! :)"
-                )
-              }
-            >
-              <IconHelp size={12} />
-            </button>
-          </div>
           <div className="fixed bottom-0 hidden sm:block" style={{ width: editorWidth }}>
             {focusedExercise?.exerciseLine != null && (
               <PlannerExerciseStatsFull
@@ -287,7 +264,10 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               </div>
             )}
           </div>
-          <div className="fixed bottom-0 py-2 text-center bg-white shadow-xs" style={{ width: statsWidth }}>
+          <div
+            className="fixed bottom-0 py-2 text-center shadow-xs bg-background-default"
+            style={{ width: statsWidth }}
+          >
             <Button
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
@@ -307,7 +287,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
               disabled={!evaluatedWeeks.success}
               title={`${evaluatedWeeks.success ? "" : "Fix errors first"}`}
               name="save-full-planner"
-              kind="orange"
+              kind="purple"
               buttonSize="sm"
               className="px-4 ml-2"
               onClick={() => {
@@ -316,7 +296,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
                 }
               }}
             >
-              Save
+              Apply
             </Button>
           </div>
         </div>

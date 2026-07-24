@@ -1,0 +1,110 @@
+import type { JSX } from "react";
+import { BottomSheet } from "../bottomSheet";
+import { IEvaluatedProgram } from "../../models/program";
+import {
+  ICustomExercise,
+  IExercisePickerSelectedExercise,
+  IExercisePickerState,
+  IExerciseType,
+  ISettings,
+} from "../../types";
+import { ExercisePickerMain } from "./exercisePickerMain";
+import { ExercisePickerFilter } from "./exercisePickerFilter";
+import { ILensDispatch } from "../../utils/useLensReducer";
+import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePickerSettings";
+import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
+import { lb } from "lens-shmens";
+import { buildCustomLensDispatch } from "../../ducks/types";
+
+interface IExercisePickerContentProps {
+  isLoggedIn: boolean;
+  settings: ISettings;
+  exercisePicker: IExercisePickerState;
+  usedExerciseTypes: IExerciseType[];
+  onStar: (key: string) => void;
+  onChangeSettings: (settings: IExercisePickerSettings) => void;
+  onChangeCustomExercise: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
+  onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
+  dispatch: ILensDispatch<IExercisePickerState>;
+  evaluatedProgram?: IEvaluatedProgram;
+  onClose: () => void;
+}
+
+export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.Element {
+  const { evaluatedProgram } = props;
+  const state = props.exercisePicker;
+  const currentScreen = state.screenStack[state.screenStack.length - 1] ?? "exercisePicker";
+  if (currentScreen === "exercisePicker") {
+    return (
+      <ExercisePickerMain
+        dispatch={props.dispatch}
+        onStar={props.onStar}
+        isHidden={false}
+        usedExerciseTypes={props.usedExerciseTypes}
+        onChoose={props.onChoose}
+        state={state}
+        settings={props.settings}
+        evaluatedProgram={evaluatedProgram}
+        onClose={props.onClose}
+      />
+    );
+  } else if (currentScreen === "settings") {
+    return (
+      <ExercisePickerSettings onChange={props.onChangeSettings} settings={props.settings} dispatch={props.dispatch} />
+    );
+  } else if (currentScreen === "filter") {
+    return (
+      <ExercisePickerFilter
+        state={state}
+        settings={props.settings}
+        dispatch={props.dispatch}
+        onChangeSettings={props.onChangeSettings}
+      />
+    );
+  } else if (currentScreen === "customExercise" && state.editCustomExercise != null) {
+    const originalExercise = props.settings.exercises[state.editCustomExercise.id];
+    return (
+      <ExercisePickerCustomExercise
+        screenStack={state.screenStack}
+        settings={props.settings}
+        showMuscles={!!state.showMuscles}
+        isLoggedIn={props.isLoggedIn}
+        dispatch={buildCustomLensDispatch(props.dispatch, lb<IExercisePickerState>().pi("editCustomExercise"))}
+        originalExercise={originalExercise}
+        exercise={state.editCustomExercise}
+        onClose={props.onClose}
+        onChange={(action, exercise, notes) => {
+          props.onChangeCustomExercise(action, exercise, notes);
+        }}
+        onGoBack={(desc) => {
+          if (state.screenStack.length > 1) {
+            props.dispatch(
+              [
+                lb<IExercisePickerState>()
+                  .p("screenStack")
+                  .recordModify((stack) => stack.slice(0, -1)),
+                lb<IExercisePickerState>().p("editCustomExercise").record(undefined),
+              ],
+              desc
+            );
+          } else {
+            props.onClose();
+          }
+        }}
+      />
+    );
+  }
+  return <></>;
+}
+
+interface IBottomSheetExercisePickerProps extends IExercisePickerContentProps {
+  isHidden: boolean;
+}
+
+export function BottomSheetExercisePicker(props: IBottomSheetExercisePickerProps): JSX.Element {
+  return (
+    <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
+      <ExercisePickerContent {...props} />
+    </BottomSheet>
+  );
+}

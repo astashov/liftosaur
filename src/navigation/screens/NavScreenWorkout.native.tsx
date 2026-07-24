@@ -1,0 +1,114 @@
+import { JSX, useMemo } from "react";
+import { useRoute } from "@react-navigation/native";
+import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
+import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
+import { ScreenWorkout } from "../../components/screenWorkout";
+import { ScreenFinishDay as ScreenFinishDayComponent } from "../../components/screenFinishDay";
+import { ScreenSubscription as ScreenSubscriptionComponent } from "../../components/screenSubscription";
+import { Progress_isCurrent } from "../../models/progress";
+import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
+import { FallbackScreen } from "../../components/fallbackScreen";
+import { useEqual } from "../../utils/useEqual";
+import { useConfirmScreenLeave } from "../useConfirmScreenLeave";
+
+export function NavScreenProgress(): JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
+  const progressId = route.params?.id ?? 0;
+  useConfirmScreenLeave(state, dispatch, { name: "progress", params: { id: progressId } });
+  const subscription = useEqual(untrack(state.storage.subscription));
+  const settings = untrack(state.storage.settings);
+  const stats = untrack(state.storage.stats);
+  const helps = untrack(state.storage.helps);
+  const history = untrack(state.storage.history);
+  const allPrograms = untrack(state.storage.programs);
+  const currentProgramId = state.storage.currentProgramId;
+  const userId = state.user?.id;
+  const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
+  const progress = untrack(progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId]);
+  const program = untrack(
+    progress
+      ? Progress_isCurrent(progress)
+        ? Program_getFullProgram(state, progress.programId) ||
+          (currentProgram ? Program_fullProgram(currentProgram, settings) : undefined)
+        : undefined
+      : undefined
+  );
+  const loading = untrack(state.loading);
+  const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
+  const navCommon = useMemo(
+    () => ({
+      loading,
+      currentProgram,
+      settings,
+      isOngoingProgress,
+      stats,
+      userId,
+    }),
+    [loading, currentProgram, settings, isOngoingProgress, stats, userId]
+  );
+
+  return (
+    <FallbackScreen state={{ progress }} dispatch={dispatch}>
+      {({ progress: progress2 }) => (
+        <ScreenWorkout
+          navCommon={navCommon}
+          stats={stats}
+          helps={helps}
+          history={history}
+          subscription={subscription}
+          userId={userId}
+          progress={progress2}
+          allPrograms={allPrograms}
+          program={program}
+          currentProgram={currentProgram}
+          dispatch={dispatch}
+          settings={settings}
+        />
+      )}
+    </FallbackScreen>
+  );
+}
+
+export function NavScreenFinishDay(): JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
+  return (
+    <NavScreenContent>
+      <ScreenFinishDayComponent
+        stats={untrack(state.storage.stats)}
+        allPrograms={untrack(state.storage.programs)}
+        currentProgramId={state.storage.currentProgramId}
+        settings={untrack(state.storage.settings)}
+        dispatch={dispatch}
+        history={untrack(state.storage.history)}
+        historyRecordId={route.params?.id}
+        userId={state.user?.id}
+      />
+    </NavScreenContent>
+  );
+}
+
+export function NavScreenSubscription(): JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  return (
+    <ScreenSubscriptionComponent
+      history={untrack(state.storage.history)}
+      prices={untrack({ ...state.storage.subscriptionPrices, ...state.prices })}
+      offers={untrack(state.offers)}
+      appleOffer={untrack(state.appleOffer)}
+      googleOffer={untrack(state.googleOffer)}
+      subscription={untrack(state.storage.subscription)}
+      subscriptionLoading={state.subscriptionLoading}
+      subscriptionStatus={state.subscriptionStatus}
+      ownedLifetime={state.ownedLifetime}
+      dispatch={dispatch}
+      navCommon={navCommon}
+    />
+  );
+}

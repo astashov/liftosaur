@@ -1,14 +1,29 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import http from "http";
 import https from "https";
 import * as path from "path";
 import * as fs from "fs";
 import { getHandler } from "./lambda/index";
-import { APIGatewayProxyEvent, APIGatewayProxyEventHeaders, APIGatewayProxyResult } from "aws-lambda";
+import { getStreamingHandler } from "./lambda/streamingHandler";
+import {
+  APIGatewayProxyEvent,
+  APIGatewayProxyEventHeaders,
+  APIGatewayProxyResult,
+  APIGatewayProxyEventV2,
+} from "aws-lambda";
 import { URL } from "url";
 import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
 import childProcess from "child_process";
+import {
+  localdomain,
+  localapidomain,
+  localstreamingapidomain,
+  localport,
+  localapiport,
+  localstreamingapiport,
+} from "./src/localdomain";
 
 declare global {
   namespace NodeJS {
@@ -16,9 +31,17 @@ declare global {
     interface Global {
       __COMMIT_HASH__: string;
       __FULL_COMMIT_HASH__: string;
+      awslambda: any;
     }
   }
 }
+
+// Mock awslambda.streamifyResponse for local development
+(global as any).awslambda = {
+  streamifyResponse: (handler: Function) => {
+    return handler;
+  },
+};
 
 function getBody(req: http.IncomingMessage): Promise<string> {
   return new Promise((resolve) => {
@@ -40,9 +63,15 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   url.searchParams.forEach((v, k) => {
     qs[k] = v;
   });
+  const headers = { ...request.headers } as APIGatewayProxyEventHeaders;
+  const cookieHeader = headers.cookie || "";
+  headers["x-auth-state"] = cookieHeader.includes("session") ? "yes" : "no";
+  const ua = headers["user-agent"] || "";
+  headers["x-device-type"] = /iPhone|iPad|iPod/i.test(ua) ? "ios" : /Android/i.test(ua) ? "android" : "desktop";
+
   return {
     body: body,
-    headers: request.headers as APIGatewayProxyEventHeaders,
+    headers,
     multiValueHeaders: {},
     httpMethod: request.method || "GET",
     isBase64Encoded: false,
@@ -51,22 +80,59 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
     queryStringParameters: qs,
     multiValueQueryStringParameters: {},
     stageVariables: {},
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     requestContext: {} as any,
     resource: "",
   };
 }
 
-const log = new LogUtil();
-const di = buildDi(log, fetch);
-const handler = getHandler(di);
+const handler = getHandler(() => buildDi(new LogUtil(), fetch));
+
+const PERF_DATA_DIR = path.join(__dirname, "perfdata");
+
+function setPerfCorsHeaders(res: http.ServerResponse): void {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+async function handlePerfRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  setPerfCorsHeaders(res);
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+  if (req.method !== "POST") {
+    res.statusCode = 405;
+    res.end();
+    return;
+  }
+  const body = await getBody(req);
+  const sessionMatch = body.match(/"session":"([^"]+)"/);
+  const session = sessionMatch?.[1] ?? "unknown";
+  // Reject obvious path-traversal attempts to keep this safe even though it's dev-only.
+  const safeSession = /^[A-Za-z0-9_\-]+$/.test(session) ? session : "unknown";
+  const file = path.join(PERF_DATA_DIR, `${safeSession}.jsonl`);
+  fs.mkdirSync(PERF_DATA_DIR, { recursive: true });
+  fs.appendFileSync(file, body.endsWith("\n") ? body : body + "\n");
+  res.statusCode = 200;
+  res.end();
+}
+
+// Main API server
 const server = https.createServer(
   {
-    key: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/privkey.pem")),
-    cert: fs.readFileSync(path.join(process.env.HOME!, ".secrets/live/local-api.liftosaur.com/fullchain.pem")),
+    key: fs.readFileSync(path.join(process.env.HOME!, `.secrets/live/${localapidomain}.liftosaur.com/privkey.pem`)),
+    cert: fs.readFileSync(path.join(process.env.HOME!, `.secrets/live/${localapidomain}.liftosaur.com/fullchain.pem`)),
   },
   async (req, res) => {
     try {
+      if (req.url === "/api/_dev/perf") {
+        await handlePerfRequest(req, res);
+        return;
+      }
+      // Handle regular API Gateway endpoints
       const result = (await handler(
         await requestToProxyEvent(req),
         { getRemainingTimeInMillis: () => 10000 },
@@ -79,16 +145,112 @@ const server = https.createServer(
       }
       res.end(body);
     } catch (e) {
-      console.error(e);
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      if (e instanceof Error) {
+        console.error(e);
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      } else {
+        throw e;
+      }
     }
   }
 );
-// eslint-disable-next-line prefer-const
-global.__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
-global.__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 
-server.listen(3000, "0.0.0.0", () => {
-  console.log(`--------- Server is running ----------`);
+// Streaming API server
+const streamingServer = https.createServer(
+  {
+    key: fs.readFileSync(
+      path.join(process.env.HOME!, `.secrets/live/${localstreamingapidomain}.liftosaur.com/privkey.pem`)
+    ),
+    cert: fs.readFileSync(
+      path.join(process.env.HOME!, `.secrets/live/${localstreamingapidomain}.liftosaur.com/fullchain.pem`)
+    ),
+  },
+  async (req, res) => {
+    try {
+      const url = new URL(req.url || "", "http://www.example.com");
+
+      const body = req.method === "OPTIONS" ? "" : await getBody(req);
+      const streamingEvent: APIGatewayProxyEventV2 = {
+        version: "2.0",
+        routeKey: "$default",
+        rawPath: url.pathname,
+        rawQueryString: url.search.substring(1),
+        headers: req.headers as { [key: string]: string },
+        requestContext: {
+          accountId: "123456789012",
+          apiId: "local",
+          domainName: "localhost",
+          domainPrefix: "local",
+          http: {
+            method: req.method || "POST",
+            path: url.pathname,
+            protocol: "HTTP/1.1",
+            sourceIp: "127.0.0.1",
+            userAgent: req.headers["user-agent"] || "",
+          },
+          requestId: "local-" + Date.now(),
+          time: new Date().toISOString(),
+          timeEpoch: Date.now(),
+          routeKey: "",
+          stage: "",
+        },
+        body,
+        isBase64Encoded: false,
+      };
+
+      const streamingHandler = getStreamingHandler(() => buildDi(new LogUtil(), fetch));
+
+      const responseStream = {
+        write: (chunk: unknown) => {
+          if (typeof chunk === "string") {
+            // Check if it's the metadata
+            if (chunk.startsWith("{") && chunk.includes("statusCode")) {
+              try {
+                const metadata = JSON.parse(chunk);
+                res.statusCode = metadata.statusCode;
+                for (const [key, value] of Object.entries(metadata.headers || {})) {
+                  res.setHeader(key, value as string);
+                }
+                return;
+              } catch (e) {
+                // Not metadata, just write it
+              }
+            }
+            res.write(chunk);
+          } else {
+            res.write(chunk);
+          }
+        },
+        end: () => {
+          res.end();
+        },
+      };
+
+      await streamingHandler(streamingEvent, responseStream, () => undefined);
+      return;
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e);
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({ name: e.name, error: e.message, stack: e.stack }));
+      } else {
+        throw e;
+      }
+    }
+  }
+);
+
+(global as any).__COMMIT_HASH__ = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
+(global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
+process.env.COMMIT_HASH = (global as any).__COMMIT_HASH__;
+process.env.FULL_COMMIT_HASH = (global as any).__FULL_COMMIT_HASH__;
+process.env.HOST = `https://${localdomain}.liftosaur.com:${localport}`;
+
+server.listen(localapiport, "0.0.0.0", () => {
+  console.log(`--------- API Server is running on port ${localapiport} ----------`);
+});
+
+streamingServer.listen(localstreamingapiport, "0.0.0.0", () => {
+  console.log(`--------- Streaming API Server is running on port ${localstreamingapiport} ----------`);
 });

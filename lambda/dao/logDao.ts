@@ -1,5 +1,7 @@
-import { CollectionUtils } from "../../src/utils/collection";
-import { Utils } from "../utils";
+import { IAffiliateData } from "../../src/types";
+import { CollectionUtils_inGroupsOf } from "../../src/utils/collection";
+import { ObjectUtils_mapValues, ObjectUtils_filter } from "../../src/utils/object";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { AffiliateDao } from "./affiliateDao";
 
@@ -20,24 +22,27 @@ export interface ILogDao {
   cnt: number;
   ts: number;
   affiliates?: Partial<Record<string, number>>;
+  affiliatesCoupons?: Partial<Record<string, number>>;
   platforms: { name: string; version?: string }[];
   subscriptions: ("apple" | "google")[];
   year: number;
   month: number;
   day: number;
   referrer?: string;
+  landingPage?: string;
+  detail?: string;
 }
 
 export class LogDao {
   constructor(private readonly di: IDI) {}
 
   public async getAll(): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan({ tableName: logTableNames[env].logs });
   }
 
   public async getAllSince(ts: number): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan({
       tableName: logTableNames[env].logs,
       filterExpression: "ts > :ts",
@@ -46,7 +51,7 @@ export class LogDao {
   }
 
   public async getAllForYearAndMonth(year: number, month: number): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.query({
       tableName: logTableNames[env].logs,
       indexName: logTableNames[env].logsDate,
@@ -56,8 +61,16 @@ export class LogDao {
     });
   }
 
+  public async getFirstEventTimestamp(userId: string): Promise<number | undefined> {
+    const event = await this.di.dynamo.get<ILogDao>({
+      tableName: logTableNames[Utils_getEnv()].logs,
+      key: { userId, action: "ls-initialize-user" },
+    });
+    return event?.ts || undefined;
+  }
+
   public async getFinishWorkoutForUsers(userIds: string[]): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.batchGet<ILogDao>({
       tableName: logTableNames[env].logs,
       keys: userIds.map((uid) => ({ userId: uid, action: "ls-finish-workout" })),
@@ -65,9 +78,9 @@ export class LogDao {
   }
 
   public async getForUsers(userIds: string[]): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     let results: ILogDao[] = [];
-    for (const group of CollectionUtils.inGroupsOf(50, userIds)) {
+    for (const group of CollectionUtils_inGroupsOf(50, userIds)) {
       results = results.concat(
         (
           await Promise.all(
@@ -85,25 +98,64 @@ export class LogDao {
     return results;
   }
 
+  // Best-effort write of a server-initiated action row (optionally stamping the first-touch landing
+  // page). Used to link a phone account to its SEO origin at web sign-in / add-to-account time, so it
+  // must never throw and break the underlying request.
+  public async recordAction(userId: string, action: string, landingPage?: string): Promise<void> {
+    try {
+      await this.increment(userId, action, { name: "web" }, [], undefined, undefined, landingPage);
+    } catch (e) {
+      this.di.log.log("Failed to record log action", action, e);
+    }
+  }
+
   public async increment(
     userId: string,
     action: string,
     platform: { name: string; version?: string },
     subscriptions: ("apple" | "google")[],
-    maybeAffiliates?: Partial<Record<string, number>>,
-    referrer?: string
+    maybeAffiliates?: Partial<Record<string, IAffiliateData>>,
+    referrer?: string,
+    landingPage?: string,
+    detail?: string
   ): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
+    // Only write landingPage when present so cookieless calls (e.g. native app) don't overwrite the
+    // first-touch value captured from the web cookie.
+    const landingPageExpr = landingPage ? ", #landingPage = :landingPage" : "";
+    const landingPageAttrs: Record<string, string> = landingPage ? { "#landingPage": "landingPage" } : {};
+    const landingPageValues: Record<string, string> = landingPage ? { ":landingPage": landingPage } : {};
+    // Same guard for detail: only write when present so unrelated increments to the same (user,action)
+    // row don't clobber a previously-captured value.
+    const detailExpr = detail != null ? ", #detail = :detail" : "";
+    const detailAttrs: Record<string, string> = detail != null ? { "#detail": "detail" } : {};
+    const detailValues: Record<string, string> = detail != null ? { ":detail": detail } : {};
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
-    const affiliates = maybeAffiliates || {};
-    const itemAffiliates = item?.affiliates || {};
-    const combinedAffiliates = [...Object.keys(affiliates), ...Object.keys(itemAffiliates)].reduce<
+    const itemProgramAffiliates = item?.affiliates || {};
+    const programAffiliates = ObjectUtils_mapValues(
+      ObjectUtils_filter(maybeAffiliates || {}, (k, v) => v?.type === "program"),
+      (a: IAffiliateData | undefined) => a?.timestamp
+    );
+    const combinedProgramAffiliates = [...Object.keys(programAffiliates), ...Object.keys(itemProgramAffiliates)].reduce<
       Partial<Record<string, number>>
     >((memo, key) => {
-      const minTs = Math.min(itemAffiliates[key] || Infinity, affiliates[key] || Infinity);
+      const minTs = Math.min(itemProgramAffiliates[key] || Infinity, programAffiliates[key] || Infinity);
       memo[key] = minTs;
       return memo;
     }, {});
+    const couponAffiliates = ObjectUtils_mapValues(
+      ObjectUtils_filter(maybeAffiliates || {}, (k, v) => v?.type === "coupon"),
+      (a: IAffiliateData | undefined) => a?.timestamp
+    );
+    const itemCouponAffiliates = item?.affiliatesCoupons || {};
+    const combinedCouponAffiliates = [...Object.keys(couponAffiliates), ...Object.keys(itemCouponAffiliates)].reduce<
+      Partial<Record<string, number>>
+    >((memo, key) => {
+      const minTs = Math.min(itemCouponAffiliates[key] || Infinity, couponAffiliates[key] || Infinity);
+      memo[key] = minTs;
+      return memo;
+    }, {});
+    const combinedAffiliates = { ...combinedProgramAffiliates, ...combinedCouponAffiliates };
     const platforms = [...(item?.platforms || [])];
     // eslint-disable-next-line eqeqeq
     if (!platforms.some((p) => p.name === platform.name && p.version == platform.version)) {
@@ -115,33 +167,58 @@ export class LogDao {
     const day = new Date().getUTCDate();
     if (Object.keys(combinedAffiliates).length > 0) {
       const affiliateDao = new AffiliateDao(this.di);
-      await affiliateDao.put(Object.keys(combinedAffiliates).map((affiliateId) => ({ affiliateId, userId })));
+      await Promise.all([
+        affiliateDao.putIfNotExists(
+          Object.keys(combinedProgramAffiliates).map((affiliateId) => ({
+            affiliateId,
+            userId,
+            timestamp: combinedProgramAffiliates[affiliateId],
+            type: "program",
+          }))
+        ),
+        affiliateDao.putIfNotExists(
+          Object.keys(combinedCouponAffiliates).map((affiliateId) => ({
+            affiliateId,
+            userId,
+            timestamp: combinedCouponAffiliates[affiliateId],
+            type: "coupon",
+          }))
+        ),
+      ]);
       await this.di.dynamo.update({
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
+          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #affiliatesCoupons = :affiliatesCoupons, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
+          landingPageExpr +
+          detailExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
           "#affiliates": "affiliates",
+          "#affiliatesCoupons": "affiliatesCoupons",
           "#platforms": "platforms",
           "#subscriptions": "subscriptions",
           "#year": "year",
           "#month": "month",
           "#day": "day",
           "#referrer": "referrer",
+          ...landingPageAttrs,
+          ...detailAttrs,
         },
         values: {
           ":timestamp": Date.now(),
           ":cnt": count + 1,
-          ":affiliates": combinedAffiliates,
+          ":affiliates": combinedProgramAffiliates,
+          ":affiliatesCoupons": combinedCouponAffiliates,
           ":platforms": platforms,
           ":subscriptions": subscriptions,
           ":year": year,
           ":month": month,
           ":day": day,
           ":referrer": referrer || "",
+          ...landingPageValues,
+          ...detailValues,
         },
       });
     } else {
@@ -149,7 +226,9 @@ export class LogDao {
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
+          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
+          landingPageExpr +
+          detailExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -159,6 +238,8 @@ export class LogDao {
           "#month": "month",
           "#day": "day",
           "#referrer": "referrer",
+          ...landingPageAttrs,
+          ...detailAttrs,
         },
         values: {
           ":timestamp": Date.now(),
@@ -169,6 +250,8 @@ export class LogDao {
           ":month": month,
           ":day": day,
           ":referrer": referrer || "",
+          ...landingPageValues,
+          ...detailValues,
         },
       });
     }

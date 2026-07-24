@@ -1,45 +1,242 @@
-import { h, JSX } from "preact";
-import { Thunk } from "../ducks/thunks";
+import { JSX, ReactNode, useEffect, useRef } from "react";
+import { View, Image, Platform, Animated, Easing } from "react-native";
+import { Text } from "./primitives/text";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
+import StorySlider from "./storySlider";
+import { IconKettlebell } from "./icons/iconKettlebell";
+import { Svg, Defs, LinearGradient, Stop, Rect, SvgXml } from "./primitives/svg";
+import { Tailwind_colors } from "../utils/tailwindConfig";
+import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
+import { IconEditor } from "./icons/iconEditor";
+import { IconTracker } from "./icons/iconTracker";
+import { ImagePreloader_preload } from "../utils/imagePreloader";
+import { navigateToModal } from "../navigation/navigationService";
+import { BundledImages_resolve, BundledImages_svgXml } from "../utils/bundledImages";
 
 interface IProps {
   dispatch: IDispatch;
 }
 
+const onboardingImages = [
+  "/images/dinounit.png",
+  "/images/dinoequipment.png",
+  "/images/dinoplates.png",
+  "/images/dinoprogramselect.png",
+  "/images/dino-scope.png",
+];
+
 export function ScreenFirst(props: IProps): JSX.Element {
+  useNavOptions({ navHidden: true });
+
+  useEffect(() => {
+    for (const url of onboardingImages) {
+      ImagePreloader_preload(url);
+    }
+  }, []);
+
   return (
-    <section className="flex flex-col h-full text-blackv2">
-      <div className="flex items-center px-16 py-8">
-        <img className="w-12" src="/images/logo.svg" />
-        <div className="flex-1 ml-4">
-          <h1 className="text-2xl font-bold">Liftosaur</h1>
-          <h2 className="text-sm text-grayv2-main">
-            Weightlifting tracker app
-            <br />
-            for <strong>coders</strong>
-          </h2>
-        </div>
-      </div>
-      <div
-        className="flex-1"
-        style={{
-          backgroundImage: "url(/images/buff-coder.png)",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-        }}
-      />
-      <div className="px-8 pt-8 pb-8 text-xl text-center">
-        Build <strong>any weightlifting program</strong> using a simple scripting language, and track your progress.
-      </div>
-      <div className="pb-12 text-center">
-        <Button name="see-how-it-works" kind="purple" onClick={() => props.dispatch(Thunk.pushScreen("onboarding"))}>
-          <span className="align-middle">See how it works</span>{" "}
-          <IconArrowRight className="inline ml-2 align-middle left-right-animation" color="white" />
+    <View className="flex flex-col flex-1 h-screen bg-background-default">
+      <View className="flex-1 px-4 pt-16 pb-4">
+        <StorySlider
+          slides={[
+            <FirstSlide />,
+            <RestSlide
+              bgColorHexFrom={Tailwind_colors().purple[200]}
+              bgColor="bg-purple-100"
+              borderColor="border-purple-200"
+              header={
+                <View className="flex-row items-center justify-center">
+                  <IconKettlebell color={Tailwind_colors().purple[600]} />
+                  <Text className="ml-1 font-semibold text-text-purple">Weightlifting Programs</Text>
+                </View>
+              }
+              bodyText="Start with a pre-built weightlifting program, or create your own."
+              image="slide-2-image"
+            />,
+            <RestSlide
+              bgColorHexFrom={Tailwind_colors().yellow[200]}
+              bgColor="bg-yellow-100"
+              borderColor="border-border-cardyellow"
+              header={
+                <View className="flex-row items-center justify-center">
+                  <IconWorkoutProgress color={Tailwind_colors().yellow[600]} />
+                  <Text className="ml-1 font-semibold text-icon-yellow">Workout Tracker</Text>
+                </View>
+              }
+              bodyText="Log sets with one tap. Your reps and weight adjust automatically."
+              image="slide-3-image"
+            />,
+            <RestSlide
+              bgColorHexFrom={Tailwind_colors().purple[200]}
+              bgColor="bg-purple-100"
+              borderColor="border-purple-200"
+              header={
+                <View className="flex-row items-center justify-center">
+                  <IconEditor color={Tailwind_colors().purple[600]} />
+                  <Text className="ml-1 font-semibold text-text-purple">Program Editor</Text>
+                </View>
+              }
+              bodyText="Modify or switch any program anytime to fit your goals."
+              image="slide-4-image"
+            />,
+            <RestSlide
+              bgColorHexFrom={Tailwind_colors().red[200]}
+              bgColor="bg-red-100"
+              borderColor="border-red-200"
+              header={
+                <View className="flex-row items-center justify-center">
+                  <IconTracker color={Tailwind_colors().red[600]} />
+                  <Text className="ml-1 font-semibold text-text-error">Workout History</Text>
+                </View>
+              }
+              bodyText="Track your weekly stats to stay on target!"
+              image="slide-5-image"
+            />,
+          ]}
+          duration={5000}
+        />
+      </View>
+      <View className="pb-6 mx-4">
+        <Button
+          className="w-full ls-onboarding-start"
+          name="see-how-it-works"
+          kind="purple"
+          onClick={() => props.dispatch(Thunk_pushScreen("units"))}
+        >
+          <View className="flex-row items-center justify-center">
+            <Text className="text-xs font-semibold text-text-alwayswhite">Get started</Text>
+            <AnimatedArrow />
+          </View>
         </Button>
-      </div>
-    </section>
+        <View className="pb-4 mt-2">
+          <Button
+            className="w-full ls-onboarding-have-account"
+            name="see-how-it-works"
+            kind="transparent-purple"
+            onClick={() => navigateToModal("accountModal")}
+          >
+            I have an account
+          </Button>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function AnimatedArrow(): JSX.Element {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(translateX, {
+          toValue: 4,
+          duration: 500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== "web",
+        }),
+        Animated.timing(translateX, {
+          toValue: 0,
+          duration: 500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== "web",
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [translateX]);
+
+  return (
+    <Animated.View style={{ marginLeft: 8, transform: [{ translateX }] }}>
+      <IconArrowRight color="white" />
+    </Animated.View>
+  );
+}
+
+function FirstSlide(): JSX.Element {
+  return (
+    <View className="relative flex flex-col w-full h-full overflow-hidden bg-white rounded-2xl">
+      <Image
+        source={BundledImages_resolve("/images/slide-1-bg.jpg")}
+        className="absolute top-0 bottom-0 left-0 right-0 w-full h-full"
+        resizeMode="cover"
+      />
+      <Text className="px-8 pt-24 text-3xl font-bold text-text-alwayswhite" style={{ lineHeight: 35 }}>
+        The most powerful weightlifting{" "}
+        <Text className="text-3xl" style={{ color: Tailwind_colors().purple[400] }}>
+          planner
+        </Text>{" "}
+        and{" "}
+        <Text className="text-3xl" style={{ color: Tailwind_colors().red[400] }}>
+          tracker
+        </Text>{" "}
+        app
+      </Text>
+      <Text className="px-8 py-6 text-base text-text-alwayswhite">
+        Build any weightlifting program using a simple scripting language and track your progress.
+      </Text>
+      <View className="flex-1 w-full overflow-hidden">
+        {Platform.OS === "web" ? (
+          <Image
+            source={{ uri: "/images/logo.svg" }}
+            className="w-full h-full"
+            resizeMode="contain"
+            style={{ alignSelf: "flex-end" }}
+          />
+        ) : (
+          <SvgXml
+            xml={BundledImages_svgXml("/images/logo.svg") ?? ""}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMax meet"
+          />
+        )}
+      </View>
+    </View>
+  );
+}
+
+interface IRestSlideProps {
+  bgColorHexFrom: string;
+  bgColor: string;
+  borderColor: string;
+  header: ReactNode;
+  bodyText: string;
+  image: string;
+}
+
+function RestSlide(props: IRestSlideProps): JSX.Element {
+  const gradientId = `slide-gradient-${props.image}`;
+  return (
+    <View
+      className={`relative flex flex-col w-full h-full overflow-hidden border ${props.borderColor} rounded-2xl ${props.bgColor}`}
+    >
+      <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80 }}>
+        <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <Defs>
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+              <Stop offset="0%" stopColor={props.bgColorHexFrom} stopOpacity={0.8} />
+              <Stop offset="100%" stopColor={props.bgColorHexFrom} stopOpacity={0} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100" height="100" fill={`url(#${gradientId})`} />
+        </Svg>
+      </View>
+      <View className="h-12 px-8" />
+      <View className="px-8">{props.header}</View>
+      <Text className="px-8 py-6 text-xl font-semibold text-center text-black">{props.bodyText}</Text>
+      <View className="items-center justify-center flex-1 w-full">
+        <Image
+          source={BundledImages_resolve(`/images/${props.image}.png`)}
+          className="w-full h-full"
+          resizeMode="contain"
+        />
+      </View>
+    </View>
   );
 }

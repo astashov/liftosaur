@@ -1,0 +1,803 @@
+import React, { JSX, RefObject, forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { StringUtils_dashcase } from "../utils/string";
+import { IconKeyboardClose } from "./icons/iconKeyboardClose";
+import { n, MathUtils_clamp } from "../utils/math";
+import { IPercentageUnit, IUnit } from "../types";
+import { IconCalculator } from "./icons/iconCalculator";
+import { Mobile_isMobile } from "../../lambda/utils/mobile";
+import { useModal } from "../navigation/ModalStateContext";
+import { IconBackspace } from "./icons/iconBackspace";
+import { lg } from "../utils/posthog";
+import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
+
+export type IInputCommitMode = "live" | "debounced" | "blur";
+
+interface IInputNumber2Props {
+  name: string;
+  placeholder?: string;
+  value?: number;
+  width?: number;
+  autowidth?: boolean;
+  step?: number;
+  min?: number;
+  max?: number;
+  tabIndex?: number;
+  initialValue?: number;
+  onNext?: (value: number | undefined) => number;
+  onPrev?: (value: number | undefined) => number;
+  onInput?: (value: number | undefined) => void;
+  onPreview?: (value: number | undefined) => void;
+  onBlur?: (value: number | undefined) => void;
+  keyboardAddon?: JSX.Element;
+  after?: () => JSX.Element | undefined;
+  allowDot?: boolean;
+  allowNegative?: boolean;
+  enableCalculator?: boolean;
+  enableUnits?: (IUnit | IPercentageUnit)[];
+  onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
+  selectedUnit?: IUnit | IPercentageUnit;
+  showUnitInside?: boolean;
+  inputCommitMode?: IInputCommitMode;
+  inputDebounceMs?: number;
+  "data-testid"?: string;
+  testID?: string;
+}
+
+function clamp(value: string | number, min?: number, max?: number): number | undefined {
+  if (value === "") {
+    return undefined;
+  }
+  const num = MathUtils_clamp(Number(value), min, max);
+  if (isNaN(num)) {
+    return MathUtils_clamp(0, min, max);
+  }
+  return num;
+}
+
+let nextPadOwnerId = 1;
+let activePadOwnerId: number | null = null;
+
+function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
+  const initialValue = props.value != null ? n(props.value) : "";
+  const [value, setValue] = useState(initialValue);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const valueRef = useRef(value);
+  const keyboardRef = useRef<HTMLDivElement>(null);
+  const switchRef = useRef(false);
+  const onClickTarget = useRef<HTMLElement>(null);
+  const isFocusedRef = useRef(isFocused);
+  const isTypingRef = useRef(isTyping);
+  const allowDotRef = useRef(!!props.allowDot);
+  const allowNegativeRef = useRef(!!props.allowNegative);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const isCalculatorOpenRef = useRef(isCalculatorOpen);
+  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
+    const newValue = clamp(weightValue, props.min, props.max);
+    valueRef.current = newValue?.toString() ?? "";
+    setValue(newValue?.toString() ?? "");
+    onPreviewRef.current?.(newValue);
+    if (props.onBlur) {
+      props.onBlur(newValue);
+    }
+    setIsCalculatorOpen(false);
+  });
+  const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
+  const onInputRef = useRef<((v: number | undefined) => void) | undefined>(props.onInput);
+  const onPreviewRef = useRef<((v: number | undefined) => void) | undefined>(props.onPreview);
+  const onNextRef = useRef<((v: number | undefined) => number) | undefined>(props.onNext);
+  const onPrevRef = useRef<((v: number | undefined) => number) | undefined>(props.onPrev);
+  const onChangeUnitsRef = useRef<((u: IUnit | IPercentageUnit) => void) | undefined>(props.onChangeUnits);
+  const minRef = useRef(props.min);
+  const maxRef = useRef(props.max);
+  const stepRef = useRef(props.step);
+  const selectedUnitRef = useRef(props.selectedUnit);
+  const initialValueRef = useRef(props.initialValue);
+  const commitMode: IInputCommitMode = props.inputCommitMode ?? "debounced";
+  const debounceMs = props.inputDebounceMs ?? 150;
+  const commitModeRef = useRef(commitMode);
+  const debounceMsRef = useRef(debounceMs);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingInputRef = useRef<number | undefined>(undefined);
+  const hasPendingInputRef = useRef(false);
+  onBlurRef.current = props.onBlur;
+  onInputRef.current = props.onInput;
+  onPreviewRef.current = props.onPreview;
+  onNextRef.current = props.onNext;
+  onPrevRef.current = props.onPrev;
+  onChangeUnitsRef.current = props.onChangeUnits;
+  minRef.current = props.min;
+  maxRef.current = props.max;
+  stepRef.current = props.step;
+  selectedUnitRef.current = props.selectedUnit;
+  initialValueRef.current = props.initialValue;
+  commitModeRef.current = commitMode;
+  debounceMsRef.current = debounceMs;
+  useEffect(() => {
+    setIsMobile(Mobile_isMobile(window.navigator?.userAgent || ""));
+  }, []);
+
+  const flushPendingInput = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (hasPendingInputRef.current && onInputRef.current) {
+      const pending = pendingInputRef.current;
+      hasPendingInputRef.current = false;
+      pendingInputRef.current = undefined;
+      onInputRef.current(pending);
+    }
+  }, []);
+
+  const cancelPendingInput = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      flushPendingInput();
+      if (isFocusedRef.current) {
+        const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+        if (onBlurRef.current) {
+          onBlurRef.current(newValueNum);
+        }
+      }
+    };
+  }, [flushPendingInput]);
+
+  const paddedScrollerRef = useRef<HTMLElement | null>(null);
+  const padOwnerIdRef = useRef<number>(0);
+  if (padOwnerIdRef.current === 0) {
+    nextPadOwnerId += 1;
+    padOwnerIdRef.current = nextPadOwnerId;
+  }
+  const debugSessionRef = useRef<number>(0);
+  const outsideTouchCountRef = useRef<number>(0);
+
+  function resetKeyboardStyles(): void {
+    if (activePadOwnerId !== padOwnerIdRef.current) {
+      return;
+    }
+    document.body.classList.remove("show-keyboard");
+    document.querySelectorAll(".bottom-sticked").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.bottom = "0px";
+      }
+    });
+    if (paddedScrollerRef.current) {
+      paddedScrollerRef.current.style.paddingBottom = "";
+      paddedScrollerRef.current = null;
+    }
+    activePadOwnerId = null;
+  }
+
+  useEffect(() => {
+    if (initialValue === valueRef.current) {
+      return;
+    }
+    if (isTypingRef.current) {
+      return;
+    }
+    valueRef.current = initialValue;
+    setValue(initialValue);
+  }, [props.value]);
+
+  isFocusedRef.current = isFocused;
+  allowDotRef.current = !!props.allowDot;
+  allowNegativeRef.current = !!props.allowNegative;
+  isCalculatorOpenRef.current = !!isCalculatorOpen;
+
+  const blurRef = useRef<((debugCaller?: string) => void) | null>(null);
+  const openCalculatorRef = useRef(openCalculator);
+  openCalculatorRef.current = openCalculator;
+
+  const handleInput = useCallback((key: string): void => {
+    let newValue = valueRef.current;
+    if (!isTypingRef.current) {
+      newValue = "";
+    }
+    const dynMaxLength =
+      (maxRef.current?.toString().length ?? 5) + (allowDotRef.current ? 3 : 0) + (allowNegativeRef.current ? 1 : 0);
+    if (key === "⌫") {
+      newValue = newValue.slice(0, -1);
+    } else if (key === "-") {
+      if (allowNegativeRef.current) {
+        if (newValue[0] === "-") {
+          newValue = newValue.slice(1);
+        } else if (!newValue.includes("-")) {
+          newValue = `-${newValue}`;
+        }
+      }
+    } else if (key === "." || key === ",") {
+      if (allowDotRef.current && !newValue.includes(".")) {
+        newValue += ".";
+      }
+    } else if (newValue.length < dynMaxLength) {
+      newValue += key;
+    }
+    if (!isTypingRef.current) {
+      setIsTyping(true);
+      isTypingRef.current = true;
+    }
+    valueRef.current = newValue;
+    setValue(newValue);
+    if (!newValue.endsWith(".")) {
+      const newValueNum = clamp(newValue, minRef.current, maxRef.current);
+      onPreviewRef.current?.(newValueNum);
+      if (onInputRef.current) {
+        const mode = commitModeRef.current;
+        if (mode === "live") {
+          onInputRef.current(newValueNum);
+        } else if (mode === "debounced") {
+          pendingInputRef.current = newValueNum;
+          hasPendingInputRef.current = true;
+          if (debounceTimerRef.current != null) {
+            clearTimeout(debounceTimerRef.current);
+          }
+          debounceTimerRef.current = setTimeout(() => {
+            debounceTimerRef.current = null;
+            if (hasPendingInputRef.current && onInputRef.current) {
+              const v = pendingInputRef.current;
+              hasPendingInputRef.current = false;
+              pendingInputRef.current = undefined;
+              onInputRef.current(v);
+            }
+          }, debounceMsRef.current);
+        }
+      }
+    }
+  }, []);
+
+  const blur = useCallback(
+    (debugCaller: string = "unknown") => {
+      if (!isFocusedRef.current) {
+        return;
+      }
+      isFocusedRef.current = false;
+      lg("kbd-blur-applied", { caller: debugCaller, sid: debugSessionRef.current });
+      const closedViaKbdClose = debugCaller === "keyboard-close-button" || debugCaller === "maybeBlur-keyboard-close";
+      if (closedViaKbdClose && outsideTouchCountRef.current >= 2) {
+        lg("kbd-frustration-close", {
+          sid: debugSessionRef.current,
+          outsideTaps: outsideTouchCountRef.current,
+          caller: debugCaller,
+        });
+      }
+      outsideTouchCountRef.current = 0;
+      cancelPendingInput();
+      setIsFocused(false);
+      setIsTyping(false);
+      isTypingRef.current = false;
+      const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+      valueRef.current = newValueNum != null ? newValueNum.toString() : "";
+      setValue(newValueNum != null ? newValueNum.toString() : "");
+      onPreviewRef.current?.(newValueNum);
+      if (onBlurRef.current) {
+        onBlurRef.current(newValueNum);
+      }
+      switchRef.current = false;
+    },
+    [cancelPendingInput]
+  );
+
+  useEffect(() => {
+    blurRef.current = blur;
+  }, [blur]);
+
+  const onKeyboardClose = useCallback(() => {
+    blurRef.current?.("keyboard-close-button");
+  }, []);
+
+  const onPlus = useCallback(() => {
+    cancelPendingInput();
+    const current = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const nextValue = onNextRef.current ? onNextRef.current(current) : current + (stepRef.current ?? 1);
+    const newValue = clamp(nextValue, minRef.current, maxRef.current);
+    valueRef.current = newValue != null ? newValue.toString() : "";
+    setValue(newValue != null ? newValue.toString() : "");
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
+      onInputRef.current(newValue);
+    }
+  }, [cancelPendingInput]);
+
+  const onMinus = useCallback(() => {
+    cancelPendingInput();
+    const current = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const prevValue = onPrevRef.current ? onPrevRef.current(current) : current - (stepRef.current ?? 1);
+    const newValue = clamp(prevValue, minRef.current, maxRef.current);
+    valueRef.current = newValue != null ? newValue.toString() : "";
+    setValue(newValue != null ? newValue.toString() : "");
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
+      onInputRef.current(newValue);
+    }
+  }, [cancelPendingInput]);
+
+  const onShowCalculator = useCallback(() => {
+    blurRef.current?.("show-calculator");
+    setIsCalculatorOpen(true);
+    const unit = selectedUnitRef.current;
+    if (unit && unit !== "%") {
+      openCalculatorRef.current({ unit });
+    }
+  }, []);
+
+  const onChangeUnits = useCallback((unit: IUnit | IPercentageUnit) => {
+    onChangeUnitsRef.current?.(unit);
+  }, []);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+    const flush = (): void => {
+      blurRef.current?.("flush-from-outside");
+    };
+    FocusedInputFlush_register(flush);
+    return () => {
+      FocusedInputFlush_unregister(flush);
+    };
+  }, [isFocused]);
+
+  const isTargetOutside = useCallback((target: HTMLElement | null): boolean => {
+    if (!isFocusedRef.current) {
+      return false;
+    }
+    let cur: HTMLElement | null = target;
+    while (cur) {
+      if (cur === containerRef.current || cur === keyboardRef.current) {
+        return false;
+      }
+      if (cur === document.body) {
+        return true;
+      }
+      cur = cur.parentElement;
+    }
+    return true;
+  }, []);
+
+  useEffect(() => {
+    if (isFocused) {
+      if (props.value == null && props.initialValue != null) {
+        valueRef.current = props.initialValue?.toString() ?? "";
+        setValue(props.initialValue?.toString() ?? "");
+      }
+      if (!isMobile) {
+        return;
+      }
+      document.body.classList.add("show-keyboard");
+      const keyboardHeight = keyboardRef.current?.clientHeight ?? 0;
+
+      document.querySelectorAll(".bottom-sticked").forEach((el) => {
+        if (el instanceof HTMLElement) {
+          el.style.bottom = `${keyboardHeight}px`;
+        }
+      });
+
+      let scrollableContainer = containerRef.current?.parentElement as HTMLElement | null;
+      while (scrollableContainer && scrollableContainer !== document.documentElement) {
+        const overflowY = getComputedStyle(scrollableContainer).overflowY;
+        if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+          break;
+        }
+        scrollableContainer = scrollableContainer.parentElement;
+      }
+      scrollableContainer = scrollableContainer ?? document.documentElement;
+
+      const contentEl = scrollableContainer.firstElementChild as HTMLElement | null;
+      const insideShiftedSheet = scrollableContainer.closest(".bottom-sticked") != null;
+      if (scrollableContainer !== document.documentElement && contentEl && !insideShiftedSheet) {
+        contentEl.style.paddingBottom = `${keyboardHeight}px`;
+        paddedScrollerRef.current = contentEl;
+      }
+      activePadOwnerId = padOwnerIdRef.current;
+
+      const inputRect = containerRef.current?.getBoundingClientRect();
+      if (inputRect) {
+        const scrollerRect =
+          scrollableContainer === document.documentElement
+            ? { top: 0, bottom: window.innerHeight }
+            : scrollableContainer.getBoundingClientRect();
+        const visibleTop = scrollerRect.top;
+        const visibleBottom = Math.min(scrollerRect.bottom, window.innerHeight - keyboardHeight);
+        const margin = 16;
+
+        if (inputRect.bottom + margin > visibleBottom || inputRect.top - margin < visibleTop) {
+          const inputCenter = (inputRect.top + inputRect.bottom) / 2;
+          const targetCenter = (visibleTop + visibleBottom) / 2;
+          const delta = inputCenter - targetCenter;
+          scrollableContainer.scrollBy({ top: delta, behavior: "smooth" });
+        }
+      }
+    } else {
+      if (!isMobile) {
+        return;
+      }
+      if (!switchRef.current) {
+        resetKeyboardStyles();
+      }
+      switchRef.current = false;
+    }
+    return () => resetKeyboardStyles();
+  }, [isFocused, props.initialValue]);
+
+  useEffect(() => {
+    const keyboardHandler = (event: KeyboardEvent): void => {
+      if (!isFocusedRef.current) {
+        return;
+      }
+      if (event.key === "Escape") {
+        blur("escape");
+      } else if (event.key === "Enter") {
+        blur("enter");
+      } else if (event.key === "Backspace") {
+        handleInput("⌫");
+      } else if (
+        event.key === "0" ||
+        event.key === "1" ||
+        event.key === "2" ||
+        event.key === "3" ||
+        event.key === "4" ||
+        event.key === "5" ||
+        event.key === "6" ||
+        event.key === "7" ||
+        event.key === "8" ||
+        event.key === "9" ||
+        (props.allowDot && (event.key === "." || event.key === ",")) ||
+        (props.allowNegative && event.key === "-")
+      ) {
+        handleInput(event.key);
+      }
+    };
+    document.addEventListener("keydown", keyboardHandler);
+    return () => {
+      document.removeEventListener("keydown", keyboardHandler);
+    };
+  }, []);
+
+  const maybeBlur = useCallback((target: HTMLElement | null): boolean => {
+    if (target == null) {
+      blur("maybeBlur-null-target");
+      return true;
+    }
+    let foundCurrentInput = false;
+    let foundOtherInput: HTMLElement | null = null;
+    let reachedBody = false;
+    while (target) {
+      if (target.classList?.contains("keyboard-close")) {
+        blur("maybeBlur-keyboard-close");
+        return true;
+      } else if (target === containerRef.current || target === keyboardRef.current) {
+        foundCurrentInput = true;
+        break;
+      } else if (target !== containerRef.current && target.classList?.contains("input-number")) {
+        foundOtherInput = target;
+        break;
+      } else if (target === document.body) {
+        reachedBody = true;
+        break;
+      }
+      target = target.parentElement;
+    }
+    if (foundOtherInput) {
+      blur("maybeBlur-switch");
+      switchRef.current = true;
+      const nextInput = foundOtherInput.querySelector(".input-number-child") as HTMLElement | null;
+      if (nextInput) {
+        nextInput.focus();
+      }
+      return true;
+    } else if (!foundCurrentInput) {
+      blur(reachedBody ? "maybeBlur-outside" : "maybeBlur-detached");
+      return true;
+    }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    let armedFinish: (() => void) | null = null;
+    const armDeferredBlur = (target: HTMLElement): void => {
+      if (armedFinish) {
+        return;
+      }
+      let done = false;
+      const finish = (viaFallback: boolean): void => {
+        if (done) {
+          return;
+        }
+        done = true;
+        document.removeEventListener("click", onClick, true);
+        clearTimeout(fallbackTimer);
+        armedFinish = null;
+        if (viaFallback && isFocusedRef.current) {
+          lg("kbd-click-suppressed", {
+            sid: debugSessionRef.current,
+            tag: (target.tagName ?? "null").toLowerCase(),
+            cls: (target.className?.toString() ?? "").slice(0, 60),
+          });
+        }
+        if (isFocusedRef.current) {
+          maybeBlur(target);
+        }
+      };
+      armedFinish = () => finish(false);
+      const onClick = (): void => {
+        requestAnimationFrame(() => finish(false));
+      };
+      document.addEventListener("click", onClick, true);
+      const fallbackTimer = setTimeout(() => finish(true), 250);
+    };
+
+    const touchHandler = (event: TouchEvent): void => {
+      if (isCalculatorOpenRef.current) {
+        return;
+      }
+      const target = (event.target || event.currentTarget) as HTMLElement;
+      onClickTarget.current = target;
+      if (isTargetOutside(target)) {
+        outsideTouchCountRef.current += 1;
+        armDeferredBlur(target);
+      }
+    };
+    const mouseHandler = (event: MouseEvent): void => {
+      if (isCalculatorOpenRef.current) {
+        return;
+      }
+      const target = (event.target || event.currentTarget) as HTMLElement;
+      onClickTarget.current = target;
+      if (isTargetOutside(target)) {
+        armDeferredBlur(target);
+      }
+    };
+    document.addEventListener("touchstart", touchHandler);
+    document.addEventListener("mousedown", mouseHandler);
+    return () => {
+      document.removeEventListener("touchstart", touchHandler);
+      document.removeEventListener("mousedown", mouseHandler);
+      armedFinish?.();
+    };
+  }, [isTargetOutside, maybeBlur]);
+
+  return (
+    <div ref={containerRef} className="input-number">
+      <div
+        className="flex items-center justify-center h-6 border rounded bg-background-default border-border-prominent input-number-child"
+        style={
+          props.autowidth ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" } : { width: `${props.width ?? 4}rem` }
+        }
+        tabIndex={props.tabIndex ?? 0}
+        onFocus={() => {
+          debugSessionRef.current = Date.now();
+          lg("kbd-focus", { sid: debugSessionRef.current });
+          setIsFocused(true);
+        }}
+        onBlur={(event) => {
+          setTimeout(() => {
+            const target = (event.relatedTarget || onClickTarget.current) as HTMLElement | null;
+            const result = maybeBlur(target);
+            if (!result) {
+              const currentTarget = event.currentTarget || event.target;
+              event.preventDefault();
+              (event.nativeEvent as Event).stopImmediatePropagation();
+              if (currentTarget) {
+                currentTarget.focus();
+              }
+            }
+          }, 10);
+        }}
+        onClick={(e) => {
+          e.currentTarget.focus();
+        }}
+        data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
+      >
+        <div ref={inputRef} className="leading-none">
+          {!value && !isFocused && props.placeholder ? (
+            <span className="text-sm text-text-secondarysubtle text-ellipsis whitespace-nowrap">
+              {props.placeholder}
+            </span>
+          ) : (
+            <span
+              className={`text-sm inline-block ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
+              style={{ padding: value ? "1px" : "0" }}
+            >
+              {value}
+            </span>
+          )}
+        </div>
+        {isFocused && (
+          <div className="inline-block h-3 leading-none blinking bg-background-darkgray" style={{ width: "1px" }} />
+        )}
+        {props.showUnitInside && props.selectedUnit && props.value != null && (
+          <div className="text-xs text-text-secondary"> {props.selectedUnit}</div>
+        )}
+        {props.after && props.after()}
+      </div>
+      {isFocused && isMobile && (
+        <CustomKeyboard
+          ref={keyboardRef}
+          onInput={handleInput}
+          inputRef={inputRef}
+          keyboardAddon={props.keyboardAddon}
+          onBlur={onKeyboardClose}
+          onPlus={onPlus}
+          onMinus={onMinus}
+          allowDot={props.allowDot}
+          allowNegative={props.allowNegative}
+          enableCalculator={props.enableCalculator}
+          onShowCalculator={onShowCalculator}
+          enableUnits={props.enableUnits}
+          onChangeUnits={onChangeUnits}
+          selectedUnit={props.selectedUnit}
+        />
+      )}
+    </div>
+  );
+}
+
+export const InputNumber2 = memo(InputNumber2Inner);
+
+interface ICustomKeyboardProps {
+  onInput: (value: string) => void;
+  onBlur: () => void;
+  onPlus: () => void;
+  onMinus: () => void;
+  allowDot?: boolean;
+  allowNegative?: boolean;
+  inputRef: RefObject<HTMLInputElement | null>;
+  keyboardAddon?: JSX.Element;
+
+  enableCalculator?: boolean;
+  onShowCalculator?: () => void;
+
+  enableUnits?: (IUnit | IPercentageUnit)[];
+  onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
+  selectedUnit?: IUnit | IPercentageUnit;
+}
+
+interface IKeyboardButtonProps {
+  label: string;
+  onPress: (label: string) => void;
+}
+
+const KeyboardButton = memo(function KeyboardButton(props: IKeyboardButtonProps): JSX.Element {
+  const onClick = useCallback(() => props.onPress(props.label), [props.onPress, props.label]);
+  return (
+    <button
+      data-testid={`keyboard-button-${props.label}`}
+      className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation text-text-primary"
+      onClick={onClick}
+    >
+      {props.label}
+    </button>
+  );
+});
+
+const CustomKeyboardInner = forwardRef((props: ICustomKeyboardProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+  const containerRef = useMemo(
+    () => (typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined),
+    []
+  );
+  const keys = useMemo<string[]>(
+    () => ["1", "2", "3", "4", "5", "6", "7", "8", "9", props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""],
+    [props.allowDot, props.allowNegative]
+  );
+  const handleBackspace = useCallback(() => props.onInput("⌫"), [props.onInput]);
+
+  const element = (
+    <div
+      ref={ref}
+      id="keyboard-content"
+      className="fixed bottom-0 left-0 w-full keyboard-shadow"
+      style={{ zIndex: 70 }}
+    >
+      <div className="safe-area-inset-bottom bg-background-default">
+        <div className="flex items-center w-full gap-2 px-4 bg-background-subtle">
+          <div className="flex-1">{props.keyboardAddon}</div>
+          {props.enableCalculator && (
+            <div className="py-2">
+              <button
+                data-testid="keyboard-rm-calculator"
+                className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-border-cardpurple bg-background-cardpurple"
+                onClick={props.onShowCalculator}
+              >
+                <span className="mr-2">RM</span>
+                <span>
+                  <IconCalculator size={14} />
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="flex w-full gap-4 p-4 bg-background-default">
+          <div className="grid flex-1 grid-cols-3 gap-2">
+            {keys.map((key, i) =>
+              key ? <KeyboardButton key={key} label={key} onPress={props.onInput} /> : <div key={`empty-${i}`} />
+            )}
+          </div>
+          <div className="w-24 mt-2">
+            <div className="mb-4">
+              <button
+                className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-border-cardpurple bg-background-cardpurple"
+                data-testid="keyboard-close"
+                onClick={props.onBlur}
+              >
+                <IconKeyboardClose />
+              </button>
+            </div>
+            <div className="flex gap-1">
+              <div className="flex-1">
+                <button
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
+                  data-testid="keyboard-minus"
+                  onClick={props.onMinus}
+                >
+                  -
+                </button>
+              </div>
+              <div className="flex-1">
+                <button
+                  className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
+                  data-testid="keyboard-plus"
+                  onClick={props.onPlus}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            {props.enableUnits && props.selectedUnit ? (
+              <div className="flex items-center h-10 gap-2 mt-4">
+                {props.enableUnits.map((unit) => (
+                  <button
+                    key={unit}
+                    className={`flex text-icon-neutral touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-border-prominent bg-background-cardpurpleselected" : " border-border-cardpurple bg-background-cardpurple"}`}
+                    data-testid={`keyboard-unit-${unit}`}
+                    onClick={() => {
+                      if (props.onChangeUnits) {
+                        props.onChangeUnits(unit);
+                      }
+                    }}
+                  >
+                    {unit}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="h-10 mt-4"></div>
+            )}
+            <div className="mt-4">
+              <button
+                className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-border-cardpurple bg-background-cardpurple"
+                data-testid={`keyboard-backspace`}
+                onClick={handleBackspace}
+              >
+                <IconBackspace />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return containerRef ? createPortal(element, containerRef) : element;
+});
+
+const CustomKeyboard = memo(CustomKeyboardInner);

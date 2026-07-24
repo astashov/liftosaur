@@ -1,13 +1,15 @@
+import { SafeLocalStorage_getItem, SafeLocalStorage_setItem } from "./utils/safeLocalStorage";
+
 function updateSource(): void {
   const params = new URLSearchParams(window.location.search);
   const source = params.get("cpgsrc");
   if (source) {
-    window.localStorage.setItem("source", source);
+    SafeLocalStorage_setItem("source", source);
   }
 }
 
 function setStoreParams(): void {
-  const source = window.localStorage.getItem("source");
+  const source = SafeLocalStorage_getItem("source");
   if (source) {
     for (const link of Array.from(document.querySelectorAll(".google-play-link"))) {
       const href = link.getAttribute("href");

@@ -1,13 +1,25 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, memo as reactMemo, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { View, Pressable, TextInput, Image, Platform } from "react-native";
+import { NavScreenScrollContext } from "../navigation/NavScreenContent";
+import { useScrollProgressiveList } from "../utils/useScrollProgressiveList";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { EditStats } from "../models/editStats";
-import { Length } from "../models/length";
-import { Stats } from "../models/stats";
-import { Weight } from "../models/weight";
+import {
+  EditStats_changeStatWeightTimestamp,
+  EditStats_changeStatPercentageTimestamp,
+  EditStats_changeStatLengthTimestamp,
+  EditStats_changeStatWeightValue,
+  EditStats_changeStatPercentageValue,
+  EditStats_changeStatLengthValue,
+  EditStats_deleteWeightStat,
+  EditStats_deletePercentageStat,
+  EditStats_deleteLengthStat,
+} from "../models/editStats";
+import { Length_is, Length_convertTo, Length_build } from "../models/length";
+import { Stats_name } from "../models/stats";
+import { Weight_is, Weight_convertTo, Weight_build } from "../models/weight";
 import { ILength, IPercentage, ISettings, IStats, IStatsKey, ISubscription, IWeight } from "../types";
-import { DateUtils } from "../utils/date";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -15,15 +27,22 @@ import { GraphStats, getWeightDataForGraph, getLengthDataForGraph, getPercentage
 import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
 import { Button } from "./button";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { updateSettings } from "../models/state";
 import { lb } from "lens-shmens";
-import { Subscriptions } from "../utils/subscriptions";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { ImagePreloader_dynoflex } from "../utils/imagePreloader";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { BundledImages_svgXml } from "../utils/bundledImages";
+import { SvgXml } from "./primitives/svg";
+import { Dialog_confirm } from "../utils/dialog";
+import { DatePicker } from "./datePicker";
 
 interface IProps {
   stats: IStats;
   settings: ISettings;
   subscription: ISubscription;
+  initialKey?: IStatsKey;
   dispatch: IDispatch;
 }
 
@@ -57,29 +76,50 @@ function getValues(stats: IStats, key: IStatsKey): IValue[] {
 
 export function StatsList(props: IProps): JSX.Element {
   const statsKeys: IStatsKey[] = [
-    ...ObjectUtils.keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
-    ...ObjectUtils.keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
-    ...ObjectUtils.keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
+    ...ObjectUtils_keys(props.stats.length).filter((k) => (props.stats.length[k] || []).length > 0),
   ];
-  const [selectedKey, setSelectedKey] = useState<IStatsKey>(statsKeys[0] || "weight");
+  const [selectedKey, setSelectedKey] = useState<IStatsKey>(props.initialKey || statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
-  const values = getValues(props.stats, selectedKey);
+  const values = useMemo(() => getValues(props.stats, selectedKey), [props.stats, selectedKey]);
+  const { visibleItems: visibleValues, onScroll: onProgressiveScroll } = useScrollProgressiveList(values, {
+    batchSize: 10,
+  });
+  const navScrollCtx = useContext(NavScreenScrollContext);
+  useEffect(() => {
+    if (!navScrollCtx) {
+      return;
+    }
+    return navScrollCtx.addScrollListener(onProgressiveScroll);
+  }, [navScrollCtx, onProgressiveScroll]);
 
   if (statsKeys.length === 0) {
     return (
-      <div>
-        <div className="py-12 text-xl text-center text-grayv2-main">No measurements added yet</div>
-        <div className="text-center">
+      <View>
+        <View className="flex-row items-center justify-center pt-16">
+          {Platform.OS === "web" ? (
+            <Image
+              source={{ uri: HostConfig_resolveUrl(ImagePreloader_dynoflex) }}
+              style={{ width: 180, height: 232 }}
+            />
+          ) : (
+            <SvgXml xml={BundledImages_svgXml(ImagePreloader_dynoflex) ?? ""} width={180} height={232} />
+          )}
+        </View>
+        <Text className="pt-4 pb-6 text-sm text-center text-text-secondary">No measurements added yet</Text>
+        <View className="items-center">
           <Button
             name="add-measurements"
-            data-cy="add-measurements"
+            data-testid="add-measurements"
+            testID="add-measurements"
             kind="purple"
-            onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+            onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
           >
             Add measurements
           </Button>
-        </div>
-      </div>
+        </View>
+      </View>
     );
   }
   const units =
@@ -88,35 +128,36 @@ export function StatsList(props: IProps): JSX.Element {
     selectedKey === "weight"
       ? getWeightDataForGraph(props.stats.weight[selectedKey] || [], props.settings)
       : selectedKey === "bodyfat"
-      ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
-      : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
+        ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
+        : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
 
   const graphUnit =
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
 
   return (
-    <div className="px-4" data-cy={`stats-list-${selectedKey}`}>
-      <div className="pb-2 text-center">
+    <View className="px-4" data-testid={`stats-list-${selectedKey}`} testID={`stats-list-${selectedKey}`}>
+      <View className="items-center pb-2">
         <Button
           name="add-measurements"
-          data-cy="add-measurements"
+          data-testid="add-measurements"
+          testID="add-measurements"
           kind="purple"
-          onClick={() => props.dispatch(Thunk.pushScreen("stats"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
         >
           Add measurements
         </Button>
-      </div>
+      </View>
       <GroupHeader name="Selected Measurement Type" />
       <MenuItemEditable
         type="select"
         name="Type"
         value={selectedKey}
-        values={statsKeys.map((key) => [key, Stats.name(key)])}
+        values={statsKeys.map((key) => [key, Stats_name(key)])}
         onChange={(value) => {
           setSelectedKey(value as IStatsKey);
         }}
       />
-      {Subscriptions.hasSubscription(props.subscription) && (
+      {Subscriptions_hasSubscription(props.subscription) && (
         <MenuItemEditable
           name="Moving Average Window Size"
           type="select"
@@ -137,12 +178,13 @@ export function StatsList(props: IProps): JSX.Element {
                 .recordModify((opts) => ({
                   ...opts,
                   movingAverageWindowSize: value ? parseInt(value, 10) : undefined,
-                }))
+                })),
+              "Update moving average"
             );
           }}
         />
       )}
-      <div className="relative">
+      <View className="relative">
         {graphPoints.length > 2 && (
           <>
             <GraphStats
@@ -156,101 +198,137 @@ export function StatsList(props: IProps): JSX.Element {
               collection={graphPoints}
               statsKey={selectedKey}
               movingAverageWindowSize={movingAverageWindowSize}
+              isInteractive={Subscriptions_hasSubscription(props.subscription)}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           </>
         )}
-      </div>
+      </View>
       {values.length === 0 ? (
-        <>
-          <div className="py-12 text-xl text-center text-grayv2-main">
-            No {Stats.name(selectedKey)} measurements added yet
-          </div>
-        </>
+        <Text className="py-12 text-xl text-center text-text-secondary">
+          No {Stats_name(selectedKey)} measurements added yet
+        </Text>
       ) : (
         <>
           <GroupHeader name="List of measurements" topPadding={false} />
-          {values.map((value) => {
-            const convertedValue = Weight.is(value.value)
-              ? Weight.convertTo(value.value, props.settings.units)
-              : Length.is(value.value)
-              ? Length.convertTo(value.value, props.settings.lengthUnits)
-              : value.value;
-            return (
-              <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <input
-                      className="inline-block py-2 text-bluev2"
-                      data-cy="input-stats-date"
-                      type="date"
-                      onChange={(e) => {
-                        const date = Date.parse(e.currentTarget.value + "T00:00:00");
-                        if (!isNaN(date)) {
-                          if (selectedKey === "weight") {
-                            EditStats.changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, date);
-                          } else if (selectedKey === "bodyfat") {
-                            EditStats.changeStatPercentageTimestamp(props.dispatch, selectedKey, value.index, date);
-                          } else {
-                            EditStats.changeStatLengthTimestamp(props.dispatch, selectedKey, value.index, date);
-                          }
-                        }
-                      }}
-                      value={DateUtils.formatYYYYMMDD(value.timestamp)}
-                    />
-                  </div>
-                  <div className="flex flex-1">
-                    <input
-                      type="number"
-                      data-cy="input-stats-value"
-                      className="flex-1 w-full p-2 text-right text-bluev2"
-                      step="0.01"
-                      value={+convertedValue.value.toFixed(2)}
-                      onInput={(e) => {
-                        const num = parseFloat(e.currentTarget.value);
-                        if (!isNaN(num)) {
-                          if (selectedKey === "weight") {
-                            const v = Weight.build(num, props.settings.units);
-                            EditStats.changeStatWeightValue(props.dispatch, selectedKey, value.index, v);
-                          } else if (selectedKey === "bodyfat") {
-                            const v: IPercentage = { value: num, unit: "%" };
-                            EditStats.changeStatPercentageValue(props.dispatch, selectedKey, value.index, v);
-                          } else {
-                            const v = Length.build(num, props.settings.lengthUnits);
-                            EditStats.changeStatLengthValue(props.dispatch, selectedKey, value.index, v);
-                          }
-                        }
-                      }}
-                    />
-                    <span className="py-3" data-cy="input-stats-unit">
-                      {units}
-                    </span>
-                  </div>
-                  <div>
-                    <button
-                      className="p-3 ls-delete-stat"
-                      data-cy="delete-stat"
-                      onClick={() => {
-                        if (confirm("Are you sure?")) {
-                          if (selectedKey === "weight") {
-                            EditStats.deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          } else if (selectedKey === "bodyfat") {
-                            EditStats.deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          } else {
-                            EditStats.deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                          }
-                        }
-                      }}
-                    >
-                      <IconTrash />
-                    </button>
-                  </div>
-                </div>
-              </MenuItemWrapper>
-            );
-          })}
+          {visibleValues.map((value) => (
+            <MeasurementRow
+              key={`${selectedKey}-${value.timestamp}`}
+              value={value}
+              selectedKey={selectedKey}
+              settings={props.settings}
+              units={units}
+              dispatch={props.dispatch}
+            />
+          ))}
         </>
       )}
-    </div>
+    </View>
+  );
+}
+
+interface IMeasurementRowProps {
+  value: IValue;
+  selectedKey: IStatsKey;
+  settings: ISettings;
+  units: string;
+  dispatch: IDispatch;
+}
+
+const MeasurementRow = reactMemo(function MeasurementRow(props: IMeasurementRowProps): JSX.Element {
+  const { value, selectedKey, settings, units, dispatch } = props;
+  const convertedValue = useMemo(() => {
+    return Weight_is(value.value)
+      ? Weight_convertTo(value.value, settings.units)
+      : Length_is(value.value)
+        ? Length_convertTo(value.value, settings.lengthUnits)
+        : value.value;
+  }, [value.value, settings.units, settings.lengthUnits]);
+
+  const onChangeTimestamp = useCallback(
+    (ts: number): void => {
+      if (selectedKey === "weight") {
+        EditStats_changeStatWeightTimestamp(dispatch, selectedKey, value.index, ts);
+      } else if (selectedKey === "bodyfat") {
+        EditStats_changeStatPercentageTimestamp(dispatch, selectedKey, value.index, ts);
+      } else {
+        EditStats_changeStatLengthTimestamp(dispatch, selectedKey, value.index, ts);
+      }
+    },
+    [dispatch, selectedKey, value.index]
+  );
+
+  const onChangeValue = useCallback(
+    (str: string): void => {
+      const num = parseFloat(str);
+      if (isNaN(num)) {
+        return;
+      }
+      if (selectedKey === "weight") {
+        EditStats_changeStatWeightValue(dispatch, selectedKey, value.index, Weight_build(num, settings.units));
+      } else if (selectedKey === "bodyfat") {
+        EditStats_changeStatPercentageValue(dispatch, selectedKey, value.index, { value: num, unit: "%" });
+      } else {
+        EditStats_changeStatLengthValue(dispatch, selectedKey, value.index, Length_build(num, settings.lengthUnits));
+      }
+    },
+    [dispatch, selectedKey, value.index, settings.units, settings.lengthUnits]
+  );
+
+  const onDelete = useCallback(async (): Promise<void> => {
+    if (await Dialog_confirm("Are you sure?")) {
+      if (selectedKey === "weight") {
+        EditStats_deleteWeightStat(dispatch, selectedKey, value.index, value.timestamp);
+      } else if (selectedKey === "bodyfat") {
+        EditStats_deletePercentageStat(dispatch, selectedKey, value.index, value.timestamp);
+      } else {
+        EditStats_deleteLengthStat(dispatch, selectedKey, value.index, value.timestamp);
+      }
+    }
+  }, [dispatch, selectedKey, value.index, value.timestamp]);
+
+  return (
+    <MenuItemWrapper name={`${selectedKey}-${value.timestamp}`}>
+      <View className="flex-row items-center">
+        <View className="flex-1">
+          <DatePicker testID="input-stats-date" value={value.timestamp} onChange={onChangeTimestamp} />
+        </View>
+        <View className="flex-row flex-1 items-center">
+          <StatValueInput value={+convertedValue.value.toFixed(2)} onChange={onChangeValue} />
+          <Text className="py-3 pl-1" data-testid="input-stats-unit">
+            {units}
+          </Text>
+        </View>
+        <Pressable className="p-3 nm-delete-stat" data-testid="delete-stat" testID="delete-stat" onPress={onDelete}>
+          <IconTrash />
+        </Pressable>
+      </View>
+    </MenuItemWrapper>
+  );
+});
+
+interface IStatValueInputProps {
+  value: number;
+  onChange: (str: string) => void;
+}
+
+function StatValueInput(props: IStatValueInputProps): JSX.Element {
+  const [text, setText] = useState(String(props.value));
+
+  useEffect(() => {
+    setText(String(props.value));
+  }, [props.value]);
+
+  return (
+    <TextInput
+      data-testid="input-stats-value"
+      testID="input-stats-value"
+      className="flex-1 w-0 min-w-0 p-2 text-right text-text-link bg-background-default"
+      keyboardType="numeric"
+      value={text}
+      onChangeText={setText}
+      onBlur={() => props.onChange(text)}
+      selectTextOnFocus={Platform.OS === "ios"}
+    />
   );
 }

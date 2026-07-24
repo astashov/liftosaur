@@ -1,0 +1,553 @@
+import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
+import {
+  IPlannerExerciseState,
+  IPlannerExerciseUi,
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
+} from "../../pages/planner/models/types";
+import { IDaySetData, IExerciseType, ISettings } from "../../types";
+import { ILensDispatch } from "../../utils/useLensReducer";
+import { IEvaluatedProgram, Program_getProgramExerciseFromDay } from "../../models/program";
+import { ScrollableTabs } from "../scrollableTabs";
+import { PP_iterate2 } from "../../models/pp";
+import { InputNumber2 } from "../inputNumber2";
+import { lb } from "lens-shmens";
+import { EditProgramUiHelpers_changeSets } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
+import { SetUtils_areAllEqual, SetUtils_areEqual } from "../../utils/setUtils";
+import { InputWeight2 } from "../inputWeight2";
+import { InputNumberAddOn } from "./editProgramExerciseSet";
+
+interface IEditProgramExerciseAcrossAllWeeksProps {
+  evaluatedProgram: IEvaluatedProgram;
+  ui: IPlannerExerciseUi;
+  plannerExercise: IPlannerProgramExercise;
+  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  settings: ISettings;
+}
+
+export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcrossAllWeeksProps): JSX.Element {
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+
+  function change(setData: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
+    props.plannerDispatch(
+      lbProgram.recordModify((program) => {
+        return EditProgramUiHelpers_changeSets(program, props.plannerExercise.key, setData, props.settings, (set) => {
+          changeFn(set);
+        });
+      }),
+      "Update sets"
+    );
+  }
+
+  const tabs = [
+    {
+      label: "Reps",
+      children: () => (
+        <Tab
+          evaluatedProgram={props.evaluatedProgram}
+          plannerExercise={props.plannerExercise}
+          plannerDispatch={props.plannerDispatch}
+          settings={props.settings}
+          getKey={(set) => `${set.minrep}-${set.maxrep}-${set.isAmrap}`}
+          getRightSide={(group, set) => (
+            <RepsValue
+              exerciseType={props.plannerExercise.exerciseType}
+              settings={props.settings}
+              group={group}
+              set={set}
+              change={change}
+            />
+          )}
+        />
+      ),
+    },
+  ];
+  tabs.push({
+    label: "Weights",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.weight?.unit}-${set.weight?.value}-${set.askWeight}`}
+        getRightSide={(group, set) => (
+          <WeightsValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
+  tabs.push({
+    label: "RPE",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.rpe}-${set.logRpe}`}
+        getRightSide={(group, set) => (
+          <RpeValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
+  tabs.push({
+    label: "Timers",
+    children: () => (
+      <Tab
+        evaluatedProgram={props.evaluatedProgram}
+        plannerExercise={props.plannerExercise}
+        plannerDispatch={props.plannerDispatch}
+        settings={props.settings}
+        getKey={(set) => `${set.timer}`}
+        getRightSide={(group, set) => (
+          <TimerValue
+            exerciseType={props.plannerExercise.exerciseType}
+            settings={props.settings}
+            group={group}
+            set={set}
+            change={change}
+          />
+        )}
+      />
+    ),
+  });
+
+  return (
+    <View>
+      <ScrollableTabs
+        topPadding="1rem"
+        defaultIndex={props.ui.acrossWeeksTabIndex}
+        onChange={(index: number) => {
+          props.plannerDispatch(
+            lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index),
+            "Change across weeks tab"
+          );
+        }}
+        shouldNotExpand={true}
+        nonSticky={true}
+        color="purple"
+        tabs={tabs}
+      />
+    </View>
+  );
+}
+
+interface ITabProps {
+  evaluatedProgram: IEvaluatedProgram;
+  plannerExercise: IPlannerProgramExercise;
+  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  getKey: (set: IPlannerProgramExerciseEvaluatedSet) => string;
+  getRightSide: (group: IDaySetData[], set: IPlannerProgramExerciseEvaluatedSet) => JSX.Element;
+  settings: ISettings;
+}
+
+function Tab(props: ITabProps): JSX.Element {
+  const groups: Record<string, IDaySetData[]> = {};
+  PP_iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
+    if (exercise.key !== props.plannerExercise.key) {
+      return;
+    }
+    for (let setVariationIndex = 0; setVariationIndex < exercise.evaluatedSetVariations.length; setVariationIndex++) {
+      for (let setIndex = 0; setIndex < exercise.evaluatedSetVariations[setVariationIndex].sets.length; setIndex++) {
+        const set = exercise.evaluatedSetVariations[setVariationIndex].sets[setIndex];
+        const key = props.getKey(set);
+        groups[key] = groups[key] || [];
+        groups[key].push({
+          week: weekIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          setVariation: setVariationIndex + 1,
+          set: setIndex + 1,
+        });
+      }
+    }
+  });
+
+  const groupsValues = ObjectUtils_values(groups);
+
+  const allWeeks = groupsValues.map((group) => new Set(group.map((setData) => setData.week)));
+  const allDays = groupsValues.map((group) => new Set(group.map((setData) => setData.dayInWeek)));
+  const setVariationsPerWeekDay: Record<string, Set<number>> = {};
+  for (const group of groupsValues) {
+    for (const setData of group) {
+      const key = `${setData.week}-${setData.dayInWeek}`;
+      setVariationsPerWeekDay[key] = setVariationsPerWeekDay[key] || new Set();
+      setVariationsPerWeekDay[key].add(setData.setVariation);
+    }
+  }
+  const setsPerWeekDaySetVariation: Record<string, Set<number>> = {};
+  for (const group of groupsValues) {
+    for (const setData of group) {
+      const key = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
+      setsPerWeekDaySetVariation[key] = setsPerWeekDaySetVariation[key] || new Set();
+      setsPerWeekDaySetVariation[key].add(setData.set);
+    }
+  }
+  const allWeeksEqual = SetUtils_areAllEqual(allWeeks);
+  const allDaysEqual = SetUtils_areAllEqual(allDays);
+
+  return (
+    <View className="px-4">
+      {Object.entries(groups).map(([key, group]) => {
+        const first = group[0];
+        const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
+        const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
+        if (!exercise) {
+          return (
+            <View key={key}>
+              <Text>Exercise not found for key: {props.plannerExercise.key}</Text>
+            </View>
+          );
+        }
+        const set = exercise.evaluatedSetVariations[first.setVariation - 1].sets[first.set - 1];
+        return (
+          <View
+            key={key}
+            className="flex-row items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
+          >
+            <View className="flex-1">
+              <GroupLabel
+                group={group}
+                allWeeksEqual={allWeeksEqual}
+                allDaysEqual={allDaysEqual}
+                setVariationsPerWeekDay={setVariationsPerWeekDay}
+                setsPerWeekDaySetVariation={setsPerWeekDaySetVariation}
+              />
+            </View>
+            <View className="flex-row items-center gap-2">{props.getRightSide(group, set)}</View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+interface IGroupLabelProps {
+  group: IDaySetData[];
+  allWeeksEqual: boolean;
+  allDaysEqual: boolean;
+  setVariationsPerWeekDay: Record<string, Set<number>>;
+  setsPerWeekDaySetVariation: Record<string, Set<number>>;
+}
+
+function GroupLabel(props: IGroupLabelProps): JSX.Element {
+  const groupSetVariationsPerWeekDay: Record<string, Set<number>> = {};
+  for (const setData of props.group) {
+    const key = `${setData.week}-${setData.dayInWeek}`;
+    groupSetVariationsPerWeekDay[key] = groupSetVariationsPerWeekDay[key] || new Set();
+    groupSetVariationsPerWeekDay[key].add(setData.setVariation);
+  }
+
+  const groupSetsPerWeekDaySetVariation: Record<string, Set<number>> = {};
+  for (const setData of props.group) {
+    const key = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
+    groupSetsPerWeekDaySetVariation[key] = groupSetsPerWeekDaySetVariation[key] || new Set();
+    groupSetsPerWeekDaySetVariation[key].add(setData.set);
+  }
+
+  const allSetVariationsEqual = ObjectUtils_entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
+    const allSetVariationsForWeekDay = props.setVariationsPerWeekDay[key];
+    if (
+      setVariations.size !== allSetVariationsForWeekDay.size ||
+      !SetUtils_areEqual(allSetVariationsForWeekDay, setVariations)
+    ) {
+      return false;
+    }
+    for (const setVariation of setVariations) {
+      const setKey = `${key}-${setVariation}`;
+      const groupSets = groupSetsPerWeekDaySetVariation[setKey];
+      const allSets = props.setsPerWeekDaySetVariation[setKey];
+      if (!groupSets || groupSets.size !== allSets.size || !SetUtils_areEqual(allSets, groupSets)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const allSetsEqual = ObjectUtils_entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
+    const allSetsForWeekDaySetVariation = props.setsPerWeekDaySetVariation[key];
+    return sets.size === allSetsForWeekDaySetVariation.size && SetUtils_areEqual(allSetsForWeekDaySetVariation, sets);
+  });
+
+  if (props.allWeeksEqual && props.allDaysEqual && allSetVariationsEqual && allSetsEqual) {
+    return <Text className="text-sm">All Sets</Text>;
+  }
+
+  const parts = props.group.map<[string, number][]>((setData) => {
+    const setKey = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
+    const areSetsEqual = SetUtils_areEqual(
+      groupSetsPerWeekDaySetVariation[setKey],
+      props.setsPerWeekDaySetVariation[setKey]
+    );
+    return CollectionUtils_compact([
+      props.allWeeksEqual ? undefined : ["Week", setData.week],
+      props.allDaysEqual ? undefined : ["Day", setData.dayInWeek],
+      allSetVariationsEqual ? undefined : ["Set Variation", setData.setVariation],
+      areSetsEqual ? undefined : ["Set", setData.set],
+    ]);
+  });
+  const collapsedParts = collapseLastElementRange(parts);
+  const uniqueParts = Array.from(
+    new Set(collapsedParts.map((part) => part.map(([key, value]) => `${key} ${value}`).join(", ")))
+  );
+
+  return (
+    <View>
+      {uniqueParts.map((part, index) => {
+        return (
+          <Text key={index} className="text-sm">
+            {part}
+          </Text>
+        );
+      })}
+    </View>
+  );
+}
+
+interface IValueProps {
+  group: IDaySetData[];
+  set: IPlannerProgramExerciseEvaluatedSet;
+  settings: ISettings;
+  exerciseType?: IExerciseType;
+  change: (group: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void) => void;
+}
+
+function RepsValue(props: IValueProps): JSX.Element {
+  const { group, set, change } = props;
+  return (
+    <View className="flex-row items-center gap-1">
+      {set.minrep != null && (
+        <>
+          <View className="items-center">
+            <Text className="text-xs text-text-secondary">Min Reps</Text>
+            <View>
+              <InputNumber2
+                width={3.5}
+                data-testid="min-reps-value"
+                testID="min-reps-value"
+                name="set-min-reps"
+                onBlur={(value) => {
+                  change(group, (s) => {
+                    s.minrep = value;
+                  });
+                }}
+                value={set.minrep}
+                min={0}
+                max={999}
+                step={1}
+              />
+            </View>
+          </View>
+          <View>
+            <Text className="text-xs text-text-secondary">&nbsp;</Text>
+            <Text>-</Text>
+          </View>
+        </>
+      )}
+      <View className="items-center">
+        <Text className="text-xs text-text-secondary">{set.minrep != null ? "Max Reps" : "Reps"}</Text>
+        <View>
+          <InputNumber2
+            width={3.5}
+            data-testid="reps-value"
+            testID="reps-value"
+            name="set-reps"
+            onBlur={(value) => change(group, (s) => (s.maxrep = value))}
+            after={() => (set.isAmrap ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
+            keyboardAddon={
+              <View className="py-2">
+                <InputNumberAddOn
+                  label="Is AMRAP?"
+                  value={set.isAmrap}
+                  onChange={(value) => {
+                    change(group, (s) => (s.isAmrap = value));
+                  }}
+                />
+              </View>
+            }
+            value={set.maxrep}
+            min={0}
+            max={999}
+            step={1}
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function WeightsValue(props: IValueProps): JSX.Element {
+  const { group, set, change } = props;
+  return (
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">Weight</Text>
+      <View>
+        <InputWeight2
+          name="set-weight"
+          width={4}
+          exerciseType={props.exerciseType}
+          data-testid="weight-value"
+          testID="weight-value"
+          units={["lb", "kg", "%"] as const}
+          inputCommitMode="blur"
+          onBlur={(value) => change(group, (s) => (s.weight = value))}
+          showUnitInside={true}
+          subscription={undefined}
+          value={set.weight}
+          after={() => (set.askWeight ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
+          max={9999}
+          min={-9999}
+          settings={props.settings}
+          addOn={() => (
+            <InputNumberAddOn
+              label="Ask Weight?"
+              value={set.askWeight}
+              onChange={(value) => {
+                change(group, (s) => (s.askWeight = value));
+              }}
+            />
+          )}
+        />
+      </View>
+    </View>
+  );
+}
+
+function RpeValue(props: IValueProps): JSX.Element {
+  const { group, set, change } = props;
+  return (
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">RPE</Text>
+      <View>
+        <InputNumber2
+          width={3}
+          data-testid="rpe-value"
+          testID="rpe-value"
+          allowDot={true}
+          name="set-rpe"
+          after={() => (set.logRpe ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
+          keyboardAddon={
+            <View className="py-2">
+              <InputNumberAddOn
+                label="Log RPE?"
+                value={set.isAmrap}
+                onChange={(value) => {
+                  change(group, (s) => (s.logRpe = value));
+                }}
+              />
+            </View>
+          }
+          onBlur={(value) => change(group, (s) => (s.rpe = value))}
+          value={set.rpe}
+          min={0}
+          max={10}
+          step={0.5}
+        />
+      </View>
+    </View>
+  );
+}
+
+function TimerValue(props: IValueProps): JSX.Element {
+  const { group, set, change } = props;
+  return (
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">Timer</Text>
+      <View>
+        <InputNumber2
+          width={3.5}
+          data-testid="set-timer"
+          testID="set-timer"
+          name="timer-value"
+          onBlur={(value) => change(group, (s) => (s.timer = value))}
+          value={set.timer}
+          min={0}
+          max={9999}
+          step={15}
+        />
+      </View>
+    </View>
+  );
+}
+
+function collapseLastElementRange(data: [string, number][][]): [string, string][][] {
+  if (data.length === 0) {
+    return [];
+  }
+
+  const result: [string, string][][] = [];
+
+  let currentGroup: [string, number][][] = [data[0]];
+
+  for (let i = 1; i < data.length; i++) {
+    const prev = currentGroup[currentGroup.length - 1];
+    const curr = data[i];
+
+    const prevLast = prev[prev.length - 1];
+    const currLast = curr[curr.length - 1];
+
+    const sameDepth = prev.length === curr.length;
+    const sameLastKey = prevLast[0] === currLast[0];
+    const samePrefix = isSamePrefix(prev, curr);
+    const isConsecutive = currLast[1] === prevLast[1] || currLast[1] === prevLast[1] + 1;
+
+    const canGroup = sameDepth && sameLastKey && isConsecutive && (curr.length === 1 || samePrefix);
+
+    if (canGroup) {
+      currentGroup.push(curr);
+    } else {
+      result.push(buildCollapsedGroup(currentGroup));
+      currentGroup = [curr];
+    }
+  }
+
+  result.push(buildCollapsedGroup(currentGroup));
+
+  return result;
+}
+
+function isSamePrefix(a: [string, number][], b: [string, number][]): boolean {
+  for (let i = 0; i < a.length - 1; i++) {
+    if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function buildCollapsedGroup(group: [string, number][][]): [string, string][] {
+  const firstEntry = group[0];
+  const lastEntry = group[group.length - 1];
+
+  if (firstEntry.length === 1) {
+    const key = firstEntry[0][0];
+    const start = firstEntry[0][1];
+    const end = lastEntry[0][1];
+    const range = start === end ? `${start}` : `${start}-${end}`;
+    return [[key, range]];
+  }
+
+  const prefix = firstEntry.slice(0, -1).map(([k, v]) => [k, v.toString()]) as [string, string][];
+  const lastKey = firstEntry[firstEntry.length - 1][0];
+  const firstVal = firstEntry[firstEntry.length - 1][1];
+  const lastVal = lastEntry[lastEntry.length - 1][1];
+  const range = firstVal === lastVal ? `${firstVal}` : `${firstVal}-${lastVal}`;
+  return [...prefix, [lastKey, range]];
+}

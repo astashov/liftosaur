@@ -1,0 +1,87 @@
+import * as fs from "fs";
+import * as path from "path";
+import {
+  localdomain,
+  localapidomain,
+  localstreamingapidomain,
+  localport,
+  localapiport,
+  localstreamingapiport,
+} from "../src/localdomain";
+
+const HOSTS = {
+  prod: {
+    host: "https://www.liftosaur.com",
+    apiHost: "https://api3.liftosaur.com",
+    streamingApiHost: "https://streaming-api.liftosaur.com",
+  },
+  dev: {
+    host: "https://stage.liftosaur.com",
+    apiHost: "https://api3-dev.liftosaur.com",
+    streamingApiHost: "https://streaming-api-dev.liftosaur.com",
+  },
+  local: {
+    host: `https://${localdomain}.liftosaur.com:${localport}`,
+    apiHost: `https://${localapidomain}.liftosaur.com:${localapiport}`,
+    streamingApiHost: `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`,
+  },
+} as const;
+
+type IStage = keyof typeof HOSTS;
+
+function resolveStage(): IStage {
+  if ((process.env.LOCAL ?? "").toLowerCase() === "1") {
+    return "local";
+  }
+  const raw = (process.env.STAGE ?? "prod").toLowerCase();
+  if (raw === "1" || raw === "dev" || raw === "stage") {
+    return "dev";
+  }
+  if (raw === "0" || raw === "prod" || raw === "production") {
+    return "prod";
+  }
+  throw new Error(`unrecognized STAGE=${raw} (expected dev|prod|stage|production|1|0)`);
+}
+
+function syncFile<T>(filePath: string, replacer: (contents: string, v: T) => string, value: T): void {
+  const abs = path.resolve(__dirname, "..", filePath);
+  const before = fs.readFileSync(abs, "utf8");
+  const after = replacer(before, value);
+  if (before !== after) {
+    fs.writeFileSync(abs, after);
+    console.log(`updated ${filePath}`);
+  } else {
+    console.log(`unchanged ${filePath}`);
+  }
+}
+
+function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): string {
+  return contents
+    .replace(/(const nativeHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.host}$2`)
+    .replace(/(const nativeApiHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.apiHost}$2`)
+    .replace(
+      /(const nativeStreamingApiHost = useLocal\s*\?\s*"[^"]+"\s*:\s*")[^"]+(";)/,
+      `$1${hosts.streamingApiHost}$2`
+    );
+}
+
+function replaceIosManifestURL(contents: string, manifestUrl: string): string {
+  return contents.replace(/(<key>LftUpdatesManifestURL<\/key>\s*<string>)[^<]+(<\/string>)/, `$1${manifestUrl}$2`);
+}
+
+function replaceAndroidManifestURL(contents: string, manifestUrl: string): string {
+  return contents.replace(/(<string name="lft_updates_manifest_url">)[^<]+(<\/string>)/, `$1${manifestUrl}$2`);
+}
+
+function main(): void {
+  const stage = resolveStage();
+  const hosts = HOSTS[stage];
+  const manifestUrl = `${hosts.host}/api/updates/manifest`;
+  console.log(`stage=${stage} host=${hosts.host} manifest=${manifestUrl}`);
+
+  syncFile("src/App.native.tsx", replaceNativeHosts, hosts);
+  syncFile("ios/Liftosaur/Info.plist", replaceIosManifestURL, manifestUrl);
+  syncFile("android/app/src/main/res/values/strings.xml", replaceAndroidManifestURL, manifestUrl);
+}
+
+main();

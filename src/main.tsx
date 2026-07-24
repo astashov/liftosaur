@@ -1,12 +1,20 @@
-import { h } from "preact";
-import { MainContent } from "./pages/main/mainContent";
-import { IProgramContentSyncerProps } from "./pages/program/programContentSyncer";
-import { HydrateUtils } from "./utils/hydrate";
+import { IMainContentProps, MainContent } from "./pages/main/mainContent";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
+import { Platform_isiOS, Platform_isAndroid } from "./utils/platform";
 
 function main(): void {
-  HydrateUtils.hydratePage<IProgramContentSyncerProps>((pageWrapperProps, data) => (
-    <MainContent {...data} client={window.fetch.bind(window)} />
-  ));
+  HydrateUtils_hydratePage<IMainContentProps>((pageWrapperProps, data) => {
+    const ua = window.navigator.userAgent;
+    const deviceType = Platform_isiOS(ua) ? "ios" : Platform_isAndroid(ua) ? "android" : "desktop";
+    return (
+      <MainContent
+        {...data}
+        deviceType={deviceType}
+        isLoggedIn={pageWrapperProps.isLoggedIn}
+        client={window.fetch.bind(window)}
+      />
+    );
+  });
 }
 
 main();

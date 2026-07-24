@@ -1,16 +1,51 @@
-/* eslint-disable @typescript-eslint/unified-signatures */
-import { Exercise } from "./exercise";
-import { Reps } from "./set";
-import { Weight } from "./weight";
-import { Screen } from "./screen";
-import { DateUtils } from "../utils/date";
-import { lf, lb } from "lens-shmens";
-import { ObjectUtils } from "../utils/object";
+import {
+  Exercise_onerm,
+  Exercise_get,
+  Exercise_getIsUnilateral,
+  Exercise_getWarmupSets,
+  Exercise_toKey,
+} from "./exercise";
+import { Reps_findNextEntryAndSet, Reps_isEmptyOrFinished, Reps_isCompleted, Reps_isEmpty } from "./set";
+import {
+  Weight_build,
+  Weight_buildAny,
+  Weight_eq,
+  Weight_lt,
+  Weight_increment,
+  Weight_isPct,
+  Weight_buildPct,
+  Weight_decrement,
+  Weight_is,
+  Weight_round,
+  Weight_roundConvertTo,
+  Weight_getTrainingMax,
+  Weight_getOneRepMax,
+  Weight_rpeMultiplier,
+  Weight_convertToWeight,
+  Weight_display,
+  Weight_calculatePlates,
+  Weight_formatOneSide,
+  Weight_rpePct,
+  Weight_evaluateWeight,
+  Weight_op,
+} from "./weight";
+import { DateUtils_fromYYYYMMDD, DateUtils_fromYYYYMMDDStr } from "../utils/date";
+import { lf, lb, LensBuilder } from "lens-shmens";
+import { ObjectUtils_isEqual, ObjectUtils_entriesNonnull, ObjectUtils_keys, ObjectUtils_clone } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { ScriptRunner } from "../parser";
 
-import { Program } from "./program";
-import { IState, updateState } from "./state";
+import {
+  emptyProgramId,
+  IEvaluatedProgram,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+  Program_getProgramExerciseForKeyAndDay,
+  Program_createEmptyProgram,
+  Program_evaluate,
+  Program_runAllFinishDayScripts,
+} from "./program";
+import { IState, updateProgress, updateState } from "./state";
 import {
   IWeight,
   IHistoryEntry,
@@ -18,55 +53,60 @@ import {
   IHistoryRecord,
   IProgressMode,
   IExerciseType,
-  IProgressUi,
-  IProgram,
   IProgramState,
   IEquipment,
-  IProgramExercise,
   ISubscription,
   ISet,
-  IProgramDay,
   IDayData,
   IExerciseDataValue,
   IUnit,
+  IStats,
+  IProgram,
+  IStorage,
 } from "../types";
-import { SendMessage } from "../utils/sendMessage";
-import { ProgramExercise } from "./programExercise";
-import { Subscriptions } from "../utils/subscriptions";
-import { IExerciseId, IPercentage } from "../types";
-import { History } from "./history";
-import { CollectionUtils } from "../utils/collection";
-import { MathUtils } from "../utils/math";
+import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
+import { SendMessage_print } from "../utils/sendMessage";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { IPercentage } from "../types";
+import {
+  History_workoutTime,
+  History_createCustomEntry,
+  History_resumeWorkout,
+  History_finishProgramDay,
+} from "./history";
+import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
+import { Equipment_getUnitForExerciseType } from "./equipment";
+import { IByTag, IByExercise } from "../pages/planner/plannerEvaluator";
+import { IPlannerProgramExercise, IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
+import {
+  PlannerProgramExercise_getUpdateScript,
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentExerciseVariationIndex,
+  PlannerProgramExercise_currentDescriptionIndex,
+  PlannerProgramExercise_currentSetVariationIndex,
+  PlannerProgramExercise_programWarmups,
+} from "../pages/planner/models/plannerProgramExercise";
+import { UidFactory_generateUid } from "../utils/generator";
+import { ProgramSet_getEvaluatedWeight } from "./programSet";
+import { Stats_getCurrentMovingAverageBodyweight } from "./stats";
+import { IChangeAMRAPAction, ICompleteSetAction } from "../ducks/reducer";
+import {
+  LiveActivityManager_updateProgressLiveActivity,
+  LiveActivityManager_updateLiveActivityForNextEntry,
+} from "../utils/liveActivityManager";
+import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
+import type { IScriptFunctions, IScriptBindings } from "../liftoscriptFns";
+import deepmerge from "deepmerge";
+import { Dialog_alert } from "../utils/dialog";
 
-export interface IScriptBindings {
-  day: number;
-  week: number;
-  dayInWeek: number;
-  weights: IWeight[];
-  rm1: IWeight;
-  reps: number[];
-  minReps: (number | undefined)[];
-  amraps: (number | undefined)[];
-  logrpes: (number | undefined)[];
-  timers: (number | undefined)[];
-  RPE: (number | undefined)[];
-  completedRPE: (number | undefined)[];
-  completedReps: (number | undefined)[];
-  w: IWeight[];
-  r: number[];
-  mr: (number | undefined)[];
-  cr: (number | undefined)[];
-  ns: number;
-  numberOfSets: number;
-  setVariationIndex: number;
-  descriptionIndex: number;
-  setIndex: number;
-}
+export type { IScriptBindings } from "../liftoscriptFns";
 
 export interface IScriptFnContext {
+  prints: (number | IWeight | IPercentage)[][];
   unit: IUnit;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
 }
 
 export interface IScriptFinishContext {
@@ -81,1324 +121,1918 @@ export interface IScriptUpdateContext {
   equipment?: IEquipment;
 }
 
-export interface IScriptFunctions {
-  roundWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
-  calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
-  calculate1RM: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
-  rpeMultiplier: (reps: number, rpe: number, context: IScriptFnContext) => number;
-  floor(num: number): number;
-  floor(num: IWeight): IWeight;
-  ceil(num: number): number;
-  ceil(num: IWeight): IWeight;
-  round(num: number): number;
-  round(num: IWeight): IWeight;
-  sum(vals: number[]): number;
-  sum(vals: IWeight[]): IWeight;
-  min(vals: number[]): number;
-  min(vals: IWeight[]): IWeight;
-  max(vals: number[]): number;
-  max(vals: IWeight[]): IWeight;
-  zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
-  sets(
-    from: number,
-    to: number,
-    minReps: number,
-    reps: number,
-    isAmrap: number,
-    weight: IWeight | IPercentage | number,
-    timer: number,
-    rpe: number,
-    logRpe: number,
-    context: IScriptFnContext,
-    bindings: IScriptBindings
-  ): number;
-}
+type IScriptArg = number | IWeight | IPercentage;
 
-function floor(num: number): number;
-function floor(num: IWeight): IWeight;
-function floor(num: IWeight | number): IWeight | number {
+function applyRounding(num: IScriptArg | undefined, rounder: (n: number) => number): IScriptArg {
   if (num == null) {
     return 0;
   }
-  return typeof num === "number" ? Math.floor(num) : Weight.build(Math.floor(num.value), num.unit);
+  return typeof num === "number" ? rounder(num) : Weight_buildAny(rounder(num.value), num.unit);
 }
 
-function ceil(num: number): number;
-function ceil(num: IWeight): IWeight;
-function ceil(num: IWeight | number): IWeight | number {
-  if (num == null) {
+function isScriptValue(v: unknown): v is IScriptArg {
+  return typeof v === "number" || Weight_is(v) || Weight_isPct(v);
+}
+
+function flattenScriptArgs(args: unknown[]): IScriptArg[] {
+  const result: IScriptArg[] = [];
+  for (const arg of args) {
+    if (Array.isArray(arg)) {
+      for (const item of arg) {
+        if (isScriptValue(item)) {
+          result.push(item);
+        }
+      }
+    } else if (isScriptValue(arg)) {
+      result.push(arg);
+    }
+  }
+  return result;
+}
+
+function sum(args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
     return 0;
   }
-  return typeof num === "number" ? Math.ceil(num) : Weight.build(Math.ceil(num.value), num.unit);
+  return flat.reduce<IScriptArg>((acc, a) => Weight_op(undefined, acc, a, (x, y) => x + y), 0);
 }
 
-function round(num: number): number;
-function round(num: IWeight): IWeight;
-function round(num: IWeight | number): IWeight | number {
-  if (num == null) {
+function min(args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
     return 0;
   }
-  return typeof num === "number" ? Math.round(num) : Weight.build(Math.round(num.value), num.unit);
+  return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(a, acc) ? a : acc), flat[0]);
 }
 
-function sum(vals: number[]): number;
-function sum(vals: IWeight[]): IWeight;
-function sum(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
+function max(args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
     return 0;
   }
-  if (typeof firstElement === "number") {
-    return (vals as number[]).reduce((acc, a) => acc + (a || 0), 0);
-  } else {
-    return (vals as IWeight[]).reduce((acc, a) => Weight.add(acc, a || 0), Weight.build(0, firstElement.unit));
-  }
+  return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(acc, a) ? a : acc), flat[0]);
 }
 
-function min(vals: number[]): number;
-function min(vals: IWeight[]): IWeight;
-function min(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
-    return 0;
-  }
-  if (typeof firstElement === "number") {
-    vals = vals.map((v) => v ?? 0) as number[];
-    return Math.min(...(vals as number[]));
-  } else {
-    vals = vals.map((v) => v ?? Weight.build(0, "lb")) as IWeight[];
-    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(a, b));
-    return sortedWeights[0];
-  }
-}
-
-function max(vals: number[]): number;
-function max(vals: IWeight[]): IWeight;
-function max(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
-    return 0;
-  }
-  if (typeof firstElement === "number") {
-    vals = vals.map((v) => v ?? 0) as number[];
-    return Math.max(...(vals as number[]));
-  } else {
-    vals = vals.map((v) => v ?? Weight.build(0, "lb")) as IWeight[];
-    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight.compare(b, a));
-    return sortedWeights[0];
-  }
-}
-
-function zeroOrGte(a: IWeight[] | number[], b: IWeight[] | number[]): boolean {
+function zeroOrGte(a: (IWeight | number | undefined | null)[], b: (IWeight | number | undefined | null)[]): boolean {
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
     const aVal = a[i];
     const bVal = b[i];
-    if (aVal != null && bVal != null && !Weight.eq(aVal, 0) && Weight.lt(aVal, bVal)) {
+    if (aVal != null && bVal != null && !Weight_eq(aVal, 0) && Weight_lt(aVal, bVal)) {
       return false;
     }
   }
   return true;
 }
 
-export namespace Progress {
-  export function createEmptyScriptBindings(
-    dayData: IDayData,
-    settings: ISettings,
-    exercise?: IExerciseType
-  ): IScriptBindings {
-    const rm1 = exercise ? Exercise.onerm(exercise, settings) : Weight.build(0, "lb");
-    return {
-      day: dayData.day,
-      week: dayData.week ?? 1,
-      dayInWeek: dayData.dayInWeek ?? dayData.day,
-      weights: [],
-      reps: [],
-      minReps: [],
-      RPE: [],
-      amraps: [],
-      logrpes: [],
-      completedReps: [],
-      completedRPE: [],
-      timers: [],
-      w: [],
-      r: [],
-      cr: [],
-      mr: [],
-      numberOfSets: 0,
-      ns: 0,
-      setVariationIndex: 1,
-      descriptionIndex: 1,
-      setIndex: 1,
-      rm1,
-    };
+export function Progress_createEmptyScriptBindings(
+  dayData: IDayData,
+  settings: ISettings,
+  exercise?: IExerciseType
+): IScriptBindings {
+  const rm1 = exercise ? Exercise_onerm(exercise, settings) : Weight_build(0, "lb");
+  return {
+    day: dayData.day,
+    week: dayData.week ?? 1,
+    dayInWeek: dayData.dayInWeek ?? dayData.day,
+    completedWeights: [],
+    originalWeights: [],
+    weights: [],
+    reps: [],
+    minReps: [],
+    RPE: [],
+    amraps: [],
+    logrpes: [],
+    askweights: [],
+    completedReps: [],
+    completedRepsLeft: [],
+    completedRPE: [],
+    isCompleted: [],
+    timers: [],
+    setTime: [],
+    completedSetTime: [],
+    w: [],
+    r: [],
+    cr: [],
+    cw: [],
+    mr: [],
+    programNumberOfSets: 0,
+    numberOfSets: 0,
+    completedNumberOfSets: 0,
+    ns: 0,
+    setVariationIndex: 1,
+    exerciseVariationIndex: 1,
+    descriptionIndex: 1,
+    bodyweight: Weight_build(0, settings.units),
+    setIndex: 1,
+    rm1,
+  };
+}
+
+export function Progress_createScriptBindings(
+  dayData: IDayData,
+  entry: IHistoryEntry,
+  settings: ISettings,
+  programNumberOfSets: number,
+  bodyweight: IWeight | undefined,
+  setIndex?: number,
+  setVariationIndex?: number,
+  descriptionIndex?: number,
+  exerciseVariationIndex?: number
+): IScriptBindings {
+  const bindings = Progress_createEmptyScriptBindings(dayData, settings, entry.exercise);
+  for (const set of entry.sets) {
+    bindings.weights.push(set.weight);
+    bindings.originalWeights.push(set.originalWeight ?? Weight_build(0, settings.units));
+    bindings.reps.push(set.reps);
+    bindings.minReps.push(set.minReps);
+    bindings.completedReps.push(set.completedReps);
+    bindings.completedRepsLeft.push(set.completedRepsLeft);
+    bindings.completedRPE.push(set.completedRpe);
+    bindings.completedWeights.push(set.completedWeight);
+    bindings.RPE.push(set.rpe);
+    bindings.amraps.push(set.isAmrap ? 1 : undefined);
+    bindings.logrpes.push(set.logRpe ? 1 : undefined);
+    bindings.askweights.push(set.askWeight ? 1 : undefined);
+    bindings.timers.push(set.timer);
+    bindings.setTime.push(set.setTimer);
+    bindings.completedSetTime.push(set.completedSetTimer);
+    bindings.isCompleted.push(set.isCompleted ? 1 : 0);
+  }
+  bindings.w = bindings.weights;
+  bindings.r = bindings.reps;
+  bindings.cr = bindings.completedReps;
+  bindings.cw = bindings.completedWeights;
+  bindings.mr = bindings.minReps;
+  bindings.ns = entry.sets.length;
+  bindings.programNumberOfSets = programNumberOfSets;
+  bindings.numberOfSets = entry.sets.length;
+  bindings.completedNumberOfSets = entry.sets.filter((s) => s.isCompleted).length;
+  bindings.setIndex = setIndex ?? 1;
+  bindings.setVariationIndex = setVariationIndex ?? 1;
+  bindings.exerciseVariationIndex = exerciseVariationIndex ?? 1;
+  bindings.descriptionIndex = descriptionIndex ?? 1;
+  bindings.bodyweight = bodyweight ?? Weight_build(0, settings.units);
+  return bindings;
+}
+
+export function Progress_createScriptFunctions(settings: ISettings): IScriptFunctions {
+  function toWeight(value: IWeight | number): IWeight {
+    return Weight_is(value) ? value : Weight_build(value, settings.units);
   }
 
-  export function createScriptBindings(
-    dayData: IDayData,
-    entry: IHistoryEntry,
-    settings: ISettings,
-    setIndex?: number,
-    setVariationIndex?: number,
-    descriptionIndex?: number
-  ): IScriptBindings {
-    const bindings = createEmptyScriptBindings(dayData, settings, entry.exercise);
-    for (const set of entry.sets) {
-      bindings.weights.push(Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment));
-      bindings.reps.push(set.reps);
-      bindings.minReps.push(set.minReps);
-      bindings.completedReps.push(set.completedReps);
-      bindings.completedRPE.push(set.completedRpe);
-      bindings.RPE.push(set.rpe);
-      bindings.amraps.push(set.isAmrap ? 1 : undefined);
-      bindings.logrpes.push(set.logRpe ? 1 : undefined);
-      bindings.timers.push(set.timer);
+  function increment(vals: IWeight | IPercentage | number, context: IScriptFnContext): IWeight | IPercentage | number {
+    if (typeof vals === "number") {
+      const weight = Weight_build(vals, context.unit);
+      return Weight_increment(weight, settings, context.exerciseType);
+    } else if (Weight_isPct(vals)) {
+      return Weight_buildPct(vals.value + 1);
+    } else {
+      return Weight_increment(vals, settings, context.exerciseType);
     }
-    bindings.w = bindings.weights;
-    bindings.r = bindings.reps;
-    bindings.cr = bindings.completedReps;
-    bindings.mr = bindings.minReps;
-    bindings.ns = entry.sets.length;
-    bindings.numberOfSets = entry.sets.length;
-    bindings.setIndex = setIndex ?? 1;
-    bindings.setVariationIndex = setVariationIndex ?? 1;
-    bindings.descriptionIndex = descriptionIndex != null ? descriptionIndex - 1 : 1;
-    return bindings;
   }
 
-  export function createScriptFunctions(settings: ISettings): IScriptFunctions {
-    return {
-      roundWeight: (num, context) => {
-        if (!Weight.is(num)) {
-          num = Weight.build(num, settings.units);
-        }
-        return Weight.round(num, settings, context?.equipment || "barbell");
-      },
-      calculateTrainingMax: (weight, reps, context) => {
-        if (!Weight.is(weight)) {
-          weight = Weight.build(weight, settings.units);
-        }
-        return Weight.getTrainingMax(weight, reps || 0, settings, "barbell");
-      },
-      calculate1RM: (weight, reps, context) => {
-        if (!Weight.is(weight)) {
-          weight = Weight.build(weight, settings.units);
-        }
-        return Weight.getOneRepMax(weight, reps);
-      },
-      rpeMultiplier: (repsRaw, rpeRawOrContext, context) => {
-        const reps = Weight.is(repsRaw) ? repsRaw.value : typeof repsRaw === "number" ? repsRaw : 1;
-        const rpe =
-          typeof rpeRawOrContext === "number" && context != null
-            ? Weight.is(rpeRawOrContext)
-              ? rpeRawOrContext.value
-              : typeof rpeRawOrContext === "number"
-              ? rpeRawOrContext
-              : 10
-            : 10;
-        return Weight.rpeMultiplier(reps, rpe);
-      },
-      floor,
-      ceil,
-      round,
-      sum,
-      min,
-      max,
-      zeroOrGte,
-      sets(
-        from: number,
-        to: number,
-        minReps: number,
-        reps: number,
-        isAmrap: number,
-        weight: IWeight | IPercentage | number,
-        timer: number,
-        rpe: number,
-        logRpe: number,
-        context: IScriptFnContext,
-        bindings: IScriptBindings
-      ): number {
-        for (let i = 0; i < bindings.numberOfSets; i++) {
-          if (i >= from - 1 && i < to) {
-            const weightValue = Weight.convertToWeight(bindings.rm1, weight, context.unit);
-            bindings.minReps[i] = reps !== minReps ? minReps : undefined;
-            bindings.reps[i] = reps;
-            bindings.weights[i] = weightValue;
-            bindings.RPE[i] = rpe !== 0 ? rpe : undefined;
-            bindings.amraps[i] = isAmrap !== 0 ? 1 : 0;
-            bindings.logrpes[i] = logRpe !== 0 ? 1 : 0;
-            bindings.timers[i] = timer !== 0 ? timer : undefined;
-          }
-        }
-        return to - from;
-      },
-    };
+  function decrement(vals: IWeight | IPercentage | number, context: IScriptFnContext): IWeight | IPercentage | number {
+    if (typeof vals === "number") {
+      const weight = Weight_build(vals, context.unit);
+      return Weight_decrement(weight, settings, context.exerciseType);
+    } else if (Weight_isPct(vals)) {
+      return Weight_buildPct(vals.value - 1);
+    } else {
+      return Weight_decrement(vals, settings, context.exerciseType);
+    }
   }
 
-  export function isCurrent(progress: IHistoryRecord): boolean {
-    return progress.id === 0;
-  }
-
-  export function getCustomWorkoutTimerValue(
-    progress: IHistoryRecord,
-    program: IProgram,
-    entryIndex: number,
-    setIndex: number,
-    settings: ISettings
-  ): number | undefined {
-    let timer: number | undefined;
-    const entry = progress.entries[entryIndex];
-    const programExercise =
-      entry && program ? program.exercises.filter((p) => p.id === entry.programExerciseId)[0] : null;
-    if (programExercise != null && program != null) {
-      const set = entry.sets[setIndex];
-      const exercise = programExercise.exerciseType;
-      const state = ProgramExercise.getState(programExercise, program.exercises);
-      const setVariationIndexResult = Program.runVariationScript(
-        programExercise,
-        program.exercises,
-        state,
-        Progress.getDayData(progress),
-        settings
-      );
-      const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-      const setTimerExpr = programExercise.variations[setVariationIndex - 1]?.sets[setIndex]?.timerExpr;
-      const timerExpr = set.timer ?? (setTimerExpr || ProgramExercise.getTimerExpr(programExercise, program.exercises));
-      const bindings = Progress.createScriptBindings(
-        Progress.getDayData(progress),
-        entry,
-        settings,
-        setIndex + 1,
-        setVariationIndex
-      );
-      if (timerExpr && `${timerExpr}`.trim() && state) {
-        timer = ScriptRunner.safe(
-          () =>
-            new ScriptRunner(
-              `${timerExpr}`.trim(),
-              state,
-              {},
-              bindings,
-              Progress.createScriptFunctions(settings),
-              settings.units,
-              {
-                equipment: exercise.equipment,
-                unit: settings.units,
-              },
-              "regular"
-            ).execute("timer"),
-          (e) => {
-            return `There's an error while calculating timer for the next workout for '${exercise.id}' exercise:\n\n${e.message}.\n\nWe fallback to a default timer. Please fix the program's timer script.`;
-          },
-          undefined,
-          false
-        );
-      }
-    }
-    return timer;
-  }
-
-  export function startTimer(
-    progress: IHistoryRecord,
-    program: IProgram,
-    timestamp: number,
-    mode: IProgressMode,
-    entryIndex: number,
-    setIndex: number,
-    subscription: ISubscription,
-    settings: ISettings,
-    timer?: number
-  ): IHistoryRecord {
-    if (timer == null && Progress.isCurrent(progress) && mode === "workout") {
-      timer = getCustomWorkoutTimerValue(progress, program, entryIndex, setIndex, settings);
-    }
-    if (timer == null) {
-      timer = settings.timers[mode] || undefined;
-    }
-    if (!timer) {
-      return {
-        ...progress,
-        timerSince: undefined,
-        timer: undefined,
-        timerMode: undefined,
-        timerEntryIndex: undefined,
-        timerSetIndex: undefined,
-      };
-    }
-    if (Subscriptions.hasSubscription(subscription)) {
-      const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
-      const title = "It's time for the next set!";
-      let subtitle = "";
-      let body = "Time to lift!";
-      let subtitleHeader = "";
-      let bodyHeader = "The rest is over";
-      const nextEntryAndSet = Reps.findNextEntryAndSet(progress, entryIndex);
-      if (nextEntryAndSet != null) {
-        const { entry, set } = nextEntryAndSet;
-        const exercise = Exercise.get(entry.exercise, settings.exercises);
-        if (exercise) {
-          const { plates } = Weight.calculatePlates(set.weight, settings, entry.exercise.equipment);
-          subtitleHeader = "Next Set";
-          subtitle = `${exercise.name}, ${set.reps}${set.isAmrap ? "+" : ""} reps, ${Weight.display(set.weight)}`;
-          const formattedPlates =
-            plates.length > 0 ? Weight.formatOneSide(settings, plates, exercise.equipment) : "None";
-          bodyHeader = "Plates per side";
-          body = formattedPlates;
+  const fns: IScriptFunctions = {
+    roundWeight: ([num], context) => {
+      const unit = Equipment_getUnitForExerciseType(settings, context?.exerciseType);
+      return Weight_round(toWeight(num), settings, unit ?? settings.units, context?.exerciseType);
+    },
+    roundConvertWeight: ([num], context) => {
+      const unit = Equipment_getUnitForExerciseType(settings, context?.exerciseType);
+      return Weight_roundConvertTo(toWeight(num), settings, unit ?? settings.units, context?.exerciseType);
+    },
+    calculateTrainingMax: ([weight, reps]) => {
+      return Weight_getTrainingMax(toWeight(weight), reps || 0, settings);
+    },
+    calculate1RM: ([weight, reps]) => {
+      return Weight_getOneRepMax(toWeight(weight), reps);
+    },
+    rpeMultiplier: ([repsRaw, rpeRaw]) => {
+      const reps = Weight_is(repsRaw) ? repsRaw.value : repsRaw;
+      const rpe = rpeRaw == null ? 10 : Weight_is(rpeRaw) ? rpeRaw.value : rpeRaw;
+      return Weight_rpeMultiplier(reps, rpe);
+    },
+    floor: ([num]) => applyRounding(num, Math.floor),
+    ceil: ([num]) => applyRounding(num, Math.ceil),
+    round: ([num]) => applyRounding(num, Math.round),
+    sum: (args) => sum(args),
+    min: (args) => min(args),
+    max: (args) => max(args),
+    increment: ([vals], context) => increment(vals, context),
+    decrement: ([vals], context) => decrement(vals, context),
+    zeroOrGte: ([a, b]) => zeroOrGte(a, b),
+    print: (args, context) => {
+      // flat() without filtering: booleans must survive so `if (print(cond))` keeps working
+      const flatArgs = [...args.flat()] as (number | IWeight | IPercentage)[];
+      context.prints = context.prints || [];
+      context.prints.push(flatArgs);
+      return flatArgs[0];
+    },
+    sets: ([from, to, minReps, reps, isAmrap, weight, timer, rpe, logRpe], context, bindings) => {
+      for (let i = 0; i < bindings.numberOfSets; i++) {
+        if (i >= from - 1 && i < to) {
+          const weightValue = Weight_convertToWeight(bindings.rm1, weight, context.unit);
+          bindings.minReps[i] = reps !== minReps ? minReps : undefined;
+          bindings.reps[i] = reps;
+          bindings.originalWeights[i] = weightValue;
+          bindings.weights[i] = Weight_round(weightValue, settings, context.unit, context.exerciseType);
+          bindings.RPE[i] = rpe !== 0 ? rpe : undefined;
+          bindings.amraps[i] = isAmrap !== 0 ? 1 : 0;
+          bindings.logrpes[i] = logRpe !== 0 ? 1 : 0;
+          bindings.timers[i] = timer !== 0 ? timer : undefined;
         }
       }
-      SendMessage.toIos({
-        type: "startTimer",
-        duration: timerForPush.toString(),
-        mode,
-        title,
-        subtitleHeader,
-        subtitle,
-        bodyHeader,
-        body,
-      });
-      SendMessage.toAndroid({
-        type: "startTimer",
-        duration: timer.toString(),
-        mode,
-        title,
-        subtitleHeader,
-        subtitle,
-        bodyHeader,
-        body,
-      });
-    }
-    return {
-      ...progress,
-      timerSince: timestamp,
-      timer,
-      timerMode: mode,
-      timerEntryIndex: entryIndex,
-      timerSetIndex: setIndex,
-    };
-  }
+      return to - from;
+    },
+  };
+  return fns;
+}
 
-  export function stopTimer(progress: IHistoryRecord): IHistoryRecord {
-    SendMessage.toIos({ type: "stopTimer" });
-    SendMessage.toAndroid({ type: "stopTimer" });
+export function Progress_isCurrent(progress: IHistoryRecord | undefined): boolean {
+  return progress?.id === 0;
+}
+
+export function Progress_scheduleTimerNotification(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  mode: IProgressMode,
+  settings: ISettings,
+  duration: number
+): void {
+  const title = "It's time for the next set!";
+  let subtitle = "";
+  let body = "Time to lift!";
+  let subtitleHeader = "";
+  let bodyHeader = "The rest is over";
+  const nextEntryAndSet = Reps_findNextEntryAndSet(progress, entryIndex, mode);
+  if (nextEntryAndSet != null) {
+    const { entry: nextEntry, set: aSet } = nextEntryAndSet;
+    const exercise = Exercise_get(nextEntry.exercise, settings.exercises);
+    if (exercise) {
+      subtitleHeader = "Next Set";
+      subtitle = CollectionUtils_compact([
+        exercise.name,
+        aSet.reps != null ? `${aSet.reps}${aSet.isAmrap ? "+" : ""} reps` : undefined,
+        aSet.weight != null ? Weight_display(aSet.weight) : undefined,
+      ]).join(", ");
+      if (aSet.weight != null) {
+        const { plates } = Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
+        const formattedPlates = plates.length > 0 ? Weight_formatOneSide(settings, plates, exercise) : "None";
+        bodyHeader = "Plates per side";
+        body = formattedPlates;
+      }
+    }
+  }
+  SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
+  NativeTimerBridge_startTimer({
+    duration,
+    title,
+    subtitleHeader,
+    subtitle,
+    bodyHeader,
+    body,
+    ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
+    vibration: !!settings.vibration,
+    volume: settings.volume,
+  });
+}
+
+export function Progress_startTimer(
+  progress: IHistoryRecord,
+  timestamp: number,
+  mode: IProgressMode,
+  entryIndex: number,
+  setIndex: number,
+  settings: ISettings,
+  subscription?: ISubscription,
+  timer?: number,
+  isAdjusting?: boolean
+): IHistoryRecord {
+  const entry = progress.entries[entryIndex];
+  const set = mode === "warmup" ? entry?.warmupSets[setIndex] : entry?.sets[setIndex];
+  if (!isAdjusting && (!set || !set.isCompleted)) {
+    return progress;
+  }
+  if (timer == null && Progress_isCurrent(progress) && mode === "workout") {
+    timer = entry?.sets[setIndex]?.timer;
+  }
+  if (timer == null) {
+    timer =
+      mode === "workout" && entry.superset != null && settings.timers.superset != null
+        ? settings.timers.superset
+        : settings.timers[mode] || undefined;
+  }
+  if (!timer) {
     return {
       ...progress,
       timerSince: undefined,
+      timer: undefined,
       timerMode: undefined,
-      timerSetIndex: undefined,
       timerEntryIndex: undefined,
+      timerSetIndex: undefined,
     };
   }
-
-  export function findEntryByExercise(
-    progress: IHistoryRecord,
-    exerciseType: IExerciseType
-  ): IHistoryEntry | undefined {
-    return progress.entries.find((entry) => entry.exercise === exerciseType);
-  }
-
-  export function isFullyCompletedSet(progress: IHistoryRecord): boolean {
-    return progress.entries.every((entry) => isCompletedSet(entry));
-  }
-
-  export function isCompletedSet(entry: IHistoryEntry): boolean {
-    return Reps.isCompleted(entry.sets);
-  }
-
-  export function isFullyFinishedSet(progress: IHistoryRecord): boolean {
-    return progress.entries.every((entry) => isFinishedSet(entry));
-  }
-
-  export function isFullyEmptySet(progress: IHistoryRecord): boolean {
-    return progress.entries.every((entry) => Reps.isEmpty(entry.sets));
-  }
-
-  export function isFinishedSet(entry: IHistoryEntry): boolean {
-    return Reps.isFinished(entry.sets);
-  }
-
-  export function hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
-    return entry.sets.filter((s) => s.completedReps == null).length === 1;
-  }
-
-  export function showUpdateWeightModal(
-    progress: IHistoryRecord,
-    exercise: IExerciseType,
-    weight: IWeight,
-    programExercise?: IProgramExercise
-  ): IHistoryRecord {
-    return {
-      ...progress,
-      ui: {
-        ...progress.ui,
-        weightModal: {
-          exercise,
-          weight: weight,
-          programExercise,
-        },
-      },
-    };
-  }
-
-  export function showUpdateDate(progress: IHistoryRecord, date: string): IHistoryRecord {
-    return {
-      ...progress,
-      ui: {
-        ...progress.ui,
-        dateModal: { date },
-      },
-    };
-  }
-
-  export function stop(
-    progresses: Record<number, IHistoryRecord | undefined>,
-    id: number
-  ): Record<number, IHistoryRecord | undefined> {
-    return ObjectUtils.keys(progresses).reduce<Record<number, IHistoryRecord | undefined>>((memo, k) => {
-      const p = progresses[k];
-      if (p != null && p.id !== id) {
-        memo[k] = p;
-      }
-      return memo;
-    }, {});
-  }
-
-  export function changeDate(progress: IHistoryRecord, date?: string): IHistoryRecord {
-    return {
-      ...progress,
-      ...(date != null ? { date: DateUtils.fromYYYYMMDD(date) } : {}),
-      ui: {
-        ...progress.ui,
-        dateModal: undefined,
-      },
-    };
-  }
-
-  export function getProgress(state: Pick<IState, "currentHistoryRecord" | "progress">): IHistoryRecord | undefined {
-    return state.currentHistoryRecord != null ? state.progress[state.currentHistoryRecord] : undefined;
-  }
-
-  export function setProgress(state: IState, progress: IHistoryRecord): IState {
-    if (state.currentHistoryRecord != null) {
-      return lf(state).p("progress").p(state.currentHistoryRecord).set(progress);
+  if (subscription && Subscriptions_hasSubscription(subscription)) {
+    // A backdated start (rest resumed after the screen was locked past the target) can already be overrun,
+    // so only schedule the "rest is over" notification when there's still time left — UNTimeIntervalNotificationTrigger
+    // aborts on a non-positive interval.
+    const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
+    if (timerForPush > 0) {
+      Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush);
     } else {
-      return state;
+      // Backdated start that's already overrun: schedule nothing, but clear any earlier pending
+      // notification so a stale one doesn't fire.
+      NativeTimerBridge_stopTimer();
     }
   }
+  const newProgress: IHistoryRecord = {
+    ...progress,
+    timerSince: timestamp,
+    timer,
+    timerMode: mode,
+    timerEntryIndex: entryIndex,
+    timerSetIndex: setIndex,
+    ui: { ...progress.ui, nativeNotificationScheduled: undefined },
+  };
+  return newProgress;
+}
 
-  export function runUpdateScriptForEntry(
-    entry: IHistoryEntry,
-    dayData: IDayData,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    setIndex: number,
-    settings: ISettings
-  ): IHistoryEntry {
-    if (setIndex !== -1 && entry?.sets[setIndex]?.completedReps == null) {
-      return entry;
-    }
-    const script = programExercise
-      ? ProgramExercise.getUpdateDayScript(programExercise, allProgramExercises)
-      : undefined;
-    if (!script) {
-      return entry;
-    }
-    const exercise = programExercise.exerciseType;
-    const state = ProgramExercise.getState(programExercise, allProgramExercises);
-    const setVariationIndexResult = Program.runVariationScript(
-      programExercise,
-      allProgramExercises,
-      state,
-      dayData,
-      settings
-    );
-    const descriptionIndexResult = Program.runDescriptionScript(
-      programExercise.descriptionExpr ?? "1",
-      programExercise.exerciseType,
-      state,
-      dayData,
-      settings
-    );
-    const setVariationIndex = setVariationIndexResult.success ? setVariationIndexResult.data : 1;
-    const descriptionIndex = descriptionIndexResult.success ? descriptionIndexResult.data : 1;
-    const bindings = Progress.createScriptBindings(
-      dayData,
-      entry,
-      settings,
-      setIndex + 1,
-      setVariationIndex,
-      descriptionIndex
-    );
-    const otherStates = Program.getOtherStates(allProgramExercises);
-    try {
-      const runner = new ScriptRunner(
-        script,
-        state,
-        otherStates,
-        bindings,
-        Progress.createScriptFunctions(settings),
-        settings.units,
-        {
-          equipment: exercise.equipment,
-          unit: settings.units,
-        },
-        "update"
-      );
-      runner.execute();
-      return Progress.applyBindings(entry, bindings);
-    } catch (e) {
-      console.error(e);
-      alert(`Error during executing 'update: custom()' script: ${e.message}`);
-      return entry;
-    }
-    return entry;
+export function Progress_getNextSupersetEntry(
+  entries: IHistoryEntry[],
+  entry: IHistoryEntry
+): IHistoryEntry | undefined {
+  const superset: string | undefined = entry.superset;
+  if (superset == null) {
+    return undefined;
   }
+  const supersetGroups = Progress_getSupersetGroups(entries);
+  const supersetGroup: IHistoryEntry[] = supersetGroups?.[superset] ?? [];
+  if (supersetGroup.length <= 1) {
+    return undefined;
+  }
+  const supersetIndex = supersetGroup?.findIndex((e) => e.id === entry!.id);
+  if (supersetIndex == null || supersetIndex < 0) {
+    return undefined;
+  }
+  return supersetGroup[(supersetIndex + 1) % supersetGroup.length];
+}
 
-  export function runInitialUpdateScripts(
-    aProgress: IHistoryRecord,
-    programExerciseIds: string[] | undefined,
-    program: IProgram,
-    settings: ISettings
-  ): IHistoryRecord {
-    const programExercises = programExerciseIds
-      ? CollectionUtils.compact(
-          programExerciseIds.map((id) => {
-            const programExercise = program.exercises.find((e) => e.id === id);
-            return programExercise ? ProgramExercise.getProgramExercise(programExercise, program.exercises) : undefined;
-          })
-        )
-      : program.exercises;
-
-    return {
-      ...aProgress,
-      entries: aProgress.entries.map((entry) => {
-        const programExercise =
-          entry.programExerciseId != null ? programExercises.find((e) => e.id === entry.programExerciseId) : undefined;
-        if (!programExercise) {
-          return entry;
+export function Progress_getNextEntry(
+  progress: IHistoryRecord,
+  entry: IHistoryEntry,
+  mode: "workout" | "warmup",
+  shouldGoToNextEntry: boolean
+): IHistoryEntry | undefined {
+  if (Progress_isFullyEmptyOrFinishedSet(progress)) {
+    return undefined;
+  }
+  const visitedAndFinished = new Set<IHistoryEntry>();
+  let currentEntry: IHistoryEntry | undefined = entry;
+  let isInitial = true;
+  const supersetGroups = Progress_getSupersetGroups(progress.entries);
+  while (currentEntry != null) {
+    let index = progress.entries.findIndex((e) => e.id != null && e.id === currentEntry?.id);
+    if (index === -1) {
+      index = progress.entries.findIndex((e) => e === currentEntry);
+    }
+    const superset: string | undefined = currentEntry.superset;
+    if (mode === "workout" && superset != null && !visitedAndFinished.has(currentEntry)) {
+      const supersetGroup: IHistoryEntry[] = supersetGroups?.[superset] ?? [];
+      if (supersetGroup.length > 1) {
+        const supersetIndex = supersetGroup?.findIndex((e) => e.id === currentEntry?.id);
+        currentEntry = supersetGroup[(supersetIndex + 1) % supersetGroup.length];
+      } else {
+        if (shouldGoToNextEntry) {
+          currentEntry = progress.entries[(index + 1) % progress.entries.length];
+        } else {
+          return currentEntry;
         }
-        return runUpdateScriptForEntry(
-          entry,
-          Progress.getDayData(aProgress),
-          programExercise,
-          program.exercises,
-          -1,
-          settings
-        );
-      }),
-    };
-  }
-
-  export function runUpdateScript(
-    aProgress: IHistoryRecord,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    entryIndex: number,
-    setIndex: number,
-    mode: IProgressMode,
-    settings: ISettings
-  ): IHistoryRecord {
-    if (mode === "warmup") {
-      return aProgress;
+      }
+    } else if (Reps_isEmptyOrFinished(currentEntry.sets)) {
+      if (shouldGoToNextEntry) {
+        const prevEntry: IHistoryEntry = currentEntry;
+        currentEntry = progress.entries[(index + 1) % progress.entries.length];
+        if (currentEntry === prevEntry) {
+          return undefined;
+        }
+      } else {
+        return undefined;
+      }
     }
-    const entry = aProgress.entries[entryIndex];
-    const newEntry = runUpdateScriptForEntry(
-      entry,
-      Progress.getDayData(aProgress),
-      programExercise,
-      allProgramExercises,
-      setIndex,
-      settings
+    if (currentEntry == null) {
+      return undefined;
+    }
+    if (!Reps_isEmptyOrFinished(currentEntry.sets)) {
+      return currentEntry;
+    } else if (!isInitial) {
+      visitedAndFinished.add(currentEntry);
+    }
+    isInitial = false;
+  }
+  return undefined;
+}
+
+export function Progress_getNextEntryIndex(
+  progress: IHistoryRecord,
+  entry: IHistoryEntry,
+  mode: "workout" | "warmup"
+): number | undefined {
+  const nextEntry = Progress_getNextEntry(progress, entry, mode, false);
+  if (nextEntry != null) {
+    let index = progress.entries.findIndex((e) => e.id != null && e.id === nextEntry.id);
+    if (index === -1) {
+      index = progress.entries.findIndex((e) => e === nextEntry);
+    }
+    return index === -1 ? undefined : index;
+  }
+  return undefined;
+}
+
+export function Progress_updateTimer(
+  progress: IHistoryRecord,
+  program: IProgram | undefined,
+  newTimer: number,
+  timerSince: number,
+  liveActivityEntryIndex: number | undefined,
+  liveActivitySetIndex: number | undefined,
+  skipLiveActivityUpdate: boolean,
+  settings: ISettings,
+  subscription: ISubscription | undefined
+): IHistoryRecord {
+  const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
+  if (timerForPush > 0) {
+    const newProgress = Progress_startTimer(
+      progress,
+      progress.timerSince || Date.now(),
+      progress.timerMode || "workout",
+      progress.timerEntryIndex || 0,
+      progress.timerSetIndex || 0,
+      settings,
+      subscription,
+      newTimer,
+      true
     );
-    const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
+    if (!skipLiveActivityUpdate) {
+      LiveActivityManager_updateProgressLiveActivity(
+        program,
+        progress,
+        settings,
+        subscription,
+        liveActivityEntryIndex,
+        liveActivitySetIndex,
+        newTimer,
+        progress.timerSince || Date.now()
+      );
+    }
+    return newProgress;
+  } else {
+    NativeTimerBridge_stopTimer();
+    const newProgress = {
+      ...progress,
+      timer: Math.max(0, newTimer),
+      ui: {
+        ...progress.ui,
+        nativeNotificationScheduled: undefined,
+      },
+    };
+    if (!skipLiveActivityUpdate) {
+      LiveActivityManager_updateProgressLiveActivity(
+        program,
+        progress,
+        settings,
+        subscription,
+        liveActivityEntryIndex,
+        liveActivitySetIndex,
+        Math.max(0, newTimer),
+        progress.timerSince || Date.now()
+      );
+    }
+    return newProgress;
+  }
+}
+
+export function Progress_maybeApplySuperset(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  mode: "workout" | "warmup"
+): IHistoryRecord {
+  if (!Progress_isCurrent(progress)) {
     return progress;
   }
+  const entry = progress.entries[entryIndex];
+  const nextEntryIndex = Progress_getNextEntryIndex(progress, entry, mode);
+  if (nextEntryIndex != null) {
+    return { ...progress, currentEntryIndex: nextEntryIndex };
+  }
+  return progress;
+}
 
-  export function applyBindings(oldEntry: IHistoryEntry, bindings: IScriptBindings): IHistoryEntry {
-    const keys = ["RPE", "minReps", "reps", "weights", "amraps", "logrpes", "timers"] as const;
-    const entry = ObjectUtils.clone(oldEntry);
-    const lastCompletedIndex = CollectionUtils.findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
-    entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 1));
-    for (const key of keys) {
-      for (let i = 0; i < bindings[key].length; i += 1) {
-        if (entry.sets[i] == null) {
-          entry.sets[i] = { reps: 0, weight: Weight.build(0, "lb") };
-        }
-        if (entry.sets[i].completedReps == null) {
-          if (key === "RPE") {
-            const value = bindings.RPE[i];
-            entry.sets[i].rpe = value !== 0 ? value : undefined;
-          } else if (key === "reps") {
-            const value = bindings.reps[i];
-            entry.sets[i].reps = value;
-          } else if (key === "minReps") {
-            const value = bindings.minReps[i];
-            entry.sets[i].minReps = value !== 0 ? value : undefined;
-          } else if (key === "weights") {
-            const value = bindings.weights[i];
-            entry.sets[i].weight = value;
-          } else if (key === "amraps") {
-            const value = bindings.amraps[i];
-            entry.sets[i].isAmrap = !!value;
-          } else if (key === "logrpes") {
-            const value = bindings.logrpes[i];
-            entry.sets[i].logRpe = !!value;
-          } else if (key === "timers") {
-            const value = bindings.timers[i];
-            entry.sets[i].timer = value !== 0 ? value : undefined;
-          }
-        }
+export function Progress_stopTimer(progress: IHistoryRecord): IHistoryRecord {
+  NativeTimerBridge_stopTimer();
+  return Progress_stopTimerPure(progress);
+}
+
+export function Progress_stopTimerPure(progress: IHistoryRecord): IHistoryRecord {
+  return {
+    ...progress,
+    timerSince: undefined,
+    timerMode: undefined,
+    timer: undefined,
+    timerSetIndex: undefined,
+    timerEntryIndex: undefined,
+  };
+}
+
+export function Progress_setTimerValue(progress: IHistoryRecord, newTimer: number): IHistoryRecord {
+  if (progress.timerSince == null) {
+    return progress;
+  }
+  return {
+    ...progress,
+    timer: Math.max(0, newTimer),
+  };
+}
+
+export function Progress_findEntryByExercise(
+  progress: IHistoryRecord,
+  exerciseType: IExerciseType
+): IHistoryEntry | undefined {
+  return progress.entries.find((entry) => entry.exercise === exerciseType);
+}
+
+export function Progress_isFullyCompletedSet(progress: IHistoryRecord): boolean {
+  return progress.entries.every((entry) => Progress_isCompletedSet(entry));
+}
+
+export function Progress_isCompletedSet(entry: IHistoryEntry): boolean {
+  return Reps_isCompleted(entry.sets);
+}
+
+export function Progress_isFullyEmptySet(progress: IHistoryRecord): boolean {
+  return progress.entries.every((entry) => Reps_isEmpty(entry.sets));
+}
+
+export function Progress_isFullyEmptyOrFinishedSet(progress: IHistoryRecord): boolean {
+  return progress.entries.every((entry) => Progress_isEmptyOrFinishedSet(entry));
+}
+
+export function Progress_isEmptyOrFinishedSet(entry: IHistoryEntry): boolean {
+  return Reps_isEmptyOrFinished(entry.sets);
+}
+
+export function Progress_hasLastUnfinishedSet(entry: IHistoryEntry): boolean {
+  return entry.sets.filter((s) => !s.isCompleted).length === 1;
+}
+
+export function Progress_isChanged(aProgress?: IHistoryRecord, bProgress?: IHistoryRecord): boolean {
+  if (aProgress != null && bProgress == null) {
+    return true;
+  } else if (aProgress == null && bProgress != null) {
+    return true;
+  } else if (aProgress == null && bProgress == null) {
+    return false;
+  } else {
+    const changed = !ObjectUtils_isEqual(aProgress!, bProgress!);
+    return changed;
+  }
+}
+
+export function Progress_showUpdateDate(progress: IHistoryRecord, date: string, time: number): IHistoryRecord {
+  return {
+    ...progress,
+    ui: {
+      ...progress.ui,
+      dateModal: { date, time },
+    },
+  };
+}
+
+export function Progress_getColorToSupersetGroup(progress: IHistoryRecord): Partial<Record<string, IHistoryEntry[]>> {
+  const groups = Progress_getSupersetGroups(progress.entries);
+  const colors = ["red", "blue", "green", "purple"];
+  let index = 0;
+  return ObjectUtils_entriesNonnull(groups).reduce<Partial<Record<string, IHistoryEntry[]>>>((memo, [, group]) => {
+    const color = colors[index % colors.length];
+    memo[color] = group;
+    index += 1;
+    return memo;
+  }, {});
+}
+
+export function Progress_getSupersetGroups(entries: IHistoryEntry[]): Partial<Record<string, IHistoryEntry[]>> {
+  const groups: Partial<Record<string, IHistoryEntry[]>> = {};
+  for (const entry of entries) {
+    if (entry.superset != null) {
+      if (!groups[entry.superset]) {
+        groups[entry.superset] = [];
       }
+      groups[entry.superset]!.push(entry);
     }
+  }
+  return groups;
+}
+
+export function Progress_stop(
+  progresses: Record<number, IHistoryRecord | undefined>,
+  id: number
+): Record<number, IHistoryRecord | undefined> {
+  return ObjectUtils_keys(progresses).reduce<Record<number, IHistoryRecord | undefined>>((memo, k) => {
+    const p = progresses[k];
+    if (p != null && p.id !== id) {
+      memo[k] = p;
+    }
+    return memo;
+  }, {});
+}
+
+export function Progress_changeDate(progress: IHistoryRecord, dateStr?: string, time?: number): IHistoryRecord {
+  let startTime = progress.startTime;
+  const startTimeDate = new Date(startTime);
+  const date = dateStr != null ? DateUtils_fromYYYYMMDD(dateStr) : undefined;
+  if (date != null) {
+    startTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      startTimeDate.getHours(),
+      startTimeDate.getMinutes(),
+      startTimeDate.getSeconds()
+    ).getTime();
+  }
+  const endTime = time != null ? startTime + time : startTime + History_workoutTime(progress);
+  return {
+    ...progress,
+    ...(dateStr != null ? { date: DateUtils_fromYYYYMMDDStr(dateStr) } : {}),
+    startTime,
+    intervals: [[startTime, endTime]],
+    endTime,
+    ui: {
+      ...progress.ui,
+      dateModal: undefined,
+    },
+  };
+}
+
+export function Progress_getProgressId(state: Pick<IState, "progress">): number {
+  const editIds = Object.keys((state as IState).progress)
+    .map(Number)
+    .filter(Boolean);
+  return editIds.length > 0 ? editIds[0] : 0;
+}
+
+export function Progress_lbProgress(progressId?: number): LensBuilder<IState, IHistoryRecord, {}, undefined> {
+  if (progressId == null || progressId === 0) {
+    return lb<IState>().p("storage").pi("progress").i(0);
+  } else {
+    return lb<IState>().pi("progress").pi(progressId);
+  }
+}
+
+export function Progress_getCurrentProgress(state: Pick<IState, "storage">): IHistoryRecord | undefined {
+  return state.storage.progress?.[0];
+}
+
+export function Progress_getProgress(state: Pick<IState, "progress" | "storage">): IHistoryRecord | undefined {
+  const progressId = Progress_getProgressId(state);
+  return Progress_getProgressById(state, progressId);
+}
+
+export function Progress_getProgressById(
+  state: Pick<IState, "progress" | "storage">,
+  id: number
+): IHistoryRecord | undefined {
+  if (id === 0) {
+    return state.storage.progress?.[0];
+  } else {
+    return (state as IState).progress[id];
+  }
+}
+
+export function Progress_setProgress(state: IState, progress: IHistoryRecord): IState {
+  if (progress.id === 0) {
+    return lf(state).p("storage").p("progress").set([progress]);
+  } else {
+    return lf(state).pi("progress").p(progress.id).set(progress);
+  }
+}
+
+export function Progress_runUpdateScriptForEntry(
+  entry: IHistoryEntry,
+  dayData: IDayData,
+  programExercise: IPlannerProgramExercise,
+  otherStates: IByTag<IProgramState>,
+  setIndex: number,
+  settings: ISettings,
+  stats: IStats
+): IHistoryEntry {
+  if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
     return entry;
   }
+  const script = PlannerProgramExercise_getUpdateScript(programExercise);
+  if (!script) {
+    return entry;
+  }
+  const exercise = programExercise.exerciseType;
+  const state = ObjectUtils_clone(PlannerProgramExercise_getState(programExercise));
+  const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
+  const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
+  const exerciseVariationIndex = PlannerProgramExercise_currentExerciseVariationIndex(programExercise);
+  const bindings = Progress_createScriptBindings(
+    dayData,
+    entry,
+    settings,
+    programExercise.evaluatedSetVariations[setVariationIndex]?.sets.length ?? 0,
+    Stats_getCurrentMovingAverageBodyweight(stats, settings),
+    setIndex + 1,
+    setVariationIndex,
+    descriptionIndex,
+    exerciseVariationIndex
+  );
+  const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
+  const runner = new ScriptRunner(
+    script,
+    state,
+    ObjectUtils_clone(otherStates),
+    bindings,
+    Progress_createScriptFunctions(settings),
+    settings.units,
+    fnContext,
+    "update"
+  );
+  runner.execute();
+  const newEntry = Progress_applyBindings(entry, bindings, settings);
+  newEntry.state = { ...newEntry.state, ...state };
+  if (fnContext.prints.length > 0) {
+    newEntry.updatePrints = fnContext.prints;
+  }
+  return newEntry;
+}
 
-  export function updateRepsInExercise(
-    progress: IHistoryRecord,
-    entryIndex: number,
-    setIndex: number,
-    mode: IProgressMode,
-    hasUserPromptedVars: boolean
-  ): IHistoryRecord {
-    const entry = progress.entries[entryIndex];
-    if (mode === "warmup") {
-      const firstWeight = entry?.sets[0]?.weight;
-      if (firstWeight != null) {
-        return {
-          ...progress,
-          entries: progress.entries.map((progressEntry, i) => {
-            if (i === entryIndex) {
-              const progressSets = progressEntry.warmupSets;
-              const progressSet = progressSets[setIndex];
-              if (progressSet?.completedReps == null) {
-                progressSets[setIndex] = { ...progressSet, completedReps: progressSet.reps as number };
-              } else if (progressSet.completedReps > 0) {
-                progressSets[setIndex] = {
-                  ...progressSet,
-                  completedReps: progressSet.completedReps - 1,
-                };
-              } else {
-                progressSets[setIndex] = { ...progressSet, completedReps: undefined };
-              }
-              return { ...progressEntry, warmupSets: progressSets };
-            } else {
-              return progressEntry;
-            }
-          }),
-        };
-      } else {
-        return progress;
+export function Progress_runInitialUpdateScripts(
+  aProgress: IHistoryRecord,
+  programExerciseIds: string[] | undefined,
+  day: number,
+  program: IEvaluatedProgram,
+  settings: ISettings,
+  stats: IStats
+): IHistoryRecord {
+  const programDay = Program_getProgramDay(program, day);
+  if (!programDay) {
+    return aProgress;
+  }
+  const dayExercises = Program_getProgramDayUsedExercises(programDay);
+  const programExercises = programExerciseIds
+    ? CollectionUtils_compact(programExerciseIds.map((id) => dayExercises.find((e) => e.key === id)))
+    : dayExercises;
+
+  return {
+    ...aProgress,
+    entries: aProgress.entries.map((entry) => {
+      const programExercise =
+        entry.programExerciseId != null ? programExercises.find((e) => e.key === entry.programExerciseId) : undefined;
+      if (!programExercise) {
+        return entry;
       }
-    } else {
-      const isAmrap = entry.sets[setIndex].isAmrap;
-      const shouldLogRpe = (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].logRpe;
-      const shouldAskWeight =
-        (!Reps.isFinishedSet(entry.sets[setIndex]) || isAmrap) && !!entry.sets[setIndex].askWeight;
-      const shouldPromptUserVars =
-        hasUserPromptedVars &&
-        ((Progress.hasLastUnfinishedSet(entry) && !Reps.isFinishedSet(entry.sets[setIndex])) ||
-          (isAmrap && Progress.isFinishedSet(entry)));
+      try {
+        return Progress_runUpdateScriptForEntry(
+          entry,
+          Progress_getDayData(aProgress),
+          programExercise,
+          program.states,
+          -1,
+          settings,
+          stats
+        );
+      } catch (error) {
+        const e = error as Error;
+        console.error(e);
+        Dialog_alert(`Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`);
+        return entry;
+      }
+    }),
+  };
+}
 
-      if (isAmrap || shouldLogRpe || shouldPromptUserVars || shouldAskWeight) {
-        const amrapUi: IProgressUi = {
-          amrapModal: {
-            entryIndex,
-            setIndex,
-            isAmrap: isAmrap,
-            logRpe: shouldLogRpe,
-            askWeight: shouldAskWeight,
-            userVars: shouldPromptUserVars,
-          },
+export function Progress_runUpdateScript(
+  aProgress: IHistoryRecord,
+  programExercise: IPlannerProgramExercise,
+  otherStates: IByTag<IProgramState>,
+  entryIndex: number,
+  setIndex: number,
+  mode: IProgressMode,
+  settings: ISettings,
+  stats: IStats
+): IHistoryRecord {
+  if (mode === "warmup") {
+    return aProgress;
+  }
+  const entry = aProgress.entries[entryIndex];
+  let newEntry: IHistoryEntry;
+  try {
+    newEntry = Progress_runUpdateScriptForEntry(
+      entry,
+      Progress_getDayData(aProgress),
+      programExercise,
+      otherStates,
+      setIndex,
+      settings,
+      stats
+    );
+  } catch (error) {
+    const e = error as Error;
+    console.error(e);
+    Dialog_alert(`Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`);
+    newEntry = entry;
+  }
+  const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
+  return progress;
+}
+
+export function Progress_applyBindings(
+  oldEntry: IHistoryEntry,
+  bindings: IScriptBindings,
+  settings: ISettings
+): IHistoryEntry {
+  const keys = [
+    "RPE",
+    "minReps",
+    "reps",
+    "weights",
+    "amraps",
+    "logrpes",
+    "timers",
+    "setTime",
+    "originalWeights",
+    "askweights",
+  ] as const;
+  const entry = ObjectUtils_clone(oldEntry);
+  const lastCompletedIndex = CollectionUtils_findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
+  entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 0));
+  for (const key of keys) {
+    for (let i = 0; i < bindings[key].length; i += 1) {
+      if (entry.sets[i] == null) {
+        entry.sets[i] = {
+          vtype: "set",
+          id: UidFactory_generateUid(6),
+          index: i,
+          isUnilateral: Exercise_getIsUnilateral(entry.exercise, settings),
+          reps: 0,
+          weight: Weight_build(0, "lb"),
+          originalWeight: Weight_build(0, "lb"),
+          askWeight: false,
+          isCompleted: false,
         };
-        return {
-          ...progress,
-          ui: {
-            ...progress.ui,
-            ...amrapUi,
-          },
-        };
-      } else {
-        return {
-          ...progress,
-          entries: progress.entries.map((progressEntry, i) => {
-            if (i === entryIndex) {
-              const sets = [...progressEntry.sets];
-              const set = sets[setIndex];
-              if (set.completedReps == null) {
-                sets[setIndex] = {
-                  ...set,
-                  completedReps: set.reps as number,
-                  timestamp: set.timestamp ?? Date.now(),
-                };
-              } else if (set.completedReps > 0) {
-                sets[setIndex] = {
-                  ...set,
-                  completedReps: set.completedReps - 1,
-                  timestamp: set.timestamp ?? Date.now(),
-                };
-              } else {
-                sets[setIndex] = { ...set, completedReps: undefined, timestamp: set.timestamp ?? Date.now() };
-              }
-              return { ...progressEntry, sets: sets };
-            } else {
-              return progressEntry;
-            }
-          }),
-        };
+      }
+      if (!entry.sets[i].isCompleted) {
+        if (key === "RPE") {
+          const value = bindings.RPE[i];
+          entry.sets[i].rpe = value !== 0 ? value : undefined;
+        } else if (key === "reps") {
+          const value = bindings.reps[i];
+          entry.sets[i].reps = value;
+        } else if (key === "minReps") {
+          const value = bindings.minReps[i];
+          entry.sets[i].minReps = value !== 0 ? value : undefined;
+        } else if (key === "weights") {
+          const value = bindings.weights[i];
+          entry.sets[i].weight = value;
+        } else if (key === "originalWeights") {
+          const value = bindings.originalWeights[i];
+          entry.sets[i].originalWeight = value;
+        } else if (key === "amraps") {
+          const value = bindings.amraps[i];
+          entry.sets[i].isAmrap = !!value;
+        } else if (key === "logrpes") {
+          const value = bindings.logrpes[i];
+          entry.sets[i].logRpe = !!value;
+        } else if (key === "askweights") {
+          const value = bindings.askweights[i];
+          entry.sets[i].askWeight = !!value;
+        } else if (key === "timers") {
+          const value = bindings.timers[i];
+          entry.sets[i].timer = value != null && value >= 0 ? value : undefined;
+        } else if (key === "setTime") {
+          const value = bindings.setTime[i];
+          entry.sets[i].setTimer = value != null && value >= 0 ? value : undefined;
+        }
       }
     }
   }
+  return entry;
+}
 
-  export function updateAmrapRepsInExercise(
-    progress: IHistoryRecord,
-    value?: number,
-    isAmrap?: boolean
-  ): IHistoryRecord {
-    if (progress.ui?.amrapModal != null) {
-      const { entryIndex, setIndex } = progress.ui.amrapModal;
+export function Progress_completeAmrapSet(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  settings: ISettings
+): IHistoryRecord {
+  const entry = progress.entries[entryIndex];
+  const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+  return lf(progress)
+    .p("entries")
+    .i(entryIndex)
+    .p("sets")
+    .i(setIndex)
+    .modify((progressSet) => {
       return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (isAmrap) {
-              if (value == null) {
-                sets[setIndex] = { ...set, completedReps: undefined };
-              } else {
-                sets[setIndex] = { ...set, completedReps: value };
-              }
-            } else {
-              sets[setIndex] = { ...set, completedReps: set.reps };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
+        ...progressSet,
+        timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+        completedRepsLeft: isUnilateral ? (progressSet.completedRepsLeft ?? progressSet.reps) : undefined,
+        completedReps: progressSet.completedReps ?? progressSet.reps,
+        completedWeight: progressSet.completedWeight ?? progressSet.weight,
+        isCompleted: !progressSet.isCompleted,
       };
-    } else {
-      return progress;
-    }
-  }
+    });
+}
 
-  export function updateRpeInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
-    if (progress.ui?.amrapModal != null) {
-      const { entryIndex, setIndex } = progress.ui.amrapModal;
-      return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (value == null) {
-              sets[setIndex] = { ...set, completedRpe: undefined };
-            } else if (typeof value === "number") {
-              value = Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5;
-              sets[setIndex] = { ...set, completedRpe: value };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
-    } else {
-      return progress;
-    }
-  }
+export function Progress_shouldShowAmrapModal(
+  entry: IHistoryEntry,
+  setIndex: number,
+  mode: IProgressMode,
+  hasUserPromptedVars: boolean,
+  settings: ISettings
+): boolean {
+  const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+  const shouldLogRpe = !!set?.logRpe;
+  const shouldPromptUserVars = hasUserPromptedVars && Progress_hasLastUnfinishedSet(entry);
+  const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+  const isAmrap =
+    (set?.completedReps == null || (isUnilateral && set?.completedRepsLeft == null)) &&
+    (!!set?.isAmrap || set.reps == null);
+  const shouldAskWeight = set?.completedWeight == null && (!!set?.askWeight || set.weight == null);
+  return !set.isCompleted && (shouldLogRpe || shouldPromptUserVars || isAmrap || shouldAskWeight);
+}
 
-  export function updateWeightInExercise(progress: IHistoryRecord, value?: IWeight): IHistoryRecord {
-    if (progress.ui?.amrapModal != null) {
-      const { entryIndex, setIndex } = progress.ui.amrapModal;
-      return {
-        ...progress,
-        entries: progress.entries.map((progressEntry, i) => {
-          if (i === entryIndex) {
-            const sets = [...progressEntry.sets];
-            const set = sets[setIndex];
-            if (value != null) {
-              sets[setIndex] = { ...set, weight: value };
-            }
-            return { ...progressEntry, sets: sets };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
-    } else {
-      return progress;
-    }
-  }
-
-  export function updateWeight(
-    progress: IHistoryRecord,
-    settings: ISettings,
-    weight?: IWeight,
-    programExercise?: IProgramExercise
-  ): IHistoryRecord {
-    if (weight != null && progress.ui?.weightModal != null) {
-      const { exercise, weight: previousWeight } = progress.ui.weightModal;
-
-      return {
-        ...progress,
-        ui: { ...progress.ui, weightModal: undefined },
-        entries: progress.entries.map((progressEntry) => {
-          const eq = (a: IWeight, b: IWeight): boolean => {
-            const bar = progressEntry.exercise.equipment;
-            return Weight.eq(Weight.roundConvertTo(a, settings, bar), Weight.roundConvertTo(b, settings, bar));
-          };
-          if (Exercise.eq(progressEntry.exercise, exercise)) {
-            const firstWeight = progressEntry.sets[0]?.weight;
-            return {
-              ...progressEntry,
-              sets: progressEntry.sets.map((set) => {
-                if (eq(set.weight, previousWeight) && weight != null) {
-                  return { ...set, weight: Weight.round(weight, settings, progressEntry.exercise.equipment) };
-                } else {
-                  return set;
-                }
-              }),
-              warmupSets:
-                eq(firstWeight, previousWeight) && weight != null
-                  ? Exercise.getWarmupSets(exercise, weight, settings, programExercise?.warmupSets)
-                  : progressEntry.warmupSets,
-            };
-          } else {
-            return progressEntry;
-          }
-        }),
-      };
-    } else {
-      return { ...progress, ui: { ...progress.ui, weightModal: undefined } };
-    }
-  }
-
-  export function updateUserPromptedStateVars(
-    progress: IHistoryRecord,
-    programExerciseId: string,
-    userPromptedStateVars: IProgramState
-  ): IHistoryRecord {
+export function Progress_completeSet(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  mode: IProgressMode,
+  hasUserPromptedVars: boolean,
+  settings: ISettings
+): IHistoryRecord {
+  const entry = progress.entries[entryIndex];
+  const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+  const setTimerModal = progress.setTimer;
+  const hasOpenSetTimer =
+    setTimerModal != null && setTimerModal.entryIndex === entryIndex && setTimerModal.setIndex === setIndex;
+  // The first "complete" on a timed set starts its clock (opens the set-timer modal) instead of
+  // completing it — the actual completion happens on the second signal (Stop & record), mirroring
+  // how the AMRAP modal defers completion. See Progress_completeSetAction for the recording step.
+  if (
+    mode === "workout" &&
+    set?.setTimer != null &&
+    !set.isCompleted &&
+    !hasOpenSetTimer &&
+    set.completedSetTimer == null
+  ) {
     return {
       ...progress,
-      userPromptedStateVars: {
-        ...(progress.userPromptedStateVars || {}),
-        [programExerciseId]: userPromptedStateVars,
-      },
+      setTimer: { entryIndex, setIndex, startedAt: Date.now(), nonce: Date.now() },
     };
   }
-
-  export function editDayAction(dispatch: IDispatch, programId: string, dayIndex: number): void {
-    updateState(dispatch, [
-      lb<IState>().p("editProgram").record({ id: programId, dayIndex: dayIndex }),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((s) => Screen.push(s, "editProgramDay")),
-    ]);
+  const shouldLogRpe = !!set?.logRpe;
+  const shouldPromptUserVars = hasUserPromptedVars && Progress_hasLastUnfinishedSet(entry);
+  const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+  const isAmrap =
+    (set?.completedReps == null || (isUnilateral && set?.completedRepsLeft == null)) &&
+    (!!set?.isAmrap || set.reps == null);
+  const shouldAskWeight = set?.completedWeight == null && (!!set?.askWeight || set.weight == null);
+  if (mode === "warmup") {
+    return lf(progress)
+      .p("entries")
+      .i(entryIndex)
+      .p("warmupSets")
+      .i(setIndex)
+      .modify((progressSet) => {
+        return {
+          ...progressSet,
+          timestamp: !progressSet.isCompleted ? Date.now() : progressSet.timestamp,
+          completedRepsLeft: isUnilateral ? (progressSet.completedRepsLeft ?? progressSet.reps) : undefined,
+          completedReps: progressSet.completedReps ?? progressSet.reps,
+          completedWeight: progressSet.completedWeight ?? progressSet.weight,
+          isCompleted: !progressSet.isCompleted,
+        };
+      });
+  } else if (Progress_shouldShowAmrapModal(entry, setIndex, mode, hasUserPromptedVars, settings)) {
+    return {
+      ...progress,
+      amrapModal: {
+        entryIndex,
+        setIndex,
+        nonce: Date.now(),
+        logRpe: shouldLogRpe,
+        userVars: shouldPromptUserVars,
+        isAmrap: isAmrap,
+        askWeight: shouldAskWeight,
+      },
+    };
+  } else {
+    return Progress_completeAmrapSet(progress, entryIndex, setIndex, settings);
   }
+}
 
-  export function editExerciseNotes(dispatch: IDispatch, progressId: number, entryIndex: number, notes: string): void {
-    updateState(dispatch, [
-      lb<IState>().p("progress").pi(progressId).p("entries").i(entryIndex).p("notes").record(notes),
-    ]);
+export function Progress_getFirstIncompleteWorkoutSet(
+  progress: IHistoryRecord,
+  after?: { entryIndex: number; setIndex: number }
+): { entryIndex: number; setIndex: number } | undefined {
+  const startEntry = after?.entryIndex ?? 0;
+  for (let entryIndex = startEntry; entryIndex < progress.entries.length; entryIndex += 1) {
+    const sets = progress.entries[entryIndex].sets;
+    const startSet = after != null && entryIndex === after.entryIndex ? after.setIndex + 1 : 0;
+    for (let setIndex = startSet; setIndex < sets.length; setIndex += 1) {
+      if (!sets[setIndex].isCompleted) {
+        return { entryIndex, setIndex };
+      }
+    }
   }
+  return undefined;
+}
 
-  export function showAddExerciseModal(dispatch: IDispatch, progressId: number): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).pi("ui").p("exerciseModal").record({})]);
+export function Progress_getNextTimedSet(
+  progress: IHistoryRecord
+): { entryIndex: number; setIndex: number } | undefined {
+  // The "next" set for an auto/EMOM advance is the set right after the one the timer belongs to — NOT the
+  // globally-first incomplete set. Users don't work exercises strictly top-to-bottom, so an earlier untimed
+  // exercise left incomplete would otherwise be picked as "next", have no setTimer, and silently stop the chain.
+  const current =
+    progress.setTimer != null
+      ? { entryIndex: progress.setTimer.entryIndex, setIndex: progress.setTimer.setIndex }
+      : progress.timerEntryIndex != null && progress.timerSetIndex != null
+        ? { entryIndex: progress.timerEntryIndex, setIndex: progress.timerSetIndex }
+        : undefined;
+  // In a superset the next timed set is the next group member's incomplete set (Crunch → Hollow → Crunch …),
+  // not the current exercise's own next set — otherwise the auto-advance opens a set for the exercise the
+  // clock just left instead of the one now shown. Fall back to raw order once the group is exhausted.
+  const next =
+    (current != null ? Progress_getNextTimedSetInSuperset(progress, current) : undefined) ??
+    Progress_getFirstIncompleteWorkoutSet(progress, current);
+  if (next == null) {
+    return undefined;
   }
+  const set = progress.entries[next.entryIndex]?.sets[next.setIndex];
+  return set?.setTimer != null ? next : undefined;
+}
 
-  export function addExercise(
-    dispatch: IDispatch,
-    progressId: number,
-    exerciseId: IExerciseId,
-    settings: ISettings
-  ): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
+function Progress_getNextTimedSetInSuperset(
+  progress: IHistoryRecord,
+  current: { entryIndex: number; setIndex: number }
+): { entryIndex: number; setIndex: number } | undefined {
+  const entry = progress.entries[current.entryIndex];
+  if (entry?.superset == null) {
+    return undefined;
+  }
+  // Reuse the same superset resolver the pager uses (Progress_maybeApplySuperset), so the auto-advance
+  // opens a set for the very exercise now shown. It skips finished group members and returns undefined
+  // once the group is exhausted, letting the caller fall back to raw order for any later timed exercise.
+  const nextEntry = Progress_getNextEntry(progress, entry, "workout", false);
+  if (nextEntry == null || nextEntry.id === entry.id) {
+    return undefined;
+  }
+  const entryIndex = progress.entries.findIndex((e) => e.id === nextEntry.id);
+  const setIndex = nextEntry.sets.findIndex((s) => !s.isCompleted);
+  if (entryIndex < 0 || setIndex < 0) {
+    return undefined;
+  }
+  return { entryIndex, setIndex };
+}
+
+// Moves the set-timer banner to the next timed set (or closes it if there's none) and clears any rest
+// timer. `freshNonce` controls whether the workout screen re-opens the banner: keep the nonce for an
+// in-place advance (EMOM, banner already open), use a fresh one after rest (banner was closed).
+export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: boolean): IHistoryRecord {
+  const next = Progress_getNextTimedSet(progress);
+  const prevNonce = progress.setTimer?.nonce;
+  // Advancing ends the current (auto) rest — cancel its pending "rest is over" notification so it doesn't
+  // fire during the next set's clock.
+  if (progress.timerSince != null) {
+    NativeTimerBridge_stopTimer();
+  }
+  // Follow the clock to the next set's exercise so the shown exercise tracks the active set (EMOM/Tabata can
+  // roll into a different exercise). currentEntryIndex syncs, so every client's view moves with it.
+  const nextEntryIndex = next != null ? next.entryIndex : progress.currentEntryIndex;
+  const entryChanged = nextEntryIndex !== (progress.currentEntryIndex ?? 0);
+  return {
+    ...progress,
+    timerSince: undefined,
+    timer: undefined,
+    timerMode: undefined,
+    timerEntryIndex: undefined,
+    timerSetIndex: undefined,
+    setTimer: next != null ? { ...next, startedAt: Date.now(), nonce: freshNonce ? Date.now() : prevNonce } : undefined,
+    currentEntryIndex: nextEntryIndex,
+    // The pager scrolls on a forceUpdateEntryIndex flip, not on currentEntryIndex alone (so swipes aren't
+    // fought). Flip it when an auto-advance crosses into another exercise so the pager scrolls to follow.
+    ui: entryChanged ? { ...progress.ui, forceUpdateEntryIndex: !progress.ui?.forceUpdateEntryIndex } : progress.ui,
+  };
+}
+
+// The single place that decides what happens after a timed set is recorded+completed from its clock.
+export function Progress_proceedAfterTimedSet(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  settings: ISettings,
+  subscription: ISubscription | undefined,
+  isPlayground?: boolean
+): IHistoryRecord {
+  // AMRAP took over (set isn't completed yet). Keep the set-timer modal open so the amrap modal stacks
+  // cleanly on top of it — clearing it here would race the amrap push and pop the wrong screen. The
+  // set-timer modal is closed (and rest started) when amrap resolves; see Progress_changeAmrapAction.
+  if (progress.amrapModal != null) {
+    return progress;
+  }
+  // The playground has no rest timers (like normal-set completion, see below) and doesn't run circuits in real
+  // time — just close the banner. No rest, no EMOM/auto advance; the user taps the next set to continue.
+  if (isPlayground) {
+    return { ...progress, setTimer: undefined };
+  }
+  const set = progress.entries[entryIndex]?.sets[setIndex];
+  // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
+  if (set?.auto && (set.timer ?? 0) === 0) {
+    return Progress_advanceTimedSet(progress, false);
+  }
+  // Otherwise close the banner and start the deferred rest timer. Backdate its start to when the set
+  // should have ended (clock start + recorded duration) rather than "now", so reopening the app after
+  // the screen was locked past the target reconciles to the correct rest elapsed instead of resetting it.
+  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
+  if (set?.isCompleted && set.setTimer != null) {
+    const startedAt = progress.setTimer?.startedAt;
+    // Rest begins when the timed window actually ended on the clock — not at the logged history value. A set
+    // logged early via "Log & keep timing" keeps that earlier time as its record, but its clock runs on to the
+    // target and auto-closes there. So when a non-overflow set reached its target, backdate the rest from the
+    // target; only an early "Stop & Record" (clock stopped before the target) backdates from the recorded time.
+    const reachedTarget = startedAt != null && !set.isOverflowSetTimer && Date.now() - startedAt >= set.setTimer * 1000;
+    const restOffsetSeconds = reachedTarget ? set.setTimer : set.completedSetTimer;
+    const restSince =
+      startedAt != null && restOffsetSeconds != null ? startedAt + restOffsetSeconds * 1000 : Date.now();
+    newProgress = Progress_startTimer(newProgress, restSince, "workout", entryIndex, setIndex, settings, subscription);
+  }
+  return newProgress;
+}
+
+// Discard the set timer banner without recording. If the set was already logged (via "Log & keep"),
+// start its deferred rest.
+export function Progress_closeTimedSet(
+  progress: IHistoryRecord,
+  settings: ISettings,
+  subscription: ISubscription | undefined,
+  isPlayground?: boolean
+): IHistoryRecord {
+  const stm = progress.setTimer;
+  if (stm == null) {
+    return progress;
+  }
+  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
+  const set = newProgress.entries[stm.entryIndex]?.sets[stm.setIndex];
+  // The playground has no rest timers, so discarding a "Log & keep timing" set just closes the banner.
+  if (!isPlayground && set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
+    newProgress = Progress_startTimer(
+      newProgress,
+      Date.now(),
+      "workout",
+      stm.entryIndex,
+      stm.setIndex,
+      settings,
+      subscription
+    );
+  }
+  return newProgress;
+}
+
+// Cheap pure predicate (no program evaluation) telling whether Progress_checkSetTimer would do anything.
+// Lets per-second pollers skip resolving program context + dispatching when nothing is due.
+export function Progress_isSetTimerCheckDue(progress: IHistoryRecord, now: number): boolean {
+  if (progress.amrapModal != null) {
+    return false;
+  }
+  const stm = progress.setTimer;
+  if (stm != null) {
+    const set = progress.entries[stm.entryIndex]?.sets[stm.setIndex];
+    // No !isCompleted guard: a set logged via "Log & keep timing" keeps the clock running with the modal
+    // open, and must still auto-close + start rest when the clock reaches the (non-overflow) target.
+    return !!(set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000);
+  }
+  if (
+    progress.timer != null &&
+    progress.timerSince != null &&
+    progress.timerEntryIndex != null &&
+    progress.timerSetIndex != null
+  ) {
+    const restSet = progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex];
+    return !!(
+      restSet?.auto &&
+      now - progress.timerSince >= progress.timer * 1000 &&
+      Progress_getNextTimedSet(progress) != null
+    );
+  }
+  return false;
+}
+
+// Time-driven set timer transitions, safe to poll. Returns the same `progress` reference when nothing
+// is due, so callers can skip dispatching. Two cases: (A) a non-overflow timed set's work timer reached
+// its target → record+complete+proceed (overflow `+` sets count up past target and are stopped manually);
+// (B) an `auto` set's rest expired → advance to the next timed set.
+export function Progress_checkSetTimer(
+  settings: ISettings,
+  stats: IStats,
+  progress: IHistoryRecord,
+  subscription: ISubscription | undefined,
+  programExercise: IPlannerProgramExercise | undefined,
+  otherStates: IByExercise<IProgramState> | undefined,
+  nowArg?: number,
+  isPlayground?: boolean
+): IHistoryRecord {
+  const now = nowArg ?? Date.now();
+  if (progress.amrapModal != null) {
+    return progress;
+  }
+  const stm = progress.setTimer;
+  if (stm != null) {
+    const set = progress.entries[stm.entryIndex]?.sets[stm.setIndex];
+    // No !isCompleted guard: a "Log & keep timing" set is already completed but keeps the clock running, and
+    // must still auto-close + rest at the target. completeSetAction's already-logged branch handles it.
+    if (set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000) {
+      // A set logged via "Log & keep timing" keeps the time the user logged it at — don't overwrite it with
+      // the target. A not-yet-logged set records the target (it ran the full duration).
+      const recordedSeconds = set.isCompleted ? (set.completedSetTimer ?? set.setTimer) : set.setTimer;
+      return Progress_completeSetAction(
+        settings,
+        stats,
+        progress,
+        {
+          type: "CompleteSetAction",
+          entryIndex: stm.entryIndex,
+          setIndex: stm.setIndex,
+          mode: "workout",
+          programExercise,
+          otherStates,
+          forceUpdateEntryIndex: false,
+          isExternal: true,
+          isPlayground: isPlayground ?? false,
+          recordedSeconds,
+        },
+        subscription
+      );
+    }
+    return progress;
+  }
+  if (
+    progress.timer != null &&
+    progress.timerSince != null &&
+    progress.timerEntryIndex != null &&
+    progress.timerSetIndex != null
+  ) {
+    const restSet = progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex];
+    if (
+      restSet?.auto &&
+      now - progress.timerSince >= progress.timer * 1000 &&
+      Progress_getNextTimedSet(progress) != null
+    ) {
+      return Progress_advanceTimedSet(progress, true);
+    }
+  }
+  return progress;
+}
+
+export function Progress_getIsRpeEnabled(sets: ISet[]): boolean {
+  return sets.some((set) => set.rpe != null);
+}
+
+export function Progress_getIsMinRepsEnabled(sets: ISet[]): boolean {
+  return sets.some((set) => set.minReps != null);
+}
+
+export function Progress_updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
+    return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedReps").set(value);
+  } else {
+    return progress;
+  }
+}
+
+export function Progress_updateAmrapRepsLeftInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
+    return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRepsLeft").set(value);
+  } else {
+    return progress;
+  }
+}
+
+export function Progress_updateRpeInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
+    const newValue = value != null ? Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5 : undefined;
+    return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRpe").set(newValue);
+  } else {
+    return progress;
+  }
+}
+
+export function Progress_updateWeightInExercise(progress: IHistoryRecord, value?: IWeight): IHistoryRecord {
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
+    return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedWeight").set(value);
+  } else {
+    return progress;
+  }
+}
+
+export function Progress_updateUserPromptedStateVars(
+  progress: IHistoryRecord,
+  programExerciseId: string,
+  userPromptedStateVars: IProgramState
+): IHistoryRecord {
+  return {
+    ...progress,
+    userPromptedStateVars: {
+      ...(progress.userPromptedStateVars || {}),
+      [programExerciseId]: userPromptedStateVars,
+    },
+  };
+}
+
+export function Progress_editExerciseNotes(dispatch: IDispatch, entryIndex: number, notes: string): void {
+  updateProgress(dispatch, [lb<IHistoryRecord>().p("entries").i(entryIndex).p("notes").record(notes)], "edit-notes");
+}
+
+export function Progress_addExercise(dispatch: IDispatch, exerciseType: IExerciseType, numberOfEntries: number): void {
+  updateProgress(
+    dispatch,
+    [
+      lb<IHistoryRecord>()
         .p("entries")
         .recordModify((entries) => {
-          return [...entries, History.createCustomEntry(exerciseId, settings)];
+          return [...entries, History_createCustomEntry(exerciseType, numberOfEntries)].map((e, i) => ({
+            ...e,
+            index: i,
+          }));
         }),
-    ]);
-  }
+      lb<IHistoryRecord>().p("currentEntryIndex").record(numberOfEntries),
+    ],
+    "add-exercise"
+  );
+}
 
-  export function changeExercise(
-    dispatch: IDispatch,
-    progressId: number,
-    exerciseType: IExerciseType,
-    entryIndex: number
-  ): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
+export function Progress_isEligibleForInferredWeight(set: ISet): boolean {
+  return set.originalWeight == null && set.reps != null && set.rpe != null;
+}
+
+export function Progress_updateSetWeights(
+  entry: IHistoryEntry,
+  exerciseType: IExerciseType,
+  settings: ISettings
+): IHistoryEntry {
+  const newSets = entry.sets.map((set) => {
+    if ((Progress_isEligibleForInferredWeight(set) || Weight_isPct(set.originalWeight)) && !set.isCompleted) {
+      const originalWeight = set.originalWeight ?? Weight_rpePct(set.reps ?? 1, set.rpe ?? 10);
+      const evaluatedWeight = Weight_evaluateWeight(originalWeight, exerciseType, settings);
+      const unit = Equipment_getUnitForExerciseType(settings, exerciseType) ?? settings.units;
+      const weight = Weight_roundConvertTo(evaluatedWeight, settings, unit, exerciseType);
+      return { ...set, weight };
+    }
+    return set;
+  });
+  return { ...entry, sets: newSets };
+}
+
+export function Progress_doesUse1RM(entry: IHistoryEntry): boolean {
+  return entry.sets.some((set) => (set.originalWeight == null ? set.rpe != null : Weight_isPct(set.originalWeight)));
+}
+
+export function Progress_changeExercise(
+  dispatch: IDispatch,
+  settings: ISettings,
+  progressId: number,
+  exerciseType: IExerciseType,
+  entryIndex: number,
+  shouldKeepProgramExerciseId: boolean
+): void {
+  updateState(
+    dispatch,
+    [
+      Progress_lbProgress(progressId)
         .p("entries")
         .i(entryIndex)
         .recordModify((entry) => {
-          return { ...entry, exercise: exerciseType };
-        }),
-    ]);
-  }
-
-  export function changeEquipment(
-    dispatch: IDispatch,
-    progressId: number,
-    entryIndex: number,
-    equipment: IEquipment
-  ): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("progress")
-        .pi(progressId)
-        .p("entries")
-        .i(entryIndex)
-        .p("exercise")
-        .p("equipment")
-        .record(equipment),
-    ]);
-  }
-
-  export function editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
-    updateState(dispatch, [lb<IState>().p("progress").pi(progressId).p("notes").record(notes)]);
-  }
-
-  export function getDayData(progress: IHistoryRecord): IDayData {
-    return {
-      day: progress.day,
-      week: progress.week,
-      dayInWeek: progress.dayInWeek,
-    };
-  }
-
-  export function applyProgramExercise(
-    progressEntry: IHistoryEntry | undefined,
-    programExercise: IProgramExercise,
-    allProgramExercises: IProgramExercise[],
-    dayData: IDayData,
-    settings: ISettings,
-    forceWarmupSets?: boolean,
-    staticState?: IProgramState
-  ): IHistoryEntry {
-    const state = { ...ProgramExercise.getState(programExercise, allProgramExercises), ...staticState };
-    const variationIndex = Program.nextVariationIndex(programExercise, allProgramExercises, state, dayData, settings);
-    const sets = ProgramExercise.getVariations(programExercise, allProgramExercises)[variationIndex].sets;
-    const programExerciseWarmupSets = ProgramExercise.getWarmupSets(programExercise, allProgramExercises);
-
-    const firstWeightExpr = sets[0]?.weightExpr;
-    const firstWeight =
-      firstWeightExpr != null
-        ? executeEntryScript(
-            firstWeightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-            settings,
-            "weight"
-          )
-        : undefined;
-
-    if (progressEntry != null) {
-      const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
-      const newSets: ISet[] = [];
-      for (let i = 0; i < newSetsNum; i++) {
-        const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
-        const programSet = sets[i];
-        if (progressSet?.completedReps != null) {
-          newSets.push(progressSet);
-        } else if (programSet != null) {
-          const weight = executeEntryScript(
-            programSet.weightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-            settings,
-            "weight"
-          );
-          newSets.push({
-            ...progressSet,
-            reps: executeEntryScript(
-              programSet.repsExpr,
-              programExercise.exerciseType,
-              dayData,
-              state,
-              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-              settings,
-              "reps"
-            ),
-            minReps: programSet.minRepsExpr
-              ? executeEntryScript(
-                  programSet.minRepsExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-                  settings,
-                  "reps"
-                )
-              : undefined,
-            rpe: programSet.rpeExpr
-              ? executeEntryScript(
-                  programSet.rpeExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-                  settings,
-                  "rpe"
-                )
-              : undefined,
-            weight,
-            isAmrap: programSet.isAmrap,
-            logRpe: programSet.logRpe,
-            label: programSet.label,
-          });
-        }
-      }
-      forceWarmupSets = forceWarmupSets || Reps.isEmpty(newSets);
-
-      return {
-        ...progressEntry,
-        exercise: programExercise.exerciseType,
-        warmupSets: forceWarmupSets
-          ? firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
-            : []
-          : progressEntry.warmupSets,
-        sets: newSets,
-      };
-    } else {
-      return {
-        exercise: programExercise.exerciseType,
-        programExerciseId: programExercise.id,
-        sets: sets.map((set) => {
-          const weight = executeEntryScript(
-            set.weightExpr,
-            programExercise.exerciseType,
-            dayData,
-            state,
-            { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-            settings,
-            "weight"
-          );
+          entry = Progress_updateSetWeights(entry, exerciseType, settings);
           return {
-            reps: executeEntryScript(
-              set.repsExpr,
-              programExercise.exerciseType,
-              dayData,
-              state,
-              { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-              settings,
-              "reps"
-            ),
-            minReps: set.minRepsExpr
-              ? executeEntryScript(
-                  set.minRepsExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-                  settings,
-                  "reps"
-                )
-              : undefined,
-            weight,
-            rpe: set.rpeExpr
-              ? executeEntryScript(
-                  set.rpeExpr,
-                  programExercise.exerciseType,
-                  dayData,
-                  state,
-                  { equipment: programExercise.exerciseType.equipment, unit: settings.units },
-                  settings,
-                  "rpe"
-                )
-              : undefined,
-            logRpe: set.logRpe,
-            isAmrap: set.isAmrap,
-            label: set.label,
+            ...entry,
+            exercise: exerciseType,
+            ...(shouldKeepProgramExerciseId ? {} : { programExerciseId: undefined }),
+            changed: true,
           };
         }),
-        warmupSets:
-          firstWeight != null
-            ? Exercise.getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
-            : [],
-      };
+    ],
+    "Change exercise"
+  );
+}
+
+export function Progress_changeEquipment(
+  dispatch: IDispatch,
+  progressId: number,
+  entryIndex: number,
+  equipment: IEquipment
+): void {
+  updateState(
+    dispatch,
+    [Progress_lbProgress(progressId).p("entries").i(entryIndex).p("exercise").p("equipment").record(equipment)],
+    "Change equipment"
+  );
+}
+
+export function Progress_editNotes(dispatch: IDispatch, progressId: number, notes: string): void {
+  updateState(dispatch, [Progress_lbProgress(progressId).p("notes").record(notes)], "Edit workout notes");
+}
+
+export function Progress_getDayData(progress: IHistoryRecord): IDayData {
+  return {
+    day: progress.day,
+    week: progress.week,
+    dayInWeek: progress.dayInWeek,
+  };
+}
+
+export function Progress_applyProgramExercise(
+  progressEntry: IHistoryEntry | undefined,
+  index: number,
+  programExercise: IPlannerProgramExerciseWithType,
+  settings: ISettings,
+  forceWarmupSets?: boolean
+): IHistoryEntry {
+  const variationIndex = PlannerProgramExercise_currentSetVariationIndex(programExercise);
+  const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
+  const programExerciseWarmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
+
+  if (progressEntry != null) {
+    const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
+    const newSets: ISet[] = [];
+    for (let i = 0; i < newSetsNum; i++) {
+      const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
+      const programSet = sets[i];
+      if (!!progressSet?.isCompleted) {
+        newSets.push(progressSet);
+      } else if (programSet != null) {
+        const originalWeight = programSet.weight;
+        const weight = ProgramSet_getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
+        newSets.push({
+          ...progressSet,
+          id: progressSet?.id ?? UidFactory_generateUid(6),
+          vtype: "set",
+          index: newSets.length,
+          reps: programSet.maxrep,
+          minReps: programSet.minrep,
+          rpe: programSet.rpe,
+          isUnilateral: Exercise_getIsUnilateral(programExercise.exerciseType, settings),
+          originalWeight,
+          weight,
+          isAmrap: programSet.isAmrap,
+          logRpe: programSet.logRpe,
+          label: programSet.label,
+        });
+      }
     }
-  }
-
-  export function applyProgramDay(
-    progress: IHistoryRecord,
-    program: IProgram,
-    programDay: IProgramDay,
-    settings: ISettings,
-    staticStates?: Partial<Record<string, IProgramState>>,
-    programExerciseIds?: string[],
-    checkReused?: boolean
-  ): IHistoryRecord {
-    const affectedProgramExerciseIds = programExerciseIds
-      ? checkReused
-        ? CollectionUtils.flat(
-            programExerciseIds.map((id) => {
-              const reusingExerciseIds = program.exercises
-                .filter((e) => e.reuseLogic?.selected === id)
-                .map((e) => e.id);
-              return [id].concat(reusingExerciseIds);
-            })
-          )
-        : programExerciseIds
-      : undefined;
-
-    const newEntries = progress.entries
-      .filter(
-        (e) =>
-          !e.programExerciseId ||
-          (programDay.exercises.some((ex) => ex.id === e.programExerciseId) &&
-            !(progress.deletedProgramExercises || {})[e.programExerciseId])
-      )
-      .map((progressEntry) => {
-        const programExerciseId = progressEntry.programExerciseId;
-        if (programExerciseId == null) {
-          return progressEntry;
-        }
-        if (affectedProgramExerciseIds && affectedProgramExerciseIds.indexOf(programExerciseId) === -1) {
-          return progressEntry;
-        }
-        const programExercise = program.exercises.find((e) => e.id === programExerciseId);
-        if (programExercise == null) {
-          return progressEntry;
-        }
-        const staticState = staticStates?.[programExerciseId];
-        return applyProgramExercise(
-          progressEntry,
-          programExercise,
-          program.exercises,
-          Progress.getDayData(progress),
-          settings,
-          false,
-          staticState
-        );
-      });
-
-    const sortedNewEntries = CollectionUtils.sortInOrder(
-      newEntries,
-      "programExerciseId",
-      programDay.exercises.map((e) => e.id)
-    );
-
-    const newProgramExercises = programDay.exercises.filter(
-      (e) => !progress.entries.some((ent) => ent.programExerciseId === e.id)
-    );
-    const additionalEntries =
-      programExerciseIds == null
-        ? CollectionUtils.compact(
-            newProgramExercises.map((programDayExercise) => {
-              const programExercise = program.exercises.find((e) => e.id === programDayExercise.id);
-              if (!programExercise) {
-                return undefined;
-              }
-              const staticState = staticStates?.[programExercise.id];
-              return applyProgramExercise(
-                undefined,
-                programExercise,
-                program.exercises,
-                Progress.getDayData(progress),
-                settings,
-                false,
-                staticState
-              );
-            })
-          )
-        : [];
+    let newWarmupSets = progressEntry.warmupSets;
+    if (progressEntry.warmupSets.every((w) => !w.isCompleted)) {
+      const firstWeight = newSets[0]?.weight;
+      forceWarmupSets = forceWarmupSets || Reps_isEmpty(newSets);
+      if (forceWarmupSets) {
+        const generated =
+          firstWeight != null
+            ? Exercise_getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
+            : [];
+        newWarmupSets = generated.map((ws, i) => ({
+          ...ws,
+          id: progressEntry.warmupSets[i]?.id ?? ws.id,
+        }));
+      } else {
+        newWarmupSets = progressEntry.warmupSets;
+      }
+    }
 
     return {
-      ...progress,
-      entries: [...sortedNewEntries, ...additionalEntries],
+      ...progressEntry,
+      exercise: progressEntry.changed ? progressEntry.exercise : programExercise.exerciseType,
+      warmupSets: newWarmupSets,
+      sets: newSets,
+    };
+  } else {
+    const newSets = sets.map((set, i) => {
+      const weight = ProgramSet_getEvaluatedWeight(set, programExercise.exerciseType, settings);
+      return {
+        vtype: "set" as const,
+        id: UidFactory_generateUid(6),
+        index: i,
+        reps: set.maxrep,
+        minReps: set.minrep,
+        originalWeight: set.weight,
+        isUnilateral: Exercise_getIsUnilateral(programExercise.exerciseType, settings),
+        weight,
+        rpe: set.rpe,
+        logRpe: set.logRpe,
+        isAmrap: set.isAmrap,
+        label: set.label,
+      };
+    });
+    const firstWeight = newSets[0]?.weight;
+
+    return {
+      vtype: "history_entry",
+      index,
+      id: Progress_getEntryId(programExercise.exerciseType, programExercise.label),
+      exercise: programExercise.exerciseType,
+      programExerciseId: programExercise.key,
+      sets: newSets,
+      warmupSets:
+        firstWeight != null
+          ? Exercise_getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
+          : [],
     };
   }
+}
 
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "weight"
-  ): IWeight;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "reps" | "rpe"
-  ): number;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "timer"
-  ): number;
-  export function executeEntryScript(
-    expr: string,
-    exerciseType: IExerciseType,
-    dayData: IDayData,
-    state: IProgramState,
-    context: IScriptFnContext,
-    settings: ISettings,
-    type: "reps" | "weight" | "timer" | "rpe"
-  ): IWeight | IPercentage | number | undefined {
-    const runner = new ScriptRunner(
-      expr,
-      state,
-      {},
-      createEmptyScriptBindings(dayData, settings, exerciseType),
-      createScriptFunctions(settings),
-      settings.units,
-      context,
-      "regular"
+export function Progress_getEntryId(exerciseType: IExerciseType, label?: string): string {
+  return CollectionUtils_compact([label, Exercise_toKey(exerciseType)]).join("_");
+}
+
+export function Progress_applyProgramDay(
+  progress: IHistoryRecord,
+  program: IEvaluatedProgram,
+  day: number,
+  settings: ISettings,
+  programExerciseIds?: string[]
+): IHistoryRecord {
+  const programDay = Program_getProgramDay(program, day);
+  if (!programDay) {
+    return progress;
+  }
+  const newEntries = progress.entries.map((entry, index) => {
+    if (entry.programExerciseId == null) {
+      return entry;
+    }
+    if (programExerciseIds != null && !programExerciseIds.includes(entry.programExerciseId)) {
+      return entry;
+    }
+    const programExercise = Program_getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId);
+    if (!programExercise) {
+      return entry;
+    }
+    return Progress_applyProgramExercise(entry, index, programExercise, settings, false);
+  });
+
+  return { ...progress, entries: newEntries };
+}
+
+export function Progress_changeAmrapAction(
+  settings: ISettings,
+  stats: IStats,
+  progress: IHistoryRecord,
+  action: IChangeAMRAPAction,
+  subscription: ISubscription | undefined
+): IHistoryRecord {
+  let newProgress = { ...progress };
+  if (
+    action.amrapValue == null &&
+    action.amrapLeftValue == null &&
+    action.rpeValue == null &&
+    action.weightValue == null &&
+    ObjectUtils_keys(action.userVars || {}).length === 0
+  ) {
+    return { ...newProgress, amrapModal: undefined };
+  }
+  if (action.amrapValue != null) {
+    newProgress = Progress_updateAmrapRepsInExercise(newProgress, action.amrapValue);
+  }
+  if (action.amrapLeftValue != null) {
+    newProgress = Progress_updateAmrapRepsLeftInExercise(newProgress, action.amrapLeftValue);
+  }
+  if (action.logRpe) {
+    newProgress = Progress_updateRpeInExercise(newProgress, action.rpeValue);
+  }
+  if (action.weightValue != null) {
+    newProgress = Progress_updateWeightInExercise(newProgress, action.weightValue);
+  }
+  const programExerciseId = action.programExercise?.key;
+  if (ObjectUtils_keys(action.userVars || {}).length > 0 && programExerciseId != null) {
+    newProgress = Progress_updateUserPromptedStateVars(newProgress, programExerciseId, action.userVars || {});
+  }
+  newProgress = Progress_completeAmrapSet(newProgress, action.entryIndex, action.setIndex, settings);
+  if (action.programExercise) {
+    newProgress = Progress_runUpdateScript(
+      newProgress,
+      action.programExercise,
+      action.otherStates || {},
+      action.entryIndex,
+      action.setIndex,
+      "workout",
+      settings,
+      stats
     );
-    if (type === "reps") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating reps via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default reps 5. Please fix the exercise's reps script.`,
-        5
-      );
-    } else if (type === "timer") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating timer script via expression: ${expr}:\n\n${e.message}.\n\nWe fallback to the default timer. Please fix the exercise's timer script.`,
-        undefined
-      );
-    } else if (type === "rpe") {
-      return ScriptRunner.safe(
-        () => runner.execute(type),
-        (e) =>
-          `There's an error while calculating RPE script via expression: ${expr}:\n\n${e.message}.\n\nWe ignore the RPE value. Please fix the exercise's RPE script.`,
-        undefined
-      );
-    } else {
-      return ScriptRunner.safe(
-        () => {
-          let weight = runner.execute(type);
-          if (Weight.isPct(weight)) {
-            const onerm = Exercise.onerm(exerciseType, settings);
-            weight = Weight.multiply(onerm, MathUtils.roundFloat(weight.value / 100, 4));
-          }
-          return weight;
-        },
-        (e) =>
-          `There's an error while executing script ${expr}:\n\n${e.message}.\n\nWe fallback to 100. Please fix the exercise's script.`,
-        Weight.build(100, settings.units)
+  }
+  if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
+    newProgress = Progress_stopTimer(newProgress);
+  }
+  newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, "workout");
+  // A timed set keeps its set-timer modal open behind the amrap modal (see Progress_proceedAfterTimedSet).
+  // If it was recorded via "Log & keep timing" (keepTiming), leave the clock running and don't start rest;
+  // otherwise close the banner and start the deferred rest. For non-timed sets setTimerModal is already
+  // undefined, so this is just the normal rest start.
+  const amrapSetTimerModal = newProgress.setTimer;
+  if (amrapSetTimerModal?.keepTiming) {
+    newProgress = {
+      ...newProgress,
+      setTimer: { ...amrapSetTimerModal, keepTiming: undefined },
+    };
+  } else {
+    newProgress = { ...newProgress, setTimer: undefined };
+    // Intentionally "now", NOT backdated to the clock end like Progress_proceedAfterTimedSet does (see
+    // time-based-exercises.md §5.2). The time spent in the AMRAP modal is data entry, not rest — backdating
+    // would count it as elapsed rest and a short rest could be over the instant the user submits.
+    // The playground has no rest timers (matches Progress_proceedAfterTimedSet + normal-set completion).
+    if (!action.isPlayground) {
+      newProgress = Progress_startTimer(
+        newProgress,
+        new Date().getTime(),
+        "workout",
+        action.entryIndex,
+        action.setIndex,
+        settings,
+        subscription
       );
     }
   }
+  newProgress.intervals = History_resumeWorkout(
+    newProgress,
+    action.isPlayground,
+    settings.timers.reminder,
+    subscription != null && Subscriptions_hasSubscription(subscription)
+  );
+  LiveActivityManager_updateLiveActivityForNextEntry(
+    newProgress,
+    action.entryIndex,
+    "workout",
+    action.programExercise,
+    settings,
+    subscription
+  );
+  return { ...newProgress, amrapModal: undefined };
+}
+
+export function Progress_completeSetAction(
+  settings: ISettings,
+  stats: IStats,
+  progress: IHistoryRecord,
+  action: ICompleteSetAction,
+  subscription: ISubscription | undefined
+): IHistoryRecord {
+  const setTimerModal = progress.setTimer;
+  const wasSetTimerOpen =
+    action.mode === "workout" &&
+    setTimerModal != null &&
+    setTimerModal.entryIndex === action.entryIndex &&
+    setTimerModal.setIndex === action.setIndex;
+  // A Stop/Log tap from the set-timer banner (keepSetTimerRunning is set only by those) is a deferred user
+  // action — if the clock already auto-completed, advanced, or closed just before the event landed, the banner
+  // is stale and completing here would fall through to normal toggling and flip an already-completed set back
+  // off. Thunk_recordSetTimer guards this before dispatching; the playground dispatches directly, so guard here
+  // too (safe for every path: the thunk/watch already pre-check, and auto-fires don't set keepSetTimerRunning).
+  if (action.keepSetTimerRunning != null && !wasSetTimerOpen) {
+    return progress;
+  }
+  const oldSet = progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+
+  // Stopping the clock on a set that's already logged (e.g. after "Log & keep timing"): just update the
+  // recorded time and close/keep the banner — don't run completion, which would toggle the set off.
+  if (wasSetTimerOpen && setTimerModal != null && oldSet.isCompleted) {
+    const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    let stopped = lf(progress)
+      .p("entries")
+      .i(action.entryIndex)
+      .p("sets")
+      .i(action.setIndex)
+      .p("completedSetTimer")
+      .set(recorded);
+    if (!action.keepSetTimerRunning) {
+      stopped = Progress_proceedAfterTimedSet(
+        stopped,
+        action.entryIndex,
+        action.setIndex,
+        settings,
+        subscription,
+        action.isPlayground
+      );
+    }
+    stopped.intervals = History_resumeWorkout(
+      stopped,
+      action.isPlayground,
+      settings.timers.reminder,
+      subscription != null && Subscriptions_hasSubscription(subscription)
+    );
+    LiveActivityManager_updateLiveActivityForNextEntry(
+      stopped,
+      action.entryIndex,
+      action.mode,
+      action.programExercise,
+      settings,
+      subscription
+    );
+    return stopped;
+  }
+
+  // Completing a timed set from its running clock: record the elapsed time first (derived from when the
+  // clock started, unless the surface passed an explicit recordedSeconds).
+  if (wasSetTimerOpen && setTimerModal != null && !oldSet.isCompleted && oldSet.completedSetTimer == null) {
+    const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    progress = lf(progress)
+      .p("entries")
+      .i(action.entryIndex)
+      .p("sets")
+      .i(action.setIndex)
+      .p("completedSetTimer")
+      .set(recorded);
+  }
+
+  const hasUserPromptedVars = action.programExercise && ProgramExercise_hasUserPromptedVars(action.programExercise);
+  let newProgress = Progress_completeSet(
+    progress,
+    action.entryIndex,
+    action.setIndex,
+    action.mode,
+    !!hasUserPromptedVars,
+    settings
+  );
+  const newSet =
+    newProgress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+  const didFinish = !oldSet.isCompleted && newSet.isCompleted;
+  // First tap on a timed set just opened its clock (see Progress_completeSet) — nothing is completed
+  // yet, so skip the completion side-effects and only refresh the live activity to show the timer.
+  const justStartedSetTimer =
+    !wasSetTimerOpen &&
+    !newSet.isCompleted &&
+    newProgress.setTimer?.entryIndex === action.entryIndex &&
+    newProgress.setTimer?.setIndex === action.setIndex;
+  if (justStartedSetTimer) {
+    // Starting this set's clock means the previous set's rest is over — stop it (and cancel its pending
+    // "rest is over" notification) so it doesn't fire in the middle of this set's clock.
+    if (newProgress.timerSince != null) {
+      newProgress = Progress_stopTimer(newProgress);
+    }
+    LiveActivityManager_updateLiveActivityForNextEntry(
+      newProgress,
+      action.entryIndex,
+      action.mode,
+      action.programExercise,
+      settings,
+      subscription
+    );
+    return newProgress;
+  }
+  if (action.programExercise && !newProgress.amrapModal) {
+    newProgress = Progress_runUpdateScript(
+      newProgress,
+      action.programExercise,
+      action.otherStates || {},
+      action.entryIndex,
+      action.setIndex,
+      action.mode,
+      settings,
+      stats
+    );
+  }
+
+  if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
+    newProgress = Progress_stopTimer(newProgress);
+  }
+  if (didFinish) {
+    newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, action.mode);
+  }
+  // Non-timed sets start their rest timer here. Timed sets defer it to Progress_proceedAfterTimedSet
+  // (below) so a set logged via "Log & keep timing" doesn't start resting while its clock still runs.
+  if (!action.isPlayground && newSet.setTimer == null) {
+    newProgress = Progress_startTimer(
+      newProgress,
+      new Date().getTime(),
+      action.mode,
+      action.entryIndex,
+      action.setIndex,
+      settings,
+      subscription
+    );
+  }
+  // After a timed set is recorded+completed from its clock, advance to the next timed set or close the
+  // banner and start rest — the one place that decision lives. "Log & keep timing" skips it.
+  if (wasSetTimerOpen && !action.keepSetTimerRunning) {
+    newProgress = Progress_proceedAfterTimedSet(
+      newProgress,
+      action.entryIndex,
+      action.setIndex,
+      settings,
+      subscription,
+      action.isPlayground
+    );
+  } else if (
+    wasSetTimerOpen &&
+    action.keepSetTimerRunning &&
+    newProgress.amrapModal != null &&
+    newProgress.setTimer != null
+  ) {
+    // Recorded via "Log & keep timing" and the AMRAP modal opened on top: mark the clock so it survives
+    // the AMRAP resolution (Progress_changeAmrapAction would otherwise close it).
+    newProgress = {
+      ...newProgress,
+      setTimer: { ...newProgress.setTimer, keepTiming: true },
+    };
+  }
+  newProgress.intervals = History_resumeWorkout(
+    newProgress,
+    action.isPlayground,
+    settings.timers.reminder,
+    subscription != null && Subscriptions_hasSubscription(subscription)
+  );
+  LiveActivityManager_updateLiveActivityForNextEntry(
+    newProgress,
+    action.entryIndex,
+    action.mode,
+    action.programExercise,
+    settings,
+    subscription
+  );
+  if (action.forceUpdateEntryIndex) {
+    newProgress = {
+      ...newProgress,
+      ui: { ...newProgress.ui, forceUpdateEntryIndex: !newProgress.ui?.forceUpdateEntryIndex },
+    };
+  }
+  if (action.isExternal) {
+    newProgress = {
+      ...newProgress,
+      ui: { ...newProgress.ui, isExternal: true },
+    };
+  }
+  return newProgress;
+}
+
+export function Progress_forceUpdateEntryIndex(dispatch: IDispatch): void {
+  updateProgress(
+    dispatch,
+    [
+      lb<IHistoryRecord>()
+        .pi("ui", {})
+        .p("forceUpdateEntryIndex")
+        .recordModify((v) => !v),
+    ],
+    "Force update entry index"
+  );
+}
+
+export function Progress_finishWorkout(storage: IStorage, progress: IHistoryRecord): IStorage {
+  const settings = storage.settings;
+  const programIndex = storage.programs.findIndex((p) => p.id === progress.programId)!;
+  const program = progress.programId === emptyProgramId ? Program_createEmptyProgram() : storage.programs[programIndex];
+  const evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
+  Progress_stopTimer(progress);
+  const historyRecord = History_finishProgramDay(
+    progress,
+    storage.settings,
+    progress.day,
+    evaluatedProgram,
+    storage.stats
+  );
+  let newHistory;
+  if (!Progress_isCurrent(progress)) {
+    newHistory = storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
+  } else {
+    newHistory = [historyRecord, ...storage.history];
+  }
+  const exerciseData = storage.settings.exerciseData;
+  const { program: newProgram, exerciseData: newExerciseData } =
+    Progress_isCurrent(progress) && program != null
+      ? Program_runAllFinishDayScripts(program, progress, storage.stats, settings)
+      : { program, exerciseData };
+  const newPrograms = newProgram != null ? lf(storage.programs).i(programIndex).set(newProgram) : storage.programs;
+  const newSettingsExerciseData = deepmerge(storage.settings.exerciseData, newExerciseData);
+  return {
+    ...storage,
+    progress: Progress_isCurrent(progress) ? [] : storage.progress,
+    history: newHistory,
+    programs: newPrograms,
+    settings: {
+      ...storage.settings,
+      exerciseData: newSettingsExerciseData,
+    },
+  };
 }

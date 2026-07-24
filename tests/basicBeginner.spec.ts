@@ -1,175 +1,236 @@
-import { PlaywrightUtils } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_clickAll,
+  PlaywrightUtils_forEach,
+  PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
+  await page.goto(startpage + "?skipintro=1&nosync=true");
+  await PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
-  PlaywrightUtils.disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // Workout A
 
   // First exercise is successful
-  PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await page
+    .locator("[data-testid^=exercise-]:has-text('Bent Over Row')")
+    .getByTestId("exercise-equipment-picker")
+    .click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy=change-weight]").click();
-  await page.getByTestId("modal-weight-input").clear();
-  await page.getByTestId("modal-weight-input").type("140");
-  await page.getByTestId("modal-weight-submit").click();
+  await PlaywrightUtils_forEach(page.getByTestId("input-set-weight-field"), async (item) => {
+    await PlaywrightUtils_typeKeyboard(page, item, "140");
+  });
 
   // Second exercise is successful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await page.getByTestId("workout-tab-squat").click();
+  await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy=change-weight]").click();
-  await page.getByTestId("modal-weight-input").clear();
-  await page.getByTestId("modal-weight-input").type("200");
-  await page.getByTestId("modal-weight-submit").click();
+  await PlaywrightUtils_forEach(page.getByTestId("input-set-weight-field"), async (item) => {
+    await PlaywrightUtils_typeKeyboard(page, item, "200");
+  });
 
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   // Workout B
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // First exercise is successful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Chin Up') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-chin-up").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
   // Second exercise is successful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Deadlift') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await page.getByTestId("workout-tab-deadlift").click();
+  await page.locator("[data-testid^=exercise-]:has-text('Deadlift')").getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-deadlift").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await page.locator("[data-cy^=exercise-]:has-text('Deadlift') >> [data-cy=change-weight]").click();
-  await page.getByTestId("modal-weight-input").clear();
-  await page.getByTestId("modal-weight-input").type("250");
-  await page.getByTestId("modal-weight-submit").click();
+  await PlaywrightUtils_forEach(
+    page.getByTestId("entry-deadift").getByTestId("input-set-weight-field"),
+    async (item) => {
+      await PlaywrightUtils_typeKeyboard(page, item, "250");
+    }
+  );
 
   // Third exercise is unsuccessful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Overhead Press') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await page.getByTestId("workout-tab-overhead-press").click();
+  await page
+    .locator("[data-testid^=exercise-]:has-text('Overhead Press')")
+    .getByTestId("exercise-equipment-picker")
+    .click();
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await page.waitForTimeout(1000);
+  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Overhead Press') >> [data-cy^=set-]").first().click();
+  await PlaywrightUtils_typeKeyboard(
+    page,
+    page.getByTestId("entry-overhead-press").getByTestId("input-set-reps-field").nth(0),
+    "3"
+  );
 
-  await page.locator("[data-cy^=exercise-]:has-text('Overhead Press') >> [data-cy=change-weight]").click();
-  await page.getByTestId("modal-weight-input").clear();
-  await page.getByTestId("modal-weight-input").type("100");
-  await page.getByTestId("modal-weight-submit").click();
+  await PlaywrightUtils_forEach(
+    page.getByTestId("entry-overhead-press").getByTestId("input-set-weight-field"),
+    async (item) => {
+      await PlaywrightUtils_typeKeyboard(page, item, "100");
+    }
+  );
 
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   // Check next exercise conditions
+  await page.getByTestId("footer-workout").click();
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bent Over Row') >> [data-testid=history-entry-weight]")
       .first()
-  ).toHaveText("97.5");
+  ).toHaveText("202.5");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat') >> [data-testid=history-entry-weight]")
       .first()
-  ).toHaveText("50");
+  ).toHaveText("205");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("45");
 
   // Workout A
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // First exercise is successful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bent Over Row') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
   // Second exercise is unsuccessful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Squat') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("3");
+  await page.getByTestId("workout-tab-squat").click();
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("3");
   await page.getByTestId("modal-amrap-submit").click();
 
   // Third exercise is successful
-  await PlaywrightUtils.clickAll(page.locator("[data-cy^=exercise-]:has-text('Bench Press') >> [data-cy^=set-]"));
-  await page.getByTestId("modal-amrap-input").clear();
-  await page.getByTestId("modal-amrap-input").type("5");
+  await page.getByTestId("workout-tab-bench-press").click();
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bench-press").getByTestId("complete-set"));
+  await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   // Check next exercise conditions
+  await page.getByTestId("footer-workout").click();
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Chin Up') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Chin Up') >> [data-testid=history-entry-weight]")
       .first()
-  ).toHaveText("2.5");
+  ).toHaveText("5");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Deadlift') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Deadlift') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("100");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Overhead Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Overhead Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("45");
 
   // Workout B
 
-  await page.getByTestId("start-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await page.getByRole("button", { name: "Finish the workout" }).click();
-  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByTestId("finish-workout").click();
+  await page.getByTestId("finish-day-continue").click();
 
   // Check next exercise conditions
+  await page.getByTestId("footer-workout").click();
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bent Over Row') >> [data-testid=history-entry-weight]")
       .first()
-  ).toHaveText("100");
+  ).toHaveText("205");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat') >> [data-testid=history-entry-weight]")
       .first()
-  ).toHaveText("45");
+  ).toHaveText("182.5");
   await expect(
     page
+      .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("47.5");
 });

@@ -1,0 +1,11 @@
+node_modules
+worktrees
+logs
+dist
+dist-server
+.git
+playwright-report
+test-results
+.secrets
+*.env
+lambda/scripts

@@ -1,120 +1,165 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
+import { View, Pressable, TextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { ProgramListView } from "./programList";
-import { useState } from "preact/hooks";
-import { Program } from "../models/program";
-import { ModalCreateProgram } from "./modalCreateProgram";
-import { ModalProgramInfo } from "./modalProgramInfo";
-import { Thunk } from "../ducks/thunks";
-import { IScreen, Screen } from "../models/screen";
-import { IProgram, ISettings } from "../types";
-import { ILoading } from "../models/state";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
-import { HelpChooseProgramFirstTime } from "./help/helpChooseProgramFirstTime";
-import { HelpChooseProgram } from "./help/helpChooseProgram";
-import { Button } from "./button";
-import { Footer2View } from "./footer2";
-import { ModalImportFromLink } from "./modalImportFromLink";
-import { EditProgram } from "../models/editProgram";
+import { IHistoryRecord, IProgram, ISettings } from "../types";
+import { INavCommon } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
+import { BuiltinProgramsList } from "./builtinProgramsList";
+import { CustomProgramsList } from "./customProgramsList";
+import { emptyProgramId, IProgramIndexEntry, Program_selectProgramAndGoHome } from "../models/program";
+import { IconMagnifyingGlass } from "./icons/iconMagnifyingGlass";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { LinkButton } from "./linkButton";
+import { navigateToModal } from "../navigation/navigationService";
 
 interface IProps {
   dispatch: IDispatch;
   programs: IProgram[];
-  loading: ILoading;
+  programsIndex: IProgramIndexEntry[];
+  progress?: IHistoryRecord;
   settings: ISettings;
   customPrograms: IProgram[];
-  screenStack: IScreen[];
   editProgramId?: string;
+  navCommon: INavCommon;
+  hasBottomNav?: boolean;
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
-  const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(undefined);
-  const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
-  const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
+  const [search, setSearch] = useState("");
+  const [selectedTab, setSelectedTab] = useState(0);
+  const hasCustomPrograms = props.customPrograms.length > 0;
 
-  const program = props.programs.find((p) => p.id === selectedProgramId);
-  const noPrograms = props.customPrograms.length === 0;
+  useNavOptions({
+    navTitle: "Choose a program",
+    navRightButtons: [
+      <LinkButton
+        key="import"
+        className="px-2 text-sm no-underline"
+        name="import-program"
+        onClick={() => navigateToModal("importFromLinkModal")}
+      >
+        Import
+      </LinkButton>,
+    ],
+  });
 
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          title="Choose a program"
-          dispatch={props.dispatch}
-          helpContent={noPrograms ? <HelpChooseProgramFirstTime /> : <HelpChooseProgram />}
-          screenStack={props.screenStack}
-        />
-      }
-      footer={noPrograms ? <></> : <Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
-      addons={
-        <Fragment>
-          {program != null && (
-            <ModalProgramInfo
+    <View className="flex-1 bg-background-default">
+      <View className="px-4 pt-2 pb-2">
+        <View className="relative justify-center">
+          <View className="absolute z-10 left-3">
+            <IconMagnifyingGlass color={Tailwind_semantic().icon.neutralsubtle} size={16} />
+          </View>
+          <TextInput
+            className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default text-text-primary"
+            style={{ fontSize: 15 }}
+            placeholder="Search by name"
+            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+            defaultValue=""
+            onChangeText={(text) => setSearch(text)}
+            data-testid="program-search"
+            testID="program-search"
+            returnKeyType="search"
+          />
+        </View>
+      </View>
+      {hasCustomPrograms ? (
+        <>
+          <View className="flex-row border-b border-border-neutral">
+            {["Yours", "Built-in"].map((label, index) => (
+              <Pressable
+                key={label}
+                className="items-center flex-1 pb-2"
+                onPress={() => setSelectedTab(index)}
+                data-testid={`tab-${label.toLowerCase()}`}
+                testID={`tab-${label.toLowerCase()}`}
+              >
+                <Text
+                  className={`text-base ${selectedTab === index ? "text-icon-yellow" : ""}`}
+                  style={
+                    selectedTab === index
+                      ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow }
+                      : undefined
+                  }
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {selectedTab === 0 ? (
+            <CustomProgramsList
+              progress={props.progress}
+              programs={props.customPrograms}
               settings={props.settings}
-              program={program}
-              hasCustomPrograms={!noPrograms}
-              onClose={() => setSelectedProgramId(undefined)}
-              onPreview={() => Program.previewProgram(props.dispatch, program.id, false)}
-              onSelect={() => {
-                Program.cloneProgram(props.dispatch, program);
-                props.dispatch(Thunk.pushScreen("main"));
-              }}
+              dispatch={props.dispatch}
+              search={search}
+            />
+          ) : (
+            <BuiltinProgramsList
+              hasCustomPrograms={hasCustomPrograms}
+              programs={props.programs}
+              programsIndex={props.programsIndex}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              search={search}
             />
           )}
-          <ModalCreateProgram
-            isHidden={!shouldCreateProgram}
-            onClose={() => setShouldCreateProgram(false)}
-            onSelect={(name, isV2) => {
-              if (isV2) {
-                EditProgram.createExperimental(props.dispatch, name);
-              } else {
-                props.dispatch({ type: "CreateProgramAction", name });
-              }
-            }}
-          />
-          <ModalImportFromLink
-            isHidden={!showImportFromLink}
-            onSubmit={async (link) => {
-              if (link) {
-                props.dispatch(Thunk.importFromLink(link));
-              }
-              setShowImportFromLink(false);
-            }}
-          />
-        </Fragment>
-      }
-    >
-      <div className="pb-2 text-center">
-        <Button
-          name="create-program"
-          buttonSize="md"
-          className="mr-2"
-          data-cy="create-program"
-          kind="purple"
-          onClick={() => setShouldCreateProgram(true)}
-        >
-          Create new program
-        </Button>
-        <Button
-          name="import-program-from-link"
-          buttonSize="md"
-          data-cy="import-program-from-link"
-          kind="orange"
-          onClick={() => setShowImportFromLink(true)}
-        >
-          Import from link
-        </Button>
-      </div>
-      <ProgramListView
-        settings={props.settings}
-        onSelectProgram={(id) => setSelectedProgramId(id)}
-        programs={props.programs}
-        customPrograms={props.customPrograms}
-        dispatch={props.dispatch}
-        editProgramId={props.editProgramId}
+        </>
+      ) : (
+        <BuiltinProgramsList
+          hasCustomPrograms={false}
+          programs={props.programs}
+          programsIndex={props.programsIndex}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          search={search}
+        />
+      )}
+      <Footer
+        hasBottomNav={props.hasBottomNav}
+        onCreate={() => navigateToModal("createProgramModal")}
+        onEmpty={() => {
+          Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
+        }}
       />
-    </Surface>
+    </View>
+  );
+}
+
+interface IFooterProps {
+  onCreate: () => void;
+  onEmpty: () => void;
+  hasBottomNav?: boolean;
+}
+
+function Footer(props: IFooterProps): JSX.Element {
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      className="flex-row items-stretch justify-around gap-2 px-2 pt-4 border-t border-border-neutral bg-background-default"
+      style={{ paddingBottom: (props.hasBottomNav ? 0 : insets.bottom) + 16 }}
+    >
+      <Pressable
+        className="items-center justify-center flex-1"
+        data-testid="create-program"
+        testID="create-program"
+        onPress={props.onCreate}
+      >
+        <Text className="text-sm font-semibold text-text-link">Create New Program</Text>
+      </Pressable>
+      <View style={{ width: 1 }} className="bg-background-subtle" />
+      <Pressable
+        className="items-center justify-center flex-1"
+        data-testid="empty-program"
+        testID="empty-program"
+        onPress={props.onEmpty}
+      >
+        <Text className="text-sm font-semibold text-text-link">Go Without Program</Text>
+        <Text className="text-xs text-gray-500">and build your program along the way</Text>
+      </Pressable>
+    </View>
   );
 }

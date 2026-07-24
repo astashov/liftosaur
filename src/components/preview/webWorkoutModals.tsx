@@ -1,0 +1,196 @@
+import { JSX } from "react";
+import { IHistoryRecord, ISettings } from "../../types";
+import { IDispatch } from "../../ducks/types";
+import { ModalAmrap } from "../modalAmrap";
+import { Modal } from "../modal";
+import { SetTimerBannerContent } from "../setTimerBanner";
+import { SetTimerEditContent } from "../setTimerEdit";
+import { WeightRoundingInfoContent } from "../weightRoundingInfo";
+import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
+import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
+import { lb } from "lens-shmens";
+import { EditProgramLenses_properlyUpdateStateVariable } from "../../models/editProgramLenses";
+import {
+  IEvaluatedProgram,
+  Program_getProgramExercise,
+  Program_getDayData,
+  Program_stateValue,
+} from "../../models/program";
+import { Exercise_toKey } from "../../models/exercise";
+import { Weight_build } from "../../models/weight";
+import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
+
+interface IWebWorkoutModalsProps {
+  progress: IHistoryRecord;
+  dispatch: IDispatch;
+  settings: ISettings;
+  program: IEvaluatedProgram;
+  day: number;
+  onProgramChange: (newProgram: IEvaluatedProgram) => void;
+  onSettingsChange: (newSettings: ISettings) => void;
+}
+
+export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
+  const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
+  const editModalProgramExercise = editModalProgramExerciseId
+    ? Program_getProgramExercise(props.day, props.program, editModalProgramExerciseId)
+    : undefined;
+
+  const setTimerModal = props.progress.setTimer;
+  // A timed AMRAP set keeps setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet) — yield to
+  // the amrap modal here like SetTimerBannerContent does, so the set-timer shell doesn't show behind it.
+  const showSetTimerModal = setTimerModal != null && props.progress.amrapModal == null;
+  const closeSetTimerModal = (): void => {
+    props.dispatch({ type: "CloseSetTimerAction", isPlayground: true });
+  };
+
+  const setTimerEditModal = props.progress.ui?.setTimerEditModal;
+  const setTimerEditSet = setTimerEditModal
+    ? props.progress.entries[setTimerEditModal.entryIndex]?.sets[setTimerEditModal.setIndex]
+    : undefined;
+  const closeSetTimerEditModal = (): void => {
+    props.dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record(undefined)],
+      desc: "close-set-timer-edit",
+    });
+  };
+
+  const roundingModal = props.progress.ui?.roundingModal;
+  const roundingEntry = roundingModal ? props.progress.entries[roundingModal.entryIndex] : undefined;
+  const roundingSet = roundingModal ? roundingEntry?.sets[roundingModal.setIndex] : undefined;
+  const closeRoundingModal = (): void => {
+    props.dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("roundingModal").record(undefined)],
+      desc: "close-rounding-info",
+    });
+  };
+
+  return (
+    <>
+      {showSetTimerModal && setTimerModal && (
+        <Modal maxWidth="480px" isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={closeSetTimerModal}>
+          <SetTimerBannerContent
+            progress={props.progress}
+            settings={props.settings}
+            setTimerModal={setTimerModal}
+            dispatch={props.dispatch}
+            onClose={closeSetTimerModal}
+            isPlayground={true}
+            programExercise={Program_getProgramExercise(
+              props.day,
+              props.program,
+              props.progress.entries[setTimerModal.entryIndex]?.programExerciseId
+            )}
+            otherStates={props.program.states}
+          />
+        </Modal>
+      )}
+      {setTimerEditModal && setTimerEditSet && (
+        <Modal
+          maxWidth="480px"
+          isHidden={false}
+          isFullWidth={true}
+          shouldShowClose={true}
+          onClose={closeSetTimerEditModal}
+        >
+          <SetTimerEditContent
+            set={setTimerEditSet}
+            entryIndex={setTimerEditModal.entryIndex}
+            setIndex={setTimerEditModal.setIndex}
+            dispatch={props.dispatch}
+          />
+        </Modal>
+      )}
+      {roundingModal && roundingEntry && roundingSet && (
+        <Modal maxWidth="480px" isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={closeRoundingModal}>
+          <WeightRoundingInfoContent
+            set={roundingSet}
+            exerciseType={roundingEntry.exercise}
+            settings={props.settings}
+          />
+        </Modal>
+      )}
+      {props.progress.amrapModal && (
+        <ModalAmrap
+          isPlayground={true}
+          progress={props.progress}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          programExercise={Program_getProgramExercise(
+            props.day,
+            props.program,
+            props.progress.entries[props.progress.amrapModal?.entryIndex || 0]?.programExerciseId
+          )}
+          otherStates={props.program.states}
+        />
+      )}
+      <BottomSheetEditTarget
+        settings={props.settings}
+        progress={props.progress}
+        dispatch={props.dispatch}
+        editSetModal={props.progress.ui?.editSetModal}
+        isHidden={props.progress.ui?.editSetModal == null}
+        onClose={() => {
+          props.dispatch({
+            type: "UpdateProgress",
+            lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
+            desc: "close-bottomsheet-target",
+          });
+        }}
+      />
+      {editModalProgramExercise && (
+        <ProgramPreviewPlaygroundExerciseEditModal
+          onClose={() =>
+            props.dispatch({
+              type: "UpdateProgress",
+              lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editModal").record(undefined)],
+              desc: "close-playground-exercise-edit-modal",
+            })
+          }
+          onEditStateVariable={(stateKey, newValue) => {
+            const dayData = Program_getDayData(props.program, props.day);
+            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
+              lb<IEvaluatedProgram>()
+                .p("weeks")
+                .i(dayData.week - 1)
+                .p("days")
+                .i(dayData.dayInWeek - 1)
+                .p("exercises")
+                .find((e) => e.key === editModalProgramExerciseId),
+              {
+                [stateKey]: Program_stateValue(
+                  PlannerProgramExercise_getState(editModalProgramExercise),
+                  stateKey,
+                  newValue
+                ),
+              }
+            );
+            const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
+            props.onProgramChange(newProgram);
+          }}
+          onEditVariable={(variableKey, newValue) => {
+            if (!editModalProgramExercise.exerciseType) {
+              return;
+            }
+            const exerciseType = Exercise_toKey(editModalProgramExercise.exerciseType);
+            const newSettings = {
+              ...props.settings,
+              exerciseData: {
+                ...props.settings.exerciseData,
+                [exerciseType]: {
+                  ...props.settings.exerciseData[exerciseType],
+                  [variableKey]: Weight_build(newValue, props.settings.units),
+                },
+              },
+            };
+            props.onSettingsChange(newSettings);
+          }}
+          programExercise={editModalProgramExercise}
+          settings={props.settings}
+        />
+      )}
+    </>
+  );
+}

@@ -1,0 +1,478 @@
+import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
+import { lg } from "../../utils/posthog";
+import {
+  IVersionTypes,
+  ITypedObject,
+  IFieldVersion,
+  IVersionsObject,
+  IVersionValue,
+  IVersions,
+  ICollectionVersions,
+  isFieldVersion,
+  isCollectionVersions,
+  isIdVersion,
+} from "./types";
+import {
+  VersionTrackerUtils_asVersionsObject,
+  VersionTrackerUtils_areEqual,
+  VersionTrackerUtils_getId,
+  VersionTrackerUtils_createVersion,
+  VersionTrackerUtils_isControlledType,
+  VersionTrackerUtils_isAtomicType,
+  VersionTrackerUtils_isRecord,
+  VersionTrackerUtils_ensureVersionsObject,
+  VersionTrackerUtils_incrementNukedeleted,
+  VersionTrackerUtils_ensureCollectionVersions,
+  VersionTrackerUtils_applyCompaction,
+  VersionTrackerUtils_getIdFieldName,
+  VersionTrackerUtils_getIdValue,
+  VersionTrackerUtils_createIdVersion,
+} from "./utils";
+import { VersionTrackerMergeVersions } from "./versionTrackerMergeVersions";
+
+export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlledType extends string> {
+  private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
+  private readonly deviceId?: string;
+  private readonly mergeVersions: VersionTrackerMergeVersions<TAtomicType, TControlledType>;
+
+  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, deviceId?: string) {
+    this.versionTypes = versionTypes;
+    this.deviceId = deviceId;
+    this.mergeVersions = new VersionTrackerMergeVersions(versionTypes);
+  }
+
+  public run<T extends Record<string, unknown>>(
+    oldObj: T,
+    newObj: T,
+    currentVersions: IVersions<T>,
+    newVersions: IVersions<T>,
+    timestamp: number
+  ): IVersions<T> {
+    const versions = ObjectUtils_clone(currentVersions);
+    const versionsObj = VersionTrackerUtils_asVersionsObject(versions);
+    const newVersionsObj = VersionTrackerUtils_asVersionsObject(newVersions);
+
+    const keys = ObjectUtils_keys(newObj).filter((key) => key !== "_versions");
+
+    for (const field of keys) {
+      const oldValue = oldObj[field];
+      const newValue = newObj[field];
+
+      if (VersionTrackerUtils_areEqual(oldValue, newValue)) {
+        continue;
+      }
+
+      const fieldStr = field as string;
+      const updatedVersion = this.updateFieldVersion(
+        oldObj,
+        newObj,
+        currentVersions,
+        newVersions,
+        oldValue,
+        newValue,
+        versionsObj[fieldStr],
+        newVersionsObj[fieldStr],
+        timestamp,
+        fieldStr
+      );
+      if (updatedVersion !== undefined) {
+        versionsObj[fieldStr] = updatedVersion;
+      }
+    }
+
+    return versions;
+  }
+
+  private updateFieldVersion(
+    oldFull: unknown,
+    newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
+    oldValue: unknown,
+    newValue: unknown,
+    currentVersion: IVersionValue | undefined,
+    newVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): IVersionValue | undefined {
+    if (Array.isArray(newValue)) {
+      const hasTrackableItems = newValue.some(
+        (item) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined
+      );
+      const oldHasTrackableItems =
+        Array.isArray(oldValue) &&
+        oldValue.some((item: unknown) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined);
+
+      if (hasTrackableItems || oldHasTrackableItems) {
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, newVersion, timestamp, path);
+      } else {
+        const mergedVersion = this.mergeVersions.mergeVersionField(currentVersion, newVersion, path);
+        const fieldVersion = isFieldVersion(mergedVersion) ? mergedVersion : undefined;
+        return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+      }
+    } else if (typeof newValue === "object" && newValue !== null) {
+      if (this.versionTypes.dictionaryFields.includes(path)) {
+        return this.updateDictionaryCollectionVersion(
+          oldValue,
+          newValue as Record<string, unknown>,
+          currentVersion,
+          newVersion,
+          timestamp,
+          path
+        );
+      } else if (VersionTrackerUtils_isControlledType(newValue, this.versionTypes)) {
+        const mergedVersion = this.mergeVersions.mergeVersionField(currentVersion, newVersion, path);
+        return this.updateControlledObjectVersion(oldValue, newValue, mergedVersion, timestamp, path);
+      } else if (VersionTrackerUtils_isAtomicType(newValue, this.versionTypes)) {
+        const mergedVersion = this.mergeVersions.mergeVersionField(currentVersion, newVersion, path);
+        const fieldVersion = isFieldVersion(mergedVersion) ? mergedVersion : undefined;
+        return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+      } else {
+        const oldObjValue = VersionTrackerUtils_isRecord(oldValue) ? oldValue : undefined;
+        const nestedVersions = this.updateNestedVersions(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
+          oldObjValue,
+          newValue as Record<string, unknown>,
+          VersionTrackerUtils_ensureVersionsObject(currentVersion),
+          VersionTrackerUtils_ensureVersionsObject(newVersion),
+          timestamp,
+          path
+        );
+        return nestedVersions;
+      }
+    } else {
+      const mergedVersion = this.mergeVersions.mergeVersionField(currentVersion, newVersion, path);
+      const fieldVersion = isFieldVersion(mergedVersion) ? mergedVersion : undefined;
+      return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+    }
+  }
+
+  private updateArrayCollectionVersion(
+    oldValue: unknown,
+    newValue: unknown[],
+    currentVersion: IVersionValue | undefined,
+    newVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): ICollectionVersions | undefined {
+    const collectionVersions = VersionTrackerUtils_incrementNukedeleted(
+      VersionTrackerUtils_ensureCollectionVersions(currentVersion)
+    );
+    const items = collectionVersions.items || {};
+
+    const newIds = new Set<string>();
+    for (const item of newValue) {
+      const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
+      if (itemId) {
+        newIds.add(itemId);
+      }
+    }
+
+    const deletedInThisUpdate: string[] = [];
+    const oldItemsById = new Map<string, unknown>();
+    if (Array.isArray(oldValue)) {
+      for (const oldItem of oldValue) {
+        const oldItemId = VersionTrackerUtils_getId(oldItem, this.versionTypes);
+        if (!oldItemId) {
+          continue;
+        }
+        if (!oldItemsById.has(oldItemId)) {
+          oldItemsById.set(oldItemId, oldItem);
+        }
+        if (!newIds.has(oldItemId)) {
+          collectionVersions.deleted = collectionVersions.deleted || {};
+          collectionVersions.deleted[oldItemId] = timestamp;
+          delete items[oldItemId];
+          deletedInThisUpdate.push(oldItemId);
+        }
+      }
+    }
+
+    if (deletedInThisUpdate.length > 5) {
+      lg("ls-history-deletion-version-tracker", {
+        path,
+        deletedCount: deletedInThisUpdate.length,
+        oldLen: Array.isArray(oldValue) ? oldValue.length : 0,
+        newLen: newValue.length,
+        timestamp,
+      });
+    }
+
+    for (const item of newValue) {
+      const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
+      if (itemId) {
+        const oldItem = oldItemsById.get(itemId);
+
+        if (!VersionTrackerUtils_areEqual(oldItem, item)) {
+          const newCollectionVersion = isCollectionVersions(newVersion) ? newVersion : undefined;
+          const newItemVersion = newCollectionVersion?.items?.[itemId];
+          const itemPath = `${path}.items.${itemId}`;
+          const mergedItemVersion = this.mergeVersions.mergeVersionField(items[itemId], newItemVersion, itemPath);
+
+          const itemVersion = this.getItemVersion(oldItem, item, mergedItemVersion, timestamp, itemPath);
+          if (itemVersion !== undefined) {
+            items[itemId] = itemVersion;
+          }
+        }
+
+        if (collectionVersions.deleted && itemId in collectionVersions.deleted) {
+          delete collectionVersions.deleted[itemId];
+        }
+      }
+    }
+
+    const hasChanges =
+      Object.keys(items).length > 0 ||
+      (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+    const compactedCollection = VersionTrackerUtils_applyCompaction(
+      collectionVersions,
+      path,
+      timestamp,
+      this.versionTypes
+    );
+    return hasChanges || currentVersion ? compactedCollection : undefined;
+  }
+
+  private updateDictionaryCollectionVersion(
+    oldValue: unknown,
+    newValue: Record<string, unknown>,
+    currentVersion: IVersionValue | undefined,
+    newVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): ICollectionVersions | undefined {
+    const collectionVersions = VersionTrackerUtils_incrementNukedeleted(
+      VersionTrackerUtils_ensureCollectionVersions(currentVersion)
+    );
+    const items = collectionVersions.items || {};
+
+    const oldDict = VersionTrackerUtils_isRecord(oldValue) ? oldValue : undefined;
+
+    if (oldDict) {
+      for (const key of ObjectUtils_keys(oldDict)) {
+        if (!(key in newValue)) {
+          collectionVersions.deleted = collectionVersions.deleted || {};
+          collectionVersions.deleted[key] = timestamp;
+          delete items[key];
+        }
+      }
+    }
+
+    for (const [key, item] of Object.entries(newValue)) {
+      const oldItem = oldDict?.[key];
+      if (oldItem !== item) {
+        const newCollectionVersion = isCollectionVersions(newVersion) ? newVersion : undefined;
+        const newItemVersion = newCollectionVersion?.items?.[key];
+        const itemPath = `${path}.items.${key}`;
+        const mergedItemVersion = this.mergeVersions.mergeVersionField(items[key], newItemVersion, itemPath);
+
+        const itemVersion = this.getItemVersion(oldItem, item, mergedItemVersion, timestamp, itemPath);
+        if (itemVersion !== undefined) {
+          items[key] = itemVersion;
+        }
+      }
+
+      if (collectionVersions.deleted && key in collectionVersions.deleted) {
+        delete collectionVersions.deleted[key];
+      }
+    }
+
+    const hasChanges =
+      Object.keys(items).length > 0 ||
+      (collectionVersions.deleted && Object.keys(collectionVersions.deleted).length > 0);
+
+    const compactedCollection = VersionTrackerUtils_applyCompaction(
+      collectionVersions,
+      path,
+      timestamp,
+      this.versionTypes
+    );
+    return hasChanges || currentVersion ? compactedCollection : undefined;
+  }
+
+  private getItemVersion(
+    oldItem: unknown,
+    newItem: unknown,
+    currentItemVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): IVersionsObject | IFieldVersion | undefined {
+    if (VersionTrackerUtils_isAtomicType(newItem, this.versionTypes)) {
+      const fieldVersion = isFieldVersion(currentItemVersion) ? currentItemVersion : undefined;
+      return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+    } else if (VersionTrackerUtils_isControlledType(newItem, this.versionTypes)) {
+      return this.updateControlledObjectVersion(oldItem, newItem, currentItemVersion, timestamp, path);
+    } else {
+      const fieldVersion = isFieldVersion(currentItemVersion) ? currentItemVersion : undefined;
+      return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+    }
+  }
+
+  private updateControlledObjectVersion(
+    oldValue: unknown,
+    newValue: ITypedObject<TControlledType>,
+    currentVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): IVersionsObject | undefined {
+    const controlledFields = this.versionTypes.controlledFields[newValue.vtype] || [];
+    const fieldVersions: IVersionsObject = VersionTrackerUtils_ensureVersionsObject(currentVersion);
+    let hasChanges = false;
+
+    // Always include ID field version for controlled types
+    const idField = VersionTrackerUtils_getIdFieldName(newValue.vtype, this.versionTypes);
+    if (idField) {
+      const idValue = VersionTrackerUtils_getIdValue(newValue, this.versionTypes);
+      if (idValue != null) {
+        const currentIdVersion = isIdVersion(fieldVersions[idField]) ? fieldVersions[idField] : undefined;
+        // Only update if ID changed or no version exists
+        if (!currentIdVersion || currentIdVersion.value !== idValue) {
+          fieldVersions[idField] = VersionTrackerUtils_createIdVersion(
+            timestamp,
+            idValue,
+            currentIdVersion,
+            this.deviceId
+          );
+          hasChanges = true;
+        }
+      }
+    }
+
+    for (const controlledField of controlledFields) {
+      const oldFieldValue =
+        VersionTrackerUtils_isRecord(oldValue) && controlledField in oldValue ? oldValue[controlledField] : undefined;
+      const newFieldValue = newValue[controlledField];
+
+      // A controlled field going present -> absent (e.g. clearing progress.setTimer) must still bump a version so
+      // the deletion propagates to other devices, mirroring how top-level field deletions are tracked. Without this
+      // the field lingers on the receiving device (a stale set-timer modal kept showing after a Stop on the watch).
+      if (!VersionTrackerUtils_areEqual(oldFieldValue, newFieldValue)) {
+        const currentFieldVersion = fieldVersions[controlledField];
+        const fieldPath = path ? `${path}.${controlledField}` : controlledField;
+        const updatedVersion = this.updateControlledFieldVersion(
+          oldFieldValue,
+          newFieldValue,
+          currentFieldVersion,
+          timestamp,
+          fieldPath
+        );
+        if (updatedVersion != null) {
+          fieldVersions[controlledField] = updatedVersion;
+          hasChanges = true;
+        }
+      }
+    }
+
+    return hasChanges || Object.keys(fieldVersions).length > 0 ? fieldVersions : undefined;
+  }
+
+  private updateControlledFieldVersion(
+    oldValue: unknown,
+    newValue: unknown,
+    currentVersion: IVersionValue | undefined,
+    timestamp: number,
+    path: string
+  ): IVersionValue | undefined {
+    if (Array.isArray(newValue)) {
+      const hasTrackableItems = newValue.some(
+        (item) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined
+      );
+      const oldHasTrackableItems =
+        Array.isArray(oldValue) &&
+        oldValue.some((item: unknown) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined);
+      if (hasTrackableItems || oldHasTrackableItems) {
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      } else if (newValue.length > 0 || (Array.isArray(oldValue) && oldValue.length > 0)) {
+        const fieldVersion = isFieldVersion(currentVersion) ? currentVersion : undefined;
+        return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+      } else {
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      }
+    }
+
+    if (VersionTrackerUtils_isRecord(newValue)) {
+      if (this.versionTypes.dictionaryFields.includes(path)) {
+        return this.updateDictionaryCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      }
+      if (VersionTrackerUtils_isControlledType(newValue, this.versionTypes)) {
+        return this.updateControlledObjectVersion(oldValue, newValue, currentVersion, timestamp, path);
+      }
+      if (VersionTrackerUtils_isAtomicType(newValue, this.versionTypes)) {
+        const fieldVersion = isFieldVersion(currentVersion) ? currentVersion : undefined;
+        return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+      }
+    }
+
+    const fieldVersion = isFieldVersion(currentVersion) ? currentVersion : undefined;
+    return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+  }
+
+  private updateNestedVersions(
+    oldFull: unknown,
+    newFull: unknown,
+    oldFullVersion: unknown,
+    newFullVersion: unknown,
+    oldObj: Record<string, unknown> | undefined,
+    newObj: Record<string, unknown>,
+    currentVersions: IVersionsObject,
+    newVersions: IVersionsObject,
+    timestamp: number,
+    parentPath: string
+  ): IVersionsObject | undefined {
+    const versions: IVersionsObject = { ...currentVersions };
+    const keys = ObjectUtils_keys(newObj);
+    let hasChanges = false;
+
+    for (const key of keys) {
+      const oldValue = oldObj?.[key];
+      const newValue = newObj[key];
+      const currentPath = parentPath ? `${parentPath}.${key}` : key;
+
+      if (VersionTrackerUtils_areEqual(oldValue, newValue)) {
+        continue;
+      }
+
+      if (oldValue == null && newValue != null) {
+        const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
+          undefined,
+          newValue,
+          versions[key],
+          newVersions[key],
+          timestamp,
+          currentPath
+        );
+        if (updatedVersion !== undefined) {
+          versions[key] = updatedVersion;
+          hasChanges = true;
+        }
+      } else if (oldValue != null) {
+        const updatedVersion = this.updateFieldVersion(
+          oldFull,
+          newFull,
+          oldFullVersion,
+          newFullVersion,
+          oldValue,
+          newValue,
+          versions[key],
+          newVersions[key],
+          timestamp,
+          currentPath
+        );
+        if (updatedVersion !== undefined) {
+          versions[key] = updatedVersion;
+          hasChanges = true;
+        }
+      }
+    }
+
+    return hasChanges || Object.keys(currentVersions).length > 0 ? versions : undefined;
+  }
+}

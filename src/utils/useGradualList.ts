@@ -1,17 +1,33 @@
-import { useRef, useState, useEffect, Ref } from "preact/hooks";
+import { RefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Platform } from "react-native";
+import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 
 export function useGradualList<T>(
   collection: T[],
+  initialShift: number,
   pageLength: number,
-  callback: (visibleRecords: number, nextVisibleRecords: number) => void
-): [Ref<HTMLElement>, number] {
-  const [visibleRecords, setVisibleRecords] = useState<number>(pageLength);
+  containerRef: RefObject<{ clientHeight?: number } | null>,
+  callback: (visibleRecords: number, nextVisibleRecords: number) => void,
+  scrollContainerRef?: RefObject<HTMLElement | null>
+): { visibleRecords: number; loadMoreVisibleRecords: (cnt: number) => void } {
+  const [visibleRecords, setVisibleRecords] = useState<number>(initialShift + pageLength);
   const visibleRecordsRef = useRef<number>(visibleRecords);
-  const containerRef = useRef<HTMLElement>();
+  const navScrollCtx = useContext(NavScreenScrollContext);
 
   useEffect(() => {
+    if (Platform.OS !== "web") {
+      return;
+    }
+    const navScrollNode = navScrollCtx?.scrollRef.current as
+      | (HTMLElement & { getScrollableNode?: () => HTMLElement })
+      | null
+      | undefined;
+    const fallbackEl = navScrollNode?.getScrollableNode ? navScrollNode.getScrollableNode() : (navScrollNode ?? null);
+    const scrollEl = scrollContainerRef?.current ?? fallbackEl;
     function scrollHandler(): void {
-      if (window.pageYOffset + window.innerHeight > containerRef.current.clientHeight - 500) {
+      const scrollTop = scrollEl ? scrollEl.scrollTop : window.pageYOffset;
+      const viewportHeight = scrollEl ? scrollEl.clientHeight : window.innerHeight;
+      if (scrollTop + viewportHeight > (containerRef.current?.clientHeight ?? 0) - 500) {
         const vr = Math.min(visibleRecordsRef.current + 20, collection.length);
         if (visibleRecordsRef.current !== vr) {
           callback(visibleRecordsRef.current, vr);
@@ -20,9 +36,15 @@ export function useGradualList<T>(
         }
       }
     }
-    window.addEventListener("scroll", scrollHandler);
-    return () => window.removeEventListener("scroll", scrollHandler);
+    const target = scrollEl || window;
+    target.addEventListener("scroll", scrollHandler);
+    return () => target.removeEventListener("scroll", scrollHandler);
   }, [collection.length]);
 
-  return [containerRef, visibleRecordsRef.current];
+  const loadMoreVisibleRecords = useCallback((cnt: number) => {
+    setVisibleRecords(visibleRecordsRef.current + cnt);
+    visibleRecordsRef.current = visibleRecordsRef.current + cnt;
+  }, []);
+
+  return { visibleRecords: visibleRecordsRef.current, loadMoreVisibleRecords };
 }

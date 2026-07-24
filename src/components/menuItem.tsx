@@ -1,61 +1,84 @@
-import { h, JSX, ComponentChildren } from "preact";
+import type React from "react";
+import type { JSX, ReactNode } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 
 interface IMenuItemProps {
-  prefix?: ComponentChildren;
+  prefix?: ReactNode;
   name: string;
   isBorderless?: boolean;
   value?: string | JSX.Element;
   expandName?: boolean;
   expandValue?: boolean;
-  addons?: ComponentChildren;
+  addons?: ReactNode;
   shouldShowRightArrow?: boolean;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
-  onClick?: (e: MouseEvent) => void;
+  // Wraps the handle in a drag gesture (e.g. DraggableList2's render-prop); works on web and native.
+  dragHandle?: (children: ReactNode) => JSX.Element;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export function MenuItemWrapper(props: {
   name: string;
-  children: ComponentChildren;
+  children: ReactNode;
   isBorderless?: boolean;
-  onClick?: (e: MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }): JSX.Element {
+  const testId = `menu-item-${StringUtils_dashcase(props.name)}`;
+  const inner = <View className={!props.isBorderless ? "border-b border-border-neutral" : ""}>{props.children}</View>;
+  if (props.onClick) {
+    return (
+      <Pressable
+        testID={testId}
+        data-testid={testId}
+        className="w-full"
+        onPress={(e) => props.onClick?.(e as unknown as React.MouseEvent)}
+      >
+        {inner}
+      </Pressable>
+    );
+  }
   return (
-    <section
-      data-cy={`menu-item-${StringUtils.dashcase(props.name)}`}
-      className="w-full text-base text-left"
-      onClick={props.onClick}
-    >
-      <div className={!props.isBorderless ? "border-b border-grayv2-100" : ""}>{props.children}</div>
-    </section>
+    <View testID={testId} data-testid={testId} className="w-full">
+      {inner}
+    </View>
   );
 }
 
 export function MenuItem(props: IMenuItemProps): JSX.Element {
+  const valueNode =
+    typeof props.value === "string" ? <Text className="text-right text-text-link">{props.value}</Text> : props.value;
+
+  const dragHandle = props.dragHandle
+    ? props.dragHandle(
+        <View className="p-2">
+          <IconHandle />
+        </View>
+      )
+    : null;
+
   return (
     <MenuItemWrapper name={props.name} onClick={props.onClick} isBorderless={props.isBorderless}>
-      <section className="flex items-center">
-        {props.handleTouchStart && (
-          <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-            <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
-              <IconHandle />
-            </span>
-          </div>
-        )}
-        <div className="flex items-center justify-center">{props.prefix}</div>
-        <div className={`${props.expandValue ? "" : "flex-1"}`}>
-          <div className="flex items-center pt-3 pb-1 text-left">{props.name}</div>
-          <div className="pb-2">{props.addons}</div>
-        </div>
-        <div className={`${props.expandName ? "" : "flex-1"} text-right text-bluev2`}>{props.value}</div>
+      <View className="flex-row items-center">
+        {dragHandle}
+        {props.prefix != null && <View className="flex-row items-center justify-center">{props.prefix}</View>}
+        <View className="flex-row items-center gap-2 flex-1">
+          <View className={`py-3 ${props.expandValue ? undefined : "flex-1"}`}>
+            <View className="flex-row items-center">
+              <Text className="text-base text-text-primary">{props.name}</Text>
+            </View>
+            {props.addons != null && <View className="pt-1">{props.addons}</View>}
+          </View>
+          <View className={`${props.expandName ? "" : "flex-1"} items-end`}>{valueNode}</View>
+        </View>
         {props.shouldShowRightArrow && (
-          <div className="flex items-center py-2 pl-2">
-            <IconArrowRight style={{ color: "#a0aec0" }} />
-          </div>
+          <View className="flex-row items-center py-2 pl-2">
+            <IconArrowRight />
+          </View>
         )}
-      </section>
+      </View>
     </MenuItemWrapper>
   );
 }

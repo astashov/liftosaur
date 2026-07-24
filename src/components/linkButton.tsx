@@ -1,17 +1,52 @@
-import { h, JSX } from "preact";
+import { JSX, ReactNode } from "react";
+import { GestureResponderEvent, Pressable } from "react-native";
+import { Text } from "./primitives/text";
+import { useTrackClick } from "../utils/clickTracking";
 
-type IProps = JSX.HTMLAttributes<HTMLButtonElement> & { name: string };
+interface IProps {
+  name: string;
+  onPress?: (e: GestureResponderEvent) => void;
+  onClick?: (e: GestureResponderEvent) => void;
+  className?: string;
+  children?: ReactNode;
+  testID?: string;
+  disabled?: boolean;
+}
+
+function containsString(children: ReactNode): boolean {
+  if (typeof children === "string" || typeof children === "number") {
+    return true;
+  }
+  if (Array.isArray(children)) {
+    return children.some((c) => typeof c === "string" || typeof c === "number");
+  }
+  return false;
+}
 
 export function LinkButton(props: IProps): JSX.Element {
-  const { className, children, ...otherProps } = props;
+  const { className, children } = props;
+  const testID = props.testID || props.name;
+  const isFontNormal = className?.includes("font-normal");
+  const isNoUnderline = className?.includes("no-underline");
+  const textCn = `text-text-link ${!isFontNormal ? "font-bold" : ""} ${!isNoUnderline ? "underline" : ""} ${className || ""}`;
+  const accessibilityLabel = typeof children === "string" ? children : undefined;
+  const trackClick = useTrackClick();
+  const userOnPress = props.onPress || props.onClick;
+  const onPress = (e: GestureResponderEvent): void => {
+    trackClick(props.name, props.className);
+    userOnPress?.(e);
+  };
   return (
-    <button
-      className={`text-bluev2 border-none ${
-        !className || className.indexOf("font-normal") === -1 ? "font-bold" : ""
-      } underline ${className} nm-${props.name}`}
-      {...otherProps}
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      testID={testID}
+      data-testid={testID}
+      disabled={props.disabled}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
-      {children}
-    </button>
+      {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
+    </Pressable>
   );
 }

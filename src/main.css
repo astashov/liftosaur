@@ -1,9 +1,10 @@
-/* purgecss start ignore */
+@import "tailwindcss";
+@import "../theme.generated.css";
 
-@tailwind base;
-@tailwind components;
+@custom-variant light (&:where(.light, .light *, :not(.dark, .dark *)));
+@custom-variant dark (&:where(.dark, .dark *));
 
-@import "fonts.css";
+@import "./fonts.css";
 
 html,
 body {
@@ -24,7 +25,3 @@ body {
 #app {
   flex: 1;
 }
-
-/* purgecss end ignore */
-
-@tailwind utilities;

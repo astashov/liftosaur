@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IAccount } from "../src/models/account";
 import { ProgramsListHtml } from "../src/pages/programsList/programsListHtml";
 import { IStorage } from "../src/types";

@@ -1,20 +1,26 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
-import { AudioInterface } from "./lib/audioInterface";
+import { IProgramIndexEntry } from "./models/program";
 import { ProgramDetailsContent } from "./pages/programs/programDetailsContent";
 import { IProgram } from "./types";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 interface IData {
-  selectedProgramId: string;
-  programs: IProgram[];
+  program: IProgram;
+  fullDescription?: string;
+  indexEntry?: IProgramIndexEntry;
 }
 
 function main(): void {
-  const audio = new AudioInterface();
-  HydrateUtils.hydratePage<IData>((pageWrapperProps, data) => (
+  HydrateUtils_hydratePage<IData>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
-      <ProgramDetailsContent {...data} client={window.fetch} audio={audio} />
+      {(userCtx) => (
+        <ProgramDetailsContent
+          {...data}
+          units={userCtx.units}
+          isLoggedIn={pageWrapperProps.isLoggedIn}
+          client={window.fetch.bind(window)}
+        />
+      )}
     </PageWrapper>
   ));
 }

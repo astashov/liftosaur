@@ -1,6 +1,6 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory } from "../utils/generator";
+import { UidFactory_generateUid } from "../utils/generator";
 
 export const freeUsersTableNames = {
   dev: {
@@ -23,7 +23,7 @@ export class FreeUserDao {
   constructor(private readonly di: IDI) {}
 
   public async get(id: string): Promise<IFreeUserDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.get<IFreeUserDao>({
       tableName: freeUsersTableNames[env].freeUsers,
       key: { id },
@@ -31,7 +31,7 @@ export class FreeUserDao {
   }
 
   public async getAll(ids: string[]): Promise<IFreeUserDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.batchGet<IFreeUserDao>({
       tableName: freeUsersTableNames[env].freeUsers,
       keys: ids.map((id) => ({ id })),
@@ -39,7 +39,7 @@ export class FreeUserDao {
   }
 
   public async claim(id: string): Promise<{ key: string; expires: number } | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const freeUser = await this.get(id);
     if (freeUser) {
       freeUser.isClaimed = true;
@@ -69,12 +69,12 @@ export class FreeUserDao {
   }
 
   public async create(id: string, expires: number, isClaimed: boolean, coupon?: string): Promise<IFreeUserDao> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const freeUser: IFreeUserDao = {
       id,
       expires,
       isClaimed,
-      key: `key-${UidFactory.generateUid(6)}`,
+      key: `key-${UidFactory_generateUid(6)}`,
       coupon,
     };
     await this.di.dynamo.put({

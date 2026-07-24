@@ -1,7 +1,7 @@
-import { SecretsManager } from "aws-sdk";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
 import { ILogUtil } from "./log";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 
 export interface IGoogleServiceAccountPubsub {
   type: string;
@@ -23,8 +23,15 @@ interface IAllSecrets {
   webpushrAuthToken: string;
   cryptoKey: string;
   appleAppSharedSecret: string;
+  applePrivateKey: string;
+  appleKeyId: string;
+  appleIssuerId: string;
   googleServiceAccountPubsub: IGoogleServiceAccountPubsub;
   openAiKey: string;
+  anthropicApiKey: string;
+  applePromotionalOfferKeyId: string;
+  applePromotionalOfferPrivateKey: string;
+  updatesPrivateKey: string;
 }
 
 export interface ISecretsUtil {
@@ -34,19 +41,26 @@ export interface ISecretsUtil {
   getWebpushrKey(): Promise<string>;
   getWebpushrAuthToken(): Promise<string>;
   getAppleAppSharedSecret(): Promise<string>;
+  getApplePrivateKey(): Promise<string>;
+  getAppleKeyId(): Promise<string>;
+  getAppleIssuerId(): Promise<string>;
   getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub>;
   getOpenAiKey(): Promise<string>;
+  getAnthropicKey(): Promise<string>;
+  getApplePromotionalOfferKeyId(): Promise<string>;
+  getApplePromotionalOfferPrivateKey(): Promise<string>;
+  getUpdatesPrivateKey(): Promise<string>;
 }
 
 export class SecretsUtil implements ISecretsUtil {
-  private _secrets?: SecretsManager;
+  private _secrets?: SecretsManagerClient;
   private readonly _cache: Partial<IAllSecrets> = {};
 
   constructor(public readonly log: ILogUtil) {}
 
-  private get secrets(): SecretsManager {
+  private get secrets(): SecretsManagerClient {
     if (this._secrets == null) {
-      this._secrets = new SecretsManager();
+      this._secrets = new SecretsManagerClient({});
     }
     return this._secrets;
   }
@@ -68,12 +82,9 @@ export class SecretsUtil implements ISecretsUtil {
       dev: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG",
       prod: "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1",
     };
-    const result = await this.secrets
-      .getSecretValue({ SecretId: arns[Utils.getEnv()] })
-      .promise()
-      .then((s) => s.SecretString!);
+    const result = await this.secrets.send(new GetSecretValueCommand({ SecretId: arns[Utils_getEnv()] }));
     this.log.log("Secret:", key, ` - ${Date.now() - startTime}ms`);
-    const json: IAllSecrets = JSON.parse(result);
+    const json: IAllSecrets = JSON.parse(result.SecretString!);
     return json[key];
   }
 
@@ -101,11 +112,45 @@ export class SecretsUtil implements ISecretsUtil {
     return this.cache("appleAppSharedSecret", () => this.getSecret("appleAppSharedSecret"));
   }
 
+  public async getApplePrivateKey(): Promise<string> {
+    return this.cache("applePrivateKey", () => this.getSecret("applePrivateKey"));
+  }
+
+  public async getAppleKeyId(): Promise<string> {
+    return this.cache("appleKeyId", () => this.getSecret("appleKeyId"));
+  }
+
+  public async getAppleIssuerId(): Promise<string> {
+    return this.cache("appleIssuerId", () => this.getSecret("appleIssuerId"));
+  }
+
+  public async getApplePromotionalOfferKeyId(): Promise<string> {
+    return this.cache("applePromotionalOfferKeyId", () => this.getSecret("applePromotionalOfferKeyId"));
+  }
+
+  public async getApplePromotionalOfferPrivateKey(): Promise<string> {
+    return this.cache("applePromotionalOfferPrivateKey", () => this.getSecret("applePromotionalOfferPrivateKey"));
+  }
+
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
     return this.cache("googleServiceAccountPubsub", () => this.getSecret("googleServiceAccountPubsub"));
   }
 
   public async getOpenAiKey(): Promise<string> {
     return this.cache("openAiKey", () => this.getSecret("openAiKey"));
+  }
+
+  public async getAnthropicKey(): Promise<string> {
+    return this.cache("anthropicApiKey", () => this.getSecret("anthropicApiKey"));
+  }
+
+  public async getUpdatesPrivateKey(): Promise<string> {
+    return this.cache("updatesPrivateKey", async () => {
+      try {
+        return await this.getSecret("updatesPrivateKey");
+      } catch {
+        return "";
+      }
+    });
   }
 }

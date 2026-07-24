@@ -1,77 +1,37 @@
-import { h, JSX } from "preact";
-import { Modal } from "./modal";
+import { JSX, useCallback } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
-import { Importer } from "./importer";
-import { useCallback } from "preact/hooks";
-import { ImportFromHevy } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
-import { IState, updateState } from "../models/state";
-import { lb } from "lens-shmens";
-import { CollectionUtils } from "../utils/collection";
-import RB from "rollbar";
-import { ICustomExercise, IHistoryRecord } from "../types";
+import { Thunk_importHevyData } from "../ducks/thunks";
+import { ISettings } from "../types";
+import { FileImport_pickFile } from "../utils/fileImport";
 
-declare let Rollbar: RB;
-
-interface IProps {
-  isHidden: boolean;
+interface IModalImportFromOtherAppsContentProps {
+  settings: ISettings;
   onClose: () => void;
   dispatch: IDispatch;
 }
 
-export function ModalImportFromOtherApps(props: IProps): JSX.Element {
-  const onFileSelect = useCallback((contents: string) => {
-    let historyRecords: IHistoryRecord[];
-    let customExercises: Record<string, ICustomExercise>;
-    try {
-      const result = ImportFromHevy.convertHevyCsvToHistoryRecords(contents);
-      historyRecords = result.historyRecords;
-      customExercises = result.customExercises;
-    } catch (e) {
-      console.error(e);
-      Rollbar.error(e);
-      historyRecords = [];
-      customExercises = {};
-      alert("Failed to import history from Hevy.");
-    }
-    if (historyRecords.length > 0) {
-      if (confirm(`Do you want to import ${historyRecords.length} workouts?`)) {
-        updateState(props.dispatch, [
-          lb<IState>()
-            .p("storage")
-            .p("history")
-            .recordModify((oldHistoryRecords) => {
-              return CollectionUtils.sortBy(
-                CollectionUtils.uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
-                "id"
-              );
-            }),
-          lb<IState>()
-            .p("storage")
-            .p("settings")
-            .p("exercises")
-            .recordModify((oldExercises) => {
-              return { ...oldExercises, ...customExercises };
-            }),
-        ]);
-      }
+export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherAppsContentProps): JSX.Element {
+  const onUploadHevy = useCallback(async () => {
+    const contents = await FileImport_pickFile("csv");
+    if (contents == null) {
+      return;
     }
     props.onClose();
-  }, []);
+    // The pushed screen inherits the modal's bounded container if navigation happens before the
+    // modal finishes closing, so delay the dispatch
+    setTimeout(() => props.dispatch(Thunk_importHevyData(contents)), 50);
+  }, [props.dispatch, props.onClose]);
 
   return (
-    <Modal isFullWidth={true} isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+    <View>
       <GroupHeader size="large" name="Import history from other apps" />
-      <Importer onFileSelect={onFileSelect}>
-        {(onClick) => (
-          <div className="ls-import-hevy">
-            <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onClick}>
-              <button className="py-3 nm-upload-csv-from-hevy">Upload CSV file from Hevy</button>
-            </MenuItemWrapper>
-          </div>
-        )}
-      </Importer>
-    </Modal>
+      <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onUploadHevy}>
+        <Text className="py-3">Upload CSV file from Hevy</Text>
+      </MenuItemWrapper>
+    </View>
   );
 }

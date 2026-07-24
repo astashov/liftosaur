@@ -17,26 +17,37 @@ import {
 import { highlightSelectionMatches } from "@codemirror/search";
 import { tags } from "@lezer/highlight";
 import { buildPlannerExerciseLanguageSupport } from "./plannerExerciseCodemirror";
-import { Exercise } from "../../models/exercise";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
-import { StringUtils } from "../../utils/string";
-import { IAllCustomExercises, IAllEquipment } from "../../types";
+import {
+  equipmentName,
+  Exercise_findByNameAndEquipment,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+} from "../../models/exercise";
+import { ExerciseImageUtils_exists, ExerciseImageUtils_url } from "../../models/exerciseImage";
+import { StringUtils_capitalize } from "../../utils/string";
+import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_isEqual } from "../../utils/object";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Settings_build } from "../../models/settings";
+import { Muscle_getMuscleGroupName } from "../../models/muscle";
 
-const highlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: "#708" },
-  { tag: [tags.literal, tags.inserted], color: "#164" },
-  { tag: tags.variableName, color: "#28839f" },
-  { tag: tags.comment, color: "#8B9BAB" },
-  { tag: tags.blockComment, color: "#5a8e7b" },
-  { tag: tags.atom, color: "#940" },
-  { tag: tags.propertyName, color: "#8B9BAB" },
-  { tag: tags.attributeName, color: "#940" },
-  { tag: tags.attributeValue, color: "#28839F" },
-  { tag: tags.annotation, color: "#6f6e24" },
-  { tag: tags.docComment, color: "#12957e" },
-]);
+const buildHighlightStyle = (): HighlightStyle => {
+  return HighlightStyle.define([
+    { tag: tags.keyword, color: Tailwind_semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind_semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind_semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind_semantic().syntax.comment },
+    { tag: tags.blockComment, color: Tailwind_semantic().syntax.blockComment },
+    { tag: tags.atom, color: Tailwind_semantic().syntax.atom },
+    { tag: tags.attributeName, color: Tailwind_semantic().syntax.attributeName },
+    { tag: tags.attributeValue, color: Tailwind_semantic().syntax.attributeValue },
+    { tag: tags.annotation, color: Tailwind_semantic().syntax.annotation },
+    { tag: tags.docComment, color: Tailwind_semantic().syntax.docComment },
+  ]);
+};
 
 interface IEditorCompartments {
   errorGutterCompartment: Compartment;
@@ -69,6 +80,7 @@ function buildInfoLine(label: string, data: string): HTMLElement {
 
 function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorCompartments] {
   const errorGutterCompartment = new Compartment();
+  const highlightStyle = buildHighlightStyle();
 
   return [
     [
@@ -79,10 +91,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
           {
             render: (completion) => {
               if (completion.type === "keyword") {
-                const exercise = Exercise.findByName(completion.label, plannerEditor.args.customExercises || {});
+                const exercise = Exercise_findByNameAndEquipment(
+                  completion.label,
+                  plannerEditor.args.customExercises || {}
+                );
                 const url =
-                  exercise && ExerciseImageUtils.exists(exercise, "small")
-                    ? ExerciseImageUtils.url(exercise, "small")
+                  exercise && ExerciseImageUtils_exists(exercise, "small")
+                    ? ExerciseImageUtils_url(exercise, "small")
                     : undefined;
                 if (url != null) {
                   const element = document.createElement("img");
@@ -131,7 +146,8 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
             render: (completion) => {
               if (completion.type === "keyword") {
                 const customExercises = plannerEditor.args.customExercises || {};
-                const exercise = Exercise.findByName(completion.label, customExercises);
+                const settings = { ...Settings_build(), exercises: customExercises };
+                const exercise = Exercise_findByNameAndEquipment(completion.label, customExercises);
                 if (exercise == null) {
                   return document.createElement("span");
                 }
@@ -140,32 +156,34 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
 
                 const title = document.createElement("div");
                 title.classList.add("exercise-completion-title");
-                title.textContent = completion.label;
+                title.textContent = `${exercise.name}${
+                  exercise.equipment ? `, ${equipmentName(exercise.equipment)}` : ""
+                }`;
 
                 const description = document.createElement("div");
                 description.classList.add("exercise-completion-description");
 
-                const targetMuscles = Exercise.targetMuscles(exercise, customExercises);
+                const targetMuscles = Exercise_targetMuscles(exercise, settings);
                 const targetMusclesNode = buildInfoLine("Target Muscles: ", targetMuscles.join(", "));
 
-                const synergistMuscles = Exercise.synergistMuscles(exercise, customExercises);
+                const synergistMuscles = Exercise_synergistMuscles(exercise, settings);
                 const synergistMusclesNode = buildInfoLine("Synergist Muscles: ", synergistMuscles.join(", "));
 
-                const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, customExercises).map((w) =>
-                  StringUtils.capitalize(w)
+                const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((w) =>
+                  Muscle_getMuscleGroupName(w, settings)
                 );
                 const targetMuscleGroupsNode = buildInfoLine("Target Muscle Groups: ", targetMuscleGroups.join(", "));
                 targetMuscleGroupsNode.style.marginTop = "0.25rem";
 
                 const synergistMuscleGroupsNode = buildInfoLine(
                   "Synergist Muscle Groups: ",
-                  Exercise.synergistMusclesGroups(exercise, customExercises)
-                    .map((w) => StringUtils.capitalize(w))
+                  Exercise_synergistMusclesGroups(exercise, settings)
+                    .map((w) => Muscle_getMuscleGroupName(w, settings))
                     .filter((w) => targetMuscleGroups.indexOf(w) === -1)
                     .join(", ")
                 );
 
-                const types = buildInfoLine("Types: ", exercise.types.map((w) => StringUtils.capitalize(w)).join(", "));
+                const types = buildInfoLine("Types: ", exercise.types.map((w) => StringUtils_capitalize(w)).join(", "));
                 types.style.marginTop = "0.25rem";
 
                 container.appendChild(title);
@@ -275,13 +293,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
               },
             });
 
-            if (from != null && to != null) {
+            if (from != null && to != null && state.doc.length >= to) {
               return [{ from: from, to: to, severity: "error", message: "Syntax Error" }];
             }
           }
 
           const error = plannerEditor.args.error;
-          if (error != null) {
+          if (error != null && state.doc.length >= error.to) {
             return [{ from: error.from, to: error.to, severity: "error", message: error.message }];
           }
 
@@ -310,11 +328,11 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
 interface IArgs {
   onChange?: (newValue: string) => void;
   onLineChange?: (newValue: number) => void;
+  onCaretChange?: (top: number, bottom: number) => void;
   onBlur?: (event: FocusEvent, newValue: string) => void;
   value?: string;
   customExercises?: IAllCustomExercises;
   exerciseFullNames?: string[];
-  equipment?: IAllEquipment;
   height?: number;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
@@ -344,16 +362,11 @@ export class PlannerEditor {
   }
 
   public setExerciseFullNames(names: string[]): void {
-    const changed = !ObjectUtils.isEqual({ arr: names }, { arr: this.args.exerciseFullNames });
+    const changed = !ObjectUtils_isEqual({ arr: names }, { arr: this.args.exerciseFullNames });
     if (changed) {
       this.args.exerciseFullNames = names;
       this.relint();
     }
-  }
-
-  public setEquipment(equipment: IAllEquipment): void {
-    this.args.equipment = equipment;
-    this.relint();
   }
 
   public setError(error?: PlannerSyntaxError): void {
@@ -386,6 +399,12 @@ export class PlannerEditor {
       if (update.view.hasFocus && this.args.onLineChange) {
         this.args.onLineChange(line.number);
       }
+      if (update.view.hasFocus && this.args.onCaretChange) {
+        const coords = update.view.coordsAtPos(state.selection.main.head);
+        if (coords) {
+          this.args.onCaretChange(coords.top, coords.bottom);
+        }
+      }
       if (update.docChanged && this.args.onChange) {
         this.args.onChange(update.state.doc.toString());
       }
@@ -415,5 +434,3 @@ export class PlannerEditor {
     this.codeMirror = codemirror;
   }
 }
-
-export function attachCodemirror(container: HTMLElement): void {}

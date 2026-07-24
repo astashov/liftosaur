@@ -1,0 +1,219 @@
+import { JSX, useState } from "react";
+import { IEventPayload } from "../../api/service";
+import { CollectionUtils_groupByExpr, CollectionUtils_sort, CollectionUtils_sortBy } from "../../utils/collection";
+import { DateUtils_formatYYYYMMDD, DateUtils_formatHHMMSS } from "../../utils/date";
+import { ObjectUtils_keys } from "../../utils/object";
+
+export interface IUserDashboardContentProps {
+  adminKey: string;
+  userDao: IUserDashboardData | undefined;
+  events: IEventPayload[];
+  nextBefore?: number;
+  hasMore: boolean;
+}
+
+export interface IUserDashboardData {
+  email: string;
+  programNames: string[];
+  id: string;
+  workoutsCount: number;
+  firstWorkoutDate?: string;
+}
+
+interface IEventsPage {
+  events: IEventPayload[];
+  nextBefore?: number;
+  hasMore: boolean;
+}
+
+export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Element {
+  const { userDao } = props;
+  const userId = userDao ? userDao.id : (props.events[0]?.userId ?? "");
+
+  const [allEvents, setAllEvents] = useState<IEventPayload[]>(props.events);
+  const [nextBefore, setNextBefore] = useState<number | undefined>(props.nextBefore);
+  const [hasMore, setHasMore] = useState<boolean>(props.hasMore);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  async function loadMore(): Promise<void> {
+    if (isLoading || !hasMore || nextBefore == null) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const url = `/dashboards/user/${userId}/events?key=${encodeURIComponent(props.adminKey)}&before=${nextBefore}&days=4`;
+      const response = await fetch(url);
+      const page = (await response.json()) as IEventsPage;
+      setAllEvents((prev) => prev.concat(page.events));
+      setNextBefore(page.nextBefore);
+      setHasMore(page.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const groupedEvents = CollectionUtils_groupByExpr(allEvents, (event) => DateUtils_formatYYYYMMDD(event.timestamp));
+
+  return (
+    <div className="mx-4">
+      <div className="mb-4">
+        <h1 className="mt-4 mb-1 text-2xl font-bold leading-none">
+          {userDao ? (
+            <a
+              href={`/app/?admin=${props.adminKey}&userid=${userDao.id}&nosync=true`}
+              target="_blank"
+              className="underline text-text-link"
+            >
+              {userDao.email}
+            </a>
+          ) : (
+            "User is not signed up"
+          )}
+        </h1>
+        <h2 className="text-base text-text-secondary">
+          id: <strong>{userId}</strong>
+        </h2>
+        {userDao && (
+          <div className="text-base">
+            Workouts: <strong>{userDao.workoutsCount}</strong>
+            {userDao.firstWorkoutDate && (
+              <span>
+                , First workout: <strong>{userDao.firstWorkoutDate}</strong>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {userDao && (
+        <div className="mb-4">
+          <h2 className="mb-1 text-2xl font-bold">Programs</h2>
+          <ul>
+            {userDao.programNames.map((program) => (
+              <li key={program}>
+                <div className="">{program}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <h2 className="mb-2 text-2xl font-bold">Events</h2>
+
+      {CollectionUtils_sort(ObjectUtils_keys(groupedEvents))
+        .reverse()
+        .map((date) => {
+          const events = groupedEvents[date];
+          if (!events) {
+            return null;
+          }
+          const sortedEvents = CollectionUtils_sortBy(events, "timestamp", true);
+          return (
+            <div key={date}>
+              <h3 className="sticky top-0 left-0 w-full py-2 mt-4 mb-2 text-lg font-bold leading-none bg-background-default">
+                {date}
+              </h3>
+              <ul>
+                {sortedEvents.map((event) => (
+                  <li key={event.timestamp} className="mb-2">
+                    <div className="text-sm">
+                      <EventView event={event} adminKey={props.adminKey} userId={userId} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+
+      {hasMore && (
+        <div className="my-4 text-center">
+          <button
+            disabled={isLoading}
+            onClick={loadMore}
+            className="px-4 py-2 font-bold rounded-lg bg-background-subtle text-text-link disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface IEventViewProps {
+  event: IEventPayload;
+  adminKey: string;
+  userId: string;
+}
+
+function EventView(props: IEventViewProps): JSX.Element | null {
+  const { event } = props;
+  const time = DateUtils_formatHHMMSS(event.timestamp);
+  if (event.type === "event") {
+    return (
+      <div>
+        {event.isMobile ? (
+          <span className="text-text-secondary">M </span>
+        ) : (
+          <span className="text-text-success">W </span>
+        )}
+        {event.iOSVersion && <span className="text-text-secondary">A{event.iOSVersion} </span>}
+        {event.iOSOSVersion && <span className="text-text-secondary">V{event.iOSOSVersion} </span>}
+        {event.androidVersion && <span className="text-text-secondary">G{event.androidVersion} </span>}
+        <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+        <span className="text-text-secondary">{time}</span>: <span className="">{event.name}</span>
+        {event.extra && <span className="ml-2">{JSON.stringify(event.extra)}</span>}
+      </div>
+    );
+  } else if (event.type === "error") {
+    return (
+      <div>
+        <div>
+          {event.isMobile ? (
+            <span className="text-text-secondary">M </span>
+          ) : (
+            <span className="text-text-success">W </span>
+          )}
+          <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+          <span className="text-text-secondary">{time}</span>:{" "}
+          {event.rollbar_id && (
+            <a
+              href={`https://rollbar.com/occurrence/uuid/?uuid=${event.rollbar_id}`}
+              target="_blank"
+              className="font-bold underline text-text-link"
+            >
+              RB
+            </a>
+          )}{" "}
+          <span className="text-red-500">{event.message}</span>
+        </div>
+        <pre className="text-xs leading-none text-text-secondary">{event.stack}</pre>
+      </div>
+    );
+  } else if (event.type === "safesnapshot" || event.type === "mergesnapshot") {
+    return (
+      <div>
+        {event.isMobile ? (
+          <span className="text-text-secondary">M </span>
+        ) : (
+          <span className="text-text-success">W </span>
+        )}
+        <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
+        <span className="text-text-secondary">{time}: </span>
+        <span className="">{event.type}: </span>
+        <a
+          target="_blank"
+          className="font-bold underline text-text-link"
+          href={`/app/?admin=${props.adminKey}&userid=${props.userId}&storageid=${event.storage_id}&nosync=true`}
+        >
+          {event.storage_id}
+        </a>
+        <span className="ml-2">
+          update: <pre>{event.update}</pre>
+        </span>
+      </div>
+    );
+  }
+  return null;
+}

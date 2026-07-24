@@ -1,4 +1,5 @@
 import { IExerciseType, ISettings } from "../types";
+import { Exercise_toUrlSlug } from "./exercise";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -333,6 +334,37 @@ const availableSmallImages = new Set([
   "wristcurl_ezbar",
   "wristroller_bodyweight",
   "zerchersquat_barbell",
+  "wallpushup_bodyweight",
+  "inclinepushup_bodyweight",
+  "kneepushup_bodyweight",
+  "diamondpushup_bodyweight",
+  "pseudoplanchepushup_bodyweight",
+  "pikepushup_bodyweight",
+  "ringdip_bodyweight",
+  "negativedip_bodyweight",
+  "verticalrow_bodyweight",
+  "widerow_bodyweight",
+  "ringrow_bodyweight",
+  "tuckfrontleverrow_bodyweight",
+  "frontleverrow_bodyweight",
+  "scapularpullup_bodyweight",
+  "deadhang_bodyweight",
+  "negativepullup_bodyweight",
+  "assistedsquat_bodyweight",
+  "shrimpsquat_bodyweight",
+  "nordiccurl_bodyweight",
+  "handstand_bodyweight",
+  "wallhandstand_bodyweight",
+  "crowpose_bodyweight",
+  "dragonflag_bodyweight",
+  "copenhagenplank_bodyweight",
+  "hangingkneeraise_bodyweight",
+  "archhang_bodyweight",
+  "supporthold_bodyweight",
+  "pallofpress_band",
+  "renegaderow_dumbbell",
+  "romaniandeadlift_bodyweight",
+  "bulgariansplitsquat_bodyweight",
 ]);
 
 const availableLargeImages = new Set([
@@ -669,27 +701,84 @@ const availableLargeImages = new Set([
   "wristcurl_ezbar",
   "wristroller_bodyweight",
   "zerchersquat_barbell",
+  "wallpushup_bodyweight",
+  "inclinepushup_bodyweight",
+  "kneepushup_bodyweight",
+  "diamondpushup_bodyweight",
+  "pseudoplanchepushup_bodyweight",
+  "pikepushup_bodyweight",
+  "ringdip_bodyweight",
+  "negativedip_bodyweight",
+  "verticalrow_bodyweight",
+  "widerow_bodyweight",
+  "ringrow_bodyweight",
+  "tuckfrontleverrow_bodyweight",
+  "frontleverrow_bodyweight",
+  "scapularpullup_bodyweight",
+  "deadhang_bodyweight",
+  "negativepullup_bodyweight",
+  "assistedsquat_bodyweight",
+  "shrimpsquat_bodyweight",
+  "nordiccurl_bodyweight",
+  "handstand_bodyweight",
+  "wallhandstand_bodyweight",
+  "crowpose_bodyweight",
+  "dragonflag_bodyweight",
+  "copenhagenplank_bodyweight",
+  "hangingkneeraise_bodyweight",
+  "archhang_bodyweight",
+  "supporthold_bodyweight",
+  "pallofpress_band",
+  "renegaderow_dumbbell",
+  "romaniandeadlift_bodyweight",
+  "bulgariansplitsquat_bodyweight",
 ]);
 
-export namespace ExerciseImageUtils {
-  export function id(type: IExerciseType, settings?: ISettings): string {
-    const equipmentData = settings?.equipment[type.equipment || "bodyweight"];
-    const equipment =
-      equipmentData && equipmentData.similarTo ? equipmentData.similarTo : type.equipment || "bodyweight";
-    return `${type.id.toLowerCase()}_${(equipment || "bodyweight").toLowerCase()}`;
-  }
+export function ExerciseImageUtils_id(type: IExerciseType): string {
+  const equipment = type.equipment || "bodyweight";
+  return `${type.id.toLowerCase()}_${(equipment || "bodyweight").toLowerCase()}`;
+}
 
-  export function exists(type: IExerciseType, size: "small" | "large", settings?: ISettings): boolean {
-    return size === "small"
-      ? availableSmallImages.has(id(type, settings))
-      : availableLargeImages.has(id(type, settings));
-  }
+export function ExerciseImageUtils_exists(type: IExerciseType, size: "small" | "large"): boolean {
+  return size === "small"
+    ? availableSmallImages.has(ExerciseImageUtils_id(type))
+    : availableLargeImages.has(ExerciseImageUtils_id(type));
+}
 
-  export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
+export function ExerciseImageUtils_existsCustom(
+  type: IExerciseType,
+  size: "small" | "large",
+  checkDomain: boolean,
+  settings?: ISettings
+): boolean {
+  const customExercise = settings?.exercises?.[type.id];
+  const imageUrl =
+    size === "small" ? customExercise?.smallImageUrl : (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
+  return checkDomain ? !!(imageUrl?.startsWith("/") || imageUrl?.includes("liftosaur.com")) : !!imageUrl;
+}
+
+export function ExerciseImageUtils_ogImageUrl(type: IExerciseType): string {
+  const key = Exercise_toUrlSlug(type);
+  return `/externalimages/exercises/ogimages/${key}.png`;
+}
+
+export function ExerciseImageUtils_url(
+  type: IExerciseType,
+  size: "small" | "large",
+  settings?: ISettings
+): string | undefined {
+  if (ExerciseImageUtils_exists(type, size)) {
     const src =
       size === "large"
-        ? `/externalimages/exercises/full/large/${id(type, settings)}_full_large.png`
-        : `/externalimages/exercises/single/small/${id(type, settings)}_single_small.png`;
+        ? `/externalimages/exercises/full/large/${ExerciseImageUtils_id(type)}_full_large.png`
+        : `/externalimages/exercises/single/small/${ExerciseImageUtils_id(type)}_single_small.png`;
     return src;
+  } else if (ExerciseImageUtils_existsCustom(type, size, false, settings)) {
+    const customExercise = settings?.exercises?.[type.id];
+    return size === "large"
+      ? (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl)
+      : customExercise?.smallImageUrl;
+  } else {
+    return undefined;
   }
 }

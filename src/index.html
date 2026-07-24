@@ -1,10 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+<!-- LFTSTART -->
+<!doctype html>
+<html lang="en" class="liftosaur-app">
   <head>
     <title>Liftosaur: Weight Lifting Tracking App</title>
     <link rel="stylesheet" type="text/css" href="/app.css?version=xxxxxxxx" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="preconnect" href="https://api3.liftosaur.com" />
+    <link rel="canonical" href="https://www.liftosaur.com/app" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1, minimum-scale=1, target-densitydpi=device-dpi, height=device-height"
@@ -13,15 +15,17 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="preload" href="/images/front-muscles.svg" as="image" />
     <link rel="preload" href="/images/back-muscles.svg" as="image" />
+    <link rel="preload" href="/images/svgs/muscles-combined.svg" as="image" />
+    <link rel="preload" href="/images/svgs/musclegroups-combined.svg" as="image" />
     <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/icon512.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="A weight lifting tracking app, that allows you to follow popular weight lifting routines"
+      content="Weightlifting tracker and weightlifting planner app, offers extreme customizability, and allows you to follow popular lifting routines"
     />
-    <meta property="og:title" content="Liftosaur: Weightlifting Tracking App" />
+    <meta property="og:title" content="Liftosaur: Weightlifting Tracker And Planner App" />
     <meta
       property="og:description"
       content="Webapp for tracking weightlifting progress, with built-in progressive overload routines."
@@ -47,16 +51,41 @@
     </script>
     <style>
       html,
-      body,
       #app {
         height: 100%;
       }
     </style>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98XGEN6RQK"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+        wait_for_update: 500,
+      });
+      // Respect the saved privacy choice but never show a banner here - /app is rendered inside older
+      // native WebView clients and a banner overlay could break them.
+      window.lftConsentConfig = { showBanner: false, gtagOnly: true };
+      gtag("js", new Date());
+
+      gtag("config", "G-98XGEN6RQK", { anonymize_ip: true });
+    </script>
+    <script defer src="/consent.js?version=xxxxxxxx"></script>
   </head>
-  <body>
+  <body class="bg-background-default text-text-primary">
     <div id="app"></div>
+    <div id="modal"></div>
+    <div id="bottomsheet"></div>
+    <div id="keyboard"></div>
     <noscript>JavaScript is required for Liftosaur to work</noscript>
     <script src="/vendors.js?vendor=xxxxxxxx"></script>
     <script src="/app.js?version=xxxxxxxx"></script>
   </body>
 </html>
+<!-- LFTEND -->

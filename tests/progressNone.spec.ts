@@ -1,56 +1,66 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_finishExercise,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("disable progress on marked days", async ({ page }) => {
-  await page.goto("https://local.liftosaur.com:8080/app/?skipintro=1");
-  await page.getByTestId("create-program").click();
+  await page.goto(startpage + "?skipintro=1");
+  await PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
-
+  await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
 ## Day 1
-Squat / 1x5 / warmup: none
+Squat / 1x5 115lb / warmup: none
 
 ## Day 2
-Squat / 1x5 / progress: lp(5lb) / warmup: none
+Squat / 1x5 115lb / progress: lp(5lb) / warmup: none
 
 # Week 2
 ## Day 1
-Squat / 1x5 / warmup: none
+Squat / 1x5 115lb / warmup: none
 
 ## Day 2
-Squat / 1x5 / progress: none / warmup: none
+Squat / 1x5 115lb / progress: none / warmup: none
 
 # Week 3
 ## Day 1
-Squat / 1x5 / progress: none / warmup: none
+Squat / 1x5 115lb / progress: none / warmup: none
 
 ## Day 2
-Squat / 1x5 / warmup: none`
+Squat / 1x5 115lb / warmup: none`
   );
 
-  await page.getByTestId("editor-v2-save-full").click();
-  await page.getByTestId("editor-save-v2-top").click();
-  await page.getByTestId("menu-item-my-program").click();
+  await page.getByTestId("save-program").click();
 
+  await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
     "115"
   );
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   for (const weight of [120, 125, 130, 130, 130, 135]) {
-    await page.getByTestId("start-workout").click();
-    await page.getByTestId("set-nonstarted").click();
-    await page.getByRole("button", { name: "Finish the workout" }).click();
-    await page.getByRole("button", { name: "Continue" }).click();
-    await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
-      `${weight}`
-    );
+    await page.getByTestId("footer-workout").click();
+    await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+    await PlaywrightUtils_finishExercise(page, "squat", [1]);
+
+    await page.getByTestId("finish-workout").click();
+    await page.getByTestId("finish-day-continue").click();
+    await page.getByTestId("footer-workout").click();
+    await expect(
+      page.getByTestId("bottom-sheet").getByTestId("history-record").first().getByTestId("history-entry-weight").first()
+    ).toHaveText(`${weight}`);
+    await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   }
 });

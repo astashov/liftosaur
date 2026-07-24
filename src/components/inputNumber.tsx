@@ -1,83 +1,94 @@
-import { JSX, h } from "preact";
-import { useRef } from "preact/hooks";
-import { MathUtils } from "../utils/math";
-import { Input } from "./input";
+import { JSX, useEffect, useState } from "react";
+import { View, Pressable, TextInput, Platform } from "react-native";
+import { Text } from "./primitives/text";
+import { MathUtils_clamp, MathUtils_normalizeNumStr } from "../utils/math";
+import { StringUtils_dashcase } from "../utils/string";
 
-interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
-  value: number;
+interface IInputNumberProps {
+  value?: number;
   label?: string;
   step?: number;
   min?: number;
   max?: number;
+  type?: string;
+  className?: string;
   onUpdate: (value: number) => void;
+  "data-name"?: string;
+  "data-testid"?: string;
+  testID?: string;
 }
 
 export function InputNumber(props: IInputNumberProps): JSX.Element {
-  const { value, label, step, min, max, onUpdate, ...rest } = props;
-  const inputRef = useRef<HTMLInputElement>();
-  const actualStep = step ?? 1;
+  const { value = 0, label, step = 1, min, max, onUpdate } = props;
+  const [text, setText] = useState(String(value));
+  const testId = `input-${StringUtils_dashcase(label || "")}`;
 
-  function getValue(): number | undefined {
-    const inputValue = inputRef.current.value;
-    const v = Number(inputValue);
-    if (inputValue && !isNaN(v)) {
-      return MathUtils.clamp(v, min, max);
+  useEffect(() => {
+    const parsed = Number(text);
+    if (isNaN(parsed) || parsed !== value) {
+      setText(String(value));
     }
-    return undefined;
+  }, [value]);
+
+  function getNumericValue(t: string): number {
+    const v = Number(t);
+    return !isNaN(v) ? MathUtils_clamp(v, min, max) : (min ?? 0);
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2">
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
-            data-cy="edit-weight-minus"
-            onClick={() => {
-              const v = getValue();
-              if (v != null) {
-                onUpdate(MathUtils.clamp(v - actualStep, min, max));
+    <View className="w-full">
+      {label && <Text className="mb-1 text-xs text-text-secondary">{label}</Text>}
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-testid={`${testId}-minus`}
+          testID={`${testId}-minus`}
+          onPress={() => {
+            const v = getNumericValue(text);
+            const newValue = MathUtils_clamp(v - step, min, max);
+            setText(String(newValue));
+            onUpdate(newValue);
+          }}
+        >
+          <Text className="text-xl font-bold leading-8">-</Text>
+        </Pressable>
+        <View className="flex-row items-center flex-1">
+          <TextInput
+            className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent text-text-primary"
+            style={Platform.OS === "android" ? { paddingVertical: 0, includeFontPadding: false } : undefined}
+            keyboardType="numeric"
+            value={text}
+            testID={props.testID || `${testId}-field`}
+            data-testid={props.testID || `${testId}-field`}
+            onChangeText={(t) => {
+              const normalized = MathUtils_normalizeNumStr(t);
+              setText(normalized);
+              if (normalized !== "" && !isNaN(Number(normalized))) {
+                onUpdate(getNumericValue(normalized));
               }
             }}
-          >
-            -
-          </button>
-        </div>
-        <div className="flex items-center flex-1 gap-2">
-          <div className="flex-1">
-            <Input
-              label={label}
-              labelSize="xs"
-              inputSize="sm"
-              ref={inputRef}
-              step="0.01"
-              type="number"
-              value={value}
-              onInput={() => {
-                const v = getValue();
-                if (v != null) {
-                  onUpdate(v);
-                }
-              }}
-              {...rest}
-            />
-          </div>
-        </div>
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
-            data-cy="edit-weight-plus"
-            onClick={() => {
-              const v = getValue();
-              if (v != null) {
-                onUpdate(MathUtils.clamp(v + actualStep, min, max));
-              }
+            onBlur={() => {
+              const v = getNumericValue(text);
+              setText(String(v));
+              onUpdate(v);
             }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-    </div>
+            selectTextOnFocus={Platform.OS === "ios"}
+          />
+        </View>
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-testid={`${testId}-plus`}
+          testID={`${testId}-plus`}
+          onPress={() => {
+            const v = getNumericValue(text);
+            const newValue = MathUtils_clamp(v + step, min, max);
+            setText(String(newValue));
+            onUpdate(newValue);
+          }}
+        >
+          <Text className="text-xl font-bold leading-8">+</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }

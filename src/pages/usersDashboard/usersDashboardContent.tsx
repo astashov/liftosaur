@@ -1,14 +1,14 @@
-import { h, JSX } from "preact";
-import { CollectionUtils } from "../../utils/collection";
-import { DateUtils } from "../../utils/date";
+import type { JSX } from "react";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { DateUtils_format } from "../../utils/date";
 
 export interface IUsersDashboardContentProps {
   client: Window["fetch"];
   apiKey: string;
-  usersData: IUserDashboardData[];
+  usersData: IUsersDashboardData[];
 }
 
-export interface IUserDashboardData {
+export interface IUsersDashboardData {
   userId: string;
   email?: string;
   userTs?: number;
@@ -19,7 +19,6 @@ export interface IUserDashboardData {
   workoutsCount: number;
   platforms: string[];
   affiliates: string[];
-  referrer?: string;
   freeUserExpires?: number;
   programNames?: string[];
   subscriptions: ("apple" | "google" | "unclaimedkey" | "key")[];
@@ -30,10 +29,11 @@ export interface IUserDashboardData {
     isActive: boolean;
     expires: number;
     promoCode?: string;
+    pendingProduct?: string;
   };
 }
 
-function getIsNew(item: IUserDashboardData): boolean {
+function getIsNew(item: IUsersDashboardData): boolean {
   const firstActionDate = new Date(item.firstAction.ts);
   const lastActionDate = new Date(item.lastAction.ts);
   return (
@@ -43,7 +43,7 @@ function getIsNew(item: IUserDashboardData): boolean {
   );
 }
 
-function getIsNewUser(item: IUserDashboardData): boolean {
+function getIsNewUser(item: IUsersDashboardData): boolean {
   const lastActionDate = new Date(item.lastAction.ts);
   const userDate = item.userTs && new Date(item.userTs);
   return !!(
@@ -55,7 +55,7 @@ function getIsNewUser(item: IUserDashboardData): boolean {
 }
 
 export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.Element {
-  const data: IUserDashboardData[][][] = [];
+  const data: IUsersDashboardData[][][] = [];
   let lastMonth;
   let lastDay;
   for (const user of props.usersData) {
@@ -96,7 +96,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
   return (
     <section className="py-16">
       <h2 className="mb-4 text-2xl font-bold">Users</h2>
-      {data.map((monthGroup) => {
+      {data.map((monthGroup, mi) => {
         const activeMontlyCount = monthGroup.reduce((acc, dayGroup) => acc + dayGroup.length, 0);
         const activeMonthlyRegisteredCount = monthGroup.reduce(
           (acc, dayGroup) => acc + dayGroup.filter((i) => i.email != null).length,
@@ -113,7 +113,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
           0
         );
         return (
-          <div className="mb-16">
+          <div key={mi} className="mb-16">
             <h3 className="mb-4 text-xl font-bold">
               {new Date(monthGroup[0][0].lastAction.ts).toLocaleString("en-us", { month: "long" })}
               <span>
@@ -122,7 +122,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                 {newRegisteredThisMonth} new registered
               </span>
             </h3>
-            {monthGroup.map((dayGroup) => {
+            {monthGroup.map((dayGroup, di) => {
               const activeCount = dayGroup.length;
               const activeRegisteredCount = dayGroup.filter((i) => i.email != null).length;
               const newThisDay = dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24).length;
@@ -130,9 +130,9 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                 (i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24
               ).length;
               return (
-                <div className="mb-8">
+                <div key={di} className="mb-8">
                   <h4 className="mb-4 text-lg">
-                    {DateUtils.format(dayGroup[0].lastAction.ts)}
+                    {DateUtils_format(dayGroup[0].lastAction.ts)}
                     <span>
                       {" "}
                       - {activeCount} active users, {activeRegisteredCount} registered, {newThisDay} new,{" "}
@@ -153,7 +153,6 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         <th>Review Reqs</th>
                         <th>Signup Reqs</th>
                         <th>Free Exp</th>
-                        <th>Ref</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -161,21 +160,29 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         const isNew = getIsNew(item);
                         const isNewUser = getIsNewUser(item);
                         return (
-                          <tr>
+                          <tr key={item.userId}>
                             <td>
                               <div>
-                                <span className={isNew ? "text-greenv2-main" : "text-blackv2"}>{item.userId}</span>
+                                <span className={`${isNew ? "text-text-success" : "text-text-primary"}`}>
+                                  <a
+                                    target="_blank"
+                                    className="underline"
+                                    href={`/dashboards/user/${item.userId}?key=${props.apiKey}`}
+                                  >
+                                    {item.userId}
+                                  </a>
+                                </span>
                                 {item.subscriptions.indexOf("apple") !== -1 && (
-                                  <span className="ml-2 font-bold text-redv2-main">A</span>
+                                  <span className="ml-2 font-bold text-text-error">A</span>
                                 )}
                                 {item.subscriptions.indexOf("google") !== -1 && (
-                                  <span className="ml-2 font-bold text-greenv2-main">G</span>
+                                  <span className="ml-2 font-bold text-text-success">G</span>
                                 )}
                                 {item.subscriptions.indexOf("unclaimedkey") !== -1 && (
-                                  <span className="ml-2 font-bold text-grayv2-main">F</span>
+                                  <span className="ml-2 font-bold text-text-secondary">F</span>
                                 )}
                                 {item.subscriptions.indexOf("key") !== -1 && (
-                                  <span className="ml-2 font-bold text-greenv2-main">F</span>
+                                  <span className="ml-2 font-bold text-text-success">F</span>
                                 )}
                                 {item.subscriptionDetails?.isActive &&
                                   !item.subscriptionDetails?.isPromo &&
@@ -186,7 +193,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   <a
                                     className="text-blue-700 underline"
                                     target="_blank"
-                                    href={`/?admin=${props.apiKey}&userid=${item.userId}`}
+                                    href={`/app?admin=${props.apiKey}&userid=${item.userId}&nosync=true`}
                                   >
                                     {item.email}
                                   </a>
@@ -195,16 +202,16 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                               {item.userTs && (
                                 <div
                                   className={`text-xs ${
-                                    isNewUser ? "text-greenv2-main font-bold" : "text-grayv2-main"
+                                    isNewUser ? "text-text-success font-bold" : "text-text-secondary"
                                   }`}
                                 >
-                                  {DateUtils.format(item.userTs)}
+                                  {DateUtils_format(item.userTs)}
                                 </div>
                               )}
                               {item.subscriptionDetails && (
-                                <div className="text-xs text-grayv2-main">
+                                <div className="text-xs text-text-secondary">
                                   <div>
-                                    {CollectionUtils.compact([
+                                    {CollectionUtils_compact([
                                       item.subscriptionDetails.isActive ? "active" : undefined,
                                       item.subscriptionDetails.isTrial ? "trial" : undefined,
                                       item.subscriptionDetails.isPromo ? "promo" : undefined,
@@ -213,37 +220,38 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   {item.subscriptionDetails.promoCode && (
                                     <div>{item.subscriptionDetails.promoCode}</div>
                                   )}
-                                  <div>Exp: {DateUtils.format(item.subscriptionDetails.expires)}</div>
+                                  <div>Exp: {DateUtils_format(item.subscriptionDetails.expires)}</div>
                                 </div>
                               )}
                             </td>
                             <td>
                               {new Date(item.lastAction.ts).toLocaleString()}
-                              <div className="text-sm text-grayv2-main">{item.lastAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">
+                                {item.lastAction.name.replace("ls-", "")}
+                              </div>
                             </td>
                             <td>
                               {new Date(item.firstAction.ts).toLocaleString()}
-                              <div className="text-sm text-grayv2-main">{item.firstAction.name.replace("ls-", "")}</div>
+                              <div className="text-sm text-text-secondary">
+                                {item.firstAction.name.replace("ls-", "")}
+                              </div>
                             </td>
                             <td>{item.workoutsCount}</td>
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>
                             <td>
                               {(item.programNames || []).map((name) => (
-                                <div>{name}</div>
+                                <div key={name}>{name}</div>
                               ))}
                             </td>
                             <td>{item.platforms.join(", ")}</td>
                             <td>{item.affiliates.join(", ")}</td>
                             <td>
                               {item.reviewRequests.map((i) => (
-                                <div>{DateUtils.format(i)}</div>
+                                <div key={i}>{DateUtils_format(i)}</div>
                               ))}
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>
-                            <td>{item.freeUserExpires && DateUtils.format(item.freeUserExpires)}</td>
-                            <td className="text-xs break-all" style={{ maxWidth: "12rem" }}>
-                              {item.referrer}
-                            </td>
+                            <td>{item.freeUserExpires && DateUtils_format(item.freeUserExpires)}</td>
                           </tr>
                         );
                       })}

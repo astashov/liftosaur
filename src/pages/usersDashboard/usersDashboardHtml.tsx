@@ -1,9 +1,9 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
-import { IUserDashboardData, UsersDashboardContent } from "./usersDashboardContent";
+import { IUsersDashboardData, UsersDashboardContent } from "./usersDashboardContent";
 
 export interface IUsersDashboardHtmlProps {
-  usersData: IUserDashboardData[];
+  usersData: IUsersDashboardData[];
   apiKey: string;
   client: Window["fetch"];
 }
@@ -16,9 +16,9 @@ export function UsersDashboardHtml(props: IUsersDashboardHtmlProps): JSX.Element
       css={["usersdashboard"]}
       js={["usersdashboard"]}
       maxWidth={1300}
-      title="Users Dashboard"
-      ogTitle="Liftosaur: Users Dashboard"
-      ogDescription="The dashboard to see users' activity came from affiliate"
+      title="Users Dashboard | Liftosaur"
+      canonical="https://www.liftosaur.com/dashboards/users"
+      description="The dashboard to see users' activity"
       ogUrl="https://www.liftosaur.com/dashboards/users"
       data={data}
       client={client}

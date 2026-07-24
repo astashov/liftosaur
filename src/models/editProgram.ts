@@ -1,709 +1,239 @@
-import { lb, lf, lbu } from "lens-shmens";
-import { Program } from "./program";
-import { Screen } from "./screen";
-import { IDispatch } from "../ducks/types";
-import { IExercise } from "./exercise";
-import { ObjectUtils } from "../utils/object";
-import { updateState, IState } from "./state";
+import { lb } from "lens-shmens";
 import {
-  IWeight,
-  IUnit,
-  IEquipment,
-  IProgram,
-  IProgramExercise,
-  ISettings,
-  IProgramExerciseWarmupSet,
-  IExerciseType,
-  IPlannerProgram,
-  IDayData,
-} from "../types";
-import { EditProgramLenses } from "./editProgramLenses";
-import { IProgramExerciseExample } from "./programExercise";
-import { IPlannerState } from "../pages/planner/models/types";
-import { IPercentageUnit } from "../types";
+  emptyProgramId,
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_getFirstProgramExercise,
+  Program_create,
+  Program_createFromHistoryRecord,
+} from "./program";
+import { IDispatch } from "../ducks/types";
+import { ObjectUtils_diff, ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_entries } from "../utils/object";
+import { updateState, IState } from "./state";
+import { IProgram, IDayData, IProgramState, ISettings, IHistoryRecord } from "../types";
+import { Dialog_alert } from "../utils/dialog";
+import { updateStateVariable } from "./editProgramLenses";
+import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
+import { PP_iterate2 } from "./pp";
+import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
-import { CollectionUtils } from "../utils/collection";
+import { Thunk_pushToEditProgram } from "../ducks/thunks";
 
-interface I531Tms {
-  squat: IWeight;
-  benchPress: IWeight;
-  deadlift: IWeight;
-  overheadPress: IWeight;
+export function EditProgram_properlyUpdateStateVariableInPlace(
+  program: IEvaluatedProgram,
+  programExercise: IPlannerProgramExercise,
+  values: Partial<IProgramState>
+): IEvaluatedProgram {
+  const state = PlannerProgramExercise_getState(programExercise);
+  values = ObjectUtils_diff(state, values);
+  if (ObjectUtils_keys(values).length === 0) {
+    return program;
+  }
+  if (!programExercise.progress) {
+    return program;
+  }
+  const newEvalutedProgram = ObjectUtils_clone(program);
+  PP_iterate2(newEvalutedProgram.weeks, (ex) => {
+    if (ex.key === programExercise.key) {
+      const progress = ex.progress;
+      if (progress) {
+        for (const [stateKey, newValue] of ObjectUtils_entries(values)) {
+          if (newValue == null) {
+            delete progress.stateMetadata?.[stateKey];
+          }
+          if (newValue == null || typeof newValue === "string") {
+            progress.state = updateStateVariable(state, stateKey, newValue);
+          } else {
+            progress.state = { ...progress.state, [stateKey]: newValue };
+          }
+        }
+      }
+    }
+  });
+  return newEvalutedProgram;
 }
 
-export namespace EditProgram {
-  export function addStateVariable(
-    dispatch: IDispatch,
-    newName?: string,
-    newType?: IUnit | IPercentageUnit,
-    newUserPrompted?: boolean
-  ): void {
-    if (newName != null && newType != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.addStateVariable(lb<IState>().pi("editExercise"), newName, newType, newUserPrompted)
-      );
-    }
-  }
-
-  export function editStateVariable(dispatch: IDispatch, stateKey: string, newValue?: string): void {
-    updateState(dispatch, [EditProgramLenses.editStateVariable(lb<IState>().pi("editExercise"), stateKey, newValue)]);
-  }
-
-  export function properlyUpdateStateVariableInPlace(
-    dispatch: IDispatch,
-    programId: string,
-    programExercise: IProgramExercise,
-    stateKey: string,
-    newValue?: string
-  ): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.properlyUpdateStateVariable(
-        lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
-        programExercise,
-        stateKey,
-        newValue
-      )
-    );
-  }
-
-  export function switchStateVariablesToUnit(dispatch: IDispatch, settings: ISettings): void {
-    updateState(dispatch, EditProgramLenses.switchStateVariablesToUnit(lb<IState>().pi("editExercise"), settings));
-  }
-
-  export function switchStateVariablesToUnitInPlace(
-    dispatch: IDispatch,
-    programId: string,
-    programExercise: IProgramExercise,
-    settings: ISettings
-  ): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.switchStateVariablesToUnit(
-        lb<IState>().p("storage").p("programs").findBy("id", programId).p("exercises").findBy("id", programExercise.id),
-        settings
-      )
-    );
-  }
-
-  export function properlyUpdateStateVariable<T>(
-    dispatch: IDispatch,
-    programExercise: IProgramExercise,
-    stateKey: string,
-    newValue?: string
-  ): void {
-    return updateState(
-      dispatch,
-      EditProgramLenses.properlyUpdateStateVariable(
-        lb<IState>().pi("editExercise"),
-        programExercise,
-        stateKey,
-        newValue
-      )
-    );
-  }
-
-  export function removeStateVariableMetadata(dispatch: IDispatch, stateKey: string): void {
-    updateState(dispatch, [EditProgramLenses.removeStateVariableMetadata(lb<IState>().pi("editExercise"), stateKey)]);
-  }
-
-  export function editReuseLogicStateVariable(
-    dispatch: IDispatch,
-    reuseLogicId: string,
-    stateKey: string,
-    newValue?: string
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.editReuseLogicStateVariable(lb<IState>().pi("editExercise"), reuseLogicId, stateKey, newValue),
-    ]);
-  }
-
-  export function changeExerciseName(dispatch: IDispatch, newName?: string): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .pi("editExercise")
-        .p("name")
-        .record(newName || ""),
-    ]);
-  }
-
-  export function changeExercise(
-    dispatch: IDispatch,
-    settings: ISettings,
-    oldExerciseType: IExerciseType,
-    newExerciseType?: IExerciseType
-  ): void {
-    if (newExerciseType != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.changeExercise(lb<IState>().pi("editExercise"), settings, oldExerciseType, newExerciseType)
-      );
-    }
-  }
-
-  export function swapExercise(
-    dispatch: IDispatch,
-    settings: ISettings,
-    programId: string,
-    programExerciseId: string,
-    oldExerciseType: IExerciseType,
-    newExerciseType?: IExerciseType
-  ): void {
-    if (newExerciseType != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.changeExercise(
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .find((p) => p.id === programId)
-            .p("exercises")
-            .find((e) => e.id === programExerciseId),
-          settings,
-          oldExerciseType,
-          newExerciseType
-        )
-      );
-    }
-  }
-
-  export function replaceExercise(
-    dispatch: IDispatch,
-    settings: ISettings,
-    program: IProgram,
-    programExercise: IProgramExercise,
-    newExerciseType?: IExerciseType
-  ): void {
-    if (newExerciseType != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.changeExercise(
-          lb<IState>()
-            .p("storage")
-            .p("programs")
-            .find((p) => p.id === program.id)
-            .p("exercises")
-            .find((e) => e.id === programExercise.id),
-          settings,
-          programExercise.exerciseType,
-          newExerciseType
-        )
-      );
-    }
-  }
-
-  export function deleteProgram(dispatch: IDispatch, program: IProgram, customPrograms: IProgram[]): void {
-    updateState(dispatch, [
+export function EditProgram_deleteProgram(dispatch: IDispatch, program: IProgram, customPrograms: IProgram[]): void {
+  updateState(
+    dispatch,
+    [
       lb<IState>()
         .p("storage")
         .p("programs")
         .recordModify((pgms) => pgms.filter((p) => p.id !== program.id)),
       lb<IState>()
         .p("storage")
-        .p("deletedPrograms")
-        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
-      lb<IState>()
-        .p("storage")
         .p("currentProgramId")
-        .recordModify((id) => (id === program.id ? customPrograms.filter((p) => p.id !== program.id)[0].id : id)),
+        .recordModify((id) =>
+          id === program.id ? (customPrograms.filter((p) => p.id !== program.id)[0]?.id ?? emptyProgramId) : id
+        ),
+    ],
+    "Delete program"
+  );
+}
+
+export function EditProgram_setName(dispatch: IDispatch, program: IProgram, name: string): void {
+  updateState(
+    dispatch,
+    [
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name),
+      lb<IState>().p("storage").p("programs").findBy("id", program.id).pi("planner").p("name").record(name),
+    ],
+    "Update program name"
+  );
+}
+
+export function EditProgram_setNextDay(dispatch: IDispatch, programId: string, nextDay: number): void {
+  updateState(
+    dispatch,
+    [lb<IState>().p("storage").p("programs").findBy("id", programId).p("nextDay").record(nextDay)],
+    "Set next day"
+  );
+}
+
+export function EditProgram_initPlannerState(
+  id: string,
+  program: IProgram,
+  focusedDay?: IDayData,
+  key?: string
+): IPlannerState {
+  return {
+    id,
+    current: { program },
+    ui: {
+      weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
+      focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
+      mode: "ui",
+      exerciseUi: { edit: new Set(), collapsed: new Set() },
+      dayUi: { collapsed: new Set() },
+      weekUi: { collapsed: new Set() },
+    },
+    history: { past: [], future: [] },
+  };
+}
+
+export function EditProgram_initPlannerProgramExerciseState(
+  program: IProgram,
+  settings: ISettings,
+  key: string,
+  dayData: Required<IDayData>,
+  fromWorkout: boolean
+): IPlannerExerciseState {
+  const evaluatedProgram = Program_evaluate(program, settings);
+  const programExercise = Program_getFirstProgramExercise(evaluatedProgram, key);
+  return {
+    current: { program },
+    history: { past: [], future: [] },
+    ui: {
+      weekIndex: dayData.week - 1,
+      isProgressEnabled: !!programExercise?.progress,
+      isUpdateEnabled: !!programExercise?.update,
+      isExerciseVariationsEnabled: (programExercise?.exerciseVariations?.length ?? 0) > 1,
+      modeTabIndex: fromWorkout ? 1 : 0,
+      acrossWeeksTabIndex: fromWorkout ? 1 : undefined,
+      fromWorkout,
+    },
+  };
+}
+
+// A composite-key change (exercise-type swap, or add/remove/reorder of exercise variations) re-keys the
+// exercise. The keyed edit state lives at `${programId}_${key}`, so we clone it to the new key, reset undo
+// history (the key boundary is a commit point undo can't cross), and stash `pendingNewKey` on the old
+// entry — NavScreenProgram reacts by re-pointing the route via setParams and dropping the orphan.
+export function EditProgram_migrateExerciseStateKey(
+  dispatch: IDispatch,
+  programId: string,
+  oldStateKey: string,
+  newKey: string
+): void {
+  const newStateKey = `${programId}_${newKey}`;
+  updateState(
+    dispatch,
+    [
       lb<IState>()
-        .p("storage")
-        .p("deletedPrograms")
-        .recordModify((pgms) => (program.clonedAt ? [...pgms, program.clonedAt] : pgms)),
-    ]);
-  }
-
-  export function changeExerciseEquipment(dispatch: IDispatch, newEquipment?: IEquipment): void {
-    updateState(dispatch, [EditProgramLenses.changeExerciseEquipment(lb<IState>().pi("editExercise"), newEquipment)]);
-  }
-
-  export function setDescription(dispatch: IDispatch, value: string, index: number): void {
-    updateState(dispatch, [EditProgramLenses.setDescription(lb<IState>().pi("editExercise"), value, index)]);
-  }
-
-  export function setReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setReps(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function setMinReps(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setMinReps(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function setRpe(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [EditProgramLenses.setRpe(lb<IState>().pi("editExercise"), value, variationIndex, setIndex)]);
-  }
-
-  export function setLabel(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setLabel(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function addDescription<T>(dispatch: IDispatch): void {
-    updateState(dispatch, [EditProgramLenses.addDescription(lb<IState>().pi("editExercise"))]);
-  }
-
-  export function removeDescription<T>(dispatch: IDispatch, index: number): void {
-    updateState(dispatch, [EditProgramLenses.removeDescription(lb<IState>().pi("editExercise"), index)]);
-  }
-
-  export function changeDescription<T>(dispatch: IDispatch, value: string, index: number): void {
-    updateState(dispatch, [EditProgramLenses.changeDescription(lb<IState>().pi("editExercise"), value, index)]);
-  }
-
-  export function changeDescriptionExpr<T>(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [EditProgramLenses.changeDescriptionExpr(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function reorderDescriptions<T>(dispatch: IDispatch, startIndex: number, endIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderDescriptions(lb<IState>().pi("editExercise"), startIndex, endIndex),
-    ]);
-  }
-
-  export function setTimer(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [EditProgramLenses.setTimer(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function setQuickAddSets(dispatch: IDispatch, value: boolean): void {
-    updateState(dispatch, [EditProgramLenses.setQuickAddSets(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function setEnableRpe(dispatch: IDispatch, value: boolean): void {
-    updateState(dispatch, [EditProgramLenses.setEnableRpe(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function setEnableRepRanges(dispatch: IDispatch, value: boolean): void {
-    updateState(dispatch, [EditProgramLenses.setEnableRepRanges(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function setWeight(dispatch: IDispatch, value: string, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setWeight(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function setAmrap(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setAmrap(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function setLogRpe(dispatch: IDispatch, value: boolean, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.setLogRpe(lb<IState>().pi("editExercise"), value, variationIndex, setIndex),
-    ]);
-  }
-
-  export function setExerciseFinishDayExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [EditProgramLenses.setExerciseFinishDayExpr(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function setExerciseVariationExpr(dispatch: IDispatch, value: string): void {
-    updateState(dispatch, [EditProgramLenses.setExerciseVariationExpr(lb<IState>().pi("editExercise"), value)]);
-  }
-
-  export function addVariation(dispatch: IDispatch): void {
-    updateState(dispatch, [EditProgramLenses.addVariation(lb<IState>().pi("editExercise"))]);
-  }
-
-  export function removeVariation(dispatch: IDispatch, variationIndex: number): void {
-    updateState(dispatch, [EditProgramLenses.removeVariation(lb<IState>().pi("editExercise"), variationIndex)]);
-  }
-
-  export function setName(dispatch: IDispatch, program: IProgram, name: string): void {
-    updateState(dispatch, [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("name").record(name)]);
-  }
-
-  export function setNextDay(dispatch: IDispatch, program: IProgram, nextDay: number): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(nextDay),
-    ]);
-  }
-
-  export function setIsMultiweek(dispatch: IDispatch, program: IProgram, value: boolean): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.setIsMultiweek(lb<IState>().p("storage").p("programs").findBy("id", program.id), value)
-    );
-  }
-
-  export function reorderSets(
-    dispatch: IDispatch,
-    variationIndex: number,
-    startSetIndex: number,
-    endSetIndex: number
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderSets(lb<IState>().pi("editExercise"), variationIndex, startSetIndex, endSetIndex),
-    ]);
-  }
-
-  export function setDayName(dispatch: IDispatch, program: IProgram, dayIndex: number, name: string): void {
-    updateState(dispatch, [
-      lb<IState>().p("storage").p("programs").findBy("id", program.id).p("days").i(dayIndex).p("name").record(name),
-    ]);
-  }
-
-  export function setWeekName(dispatch: IDispatch, programId: string, weekIndex: number, name: string): void {
-    updateState(dispatch, [
-      EditProgramLenses.setWeekName(lb<IState>().p("storage").p("programs").findBy("id", programId), weekIndex, name),
-    ]);
-  }
-
-  export function addSet(dispatch: IDispatch, variationIndex: number): void {
-    updateState(dispatch, [EditProgramLenses.addSet(lb<IState>().pi("editExercise"), variationIndex)]);
-  }
-
-  export function removeSet(dispatch: IDispatch, variationIndex: number, setIndex: number): void {
-    updateState(dispatch, [EditProgramLenses.removeSet(lb<IState>().pi("editExercise"), variationIndex, setIndex)]);
-  }
-
-  export function addProgramExercise(dispatch: IDispatch, units: IUnit): void {
-    updateState(dispatch, [
-      lb<IState>().p("editExercise").record(Program.createExercise(units)),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
-    ]);
-  }
-
-  export function editProgramExercise(dispatch: IDispatch, exercise: IProgramExercise): void {
-    updateState(dispatch, [
-      lb<IState>().p("editExercise").record(exercise),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgramExercise")),
-    ]);
-  }
-
-  export function removeProgramExercise(dispatch: IDispatch, program: IProgram, exerciseId: string): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.removeProgramExercise(
-        lb<IState>().p("storage").p("programs").findBy("id", program.id),
-        exerciseId
-      )
-    );
-  }
-
-  export function copyProgramExercise(dispatch: IDispatch, program: IProgram, exercise: IProgramExercise): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.copyProgramExercise(lb<IState>().p("storage").p("programs").findBy("id", program.id), exercise)
-    );
-  }
-
-  export function toggleDayExercise(
-    dispatch: IDispatch,
-    program: IProgram,
-    dayIndex: number,
-    exerciseId: string
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.toggleDayExercise(
-        lb<IState>().p("storage").p("programs").findBy("id", program.id),
-        dayIndex,
-        exerciseId
-      ),
-    ]);
-  }
-
-  export function addWeekDay(dispatch: IDispatch, programId: string, weekIndex: number, dayId: string): void {
-    updateState(dispatch, [
-      EditProgramLenses.addWeekDay(lb<IState>().p("storage").p("programs").findBy("id", programId), weekIndex, dayId),
-    ]);
-  }
-
-  export function removeWeekDay(dispatch: IDispatch, programId: string, weekIndex: number, dayIndex: number): void {
-    updateState(dispatch, [
-      EditProgramLenses.removeWeekDay(
-        lb<IState>().p("storage").p("programs").findBy("id", programId),
-        weekIndex,
-        dayIndex
-      ),
-    ]);
-  }
-
-  export function reorderDays(
-    dispatch: IDispatch,
-    programIndex: number,
-    startDayIndex: number,
-    endDayIndex: number
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderDays(
-        lb<IState>().p("storage").p("programs").i(programIndex),
-        startDayIndex,
-        endDayIndex
-      ),
-    ]);
-  }
-
-  export function reorderDaysWithinWeek(
-    dispatch: IDispatch,
-    programId: string,
-    weekIndex: number,
-    startDayIndex: number,
-    endDayIndex: number
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderDaysWithinWeek(
-        lb<IState>().p("storage").p("programs").findBy("id", programId),
-        weekIndex,
-        startDayIndex,
-        endDayIndex
-      ),
-    ]);
-  }
-
-  export function deleteDay(dispatch: IDispatch, programId: string, dayId: string): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.deleteDay(lb<IState>().p("storage").p("programs").findBy("id", programId), dayId)
-    );
-  }
-
-  export function reorderWeeks(
-    dispatch: IDispatch,
-    programIndex: number,
-    startWeekIndex: number,
-    endWeekIndex: number
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderWeeks(
-        lb<IState>().p("storage").p("programs").i(programIndex),
-        startWeekIndex,
-        endWeekIndex
-      ),
-    ]);
-  }
-
-  export function createWeek(dispatch: IDispatch, programIndex: number): void {
-    const lensGetters = {
-      editProgram: lb<IState>().p("storage").p("programs").i(programIndex).get(),
-    };
-    updateState(dispatch, [
-      EditProgramLenses.createWeek(lb<IState>().p("storage").p("programs").i(programIndex)),
-      lbu<IState, typeof lensGetters>(lensGetters)
-        .pi("editProgram")
-        .recordModify((editProgram, getters) => {
-          return { ...editProgram, weekIndex: getters.editProgram.weeks.length - 1 };
-        }),
-      lb<IState>()
-        .p("screenStack")
-        .recordModify((screenStack) => Screen.push(screenStack, "editProgramWeek")),
-    ]);
-  }
-
-  export function reorderExercises(
-    dispatch: IDispatch,
-    program: IProgram,
-    dayIndex: number,
-    startExerciseIndex: number,
-    endExerciseIndex: number
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.reorderExercises(
-        lb<IState>().p("storage").p("programs").findBy("id", program.id),
-        dayIndex,
-        startExerciseIndex,
-        endExerciseIndex
-      ),
-    ]);
-  }
-
-  export function saveExercise(dispatch: IDispatch, programIndex: number): void {
-    const exerciseLensGetters = {
-      editExercise: lb<IState>().p("editExercise").get(),
-      state: lb<IState>().get(),
-    };
-    updateState(
-      dispatch,
-      [
-        lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
-          .p("storage")
-          .p("programs")
-          .i(programIndex)
-          .p("exercises")
-          .recordModify((exc, getters) => {
-            const editExercise = getters.editExercise!;
-            const exercise = exc.find((e) => e.id === editExercise.id);
-            if (exercise != null) {
-              return exc.map((e) => (e.id === editExercise.id ? editExercise : e));
-            } else {
-              return [...exc, editExercise];
-            }
-          }),
-        lbu<IState, typeof exerciseLensGetters>(exerciseLensGetters)
-          .p("storage")
-          .p("programs")
-          .recordModify((programs, getters) => {
-            if (getters.state.screenStack[getters.state.screenStack.length - 2] === "editProgramDay") {
-              const dayIndex = getters.state.editProgram!.dayIndex!;
-              const exerciseId = getters.editExercise!.id;
-              return lf(programs)
-                .i(programIndex)
-                .p("days")
-                .i(dayIndex)
-                .p("exercises")
-                .modify((es) => {
-                  if (es.every((e) => e.id !== exerciseId)) {
-                    return [...es, { id: exerciseId }];
-                  } else {
-                    return es;
-                  }
-                });
-            } else {
-              return programs;
-            }
-          }),
-        lb<IState>()
-          .p("screenStack")
-          .recordModify((s) => Screen.pull(s)),
-        lb<IState>().p("editExercise").record(undefined),
-      ],
-      "Save Exercise"
-    );
-  }
-
-  export function applyProgramExerciseExample(dispatch: IDispatch, example: IProgramExerciseExample): void {
-    updateState(dispatch, [EditProgramLenses.applyProgramExerciseExample(lb<IState>().pi("editExercise"), example)]);
-  }
-
-  export function set531Tms(dispatch: IDispatch, programIndex: number, tms: I531Tms): void {
-    updateState(
-      dispatch,
-      ObjectUtils.keys(tms).map((exerciseId) => {
-        return lb<IState>()
-          .p("storage")
-          .p("programs")
-          .i(programIndex)
-          .p("exercises")
-          .find((e) => e.exerciseType.id === exerciseId)
-          .p("state")
-          .p("tm")
-          .record(tms[exerciseId]);
-      })
-    );
-  }
-
-  export function updateSimpleExercise(
-    dispatch: IDispatch,
-    units: IUnit,
-    sets?: number,
-    reps?: number,
-    weight?: number
-  ): void {
-    if (sets != null && reps != null && weight != null) {
-      updateState(
-        dispatch,
-        EditProgramLenses.updateSimpleExercise(lb<IState>().pi("editExercise"), units, sets, reps, weight)
-      );
-    }
-  }
-
-  export function setProgression(
-    dispatch: IDispatch,
-    progression?: { increment: number; unit: IUnit | "%"; attempts: number },
-    deload?: { decrement: number; unit: IUnit | "%"; attempts: number }
-  ): void {
-    updateState(
-      dispatch,
-      EditProgramLenses.setProgression(lb<IState>().pi("editExercise"), progression, deload),
-      "Setting Progression or Deload in simple exercise"
-    );
-  }
-
-  export function setDefaultWarmupSets(dispatch: IDispatch, exercise: IExercise, unit: IUnit): void {
-    updateState(dispatch, [EditProgramLenses.setDefaultWarmupSets(lb<IState>().pi("editExercise"), exercise, unit)]);
-  }
-
-  export function addWarmupSet(dispatch: IDispatch, ws: IProgramExerciseWarmupSet[], unit: IUnit): void {
-    updateState(dispatch, [EditProgramLenses.addWarmupSet(lb<IState>().pi("editExercise"), ws, unit)]);
-  }
-
-  export function removeWarmupSet(dispatch: IDispatch, warmupSets: IProgramExerciseWarmupSet[], index: number): void {
-    updateState(dispatch, [EditProgramLenses.removeWarmupSet(lb<IState>().pi("editExercise"), warmupSets, index)]);
-  }
-
-  export function updateWarmupSet(
-    dispatch: IDispatch,
-    warmupSets: IProgramExerciseWarmupSet[],
-    index: number,
-    newWarmupSet: IProgramExerciseWarmupSet
-  ): void {
-    updateState(dispatch, [
-      EditProgramLenses.updateWarmupSet(lb<IState>().pi("editExercise"), warmupSets, index, newWarmupSet),
-    ]);
-  }
-
-  export function reuseLogic(dispatch: IDispatch, allProgramExercises: IProgramExercise[], id: string): void {
-    updateState(dispatch, [EditProgramLenses.reuseLogic(lb<IState>().pi("editExercise"), allProgramExercises, id)]);
-  }
-
-  export function initPlannerState(id: string, plannerProgram: IPlannerProgram, focusedDay?: IDayData): IPlannerState {
-    return {
-      id,
-      current: { program: plannerProgram },
-      ui: { weekIndex: 0, focusedDay },
-      history: { past: [], future: [] },
-    };
-  }
-
-  export function initializePlanner(
-    dispatch: IDispatch,
-    id: string,
-    plannerProgram: IPlannerProgram,
-    focusedDay?: IDayData
-  ): void {
-    const initialState = initPlannerState(id, plannerProgram, focusedDay);
-    updateState(dispatch, [lb<IState>().p("editProgramV2").record(initialState)]);
-  }
-
-  export function updatePlanner(dispatch: IDispatch, programId: string, settings: ISettings): void {
-    updateState(dispatch, [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((pgms) => {
-          let program = CollectionUtils.findBy(pgms, "id", programId);
-          if (program && program.planner) {
-            const newPlanner = new ProgramToPlanner(program, program.planner, settings, {}, {}).convertToPlanner();
-            program = { ...program, planner: newPlanner };
-            return CollectionUtils.setBy(pgms, "id", program.id, program);
-          } else {
-            return pgms;
+        .p("editProgramExerciseStates")
+        .recordModify((states) => {
+          const currentState = states[oldStateKey];
+          if (!currentState) {
+            return states;
           }
+          return {
+            ...states,
+            [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
+            [newStateKey]: {
+              ...currentState,
+              history: { past: [], future: [] },
+              ui: {
+                ...currentState.ui,
+                exercisePickerState: undefined,
+                exercisePickerChange: undefined,
+                exercisePickerVariationIndex: undefined,
+              },
+            },
+          };
         }),
-    ]);
-  }
+    ],
+    "Update exercise key"
+  );
+}
 
-  export function createExperimental(dispatch: IDispatch, name: string): void {
-    const newProgram = {
-      ...Program.create(name),
-      planner: {
-        name,
-        weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
-      },
-    };
+export function EditProgram_create(dispatch: IDispatch, name: string): void {
+  const newProgram: IProgram = {
+    ...Program_create(name),
+    planner: {
+      vtype: "planner",
+      name,
+      weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+    },
+  };
 
-    initializePlanner(dispatch, newProgram.id, newProgram.planner!);
-    updateState(dispatch, [
+  updateState(
+    dispatch,
+    [
       lb<IState>()
         .p("storage")
         .p("programs")
         .recordModify((pgms) => [...pgms, newProgram]),
       lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
+    ],
+    "Create program"
+  );
+  dispatch(Thunk_pushToEditProgram());
+}
+
+export function EditProgram_createFromHistoryRecord(
+  dispatch: IDispatch,
+  name: string,
+  record: IHistoryRecord,
+  settings: ISettings
+): void {
+  const program = Program_createFromHistoryRecord(name, record, settings);
+  updateState(
+    dispatch,
+    [
       lb<IState>()
-        .p("screenStack")
-        .recordModify((stack) => Screen.push(stack, "editProgram")),
-      lb<IState>().p("editProgram").record({ id: newProgram.id }),
-    ]);
-  }
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => [...pgms, program]),
+    ],
+    "Create program from adhoc"
+  );
+  Dialog_alert(`Created new program '${program.name}' with this workout`);
+}
+
+export function EditProgram_updateProgram(dispatch: IDispatch, program: IProgram): void {
+  updateState(
+    dispatch,
+    [lb<IState>().p("storage").p("programs").findBy("id", program.id).record(program)],
+    "Update program"
+  );
+}
+
+export function EditProgram_regenerateProgram(
+  program: IProgram,
+  evaluatedProgram: IEvaluatedProgram,
+  settings: ISettings
+): IProgram {
+  const newPlanner = new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner();
+  return { ...program, planner: newPlanner };
 }

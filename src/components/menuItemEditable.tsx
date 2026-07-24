@@ -1,29 +1,34 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX, Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { MenuItemWrapper } from "./menuItem";
-import { useState, StateUpdater } from "preact/hooks";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_isIos } from "../utils/sendMessage";
+import { lg } from "../utils/posthog";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 
-type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
+type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
 interface IMenuItemEditableValueProps {
   name: string;
-  prefix?: ComponentChildren;
+  prefix?: ReactNode;
   type: IMenuItemType;
-  value: string | null;
+  value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
-  onChange?: (v?: string, e?: Event) => void;
+  onChange?: (v?: string, e?: React.SyntheticEvent) => void;
+  onInput?: (v: string) => void;
   pattern?: string;
   patternMessage?: string;
+  maxLength?: number;
 }
 
 interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
+  size?: "sm" | "base";
   isNameBold?: boolean;
   hasClear?: boolean;
   after?: JSX.Element;
+  underName?: JSX.Element;
   nextLine?: JSX.Element;
   isNameHtml?: boolean;
   errorMessage?: string;
@@ -37,6 +42,12 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   if (numberOfVisibleItems % 2 === 0) {
     numberOfVisibleItems += 1;
   }
+  const onChange = (v?: string, e?: React.SyntheticEvent): void => {
+    lg(`menu-item-edit-${StringUtils_dashcase(props.name)}`);
+    if (props.onChange != null) {
+      props.onChange(v, e);
+    }
+  };
   return (
     <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
       <label
@@ -50,32 +61,41 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
       >
         <div className="flex items-center flex-1">
           {props.prefix}
-          <span
-            data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
-            className={`flex min-w-0 break-all items-center pr-2 ${props.isNameBold ? "font-bold" : ""}`}
-            {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
-          >
-            {props.isNameHtml ? "" : props.name}
-          </span>
+          {props.isNameHtml ? (
+            <span
+              data-testid={`menu-item-name-${StringUtils_dashcase(props.name)}`}
+              className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+              dangerouslySetInnerHTML={{ __html: props.name }}
+            />
+          ) : (
+            <span
+              data-testid={`menu-item-name-${StringUtils_dashcase(props.name)}`}
+              className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+            >
+              <div className={props.size === "sm" ? "text-sm" : ""}>{props.name}</div>
+              {props.underName}
+            </span>
+          )}
           <div className="flex-1" style={{ minWidth: "3rem" }}>
             <MenuItemValue
               name={props.name}
+              maxLength={props.maxLength}
               type={props.type}
               value={props.value}
               pattern={props.pattern}
               patternMessage={props.patternMessage}
               values={props.values}
               setPatternError={setPatternError}
-              onChange={props.onChange}
+              onChange={onChange}
             />
           </div>
-          {props.value != null && <span className="flex items-center text-grayv2-700">{props.valueUnits}</span>}
+          {props.value != null && <span className="flex items-center text-text-secondary">{props.valueUnits}</span>}
           {props.value != null && props.hasClear && (
             <button
-              data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
-              onClick={() => props.onChange && props.onChange(undefined)}
+              data-testid={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
+              onClick={() => onChange(undefined)}
               style={{ marginRight: "-0.5rem" }}
-              className={`p-2 nm-menu-item-delete-${StringUtils.dashcase(props.name)}`}
+              className={`p-2 nm-menu-item-delete-${StringUtils_dashcase(props.name)}`}
             >
               <IconTrash />
             </button>
@@ -97,7 +117,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             isExpanded={isExpanded}
             values={props.values || []}
             defaultSelectedValue={props.value}
-            onSelect={(v) => props.onChange && props.onChange(v)}
+            onSelect={(v) => onChange(v)}
           />
         </div>
       )}
@@ -106,18 +126,18 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
+  props: { setPatternError: Dispatch<SetStateAction<boolean>> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select") {
     return (
       <select
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-        className="border rounded border-grayv2-main"
+        data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
+        className="border rounded border-border-neutral bg-background-default"
         value={props.value || undefined}
         onChange={handleChange(props.onChange, props.setPatternError)}
       >
         {(props.values || []).map(([key, value]) => (
-          <option value={key} selected={key === props.value}>
+          <option key={key} value={key}>
             {value}
           </option>
         ))}
@@ -127,8 +147,8 @@ export function MenuItemValue(
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
     return (
       <div
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
-        className="flex-1 py-2 pl-2 text-right text-bluev2"
+        data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
+        className="flex-1 py-2 pl-2 text-right text-text-link"
         style={{ minHeight: "2.5rem" }}
       >
         {keyValue && keyValue[1]}
@@ -137,12 +157,13 @@ export function MenuItemValue(
   } else if (props.type === "text") {
     return (
       <input
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         key={props.value}
         type="text"
-        className="flex-1 w-full py-2 text-right bg-transparent text-bluev2"
-        value={props.value || undefined}
+        className="flex-1 w-full py-2 text-right bg-transparent text-text-link"
+        defaultValue={props.value || undefined}
         title={props.patternMessage}
+        maxLength={props.maxLength}
         onBlur={handleChange(props.onChange, props.setPatternError)}
         onFocus={(e) => {
           const target = e.target;
@@ -161,13 +182,13 @@ export function MenuItemValue(
       <div className="flex items-center flex-1 text-right">
         <label className="flex items-center justify-end flex-1 p-2">
           <input
-            data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+            data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
             style={{ marginRight: "-0.5rem" }}
             key={props.value}
             type="checkbox"
-            className="text-right text-bluev2 checkbox"
+            className="text-right text-text-link checkbox"
             checked={props.value === "true"}
-            onChange={(e: Event): void => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
               if (props.onChange != null) {
                 const value = `${(e.target as HTMLInputElement).checked}`;
                 props.onChange(value, e);
@@ -181,10 +202,15 @@ export function MenuItemValue(
     return (
       <span className="flex flex-1 text-right">
         <input
-          data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+          data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
           key={props.value}
-          onBlur={handleChange(props.onChange, props.setPatternError)}
-          type={SendMessage.isIos() ? "number" : "tel"}
+          onBlur={(e) => {
+            if (e.target instanceof HTMLInputElement) {
+              e.target.value = MathUtils_normalizeNumStr(e.target.value);
+            }
+            handleChange(props.onChange, props.setPatternError)(e);
+          }}
+          type={SendMessage_isIos() ? "number" : "tel"}
           step="0.01"
           onFocus={(e) => {
             const target = e.target;
@@ -198,8 +224,8 @@ export function MenuItemValue(
             return undefined;
           }}
           title={props.patternMessage}
-          className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-grayv2-700"
-          value={props.value || undefined}
+          className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-text-secondary"
+          defaultValue={props.value || undefined}
           pattern={props.pattern}
         />
       </span>
@@ -210,10 +236,10 @@ export function MenuItemValue(
 }
 
 function handleChange(
-  cb: ((val: string, e: Event) => void) | undefined,
-  setPatternError: StateUpdater<boolean>
-): (e: Event) => void {
-  return (e: Event): void => {
+  cb: ((val: string, e: React.SyntheticEvent) => void) | undefined,
+  setPatternError: Dispatch<SetStateAction<boolean>>
+): (e: React.SyntheticEvent) => void {
+  return (e: React.SyntheticEvent): void => {
     setPatternError(e.target instanceof HTMLInputElement && e.target.validity.patternMismatch);
     if (cb != null) {
       const value = (e.target as HTMLInputElement).value;

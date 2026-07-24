@@ -1,44 +1,95 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 
 interface IProps {
   isHidden: boolean;
-  children?: ComponentChildren;
+  shouldShowClose?: boolean;
+  children?: ReactNode;
+  zIndex?: number;
   onClose: () => void;
 }
 
 export function BottomSheet(props: IProps): JSX.Element {
-  const [bottomShift, setBottomShift] = useState(-99999);
+  const [bottomShift, setBottomShift] = useState(0);
   const bottomSheetRef = useRef<HTMLDivElement>(null);
+  const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setContainerRef(document.getElementById("bottomsheet"));
+  }, []);
+
+  useEffect(() => {
+    if (!props.isHidden) {
+      window.setTimeout(() => document.body.classList.add(`stop-scrolling-bottom-sheet`), 1000);
+    } else {
+      window.setTimeout(() => document.body.classList.remove("stop-scrolling-bottom-sheet"), 1000);
+    }
+    return () => {
+      document.body.classList.remove("stop-scrolling-bottom-sheet");
+    };
+  }, [props.isHidden]);
 
   useEffect(() => {
     const bottomSheet = bottomSheetRef.current;
-    const height = bottomSheet?.clientHeight;
+    const height = bottomSheet?.clientHeight ?? 0;
     setBottomShift(height);
   }, []);
 
   useEffect(() => {
-    setBottomShift(props.isHidden ? bottomShift : 0);
+    setBottomShift(props.isHidden ? (bottomSheetRef.current?.clientHeight ?? 0) : 0);
   }, [props.isHidden]);
 
-  return (
-    <div className={`fixed inset-0 z-30 ${props.isHidden ? "invisible " : ""}`}>
+  const element = (
+    <div
+      className={`fixed inset-0 ${!props.zIndex ? "z-40" : ""} pointer-events-none`}
+      style={{ zIndex: props.zIndex }}
+      data-testid="bottom-sheet-container"
+    >
       <div
         data-name="overlay"
-        className={`absolute inset-0 bg-grayv2-700 ${props.isHidden ? "opacity-0" : "opacity-50"}`}
+        className={`pointer-events-auto absolute inset-0 bg-text-secondary will-change-transform ${
+          props.isHidden ? "invisible opacity-0" : "visible opacity-50"
+        }`}
+        style={{
+          transition: "visibility 0.2s ease-out, opacity 0.2s ease-out",
+        }}
         onClick={props.onClose}
       ></div>
       <div
         ref={bottomSheetRef}
-        className={`absolute left-0 bottom-0 flex w-full bg-white`}
+        className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default pointer-events-auto will-change-transform ${
+          props.isHidden ? "invisible" : "visible"
+        }`}
+        data-testid="bottom-sheet"
         style={{
+          transition: "transform 0.2s ease-out, visibility 0.2s",
           transform: `translateY(${bottomShift}px)`,
           borderRadius: "16px 16px 0 0",
           boxShadow: "0 -5px 15px rgb(0 0 0 / 30%)",
         }}
       >
-        <div className="w-full safe-area-inset-bottom">{props.children}</div>
+        {props.shouldShowClose && (
+          <button
+            data-testid={`bottom-sheet-close`}
+            onClick={props.onClose}
+            className="absolute top-0 right-0 z-20 p-2 nm-bottom-sheet-close"
+          >
+            <IconCloseCircleOutline size={28} />
+          </button>
+        )}
+        <div className="flex flex-col w-full safe-area-inset-bottom" style={{ maxHeight: "90vh" }}>
+          <div className="z-10 flex items-center justify-center pt-2 bg-background-default">
+            <div className="w-8 rounded-sm bg-text-disabled" style={{ height: "3px" }} />
+          </div>
+          {props.children}
+        </div>
       </div>
     </div>
   );
+
+  if (!containerRef) {
+    return <></>;
+  }
+  return createPortal(element, containerRef);
 }

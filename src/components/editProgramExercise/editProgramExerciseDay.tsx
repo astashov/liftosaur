@@ -1,0 +1,244 @@
+import { JSX, useState } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "../primitives/text";
+import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
+import { IExerciseType, ISettings } from "../../types";
+import { ILensDispatch } from "../../utils/useLensReducer";
+import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
+import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
+import { Button } from "../button";
+import { IconKebab } from "../icons/iconKebab";
+import { ActionMenu, IActionMenuAction } from "../actionMenu";
+import {
+  EditProgramUiHelpers_changeCurrentInstanceExercise,
+  EditProgramUiHelpers_deleteCurrentInstance,
+  EditProgramUiHelpers_changeRepeating,
+  EditProgramUiHelpers_addInstance,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { ObjectUtils_clone } from "../../utils/object";
+import { lb } from "lens-shmens";
+
+interface IEditProgramExerciseDayProps {
+  weekIndex: number;
+  dayInWeekIndex: number;
+  exerciseKey: string;
+  fullName: string;
+  exerciseType?: IExerciseType;
+  evaluatedProgram: IEvaluatedProgram;
+  ui: IPlannerExerciseUi;
+  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
+}
+
+export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX.Element {
+  const day = props.evaluatedProgram.weeks[props.weekIndex].days[props.dayInWeekIndex];
+  const plannerExercise = day?.exercises.find((exercise) => exercise.key === props.exerciseKey);
+  const hasSetVariations = (plannerExercise?.evaluatedSetVariations.length ?? 0) > 1;
+  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
+  const areDescriptionsEnabled =
+    plannerExercise?.descriptions.reuse != null || (plannerExercise?.descriptions.values.length ?? 0) > 0;
+  const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
+  const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
+  const [showSupersets, setShowSupersets] = useState(plannerExercise?.superset != null);
+  const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
+  const kebabMenuZIndex = Platform.OS === "web" && isKebabMenuOpen ? { zIndex: 50 } : undefined;
+
+  const dayKebabActions: IActionMenuAction[] = plannerExercise
+    ? (() => {
+        const actions: IActionMenuAction[] = [
+          {
+            label: `${areDescriptionsEnabled ? "Disable" : "Enable"} Descriptions`,
+            testID: "program-exercise-toggle-descriptions",
+            onPress: () => {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  if (areDescriptionsEnabled) {
+                    ex.descriptions = { values: [] };
+                  } else {
+                    ex.descriptions = { values: [{ isCurrent: true, value: "" }] };
+                  }
+                }
+              );
+            },
+          },
+        ];
+        if (!hasSetVariations) {
+          actions.push({
+            label: "Enable Set Variations",
+            testID: "program-exercise-toggle-set-variations",
+            onPress: () => {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  const lastSetVariation = ObjectUtils_clone(ex.evaluatedSetVariations[0]);
+                  ex.evaluatedSetVariations.push(lastSetVariation);
+                }
+              );
+            },
+          });
+        }
+        actions.push({
+          label: "Delete At This Day",
+          testID: "program-exercise-delete-at-this-day",
+          destructive: true,
+          onPress: () => {
+            const dayData = {
+              week: props.weekIndex + 1,
+              dayInWeek: props.dayInWeekIndex + 1,
+              day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+            };
+            props.plannerDispatch(
+              lbProgram.recordModify((program) => {
+                return EditProgramUiHelpers_deleteCurrentInstance(
+                  program,
+                  dayData,
+                  props.fullName,
+                  props.settings,
+                  true,
+                  false
+                );
+              }),
+              "Delete exercise from day"
+            );
+          },
+        });
+        if (props.evaluatedProgram.weeks.length > 1) {
+          actions.push({
+            label: `${showRepeat ? "Disable" : "Enable"} Repeating`,
+            testID: "program-exercise-toggle-repeating",
+            onPress: () => {
+              if (showRepeat) {
+                props.plannerDispatch(
+                  lbProgram.recordModify((program) => {
+                    return EditProgramUiHelpers_changeRepeating(
+                      program,
+                      plannerExercise.dayData,
+                      plannerExercise.dayData.week,
+                      plannerExercise.fullName,
+                      props.settings,
+                      true
+                    );
+                  }),
+                  "Disable repeating"
+                );
+              }
+              setShowRepeat(!showRepeat);
+            },
+          });
+        }
+        actions.push({
+          label: `${plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order`,
+          testID: "edit-menu-exercise-toggle-order",
+          onPress: () => {
+            if (showOrder) {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  ex.order = 0;
+                }
+              );
+            }
+            setShowOrder(!showOrder);
+          },
+        });
+        actions.push({
+          label: `${plannerExercise.superset != null ? "Disable" : "Enable"} Superset`,
+          testID: "edit-menu-exercise-toggle-supersets",
+          onPress: () => {
+            if (showSupersets) {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  ex.superset = undefined;
+                }
+              );
+            }
+            setShowSupersets(!showSupersets);
+          },
+        });
+        return actions;
+      })()
+    : [];
+
+  return (
+    <View
+      className="py-3 mb-4 border bg-background-default rounded-2xl border-border-neutral"
+      data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      style={kebabMenuZIndex}
+    >
+      <View className="flex-row items-center gap-4 px-4 pb-2" style={kebabMenuZIndex}>
+        <View className="flex-1">
+          <Text className="text-base font-bold">{day?.name}</Text>
+        </View>
+        {plannerExercise && !plannerExercise.isRepeat && (
+          <View className="relative flex-row items-center">
+            <ActionMenu
+              actions={dayKebabActions}
+              onOpenChange={setIsKebabMenuOpen}
+              renderTrigger={(open) => (
+                <Pressable data-testid="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
+                  <IconKebab />
+                </Pressable>
+              )}
+            />
+          </View>
+        )}
+      </View>
+      {plannerExercise ? (
+        <EditProgramExerciseDayExercise
+          ui={props.ui}
+          showSupersets={showSupersets}
+          showRepeat={showRepeat}
+          showOrder={showOrder}
+          plannerExercise={plannerExercise}
+          evaluatedProgram={props.evaluatedProgram}
+          plannerDispatch={props.plannerDispatch}
+          settings={props.settings}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
+        />
+      ) : (
+        <View className="px-4">
+          <Button
+            kind="lightgrayv3"
+            className="w-full text-sm"
+            name="edit-exercise-add-to-day"
+            onClick={() => {
+              const dayData = {
+                week: props.weekIndex + 1,
+                dayInWeek: props.dayInWeekIndex + 1,
+                day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+              };
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers_addInstance(
+                    program,
+                    dayData,
+                    props.fullName,
+                    props.exerciseType,
+                    props.settings
+                  );
+                }),
+                "Add exercise to day"
+              );
+            }}
+          >
+            + Add exercise
+          </Button>
+        </View>
+      )}
+    </View>
+  );
+}

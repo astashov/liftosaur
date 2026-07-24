@@ -1,173 +1,171 @@
-import { h, JSX } from "preact";
-import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
-import { CollectionUtils } from "../utils/collection";
-import { Weight } from "../models/weight";
+import { JSX, memo, useMemo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { CollectionUtils_sort } from "../utils/collection";
+import { Weight_convertTo } from "../models/weight";
 import {
   ILengthUnit,
   ISettings,
+  IStatsHealthKey,
+  IStatsHealthValue,
   IStatsKey,
   IStatsLengthValue,
   IStatsPercentageValue,
   IStatsWeightValue,
   IUnit,
 } from "../types";
-import { Length } from "../models/length";
-import { Stats } from "../models/stats";
-import { DateUtils } from "../utils/date";
-import { GraphsPlugins } from "../utils/graphsPlugins";
+import { Length_convertTo } from "../models/length";
+import { Stats_name } from "../models/stats";
+import { DateUtils_format } from "../utils/date";
 import { IPercentageUnit } from "../types";
+import { Tailwind_colors } from "../utils/tailwindConfig";
+import { LineChart, ILineChartSeries } from "./lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphStatsProps {
+  id?: string;
   collection: [number, number][];
-  units: IUnit | ILengthUnit | IPercentageUnit;
-  statsKey: IStatsKey;
+  units: IUnit | ILengthUnit | IPercentageUnit | string;
+  statsKey: IStatsKey | IStatsHealthKey;
   settings: ISettings;
   title?: string | null;
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
   movingAverageWindowSize?: number;
+  isInteractive?: boolean;
 }
 
 export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Weight.convertTo(i.value, settings.units).value];
+    return [i.timestamp / 1000, Weight_convertTo(i.value, settings.units).value];
   });
 }
 
 export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Length.convertTo(i.value, settings.lengthUnits).value];
+    return [i.timestamp / 1000, Length_convertTo(i.value, settings.lengthUnits).value];
   });
 }
 
 export function getPercentageDataForGraph(coll: IStatsPercentageValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
     return [i.timestamp / 1000, i.value.value];
   });
 }
 
-export function GraphStats(props: IGraphStatsProps): JSX.Element {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
+export function getHealthDataForGraph(coll: IStatsHealthValue[], key: IStatsHealthKey): [number, number][] {
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
+  // Sleep is stored in minutes; graph it in hours so the axis stays readable.
+  const divisor = key === "sleep" ? 60 : 1;
+  return sortedCollection.map((i) => [i.timestamp / 1000, Math.round((i.value / divisor) * 10) / 10]);
+}
+
+function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
   const movingAverageWindowSize = props.movingAverageWindowSize;
-  useEffect(() => {
-    const data = props.collection.reduce<[number[], number[], number[]]>(
-      (memo, i, index, array) => {
-        memo[0].push(i[0]);
-        memo[1].push(i[1]);
 
-        if (movingAverageWindowSize != null) {
-          if (index >= movingAverageWindowSize - 1) {
-            const sum = memo[1].slice(index - movingAverageWindowSize + 1, index + 1).reduce((a, b) => a + b, 0);
-            const movingAvg = sum / movingAverageWindowSize;
-            memo[2].push(Math.round(movingAvg * 10) / 10);
-          } else {
-            memo[2].push(i[1]);
+  const data = useMemo(() => {
+    const result: [number[], number[], number[]] = [[], [], []];
+    for (let index = 0; index < props.collection.length; index++) {
+      const i = props.collection[index];
+      result[0].push(i[0]);
+      result[1].push(i[1]);
+      if (movingAverageWindowSize != null) {
+        if (index >= movingAverageWindowSize - 1) {
+          let sum = 0;
+          for (let j = index - movingAverageWindowSize + 1; j <= index; j++) {
+            sum += result[1][j];
           }
+          const movingAvg = sum / movingAverageWindowSize;
+          result[2].push(Math.round(movingAvg * 10) / 10);
+        } else {
+          result[2].push(i[1]);
         }
-
-        return memo;
-      },
-      [[], [], []]
-    );
-    const rect = graphRef.current.getBoundingClientRect();
-    const opts: UPlot.Options = {
-      title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
-      class: "graph-max-weight",
-      width: rect.width,
-      height: rect.height,
-      cursor: {
-        y: false,
-        lock: true,
-      },
-      plugins: [
-        GraphsPlugins.zoom(),
-        {
-          hooks: {
-            setCursor: [
-              (self: UPlot): void => {
-                const idx = self.cursor.idx!;
-                const date = new Date(data[0][idx] * 1000);
-                const value = data[1][idx];
-                let text: string;
-                if (value != null && props.units != null) {
-                  text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
-                  if (movingAverageWindowSize != null) {
-                    text += ` (Avg. ${data[2][idx]} ${props.units})`;
-                  }
-                } else {
-                  text = "";
-                }
-                if (legendRef.current != null) {
-                  legendRef.current.innerHTML = text;
-                }
-              },
-            ],
-          },
-        },
-      ],
-      legend: {
-        show: false,
-      },
-      scales: props.isSameXAxis ? { x: { min: props.minX, max: props.maxX } } : undefined,
-      series: [
-        {},
-        {
-          label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
-          value: (self, rawValue) => `${rawValue} ${props.units}`,
-          stroke: "red",
-          width: 1,
-        },
-        movingAverageWindowSize != null
-          ? {
-              label: "Moving Average",
-              value: (self, rawValue) => `${rawValue} ${props.units}`,
-              stroke: "blue",
-              width: 1,
-            }
-          : {},
-      ],
-    };
-
-    const uplot = new UPlot(opts, data, graphRef.current);
-
-    const underEl = graphRef.current.querySelector(".over");
-    const underRect = underEl?.getBoundingClientRect();
-
-    function handler(): void {
-      function onMove(event: TouchEvent): void {
-        const offset = window.pageYOffset;
-        const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
       }
-
-      function onEnd(): void {
-        window.removeEventListener("touchmove", onMove);
-        window.removeEventListener("touchend", onEnd);
-      }
-
-      window.addEventListener("touchmove", onMove);
-      window.addEventListener("touchend", onEnd);
     }
+    return result;
+  }, [props.collection, movingAverageWindowSize]);
 
-    if (underEl != null) {
-      underEl.addEventListener("touchstart", handler);
+  const series: ILineChartSeries[] = useMemo(() => {
+    const label =
+      props.statsKey === "weight"
+        ? "Weight"
+        : props.statsKey === "bodyfat"
+          ? "Percentage"
+          : props.statsKey === "sleep" || props.statsKey === "calories" || props.statsKey === "protein"
+            ? Stats_name(props.statsKey)
+            : "Size";
+    const out: ILineChartSeries[] = [
+      {
+        label,
+        show: true,
+        color: Tailwind_colors().red[500],
+        width: 1.5,
+      },
+    ];
+    if (movingAverageWindowSize != null) {
+      out.push({
+        label: "Moving Average",
+        show: true,
+        color: Tailwind_colors().blue[500],
+        width: 1.5,
+      });
     }
-  }, []);
+    return out;
+  }, [props.statsKey, movingAverageWindowSize]);
+
+  const yearSec = 365 * 24 * 60 * 60;
+  const xMin = props.isSameXAxis ? Math.max(props.minX, props.maxX - yearSec) : undefined;
+  const xMax = props.isSameXAxis ? props.maxX : undefined;
+
+  const title = props.title === undefined ? Stats_name(props.statsKey) : props.title || undefined;
+
+  const timestamp = cursorIdx != null ? data[0][cursorIdx] : null;
+  const value = cursorIdx != null ? data[1][cursorIdx] : null;
+  const movingAvg = cursorIdx != null && movingAverageWindowSize != null ? data[2][cursorIdx] : null;
 
   return (
-    <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div
-        data-cy="graph-legend"
-        className={`box-content h-6 px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 text-sm text-center`}
-        ref={legendRef}
-      ></div>
-    </div>
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        {title && (
+          <View className="mb-1">
+            <Text className="text-lg font-semibold leading-6 text-left u-title">{title}</Text>
+          </View>
+        )}
+        <View className="relative">
+          <LineChart
+            ref={chartRef}
+            data={data}
+            series={series}
+            height={320}
+            xMin={xMin}
+            xMax={xMax}
+            onCursorChange={handleCursorChange}
+            yAxisFormatter={(v) => `${Math.round(v * 10) / 10}`}
+            isInteractive={props.isInteractive}
+          />
+          <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
+            {timestamp != null && value != null && props.units != null && (
+              <Text className="text-sm">
+                {DateUtils_format(new Date(timestamp * 1000))}, <Text className="text-sm font-bold">{value}</Text>{" "}
+                {props.units}
+                {movingAvg != null && (
+                  <Text className="text-sm text-text-secondary">
+                    {" "}
+                    (Avg. {movingAvg} {props.units})
+                  </Text>
+                )}
+              </Text>
+            )}
+          </GraphLegendOverlay>
+        </View>
+      </View>
+    </View>
   );
 }
+
+export const GraphStats = memo(GraphStatsInner);

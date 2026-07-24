@@ -1,0 +1,46 @@
+---
+video: "eFkeIXvhSFs"
+description: "Strengthen the glutes, hamstrings, and back with the Kettlebell Deadlift by hinging from the hips with a neutral spine and pressing the floor away to stand tall."
+---
+
+## Setup
+1. **Stand** with feet shoulder-width apart.
+2. **Place** a kettlebell on the floor between your feet.
+
+## Grip
+1. **Bend at the hips** and slightly at the knees.
+2. **Reach** down and grasp the kettlebell handle with both hands, keeping arms straight.
+
+## Position
+1. **Align your back**: Keep your spine neutral, chest up, and shoulders back.
+2. **Feet**: Press fully into the ground through your heels.
+
+## Execution
+1. **Engage your core**: Brace your abdominal muscles.
+2. **Lift the kettlebell**: Push through your heels to extend your hips and knees. 
+3. **Stand tall**: Keep the kettlebell close to your body as you rise.
+
+## Lowering
+1. **Hinge at the hips**: Push your hips back while maintaining a neutral spine.
+2. **Control the descent**: Lower the kettlebell back to the floor in a controlled manner.
+
+## Tips
+- Keep your head in a neutral position.
+- Avoid overarching your back.
+- Focus on using your legs and glutes during the lift.
+
+By following these steps, you can perform the kettlebell deadlift with proper form, maximizing effectiveness and reducing injury risk.
+
+<!-- howto -->
+
+### Position Over the Kettlebell
+Stand with feet shoulder-width apart and the kettlebell between your feet. Bend at the hips and slightly at the knees, reaching down to grasp the handle with both hands and arms straight.
+
+### Align Your Back
+Keep your spine neutral, chest up, and shoulders pulled back. Press your feet fully into the ground before initiating the lift.
+
+### Lift by Extending Hips and Knees
+Engage your core and push through your heels to extend your hips and knees simultaneously. Stand tall with the kettlebell close to your body at the top.
+
+### Lower with a Hip Hinge
+Push your hips back while maintaining a neutral spine to lower the kettlebell back to the floor in a controlled manner. Focus on using your legs and glutes throughout.

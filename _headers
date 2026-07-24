@@ -6,3 +6,6 @@
   cache-control: public, max-age=86400
 /vendors.css
   cache-control: public, max-age=86400
+/programdata/*
+  Access-Control-Allow-Origin: *
+  cache-control: public, max-age=3600

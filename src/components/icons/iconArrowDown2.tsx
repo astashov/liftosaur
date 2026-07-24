@@ -1,4 +1,6 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
+import { Svg, Path } from "../primitives/svg";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -7,23 +9,16 @@ interface IProps {
 }
 
 export function IconArrowDown2(props: IProps): JSX.Element {
+  const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <svg
-      style={props.style}
-      className={props.className}
-      width="13"
-      height="8"
-      viewBox="0 0 13 8"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
+    <Svg style={props.style} width={13} height={8} viewBox="0 0 13 8" fill="none">
+      <Path
         d="M11.5 1.5L6.5 6.5L1.5 1.5"
-        stroke={props.color || "#818385"}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-    </svg>
+    </Svg>
   );
 }

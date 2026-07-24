@@ -1,0 +1,6 @@
+services:
+  claude-sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    image: liftosaur-claude-sandbox

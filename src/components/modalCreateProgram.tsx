@@ -1,71 +1,66 @@
-import { h, JSX } from "preact";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { useRef } from "preact/hooks";
-import { Input } from "./input";
-import { LinkButton } from "./linkButton";
+import { IconSpinner } from "./icons/iconSpinner";
+import { Input, IInputHandle, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 
 interface IProps {
-  onSelect: (name: string, isV2: boolean) => void;
+  onSelect: (name: string) => void;
   onClose: () => void;
+  isLoading?: boolean;
   isHidden: boolean;
 }
 
-export function ModalCreateProgram(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
+export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.Element {
+  const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
+  const inputHandle = useRef<IInputHandle>(null);
+
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
-      <h3 className="pb-2 text-xl font-bold text-center">Create Program</h3>
+    <View>
+      <Text className="pb-2 text-xl font-bold text-center">Create Program</Text>
       <Input
+        identifier="modal-create-program"
         label="Program Name"
-        data-cy="modal-create-program-input"
-        ref={textInput}
-        type="text"
-        placeholder="My Awesome Routine"
         required={true}
-        requiredMessage="Please enter a name for your program"
+        requiredMessage="Please enter a program name"
+        placeholder="My Awesome Routine"
+        changeType="oninput"
+        changeHandler={setResult}
+        handleRef={inputHandle}
       />
-      <p className="mt-4 text-center">
-        <Button
-          name="modal-create-program-cancel"
-          data-cy="modal-create-program-cancel"
-          type="button"
-          kind="grayv2"
-          className="mr-3"
-          onClick={props.onClose}
-        >
+      <View className="flex-row justify-center mt-4" style={{ gap: 12 }}>
+        <Button name="modal-create-program-cancel" kind="grayv2" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
-          data-cy="modal-create-experimental-program-submit"
           name="modal-create-program-submit"
-          type="button"
-          kind="orange"
-          className="ls-modal-create-program"
+          kind="purple"
+          disabled={props.isLoading}
           onClick={() => {
-            if (textInput.current.value) {
-              props.onSelect(textInput.current.value, true);
+            if (props.isLoading) {
+              return;
+            }
+            if (result?.success) {
+              props.onSelect(result.data);
+            } else {
+              inputHandle.current?.touch();
             }
           }}
         >
-          Create
+          {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Create"}
         </Button>
-      </p>
-      <div className="mt-2 text-center">
-        <LinkButton
-          name="modal-create-experimental-program-submit"
-          kind="grayv2"
-          data-cy="modal-create-program-submit"
-          className="text-xs ls-modal-create-legacy-program"
-          onClick={() => {
-            if (textInput.current.value) {
-              props.onSelect(textInput.current.value, false);
-            }
-          }}
-        >
-          Create legacy program
-        </LinkButton>
-      </div>
+      </View>
+    </View>
+  );
+}
+
+export function ModalCreateProgram(props: IProps): JSX.Element {
+  return (
+    <Modal zIndex={70} isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+      <ModalCreateProgramContent onSelect={props.onSelect} onClose={props.onClose} isLoading={props.isLoading} />
     </Modal>
   );
 }

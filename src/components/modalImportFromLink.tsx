@@ -1,54 +1,45 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Modal } from "./modal";
-import { GroupHeader } from "./groupHeader";
-import { inputClassName } from "./input";
+import { Input, IInputHandle, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 
-interface IProps {
-  onSubmit: (value?: string) => void;
-  isHidden: boolean;
-}
+export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) => void }): JSX.Element {
+  const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
+  const inputHandle = useRef<IInputHandle>(null);
 
-export function ModalImportFromLink(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onSubmit(undefined)}
-    >
-      <GroupHeader size="large" name="Paste link here from /program web editor here" />
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input ref={textInput} className={inputClassName} type="text" />
-        <div className="mt-4 text-right">
-          <Button
-            name="modal-import-from-link-cancel"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={(e) => {
-              e.preventDefault();
-              props.onSubmit(undefined);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            name="modal-import-from-link-submit"
-            kind="orange"
-            type="submit"
-            className="ls-submit-link"
-            onClick={(e) => {
-              e.preventDefault();
-              props.onSubmit(textInput.current?.value);
-            }}
-          >
-            Add
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <View>
+      <Text className="mb-2 text-lg font-bold">Paste link from /program web editor</Text>
+      <Input
+        required={true}
+        requiredMessage="Please paste a link"
+        placeholder="https://www.liftosaur.com/..."
+        autoCapitalize="none"
+        autoCorrect={false}
+        changeType="oninput"
+        changeHandler={setResult}
+        handleRef={inputHandle}
+      />
+      <View className="flex-row justify-between mt-4" style={{ gap: 12 }}>
+        <Button name="modal-import-from-link-cancel" kind="grayv2" onClick={() => props.onSubmit(undefined)}>
+          Cancel
+        </Button>
+        <Button
+          name="modal-import-from-link-submit"
+          kind="purple"
+          onClick={() => {
+            if (result?.success) {
+              props.onSubmit(result.data);
+            } else {
+              inputHandle.current?.touch();
+            }
+          }}
+        >
+          Add
+        </Button>
+      </View>
+    </View>
   );
 }

@@ -3,7 +3,10 @@
 <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 <meta name="Description" content="{{ title }}" />
 <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
-<title>{{ title }}</title>
+{% if canonical %}
+  <link rel="canonical" href="{{ canonical }}" />
+{% endif %}
+<title>{{ title }} | Liftosaur Blog</title>
 <link rel="stylesheet" href="/docs/assets/css/menu.css" />
 <link rel="stylesheet" href="/docs/assets/css/github-markdown.css" />
 <link rel="stylesheet" href="/docs/assets/css/pilcrow.css" />

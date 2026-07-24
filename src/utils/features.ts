@@ -1,12 +1,47 @@
-import { UrlUtils } from "./url";
+import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
+import { StringUtils_hashCode0To1 } from "./string";
+import { Platform } from "react-native";
 
-export class Features {
-  public static areFriendsEnabled(): boolean {
-    if (typeof window !== "undefined" && window?.document?.location?.href) {
-      const url = UrlUtils.build(window.document.location.href);
-      return !!url.searchParams.get("friends");
-    } else {
-      return false;
-    }
-  }
+export interface IFeature {
+  name: string;
+  rollout: number;
+  userids: string[];
+  platform?: "ios" | "android";
 }
+
+const affiliates: IFeature = {
+  name: "affiliates",
+  rollout: 0.0,
+  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz", "egedgruckx"],
+};
+
+export function Features_isEnabled(name: keyof typeof Features_features, userid?: string): boolean {
+  userid = userid || (typeof window !== "undefined" ? window.tempUserId || undefined : undefined);
+  const feature = Features_features[name];
+  if (!feature) {
+    return false;
+  }
+  if (userid == null) {
+    return false;
+  }
+  if (
+    feature.platform &&
+    ((feature.platform === "ios" && !(SendMessage_isIos() || Platform.OS === "ios")) ||
+      (feature.platform === "android" && !(SendMessage_isAndroid() || Platform.OS === "android")))
+  ) {
+    return false;
+  }
+  const hash = StringUtils_hashCode0To1(userid);
+  const isRolloutEnabled = feature.rollout > 0 && hash <= feature.rollout;
+  if (isRolloutEnabled) {
+    return true;
+  }
+  if (feature.userids.indexOf(userid) !== -1) {
+    return true;
+  }
+  return false;
+}
+
+export const Features_features = {
+  affiliates,
+} as const;

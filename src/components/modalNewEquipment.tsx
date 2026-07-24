@@ -1,60 +1,51 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Modal } from "./modal";
-import { GroupHeader } from "./groupHeader";
-import { Input } from "./input";
+import { Input, IInputHandle, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 
 interface IProps {
-  onInput: (value?: string) => void;
-  isHidden: boolean;
+  onSelect: (name: string) => void;
+  onClose: () => void;
 }
 
-export function ModalNewEquipment(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
+export function ModalNewEquipmentContent(props: IProps): JSX.Element {
+  const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
+  const inputHandle = useRef<IInputHandle>(null);
+
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onInput(undefined)}
-    >
-      <GroupHeader size="large" name="Enter new equipment name" />
-      <form onSubmit={(e) => e.preventDefault()}>
-        <Input
-          label="Equipment name"
-          ref={textInput}
-          required={true}
-          requiredMessage="Please enter a name for the equipment"
-          type="text"
-          placeholder="Tummy Tormentor 3000"
-        />
-        <div className="mt-4 text-right">
-          <Button
-            name="add-equipment-cancel"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={() => props.onInput(undefined)}
-          >
-            Cancel
-          </Button>
-          <Button
-            kind="orange"
-            type="submit"
-            name="add-equipment-submit"
-            className="ls-add-equipment"
-            onClick={() => {
-              const value = textInput.current?.value;
-              if (value) {
-                props.onInput(value);
-              }
-            }}
-          >
-            Add
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <View>
+      <Text className="mb-4 text-lg font-bold">Enter new equipment name</Text>
+      <Input
+        identifier="equipment-name"
+        label="Equipment name"
+        required={true}
+        requiredMessage="Please enter a name for the equipment"
+        type="text"
+        placeholder="Tummy Tormentor 3000"
+        changeType="oninput"
+        changeHandler={setResult}
+        handleRef={inputHandle}
+      />
+      <View className="flex-row justify-between gap-3 mt-4">
+        <Button name="add-equipment-cancel" kind="grayv2" onClick={props.onClose}>
+          Cancel
+        </Button>
+        <Button
+          name="add-equipment-submit"
+          kind="purple"
+          onClick={() => {
+            if (result?.success) {
+              props.onSelect(result.data);
+            } else {
+              inputHandle.current?.touch();
+            }
+          }}
+        >
+          Add
+        </Button>
+      </View>
+    </View>
   );
 }

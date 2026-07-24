@@ -1,14 +1,19 @@
+import { useMemo, useState, type JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
 import { LinkButton } from "../../../components/linkButton";
-import { Exercise } from "../../../models/exercise";
-import { Weight } from "../../../models/weight";
+import { ActiveGraphContext, IActiveGraphContext } from "../../../components/activeGraphContext";
+import { Exercise_findByName, Exercise_find, Exercise_getVolumeMultiplier } from "../../../models/exercise";
+import { Weight_evaluateWeight, Weight_build, Weight_multiply } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IPlannerProgramExercise, IPlannerState } from "../models/types";
+import { IPlannerProgramExerciseWithType, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { PlannerGraph } from "../plannerGraph";
-import { PlannerKey } from "../plannerKey";
+import { PlannerKey_fromPlannerExercise } from "../plannerKey";
+import {
+  PlannerProgramExercise_toUsed,
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+} from "../models/plannerProgramExercise";
 
 interface IPlannerExerciseStatsFullProps {
   settings: ISettings;
@@ -33,101 +38,121 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
   }
 
   const customExercises = props.settings.exercises;
-  let exercise = Exercise.findByName(evaluatedExercise.name, customExercises);
+  let exercise = Exercise_findByName(evaluatedExercise.name, customExercises);
   if (!exercise) {
     return <></>;
   }
-  exercise = Exercise.find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
+  exercise = Exercise_find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
   if (!exercise) {
     return <></>;
   }
 
-  const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
-  const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
+  const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name, props.settings);
+  const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name, props.settings);
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
+  const [activeGraphId, setActiveGraphId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(
+    () => ({ activeId: activeGraphId, setActive: setActiveGraphId }),
+    [activeGraphId]
+  );
+  const graphIdBase = `planner-stats-full-${exercise.id}-${props.dayIndex}-${props.exerciseLine}`;
 
   return (
-    <div className="py-1 bg-white shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
-      <div className="px-4 pb-2">
-        <LinkButton
-          name="planner-swap-exercise"
-          data-cy="planner-swap-exercise"
-          onClick={() => {
-            const exerciseKey = PlannerKey.fromPlannerExercise(evaluatedExercise, props.settings);
-            props.dispatch([
-              lb<IPlannerState>()
-                .pi("ui")
-                .p("modalExercise")
-                .record({
-                  focusedExercise: {
-                    weekIndex: 0,
-                    dayIndex: 0,
-                    exerciseLine: 0,
-                  },
-                  types: [],
-                  muscleGroups: [],
-                  exerciseType: exercise,
-                  exerciseKey,
-                }),
-              lb<IPlannerState>().pi("ui").p("showExerciseStats").record(false),
-            ]);
-          }}
-        >
-          Swap Exercise
-        </LinkButton>
+    <ActiveGraphContext.Provider value={activeGraphValue}>
+      <div className="py-1 bg-background-default shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
+        <div className="px-4 pb-2">
+          <LinkButton
+            name="planner-swap-exercise"
+            data-testid="planner-swap-exercise"
+            testID="planner-swap-exercise"
+            onClick={() => {
+              const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
+              props.dispatch(
+                [
+                  lb<IPlannerState>()
+                    .pi("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex: 0,
+                        dayIndex: 0,
+                        exerciseLine: 0,
+                      },
+                      types: [],
+                      muscleGroups: [],
+                      exerciseType: exercise,
+                      exerciseKey,
+                    }),
+                  lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
+                ],
+                "Swap exercise"
+              );
+            }}
+          >
+            Swap Exercise
+          </LinkButton>
+        </div>
+        <div className="flex mb-2">
+          {intensityGraphData[0].length > 1 && (
+            <div className="flex-1" style={{ marginTop: "-14px" }}>
+              <PlannerGraph
+                key={intensityKey}
+                id={`${graphIdBase}-intensity`}
+                title="Intensity w/w"
+                color="red"
+                height="8rem"
+                yAxisLabel="Intensity"
+                data={intensityGraphData}
+              />
+            </div>
+          )}
+          {volumeGraphData[0].length > 1 && (
+            <div className="flex-1" style={{ marginTop: "-14px" }}>
+              <PlannerGraph
+                key={volumeKey}
+                id={`${graphIdBase}-volume`}
+                title="Volume w/w"
+                color="orange"
+                height="8rem"
+                yAxisLabel="Volume"
+                data={volumeGraphData}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex mb-2">
-        {intensityGraphData[0].length > 1 && (
-          <div className="flex-1" style={{ marginTop: "-14px" }}>
-            <PlannerGraph
-              key={intensityKey}
-              title="Intensity w/w"
-              color="red"
-              height="8rem"
-              yAxisLabel="Intensity"
-              data={intensityGraphData}
-            />
-          </div>
-        )}
-        {volumeGraphData[0].length > 1 && (
-          <div className="flex-1" style={{ marginTop: "-14px" }}>
-            <PlannerGraph
-              key={volumeKey}
-              title="Volume w/w"
-              color="orange"
-              height="8rem"
-              yAxisLabel="Volume"
-              data={volumeGraphData}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+    </ActiveGraphContext.Provider>
   );
 }
 
 function getIntensityPerWeeks(
   evaluatedWeeks: IPlannerEvalResult[][],
   dayIndex: number,
-  exerciseName: string
+  exerciseName: string,
+  settings: ISettings
 ): [number[], number[]] {
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExercise | undefined;
+    let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = evaluatedDay.data.find((e) => e.name === exerciseName);
+      exercise = PlannerProgramExercise_toUsed(
+        evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
+      );
     }
     if (!exercise) {
       continue;
     }
-    const weights = exercise.sets.map((s) => {
-      const weight = s.percentage
-        ? s.percentage * 100
-        : Weight.rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
-      return Number(weight.toFixed(2));
+    const setVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    const weights = setVariation.sets.map((s) => {
+      const weight = Weight_evaluateWeight(
+        s.weight ?? Weight_build(0, settings.units),
+        exercise.exerciseType,
+        settings
+      );
+      return Number(weight.value.toFixed(2));
     });
     data[0].push(weekIndex + 1);
     data[1].push(Math.max(...weights));
@@ -138,30 +163,36 @@ function getIntensityPerWeeks(
 function getVolumePerWeeks(
   evaluatedWeeks: IPlannerEvalResult[][],
   dayIndex: number,
-  exerciseName: string
+  exerciseName: string,
+  settings: ISettings
 ): [number[], number[]] {
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
     const evaluatedWeek = evaluatedWeeks[weekIndex];
-    let exercise: IPlannerProgramExercise | undefined;
+    let exercise: IPlannerProgramExerciseWithType | undefined;
     const evaluatedDay = evaluatedWeek[dayIndex] as IPlannerEvalResult | undefined;
     if (evaluatedDay?.success) {
-      exercise = evaluatedDay.data.find((e) => e.name === exerciseName);
+      exercise = PlannerProgramExercise_toUsed(
+        evaluatedDay.data.find((e) => e.name === exerciseName && e.exerciseType != null)
+      );
     }
     if (!exercise) {
       continue;
     }
+    const setVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    const volumeMultiplier = Exercise_getVolumeMultiplier(exercise.exerciseType, settings);
     const volume = Number(
-      exercise.sets
-        .reduce((acc, s) => {
-          if (!s.repRange) {
-            return acc;
-          }
-          const reps = s.repRange.maxrep;
-          const weight = s.percentage ? s.percentage * 100 : Weight.rpeMultiplier(reps, s.rpe ?? 10) * 100;
-          return acc + s.repRange.numberOfSets * weight * reps;
-        }, 0)
-        .toFixed(2)
+      (
+        setVariation.sets.reduce((acc, s) => {
+          const reps = s.maxrep ?? 0;
+          const weight = Weight_evaluateWeight(
+            s.weight ?? Weight_build(0, settings.units),
+            exercise.exerciseType,
+            settings
+          );
+          return acc + Weight_multiply(weight, reps).value;
+        }, 0) * volumeMultiplier
+      ).toFixed(2)
     );
     data[0].push(weekIndex + 1);
     data[1].push(volume);

@@ -1,52 +1,95 @@
-import { Reducer } from "preact/hooks";
-import { Program } from "../models/program";
-import { Progress } from "../models/progress";
-import { StateError } from "./stateError";
-import { History } from "../models/history";
-import { Storage } from "../models/storage";
-import { Screen, IScreen } from "../models/screen";
-import { ILensRecordingPayload, lf } from "lens-shmens";
-import { getLatestMigrationVersion } from "../migrations/migrations";
-import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors } from "../models/state";
-import { UidFactory } from "../utils/generator";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Reducer } from "react";
+import { Program_getProgram, Program_nextHistoryRecord, Program_evaluate } from "../models/program";
+import { Dialog_alert } from "../utils/dialog";
 import {
-  THistoryRecord,
+  Progress_getProgress,
+  Progress_getProgressById,
+  Progress_completeSetAction,
+  Progress_changeAmrapAction,
+  Progress_checkSetTimer,
+  Progress_closeTimedSet,
+  Progress_setProgress,
+  Progress_finishWorkout,
+  Progress_isCurrent,
+  Progress_stop,
+  Progress_showUpdateDate,
+  Progress_changeDate,
+  Progress_stopTimer,
+  Progress_startTimer,
+  Progress_getCurrentProgress,
+  Progress_applyProgramDay,
+  Progress_runInitialUpdateScripts,
+} from "../models/progress";
+import {
+  Storage_get,
+  Storage_getDefault,
+  Storage_getHistoryRecord,
+  Storage_isChanged,
+  Storage_updateVersions,
+} from "../models/storage";
+import { IScreen, IScreenParams } from "../models/screen";
+import { ILensRecordingPayload, lb } from "lens-shmens";
+import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
+import { UidFactory_generateUid } from "../utils/generator";
+import {
   IStorage,
-  IExerciseType,
   IWeight,
   IProgressMode,
   ISettings,
   IHistoryRecord,
-  IProgramExercise,
   IPercentage,
+  IProgramState,
+  ISubscription,
+  IStats,
 } from "../types";
-import { IndexedDBUtils } from "../utils/indexeddb";
+import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
+import { Persistence } from "../utils/persistence";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
-import { LogUtils } from "../utils/log";
-import { ProgramExercise } from "../models/programExercise";
+import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
+import { LogUtils_log } from "../utils/log";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
-import { ObjectUtils } from "../utils/object";
-import { UrlUtils } from "../utils/url";
-import { DateUtils } from "../utils/date";
+import {
+  ObjectUtils_isEqual,
+  ObjectUtils_changedKeys,
+  ObjectUtils_isNotEmpty,
+  ObjectUtils_keys,
+} from "../utils/object";
+import { UrlUtils_build } from "../utils/url";
+import { DateUtils_formatHHMMSS } from "../utils/date";
 import { IReducerOnAction } from "./types";
-import { Thunk } from "./thunks";
-import { CollectionUtils } from "../utils/collection";
-import { Subscriptions } from "../utils/subscriptions";
-import deepmerge from "deepmerge";
-import { Exercise } from "../models/exercise";
+import { Thunk_sync2 } from "./thunks";
+import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collection";
+import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
+import { UndoingFlag_set } from "../utils/undoingFlag";
+import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
+import { Exercise_toKey } from "../models/exercise";
+import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
+import { NativeWatchBridge_sendDiscardWorkoutToWatch } from "../utils/nativeWatchBridge";
+import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { History_deleteRecords } from "../models/history";
+import { lg } from "../utils/posthog";
+import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
+import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
+import { Weight_build, Weight_eq } from "../models/weight";
+import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
+import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
+import { PerfProbe_onAction, PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
+import { PerfScorecard_recordAction } from "../utils/perfScorecard";
+
+declare let __COMMIT_HASH__: string;
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
-    ? !!UrlUtils.build(window.location.href).searchParams.get("log")
-    : false;
-const shouldSkipIntro =
-  typeof window !== "undefined" && window?.location
-    ? !!UrlUtils.build(window.location.href).searchParams.get("skipintro")
+    ? !!UrlUtils_build(window.location.href).searchParams.get("log")
     : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
-  const currentAccount = await IndexedDBUtils.get("current_account");
+  const currentAccount = await IndexedDBUtils_get("current_account");
   if (currentAccount) {
     return `liftosaur_${currentAccount}`;
   } else {
@@ -54,17 +97,23 @@ export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<str
   }
 }
 
+declare let __HOST__: string;
+
 export async function getInitialState(
   client: Window["fetch"],
-  args?: { url?: URL; rawStorage?: string; storage?: IStorage }
+  args?: { url?: URL; rawStorage?: string; localStorage?: ILocalStorage; storage?: IStorage; deviceId?: string }
 ): Promise<IState> {
-  const url = args?.url || UrlUtils.build(document.location.href);
+  const url =
+    args?.url ||
+    (typeof document !== "undefined" ? UrlUtils_build(document.location.href) : UrlUtils_build(`${__HOST__}/app/`));
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   const nosync = url.searchParams.get("nosync") === "true";
   let storage: ILocalStorage | undefined;
   if (args?.storage) {
     storage = { storage: args.storage };
+  } else if (args?.localStorage != null) {
+    storage = args.localStorage;
   } else if (args?.rawStorage != null) {
     try {
       storage = JSON.parse(args.rawStorage);
@@ -80,75 +129,83 @@ export async function getInitialState(
         }
       : undefined;
 
+  const deviceId = args?.deviceId;
   if (storage != null && storage.storage != null) {
     const hasUnrunMigrations = unrunMigrations(storage.storage).length > 0;
-    const maybeStorage = await Storage.get(client, storage.storage, true);
+    const maybeStorage = Storage_get(storage.storage, true);
     let finalStorage: IStorage;
     const errors: IStateErrors = {};
     if (maybeStorage.success) {
       finalStorage = maybeStorage.data;
     } else {
-      const userid = (storage.storage?.tempUserId || `missing-${UidFactory.generateUid(8)}`) as string;
       const service = new Service(client);
-      errors.corruptedstorage = {
-        userid,
-        backup: await service.postDebug(userid, JSON.stringify(storage.storage), { local: "true" }),
-        confirmed: false,
-        local: true,
-      };
-      await service.signout();
-      finalStorage = Storage.getDefault();
+      const userid = (storage.storage?.tempUserId || `missing-${UidFactory_generateUid(8)}`) as string;
+      const serverStorage = await service.getStorage(userid, undefined, undefined);
+      const maybeServerStorage = Storage_get(serverStorage.storage, false);
+      if (maybeServerStorage.success) {
+        finalStorage = maybeServerStorage.data;
+      } else {
+        errors.corruptedstorage = {
+          userid,
+          backup: await service.postDebug(userid, JSON.stringify(storage.storage), { local: "true" }),
+          confirmed: false,
+          local: true,
+        };
+        finalStorage = Storage_getDefault();
+      }
     }
-    const isProgressValid =
-      storage.progress != null
-        ? Storage.validateAndReport(storage.progress, THistoryRecord, "progress").success
-        : false;
 
-    const screenStack: IScreen[] = finalStorage.currentProgramId
-      ? ["main"]
-      : shouldSkipIntro
-      ? ["programs"]
-      : ["first"];
+    const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
+
+    // Handle migration from old localStorage format where progress was stored separately
+    // Now progress is stored in storage.progress
+    const oldProgress = (storage as { progress?: IHistoryRecord }).progress;
+    if (oldProgress != null && (finalStorage.progress == null || finalStorage.progress.length === 0)) {
+      const migratedProgress = Storage_getHistoryRecord(oldProgress as unknown as Record<string, unknown>, true);
+      if (migratedProgress.success) {
+        finalStorage = { ...finalStorage, progress: [{ ...migratedProgress.data, vtype: "progress" }] };
+      }
+    }
+
     return {
       storage: finalStorage,
-      progress: isProgressValid ? { 0: storage.progress } : {},
-      allFriends: { friends: {}, sortedIds: [], isLoading: false },
-      friendsHistory: {},
-      likes: { likes: {}, isLoading: false },
+      lastSyncedStorage: finalLastSyncedStorage,
+      progress: {},
       notification,
       loading: { items: {} },
       programs: [basicBeginnerProgram],
-      currentHistoryRecord: 0,
-      comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
-      screenStack,
+      programsIndex: [],
+      revisions: {},
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
-      nosync,
+      nosync: nosync || AdminDebug_isDebugAccountId(finalStorage.tempUserId),
+      deviceId,
+      editProgramStates: {},
+      editProgramExerciseStates: {},
     };
   }
   const newState = buildState({
     notification,
-    shouldSkipIntro,
     nosync,
+    deviceId,
   });
-  LogUtils.log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
+  LogUtils_log(newState.storage.tempUserId, "ls-initialize-user", {}, []);
   return newState;
 }
 
 export type IChangeDate = {
   type: "ChangeDate";
+  id: number;
   date: string;
+  time: number;
 };
 
 export type IConfirmDate = {
   type: "ConfirmDate";
+  id: number;
   date?: string;
-};
-
-export type ISyncStorage = {
-  type: "SyncStorage";
-  storage: IStorage;
+  time?: number;
 };
 
 export type ILoginAction = {
@@ -161,9 +218,11 @@ export type ILogoutAction = {
   type: "Logout";
 };
 
-export type IPushScreen = {
+export type IPushScreen<T extends IScreen> = {
   type: "PushScreen";
-  screen: IScreen;
+  screen: T;
+  params?: IScreenParams<T>;
+  shouldResetStack?: boolean;
 };
 
 export type IPullScreen = {
@@ -176,62 +235,82 @@ export type ICancelProgress = {
 
 export type IDeleteProgress = {
   type: "DeleteProgress";
+  id: number;
 };
 
-export type IChangeRepsAction = {
-  type: "ChangeRepsAction";
+export type ICompleteSetAction = {
+  type: "CompleteSetAction";
   entryIndex: number;
   setIndex: number;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
+  isPlayground: boolean;
   mode: IProgressMode;
+  forceUpdateEntryIndex: boolean;
+  isExternal: boolean;
+  // Set when completing a timed set from its running clock: the elapsed seconds to record (the model
+  // otherwise derives it from setTimerModal.startedAt), and whether to keep the clock running afterwards.
+  recordedSeconds?: number;
+  keepSetTimerRunning?: boolean;
+};
+
+// Polled by any surface (banner tick, rest-timer tick, live activity, watch) to drive time-based set
+// timer transitions: auto-fire when the work timer hits its target, or auto-advance after rest expires.
+// No-op (returns the same progress) when nothing is due.
+export type ICheckSetTimerAction = {
+  type: "CheckSetTimerAction";
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
+  now?: number;
+  // When a playground timer auto-fires at its target, the completion must stay playground-scoped — otherwise
+  // it resumes/updates the real native workout (playground records have id 0 and read as "current").
+  isPlayground?: boolean;
+};
+
+// Discard the set timer banner (no recording); starts the deferred rest if the set was already logged.
+export type ICloseSetTimerAction = {
+  type: "CloseSetTimerAction";
+  // Playground has no rest timers, so closing a logged set-timer there must not start a deferred rest.
+  isPlayground?: boolean;
 };
 
 export type IFinishProgramDayAction = {
   type: "FinishProgramDayAction";
+  id: number;
 };
 
 export type IStartProgramDayAction = {
   type: "StartProgramDayAction";
+  programId?: string;
 };
 
 export type IChangeAMRAPAction = {
   type: "ChangeAMRAPAction";
   setIndex: number;
+  isPlayground: boolean;
   entryIndex: number;
   amrapValue?: number;
+  amrapLeftValue?: number;
   rpeValue?: number;
   weightValue?: IWeight;
   isAmrap?: boolean;
   logRpe?: boolean;
   askWeight?: boolean;
-  programExercise?: IProgramExercise;
-  allProgramExercises?: IProgramExercise[];
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
   userVars?: Record<string, number | IWeight | IPercentage>;
-};
-
-export type IChangeWeightAction = {
-  type: "ChangeWeightAction";
-  weight: IWeight;
-  exercise: IExerciseType;
-  programExercise?: IProgramExercise;
-};
-
-export type IConfirmWeightAction = {
-  type: "ConfirmWeightAction";
-  weight?: IWeight;
-  programExercise?: IProgramExercise;
 };
 
 export type IUpdateSettingsAction = {
   type: "UpdateSettings";
   lensRecording: ILensRecordingPayload<ISettings>;
+  desc: string;
 };
 
 export type IUpdateStateAction = {
   type: "UpdateState";
   lensRecording: ILensRecordingPayload<IState>[];
-  desc?: string;
+  desc: string;
 };
 
 export type IReplaceStateAction = {
@@ -241,7 +320,6 @@ export type IReplaceStateAction = {
 
 export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
-  userId?: string;
   historyRecord: IHistoryRecord;
 };
 
@@ -258,38 +336,23 @@ export type IStopTimer = {
   type: "StopTimer";
 };
 
-export type ICreateProgramAction = {
-  type: "CreateProgramAction";
-  name: string;
-};
-
-export type ICreateDayAction = {
-  type: "CreateDayAction";
-  weekIndex?: number;
-};
-
-export type IEditDayAction = {
-  type: "EditDayAction";
-  index: number;
-};
-
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
   programExerciseIds?: string[];
-  checkReused?: boolean;
 };
 
 export type IUpdateProgressAction = {
   type: "UpdateProgress";
   lensRecordings: ILensRecordingPayload<IHistoryRecord>[];
+  desc: string;
 };
 
 export type ICardsAction =
-  | IChangeRepsAction
-  | IChangeWeightAction
+  | ICompleteSetAction
   | IChangeAMRAPAction
-  | IConfirmWeightAction
-  | IUpdateProgressAction;
+  | IUpdateProgressAction
+  | ICheckSetTimerAction
+  | ICloseSetTimerAction;
 
 export type IAction =
   | ICardsAction
@@ -298,9 +361,8 @@ export type IAction =
   | IEditHistoryRecordAction
   | ICancelProgress
   | IDeleteProgress
-  | IPushScreen
+  | IPushScreen<any>
   | IPullScreen
-  | ISyncStorage
   | IChangeDate
   | IConfirmDate
   | ILoginAction
@@ -310,77 +372,130 @@ export type IAction =
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
-  | ICreateProgramAction
-  | ICreateDayAction
-  | IEditDayAction
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
 
+function isExternalStorageMerge(action: unknown): boolean {
+  return (
+    typeof action === "object" &&
+    action != null &&
+    "type" in action &&
+    action.type === "UpdateState" &&
+    "desc" in action &&
+    (action.desc === "Merge synced storage" ||
+      action.desc === "Merge watch storage" ||
+      action.desc === "Reload storage from disk")
+  );
+}
+
 export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
-      if (Storage.isChanged(oldState.storage, newState.storage)) {
-        dispatch(
-          Thunk.sync({
-            withHistory: oldState.storage.history !== newState.storage.history,
-            withStats: oldState.storage.stats !== newState.storage.stats,
-            withPrograms: oldState.storage.programs !== newState.storage.programs,
-          })
-        );
+      const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
+      if (!isExternalStorageMerge(action) && Storage_isChanged(oldState.storage, newState.storage)) {
+        dispatch(Thunk_sync2({ log: isFinishDayAction }));
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = newState.progress[0];
+      if (oldState.storage.programs !== newState.storage.programs) {
+        const newProgramIds = newState.storage.programs.map((p) => p.id);
+        if (Array.from(new Set(newProgramIds)).length !== newProgramIds.length) {
+          lg("program-duplicate-ids", {
+            programIds: JSON.stringify(newProgramIds),
+            lastReducerActions: JSON.stringify(
+              Diagnostics_getLastActions().map((a) => [a.type, "desc" in a ? a.desc : undefined])
+            ),
+          });
+          const newPrograms = CollectionUtils_uniqBy(newState.storage.programs, "id");
+          updateState(
+            dispatch,
+            [lb<IState>().p("storage").pi("programs").record(newPrograms)],
+            "Remove duplicate programs"
+          );
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const progress = Progress_getProgress(newState);
       if (progress != null) {
-        const oldProgram = Program.getProgram(oldState, progress.programId);
-        const newProgram = Program.getProgram(newState, progress.programId);
-        if (oldProgram != null && newProgram != null && !ObjectUtils.isEqual(oldProgram, newProgram)) {
-          const programChanges = ObjectUtils.changedKeys(oldProgram, newProgram);
-          if (ObjectUtils.keys(programChanges).length === 1 && programChanges.exercises === "update") {
-            const changedExerciseIds = Array.from(
-              new Set(CollectionUtils.diff(oldProgram.exercises, newProgram.exercises).map((e) => e.id))
-            );
-            const onlyState = changedExerciseIds.every((id) => {
-              const oldExercise = oldProgram.exercises.find((e) => e.id === id);
-              const newExercise = newProgram.exercises.find((e) => e.id === id);
-              const exerciseChanges =
-                oldExercise && newExercise ? ObjectUtils.changedKeys(oldExercise, newExercise) : {};
-              return ObjectUtils.keys(exerciseChanges).length === 1 && exerciseChanges.state === "update";
-            });
-            dispatch({
-              type: "ApplyProgramChangesToProgress",
-              programExerciseIds: changedExerciseIds,
-              checkReused: !onlyState,
-            });
-          } else {
-            dispatch({ type: "ApplyProgramChangesToProgress" });
+        const oldProgram = Program_getProgram(oldState, progress.programId);
+        const newProgram = Program_getProgram(newState, progress.programId);
+        if (oldProgram != null && newProgram != null && !ObjectUtils_isEqual(oldProgram, newProgram)) {
+          dispatch({ type: "ApplyProgramChangesToProgress" });
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (
+        oldState.storage.stats !== newState.storage.stats ||
+        ((newState.storage.stats.weight.weight ?? []).length > 0 && newState.storage.settings.currentBodyweight == null)
+      ) {
+        const oldBodyweight =
+          Stats_getCurrentMovingAverageBodyweight(oldState.storage.stats, oldState.storage.settings) ??
+          Weight_build(0, oldState.storage.settings.units);
+        const newBodyweight =
+          Stats_getCurrentMovingAverageBodyweight(newState.storage.stats, newState.storage.settings) ??
+          Weight_build(0, newState.storage.settings.units);
+        if (!Weight_eq(oldBodyweight, newBodyweight)) {
+          updateState(
+            dispatch,
+            [lb<IState>().p("storage").p("settings").pi("currentBodyweight").record(newBodyweight)],
+            "Update current bodyweight"
+          );
+          dispatch({ type: "ApplyProgramChangesToProgress" });
+        }
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
+        const screenData = env.getCurrentScreenData?.();
+        if (!screenData || screenData.name !== "editProgramExercise") {
+          return;
+        }
+        const oldExerciseKey = screenData.params?.key;
+        const oldProgramId = screenData.params?.programId;
+        const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
+        const oldPlannerState = oldExerciseStateKey
+          ? oldState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        const newPlannerState = oldExerciseStateKey
+          ? newState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
+          const changedKeys = EditProgramUiHelpers_getChangedKeys(
+            oldPlannerState.current.program.planner!,
+            newPlannerState.current.program.planner!,
+            newState.storage.settings
+          );
+          const newKey = changedKeys[oldExerciseKey];
+          if (newKey && env.navigationRef?.isReady()) {
+            env.navigationRef.setParams({ ...screenData.params, key: newKey } as Record<string, unknown>);
           }
         }
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = newState.progress[0];
+      const progress = Progress_getProgress(newState);
       if (progress != null) {
         const oldExerciseData = oldState.storage.settings.exerciseData;
         const newExerciseData = newState.storage.settings.exerciseData;
         if (
           oldExerciseData != null &&
           newExerciseData != null &&
-          !ObjectUtils.isEqual(oldExerciseData, newExerciseData)
+          !ObjectUtils_isEqual(oldExerciseData, newExerciseData)
         ) {
-          const changes = ObjectUtils.changedKeys(oldExerciseData, newExerciseData);
-          if (ObjectUtils.isNotEmpty(changes)) {
-            const changedExercises = ObjectUtils.keys(changes);
+          const changes = ObjectUtils_changedKeys(oldExerciseData, newExerciseData);
+          if (ObjectUtils_isNotEmpty(changes)) {
+            const changedExercises = ObjectUtils_keys(changes);
             const affectedEntries = progress.entries.filter((entry) => {
-              const key = Exercise.toKey(entry.exercise);
+              const key = Exercise_toKey(entry.exercise);
               return changedExercises.indexOf(key) !== -1;
             });
             if (affectedEntries.length > 0) {
               dispatch({
                 type: "ApplyProgramChangesToProgress",
-                programExerciseIds: CollectionUtils.compact(affectedEntries.map((e) => e.programExerciseId)),
-                checkReused: false,
+                programExerciseIds: CollectionUtils_compact(affectedEntries.map((e) => e.programExerciseId)),
               });
             }
           }
@@ -388,169 +503,166 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (oldState.screenStack !== newState.screenStack) {
-        setTimeout(() => {
-          window.scroll(0, 0);
-        }, 0);
+      const progress = Progress_getProgress(newState);
+      if (progress != null) {
+        const oldEquipment = Equipment_getCurrentGym(oldState.storage.settings).equipment;
+        const newEquipment = Equipment_getCurrentGym(newState.storage.settings).equipment;
+        if (oldEquipment != null && newEquipment != null && !ObjectUtils_isEqual(oldEquipment, newEquipment)) {
+          const changedEquipmentIds = ObjectUtils_keys(ObjectUtils_changedKeys(oldEquipment, newEquipment));
+          const settings = newState.storage.settings;
+          const affectedEntries = progress.entries.filter((entry) => {
+            const equipmentId = Equipment_getEquipmentIdForExerciseType(settings, entry.exercise);
+            return equipmentId != null && changedEquipmentIds.indexOf(equipmentId) !== -1;
+          });
+          if (affectedEntries.length > 0) {
+            dispatch({
+              type: "ApplyProgramChangesToProgress",
+              programExerciseIds: CollectionUtils_compact(affectedEntries.map((e) => e.programExerciseId)),
+            });
+          }
+        }
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (!ObjectUtils.isEqual(oldState.storage.subscription.apple, newState.storage.subscription.apple)) {
+      if (!ObjectUtils_isEqual(oldState.storage.subscription.google, newState.storage.subscription.google)) {
         const userId = newState.user?.id || newState.storage.tempUserId;
-        Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, env.service, newState.storage.subscription);
-      }
-    },
-    (dispatch, action, oldState, newState) => {
-      if (oldState.storage.subscription.google !== newState.storage.subscription.google) {
-        const userId = newState.user?.id || newState.storage.tempUserId;
-        Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
+        Subscriptions_cleanupOutdatedGooglePurchaseTokens(dispatch, userId, env.service, newState.storage.subscription);
       }
     },
     (dispatch, action, oldState, newState) => {
       if ("type" in action && action.type === "UpdateState" && action.desc === "stop-is-undoing") {
         setTimeout(() => {
-          window.isUndoing = false;
+          UndoingFlag_set(false);
         }, 200);
       }
     },
   ];
 }
 
-export const reducerWrapper = (storeToLocalStorage: boolean): Reducer<IState, IAction> => (state, action) => {
-  if (typeof window !== "undefined") {
-    window.reducerLastState = state;
-    window.reducerLastActions = [
-      { ...action, time: DateUtils.formatHHMMSS(Date.now(), true) },
-      ...(window.reducerLastActions || []).slice(0, 30),
-    ];
-  }
-  const newState = reducer(state, action);
-  if (Storage.isChanged(state.storage, newState.storage)) {
-    const dateNow = Date.now();
-
-    const newPrograms = newState.storage.programs.map((p) => {
-      const oldProgram = state.storage.programs.find((op) => op.id === p.id);
-      if (oldProgram == null || !Program.isChanged(oldProgram, p)) {
-        return p;
+export const reducerWrapper =
+  (storeToLocalStorage: boolean, persistence: Persistence): Reducer<IState, IAction> =>
+  (state, action) => {
+    Diagnostics_setLastState(state);
+    Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
+    const perfOn = PerfEnabled_isEnabled();
+    const perfActionType = "type" in action ? action.type : "thunk";
+    const perfActionDesc = "type" in action && action.type === "UpdateState" ? action.desc : undefined;
+    const perfSyncStart = perfOn ? Date.now() : 0;
+    let newState = reducer(state, action);
+    const isMergingStorage = isExternalStorageMerge(action);
+    const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
+    if (isStorageChanged) {
+      const oldHistoryLen = state.storage.history?.length ?? 0;
+      const newHistoryLen = newState.storage.history?.length ?? 0;
+      const actionDesc = "type" in action && action.type === "UpdateState" ? action.desc : action.type;
+      if (oldHistoryLen > 0 && newHistoryLen === 0) {
+        lg("ls-history-deletion-critical", {
+          oldLen: oldHistoryLen,
+          newLen: newHistoryLen,
+          action: actionDesc || "unknown",
+        });
+      } else if (oldHistoryLen - newHistoryLen > 5) {
+        lg("ls-history-deletion-warning", {
+          oldLen: oldHistoryLen,
+          newLen: newHistoryLen,
+          action: actionDesc || "unknown",
+        });
       }
-      return {
-        ...p,
-        version: Date.now(),
-        exercises: p.exercises.map((e) => {
-          const oldExercise = oldProgram.exercises.find((oe) => oe.id === e.id);
-          if (oldExercise && !ObjectUtils.isEqual(oldExercise, e)) {
-            const diffPaths = Array.from(new Set([...(e.diffPaths || []), ...ObjectUtils.diffPaths(oldExercise, e)]));
-            return { ...e, diffPaths };
-          } else {
-            return e;
+      const versions = Storage_updateVersions(state.storage, newState.storage, state.deviceId);
+      newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
+    }
+
+    if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
+      window.tempUserId = newState.storage.tempUserId;
+      if (timerId != null) {
+        window.clearTimeout(timerId);
+      }
+
+      (window as any).state = newState;
+      if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
+        timerId = window.setTimeout(async () => {
+          clearTimeout(timerId);
+
+          const newState2: IState = (window as any).state;
+          timerId = undefined;
+          const userId = newState2.user?.id || newState2.storage.tempUserId;
+          await IndexedDBUtils_set("current_account", userId);
+          const probeTarget = PerfProbe_isTarget();
+          try {
+            const stats = await persistence.save(`liftosaur_${userId}`, {
+              storage: newState2.storage,
+              lastSyncedStorage: newState2.lastSyncedStorage,
+            });
+            if (probeTarget) {
+              lg("perf-persist", {
+                stringify_ms: stats.stringifyMs,
+                write_ms: stats.writeMs,
+                bytes: stats.bytes,
+                shards: stats.shards.join(","),
+              });
+            }
+          } catch (e) {
+            // Write failed (e.g. quota) — the write cache wasn't updated, so the next
+            // save retries these shards instead of skipping them as "unchanged"
+            lg("ls-persistence-save-error", { error: String(e) });
           }
-        }),
-      };
-    });
-
-    newState.storage = {
-      ...newState.storage,
-      id: dateNow,
-      programs: newPrograms,
-      originalId: newState.storage.originalId ?? dateNow,
-      version: getLatestMigrationVersion(),
-    };
-  }
-  if (typeof window !== "undefined") {
-    if (timerId != null) {
-      window.clearTimeout(timerId);
+        }, 100);
+      }
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).state = newState;
-    if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-      timerId = window.setTimeout(async () => {
-        clearTimeout(timerId);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newState2: IState = (window as any).state;
-        timerId = undefined;
-        const userId = newState2.user?.id || newState.storage.tempUserId;
-        const localStorage: ILocalStorage = {
-          storage: newState2.storage,
-          progress: newState2.progress[0],
-        };
-        try {
-          await IndexedDBUtils.set("current_account", userId);
-          await IndexedDBUtils.set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-        } catch (e) {
-          console.error(e);
-        }
-      }, 100);
-    }
-  }
-  return newState;
-};
 
-export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, ICardsAction> {
+    if (perfOn) {
+      const perfDurationMs = Date.now() - perfSyncStart;
+      PerfScorecard_recordAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      if (
+        perfActionType === "CompleteSetAction" ||
+        perfActionType === "ChangeAMRAPAction" ||
+        perfActionType === "UpdateProgress"
+      ) {
+        PerfProbe_onAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      }
+      if (PerfEnabled_tier2()) {
+        PerfTracker_recordEvent({
+          type: "action",
+          session: PerfTracker_getSessionId(),
+          action: perfActionType,
+          desc: perfActionDesc,
+          duration_ms: perfDurationMs,
+          ts: perfSyncStart,
+        });
+      }
+    }
+    return newState;
+  };
+
+export function buildCardsReducer(
+  settings: ISettings,
+  stats: IStats,
+  subscription?: ISubscription
+): Reducer<IHistoryRecord, ICardsAction> {
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
-      case "ChangeRepsAction": {
-        const hasUserPromptedVars =
-          action.programExercise &&
-          action.allProgramExercises &&
-          ProgramExercise.hasUserPromptedVars(action.programExercise, action.allProgramExercises);
-
-        let newProgress = Progress.updateRepsInExercise(
-          progress,
-          action.entryIndex,
-          action.setIndex,
-          action.mode,
-          !!hasUserPromptedVars
-        );
-        if (action.programExercise && action.allProgramExercises && !newProgress.ui?.amrapModal) {
-          newProgress = Progress.runUpdateScript(
-            newProgress,
-            action.programExercise,
-            action.allProgramExercises,
-            action.entryIndex,
-            action.setIndex,
-            action.mode,
-            settings
-          );
-        }
-
-        if (Progress.isFullyFinishedSet(newProgress)) {
-          newProgress = Progress.stopTimer(newProgress);
-        }
+      case "CompleteSetAction": {
+        const newProgress = Progress_completeSetAction(settings, stats, progress, action, subscription);
         return newProgress;
       }
       case "ChangeAMRAPAction": {
-        progress = Progress.updateAmrapRepsInExercise(progress, action.amrapValue, action.isAmrap);
-        if (action.logRpe) {
-          progress = Progress.updateRpeInExercise(progress, action.rpeValue);
-        }
-        if (action.weightValue) {
-          progress = Progress.updateWeightInExercise(progress, action.weightValue);
-        }
-        const programExerciseId = action.programExercise?.id;
-        if (ObjectUtils.keys(action.userVars || {}).length > 0 && programExerciseId != null) {
-          progress = Progress.updateUserPromptedStateVars(progress, programExerciseId, action.userVars || {});
-        }
-        if (action.programExercise && action.allProgramExercises) {
-          progress = Progress.runUpdateScript(
-            progress,
-            action.programExercise,
-            action.allProgramExercises,
-            action.entryIndex,
-            action.setIndex,
-            "workout",
-            settings
-          );
-        }
-        if (Progress.isFullyFinishedSet(progress)) {
-          progress = Progress.stopTimer(progress);
-        }
-        return { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
+        const newProgress = Progress_changeAmrapAction(settings, stats, progress, action, subscription);
+        return newProgress;
       }
-      case "ChangeWeightAction": {
-        return Progress.showUpdateWeightModal(progress, action.exercise, action.weight, action.programExercise);
+      case "CheckSetTimerAction": {
+        return Progress_checkSetTimer(
+          settings,
+          stats,
+          progress,
+          subscription,
+          action.programExercise,
+          action.otherStates,
+          action.now,
+          action.isPlayground
+        );
       }
-      case "ConfirmWeightAction": {
-        return Progress.updateWeight(progress, settings, action.weight, action.programExercise);
+      case "CloseSetTimerAction": {
+        return Progress_closeTimedSet(progress, settings, subscription, action.isPlayground);
       }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
@@ -560,128 +672,103 @@ export function buildCardsReducer(settings: ISettings): Reducer<IHistoryRecord, 
 }
 
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
-  if (action.type === "ChangeRepsAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
-  } else if (action.type === "ChangeAMRAPAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
-  } else if (action.type === "ChangeWeightAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
-  } else if (action.type === "ConfirmWeightAction") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
-  } else if (action.type === "UpdateProgress") {
-    return Progress.setProgress(state, buildCardsReducer(state.storage.settings)(Progress.getProgress(state)!, action));
+  if (
+    action.type === "CompleteSetAction" ||
+    action.type === "ChangeAMRAPAction" ||
+    action.type === "CheckSetTimerAction" ||
+    action.type === "CloseSetTimerAction" ||
+    action.type === "UpdateProgress"
+  ) {
+    const progress = Progress_getProgress(state);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(
+      state,
+      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
+    );
   } else if (action.type === "StartProgramDayAction") {
-    const progress = state.progress[0];
+    const progress = Progress_getProgress(state);
     if (progress != null) {
-      return {
-        ...state,
-        currentHistoryRecord: progress.id,
-        currentHistoryRecordUserId: undefined,
-        screenStack:
-          Screen.current(state.screenStack) !== "progress"
-            ? Screen.push(state.screenStack, "progress")
-            : state.screenStack,
-      };
+      return state;
     } else if (state.storage.currentProgramId != null) {
-      // TODO: What if the program is missing?
-      const program = state.storage.programs.find((p) => p.id === state.storage.currentProgramId)!;
-      const newProgress = Program.nextProgramRecord(program, state.storage.settings);
-      return {
-        ...state,
-        currentHistoryRecord: 0,
-        currentHistoryRecordUserId: undefined,
-        screenStack: Screen.push(state.screenStack, "progress"),
-        progress: { ...state.progress, 0: newProgress },
-      };
+      const program = Program_getProgram(state, action.programId || state.storage.currentProgramId);
+      if (program != null) {
+        const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
+        return {
+          ...state,
+          storage: { ...state.storage, progress: [newProgress] },
+        };
+      } else {
+        Dialog_alert("No currently selected program");
+        return state;
+      }
     } else {
       return state;
     }
   } else if (action.type === "EditHistoryRecord") {
     return {
       ...state,
-      currentHistoryRecord: action.historyRecord.id,
-      currentHistoryRecordUserId: action.userId,
-      screenStack: Screen.push(state.screenStack, "progress"),
-      progress: { ...state.progress, [action.historyRecord.id]: action.historyRecord },
+      progress: { ...state.progress, [action.historyRecord.id]: { ...action.historyRecord, ui: {} } },
     };
   } else if (action.type === "FinishProgramDayAction") {
-    const settings = state.storage.settings;
-    const progress = Progress.getProgress(state);
+    const progress = Progress_getProgressById(state, action.id);
     if (progress == null) {
-      throw new StateError("FinishProgramDayAction: no progress");
-    } else {
-      const programIndex = state.storage.programs.findIndex((p) => p.id === progress.programId)!;
-      const program = state.storage.programs[programIndex];
-      Progress.stopTimer(progress);
-      const historyRecord = History.finishProgramDay(progress, state.storage.settings, program);
-      let newHistory;
-      if (!Progress.isCurrent(progress)) {
-        newHistory = state.storage.history.map((h) => (h.id === progress.id ? historyRecord : h));
-      } else {
-        newHistory = [historyRecord, ...state.storage.history];
-      }
-      const exerciseData = state.storage.settings.exerciseData;
-      const { program: newProgram, exerciseData: newExerciseData } =
-        Progress.isCurrent(progress) && program != null
-          ? Program.runAllFinishDayScripts(program, progress, settings)
-          : { program, exerciseData };
-      const newPrograms =
-        newProgram != null ? lf(state.storage.programs).i(programIndex).set(newProgram) : state.storage.programs;
-      const newSettingsExerciseData = deepmerge(state.storage.settings.exerciseData, newExerciseData);
-      return {
-        ...state,
-        storage: {
-          ...state.storage,
-          history: newHistory,
-          programs: newPrograms,
-          settings: {
-            ...state.storage.settings,
-            exerciseData: newSettingsExerciseData,
-          },
-        },
-        screenStack: Progress.isCurrent(progress) ? ["finishDay"] : Screen.pull(state.screenStack),
-        currentHistoryRecord: undefined,
-        progress: Progress.stop(state.progress, progress.id),
-      };
+      return state;
     }
-  } else if (action.type === "ChangeDate") {
-    return Progress.setProgress(state, Progress.showUpdateDate(Progress.getProgress(state)!, action.date));
-  } else if (action.type === "ConfirmDate") {
-    return Progress.setProgress(state, Progress.changeDate(Progress.getProgress(state)!, action.date));
-  } else if (action.type === "CancelProgress") {
-    const progress = Progress.getProgress(state)!;
+    const newStorage = Progress_finishWorkout(state.storage, progress);
     return {
       ...state,
-      currentHistoryRecord: undefined,
-      screenStack: Screen.pull(state.screenStack),
-      progress: Progress.isCurrent(progress)
-        ? state.progress
-        : Progress.stop(state.progress, state.currentHistoryRecord!),
+      storage: newStorage,
+      progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
+    };
+  } else if (action.type === "ChangeDate") {
+    const progress = Progress_getProgressById(state, action.id);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_showUpdateDate(progress, action.date, action.time));
+  } else if (action.type === "ConfirmDate") {
+    const progress = Progress_getProgressById(state, action.id);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_changeDate(progress, action.date, action.time));
+  } else if (action.type === "CancelProgress") {
+    const progress = Progress_getProgress(state)!;
+    return {
+      ...state,
+      storage: Progress_isCurrent(progress) ? { ...state.storage, progress: [] } : state.storage,
+      progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "DeleteProgress") {
-    const progress = Progress.getProgress(state);
+    const progress = Progress_getProgressById(state, action.id);
     if (progress != null) {
-      const history = state.storage.history.filter((h) => h.id !== progress.id);
+      if (Progress_isCurrent(progress)) {
+        NativeWorkoutBridge_discardWorkout();
+        NativeWatchBridge_sendDiscardWorkoutToWatch();
+        NativeWorkoutMirroring_resetWatchWorkoutState();
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            history: state.storage.history.filter((h) => h.id !== progress.id),
+            progress: [],
+          },
+        };
+      }
       return {
         ...state,
-        currentHistoryRecord: undefined,
-        screenStack: Screen.pull(state.screenStack),
-        storage: { ...state.storage, deletedHistory: [...state.storage.deletedHistory, progress.startTime], history },
-        progress: Progress.stop(state.progress, progress.id),
+        storage: History_deleteRecords(state.storage, [progress.id]),
+        progress: Progress_stop(state.progress, progress.id),
       };
     } else {
       return state;
     }
   } else if (action.type === "PushScreen") {
-    if (state.screenStack.length > 0) {
-      const screen = action.screen;
-      if (state.screenStack[state.screenStack.length - 1] !== screen) {
-        return { ...state, screenStack: Screen.push(state.screenStack, screen) };
-      }
-    }
     return state;
   } else if (action.type === "PullScreen") {
-    return { ...state, screenStack: Screen.pull(state.screenStack) };
+    return state;
   } else if (action.type === "Login") {
     return {
       ...state,
@@ -691,34 +778,36 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "Logout") {
     return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
   } else if (action.type === "StopTimer") {
-    const progress = Progress.getProgress(state);
+    const progress = Progress_getProgress(state);
     if (progress != null) {
-      return Progress.setProgress(state, Progress.stopTimer(progress));
+      return Progress_setProgress(state, Progress_stopTimer(progress));
     } else {
       return state;
     }
   } else if (action.type === "StartTimer") {
-    const progress = Progress.getProgress(state);
-    const program = progress ? Program.getProgram(state, progress.programId) : undefined;
-    if (progress && program) {
-      return Progress.setProgress(
+    const progress = Progress_getProgress(state);
+    if (progress) {
+      return Progress_setProgress(
         state,
-        Progress.startTimer(
+        Progress_startTimer(
           progress,
-          program,
           action.timestamp,
           action.mode,
           action.entryIndex,
           action.setIndex,
-          state.storage.subscription,
           state.storage.settings,
-          action.timer
+          state.storage.subscription,
+          action.timer,
+          true
         )
       );
     } else {
       return state;
     }
   } else if (action.type === "UpdateSettings") {
+    if (isLoggingEnabled) {
+      console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");
+    }
     return {
       ...state,
       storage: {
@@ -742,79 +831,29 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       }
       return newState;
     }, state);
-  } else if (action.type === "SyncStorage") {
-    const oldStorage = state.storage.id < action.storage.id ? state.storage : action.storage;
-    const newStorage = state.storage.id < action.storage.id ? action.storage : state.storage;
-    if (newStorage.id != null && oldStorage.id != null) {
-      return { ...state, storage: Storage.mergeStorage(oldStorage, newStorage, true) };
-    } else {
-      return state;
-    }
-  } else if (action.type === "CreateProgramAction") {
-    const newProgram = Program.create(action.name);
-    let newState = lf(state)
-      .p("storage")
-      .p("programs")
-      .modify((programs) => [...programs, newProgram]);
-    newState = lf(newState).p("editProgram").set({ id: newProgram.id });
-    newState = lf(newState).p("storage").p("currentProgramId").set(newProgram.id);
-    return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgram"));
-  } else if (action.type === "CreateDayAction") {
-    const program = Program.getEditingProgram(state)!;
-    const programIndex = Program.getEditingProgramIndex(state)!;
-    const days = program.days;
-    const dayName = `Day ${days.length + 1}`;
-    const day = Program.createDay(dayName);
-    let newProgram = lf(program)
-      .p("days")
-      .modify((d) => [...d, day]);
-    if (action.weekIndex != null && newProgram.weeks[action.weekIndex] != null) {
-      newProgram = lf(newProgram)
-        .p("weeks")
-        .i(action.weekIndex)
-        .p("days")
-        .modify((d) => [...d, { id: day.id }]);
-    }
-
-    let newState = lf(state).p("storage").p("programs").i(programIndex).set(newProgram);
-    newState = lf(newState)
-      .pi("editProgram")
-      .p("dayIndex")
-      .set(newProgram.days.length - 1);
-    return lf(newState).p("screenStack").set(Screen.push(state.screenStack, "editProgramDay"));
-  } else if (action.type === "EditDayAction") {
-    return {
-      ...state,
-      editProgram: {
-        ...state.editProgram!,
-        dayIndex: action.index,
-      },
-      screenStack: Screen.push(state.screenStack, "editProgramDay"),
-    };
   } else if (action.type === "ApplyProgramChangesToProgress") {
-    const progress = state.progress[0];
+    const progress = Progress_getCurrentProgress(state);
     if (progress != null) {
-      const program = Program.getProgram(state, progress.programId)!;
-      const programDay = Program.getProgramDay(program, progress.day);
-      let newProgress = Progress.applyProgramDay(
+      const program = Program_evaluate(Program_getProgram(state, progress.programId)!, state.storage.settings);
+      let newProgress = Progress_applyProgramDay(
         progress,
         program,
-        programDay,
+        progress.day,
         state.storage.settings,
-        undefined,
-        action.programExerciseIds,
-        action.checkReused
+        action.programExerciseIds
       );
-      newProgress = Progress.runInitialUpdateScripts(
+      newProgress = Progress_runInitialUpdateScripts(
         newProgress,
         action.programExerciseIds,
+        progress.day,
         program,
-        state.storage.settings
+        state.storage.settings,
+        state.storage.stats
       );
 
       return {
         ...state,
-        progress: { ...state.progress, 0: newProgress },
+        storage: { ...state.storage, progress: [newProgress] },
       };
     } else {
       return state;

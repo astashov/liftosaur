@@ -1,0 +1,89 @@
+import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
+import { Modal } from "../../modal";
+import { Button } from "../../button";
+import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
+import { ScriptEditorView } from "./scriptEditorView";
+import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
+import { ScriptRunner } from "../../../parser";
+import { ISettings } from "../../../types";
+import { PlannerProgramExercise_getState } from "../../../pages/planner/models/plannerProgramExercise";
+import { Settings_getTheme } from "../../../models/settings";
+
+interface IModalEditUpdateScriptProps {
+  onClose: () => void;
+  plannerExercise: IPlannerProgramExercise;
+  settings: ISettings;
+  onChange: (script?: string) => void;
+}
+
+function cleanScript(script?: string): string {
+  if (!script) {
+    return "";
+  }
+  return script.replace(/{~/, "").replace(/~}/, "");
+}
+
+export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps): JSX.Element {
+  const update = props.plannerExercise.update;
+  if (!update) {
+    return <></>;
+  }
+  const ownState = PlannerProgramExercise_getState(props.plannerExercise);
+  let initialScript = cleanScript(update.script);
+  initialScript = initialScript ? StringUtils_unindent(initialScript) : initialScript;
+  const [script, setScript] = useState(initialScript);
+
+  const error = ScriptRunner.isValid(
+    script,
+    ownState,
+    props.plannerExercise.dayData,
+    props.settings,
+    props.plannerExercise.exerciseType
+  );
+
+  return (
+    <View className="flex-1 pb-4 bg-background-default">
+      <Text className="mb-2 text-xs text-text-secondary">
+        It's executed after each set completion. Use <Text className="font-bold">setIndex</Text> variable to distinguish
+        between sets.
+      </Text>
+      <ScriptEditorView
+        name="modal-edit-update-script-editor"
+        state={ownState}
+        theme={Settings_getTheme(props.settings)}
+        lineNumbers={true}
+        error={error}
+        value={script}
+        onChange={(e) => {
+          setScript(e);
+        }}
+        onBlur={() => {}}
+        onLineChange={() => {}}
+      />
+      <View className="items-center mt-4">
+        <Button
+          kind="purple"
+          name="modal-update-script-submit"
+          disabled={error != null}
+          onClick={() => {
+            props.onClose();
+            const wrappedScript = script ? `{~\n${StringUtils_indent(cleanScript(script), 2)}\n~}` : script;
+            props.onChange(wrappedScript);
+          }}
+        >
+          Save
+        </Button>
+      </View>
+    </View>
+  );
+}
+
+export function ModalEditUpdateScript(props: IModalEditUpdateScriptProps): JSX.Element {
+  return (
+    <Modal name="modal-edit-progress-script" isFullWidth isFullHeight onClose={props.onClose} shouldShowClose={true}>
+      <ModalEditUpdateScriptContent {...props} />
+    </Modal>
+  );
+}

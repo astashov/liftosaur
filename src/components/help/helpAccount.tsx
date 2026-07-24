@@ -1,20 +1,19 @@
-import { h, JSX, Fragment } from "preact";
-import { Features } from "../../utils/features";
+import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 
 export function HelpAccount(): JSX.Element {
   return (
-    <>
-      <h2 className="pb-2 text-xl">Settings - Account</h2>
-      <p className="pb-2">You can log in and log out on this screen.</p>
-      <p className="pb-2">
-        For now, we only support <strong>login via Google</strong>.
-      </p>
-      <p className="pb-2">
+    <View>
+      <Text className="pb-2 text-xl font-semibold">Settings - Account</Text>
+      <Text className="pb-2 text-sm">You can log in and log out on this screen.</Text>
+      <Text className="pb-2 text-sm">
+        For now, we only support <Text className="text-sm font-bold">login via Google</Text>.
+      </Text>
+      <Text className="pb-2 text-sm">
         After you log in, your data will be synced to the cloud, so even if you lose your phone, your progress won't be
         lost.
-        {Features.areFriendsEnabled() &&
-          "Also, you'll be able to add friends, see their progress, comment and like their workouts."}
-      </p>
-    </>
+      </Text>
+    </View>
   );
 }

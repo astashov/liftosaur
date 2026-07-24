@@ -1,110 +1,206 @@
-import { h, JSX, Fragment } from "preact";
-import { IProgramMode, Program } from "../models/program";
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "../models/weight";
-import { StringUtils } from "../utils/string";
-import { Reps } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData, IProgramExercise, IProgram } from "../types";
-import { Exercise } from "../models/exercise";
-import { ProgramExercise } from "../models/programExercise";
+import { JSX, memo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { IEvaluatedProgram, Program_computeProgressStateChanges } from "../models/program";
+import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "../utils/object";
+import { Weight_print } from "../models/weight";
+import { StringUtils_dashcase } from "../utils/string";
+import { Reps_isFinished } from "../models/set";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IPercentage, IWeight, IStats } from "../types";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { LinkButton } from "./linkButton";
 
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
   dayData: IDayData;
-  programExercise: IProgramExercise;
-  program: IProgram;
+  programExercise: IPlannerProgramExercise;
+  program: IEvaluatedProgram;
+  stats: IStats;
   userPromptedStateVars?: IProgramState;
+  onSuppressProgress?: (isSuppressed: boolean) => void;
   forceShow?: boolean;
-  staticState?: IProgramState;
-  mode: IProgramMode;
 }
 
-export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const state = ProgramExercise.getState(props.programExercise, props.program.exercises);
+function ProgressStateChangesInner(props: IProps): JSX.Element | null {
   const { entry, settings, dayData } = props;
-  const { units } = settings;
-  const mergedState = { ...state, ...props.userPromptedStateVars };
-  const result = Program.runExerciseFinishDayScript(
+  const changes = Program_computeProgressStateChanges(
     entry,
     dayData,
     settings,
-    mergedState,
     props.programExercise,
     props.program,
-    props.mode,
-    props.staticState
+    props.stats,
+    props.userPromptedStateVars
   );
-  const isFinished = Reps.isFinished(entry.sets);
+  if (!changes) {
+    return null;
+  }
+  const showEndOfDay = props.forceShow || Reps_isFinished(entry.sets);
 
-  if ((props.forceShow || isFinished) && result.success) {
-    const { state: newState, updates, bindings } = result.data;
-    const diffState = ObjectUtils.keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
-      const oldValue = state[key];
-      const newValue = newState[key];
-      if (!Weight.eq(oldValue, newValue)) {
-        const oldValueStr = Weight.display(Weight.convertTo(oldValue as number, units));
-        const newValueStr = Weight.display(Weight.convertTo(newValue as number, units));
-        memo[key] = `${oldValueStr} -> ${newValueStr}`;
-      }
-      return memo;
-    }, {});
-    const diffVars: Record<string, string | undefined> = {};
-    if (bindings.rm1 != null) {
-      const oldOnerm = Exercise.onerm(entry.exercise, settings);
-      if (!Weight.eq(oldOnerm, bindings.rm1)) {
-        diffVars["1 RM"] = `${Weight.display(Weight.convertTo(oldOnerm, units))} -> ${Weight.display(
-          Weight.convertTo(bindings.rm1, units)
-        )}`;
-      }
-    }
-    for (const update of updates) {
-      const key = update.type;
-      const value = update.value;
-      const target = value.target;
-      while (target[0] === "*") {
-        target.shift();
-      }
-      const keyStr = `${key}${target.length > 0 ? `[${target.join(":")}]` : ""}`;
-      diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
-    }
+  return (
+    <ProgressStateChangesView
+      diffState={showEndOfDay ? changes.diffState : undefined}
+      diffVars={showEndOfDay ? changes.diffVars : undefined}
+      prints={showEndOfDay ? changes.prints : undefined}
+      updatePrints={entry.updatePrints}
+      isSuppressed={entry.isSuppressed}
+      onSuppressProgress={props.onSuppressProgress}
+    />
+  );
+}
 
-    if (ObjectUtils.isNotEmpty(diffState) || ObjectUtils.isNotEmpty(diffVars)) {
-      return (
-        <div
-          className="text-xs"
-          data-help-id="progress-state-changes"
-          data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
-        >
-          {ObjectUtils.isNotEmpty(diffVars) && (
-            <>
-              <header className="font-bold">Exercise Changes</header>
-              <ul data-cy="variable-changes">
-                {ObjectUtils.keys(diffVars).map((key) => (
-                  <li data-cy={`variable-changes-key-${StringUtils.dashcase(key)}`}>
-                    <span className="italic">{key}</span>:{" "}
-                    <strong data-cy={`variable-changes-value-${StringUtils.dashcase(key)}`}>{diffVars[key]}</strong>
-                  </li>
+export const ProgressStateChanges = memo(ProgressStateChangesInner);
+
+interface IViewProps {
+  diffState?: Record<string, string | undefined>;
+  diffVars?: Record<string, string | undefined>;
+  prints?: (number | IWeight | IPercentage)[][];
+  updatePrints?: (number | IWeight | IPercentage)[][];
+  isSuppressed?: boolean;
+  onSuppressProgress?: (isSuppressed: boolean) => void;
+}
+
+export function ProgressStateChangesView(props: IViewProps): JSX.Element | null {
+  const diffState = props.diffState ?? {};
+  const diffVars = props.diffVars ?? {};
+  const prints = props.prints ?? [];
+  const updatePrints = props.updatePrints ?? [];
+  const hasDiffState = ObjectUtils_isNotEmpty(diffState);
+  const hasDiffVars = ObjectUtils_isNotEmpty(diffVars);
+  const onSuppressProgress = props.onSuppressProgress;
+
+  if (!hasDiffVars && !hasDiffState && prints.length === 0 && updatePrints.length === 0) {
+    return null;
+  }
+
+  return (
+    <View
+      data-help-id="progress-state-changes"
+      data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
+    >
+      <View>
+        {hasDiffVars && (
+          <View className={props.isSuppressed ? "line-through" : ""}>
+            <ExerciseChanges diffVars={diffVars} />
+          </View>
+        )}
+        {hasDiffState && (
+          <View className={props.isSuppressed ? "line-through" : ""}>
+            <StateVariablesChanges diffState={diffState} />
+          </View>
+        )}
+        {prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
+        {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
+      </View>
+      {onSuppressProgress && (
+        <View>
+          <LinkButton
+            name="supress-progress"
+            className="text-xs"
+            data-testid="suppress-progress"
+            testID="suppress-progress"
+            onClick={() => {
+              onSuppressProgress(!props.isSuppressed);
+            }}
+          >
+            {props.isSuppressed ? "Enable" : "Suppress"}
+          </LinkButton>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
+  if (ObjectUtils_isNotEmpty(diffVars)) {
+    return (
+      <View>
+        <Text className="text-xs font-bold">Exercise Changes</Text>
+        <View data-testid="variable-changes" testID="variable-changes">
+          {ObjectUtils_keys(diffVars).map((key) => (
+            <View
+              key={key}
+              data-testid={`variable-changes-key-${StringUtils_dashcase(key)}`}
+              testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
+            >
+              <Text className="text-xs">
+                <Text className="text-xs italic">{key}</Text>:{" "}
+                <Text
+                  className="text-xs font-bold"
+                  data-testid={`variable-changes-value-${StringUtils_dashcase(key)}`}
+                  testID={`variable-changes-value-${StringUtils_dashcase(key)}`}
+                >
+                  {diffVars[key]}
+                </Text>
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
+  return null;
+}
+
+function StateVariablesChanges({ diffState }: { diffState: Record<string, string | undefined> }): JSX.Element | null {
+  if (ObjectUtils_isNotEmpty(diffState)) {
+    return (
+      <View>
+        <Text className="text-xs font-bold">State Variables changes</Text>
+        <View data-testid="state-changes" testID="state-changes">
+          {ObjectUtils_keys(diffState).map((key) => (
+            <View
+              key={key}
+              data-testid={`state-changes-key-${StringUtils_dashcase(key)}`}
+              testID={`state-changes-key-${StringUtils_dashcase(key)}`}
+            >
+              <Text className="text-xs">
+                <Text className="text-xs italic">{key}</Text>:{" "}
+                <Text
+                  className="text-xs font-bold"
+                  data-testid={`state-changes-value-${StringUtils_dashcase(key)}`}
+                  testID={`state-changes-value-${StringUtils_dashcase(key)}`}
+                >
+                  {diffState[key]}
+                </Text>
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
+  return null;
+}
+
+function Prints({
+  title,
+  prints,
+}: {
+  title: string;
+  prints: (IWeight | IPercentage | number)[][];
+}): JSX.Element | null {
+  if (prints.length > 0) {
+    return (
+      <View>
+        <Text className="text-xs font-bold">{title}</Text>
+        <View>
+          {prints.map((print) => (
+            <View key={JSON.stringify(print)}>
+              <Text className="text-xs">
+                {print.map((p, i) => (
+                  <Text key={i}>
+                    {i > 0 ? ", " : ""}
+                    {Weight_print(p)}
+                  </Text>
                 ))}
-              </ul>
-            </>
-          )}
-          {ObjectUtils.isNotEmpty(diffState) && (
-            <>
-              <header className="font-bold">State Variables changes</header>
-              <ul data-cy="state-changes">
-                {ObjectUtils.keys(diffState).map((key) => (
-                  <li data-cy={`state-changes-key-${StringUtils.dashcase(key)}`}>
-                    <span className="italic">{key}</span>:{" "}
-                    <strong data-cy={`state-changes-value-${StringUtils.dashcase(key)}`}>{diffState[key]}</strong>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </div>
-      );
-    }
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
   }
   return null;
 }

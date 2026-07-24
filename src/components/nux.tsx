@@ -1,15 +1,18 @@
+import { JSX, ReactNode } from "react";
+import { View, Pressable } from "react-native";
 import { lb } from "lens-shmens";
-import { ComponentChildren, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
-import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
+import { IconClose2 } from "./icons/iconClose2";
+import { IconHelp } from "./icons/iconHelp";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IProps {
-  dispatch: IDispatch;
+  dispatch?: IDispatch;
   id: string;
   helps: string[];
   className?: string;
-  children: ComponentChildren;
+  children: ReactNode;
 }
 
 export function Nux(props: IProps): JSX.Element | null {
@@ -18,24 +21,37 @@ export function Nux(props: IProps): JSX.Element | null {
   }
   const { dispatch } = props;
   return (
-    <div className={`${props.className} flex py-2 pl-4 text-xs bg-white rounded-2xl`}>
-      <div>{props.children}</div>
-      <div>
-        <button
-          className="p-2 nm-nux-close"
-          style={{ marginTop: "-0.25rem" }}
-          onClick={() => {
-            updateState(dispatch, [
-              lb<IState>()
-                .p("storage")
-                .p("helps")
-                .recordModify((helps) => [...helps, props.id]),
-            ]);
-          }}
-        >
-          <IconCloseCircleOutline size={16} />
-        </button>
-      </div>
-    </div>
+    <View
+      className={`${props.className ?? ""} flex-row py-2 pl-2 bg-background-default border border-border-cardpurple rounded-2xl`}
+    >
+      <View className="flex-row items-start flex-1">
+        <View className="mr-2">
+          <IconHelp color={Tailwind_colors().purple[500]} size={16} />
+        </View>
+        <View className="flex-1">{props.children}</View>
+      </View>
+      {dispatch && (
+        <View>
+          <Pressable
+            className="px-2 nm-nux-close"
+            hitSlop={12}
+            onPress={() => {
+              updateState(
+                dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("helps")
+                    .recordModify((helps) => [...helps, props.id]),
+                ],
+                "Dismiss help tip"
+              );
+            }}
+          >
+            <IconClose2 size={12} />
+          </Pressable>
+        </View>
+      )}
+    </View>
   );
 }

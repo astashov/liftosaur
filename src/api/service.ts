@@ -1,15 +1,76 @@
-import { IComment, IFriend, IFriendUser, ILike } from "../models/state";
-import { IExportedPlannerProgram } from "../pages/planner/models/types";
-import { IStorage, IHistoryRecord, ISettings, IProgram, IPartialStorage } from "../types";
+import { Platform } from "react-native";
+import {
+  IStorage,
+  IHistoryRecord,
+  ISettings,
+  IUnit,
+  IMuscleGeneratorResponse,
+  IPlannerProgramWeek,
+  IAffiliateData,
+} from "../types";
+import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
+import { IStorageUpdate2 } from "../utils/sync";
+import { IExportedProgram, IProgramIndexEntry } from "../models/program";
+import { CollectionUtils_uniqBy } from "../utils/collection";
+import { Encoder_encode, Encoder_decode } from "../utils/encoder";
+import { IAppleOffer, IGoogleOffer } from "../models/state";
+
+function Service_nativeClientHeaders(): Record<string, string> {
+  if (Platform.OS === "ios") {
+    return { "X-Client": "liftosaur-native-ios" };
+  }
+  if (Platform.OS === "android") {
+    return { "X-Client": "liftosaur-native-android" };
+  }
+  return {};
+}
+
+export interface IProgramDetail {
+  fullDescription: string;
+  faq?: string;
+  planner: {
+    vtype: "planner";
+    name: string;
+    weeks: IPlannerProgramWeek[];
+  };
+}
+
+export type IEmailAuthResponse =
+  | { type: "success"; response: IGetStorageResponse }
+  | { type: "confirmation_sent" }
+  | { type: "error"; error: string; providers?: string[] };
 
 export interface IGetStorageResponse {
   email: string;
-  storage?: IStorage;
+  storage: IStorage;
   user_id: string;
+  is_new_user: boolean;
   key?: string;
+  session?: string;
 }
+
+export type IPostSyncResponse =
+  | {
+      type: "dirty";
+      storage: IStorage;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "clean";
+      new_original_id: number;
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "error";
+      error: string;
+      key?: string;
+    };
 
 export type IPostStorageResponse =
   | {
@@ -25,17 +86,98 @@ export type IPostStorageResponse =
       storage: IStorage;
     };
 
-type IRedeemCouponError = "not_authorized" | "coupon_not_found" | "coupon_already_claimed" | "unknown";
+type IRedeemCouponError =
+  | "not_authorized"
+  | "coupon_not_found"
+  | "coupon_already_claimed"
+  | "wrong_platform"
+  | "coupon_disabled"
+  | "unknown";
+
+export interface IAiConvertResponse {
+  program: string;
+}
+
+export type IEventPayload =
+  | {
+      type: "event";
+      userId?: string;
+      timestamp: number;
+      name: string;
+      isMobile?: boolean;
+      iOSVersion?: number;
+      androidVersion?: number;
+      iOSOSVersion?: number;
+      androidOSVersion?: number;
+      deviceModel?: string;
+      commithash: string;
+      extra?: Record<string, string | number>;
+    }
+  | {
+      type: "error";
+      userId?: string;
+      timestamp: number;
+      message: string;
+      stack: string;
+      commithash: string;
+      isMobile?: boolean;
+      rollbar_id: string;
+    }
+  | {
+      type: "safesnapshot";
+      userId?: string;
+      timestamp: number;
+      storage_id: string;
+      commithash: string;
+      isMobile?: boolean;
+      update: string;
+    }
+  | {
+      type: "mergesnapshot";
+      userId?: string;
+      timestamp: number;
+      storage_id: string;
+      commithash: string;
+      isMobile?: boolean;
+      update: string;
+    }
+  | {
+      type: "log";
+      userId?: string;
+      timestamp: number;
+      action: string;
+      detail?: string;
+      affiliates?: Partial<Record<string, IAffiliateData>>;
+      subscriptions: string[];
+      referrer?: string;
+      landingPage?: string;
+      platform: { name: string; version?: string };
+      commithash: string;
+      isMobile?: boolean;
+    };
 
 const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
 declare let __HOST__: string;
+declare let __COMMIT_HASH__: string;
+declare let __STREAMING_API_HOST__: string;
 
 export interface IRecordResponse {
   history: IHistoryRecord[];
   record: IHistoryRecord;
   settings: ISettings;
+}
+
+export interface ISubscriptionServerDetails {
+  type: "apple" | "google";
+  product: string;
+  isActive: boolean;
+  expires: number;
+  autoRenew?: boolean;
+  // The product a queued plan switch will renew as, read authoritatively from Google
+  // subscriptionsv2 `deferredItemReplacement` server-side. Empty when no switch is queued.
+  pendingProduct?: string;
 }
 
 export class Service {
@@ -50,31 +192,224 @@ export class Service {
     id: string,
     args: { forcedUserEmail?: string }
   ): Promise<IGetStorageResponse> {
+    const historylimit = 20;
+    const body = JSON.stringify({
+      token,
+      id,
+      forceuseremail: args.forcedUserEmail,
+      historylimit,
+    });
     const response = await this.client(`${__API_HOST__}/api/signin/google`, {
       method: "POST",
-      body: JSON.stringify({
-        token,
-        id,
-        forceuseremail: args.forcedUserEmail,
-      }),
+      body: body,
       credentials: "include",
+      headers: Service_nativeClientHeaders(),
     });
-    const json = await response.json();
-    return { email: json.email, storage: json.storage, user_id: json.user_id };
+    const json: IGetStorageResponse = await response.json();
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      is_new_user: json.is_new_user,
+      session: json.session,
+    };
+  }
+
+  public async getAllHistoryRecords(args: {
+    alreadyFetchedHistory?: IHistoryRecord[];
+    historyLimit?: number;
+    userId?: string;
+    adminKey?: string;
+  }): Promise<IHistoryRecord[]> {
+    let history = args.alreadyFetchedHistory || [];
+    let historyResponse: IHistoryRecord[] | undefined = undefined;
+    let historyLimit = args.historyLimit || 20;
+    while ((historyResponse || history).length > historyLimit - 1) {
+      historyLimit = 100;
+      historyResponse = await this.getHistory({
+        after: history.length > 1 ? history[history.length - 2].id : undefined,
+        limit: historyLimit,
+        userId: args.userId,
+        adminKey: args.adminKey,
+      });
+      if (historyResponse.length > 0) {
+        history = [...history, ...historyResponse];
+      } else {
+        break;
+      }
+    }
+    history = CollectionUtils_uniqBy(history, "id");
+    return history;
+  }
+
+  public async getHistory(args: {
+    after?: number;
+    limit?: number;
+    userId?: string;
+    adminKey?: string;
+  }): Promise<IHistoryRecord[]> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/history`);
+    if (args.after) {
+      url.searchParams.set("after", args.after.toString());
+    }
+    if (args.limit) {
+      url.searchParams.set("limit", args.limit.toString());
+    }
+    if (args.userId != null && args.adminKey != null) {
+      url.searchParams.set("userid", args.userId);
+      url.searchParams.set("key", args.adminKey);
+    }
+    const response = await this.client(url.toString(), { credentials: "include" });
+    const json: { history: IHistoryRecord[] } = await response.json();
+    return json.history;
   }
 
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
+    const historylimit = 20;
     const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
       method: "POST",
       body: JSON.stringify({
         code,
         idToken,
         id,
+        historylimit,
       }),
       credentials: "include",
+      headers: Service_nativeClientHeaders(),
     });
-    const json = await response.json();
-    return { email: json.email, storage: json.storage, user_id: json.user_id };
+    const json: IGetStorageResponse = await response.json();
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      is_new_user: json.is_new_user,
+      session: json.session,
+    };
+  }
+
+  public async emailSignUp(email: string, password: string, id: string): Promise<IEmailAuthResponse> {
+    return this.emailAuth(`${__API_HOST__}/api/signup/email`, { email, password, id });
+  }
+
+  public async emailSignIn(email: string, password: string, id: string): Promise<IEmailAuthResponse> {
+    return this.emailAuth(`${__API_HOST__}/api/signin/email`, { email, password, id });
+  }
+
+  private async emailAuth(url: string, body: Record<string, string>): Promise<IEmailAuthResponse> {
+    const historylimit = 20;
+    let response: Response;
+    let json: IGetStorageResponse & { status?: string; error?: string; providers?: string[] };
+    try {
+      response = await this.client(url, {
+        method: "POST",
+        body: JSON.stringify({ ...body, historylimit }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      json = await response.json();
+    } catch (e) {
+      return { type: "error", error: "network_error" };
+    }
+    if (!response.ok) {
+      return { type: "error", error: json.error || "unknown_error", providers: json.providers };
+    }
+    if (json.status === "confirmation_sent") {
+      return { type: "confirmation_sent" };
+    }
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
+    return {
+      type: "success",
+      response: {
+        email: json.email,
+        storage: json.storage,
+        user_id: json.user_id,
+        is_new_user: json.is_new_user,
+        session: json.session,
+      },
+    };
+  }
+
+  public async forgotPassword(email: string): Promise<{ error?: string; providers?: string[] }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/forgotpassword`, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error", providers: json.providers };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async resetPassword(token: string, password: string): Promise<{ error?: string }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/resetpassword`, {
+        method: "POST",
+        body: JSON.stringify({ token, password }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error" };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async verifyEmail(token: string): Promise<{ error?: string }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/verifyemail`, {
+        method: "POST",
+        body: JSON.stringify({ token }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error" };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async changePassword(currentPassword: string | undefined, newPassword: string): Promise<string | undefined> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/changepassword`, {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return undefined;
+      }
+      const json = await response.json().catch(() => ({}));
+      return json.error || "unknown_error";
+    } catch (e) {
+      return "network_error";
+    }
   }
 
   public async signout(): Promise<void> {
@@ -85,51 +420,133 @@ export class Service {
     });
   }
 
-  public async ping(originalId: number): Promise<boolean> {
+  public async refreshGoogleSubscription(
+    userId: string,
+    googlePurchaseToken: string
+  ): Promise<ISubscriptionServerDetails | undefined> {
+    // Re-verifies the live purchase token (which also rewrites the server's details row) and returns the
+    // freshly-derived status incl. any queued deferred plan switch. Authorized by possession of the purchase
+    // token, so no userId-based read. Deliberately uncached: each refresh must reflect live Play state.
     try {
-      const result = await this.client(`${__API_HOST__}/api/ping/${originalId}`, {
-        method: "GET",
+      const url = UrlUtils_build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+      const result = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ googlePurchaseToken, userId }),
         credentials: "include",
       });
+      if (result.status === 200) {
+        const json = (await result.json()) as { subscription?: ISubscriptionServerDetails };
+        return json.subscription;
+      }
+    } catch {
+      // Network/parse failure: caller keeps its prior state rather than clearing the pending card.
+    }
+    return undefined;
+  }
+
+  public async getProgramRevisions(programId: string): Promise<IEither<string[], string>> {
+    const result = await this.client(`${__API_HOST__}/api/programrevisions/${programId}`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
       const json = await result.json();
-      return json.status === "stale";
-    } catch (e) {
-      return false;
+      return { success: true, data: json.data };
+    } else {
+      return { success: false, error: "error" };
     }
   }
 
-  public async saveDebugStorage(
-    prefix: string,
-    oldStorage: IStorage,
-    newStorage: IStorage,
-    mergedStorage: IStorage
-  ): Promise<void> {
-    try {
-      const result = await this.client(`${__API_HOST__}/api/debugstorage`, {
-        method: "POST",
-        body: JSON.stringify({ prefix, oldStorage, newStorage, mergedStorage }),
-        credentials: "include",
-      });
-      const json = await result.json();
-      return json;
-    } catch (e) {}
-  }
-
-  public async postStorage(storage: IPartialStorage, fields?: string[]): Promise<IPostStorageResponse> {
-    const result = await this.client(`${__API_HOST__}/api/storage`, {
-      method: "POST",
-      body: JSON.stringify({ storage, fields }),
+  public async getProgramRevision(programId: string, revision: string): Promise<IEither<string, string>> {
+    const result = await this.client(`${__API_HOST__}/api/programrevision/${programId}/${revision}`, {
+      method: "GET",
       credentials: "include",
     });
-    const json = await result.json();
+    if (result.ok) {
+      const json = await result.json();
+      return { success: true, data: json.text };
+    } else {
+      return { success: false, error: "error" };
+    }
+  }
+
+  public async postSync(args: {
+    storageUpdate: IStorageUpdate2;
+    tempUserId: string | undefined;
+    signal?: AbortSignal;
+    deviceId?: string;
+  }): Promise<IPostSyncResponse> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/sync2`);
+    if (args.tempUserId) {
+      url.searchParams.set("tempuserid", args.tempUserId);
+    }
+    const body = JSON.stringify({
+      storageUpdate: args.storageUpdate,
+      timestamp: Date.now(),
+      historylimit: 20,
+      deviceId: args.deviceId,
+    });
+    const compressedBody = await Encoder_encode(body);
+    const payload = JSON.stringify({ data: compressedBody });
+    const result = await this.client(url.toString(), {
+      method: "POST",
+      body: payload,
+      credentials: "include",
+      signal: args.signal,
+    });
+    const json: IPostSyncResponse = await result.json();
+    if (json.type === "dirty") {
+      json.storage.history = await this.getAllHistoryRecords({
+        alreadyFetchedHistory: json.storage.history,
+        historyLimit: 20,
+      });
+    }
     return json;
+  }
+
+  public async createDebugSession(
+    userId: string,
+    adminKey: string
+  ): Promise<{ session?: string; userId: string; email: string } | undefined> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/admin/debugsession`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({}),
+      credentials: "include",
+    });
+    if (response.status !== 200) {
+      return undefined;
+    }
+    return response.json();
+  }
+
+  public async postSetupTestAccount(apiKey?: string, session?: string): Promise<{ apiKeyBound: boolean; key: string }> {
+    const response = await this.client(`${__API_HOST__}/api/dev/setuptestaccount`, {
+      method: "POST",
+      body: JSON.stringify({ apiKey }),
+      credentials: "include",
+      headers: {
+        ...Service_nativeClientHeaders(),
+        ...(session ? { authorization: `Bearer ${session}` } : {}),
+      },
+    });
+    const json: { data?: { apiKeyBound: boolean; key: string }; error?: string } = await response
+      .json()
+      .catch(() => ({}));
+    if (response.status !== 200 || json.data == null) {
+      throw new Error(`Test account setup failed (${response.status}): ${json.error || "unknown error"}`);
+    }
+    return json.data;
   }
 
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
+      const compressed = await Encoder_encode(JSON.stringify({ state, meta }));
       const response = await this.client(`${__API_HOST__}/api/debug`, {
         method: "POST",
-        body: JSON.stringify({ id, data: { state, meta } }),
+        body: JSON.stringify({ id, data: compressed }),
         credentials: "include",
       });
       const json = await response.json();
@@ -148,8 +565,19 @@ export class Service {
     return json?.data?.claim;
   }
 
+  public async checkAdminKey(adminKey: string): Promise<boolean> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/admin/check`);
+    url.searchParams.set("key", adminKey);
+    try {
+      const response = await this.client(url.toString(), { credentials: "include" });
+      return response.status === 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/addfreeuser/${userid}`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/addfreeuser/${userid}`);
     url.searchParams.set("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
@@ -157,125 +585,170 @@ export class Service {
     });
   }
 
-  public async postSaveUserProgram(program: IExportedPlannerProgram): Promise<{ id: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/userplannerprogram`);
-    const response = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ program }),
-      credentials: "include",
-    });
-    const json = await response.json();
-    return json;
+  public async postSaveProgram(
+    program: IExportedProgram,
+    deviceId?: string,
+    source?: string
+  ): Promise<IEither<string, string>> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/program`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ program, deviceId, source }),
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (error) {
+      const e = error as Error;
+      return { success: false, error: e.message };
+    }
   }
 
-  public async postFreeformGenerator(prompt: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/freeform`);
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json.id;
+  public async deleteProgram(id: string): Promise<IEither<string, string>> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/program/${id}`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        const json = await response.json();
+        return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (error) {
+      const e = error as Error;
+      return { success: false, error: e.message };
+    }
   }
 
-  public async postPlannerReformatter(prompt: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatter`);
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json.data;
-  }
-
-  public async postPlannerReformatterFull(prompt: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/plannerreformatterfull`);
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      body: JSON.stringify({ prompt }),
-      credentials: "include",
-    });
-    const json = await result.json();
-    return json.data;
-  }
-
-  public async postClaimCoupon(code: string): Promise<IEither<{ key: string; expires: number }, IRedeemCouponError>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/coupon/claim/${code}`);
+  public async postClaimCoupon(
+    code: string,
+    platform?: "ios" | "android"
+  ): Promise<
+    IEither<
+      {
+        key?: string;
+        expires?: number;
+        appleOffer?: IAppleOffer;
+        googleOffer?: IGoogleOffer;
+        affiliate?: string;
+      },
+      IRedeemCouponError
+    >
+  > {
+    const url = UrlUtils_build(`${__API_HOST__}/api/coupon/claim/${code}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ platform }),
     });
     const json = await result.json();
     if (result.status === 200) {
-      const { key, expires } = json.data || {};
+      const { key, expires, appleOffer, googleOffer, affiliate } = json.data || {};
       if (key && expires) {
         return { success: true, data: { key, expires } };
+      } else if (appleOffer) {
+        return { success: true, data: { appleOffer, affiliate } };
+      } else if (googleOffer) {
+        return { success: true, data: { googleOffer, affiliate } };
       }
     } else if ("error" in json) {
       const error = json.error as IRedeemCouponError;
-      if (error === "not_authorized" || error === "coupon_not_found" || error === "coupon_already_claimed") {
+      if (
+        error === "not_authorized" ||
+        error === "coupon_not_found" ||
+        error === "coupon_already_claimed" ||
+        error === "coupon_disabled"
+      ) {
         return { success: false, error };
       }
     }
     return { success: false, error: "unknown" };
   }
 
-  public async getFreeformRecord(
-    id: string,
-    timeout: number
-  ): Promise<IEither<{ program: IProgram; response: string }, { error: string[]; response: string }>> {
-    const client = this.client;
-    return new Promise((resolve, reject) => {
-      const start = Date.now();
-      const fetchFreeformRecord = async (): Promise<void> => {
-        const url = UrlUtils.build(`${__API_HOST__}/api/freeform/${id}`);
-        const result = await client(url.toString(), {
-          method: "GET",
-          credentials: "include",
-        });
-        if (result.status === 404) {
-          if (Date.now() - start < timeout) {
-            setTimeout(() => {
-              fetchFreeformRecord();
-            }, 3000);
-          } else {
-            reject(new Error("timeout"));
-          }
-        } else {
-          const json = await result.json();
-          if (result.status === 200) {
-            resolve({ success: true, data: json });
-          } else {
-            resolve({ success: false, error: json });
-          }
-        }
-      };
-      fetchFreeformRecord();
-    });
-  }
-
-  public async getStorage(tempUserId: string, userId?: string, adminKey?: string): Promise<IGetStorageResponse> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
+  public async getStorage(
+    tempUserId: string,
+    userId?: string,
+    storageId?: string,
+    adminKey?: string
+  ): Promise<IGetStorageResponse> {
+    const historylimit = 20;
+    const url = UrlUtils_build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
     }
     if (userId != null && adminKey != null) {
       url.searchParams.set("userid", userId);
       url.searchParams.set("key", adminKey);
+      if (storageId) {
+        url.searchParams.set("storageid", storageId);
+      }
     }
+    url.searchParams.set("historylimit", historylimit.toString());
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
-    return { email: json.email, storage: json.storage, user_id: json.user_id, key: json.key };
+    if (json.storage?.history) {
+      json.storage.history = await this.getAllHistoryRecords({
+        alreadyFetchedHistory: json.storage.history,
+        historyLimit: historylimit,
+        userId: userId != null && adminKey != null ? userId : undefined,
+        adminKey: userId != null && adminKey != null ? adminKey : undefined,
+      });
+    }
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      key: json.key,
+      is_new_user: json.is_new_user,
+    };
+  }
+
+  public async getDebugSnapshotList(userId: string, adminKey: string): Promise<string[]> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/debuginfo`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json = await result.json();
+    return json.list ?? [];
+  }
+
+  public async getDebugSnapshotStorage(
+    userId: string,
+    adminKey: string,
+    timestamp: string
+  ): Promise<IStorage | undefined> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/debuginfo`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    url.searchParams.set("timestamp", timestamp);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json = await result.json();
+    if (json.storage == null) {
+      return undefined;
+    }
+    return JSON.parse(await Encoder_decode(json.storage));
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/exception/${id}`);
+    const apiUrl = UrlUtils_build(`${__API_HOST__}/api/exception/${id}`);
     try {
-      const result = await this.client(url.toString(), { credentials: "include" });
+      const result = await this.client(apiUrl.toString(), { credentials: "include" });
       const json = await result.json();
-      return json.data.data;
+      const s3Response = await this.client(json.url);
+      return s3Response.text();
     } catch (_) {
       return undefined;
     }
@@ -288,10 +761,57 @@ export class Service {
     return cachePromises[key];
   }
 
+  public async postEvent(event: IEventPayload): Promise<void> {
+    const nosync =
+      typeof window !== "undefined" && UrlUtils_build(window.location.href).searchParams.get("nosync") === "true";
+    if (nosync) {
+      return;
+    }
+    const url = UrlUtils_build(`${__API_HOST__}/api/event`);
+    await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify(event),
+      credentials: "include",
+    });
+  }
+
+  public async getUploadedImages(): Promise<string[]> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/uploadedimages`);
+    const response = await this.client(url.toString(), { credentials: "include" });
+    if (response.ok) {
+      const json: { data: { images: string[] } } = await response.json();
+      return json.data.images;
+    } else {
+      return [];
+    }
+  }
+
+  public async postImageUploadUrl(
+    fileName: string,
+    contentType: string
+  ): Promise<{ uploadUrl: string; imageUrl: string; key: string }> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/imageuploadurl`);
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({ fileName, contentType }),
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to get upload URL: ${error}`);
+    }
+
+    return response.json();
+  }
+
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
     const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
-        const url = UrlUtils.build(`${__API_HOST__}/api/verifyapplereceipt`);
+        const url = UrlUtils_build(`${__API_HOST__}/api/verifyapplereceipt`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ appleReceipt, userId }),
@@ -308,7 +828,7 @@ export class Service {
   public async verifyGooglePurchaseToken(userId: string, googlePurchaseToken: string): Promise<boolean> {
     const json = await this.cache(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
       try {
-        const url = UrlUtils.build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+        const url = UrlUtils_build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ googlePurchaseToken, userId }),
@@ -322,159 +842,206 @@ export class Service {
     return !!(json as { result: boolean }).result;
   }
 
-  public async getFriends(username: string): Promise<IFriend[]> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/friends`);
-    url.searchParams.set("username", username);
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { friends: IFriend[] } = await result.json();
-    return json.friends;
-  }
-
-  public async getFriendsHistory(startDate: string, endDate?: string): Promise<Partial<Record<string, IFriendUser>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/friendshistory`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
+  public async verifySubscriptionKey(userId: string, key: string): Promise<{ clear: boolean }> {
+    try {
+      const url = UrlUtils_build(`${__API_HOST__}/api/verifysubscriptionkey`);
+      // The server only verifies keys outside of prod when `enforce` is set — tests rely on it
+      const enforce =
+        typeof window !== "undefined" && window.location?.href
+          ? !!UrlUtils_build(window.location.href).searchParams.get("enforce")
+          : false;
+      const result = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ user: userId, key, enforce }),
+        credentials: "include",
+      });
+      if (result.status !== 200) {
+        return { clear: false };
+      }
+      const json = (await result.json()) as { data?: { clear?: boolean } };
+      return { clear: !!json.data?.clear };
+    } catch {
+      return { clear: false };
     }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    if (!result.ok) {
-      return {};
-    } else {
-      const json: { friends: Partial<Record<string, IFriendUser>> } = await result.json();
-      return json.friends;
-    }
-  }
-
-  public async inviteFriend(friendId: string, message: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/invite/${friendId}`);
-    return this.makeFriendCall("POST", url.toString(), JSON.stringify({ message }));
-  }
-
-  public async removeFriend(friendId: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/removefriend/${friendId}`);
-    return this.makeFriendCall("DELETE", url.toString());
-  }
-
-  public async acceptFrienshipInvitation(friendId: string): Promise<IEither<boolean, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/acceptfriendinvitation/${friendId}`);
-    return this.makeFriendCall("POST", url.toString());
-  }
-
-  public async getComments(startDate: string, endDate?: string): Promise<Partial<Record<number, IComment[]>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
-    }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { comments: Partial<Record<number, IComment[]>> } = await result.json();
-    return json.comments;
-  }
-
-  public async postComment(historyRecordId: string, friendId: string, text: string): Promise<IComment> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments`);
-    const body = JSON.stringify({ historyRecordId, friendId, text });
-    const result = await this.client(url.toString(), {
-      method: "POST",
-      credentials: "include",
-      body,
-      headers: { "Content-Type": "application/json" },
-    });
-    const json: { comment: IComment } = await result.json();
-    return json.comment;
-  }
-
-  public async deleteComment(id: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/comments/${id}`);
-    await this.client(url.toString(), { method: "DELETE", credentials: "include" });
   }
 
   public async deleteAccount(): Promise<boolean> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/deleteaccount`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/deleteaccount`);
     const response = await this.client(url.toString(), { method: "DELETE", credentials: "include" });
     const json = await response.json();
     return json.data === "ok";
   }
 
-  public async getLikes(startDate: string, endDate?: string): Promise<Partial<Record<string, ILike[]>>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/likes`);
-    url.searchParams.set("startdate", startDate);
-    if (endDate) {
-      url.searchParams.set("enddate", endDate);
-    }
-    const result = await this.client(url.toString(), { credentials: "include" });
-    const json: { likes: Partial<Record<string, ILike[]>> } = await result.json();
-    return json.likes;
-  }
-
-  public async like(friendId: string, historyRecordId: number): Promise<boolean | undefined> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/likes/${friendId}/${historyRecordId}`);
-    const result = await this.client(url.toString(), { method: "POST", credentials: "include" });
-    const json: { result?: boolean } = await result.json();
-    return json.result;
-  }
-
-  public async postShortUrl(urlToShorten: string, type: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/shorturl/${type}`);
+  public async postShortUrl(urlToShorten: string, type: string, src?: string): Promise<string> {
+    const url = UrlUtils_build(`${__API_HOST__}/shorturl/${type}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
-      body: JSON.stringify({ url: urlToShorten }),
+      body: JSON.stringify({ url: urlToShorten, src }),
     });
     if (result.ok) {
       const json: { url: string } = await result.json();
-      return UrlUtils.build(json.url, __HOST__).toString();
+      return UrlUtils_build(json.url, __HOST__).toString();
     } else {
       throw new Error("Couldn't shorten url");
     }
   }
 
-  public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/${type}/${id}`);
+  public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string; u?: string }> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
-      const json: { data: string; s?: string } = await result.json();
+      const json: { data: string; s?: string; u?: string } = await result.json();
       return json;
     } else {
       throw new Error(`Couldn't parse short url: ${url.toString()}`);
     }
   }
 
-  private async makeFriendCall(method: string, url: string, body?: string): Promise<IEither<boolean, string>> {
-    const result = await this.client(url, {
-      method: method,
-      credentials: "include",
-      ...(body ? { headers: { "Content-Type": "application/json" } } : {}),
-      body,
-    });
-    const json = await result.json();
-    if (result.ok) {
-      return "error" in json ? { success: false, error: json.error } : { success: true, data: true };
+  public async programsIndex(): Promise<IProgramIndexEntry[]> {
+    const response = await this.client(`${__HOST__}/programdata/index.json?v=${__COMMIT_HASH__}`);
+    return response.json();
+  }
+
+  public async programDetail(id: string, category: string = "builtin"): Promise<IProgramDetail> {
+    const response = await this.client(`${__HOST__}/programdata/programs/${category}/${id}.json?v=${__COMMIT_HASH__}`);
+    return response.json();
+  }
+
+  public async getMuscles(exercise: string): Promise<IMuscleGeneratorResponse | undefined> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/muscles`);
+    url.searchParams.set("exercise", exercise);
+    if (typeof window !== "undefined" && window.tempUserId) {
+      url.searchParams.set("tempuserid", window.tempUserId);
+    }
+    const response = await this.client(url.toString(), { credentials: "include" });
+    if (response.ok) {
+      const json: { data: IMuscleGeneratorResponse } = await response.json();
+      return json.data;
     } else {
-      return { success: false, error: "error" in json ? json.error : "Error" };
+      return undefined;
     }
   }
 
-  public async publishProgram(program: IProgram, adminKey: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/publishprogram`);
-    url.searchParams.set("key", adminKey);
-    await this.client(url.toString(), {
+  public async generateAiPrompt(input: string): Promise<{ prompt?: string; error?: string }> {
+    const response = await this.client(`${__API_HOST__}/api/ai/prompt`, {
       method: "POST",
-      body: JSON.stringify({ program }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ input }),
       credentials: "include",
     });
+
+    if (!response.ok && response.status !== 200) {
+      return { error: `HTTP ${response.status}: ${response.statusText}` };
+    }
+
+    const json = await response.json();
+    return json;
   }
 
-  public programs(): Promise<IProgram[]> {
-    return this.client(`${__API_HOST__}/api/programs`, { credentials: "include" })
-      .then((response) => response.json())
-      .then((json) => json.programs.map((p: { program: IProgram }) => p.program));
+  public async *streamAiLiftoscriptProgram(
+    input: string
+  ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
+    try {
+      const url = `${__STREAMING_API_HOST__}/stream/ai/liftoscript`;
+
+      const response = await this.client(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input }),
+        credentials: "include",
+      });
+
+      if (!response.ok && response.status !== 402) {
+        yield { type: "error", data: `HTTP ${response.status}: ${response.statusText}` };
+        return;
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        yield { type: "error", data: "No response body" };
+        return;
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim() === "") {
+            continue;
+          }
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") {
+              return;
+            }
+            try {
+              const json = JSON.parse(data);
+              yield json;
+            } catch (e) {
+              console.error("Failed to parse SSE data:", e, data);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
+    }
   }
 
-  public record(user: string, id: string): Promise<{ data: IRecordResponse } | { error: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/record`);
-    url.searchParams.set("user", user);
-    url.searchParams.set("id", id);
-    return this.client(url.toString(), { credentials: "include" }).then((response) => response.json());
+  public async getUserContext(): Promise<{ account?: IAccount; units?: IUnit }> {
+    const result = await this.client(`${__API_HOST__}/api/usercontext`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return { account: json.account || undefined, units: json.units || undefined };
+    }
+    return {};
+  }
+
+  public async getApiKeys(): Promise<{ key: string; name: string; createdAt: number }[]> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return json.data?.keys || [];
+    }
+    return [];
+  }
+
+  public async createApiKey(name: string): Promise<{ key: string; name: string; createdAt: number } | undefined> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return json.data;
+    }
+    return undefined;
+  }
+
+  public async deleteApiKey(key: string): Promise<boolean> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys/${encodeURIComponent(key)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    return result.ok;
   }
 }

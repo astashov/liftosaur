@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { INotification, IState, updateState } from "../models/state";
 import { IconClose } from "./icons/iconClose";
@@ -19,7 +19,7 @@ export function Notification(props: IProps): JSX.Element | null {
       className="absolute top-0 left-0 z-20 w-full p-4"
       style={{ minHeight: "40px" }}
       onClick={() => {
-        updateState(dispatch, [lb<IState>().p("notification").record(undefined)]);
+        updateState(dispatch, [lb<IState>().p("notification").record(undefined)], "Dismiss notification");
       }}
     >
       <div

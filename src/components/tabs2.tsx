@@ -1,9 +1,11 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { StringUtils } from "../utils/string";
-import { useState } from "preact/hooks";
+import { JSX, ReactNode, useState } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
+import { StringUtils_dashcase } from "../utils/string";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IProps {
-  tabs: [string, ComponentChildren][];
+  tabs: [string, ReactNode][];
   defaultIndex?: number;
   onChange?: (index: number, newValue: string) => void;
 }
@@ -12,33 +14,36 @@ export function Tabs2(props: IProps): JSX.Element {
   const { tabs, onChange } = props;
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
   return (
-    <div>
-      <div className="flex">
-        {tabs.map(([name, content], index) => {
-          const nameClass = `tab-${StringUtils.dashcase(name.toLowerCase())}`;
+    <View>
+      <View className="flex-row">
+        {tabs.map(([name], index) => {
+          const nameClass = `tab-${StringUtils_dashcase(name.toLowerCase())}`;
 
           return (
-            <div className="flex-1 text-center border-b border-grayv2-50">
-              <button
-                className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
-                  selectedIndex === index ? "text-orangev2 border-b border-orangev2" : ""
-                } nm-${nameClass}`}
-                style={selectedIndex === index ? { borderBottomWidth: "2px" } : {}}
-                data-cy={nameClass}
-                onClick={() => {
+            <View key={name} className="flex-1 items-center border-b border-border-neutral">
+              <Pressable
+                className="px-4 pb-1"
+                style={
+                  selectedIndex === index
+                    ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow }
+                    : undefined
+                }
+                data-testid={nameClass}
+                testID={nameClass}
+                onPress={() => {
                   if (onChange) {
                     onChange(index, name);
                   }
                   setSelectedIndex(index);
                 }}
               >
-                {name}
-              </button>
-            </div>
+                <Text className={`text-base ${selectedIndex === index ? "text-icon-yellow" : ""}`}>{name}</Text>
+              </Pressable>
+            </View>
           );
         })}
-      </div>
+      </View>
       {tabs[selectedIndex][1]}
-    </div>
+    </View>
   );
 }

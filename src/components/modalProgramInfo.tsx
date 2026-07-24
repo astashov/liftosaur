@@ -1,11 +1,13 @@
-import { h, JSX } from "preact";
+import { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Modal } from "./modal";
 import { IProgram, ISettings } from "../types";
 import { Link } from "./link";
 import { IconWatch } from "./icons/iconWatch";
-import { TimeUtils } from "../utils/time";
-import { Program } from "../models/program";
+import { TimeUtils_formatHHMM } from "../utils/time";
+import { Program_evaluate, Program_dayAverageTimeMs } from "../models/program";
+import { SimpleMarkdown } from "./simpleMarkdown";
 
 interface IProps {
   program: IProgram;
@@ -16,49 +18,54 @@ interface IProps {
   onClose: () => void;
 }
 
-export function ModalProgramInfo(props: IProps): JSX.Element {
-  const { program } = props;
-  const time = Program.dayAverageTimeMs(program, props.settings);
-  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
+export function ModalProgramInfoContent(props: IProps): JSX.Element {
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
+  const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
-      <h2 className="pr-6 text-lg font-bold">
-        {props.hasCustomPrograms ? "Clone" : "Start"} <Link href={program.url}>{program.name}</Link>
-      </h2>
-      <div className="text-sm text-grayv2-700">by {program.author}</div>
+    <>
+      <View>
+        <Text className="pr-6 text-lg font-bold">
+          {props.hasCustomPrograms ? "Clone" : "Start"}{" "}
+          <Link className="text-lg" href={props.program.url}>
+            {props.program.name}
+          </Link>
+        </Text>
+      </View>
+      <View>
+        <Text className="text-sm text-text-secondary">by {props.program.author}</Text>
+      </View>
       {formattedTime && (
-        <div className="flex items-center pb-1">
-          <div className="pr-1">
+        <View className="flex-row items-center pb-1">
+          <View className="pr-1">
             <IconWatch />
-          </div>
-          <div className="flex-1" style={{ paddingTop: "2px" }}>
-            Average time of a workout: <strong>{formattedTime}</strong>
-          </div>
-        </div>
+          </View>
+          <Text className="flex-1 text-sm" style={{ paddingTop: 2 }}>
+            Average time of a workout: <Text className="text-sm font-bold">{formattedTime}</Text>
+          </Text>
+        </View>
       )}
-      <div dangerouslySetInnerHTML={{ __html: program.description }} className="mt-4 program-description" />
-      <p className="mt-6 text-center">
+      <SimpleMarkdown value={props.program.description} className="mt-4 text-sm" />
+      <View className="flex-row justify-center gap-3 mt-4 mb-2">
         <Button
           name="preview-program"
-          data-cy="preview-program"
-          type="button"
-          kind="purple"
-          className="mr-3"
+          data-testid="preview-program"
+          testID="preview-program"
+          kind="grayv2"
           onClick={props.onPreview}
         >
           Preview
         </Button>
         <Button
           name="clone-program"
-          type="button"
-          kind="orange"
-          data-cy="clone-program"
-          className="mr-3 ls-modal-clone-program"
+          kind="purple"
+          data-testid="clone-program"
+          testID="clone-program"
           onClick={props.onSelect}
         >
           {props.hasCustomPrograms ? "Clone" : "Start"}
         </Button>
-      </p>
-    </Modal>
+      </View>
+    </>
   );
 }

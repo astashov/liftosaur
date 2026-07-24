@@ -1,25 +1,25 @@
+import { useCallback } from "react";
 import { IGDispatch, IGThunk } from "../ducks/types";
 import { useThunkReducer } from "./useThunkReducer";
 import { ILensRecordingPayload } from "lens-shmens";
-import { useCallback } from "preact/hooks";
-import { UrlUtils } from "./url";
+import { UrlUtils_build } from "./url";
 
 type IAction<TState> = {
   type: "Update";
   lensRecording: ILensRecordingPayload<TState>[];
-  desc?: string;
+  desc: string;
 };
 
-export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<TState>, desc?: string) => void;
+export type ILensDispatchSimple<TState> = (lensRecording: ILensRecordingPayload<TState>, desc: string) => void;
 
 export type ILensDispatch<TState> = (
   lensRecording: ILensRecordingPayload<TState> | ILensRecordingPayload<TState>[],
-  desc?: string
+  desc: string
 ) => void | Promise<void>;
 
 const isLoggingEnabled =
   typeof window !== "undefined" && window?.location
-    ? !!UrlUtils.build(window.location.href).searchParams.get("log")
+    ? !!UrlUtils_build(window.location.href).searchParams.get("log")
     : false;
 
 export function useLensReducer<TState, TEnv>(
@@ -67,7 +67,7 @@ export function useLensReducer<TState, TEnv>(
   const dispatch = useCallback(
     (
       lensRecording: ILensRecordingPayload<TState>[] | ILensRecordingPayload<TState>,
-      desc?: string
+      desc: string
     ): void | Promise<void> => {
       if (!Array.isArray(lensRecording)) {
         lensRecording = [lensRecording];

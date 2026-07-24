@@ -1,0 +1,47 @@
+import type { JSX } from "react";
+import { View } from "react-native";
+import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
+import { IExerciseType, ISettings } from "../../types";
+import { ILensDispatch } from "../../utils/useLensReducer";
+import { IEvaluatedProgram } from "../../models/program";
+import { EditProgramExerciseDay } from "./editProgramExerciseDay";
+
+interface IEditProgramExerciseDaysListProps {
+  evaluatedProgram: IEvaluatedProgram;
+  exerciseKey: string;
+  fullName: string;
+  exerciseType?: IExerciseType;
+  weekIndex: number;
+  ui: IPlannerExerciseUi;
+  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
+}
+
+export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListProps): JSX.Element {
+  const days = props.evaluatedProgram.weeks[props.weekIndex].days;
+
+  return (
+    <View>
+      {days.map((day, dayInWeekIndex) => {
+        return (
+          <EditProgramExerciseDay
+            key={`${props.weekIndex}-${dayInWeekIndex}-${props.exerciseKey}`}
+            exerciseKey={props.exerciseKey}
+            weekIndex={props.weekIndex}
+            dayInWeekIndex={dayInWeekIndex}
+            fullName={props.fullName}
+            exerciseType={props.exerciseType}
+            ui={props.ui}
+            evaluatedProgram={props.evaluatedProgram}
+            settings={props.settings}
+            plannerDispatch={props.plannerDispatch}
+            exerciseStateKey={props.exerciseStateKey}
+            programId={props.programId}
+          />
+        );
+      })}
+    </View>
+  );
+}

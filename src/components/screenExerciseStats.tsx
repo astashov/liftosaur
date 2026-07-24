@@ -1,362 +1,320 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, memo, useCallback, useMemo, useState } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { IScreen, Screen } from "../models/screen";
-import { IExerciseType, IHistoryRecord, ISettings, ISubscription } from "../types";
-import { ILoading, IState, updateState, updateSettings } from "../models/state";
-import { History } from "../models/history";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
-import { Exercise } from "../models/exercise";
-import { MenuItemEditable } from "./menuItemEditable";
-import { CollectionUtils } from "../utils/collection";
+import { IExerciseType, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
+import { INavCommon, updateSettings } from "../models/state";
+import {
+  History_collectMinAndMaxTime,
+  History_collectAllUsedExerciseTypes,
+  History_collectAllHistoryRecordsOfExerciseType,
+  History_collectWeightPersonalRecord,
+  History_collect1RMPersonalRecord,
+} from "../models/history";
+import { useNavOptions } from "../navigation/useNavOptions";
+import {
+  IExercise,
+  Exercise_get,
+  Exercise_fullName,
+  Exercise_isCustom,
+  Exercise_getNotes,
+  Exercise_toKey,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscleMultipliers,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+} from "../models/exercise";
+import { CollectionUtils_sort } from "../utils/collection";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
 import { GraphExercise } from "./graphExercise";
-import { GroupHeader } from "./groupHeader";
-import { MenuItem, MenuItemWrapper } from "./menuItem";
 import { Collector } from "../utils/collector";
-import { DateUtils } from "../utils/date";
-import { HistoryRecordSetsView } from "./historyRecordSets";
-import { IconArrowRight } from "./icons/iconArrowRight";
-import { IconFilter } from "./icons/iconFilter";
-import { useState } from "preact/hooks";
-import { Weight } from "../models/weight";
 import { Locker } from "./locker";
-import { HelpExerciseStats } from "./help/helpExerciseStats";
-import { StringUtils } from "../utils/string";
-import { useGradualList } from "../utils/useGradualList";
-import { ObjectUtils } from "../utils/object";
-import { Reps } from "../models/set";
-import { ExerciseRM } from "./exerciseRm";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { ExerciseDataSettings } from "./exerciseDataSettings";
+import { LinkButton } from "./linkButton";
+import { Thunk_pullScreen } from "../ducks/thunks";
+import { Program_evaluate, Program_getProgramExercisesFromExerciseType } from "../models/program";
+import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
+import { ExerciseHistory } from "./exerciseHistory";
+import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
+import { GroupHeader } from "./groupHeader";
+import { StringUtils_capitalize } from "../utils/string";
+import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { navigateToModal } from "../navigation/navigationService";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IProps {
   exerciseType: IExerciseType;
-  screenStack: IScreen[];
   history: IHistoryRecord[];
   dispatch: IDispatch;
   subscription: ISubscription;
   settings: ISettings;
-  loading: ILoading;
+  navCommon: INavCommon;
+  currentProgram?: IProgram;
 }
 
 export function ScreenExerciseStats(props: IProps): JSX.Element {
-  const [showFilters, setShowFilters] = useState(false);
   const exerciseType = props.exerciseType;
-  const fullExercise = Exercise.get(props.exerciseType, props.settings.exercises);
-  const historyCollector = Collector.build(props.history)
-    .addFn(History.collectMinAndMaxTime())
-    .addFn(History.collectAllUsedExerciseTypes())
-    .addFn(History.collectAllHistoryRecordsOfExerciseType(exerciseType))
-    .addFn(History.collectWeightPersonalRecord(exerciseType, props.settings.units))
-    .addFn(History.collect1RMPersonalRecord(exerciseType, props.settings));
+  const { settings, dispatch, history: rawHistory, currentProgram } = props;
+
+  const evaluatedProgram = useMemo(
+    () => (currentProgram ? Program_evaluate(currentProgram, settings) : undefined),
+    [currentProgram, settings]
+  );
+  const programExerciseIds = useMemo(
+    () =>
+      evaluatedProgram
+        ? Program_getProgramExercisesFromExerciseType(evaluatedProgram, exerciseType).map((pe) => pe.key)
+        : [],
+    [evaluatedProgram, exerciseType]
+  );
+  const fullExercise = useMemo(
+    () => Exercise_get(exerciseType, settings.exercises),
+    [exerciseType, settings.exercises]
+  );
+
+  const units = settings.units;
+  const collectorResult = useMemo(() => {
+    const historyCollector = Collector.build(rawHistory)
+      .addFn(History_collectMinAndMaxTime())
+      .addFn(History_collectAllUsedExerciseTypes())
+      .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
+      .addFn(History_collectWeightPersonalRecord(exerciseType, units))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, units));
+    return historyCollector.run();
+  }, [rawHistory, exerciseType, units]);
 
   const [
     { maxTime: maxX, minTime: minX },
-    exerciseTypes,
+    _exerciseTypes,
     unsortedHistory,
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
-  ] = historyCollector.run();
-  let history = unsortedHistory;
-  if (
-    props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ||
-    props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes
-  ) {
-    history = history.filter((hr) => {
-      let result = true;
-      if (props.settings.exerciseStatsSettings.hideWithoutExerciseNotes) {
-        result = result && hr.entries.some((e) => e.notes);
-      }
-      if (props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes) {
-        result = result && !!hr.notes;
-      }
-      return result;
-    });
-  }
-  history = CollectionUtils.sort(history, (a, b) => {
-    return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
-  });
+  ] = collectorResult;
 
-  const [containerRef, visibleRecords] = useGradualList(history, 20, () => {});
-
-  const exercises = CollectionUtils.nonnull(
-    Object.values(exerciseTypes).map<[string, string] | undefined>((e) => {
-      if (e != null) {
-        const exercise = Exercise.find(e, props.settings.exercises);
-        if (exercise != null) {
-          return [Exercise.toKey(e), Exercise.fullName(exercise, props.settings.equipment)];
-        }
-      }
-      return undefined;
-    })
+  const ascendingSort = settings.exerciseStatsSettings.ascendingSort;
+  const history = useMemo(
+    () =>
+      CollectionUtils_sort(unsortedHistory, (a, b) =>
+        ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime
+      ),
+    [unsortedHistory, ascendingSort]
   );
-  const showPrs = maxWeight.value > 0 || max1RM.value > 0;
-  return (
-    <Surface
-      ref={containerRef}
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          helpContent={<HelpExerciseStats />}
-          screenStack={props.screenStack}
-          title="Exercise Stats"
-          subtitle={StringUtils.truncate(fullExercise.name, 35)}
-        />
-      }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
-    >
-      <section className="px-4">
-        {exercises.length > 0 && (
-          <MenuItemEditable
-            type="select"
-            name="Exercise"
-            value={Exercise.toKey(exerciseType)}
-            values={exercises}
-            onChange={(value) => {
-              const exType = value ? Exercise.fromKey(value) : undefined;
-              updateState(props.dispatch, [lb<IState>().p("viewExerciseType").record(exType)]);
-            }}
-          />
-        )}
-        <section className="my-2">
-          <ExerciseRM
-            name="1 Rep Max"
-            rmKey="rm1"
-            exercise={fullExercise}
-            settings={props.settings}
-            onEditVariable={(value) => {
-              updateState(props.dispatch, [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("exerciseData")
-                  .recordModify((data) => {
-                    const k = Exercise.toKey(fullExercise);
-                    return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
-                  }),
-              ]);
-            }}
-          />
-        </section>
 
-        <div data-cy="exercise-stats-image">
-          <ExerciseImage
-            settings={props.settings}
-            key={Exercise.toKey(exerciseType)}
-            exerciseType={exerciseType}
-            size="large"
+  const showPrs = maxWeight.value > 0 || max1RM.value > 0;
+
+  useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
+
+  const onOverrideMuscles = useCallback(() => {
+    navigateToModal("musclesOverrideModal", { exerciseType });
+  }, [exerciseType]);
+
+  const onEditCustomExercise = useCallback(() => {
+    navigateToModal("customExerciseModal", { exerciseId: exerciseType.id });
+  }, [exerciseType.id]);
+
+  const onDeleteCustomExercise = useCallback(async () => {
+    if (await Dialog_confirm("Are you sure you want to delete this exercise?")) {
+      updateSettings(
+        dispatch,
+        lb<ISettings>()
+          .p("exercises")
+          .recordModify((exercises) => {
+            const exercise = exercises[fullExercise.id];
+            return exercise != null ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } } : exercises;
+          }),
+        "Delete custom exercise"
+      );
+      dispatch(Thunk_pullScreen());
+    }
+  }, [dispatch, fullExercise.id]);
+
+  const onNotesChange = useCallback(
+    (v: string) => {
+      updateSettings(
+        dispatch,
+        lb<ISettings>()
+          .p("exerciseData")
+          .recordModify((data) => {
+            const key = Exercise_toKey(exerciseType);
+            return { ...data, [key]: { ...data[key], notes: v } };
+          }),
+        "Update exercise notes"
+      );
+    },
+    [dispatch, exerciseType]
+  );
+
+  const notesValue = useMemo(() => Exercise_getNotes(exerciseType, settings), [exerciseType, settings.exerciseData]);
+  const isCustom = useMemo(
+    () => Exercise_isCustom(fullExercise.id, settings.exercises),
+    [fullExercise.id, settings.exercises]
+  );
+  const exerciseKey = useMemo(() => Exercise_toKey(exerciseType), [exerciseType]);
+  const fullName = useMemo(() => Exercise_fullName(fullExercise, settings), [fullExercise, settings]);
+  const isInteractive = useMemo(() => Subscriptions_hasSubscription(props.subscription), [props.subscription]);
+
+  const maxWeightProp = useMemo(
+    () => (maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined),
+    [maxWeight, maxWeightHistoryRecord]
+  );
+  const max1RMProp = useMemo(
+    () => (max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined),
+    [max1RM, max1RMHistoryRecord, max1RMSet]
+  );
+
+  return (
+    <View className="px-4">
+      <Text className="text-xl font-bold">{fullName}</Text>
+      <Text className="text-xs text-text-secondary">{isCustom ? "Custom exercise" : "Built-in exercise"}</Text>
+      <View className="py-2">
+        <MuscleGroupsView exercise={fullExercise} settings={settings} onOverride={onOverrideMuscles} />
+      </View>
+      {isCustom && (
+        <View className="flex-row mb-2">
+          <View className="flex-1">
+            <LinkButton className="text-sm" name="edit-custom-exercise-stats" onClick={onEditCustomExercise}>
+              Edit
+            </LinkButton>
+          </View>
+          <View>
+            <LinkButton
+              name="edit-custom-exercise-stats"
+              className="text-sm text-text-error"
+              onClick={onDeleteCustomExercise}
+            >
+              Delete Exercise
+            </LinkButton>
+          </View>
+        </View>
+      )}
+
+      <GroupHeader name="Notes" />
+      <View style={{ marginHorizontal: -4 }}>
+        <MarkdownEditorBorderless
+          debounceMs={500}
+          value={notesValue}
+          placeholder={`Exercise notes in Markdown...`}
+          onChange={onNotesChange}
+        />
+      </View>
+
+      <ExerciseDataSettings
+        fullExercise={fullExercise}
+        programExerciseIds={programExerciseIds}
+        settings={settings}
+        dispatch={dispatch}
+        show1RM={true}
+      />
+
+      <View data-testid="exercise-stats-image" testID="exercise-stats-image">
+        <ExerciseImage settings={settings} key={exerciseKey} exerciseType={exerciseType} size="large" />
+      </View>
+      {history.length > 1 && (
+        <View data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">
+          <Locker topic="Graphs" dispatch={dispatch} blur={8} subscription={props.subscription} />
+          <GraphExercise
+            isSameXAxis={false}
+            minX={Math.round(minX / 1000)}
+            maxX={Math.round(maxX / 1000)}
+            isWithOneRm={true}
+            key={exerciseKey}
+            settings={settings}
+            isWithProgramLines={true}
+            history={rawHistory}
+            exercise={exerciseType}
+            initialType={settings.graphsSettings.defaultType}
+            dispatch={dispatch}
+            isInteractive={isInteractive}
           />
-        </div>
-        {history.length > 1 && (
-          <div data-cy="exercise-stats-graph" className="relative">
-            <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
-            <GraphExercise
-              isSameXAxis={false}
-              minX={Math.round(minX / 1000)}
-              maxX={Math.round(maxX / 1000)}
-              isWithOneRm={true}
-              key={Exercise.toKey(exerciseType)}
-              settings={props.settings}
-              isWithProgramLines={true}
-              history={props.history}
-              exercise={exerciseType}
-              initialType={props.settings.graphsSettings.defaultType}
-              dispatch={props.dispatch}
-            />
-          </div>
-        )}
-        {showPrs && (
-          <section data-cy="exercise-stats-pr" className="px-4 py-2 mt-8 bg-purple-100 rounded-2xl">
-            <GroupHeader topPadding={false} name="🏆 Personal Records" />
-            {maxWeight.value > 0 && (
-              <MenuItem
-                name="Max Weight"
-                expandName={true}
-                onClick={() =>
-                  maxWeightHistoryRecord &&
-                  props.dispatch({ type: "EditHistoryRecord", historyRecord: maxWeightHistoryRecord })
-                }
-                value={
-                  <div className="text-blackv2">
-                    <div data-cy="max-weight-value">{Weight.display(maxWeight)}</div>
-                    {maxWeightHistoryRecord && (
-                      <div className="text-xs text-grayv2-main">
-                        {DateUtils.format(maxWeightHistoryRecord.startTime)}
-                      </div>
-                    )}
-                  </div>
-                }
-                shouldShowRightArrow={true}
-              />
-            )}
-            {max1RM.value > 0 && (
-              <MenuItem
-                isBorderless={true}
-                expandValue={true}
-                onClick={() =>
-                  max1RMHistoryRecord &&
-                  props.dispatch({ type: "EditHistoryRecord", historyRecord: max1RMHistoryRecord })
-                }
-                name="Max 1RM"
-                value={
-                  <div className="text-blackv2">
-                    <div data-cy="one-rm-value">
-                      {Weight.display(max1RM)}
-                      {max1RMSet ? ` (${max1RMSet.reps} x ${Weight.display(max1RMSet.weight)})` : ""}
-                    </div>
-                    {max1RMHistoryRecord && (
-                      <div className="text-xs text-grayv2-main">{DateUtils.format(max1RMHistoryRecord.startTime)}</div>
-                    )}
-                  </div>
-                }
-                shouldShowRightArrow={true}
-              />
-            )}
-          </section>
-        )}
-        <section data-cy="exercise-stats-history">
-          <GroupHeader
-            topPadding={true}
-            name={`${Exercise.fullName(fullExercise, props.settings.equipment)} History`}
-            rightAddOn={
-              <button
-                className="p-2 nm-exercise-stats-navbar-filter"
-                data-cy="exercise-stats-history-filter"
-                style={{ marginRight: "-0.5rem", marginTop: "-0.5rem" }}
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <IconFilter />
-              </button>
-            }
-          />
-          {showFilters && (
-            <section>
-              <MenuItemEditable
-                type="boolean"
-                name="Ascending sort by date"
-                value={!!props.settings.exerciseStatsSettings.ascendingSort ? "true" : "false"}
-                onChange={() => {
-                  updateSettings(
-                    props.dispatch,
-                    lb<ISettings>()
-                      .p("exerciseStatsSettings")
-                      .p("ascendingSort")
-                      .record(!props.settings.exerciseStatsSettings.ascendingSort)
-                  );
-                }}
-              />
-              <MenuItemEditable
-                type="boolean"
-                name="Hide entries without exercise notes"
-                value={!!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ? "true" : "false"}
-                onChange={() => {
-                  updateSettings(
-                    props.dispatch,
-                    lb<ISettings>()
-                      .p("exerciseStatsSettings")
-                      .p("hideWithoutExerciseNotes")
-                      .record(!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes)
-                  );
-                }}
-              />
-              <MenuItemEditable
-                type="boolean"
-                name="Hide entries without workout notes"
-                value={!!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes ? "true" : "false"}
-                onChange={() => {
-                  updateSettings(
-                    props.dispatch,
-                    lb<ISettings>()
-                      .p("exerciseStatsSettings")
-                      .p("hideWithoutWorkoutNotes")
-                      .record(!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes)
-                  );
-                }}
-              />
-            </section>
-          )}
-          {history.slice(0, visibleRecords).map((historyRecord) => {
-            const exerciseEntries = historyRecord.entries.filter((e) => Exercise.eq(e.exercise, fullExercise));
-            const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
-            return (
-              <MenuItemWrapper
-                onClick={() => {
-                  props.dispatch({ type: "EditHistoryRecord", historyRecord });
-                }}
-                name={`${historyRecord.startTime}`}
-              >
-                <div className="py-2">
-                  <div className="flex text-xs text-grayv2-main">
-                    <div className="mr-2 font-bold">{DateUtils.format(historyRecord.date)}</div>
-                    <div className="flex-1 text-right">
-                      {historyRecord.programName}, {historyRecord.dayName}
-                    </div>
-                  </div>
-                  <div className="flex">
-                    <div className="flex-1">
-                      <div>
-                        {exerciseEntries.map((entry) => {
-                          const state = entry.state || {};
-                          const vars = entry.vars || {};
-                          for (const key of ObjectUtils.keys(vars)) {
-                            const name = { rm1: "1 Rep Max" }[key] || key;
-                            state[name] = vars[key];
-                          }
-                          const volume = Reps.volume(entry.sets);
-                          return (
-                            <div className="pt-1">
-                              <HistoryRecordSetsView sets={entry.sets} settings={props.settings} isNext={false} />
-                              {volume.value > 0 && (
-                                <div className="mb-1 text-xs leading-none text-left text-grayv2-main">
-                                  Volume: <strong>{Weight.print(volume)}</strong>
-                                </div>
-                              )}
-                              {Object.keys(state).length > 0 && (
-                                <div className="text-xs text-grayv2-main">
-                                  {ObjectUtils.keys(state).map((stateKey, i) => {
-                                    const value = state[stateKey];
-                                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
-                                    return (
-                                      <>
-                                        {i !== 0 && ", "}
-                                        <span>
-                                          {stateKey} - <strong>{displayValue}</strong>
-                                        </span>
-                                      </>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {exerciseNotes.length > 0 && (
-                        <ul>
-                          {exerciseNotes.map((n) => (
-                            <li className="text-sm text-grayv2-main">{n}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {historyRecord.notes && (
-                        <p className="text-sm text-grayv2-main">
-                          <span className="font-bold">Workout: </span>
-                          <span>{historyRecord.notes}</span>
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex items-center py-2 pl-2">
-                      <IconArrowRight style={{ color: "#a0aec0" }} />
-                    </div>
-                  </div>
-                </div>
-              </MenuItemWrapper>
-            );
-          })}
-        </section>
-      </section>
-    </Surface>
+        </View>
+      )}
+      {showPrs && (
+        <View className="mt-8">
+          <ExerciseAllTimePRs maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
+        </View>
+      )}
+      <ExerciseHistory exerciseType={exerciseType} settings={settings} dispatch={dispatch} history={history} />
+    </View>
   );
 }
+
+interface IMuscleGroupsViewProps {
+  exercise: IExercise;
+  settings: ISettings;
+  onOverride: () => void;
+}
+
+export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGroupsViewProps): JSX.Element {
+  const { exercise, settings } = props;
+  const targetMuscles = useMemo(() => Exercise_targetMuscles(exercise, settings), [exercise, settings]);
+  const synergistMuscles = useMemo(
+    () =>
+      Exercise_synergistMuscleMultipliers(exercise, settings)
+        .filter((m) => targetMuscles.indexOf(m.muscle) === -1)
+        .map((m) => `${m.muscle}${m.multiplier !== settings.planner.synergistMultiplier ? `:${m.multiplier}` : ""}`),
+    [exercise, settings, targetMuscles]
+  );
+  const targetMuscleGroups = useMemo(
+    () => Exercise_targetMusclesGroups(exercise, settings).map((m) => Muscle_getMuscleGroupName(m, settings)),
+    [exercise, settings]
+  );
+  const synergistMuscleGroups = useMemo(
+    () =>
+      Exercise_synergistMusclesGroups(exercise, settings)
+        .map((m) => Muscle_getMuscleGroupName(m, settings))
+        .filter((m) => targetMuscleGroups.indexOf(m) === -1),
+    [exercise, settings, targetMuscleGroups]
+  );
+  const [showMuscles, setShowMuscles] = useState(false);
+
+  const types = useMemo(() => exercise.types.map((t) => StringUtils_capitalize(t)), [exercise.types]);
+  const onToggleMuscles = useCallback(() => setShowMuscles((s) => !s), []);
+
+  return (
+    <View>
+      <View>
+        <LinkButton
+          data-testid="override-exercise-muscles"
+          testID="override-exercise-muscles"
+          name="override-exercise-muscles"
+          className="text-xs"
+          onClick={props.onOverride}
+        >
+          Override Muscles
+        </LinkButton>
+      </View>
+      <Pressable onPress={onToggleMuscles}>
+        {types.length > 0 && (
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Type: </Text>
+              <Text className="text-xs font-bold">{types.join(", ")}</Text>
+            </Text>
+          </View>
+        )}
+        {targetMuscleGroups.length > 0 && (
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Target: </Text>
+              <Text className="text-xs font-bold">
+                {showMuscles ? targetMuscles.join(", ") : targetMuscleGroups.join(", ")}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {synergistMuscleGroups.length > 0 && (
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Synergist: </Text>
+              <Text className="text-xs font-bold">
+                {showMuscles ? synergistMuscles.join(", ") : synergistMuscleGroups.join(", ")}
+              </Text>
+            </Text>
+          </View>
+        )}
+      </Pressable>
+    </View>
+  );
+});

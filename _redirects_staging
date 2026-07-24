@@ -3,21 +3,58 @@
 /record id=:id user=:user https://api3-dev.liftosaur.com/api/record?id=:id&user=:user  200
 /recordimage id=:id user=:user https://api3-dev.liftosaur.com/api/recordimage?id=:id&user=:user  200
 /externalimages/* https://liftosaurimages2.s3-us-west-2.amazonaws.com/:splat  200
+/userimages/* https://liftosauruserimagesdev.s3-us-west-2.amazonaws.com/:splat  200
 /admin/users key=:key https://api3-dev.liftosaur.com/admin/users?key=:key  200
 /dashboards/users key=:key https://api3-dev.liftosaur.com/dashboards/users?key=:key  200
+/dashboards/payments key=:key https://api3-dev.liftosaur.com/dashboards/payments?key=:key  200
+/dashboards/user/:userid key=:key https://api3-dev.liftosaur.com/dashboards/user/:userid?key=:key  200
+/dashboards/affiliates/:id key=:key https://api3-dev.liftosaur.com/dashboards/affiliates/:id?key=:key  200
+/user/affiliates https://api3-dev.liftosaur.com/user/affiliates  200
 /admin/logs key=:key https://api3-dev.liftosaur.com/admin/logs?key=:key  200
 /profile/:user https://api3-dev.liftosaur.com/profile?user=:user  200
 /profileimage/:user https://api3-dev.liftosaur.com/profileimage?user=:user  200
-/acceptfriendinvitation hash=:hash https://api3-dev.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
-/acceptfriendinvitation hash=:hash https://api3-dev.liftosaur.com/api/acceptfriendinvitation?hash=:hash  200
+/programs https://api3-dev.liftosaur.com/programs  200
 /programs/:programId https://api3-dev.liftosaur.com/programs/:programId  200
 /planner https://api3-dev.liftosaur.com/planner  200
 /affiliates https://api3-dev.liftosaur.com/affiliates  200
-/freeform https://api3-dev.liftosaur.com/freeform  200
+/ai https://api3-dev.liftosaur.com/ai  200
+/ai/prompt https://api3-dev.liftosaur.com/ai/prompt  200
 /program https://api3-dev.liftosaur.com/program  200
 /p/:id https://api3-dev.liftosaur.com/p/:id  200
 /n/:id https://api3-dev.liftosaur.com/n/:id  200
 /programimage/:id https://api3-dev.liftosaur.com/api/programimage/:id  200
 /user/programs https://api3-dev.liftosaur.com/user/programs  200
 /user/p/:id https://api3-dev.liftosaur.com/user/p/:id  200
-/docs https://stage.liftosaur.com/blog/docs  200
+/docs https://api3-dev.liftosaur.com/docs  200
+/docs/:id https://api3-dev.liftosaur.com/docs/:id  200
+/login https://api3-dev.liftosaur.com/login  200
+/exercises https://api3-dev.liftosaur.com/exercises  200
+/exercises/:id https://api3-dev.liftosaur.com/exercises/:id  200
+/.well-known/skadnetwork/report-attribution https://api3-dev.liftosaur.com/api/adattr  200
+
+/rep-max-calculator https://api3-dev.liftosaur.com/rep-max-calculator  200
+/one-rep-max-calculator https://api3-dev.liftosaur.com/one-rep-max-calculator  200
+/two-rep-max-calculator https://api3-dev.liftosaur.com/two-rep-max-calculator  200
+/three-rep-max-calculator https://api3-dev.liftosaur.com/three-rep-max-calculator  200
+/four-rep-max-calculator https://api3-dev.liftosaur.com/four-rep-max-calculator  200
+/five-rep-max-calculator https://api3-dev.liftosaur.com/five-rep-max-calculator  200
+/six-rep-max-calculator https://api3-dev.liftosaur.com/six-rep-max-calculator  200
+/seven-rep-max-calculator https://api3-dev.liftosaur.com/seven-rep-max-calculator  200
+/eight-rep-max-calculator https://api3-dev.liftosaur.com/eight-rep-max-calculator  200
+/nine-rep-max-calculator https://api3-dev.liftosaur.com/nine-rep-max-calculator  200
+/ten-rep-max-calculator https://api3-dev.liftosaur.com/ten-rep-max-calculator  200
+/eleven-rep-max-calculator https://api3-dev.liftosaur.com/eleven-rep-max-calculator  200
+/twelve-rep-max-calculator https://api3-dev.liftosaur.com/twelve-rep-max-calculator  200
+/rm https://api3-dev.liftosaur.com/rm  200
+/1rm https://api3-dev.liftosaur.com/1rm  200
+/2rm https://api3-dev.liftosaur.com/2rm  200
+/3rm https://api3-dev.liftosaur.com/3rm  200
+/4rm https://api3-dev.liftosaur.com/4rm  200
+/5rm https://api3-dev.liftosaur.com/5rm  200
+/6rm https://api3-dev.liftosaur.com/6rm  200
+/7rm https://api3-dev.liftosaur.com/7rm  200
+/8rm https://api3-dev.liftosaur.com/8rm  200
+/9rm https://api3-dev.liftosaur.com/9rm  200
+/10rm https://api3-dev.liftosaur.com/10rm  200
+/11rm https://api3-dev.liftosaur.com/11rm  200
+/12rm https://api3-dev.liftosaur.com/12rm  200

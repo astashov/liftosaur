@@ -1,128 +1,185 @@
-import { h, JSX } from "preact";
-import { ProgramSet } from "../models/programSet";
-import { Reps } from "../models/set";
-import { Weight } from "../models/weight";
-import { IProgramSet, ISet, ISettings } from "../types";
+import { JSX, memo, useMemo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { FastText } from "./primitives/fastText";
+import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
+import { ISet, IUnit } from "../types";
+import { CollectionUtils_compact } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
+import { IHistoryEntryPersonalRecords } from "../models/history";
+import { StyledText, StyledText_remToPx } from "../utils/styledText";
+import { useRem } from "../utils/useRem";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
+import { TimeUtils_formatMMSS } from "../utils/time";
 
-interface IDisplaySet {
-  reps: string;
-  weight: string;
-  rpe?: string;
-  askWeight?: boolean;
-  completedRpe?: string;
-  isCompleted?: boolean;
-  isInRange?: boolean;
+function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
+  return (
+    a.reps === b.reps &&
+    a.weight === b.weight &&
+    a.rpe === b.rpe &&
+    a.askWeight === b.askWeight &&
+    a.timer === b.timer &&
+    a.setTimer === b.setTimer &&
+    a.isOverflowSetTimer === b.isOverflowSetTimer &&
+    a.auto === b.auto
+  );
 }
 
-export function HistoryRecordSetsView(props: {
+interface IHistoryRecordSetsProps {
+  showPrDetails?: boolean;
   sets: ISet[];
   isNext: boolean;
-  noWrap?: boolean;
-  settings: ISettings;
-}): JSX.Element {
-  const { sets, isNext, settings } = props;
-  const groups = Reps.group(sets, isNext);
-  const displayGroups = groups.map((g) => {
-    return g.map((set) => {
-      return {
-        reps: isNext ? Reps.displayReps(set) : Reps.displayCompletedReps(set),
-        rpe: set.rpe?.toString(),
-        completedRpe: set.completedRpe?.toString(),
-        weight: Weight.display(Weight.convertTo(set.weight, settings.units), false),
-        askWeight: set.askWeight,
-        isCompleted: Reps.isCompletedSet(set),
-        isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
-      };
-    });
-  });
-  const hasRpe = displayGroups.some((group) => group.some((set) => set.rpe || set.completedRpe));
-  return (
-    <div className={`flex ${props.noWrap ? "" : "flex-wrap"}`}>
-      {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} isNext={props.isNext} hasRpe={hasRpe} />
-      ))}
-    </div>
-  );
+  units: IUnit;
+  prs?: IHistoryEntryPersonalRecords;
 }
 
-export function HistoryRecordProgramSetsView(props: { sets: IProgramSet[] }): JSX.Element {
-  const { sets } = props;
-  const groups = ProgramSet.group(sets);
-  const displayGroups = groups.map((g) => {
-    return g.map((set) => {
-      const reps = set.minRepsExpr ? `${set.minRepsExpr}-${set.repsExpr}` : `${set.repsExpr}`;
-      return {
-        reps: set.isAmrap ? `${reps}+` : `${reps}`,
-        weight: set.weightExpr,
-        isCompleted: true,
-      };
-    });
-  });
+export const HistoryRecordSetsView = memo(function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
+  const { sets, isNext, units } = props;
+  const displayGroups = useMemo(() => {
+    const groups = Reps_group(sets, isNext);
+    return groups.map((g) => g.map((set) => Reps_setToDisplaySet(set, isNext, units)));
+  }, [sets, isNext, units]);
   return (
-    <div className="flex flex-wrap">
-      {displayGroups.map((g) => (
-        <HistoryRecordSet sets={g} isNext={true} />
+    <View className="text-sm" style={{ alignItems: "flex-end" }}>
+      {displayGroups.map((g, i) => (
+        <HistoryRecordSet
+          key={i}
+          sets={g}
+          prs={props.prs}
+          isNext={props.isNext}
+          showPrDetails={props.showPrDetails}
+          units={props.units}
+        />
       ))}
-    </div>
+    </View>
   );
+});
+
+interface IHistoryRecordSet2Props {
+  prs?: IHistoryEntryPersonalRecords;
+  units: IUnit;
+  showPrDetails?: boolean;
+  sets: IDisplaySet[];
+  isNext: boolean;
 }
 
-export function HistoryRecordSet(props: { sets: IDisplaySet[]; isNext: boolean; hasRpe?: boolean }): JSX.Element {
-  const { sets, isNext } = props;
-  if (sets.length === 0) {
-    return <div />;
+export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
+  const { isNext } = props;
+  const group = props.sets;
+  const set = group[0];
+  if (set == null) {
+    return <View />;
   }
-  const set = sets[0];
-  const length = sets.length;
-  const color = isNext
-    ? "text-grayv2-main"
-    : set.isCompleted
-    ? "text-greenv2-main"
-    : set.isInRange
-    ? "text-orange-400"
-    : "text-redv2-main";
-  const rpeClassName = "relative text-xs leading-none text-center";
-  const rpeStyles = { right: "0", top: "0" };
-  return (
-    <div className="flex py-2 mr-2 leading-none">
-      <div className="relative text-center">
-        {set.completedRpe != null ? (
-          <div
-            data-cy="history-entry-completed-rpe"
-            className={`${rpeClassName}`}
-            style={{ ...rpeStyles, color: "#d1720c" }}
-          >
-            @{set.completedRpe}
-          </div>
-        ) : set.completedRpe == null && set.rpe != null ? (
-          <div data-cy="history-entry-rpe" className={`${rpeClassName} text-grayv2-main`} style={rpeStyles}>
-            @{set.rpe}
-          </div>
-        ) : props.hasRpe ? (
-          <div className={rpeClassName} style={rpeStyles}>
-            &nbsp;
-          </div>
-        ) : undefined}
-        <div
-          data-cy={
-            isNext
-              ? "history-entry-sets-next"
-              : set.isCompleted
-              ? "history-entry-sets-completed"
-              : set.isInRange
-              ? "history-entry-sets-in-range"
-              : "history-entry-sets-incompleted"
-          }
-          className="pb-1 font-bold border-b border-grayv2-200"
-        >
-          {length > 1 && <span className="text-sm text-purplev2-main">{length}x</span>}
-          <span className={`${color} text-lg`}>{set.reps}</span>
-        </div>
-        <div data-cy="history-entry-weight" className="pt-2 text-sm font-bold text-grayv2-main">
-          {set.weight}
-          {set.askWeight ? "+" : ""}
-        </div>
-      </div>
-    </div>
+  const prTypes = CollectionUtils_compact(
+    ObjectUtils_keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
+      const prset = (props.prs || {})[k];
+      if (!prset) {
+        return undefined;
+      }
+      const displayPrSet = Reps_setToDisplaySet(prset, isNext, props.units);
+      return isSameDisplaySet(set, displayPrSet)
+        ? k === "max1RMSet"
+          ? "e1RM"
+          : k === "maxWeightSet"
+            ? "Weight"
+            : undefined
+        : undefined;
+    })
   );
-}
+  const isPr = prTypes.length > 0;
+  const rem = useRem();
+  const sem = Tailwind_semantic();
+  const primary = sem.text.primary;
+  const secondary = sem.text.secondary;
+  const purple = sem.text.purple;
+  // `text-orange-400` (in-range reps) has no semantic/stock entry; reuse the project's
+  // warning yellow as the closest design-system color.
+  const repsColor = isNext
+    ? secondary
+    : set.isCompleted
+      ? sem.text.success
+      : set.isInRange
+        ? Tailwind_colors().yellow[600]
+        : sem.text.error;
+  const rpeColor = isNext ? secondary : set.isRpeFailed ? sem.text.error : sem.text.success;
+  const timerColor = isNext ? secondary : purple;
+  const autoColor = isNext ? secondary : sem.syntax.auto;
+  const dataCy = isNext
+    ? "history-entry-sets-next"
+    : set.isCompleted
+      ? "history-entry-sets-completed"
+      : set.isInRange
+        ? "history-entry-sets-in-range"
+        : "history-entry-sets-incompleted";
+
+  const sm = StyledText_remToPx("sm", rem);
+  const xs = StyledText_remToPx("xs", rem);
+  const builder = new StyledText();
+  if (group.length > 1) {
+    builder.add(`${group.length}`, { fontWeight: "600", color: purple }, "history-entry-sets");
+    builder.add(" \u00D7 ", { color: secondary });
+  }
+  builder.add(`${set.reps}`, { fontWeight: "600", color: repsColor }, "history-entry-reps");
+  if (set.weight) {
+    builder.add(" \u00D7 ", { color: secondary });
+    builder.add(`${set.weight}`, { fontWeight: "600" }, "history-entry-weight");
+    builder.add(set.askWeight ? "+" : "");
+    if (set.unit != null) {
+      builder.add(`${set.unit}`, { color: secondary }, "history-entry-unit");
+    }
+  }
+  if (set.rpe != null) {
+    builder.add(" @", { fontSize: xs, color: rpeColor });
+    builder.add(`${set.rpe}`, { color: rpeColor }, "history-entry-rpe");
+  }
+  if (set.setTimer != null) {
+    builder.add(" ");
+    if (isNext) {
+      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+      builder.add("s", { fontSize: xs, color: timerColor });
+      builder.add(`${set.isOverflowSetTimer ? "+" : ""}|`, { fontWeight: "600", color: timerColor });
+      if (set.timer != null) {
+        builder.add(`${set.timer}`, { fontWeight: "600", color: timerColor }, "history-entry-timer");
+        builder.add("s", { fontSize: xs, color: timerColor });
+      } else {
+        builder.add("?", { fontWeight: "600", color: timerColor });
+      }
+    } else if (set.setTimer < 60) {
+      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+      builder.add("s", { fontSize: xs, color: timerColor });
+    } else {
+      builder.add(
+        TimeUtils_formatMMSS(set.setTimer * 1000),
+        { fontWeight: "600", color: timerColor },
+        "history-entry-set-timer"
+      );
+    }
+  } else if (set.timer != null) {
+    builder.add(" ");
+    builder.add(`${set.timer}`, { color: timerColor }, "history-entry-timer");
+    builder.add("s", { fontSize: xs, color: timerColor });
+  }
+  if (set.auto) {
+    builder.add(" auto", { color: autoColor }, "history-entry-auto");
+  }
+  const built = builder.build();
+
+  return (
+    <View className="flex-row items-center" data-testid={dataCy} testID={dataCy}>
+      {props.showPrDetails && isPr && (
+        <View className="flex-row items-center mr-2">
+          <Text className="text-xs font-semibold leading-6 text-yellow-600">{prTypes.join(", ")} </Text>
+          <Text className="text-sm leading-6">{"\u{1F3C6}"}</Text>
+        </View>
+      )}
+      <FastText
+        text={built.text}
+        fragments={built.fragments}
+        color={primary}
+        fontSize={sm}
+        paddingHorizontal={rem / 4}
+        backgroundColor={isPr ? sem.color.yellow150 : undefined}
+      />
+    </View>
+  );
+});

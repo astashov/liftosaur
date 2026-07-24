@@ -1,8 +1,8 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
-import { IAllCustomExercises, IAllEquipment } from "../../../types";
+import { JSX, useEffect, useRef } from "react";
+import { IAllCustomExercises } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
+import { IEditorTheme } from "../webviewEditor/editorWebviewBridge";
 
 interface IProps {
   name: string;
@@ -14,8 +14,13 @@ interface IProps {
   onCustomErrorCta?: (error: string) => JSX.Element | undefined;
   customExercises: IAllCustomExercises;
   exerciseFullNames: string[];
-  equipment: IAllEquipment;
   value?: string;
+  height?: number;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
+  // On web the editor lives in the main DOM and inherits the app's theme class, so this is unused here.
+  theme?: IEditorTheme;
 }
 
 export function PlannerEditorView(props: IProps): JSX.Element {
@@ -35,7 +40,6 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       error: props.error,
       lineNumbers: props.lineNumbers,
       customExercises: props.customExercises,
-      equipment: props.equipment,
     });
     ce.attach(divRef.current!);
     codeEditor.current = ce;
@@ -74,24 +78,24 @@ export function PlannerEditorView(props: IProps): JSX.Element {
     }
   }, [props.value]);
 
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
 
   let className =
-    "block w-full px-2 py-2 leading-normal bg-white border rounded-lg appearance-none focus:outline-none focus:shadow-outline";
+    "block w-full px-2 py-2 leading-normal border rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline";
   if (props.error != null) {
     className += " border-red-500";
   } else {
-    className += " border-gray-300";
+    className += " border-border-neutral";
   }
 
   return (
-    <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web" }}>
-      <div className={props.lineNumbers ? "planner-editor-error sticky bg-redv2-main z-30" : ""}>
+    <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web, Iosevka" }}>
+      <div className={props.lineNumbers ? "planner-editor-error sticky bg-background-darkred z-30" : ""}>
         {props.error && (
           <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />
         )}
       </div>
-      <div data-cy="planner-editor" className={className} ref={divRef}></div>
+      <div data-testid="planner-editor" className={className} ref={divRef}></div>
     </div>
   );
 }
@@ -107,8 +111,10 @@ export function EvalResult(props: IEvalResultProps): JSX.Element | null {
     const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error.message);
     return (
       <span className="px-2 text-sm">
-        <span className={props.redTheme ? "text-redv2-100" : "text-red-500"}>Error: </span>
-        <span className={`font-bold ${props.redTheme ? "text-white" : "text-red-700"}`}>{props.error.message}</span>
+        <span className={props.redTheme ? "text-text-alwayswhite" : "text-text-error"}>Error: </span>
+        <span className={`font-bold ${props.redTheme ? "text-text-alwayswhite" : "text-text-error"}`}>
+          {props.error.message}
+        </span>
         <span className="ml-2">{customErrorCta}</span>
       </span>
     );

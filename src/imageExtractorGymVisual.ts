@@ -4,16 +4,16 @@ import path from "path";
 import { S3Util } from "../lambda/utils/s3";
 import { LogUtil } from "../lambda/utils/log";
 import util from "util";
-import { CollectionUtils } from "./utils/collection";
+import { CollectionUtils_inGroupsOf } from "./utils/collection";
 import childProcess from "child_process";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 
 // Usage:
 // Extract all images from gymvisual.com into a directory
 // Name each directory exerciseid_equipment_boxindex
-// Run yarn ts-node src/imageExtractorGymVisual.ts source-dir destination-dir
+// Run npx ts-node src/imageExtractorGymVisual.ts source-dir destination-dir
 // It'll generate images and upload to S3
-// Copy Available Images output to the `exerciseImage.ts` availableSmallImages and availableSmallImages arrays
+// Copy Available Images output to the `exerciseImage.ts` availableSmallImages and availableLargeImages arrays
 
 interface IColor {
   r: number;
@@ -104,7 +104,7 @@ function findBoundingBox(points: Set<string>): IBox {
 }
 
 function findBoundingBoxes(filename: string): IBox[] {
-  const arrayBuffer: Buffer = fs.readFileSync(filename);
+  const arrayBuffer = fs.readFileSync(filename) as unknown as ArrayBuffer;
 
   const image = upng.decode(arrayBuffer);
   const handledPoints = new Set();
@@ -133,7 +133,7 @@ function findBoundingBoxes(filename: string): IBox[] {
 function getColorAt(image: Image, point: IPoint): IColor {
   const { x, y } = point;
   const begin = y * image.width * 4 + x * 4;
-  const color: Uint8Array = image.data.slice(begin, begin + 4) as Uint8Array;
+  const color: Uint8Array = image.data.slice(begin, begin + 4) as unknown as Uint8Array;
   return {
     r: color[0],
     g: color[1],
@@ -171,10 +171,16 @@ async function main(): Promise<void> {
     console.log("Bounding boxes", boundingBoxes);
     console.log("Index", boxIndex);
     const box = boundingBoxes[parseInt(boxIndex, 10)];
-    const minX = Math.min(...boundingBoxes.map((b) => b.x));
-    const minY = Math.min(...boundingBoxes.map((b) => b.y));
-    const maxX = Math.max(...boundingBoxes.map((b) => b.x + b.width));
-    const maxY = Math.max(...boundingBoxes.map((b) => b.y + b.height));
+    // LARGE_BOXES=0,1 limits the combined/large crop to those (0-based, left-to-right) poses; default is all.
+    const largeBoxes = process.env.LARGE_BOXES
+      ? process.env.LARGE_BOXES.split(",")
+          .map((s) => boundingBoxes[parseInt(s.trim(), 10)])
+          .filter((b) => b != null)
+      : boundingBoxes;
+    const minX = Math.min(...largeBoxes.map((b) => b.x));
+    const minY = Math.min(...largeBoxes.map((b) => b.y));
+    const maxX = Math.max(...largeBoxes.map((b) => b.x + b.width));
+    const maxY = Math.max(...largeBoxes.map((b) => b.y + b.height));
     const combinedBoundingBox: IBox = {
       x: minX,
       y: minY,
@@ -225,8 +231,12 @@ async function main(): Promise<void> {
       )} -background transparent -gravity center -extent 800x600 ${finalFilenameLarge.toLowerCase()}`
     );
   }
-  await uploadToS3();
-  await listAvailableImages();
+  if (process.env.DRY_RUN) {
+    console.log(`DRY_RUN set — skipping S3 upload/listing. Local crops written under ${process.argv[3]}`);
+  } else {
+    await uploadToS3();
+    await listAvailableImages();
+  }
 }
 
 async function uploadToS3(): Promise<void> {
@@ -245,8 +255,8 @@ async function uploadToS3(): Promise<void> {
   const logUtil = new LogUtil();
   const s3 = new S3Util(logUtil);
 
-  const smallGroups = CollectionUtils.inGroupsOf(100, smallFiles);
-  const largeGroups = CollectionUtils.inGroupsOf(100, largeFiles);
+  const smallGroups = CollectionUtils_inGroupsOf(100, smallFiles);
+  const largeGroups = CollectionUtils_inGroupsOf(100, largeFiles);
 
   for (const sf of smallGroups) {
     await Promise.all(

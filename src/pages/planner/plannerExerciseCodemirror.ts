@@ -2,14 +2,13 @@ import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { LRLanguage, LanguageSupport } from "@codemirror/language";
 import { styleTags } from "@lezer/highlight";
 import { CompletionContext, CompletionResult } from "@codemirror/autocomplete";
-import { Exercise } from "../../models/exercise";
+import { Exercise_searchNames } from "../../models/exercise";
 import { PlannerEditor } from "./plannerEditor";
 import { plannerExerciseStyles } from "./plannerExerciseStyles";
 import { parseMixed } from "@lezer/common";
 import { buildLiftoscriptLanguageSupport } from "../../liftoscriptCodemirror";
-import { Equipment } from "../../models/equipment";
 import { liftoscriptLanguage } from "../../liftoscriptLanguage";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_fuzzySearch } from "../../utils/string";
 
 const parserWithMetadata = plannerExerciseParser.configure({
   props: [styleTags(plannerExerciseStyles)],
@@ -29,35 +28,23 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
       const exerciseMatch = context.matchBefore(/^[^\/]+/);
       if (exerciseMatch) {
         let text = exerciseMatch.text;
-        if (text.match(/,\s*\w*$/)) {
-          const offsetMatch = text.match(/(,\s*)(\w*)/);
-          const offset = offsetMatch ? text.length - offsetMatch[2].length : text.length;
-          text = text.substring(offset);
-          const availableEquipment = Equipment.availableEquipmentNames(plannerEditor.args.equipment);
-          const equipment = availableEquipment.filter((eq) => eq.startsWith(text));
-          return {
-            from: exerciseMatch.from + offset,
-            options: equipment.map((eq) => ({ label: eq as string, type: "method" })),
-            validFor: /.*/,
-          };
-        } else {
-          const newText = text.replace(/^[^:]*:/, "");
-          const offset = text.length - newText.length;
-          text = newText;
-          const exerciseNames = Exercise.searchNames(text.trim(), plannerEditor.args.customExercises || {});
-          const result = {
-            from: exerciseMatch.from + offset,
-            options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
-            validFor: /.*/,
-          };
-          return result;
-        }
+        const newText = text.replace(/^[^:]*:\s*/, "");
+        const offset = text.length - newText.length;
+        text = newText;
+        const exerciseNames = Exercise_searchNames(text.trim(), plannerEditor.args.customExercises || {});
+        const result = {
+          from: exerciseMatch.from + offset,
+          options: exerciseNames.map((name) => ({ label: name, type: "keyword" })),
+          validFor: /.*/,
+        };
+        return result;
       }
+
       const reuseMatch = context.matchBefore(/\.\.\.[^\/]*/);
       if (reuseMatch) {
         const text = reuseMatch.text.replace("...", "");
         const exerciseFullNames = (plannerEditor.args.exerciseFullNames || []).filter((name) => {
-          return StringUtils.fuzzySearch(text.toLowerCase(), name.toLowerCase());
+          return StringUtils_fuzzySearch(text.toLowerCase(), name.toLowerCase());
         });
         return {
           from: reuseMatch.from + 3,
@@ -65,6 +52,20 @@ export function buildPlannerExerciseLanguageSupport(plannerEditor: PlannerEditor
           validFor: /.*/,
         };
       }
+
+      // const supersetMatch = context.matchBefore(/superset:[^\/]*/);
+      // if (supersetMatch) {
+      //   const text = supersetMatch.text.replace(/superset:\s+/, "");
+      //   const exerciseFullNames = (plannerEditor.args.exerciseFullNames || []).filter((name) => {
+      //     return StringUtils.fuzzySearch(text.toLowerCase(), name.toLowerCase());
+      //   });
+      //   const offsetMatch = supersetMatch.text.match(/superset\/\s*/);
+      //   return {
+      //     from: reuseMatch.from + 3,
+      //     options: exerciseFullNames.map((prop) => ({ label: prop, type: "method" })),
+      //     validFor: /.*/,
+      //   };
+      // }
 
       const sectionMatch = context.matchBefore(/\/\s*\w+$/);
       if (sectionMatch) {

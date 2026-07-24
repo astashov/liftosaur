@@ -1,45 +1,97 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, Fragment, useState } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
-import { equipmentName, Exercise } from "../../../models/exercise";
-import { Program } from "../../../models/program";
-import { Reps } from "../../../models/set";
-import { IProgram, IProgramExercise, ISettings, IWeight } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import {
+  equipmentName,
+  Exercise_get,
+  Exercise_onerm,
+  Exercise_toKey,
+  Exercise_getIsUnilateral,
+} from "../../../models/exercise";
+import { IEvaluatedProgram, Program_getProgramDayExercises, Program_nextHistoryEntry } from "../../../models/program";
+import { IExerciseType, IHistoryEntry, ISettings, IWeight } from "../../../types";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
-import { IProgramPreviewPlaygroundWeekSetup } from "../../../components/preview/programPreviewPlaygroundSetup";
-import { Weight } from "../../../models/weight";
+import { Weight_build } from "../../../models/weight";
+import { PP_iterate2 } from "../../../models/pp";
+import { CollectionUtils_compact, CollectionUtils_findBy } from "../../../utils/collection";
+import { PlannerProgramExercise_toUsed } from "../../planner/models/plannerProgramExercise";
+import { Stats_getEmpty } from "../../../models/stats";
+import { Progress_getEntryId } from "../../../models/progress";
+import { UidFactory_generateUid } from "../../../utils/generator";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
-  program: IProgram;
-  programExercise: IProgramExercise;
-  weekSetup: IProgramPreviewPlaygroundWeekSetup[];
+  program: IEvaluatedProgram;
+  exerciseType: IExerciseType;
+  programExerciseKey: string;
+  weekSetup?: { name?: string; weekIndex?: number }[];
+  defaultOnerm?: number;
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
-  const programExercise = ObjectUtils.clone(props.programExercise);
-  const exerciseType = programExercise.exerciseType;
-  const exercise = Exercise.get(exerciseType, props.settings.exercises);
-  const day = props.program.days.findIndex((d) => d.exercises.some((e) => e.id === programExercise.id));
+  const exerciseType = props.exerciseType;
+  const exercise = Exercise_get(exerciseType, props.settings.exercises);
+  let dayInWeek: number | undefined;
+  const weekSetup = props.weekSetup || props.program.weeks.map((w, i) => ({ name: w.name, weekIndex: i }));
+  PP_iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
+    if (ex.key === props.programExerciseKey) {
+      dayInWeek = dayInWeekIndex + 1;
+      return true;
+    }
+    return false;
+  });
+  dayInWeek = dayInWeek ?? 1;
 
-  const [onerm, setOnerm] = useState<IWeight>(Exercise.onerm(programExercise.exerciseType, props.settings));
+  const defaultOnerm = props.defaultOnerm
+    ? Weight_build(props.defaultOnerm, props.settings.units)
+    : Exercise_onerm(props.exerciseType, props.settings);
+  const [onerm, setOnerm] = useState<IWeight>(defaultOnerm);
   const settings = {
     ...props.settings,
-    exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(programExercise.exerciseType)]: { rm1: onerm } },
+    exerciseData: { ...props.settings.exerciseData, [Exercise_toKey(props.exerciseType)]: { rm1: onerm } },
   };
-  const weeks = props.weekSetup.map((week, weekIndex) => {
-    const dayIndex = week.days[day].dayIndex;
-    const dayData = Program.getDayData(props.program, dayIndex);
+  const weekEntries = CollectionUtils_compact(
+    weekSetup.map((w, i) => {
+      const weekIndex = w.weekIndex ?? i;
+      const week = props.program.weeks[weekIndex];
+      const programDay = week.days[(dayInWeek ?? 1) - 1];
+      const dayExercises = Program_getProgramDayExercises(programDay);
+      const programExercise = PlannerProgramExercise_toUsed(
+        CollectionUtils_findBy(dayExercises, "key", props.programExerciseKey)
+      );
+      const entry: IHistoryEntry = programExercise
+        ? Program_nextHistoryEntry(
+            props.program,
+            programDay.dayData,
+            weekIndex,
+            programExercise,
+            Stats_getEmpty(),
+            settings
+          )
+        : {
+            vtype: "history_entry",
+            id: Progress_getEntryId(exerciseType, programExercise),
+            exercise: exerciseType,
+            index: weekIndex,
+            warmupSets: [],
+            sets: [
+              {
+                id: UidFactory_generateUid(6),
+                vtype: "set",
+                index: 0,
+                isUnilateral: Exercise_getIsUnilateral(exerciseType, settings),
+                originalWeight: Weight_build(0, settings.units),
+                weight: Weight_build(0, settings.units),
+                reps: 0,
+              },
+            ],
+          };
 
-    return {
-      label: week.name,
-      entry: Program.programExerciseToHistoryEntry(programExercise, props.program.exercises, dayData, settings, {}),
-    };
-  });
+      return { label: w.name ?? week.name, entry };
+    })
+  );
 
   return (
     <div>
@@ -52,13 +104,13 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
               if (r.success) {
                 const value = parseFloat(r.data);
                 if (!isNaN(value)) {
-                  setOnerm(Weight.build(value, props.settings.units));
+                  setOnerm(Weight_build(value, props.settings.units));
                 }
               }
             }}
           />
         </div>
-        <div className="relative flex-1 px-2 mx-auto rounded-lg bg-purplev2-100">
+        <div className="relative flex-1 px-2 mx-auto rounded-lg bg-background-purpledark">
           <div className="items-start block sm:flex sm:items-center">
             <div className="flex pt-2" style={{ minWidth: "4rem", maxWidth: "16rem" }}>
               <div style={{ width: "40px" }} className="box-content px-2 mr-1">
@@ -69,30 +121,25 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                   <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
                 </div>
                 {exercise.equipment && (
-                  <div className="text-sm text-grayv2-600">
-                    {equipmentName(exercise.equipment, props.settings.equipment)}
-                  </div>
+                  <div className="text-sm text-text-secondary">{equipmentName(exercise.equipment)}</div>
                 )}
               </div>
             </div>
             <Scroller>
               <section className="relative flex items-center mt-1 ml-2">
-                {weeks.map((week, i) => {
+                {weekEntries.map((week, i) => {
                   return (
-                    <>
-                      {i !== 0 && <div className="h-12 mr-2 border-l border-grayv2-200" />}
+                    <Fragment key={i}>
+                      {i !== 0 && <div className="h-12 mr-2 border-l border-border-neutral" />}
                       <div>
-                        <div className="px-2 text-xs text-center whitespace-no-wrap text-grayv2-main">{week.label}</div>
+                        <div className="px-2 text-xs text-center whitespace-nowrap text-text-secondary">
+                          {week.label}
+                        </div>
                         <div className="flex flex-no-wrap justify-center">
-                          <HistoryRecordSetsView
-                            noWrap={true}
-                            sets={Reps.roundSets(week.entry.sets, props.settings, week.entry.exercise.equipment)}
-                            isNext={true}
-                            settings={props.settings}
-                          />
+                          <HistoryRecordSetsView sets={week.entry.sets} isNext={true} units={props.settings.units} />
                         </div>
                       </div>
-                    </>
+                    </Fragment>
                   );
                 })}
               </section>
@@ -101,24 +148,22 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
         </div>
         <div className="mb-2">
           <ProgramDetailsExerciseExampleGraph
-            weeksData={weeks}
+            weeksData={weekEntries}
             key={onerm.value}
             title="Weight week over week"
             yAxisLabel="Weight"
             color="red"
-            getValue={(entry) =>
-              Weight.roundConvertTo(entry.sets[0].weight, settings, props.programExercise.exerciseType.equipment).value
-            }
+            getValue={(entry) => entry.sets[0].weight?.value ?? 0}
           />
         </div>
         <div>
           <ProgramDetailsExerciseExampleGraph
-            weeksData={weeks}
+            weeksData={weekEntries}
             key={onerm.value}
             title="Volume (reps * weight) week over week"
             yAxisLabel="Volume"
             color="orange"
-            getValue={(entry) => entry.sets.reduce((acc, s) => acc + s.reps * s.weight.value, 0)}
+            getValue={(entry) => entry.sets.reduce((acc, s) => acc + (s.reps ?? 0) * (s.weight?.value ?? 0), 0)}
           />
         </div>
       </div>

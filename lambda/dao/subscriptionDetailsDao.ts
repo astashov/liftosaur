@@ -1,4 +1,4 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 
 export const subscriptionDetailsTableNames = {
@@ -18,25 +18,57 @@ export interface ISubscriptionDetailsDao {
   isPromo: boolean;
   isActive: boolean;
   expires: number;
+  autoRenew?: boolean;
   promoCode?: string;
+  originalTransactionId?: string;
+  // Google-only: the product a deferred plan switch is scheduled to change to before the next renewal,
+  // read authoritatively from subscriptionsv2 `deferredItemReplacement`. undefined when no switch is queued.
+  pendingProduct?: string;
 }
 
 export class SubscriptionDetailsDao {
   constructor(private readonly di: IDI) {}
 
   public async getAll(userIds: string[]): Promise<ISubscriptionDetailsDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.batchGet<ISubscriptionDetailsDao>({
       tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
       keys: userIds.map((uid) => ({ userId: uid })),
     });
   }
 
+  public async scanAll(): Promise<ISubscriptionDetailsDao[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.scan<ISubscriptionDetailsDao>({
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
+    });
+  }
+
   public async add(subscriptionDetails: ISubscriptionDetailsDao): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.dynamo.put({
       tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
       item: { ...subscriptionDetails, ts: Date.now() },
     });
+  }
+
+  // Webhooks fire after a user cancels/expires in system settings, where the client never re-verifies.
+  // We merge fresh status into the existing record (table is keyed by userId), but never clobber a
+  // lifetime purchase or a record of a different store type.
+  public async updateStatus(
+    userId: string,
+    type: "apple" | "google",
+    fields: { isActive?: boolean; expires?: number; autoRenew?: boolean }
+  ): Promise<boolean> {
+    const env = Utils_getEnv();
+    const existing = (await this.getAll([userId]))[0];
+    if (!existing || existing.type !== type || existing.product.indexOf("lifetime") !== -1) {
+      return false;
+    }
+    await this.di.dynamo.put({
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
+      item: { ...existing, ...fields, ts: Date.now() },
+    });
+    return true;
   }
 }

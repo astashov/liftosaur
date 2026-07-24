@@ -22,6 +22,21 @@ export class MockSecretsUtil implements ISecretsUtil {
   public async getAppleAppSharedSecret(): Promise<string> {
     return "";
   }
+  public async getApplePrivateKey(): Promise<string> {
+    return "";
+  }
+  public async getAppleKeyId(): Promise<string> {
+    return "";
+  }
+  public async getAppleIssuerId(): Promise<string> {
+    return "";
+  }
+  public async getApplePromotionalOfferKeyId(): Promise<string> {
+    return "";
+  }
+  public async getApplePromotionalOfferPrivateKey(): Promise<string> {
+    return "";
+  }
   public async getGoogleServiceAccountPubsub(): Promise<IGoogleServiceAccountPubsub> {
     return {
       type: "",
@@ -37,6 +52,12 @@ export class MockSecretsUtil implements ISecretsUtil {
     };
   }
   public async getOpenAiKey(): Promise<string> {
+    return "";
+  }
+  public async getAnthropicKey(): Promise<string> {
+    return "";
+  }
+  public async getUpdatesPrivateKey(): Promise<string> {
     return "";
   }
 }

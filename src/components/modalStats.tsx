@@ -1,9 +1,14 @@
-import { h, JSX } from "preact";
-import { Modal } from "./modal";
+import type { JSX } from "react";
+import { View } from "react-native";
+
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
-import { EditStats } from "../models/editStats";
+import {
+  EditStats_toggleWeightStats,
+  EditStats_toggleLengthStats,
+  EditStats_togglePercentageStats,
+} from "../models/editStats";
 import { GroupHeader } from "./groupHeader";
 
 interface IModalStatsProps {
@@ -13,31 +18,31 @@ interface IModalStatsProps {
   onClose: () => void;
 }
 
-export function ModalStats(props: IModalStatsProps): JSX.Element {
+export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
   const statsEnabled = props.settings.statsEnabled;
 
   function saveWeight(name: keyof IStatsWeight): (v?: string) => void {
     return function (v?: string) {
-      EditStats.toggleWeightStats(props.dispatch, name, v === "true");
+      EditStats_toggleWeightStats(props.dispatch, name, v === "true");
     };
   }
 
   function saveLength(name: keyof IStatsLength): (v?: string) => void {
     return function (v?: string) {
-      EditStats.toggleLengthStats(props.dispatch, name, v === "true");
+      EditStats_toggleLengthStats(props.dispatch, name, v === "true");
     };
   }
 
   function savePercentage(name: keyof IStatsPercentage): (v?: string) => void {
     return function (v?: string) {
-      EditStats.togglePercentageStats(props.dispatch, name, v === "true");
+      EditStats_togglePercentageStats(props.dispatch, name, v === "true");
     };
   }
 
   return (
-    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+    <View className="py-4">
       <GroupHeader name="Enabled measurement types" />
-      <form data-cy="modal-stats" onSubmit={(e) => e.preventDefault()}>
+      <View data-testid="modal-stats" testID="modal-stats">
         <MenuItemEditable
           onChange={saveWeight("weight")}
           name="Weight"
@@ -128,7 +133,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
           type="boolean"
           value={`${statsEnabled.length.calfRight}`}
         />
-      </form>
-    </Modal>
+      </View>
+    </View>
   );
 }

@@ -1,39 +1,49 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IExportedProgram } from "../../models/program";
 import { IStorage } from "../../types";
-import { HtmlUtils } from "../../utils/html";
-import { ProgramContentSyncer } from "./programContentSyncer";
+import { HtmlUtils_escapeHtml } from "../../utils/html";
+import { ProgramOrPlannerSyncer } from "./programOrPlannerSyncer";
 
 interface IProps {
   exportedProgram?: IExportedProgram;
   account?: IAccount;
   isMobile: boolean;
+  userAgent?: string;
   shouldSyncProgram: boolean;
+  revisions: string[];
+  currentRevision?: string;
+  source?: string;
   storage?: IStorage;
   client: Window["fetch"];
 }
 
 export function ProgramHtml(props: IProps): JSX.Element {
   const { client, ...data } = props;
-  const title = HtmlUtils.escapeHtml(data.exportedProgram?.program?.name || "Program Builder");
+  const programName = data.exportedProgram?.program?.name;
+  const title =
+    programName != null
+      ? `${HtmlUtils_escapeHtml(programName)} | Workout Editor | Liftosaur`
+      : "Weightlifting Workout Planner | Liftosaur";
+  const url = "https://www.liftosaur.com" + (data.exportedProgram?.program?.planner ? "/planner" : "/program");
 
   return (
     <Page
       css={["program"]}
       js={["program"]}
-      maxWidth={1200}
+      maxWidth={props.exportedProgram?.program.planner ? 2400 : 1200}
       title={title}
-      ogTitle="Liftosaur: Program Builder"
-      ogDescription="The program builder for the Liftosaur app"
-      ogUrl="https://www.liftosaur.com/builder"
+      description="The weightlifting program editor"
+      canonical={url}
+      ogUrl={url}
       data={data}
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       url={data.exportedProgram?.program?.planner ? "/planner" : "/program"}
+      postHead={<script>window.webeditor = true</script>}
     >
-      <ProgramContentSyncer client={client} {...data} />
+      <ProgramOrPlannerSyncer client={client} {...data} />
     </Page>
   );
 }

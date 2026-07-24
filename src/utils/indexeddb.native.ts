@@ -1,0 +1,88 @@
+import { createMMKV } from "react-native-mmkv";
+import RNFS from "react-native-fs";
+
+const mmkv = createMMKV();
+const legacyStorageDir = `${RNFS.DocumentDirectoryPath}/LiftosaurStorage`;
+
+function sanitizeKey(key: string): string {
+  return key
+    .replace(/\//g, "_")
+    .replace(/\\/g, "_")
+    .replace(/:/g, "_")
+    .replace(/\*/g, "_")
+    .replace(/\?/g, "_")
+    .replace(/"/g, "_")
+    .replace(/</g, "_")
+    .replace(/>/g, "_")
+    .replace(/\|/g, "_");
+}
+
+async function migrateFromLegacy(key: string): Promise<string | undefined> {
+  try {
+    const path = `${legacyStorageDir}/${sanitizeKey(key)}.json`;
+    const exists = await RNFS.exists(path);
+    if (!exists) {
+      return undefined;
+    }
+    const content = await RNFS.readFile(path, "utf8");
+    mmkv.set(key, content);
+    return content;
+  } catch {
+    return undefined;
+  }
+}
+
+export function IndexedDBUtils_initializeForSafari(): Promise<void> {
+  return Promise.resolve();
+}
+
+export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
+  const keys = new Set(mmkv.getAllKeys());
+  try {
+    if (await RNFS.exists(legacyStorageDir)) {
+      const files = await RNFS.readDir(legacyStorageDir);
+      for (const f of files) {
+        if (f.isFile() && f.name.endsWith(".json")) {
+          keys.add(f.name.replace(/\.json$/, ""));
+        }
+      }
+    }
+  } catch {}
+  return Array.from(keys);
+}
+
+export async function IndexedDBUtils_get(key: string): Promise<unknown> {
+  const value = mmkv.getString(key);
+  if (value != null) {
+    return value;
+  }
+  return migrateFromLegacy(key);
+}
+
+export async function IndexedDBUtils_remove(key: string): Promise<void> {
+  mmkv.remove(key);
+}
+
+export async function IndexedDBUtils_set(key: string, value?: string): Promise<void> {
+  if (value != null) {
+    mmkv.set(key, value);
+  } else {
+    mmkv.remove(key);
+  }
+}
+
+// MMKV has no multi-key transaction. Callers order pairs so the manifest comes last —
+// that makes the FIRST-EVER write crash-safe (no manifest → boot re-reads the legacy
+// blob), but a crash mid-loop on a later incremental save can still leave a mix of
+// old/new shards under the existing manifest. Accepted risk: the window is a
+// sub-millisecond synchronous loop, and sync's vector clocks reconcile the mix (see
+// lambda/scripts/plans/sharded-local-storage.md).
+export async function IndexedDBUtils_setMany(pairs: Array<[string, string | undefined]>): Promise<void> {
+  for (const [key, value] of pairs) {
+    if (value != null) {
+      mmkv.set(key, value);
+    } else {
+      mmkv.remove(key);
+    }
+  }
+}

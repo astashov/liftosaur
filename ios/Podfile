@@ -1,0 +1,114 @@
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+
+platform :ios, '17.0'
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+target 'Liftosaur' do
+  config = use_native_modules!
+
+  # RollbarReport (Swift) depends on RollbarCrash (Obj-C without modules);
+  # without modular headers it can't be linked as a static library.
+  pod 'RollbarCrash', :modular_headers => true
+
+  pod 'TikTokOpenSDKCore'
+  pod 'TikTokOpenShareSDK'
+
+  pod 'GoogleAdsOnDeviceConversion'
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  post_install do |installer|
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+    )
+
+    # RN's :ccache_enabled integration is broken under Xcode 26: it passes the
+    # ccache binary and config via build settings, which Xcode doesn't export to
+    # compiler invocations (so it silently compiles without caching), and its
+    # $(REACT_NATIVE_PATH) wrapper path expands through $(PODS_ROOT), which is
+    # empty in pod-less targets (widget/watch) and breaks their link step.
+    # Our wrappers in scripts/ resolve ccache and the config themselves.
+    unless `command -v ccache`.strip.empty?
+      set_ccache_wrappers = lambda do |project, wrapper_dir|
+        project.build_configurations.each do |config|
+          config.build_settings['CC'] = "#{wrapper_dir}/ccache-clang.sh"
+          config.build_settings['LD'] = "#{wrapper_dir}/ccache-clang.sh"
+          config.build_settings['CXX'] = "#{wrapper_dir}/ccache-clang++.sh"
+          config.build_settings['LDPLUSPLUS'] = "#{wrapper_dir}/ccache-clang++.sh"
+          # The wrappers resolve these themselves; as build settings they never
+          # reach the compiler env anyway, and RN's :ccache_enabled leaves a
+          # machine-specific CCACHE_BINARY behind if it was ever turned on.
+          config.build_settings.delete('CCACHE_BINARY')
+          config.build_settings.delete('CCACHE_CONFIGPATH')
+        end
+        project.save
+      end
+      set_ccache_wrappers.call(installer.pods_project, '$(SRCROOT)/../scripts')
+      installer.aggregate_targets.map(&:user_project).uniq.each do |project|
+        set_ccache_wrappers.call(project, '$(SRCROOT)/scripts')
+      end
+    end
+
+    # RNLiveMarkdown 0.1.x podspec is missing the ReactCommon/jsitooling header search path
+    # required by RN 0.84 (its transitive include of <jsireact/JSIExecutor.h> pulls in
+    # <react/runtime/JSRuntimeBindings.h>, which lives under jsitooling/).
+    rn_common_dir = File.join(__dir__, '..', 'node_modules', 'react-native', 'ReactCommon')
+    rn_common_relative = Pathname.new(rn_common_dir).relative_path_from(installer.sandbox.root).to_s
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'RNLiveMarkdown'
+      target.build_configurations.each do |config|
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited)'
+        config.build_settings['HEADER_SEARCH_PATHS'] = [
+          config.build_settings['HEADER_SEARCH_PATHS'],
+          "\"$(PODS_ROOT)/#{rn_common_relative}/jsitooling\"",
+        ].join(' ')
+      end
+    end
+
+    # Bump every Pod target's deployment target to the Podfile's iOS minimum.
+    # Some podspecs (e.g. react-native-pager-view) ship with iOS 10 baked in, which
+    # breaks consumers of SwiftUIIntrospect (iOS 13+) and any modern SwiftUI module.
+    # ExpoModulesCore 56 requires iOS 16.4+; we target 17.0 to stay safely above.
+    min_target_version = '17.0'
+    min_target = Gem::Version.new(min_target_version)
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        current = Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] || '0')
+        if current < min_target
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_target_version
+        end
+      end
+    end
+
+    # Xcode 26 / iOS 26 SDK treats netinet6/in6.h as a private framework header.
+    # RollbarNotifier 3.3.3 imports it redundantly (netinet/in.h already covers it).
+    rollbar_file = File.join(__dir__, 'Pods', 'RollbarNotifier', 'RollbarNotifier',
+                             'Sources', 'RollbarNotifier', 'RollbarReachability.m')
+    if File.exist?(rollbar_file)
+      text = File.read(rollbar_file)
+      patched = text.gsub(/^#import <netinet6\/in6\.h>\n/, '')
+      if text != patched
+        File.chmod(0644, rollbar_file)
+        File.write(rollbar_file, patched)
+        Pod::UI.puts "Patched RollbarReachability.m for iOS 26 SDK compatibility".yellow
+      end
+    end
+  end
+end

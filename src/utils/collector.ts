@@ -2,7 +2,7 @@
 
 export type ICollectorFn<T, U> = { fn: (acc: U, item: T) => U; initial: U };
 
-type IValuesFromCallbacks<V> = V extends [infer A, ...(infer B)]
+type IValuesFromCallbacks<V> = V extends [infer A, ...infer B]
   ? A extends ICollectorFn<any, infer C>
     ? [C, ...IValuesFromCallbacks<B>]
     : never
@@ -15,7 +15,10 @@ export class Collector<ItemType, T extends ICollectorFn<ItemType, any>[] = []> {
     return new Collector(items, []);
   }
 
-  private constructor(private readonly collection: ItemType[], callbacks: T) {
+  private constructor(
+    private readonly collection: ItemType[],
+    callbacks: T
+  ) {
     this.callbacks = callbacks;
   }
 

@@ -1,32 +1,36 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
-import { Muscle } from "../../models/muscle";
+import { Muscle_normalizePoints, Muscle_getPointsForDay } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
-import { ISettings, IProgram, IProgramDay } from "../../types";
-import { ILoading } from "../../models/state";
-import { IScreen } from "../../models/screen";
-import { HelpMusclesDay } from "../help/helpMusclesDay";
+import { ISettings, IProgram } from "../../types";
+import { INavCommon } from "../../models/state";
+import { Program_evaluate, Program_getProgramDay } from "../../models/program";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   program: IProgram;
-  programDay: IProgramDay;
-  screenStack: IScreen[];
-  loading: ILoading;
+  day: number;
+  navCommon: INavCommon;
 }
 
 export function ScreenMusclesDay(props: IProps): JSX.Element {
-  const points = Muscle.normalizePoints(Muscle.getPointsForDay(props.program, props.programDay, props.settings));
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const programDay = Program_getProgramDay(evaluatedProgram, props.day);
+  if (!programDay) {
+    return <></>;
+  }
+  const points = Muscle_normalizePoints(
+    Muscle_getPointsForDay(evaluatedProgram, programDay, props.navCommon.stats, props.settings)
+  );
   return (
     <ScreenMuscles
-      screenStack={props.screenStack}
-      loading={props.loading}
+      navCommon={props.navCommon}
       dispatch={props.dispatch}
       settings={props.settings}
       points={points}
-      title={props.programDay.name}
-      helpContent={<HelpMusclesDay />}
+      title={programDay.name}
+      helpKey="musclesDay"
     />
   );
 }

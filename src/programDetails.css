@@ -1,6 +1,6 @@
 /* purgecss start ignore */
 
-@import "fonts.css";
+@import "./fonts.css";
 
 html,
 body {
@@ -26,20 +26,20 @@ body {
   display: none;
 }
 
-.program-details-header {
-  padding-left: 1em;
-}
-
-.block.code {
-  font-family: "Iosevka Web" !important;
+@layer base {
+  .block.code,
+  .block.code *,
+  .program-details-description pre,
+  .program-details-description pre *,
+  .program-details-description code,
+  .program-details-description code * {
+    font-family: "Iosevka Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  }
 }
 
 @media (max-width: 600px) {
   .program-details-exercise-switch {
     display: block;
-  }
-  .program-details-header {
-    padding-left: 0em;
   }
   .program-details-header,
   .program-details-settings {

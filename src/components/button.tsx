@@ -1,43 +1,128 @@
-import { h, JSX } from "preact";
+import { JSX, ReactNode } from "react";
+import { GestureResponderEvent, Pressable } from "react-native";
+import { Pressable as StickyPressable } from "./primitives/pressable";
+import { Text } from "./primitives/text";
+import { useTrackClick } from "../utils/clickTracking";
 
-interface IProps extends JSX.HTMLAttributes<HTMLButtonElement> {
-  buttonSize?: "xs" | "sm" | "md" | "lg";
-  kind: "orange" | "purple" | "grayv2" | "red";
+function containsString(children: ReactNode): boolean {
+  if (typeof children === "string" || typeof children === "number") {
+    return true;
+  }
+  if (Array.isArray(children)) {
+    return children.some((c) => typeof c === "string" || typeof c === "number");
+  }
+  return false;
+}
+
+interface IProps {
+  buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
+  kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple" | "lightpurple" | "lightgrayv3";
   name: string;
+  onPress?: (e: GestureResponderEvent) => void;
+  onClick?: (e: GestureResponderEvent) => void;
+  disabled?: boolean;
+  className?: string;
+  children?: ReactNode;
+  testID?: string;
+  type?: string;
+  title?: string;
+  style?: Record<string, unknown>;
+  tabIndex?: number;
+  sticky?: boolean;
 }
 
 export function Button(props: IProps): JSX.Element {
-  const { children, buttonSize, kind, ...otherProps } = props;
-  let className = "text-xs text-white rounded-2xl";
-  if (props.disabled) {
-    className += " bg-grayv2-main opacity-50";
+  const { children, buttonSize, kind, disabled } = props;
+  const testID = props.testID || props.name;
+
+  // extract classname text size
+  const textSize = props.className
+    ? props.className.includes("text-xs")
+      ? "text-xs"
+      : props.className.includes("text-sm")
+        ? "text-sm"
+        : props.className.includes("text-lg")
+          ? "text-lg"
+          : props.className.includes("text-base")
+            ? "text-base"
+            : undefined
+    : undefined;
+
+  let containerCn = "rounded-lg items-center justify-center";
+  let textCn = "text-center ";
+  if (!textSize) {
+    textCn += "text-xs ";
+  } else {
+    textCn += textSize + " ";
+  }
+
+  if (disabled) {
+    containerCn += " bg-background-darkgray opacity-50";
+    textCn += " text-text-alwayswhite";
   } else if (kind === "purple") {
-    className += " bg-purplev2-main";
+    containerCn += " bg-button-primarybackground";
+    textCn += " text-text-alwayswhite";
   } else if (kind === "grayv2") {
-    className += " bg-grayv2-main";
+    containerCn += " bg-background-darkgray";
+    textCn += " text-text-alwayswhite";
   } else if (kind === "red") {
-    className += " bg-redv2-main";
+    containerCn += " bg-background-darkred";
+    textCn += " text-text-alwayswhite";
+  } else if (kind === "transparent-purple") {
+    containerCn += " bg-transparent";
+    textCn += " text-text-purple";
+  } else if (kind === "lightpurple") {
+    containerCn += " bg-background-purpledark";
+    textCn += " text-text-link";
+  } else if (kind === "lightgrayv3") {
+    containerCn += " bg-background-subtle border border-background-subtle";
+    textCn += " text-text-link";
   } else {
-    className += " bg-orangev2";
+    containerCn += " bg-button-orangebackground";
+    textCn += " text-text-primaryinverse";
   }
-  if (props.buttonSize === "sm") {
-    className += " px-2 py-1 font-semibold";
-  } else if (props.buttonSize === "xs") {
-    className += " px-1 py-0 font-normal";
-  } else if (props.buttonSize === "md") {
-    className += " px-4 py-2 font-semibold";
+
+  if (buttonSize === "sm") {
+    containerCn += " px-2 py-1";
+    textCn += " font-semibold";
+  } else if (buttonSize === "xs") {
+    containerCn += " px-1 py-0";
+    textCn += " font-normal";
+  } else if (buttonSize === "md") {
+    containerCn += " px-4 py-2";
+    textCn += " font-semibold";
+  } else if (buttonSize === "lg2") {
+    containerCn += " px-2 py-3";
+    textCn += " font-semibold";
   } else {
-    className += " px-8 py-3 font-semibold";
+    containerCn += " px-8 py-3";
+    textCn += " font-semibold";
   }
+
   if (props.className) {
-    className += ` ${props.className}`;
+    containerCn += ` ${props.className}`;
   }
-  if (props.disabled) {
-    className += " cursor-not-allowed";
-  }
+  containerCn += ` nm-${props.name}`;
+
+  const accessibilityLabel = typeof children === "string" ? children : undefined;
+  const trackClick = useTrackClick();
+  const userOnPress = props.onPress || props.onClick;
+  const onPress = (e: GestureResponderEvent): void => {
+    trackClick(props.name, props.className);
+    userOnPress?.(e);
+  };
+  const PressableComponent = props.sticky ? StickyPressable : Pressable;
   return (
-    <button {...otherProps} className={`${props.className || ""} ${className} nm-${props.name}`}>
-      {props.children}
-    </button>
+    <PressableComponent
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      className={containerCn}
+      onPress={onPress}
+      disabled={disabled}
+      testID={testID}
+      data-testid={testID}
+    >
+      {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
+    </PressableComponent>
   );
 }

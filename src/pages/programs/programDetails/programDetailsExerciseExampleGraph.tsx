@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
 import { IHistoryEntry } from "../../../types";
-import { GraphsPlugins } from "../../../utils/graphsPlugins";
+import { GraphsPlugins_zoom } from "../../../utils/graphsPlugins";
 
 interface IProgramDetailsExerciseExampleGraphProps {
   title: string;
@@ -17,6 +15,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title,
@@ -42,7 +43,7 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
           spanGaps: true,
         },
       ],
-      plugins: [GraphsPlugins.zoom()],
+      plugins: [GraphsPlugins_zoom()],
       scales: {
         x: {
           time: false,
@@ -56,16 +57,21 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
       ],
     };
 
+    const weekNumbers = props.weeksData.map((weekData) => {
+      const match = weekData.label.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    });
+
     const data: [number[], number[]] = [
-      props.weeksData.map((_, i) => i + 1),
+      weekNumbers,
       props.weeksData.map((weekData) => {
         return props.getValue(weekData.entry);
       }),
     ];
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {
@@ -90,9 +96,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
   }, []);
 
   return (
-    <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "10em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
+    <div className="relative z-0 pt-2" data-testid="graph">
+      <div className="w-full" data-testid="graph-data" style={{ height: "10em" }} ref={graphRef}></div>
+      <div data-testid="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
     </div>
   );
 }

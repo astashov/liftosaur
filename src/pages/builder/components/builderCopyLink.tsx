@@ -1,12 +1,9 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { IconLink } from "../../../components/icons/iconLink";
-import { useState } from "preact/compat";
 import { Service } from "../../../api/service";
-import { useEffect } from "preact/hooks";
-import { ClipboardUtils } from "../../../utils/clipboard";
+import { ClipboardUtils_copy } from "../../../utils/clipboard";
 
 interface IBuilderCopyLinkProps<T> {
-  msg?: string;
   rightAligned?: boolean;
   suppressShowInfo?: boolean;
   encodedProgram?: () => Promise<string>;
@@ -14,10 +11,16 @@ interface IBuilderCopyLinkProps<T> {
   type: "p" | "b" | "n";
   program: T;
   client: Window["fetch"];
+  source?: string;
+  title?: string | JSX.Element;
 }
 
 export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element {
-  const msg = props.msg || "Copied this workout link to clipboard";
+  let msg = "Copied this workout link to clipboard";
+  if (props.source != null) {
+    msg += `, as an affiliate link.`;
+  }
+
   const [showInfo, setShowInfo] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
       {showInfo && !props.suppressShowInfo && (
         <div className="mr-2 align-middle">
           <div>{msg} </div>
-          <a className="font-bold underline text-bluev2" href={showInfo}>
+          <a className="font-bold underline text-text-link" href={showInfo}>
             {showInfo}
           </a>
         </div>
@@ -40,15 +43,16 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
         onClick={async () => {
           const service = new Service(props.client);
           const encodedProgram = props.encodedProgram ? await props.encodedProgram() : window.location.href;
-          const url = await service.postShortUrl(encodedProgram, props.type);
-          ClipboardUtils.copy(url);
+          const url = await service.postShortUrl(encodedProgram, props.type, props.source);
+          ClipboardUtils_copy(url);
           if (props.onShowInfo) {
             props.onShowInfo(url);
           }
           setShowInfo(url);
         }}
       >
-        <IconLink />
+        <IconLink className="inline-block align-middle" />
+        <span className="align-middle">{props.title}</span>
       </button>
     </div>
   );

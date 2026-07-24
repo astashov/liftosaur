@@ -1,169 +1,218 @@
 import { IState } from "./state";
 import { dequal } from "dequal";
-import { Program } from "./program";
-import { Progress } from "./progress";
-import { ObjectUtils } from "../utils/object";
+import { Progress_isCurrent } from "./progress";
+import { IDayData, IStatsKey } from "../types";
+import { Program_getProgram, Program_cleanPlannerProgram } from "./program";
+import { ObjectUtils_isEqual } from "../utils/object";
 
-export type ITab = "program" | "measurements" | "workout" | "graphs" | "settings";
+export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
-export type IScreen =
-  | "first"
-  | "onboarding"
-  | "main"
-  | "settings"
-  | "account"
-  | "timers"
-  | "plates"
-  | "programs"
-  | "progress"
-  | "graphs"
-  | "finishDay"
-  | "muscles"
-  | "stats"
-  | "editProgram"
-  | "editProgramExercise"
-  | "editProgramDay"
-  | "editProgramDayScript"
-  | "editProgramWeek"
-  | "friends"
-  | "friendsAdd"
-  | "measurements"
-  | "subscription"
-  | "exerciseStats"
-  | "programPreview";
+export type IScreenData =
+  | { name: "first"; params?: Record<string, never> }
+  | { name: "main"; params?: { historyRecordId?: number } }
+  | { name: "settings"; params?: Record<string, never> }
+  | { name: "account"; params?: Record<string, never> }
+  | { name: "timers"; params?: Record<string, never> }
+  | { name: "plates"; params?: Record<string, never> }
+  | { name: "gyms"; params?: Record<string, never> }
+  | { name: "programs"; params?: Record<string, never> }
+  | { name: "progress"; params?: { id?: number } }
+  | { name: "graphsList"; params?: Record<string, never> }
+  | { name: "finishDay"; params?: { id?: number } }
+  | { name: "muscles"; params?: Record<string, never> }
+  | { name: "muscleGroups"; params?: Record<string, never> }
+  | { name: "stats"; params?: Record<string, never> }
+  | { name: "units"; params?: Record<string, never> }
+  | { name: "appleHealth"; params?: Record<string, never> }
+  | { name: "googleHealth"; params?: Record<string, never> }
+  | { name: "editProgram"; params: { programId: string } }
+  | {
+      name: "editProgramExercise";
+      params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
+    }
+  | { name: "measurements"; params?: { key: IStatsKey } }
+  | { name: "sleepNutrition"; params?: Record<string, never> }
+  | { name: "subscription"; params?: Record<string, never> }
+  | { name: "exerciseStats"; params?: Record<string, never> }
+  | { name: "exercises"; params?: Record<string, never> }
+  | { name: "onerms"; params?: Record<string, never> }
+  | { name: "setupequipment"; params?: Record<string, never> }
+  | { name: "setupplates"; params?: Record<string, never> }
+  | { name: "hearaboutus"; params?: Record<string, never> }
+  | { name: "programselect"; params?: Record<string, never> }
+  | { name: "programPreview"; params?: Record<string, never> }
+  | { name: "apiKeys"; params?: Record<string, never> }
+  | { name: "recentImports"; params?: Record<string, never> }
+  | { name: "importPreview"; params?: Record<string, never> };
 
-export namespace Screen {
-  export const editProgramScreens: IScreen[] = [
-    "editProgram",
-    "editProgramDay",
-    "editProgramWeek",
-    "editProgramExercise",
-    "editProgramDayScript",
-  ];
+export type IScreen = IScreenData["name"];
+export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
-  export function current(stack: IScreen[]): IScreen {
-    return stack[stack.length - 1];
+export function Screen_shouldConfirmNavigation(state: IState, currentScreen: IScreenData): string | undefined {
+  const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
+  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
+  if (progress && !Progress_isCurrent(progress)) {
+    const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
+    const { ui: _ui, ...progressWithoutUi } = progress;
+    if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progressWithoutUi)) {
+      return "Are you sure? Changes won't be saved.";
+    }
   }
 
-  export function push(stack: IScreen[], screen: IScreen): IScreen[] {
-    return [...stack, screen];
-  }
-
-  export function pull(stack: IScreen[]): IScreen[] {
-    return stack.length > 1 ? [...stack].slice(0, stack.length - 1) : stack;
-  }
-
-  export function previous(stack: IScreen[]): IScreen | undefined {
-    return stack[stack.length - 2];
-  }
-
-  export function shouldConfirmNavigation(state: IState): string | undefined {
-    if (state.currentHistoryRecord) {
-      const progress = state.progress[state.currentHistoryRecord];
-      if (progress && !Progress.isCurrent(progress)) {
-        const oldHistoryRecord = state.storage.history.find((hr) => hr.id === state.currentHistoryRecord);
-        if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
-          return "Are you sure? Changes won't be saved.";
+  if (currentScreen.name === "editProgram") {
+    const programId = currentScreen.params?.programId;
+    const editProgramState = programId ? state.editProgramStates[programId] : undefined;
+    if (editProgramState) {
+      const currentProgram = Program_getProgram(state, editProgramState.current.program.id);
+      if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
+        const oldCleanedProgram = Program_cleanPlannerProgram(currentProgram);
+        const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
+        if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
+          return "Are you sure? Your program changes won't be saved.";
         }
       }
     }
-
-    const editExercise = state.editExercise;
-    if (editExercise) {
-      let editProgram = Program.getEditingProgram(state);
-      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-      const exercise = editProgram?.exercises.find((e) => e.id === editExercise.id);
-      if (exercise == null || !dequal(editExercise, exercise)) {
-        return "Are you sure? Your changes won't be saved";
-      }
-    }
-
-    const editProgramV2 = state.editProgramV2;
-    if (editProgramV2) {
-      let editProgram = Program.getEditingProgram(state);
-      editProgram = editProgram || Program.getProgram(state, state.progress[0]?.programId);
-      if (editProgram?.planner && !ObjectUtils.isEqual(editProgram.planner, editProgramV2.current.program)) {
-        return "Are you sure? Your changes won't be saved";
-      }
-    }
-
-    return undefined;
   }
 
-  export function tab(screen: IScreen): ITab {
-    switch (screen) {
-      case "onboarding": {
-        return "program";
+  if (currentScreen.name === "editProgramExercise") {
+    const exerciseKey = currentScreen.params?.key;
+    const exerciseProgramId = currentScreen.params?.programId;
+    const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
+    const editProgramExerciseState = exerciseStateKey ? state.editProgramExerciseStates[exerciseStateKey] : undefined;
+    if (editProgramExerciseState) {
+      const programId = currentScreen.params?.programId;
+      const editProgramState = programId ? state.editProgramStates[programId] : undefined;
+      if (
+        editProgramState &&
+        editProgramState.current.program.planner &&
+        editProgramExerciseState.current.program.planner
+      ) {
+        if (
+          !ObjectUtils_isEqual(
+            editProgramExerciseState.current.program.planner,
+            editProgramState.current.program.planner
+          )
+        ) {
+          return "Are you sure? Your program exercise changes won't be saved.";
+        }
+      } else {
+        const currentProgram = Program_getProgram(state, editProgramExerciseState.current.program.id);
+        if (currentProgram != null && currentProgram.planner && editProgramExerciseState.current.program.planner) {
+          if (!ObjectUtils_isEqual(currentProgram.planner, editProgramExerciseState.current.program.planner)) {
+            return "Are you sure? Your program exercise changes won't be saved.";
+          }
+        }
       }
-      case "main": {
-        return "workout";
-      }
-      case "settings": {
-        return "settings";
-      }
-      case "account": {
-        return "settings";
-      }
-      case "timers": {
-        return "settings";
-      }
-      case "plates": {
-        return "settings";
-      }
-      case "programs": {
-        return "program";
-      }
-      case "progress": {
-        return "workout";
-      }
-      case "graphs": {
-        return "graphs";
-      }
-      case "finishDay": {
-        return "workout";
-      }
-      case "muscles": {
-        return "program";
-      }
-      case "stats": {
-        return "measurements";
-      }
-      case "editProgram": {
-        return "program";
-      }
-      case "editProgramWeek": {
-        return "program";
-      }
-      case "editProgramExercise": {
-        return "program";
-      }
-      case "editProgramDay": {
-        return "program";
-      }
-      case "editProgramDayScript": {
-        return "program";
-      }
-      case "friends": {
-        return "settings";
-      }
-      case "friendsAdd": {
-        return "settings";
-      }
-      case "measurements": {
-        return "measurements";
-      }
-      case "subscription": {
-        return "workout";
-      }
-      case "exerciseStats": {
-        return "workout";
-      }
-      case "programPreview": {
-        return "program";
-      }
-      case "first": {
-        return "program";
-      }
+    }
+  }
+
+  return undefined;
+}
+
+export function Screen_isSameTab(prev: IScreen, next: IScreen): boolean {
+  return Screen_tab(prev) === Screen_tab(next);
+}
+
+export function Screen_tab(screen: IScreen): ITab {
+  switch (screen) {
+    case "main": {
+      return "home";
+    }
+    case "settings": {
+      return "me";
+    }
+    case "account": {
+      return "me";
+    }
+    case "timers": {
+      return "me";
+    }
+    case "plates": {
+      return "me";
+    }
+    case "appleHealth": {
+      return "me";
+    }
+    case "googleHealth": {
+      return "me";
+    }
+    case "gyms": {
+      return "me";
+    }
+    case "exercises": {
+      return "me";
+    }
+    case "programs": {
+      return "program";
+    }
+    case "progress": {
+      return "workout";
+    }
+    case "graphsList": {
+      return "graphs";
+    }
+    case "finishDay": {
+      return "workout";
+    }
+    case "muscles": {
+      return "workout";
+    }
+    case "muscleGroups": {
+      return "me";
+    }
+    case "stats": {
+      return "me";
+    }
+    case "editProgram": {
+      return "program";
+    }
+    case "editProgramExercise": {
+      return "program";
+    }
+    case "measurements": {
+      return "me";
+    }
+    case "sleepNutrition": {
+      return "me";
+    }
+    case "subscription": {
+      return "workout";
+    }
+    case "exerciseStats": {
+      return "me";
+    }
+    case "programPreview": {
+      return "program";
+    }
+    case "first": {
+      return "program";
+    }
+    case "onerms": {
+      return "program";
+    }
+    case "setupequipment": {
+      return "program";
+    }
+    case "setupplates": {
+      return "program";
+    }
+    case "hearaboutus": {
+      return "program";
+    }
+    case "programselect": {
+      return "program";
+    }
+    case "units": {
+      return "program";
+    }
+    case "apiKeys": {
+      return "me";
+    }
+    case "recentImports": {
+      return "me";
+    }
+    case "importPreview": {
+      return "me";
     }
   }
 }

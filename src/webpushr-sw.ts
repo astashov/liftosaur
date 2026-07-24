@@ -1,4 +1,4 @@
-import { UrlUtils } from "./utils/url";
+import { UrlUtils_build } from "./utils/url";
 
 declare let __COMMIT_HASH__: string;
 const cacheName = `liftosaur-sw-${__COMMIT_HASH__}`;
@@ -10,6 +10,8 @@ const filesToCache = [
   `/vendors.js?vendor=${__COMMIT_HASH__}`,
   `/images/back-muscles.svg`,
   `/images/front-muscles.svg`,
+  `/images/svgs/muscles-combined.svg`,
+  `/images/svgs/musclegroups-combined.svg`,
   /\/fonts\/.*/,
   /\/externalimages\/exercises\//,
   "/",
@@ -24,7 +26,7 @@ const filesToCache = [
 function cacheRequest(request: Request, response: Response): Promise<Response> {
   return caches.open(cacheName).then((cache) => {
     console.log("[Service Worker] Caching new resource: " + request.url);
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+
     cache.put(request, response.clone());
     return response;
   });
@@ -40,7 +42,7 @@ function initialize(service: ServiceWorkerGlobalScope): void {
   });
 
   service.addEventListener("fetch", (e) => {
-    const url = UrlUtils.build(e.request.url);
+    const url = UrlUtils_build(e.request.url);
     if (
       e.request.method === "GET" &&
       (url.pathname === "/" || url.pathname === "index.html" || url.pathname === "/app")
@@ -76,10 +78,10 @@ function initialize(service: ServiceWorkerGlobalScope): void {
                 e.request.method === "GET" &&
                 filesToCache.some((f) => {
                   if (typeof f === "string") {
-                    const u = UrlUtils.build(e.request.url);
+                    const u = UrlUtils_build(e.request.url);
                     return `${u.pathname}${u.search}` === f;
                   } else {
-                    const u = UrlUtils.build(e.request.url);
+                    const u = UrlUtils_build(e.request.url);
                     return f.test(`${u.pathname}${u.search}`);
                   }
                 })
@@ -95,7 +97,6 @@ function initialize(service: ServiceWorkerGlobalScope): void {
     }
   });
 
-  // eslint-disable-next-line @typescript-eslint/ban-types
   self.addEventListener("activate", async (event: object) => {
     console.log("Activate Service Worker", event);
     const keys = (await caches.keys()).filter((k) => k !== cacheName);

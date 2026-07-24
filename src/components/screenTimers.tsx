@@ -1,56 +1,78 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
+import { Platform, View } from "react-native";
 import { IDispatch } from "../ducks/types";
-import { ObjectUtils } from "../utils/object";
-import { StringUtils } from "../utils/string";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettingsTimers, ISettings } from "../types";
-import { ILoading } from "../models/state";
-import { IScreen, Screen } from "../models/screen";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
-import { NavbarView } from "./navbar";
-import { HelpTimers } from "./help/helpTimers";
+import { INavCommon } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
+import { GroupHeader } from "./groupHeader";
+import {
+  SendMessage_isIos,
+  SendMessage_iosVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 
 interface IProps {
   dispatch: IDispatch;
   timers: ISettingsTimers;
-  loading: ILoading;
-  screenStack: IScreen[];
+  navCommon: INavCommon;
 }
 
 export function ScreenTimers(props: IProps): JSX.Element {
-  return (
-    <Surface
-      navbar={
-        <NavbarView
-          loading={props.loading}
-          dispatch={props.dispatch}
-          screenStack={props.screenStack}
-          title="Rest Timers"
-          helpContent={<HelpTimers />}
-        />
+  const onChange = (key: keyof ISettingsTimers) => {
+    return (newValue?: string) => {
+      const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : undefined;
+      if (v != null && isNaN(v)) {
+        return;
       }
-      footer={<Footer2View dispatch={props.dispatch} screen={Screen.current(props.screenStack)} />}
-    >
-      <section className="px-4">
-        {ObjectUtils.keys(props.timers).map((timerType) => {
-          const timer = props.timers[timerType];
-          return (
-            <MenuItemEditable
-              name={StringUtils.capitalize(timerType)}
-              type="number"
-              value={timer?.toString() || null}
-              valueUnits="sec"
-              onChange={(newValue?: string) => {
-                const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
-                const lensRecording = Lens.buildLensRecording(lb<ISettings>().p("timers").p(timerType), v);
-                props.dispatch({ type: "UpdateSettings", lensRecording });
-              }}
-            />
-          );
-        })}
-      </section>
-    </Surface>
+      const lensRecording = Lens.buildLensRecording(lb<ISettings>().p("timers").p(key), v);
+      props.dispatch({ type: "UpdateSettings", lensRecording, desc: `Update ${key} timer` });
+    };
+  };
+
+  useNavOptions({ navTitle: "Rest Timers", navHelpKey: "timers" });
+
+  return (
+    <View className="px-4">
+      <GroupHeader name="Rest Timers between sets" />
+      <MenuItemEditable
+        name="Warmup"
+        type="number"
+        value={props.timers.warmup?.toString() || undefined}
+        valueUnits="sec"
+        onChange={onChange("warmup")}
+      />
+      <MenuItemEditable
+        name="Workout"
+        type="number"
+        value={props.timers.workout?.toString() || undefined}
+        valueUnits="sec"
+        onChange={onChange("workout")}
+      />
+      <MenuItemEditable
+        name="Superset"
+        type="number"
+        value={props.timers.superset?.toString()}
+        valueUnits="sec"
+        onChange={onChange("superset")}
+      />
+      {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
+        Platform.OS === "ios" ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19) ||
+        Platform.OS === "android") && (
+        <>
+          <GroupHeader name="Reminders" topPadding={true} />
+          <MenuItemEditable
+            name="About ongoing workout"
+            type="number"
+            value={props.timers.reminder?.toString() || undefined}
+            valueUnits="sec"
+            onChange={onChange("reminder")}
+          />
+        </>
+      )}
+    </View>
   );
 }

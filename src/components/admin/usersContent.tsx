@@ -1,7 +1,7 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { HistoryRecordView } from "../historyRecord";
 import { IHistoryRecord, ISettings } from "../../types";
-import { DateUtils } from "../../utils/date";
+import { DateUtils_formatYYYYMMDD } from "../../utils/date";
 
 export interface IUsersContentProps {
   users: IProcessedUser[];
@@ -51,19 +51,20 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                     {user.id}
                   </a>
                 </td>
-                <td className="px-2 align-top">{user.timestamp ? DateUtils.formatYYYYMMDD(user.timestamp) : ""}</td>
+                <td className="px-2 align-top">{user.timestamp ? DateUtils_formatYYYYMMDD(user.timestamp) : ""}</td>
                 <td className="px-2 align-top">{user.email}</td>
                 <td className="px-2 align-top">{user.programs.join(", ")}</td>
                 <td className="px-2 align-top">{user.totalHistory}</td>
-                <td className="px-2 align-top">
+                <td className="px-2 px-4 align-top">
                   {user.history.map((record) => (
-                    <HistoryRecordView
-                      isOngoing={false}
-                      comments={{ comments: {}, isLoading: false, isPosting: false, isRemoving: {} }}
-                      historyRecord={record}
-                      settings={user.settings}
-                      dispatch={() => undefined}
-                    />
+                    <div className="pb-6" key={record.id}>
+                      <HistoryRecordView
+                        isOngoing={false}
+                        historyRecord={record}
+                        settings={user.settings}
+                        dispatch={() => undefined}
+                      />
+                    </div>
                   ))}
                 </td>
               </tr>

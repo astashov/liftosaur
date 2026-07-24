@@ -1,36 +1,46 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
-import { IExportedPlannerProgram } from "./models/types";
 import { IAccount } from "../../models/account";
 import { IPartialStorage } from "../../types";
+import { HtmlUtils_escapeHtml } from "../../utils/html";
+import { IExportedProgram } from "../../models/program";
 
 interface IProps {
-  initialProgram?: IExportedPlannerProgram;
+  initialProgram?: IExportedProgram;
   account?: IAccount;
+  userAgent?: string;
   partialStorage?: IPartialStorage;
   client: Window["fetch"];
+  revisions: string[];
 }
 
 export function PlannerHtml(props: IProps): JSX.Element {
   const { client, ...rawData } = props;
   const data = { ...rawData, shouldSync: false };
+  const programName = data.initialProgram?.program?.name;
+  const title =
+    programName != null
+      ? `${HtmlUtils_escapeHtml(programName)} | Workout Editor | Liftosaur`
+      : "Weightlifting Workout Planner | Liftosaur";
 
   return (
     <Page
-      account={props.account}
+      isLoggedIn={!!props.account}
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}
-      title="Web Editor"
-      ogTitle="Liftosaur: Web Editor"
-      ogDescription="The weightlifting program editor, allowing to balance volume, time and muscles worked"
+      maxBodyWidth={2400}
+      title={title}
+      description="The weightlifting program editor, that helps to balance volume, time and muscles worked"
+      canonical="https://www.liftosaur.com/planner"
       ogUrl="https://www.liftosaur.com/planner"
       data={data}
       url="/planner"
       client={client}
+      postHead={<script>window.webeditor = true</script>}
     >
-      <PlannerContent client={client} onUpdate={() => undefined} {...data} />
+      <PlannerContent client={client} {...data} />
     </Page>
   );
 }

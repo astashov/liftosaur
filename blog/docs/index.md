@@ -1,7 +1,9 @@
 ---
-title: Documentation
-og_title: Documentation
-og_description: How to write weightlifting programs in Liftosaur
+title: Documentation | Liftosaur
+description: Explains how to use Liftosaur, how to write weightlifting programs, goes over Liftoscript syntax.
+og_title: Documentation | Liftosaur
+canonical: https://www.liftosaur.com/doc/
+og_description: Explains how to use Liftosaur, how to write weightlifting programs, goes over Liftoscript syntax.
 layout: blogpost
 ---
 
@@ -9,7 +11,7 @@ layout: blogpost
 
 If you have any questions, don't hesitate to contact us at <a href="mailto:info@liftosaur.com">info@liftosaur.com</a>!
 
-# Summary
+## Summary
 
 Liftosaur is an app that combines both weightlifting programming part (that people sometimes use Google Sheets for) and workouts tracking part. I.e. it consists of 2 steps:
 
@@ -46,7 +48,7 @@ That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets o
 
 If you don't specify the weight, it'll use the weight calculated from
 <abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
-tables, like [this one](https://articles.reactivetrainingsystems.com/wp-content/uploads/2015/11/E1RM-TABLE.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
+tables, like [this one](/blog/images/rpetable.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
 
 {% plannercode %}
 Bench Press / 3x12
@@ -146,7 +148,7 @@ Squat / 5x4
 
 I.e. prefixing week names with `#`, and day names with `##`.
 
-### Descriptions
+### Exercise Descriptions
 
 You can add descriptions to exercises via `//` comments, like this:
 {% plannercode %}
@@ -177,6 +179,26 @@ Squat / 5x5 / progress: lp(5lb)
 {% endplannercode %}
 
 In this case, Week 1 and Week 2 will have the description about the pause, and Week 3 and Week 4 won't.
+
+### Week and day descriptions
+
+You can also add descriptions to weeks and days. You can also use [Markdown](https://www.markdownguide.org/cheat-sheet/) syntax there, and the day descriptions would be reused in the following days, until you overwrite them - same logic as for Exercise Descriptions.
+
+You can add them through UI, or in the full mode, you also can add them as comments to `# Week` and `## Day` lines, like this:
+
+{% plannercode %}
+
+// This is a description for week 1
+// * Do this
+// * Then do that
+# Week 1
+
+// This is a description for day 1
+// **Very important to do this:**
+## Day 1
+
+Squat / 5x5 / progress: lp(5lb)
+{% endplannercode %}
 
 ### Exercise Labels
 
@@ -218,6 +240,31 @@ If you don't want warmups at all, you can specify `warmup: none`:
 Squat / 5x5 / warmup: none
 {% endplannercode %}
 
+### Supersets
+
+You can group exercises into supersets via `superset` section, like this:
+
+{% plannercode %}
+Squat / 3x8 / superset: A
+Deadlift / 3x8 / superset: A
+Bent Over Row / 3x8 / superset: A
+Bicep Curl / 3x8
+{% endplannercode %}
+
+That would group Squat, Deadlift and Bent Over Row into the **Superset A**. When you run the workout, after you complete a set of Squat, it'll switch to Deadlift, then to Bent Over Row, and then back to Squat for the second round, and so on.
+
+The syntax looks like `superset: GROUP_NAME`, where `GROUP_NAME` could be any string.
+By default they use superset default rest timer (which you can set up in Me -> Timers), but you can override it
+with per-set timers. For example:
+
+{% plannercode %}
+Squat / 3x8 / superset: A
+Deadlift / 3x8 / superset: A
+Bent Over Row / 3x8 180s / superset: A
+{% endplannercode %}
+
+If you have superset default rest timer set to 15s, then Squat and Deadlift would use 15s rest between sets, and Bent Over Row would use 180s rest.
+
 ### Progressive overload
 
 It's very important to incorporate progressive overload into your workouts - how you will increase sets, reps, weight, etc over time, to give stimulus for your muscles to grow. In Liftosaur, you can specify progressions for your exercises, and the app will automatically change weights/reps/etc based on the conditions you specify.
@@ -255,7 +302,7 @@ Bench Press / 3x8 / progress: none
 
 If you try to specify different progressions for the same exercise in different weeks/days, it'll give you an error - the progressions are applied for an exercise across whole program. You cannot have e.g. linear progression on day 1, and double progression on day 2.
 
-There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a colon `:` after it. For example - `aux: Bench Press` or `strenght: Squat` or anything like that.
+There's a way to have e.g. 2 Bench Press exercises with different progressions though - you can add labels to exercises, and they would be considered different exercises in that case. Label is just some word before an exercise name, with a colon `:` after it. For example - `aux: Bench Press` or `strength: Squat` or anything like that.
 
 So with labels, e.g. you have low-rep range Bench Press and high-rep range Bench Press in your program, and you want both of them have Double Progression, but in different ranges. You could do it like this:
 
@@ -270,7 +317,7 @@ highrep: Bench Press / 3x8 / progress: dp(5lb, 8, 12)
 
 #### Linear Progression
 
-Linear Progression is when you add weight after N (1 or more) successful finishing of all sets and reps, and optionally - also reducing the weight after N (1 or more) unsuccessful finishing of all sets ans reps.
+Linear Progression is when you add weight after N (1 or more) successful finishing of all sets and reps, and optionally - also reducing the weight after N (1 or more) unsuccessful finishing of all sets and reps.
 
 You add Linear Progression to exercises by specifying `lp` progress type, like this:
 
@@ -352,7 +399,7 @@ and 5 exercises in each day in total may have 240 places where you specify the s
 
 Liftosaur offers a bunch of syntax sugar to make it easier to write and modify the programs.
 
-#### Reusing the exercises's sets/reps/weight/RPE/timer and warmups via `...Squat`
+#### Reusing the exercises's sets/reps/weight/RPE/timer, warmups and update/progress scripts via `...Squat`
 
 You can reuse the sets/reps/weight/RPE/timer and warmups of another exercise. You can either specify the exact week/day of the exercise to reuse, or by default it'll look into any day of the current week. The syntax for reusing the sets looks like this:
 
@@ -361,7 +408,7 @@ Bench Press / 5x5 / progress: lp(5lb)
 Squat / ...Bench Press
 {% endplannercode %}
 
-The Squat would reuse 5x5 sets of the Bench Press from the current week. And if you change 5x5 of Bench Press to e.g. 3x8, that would be applied to Squat as well. Note that we don't reuse the `progress: lp(5lb)` of Bench Press, only the sets!
+The Squat would reuse 5x5 sets of the Bench Press from the current week. And if you change 5x5 of Bench Press to e.g. 3x8, that would be applied to Squat as well. The progress part `progress: lp(5lb)` of the Bench Press also would be reused!
 
 For multi-week programs it may look like this:
 
@@ -413,7 +460,7 @@ Deadlift / 3x3
 
 And this way Squat also would use `5x5` from Bench Press on week 2, day 1.
 
-You can also override weight, timer or RPE of the reused exercise, like this:
+You can also override anything in the reusing exercise, like this:
 
 {% plannercode %}
 # Week 1
@@ -422,20 +469,31 @@ Squat / 3x8 200lb 60s
 Bench Press / ...Squat / 150lb
 {% endplannercode %}
 
-Bench Press would be `3x8 150lb 60s` in this case.
+Bench Press would be `3x8 150lb 60s` in this case. Or like this:
+
+{% plannercode %}
+# Week 1
+## Day 1
+Squat / 3x8 200lb 60s / update: custom() {~
+  // some update logic
+~} / progress: lp(10lb)
+Bench Press / ...Squat / 150lb / progress: lp(5lb)
+{% endplannercode %}
+
+In this case, Bench Press would have the same `update` logic as Squat, but instead of 10lb Linear Progression, it'd have 5lb.
 
 One thing to note that if the reused exercise changes their weight, sets, reps, etc - after finishing a workout the app would try to extract the new values into overrides. For example, if you have the following setup:
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
-Squat / ...Bench Press / progress: lp(5lb)
+Squat / ...Bench Press
 {% endplannercode %}
 
 And then you finished all sets of Squat successfully. That will change the weight of Squat, and the program now would look like this:
 
 {% plannercode %}
 Bench Press / 3x8 75% / progress: lp(5lb)
-Squat / ...Bench Press / 185lb / progress: lp(5lb)
+Squat / ...Bench Press / 185lb
 {% endplannercode %}
 
 I.e. the app notices that the weight of the Bench Press and Squat are not the same anymore, so it extracts the weight
@@ -451,7 +509,7 @@ Usually in multi-week programs, you have exactly the same exercises on the same 
 Bench Press[1-5] / 3x8
 {% endplannercode %}
 
-The syntax is `Squat[fromWeek-toWeek]`. If you do that, you don't have to type `Bench Press / 3x8` on weeks 2-5. In the full day mode, your days would be empty, and in the per-day mode - the exercises would be listed under the text input on the repeated days, but would be undediable.
+The syntax is `Squat[fromWeek-toWeek]`. If you do that, you don't have to type `Bench Press / 3x8` on weeks 2-5. In the full day mode, your days would be empty, and in the per-day mode - the exercises would be listed under the text input on the repeated days, but would be uneditable.
 
 {% plannercode %}
 # Week 1
@@ -533,10 +591,18 @@ With the features like above, it's often pretty convenient to specify a "templat
 
 {% plannercode %}
 Squat / 1x10+, 3x10 / 70% / used: none / progress: lp(5lb)
-Bench Press / ...Squat / progress: lp(5lb)
+Bench Press / ...Squat
 {% endplannercode %}
 
 In this case, the Squat would be used as a template for Bench Press, but wouldn't be used in the program itself.
+
+It's not required that the exercise existed if it's marked as `used: none`, so you can give the templates arbitrary names:
+
+{% plannercode %}
+T1 / used: none / 1x10+, 3x10 / 70% / progress: lp(5lb)
+t1: Bench Press / ...T1
+{% endplannercode %}
+
 
 Templates also solve the problem of the original exercise changing e.g. their weight and therefore breaking the reusing.
 Since templates would never progress, they would never break the reusing. The reused exercises still may break reusing on progression, but at least only for that specific reused exercise, not for all of them.
@@ -548,46 +614,46 @@ These features work the best when combined together. For example, you can have a
 {% plannercode %}
 # Week 1
 ## Day 1
-/// Specifying templates for our exercises, prefixing with `t:` label
-t: Squat / used: none / 1x6, 3x3 / 80%
-t: Romanian Deadlift / used: none / 1x8, 3x4 / 70%
-t: Bicep Curl[1-4] / used: none / 3x10+ / 60% / progress: sum(30, 5lb)
+/// Specifying templates for our exercises
+t1 / used: none / 1x6, 3x3 / 80%
+t2 / used: none / 1x8, 3x4 / 70%
+t3[1-4] / used: none / 3x10+ / 60% / progress: sum(30, 5lb)
 
 /// Now the actual exercises:
-Squat[1,1-4] / ...t: Squat
-Romanian Deadlift[2,1-4] / ...t: Romanian Deadlift
-Bicep Curl[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Squat[1,1-4] / ...t1
+Romanian Deadlift[2,1-4] / ...t2
+Bicep Curl[3,1-4] / ...t3
 
 ## Day 2
-Bench Press[1,1-4] / ...t: Squat
-Overhead Press[2,1-4] / ...t: Romanian Deadlift
-Lat Pulldown[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Bench Press[1,1-4] / ...t1
+Overhead Press[2,1-4] / ...t2
+Lat Pulldown[3,1-4] / ...t3
 
 ## Day 3
-Deadlift[1,1-4] / ...t: Squat
-Front Squat[2,1-4] / ...t: Romanian Deadlift
-Hanging Leg Raise[3,1-4] / ...t: Bicep Curl / progress: sum(30, 5lb)
+Deadlift[1,1-4] / ...t1
+Front Squat[2,1-4] / ...t2
+Hanging Leg Raise[3,1-4] / ...t3
 
 
 # Week 2
 ## Day 1
 /// Now we only need to specify undulating sets for main templates exercises 
-t: Squat / 1x7, 3x4 / 80%
-t: Romanian Deadlift / 1x9, 3x5 / 70%
+t1 / 1x7, 3x4 / 80%
+t2 / 1x9, 3x5 / 70%
 ## Day 2
 ## Day 3
 
 # Week 3
 ## Day 1
-t: Squat / 1x8, 3x4 / 80%
-t: Romanian Deadlift / 1x10, 3x5 / 70%
+t1 / 1x8, 3x4 / 80%
+t2 / 1x10, 3x5 / 70%
 ## Day 2
 ## Day 3
 
 # Week 4
 ## Day 1
-t: Squat / 1x9, 3x5 / 80%
-t: Romanian Deadlift / 1x11, 3x6 / 70%
+t1 / 1x9, 3x5 / 80%
+t2 / 1x11, 3x6 / 70%
 ## Day 2
 ## Day 3
 {% endplannercode %}
@@ -596,7 +662,7 @@ t: Romanian Deadlift / 1x11, 3x6 / 70%
 
 What's described above is probably enough to cover 95% of the use-cases. But in case you want some custom progressions, you can do it with a special `progress: custom()` Liftoscript syntax.
 
-There, you can unleash the full power of the scripting in Liftosaur. You can directy change weights, reps, sets, timers, RPE, etc using `if/else`s, state variables, math and boolean logic.
+There, you can unleash the full power of the scripting in Liftosaur. You can directly change weights, reps, sets, timers, RPE, etc using `if/else`s, state variables, math and boolean logic.
 
 E.g. this is how a variant of Linear Progression - increasing weight by 5lb if first set was successful - would look like:
 
@@ -613,7 +679,7 @@ this Liftoscript will look very familiar. If not, no worries, it's a pretty simp
 
 In the example above, we increase the weight of all sets by 5lb if the completed reps of the first set were equal or more than required number of reps of the first set. Let's take a look at the syntax closer.
 
-The logic is written in the curly braces **with tildas** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
+The logic is written in the curly braces **with tildes** - i.e. between `{~` and `~}`. Inside those curly braces you can access required reps, completed reps, weights, RPE, etc of all the sets that were finished for that exercise, and you can update weights/reps/etc of the program based on that.
 
 The conditional logic written with `if (...) { ... }` sentence. In the parenthesis you specify the condition when the block of the `if` should happen. `completedReps[1]` gives you the number of **completed reps** of the first set (`[1]` part - arrays indexes start from 1), and `reps[1]` gives you the number of **required reps** that were defined for that set. So `completedReps[1] >= reps[1]` means that completed reps of the first set are equal or more than the required reps of the first set.
 
@@ -626,18 +692,27 @@ set all the weights equals to the weight of the last finished set and add 5lb to
 
 This is the list of available variables you can get values from in your `progress: custom()` scripts:
 
-- `weights[n]` or `w[n]` - weight of an N set. N starts from 1.
+- `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
+- `originalWeights[n]` or `cw[n]` - initial weight before rounding of an N set. N starts from 1.
+- `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
+- `completedRepsLeft[n]` - number of completed reps for the left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
+- `timers[n]` - if the exercise sets have explicit timer set up - value of that timer
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
-- `numberOfSets` or `ns` - how many sets were in the exercise.
+- `programNumberOfSets` - how many sets was prescribed by a program.
+- `numberOfSets` or `ns` - how many sets were in the exercise (could be changed by adding/removing sets during workout).
+- `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
+- `amraps[n]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[n]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 
 And this is the list of available variables you can change (assign new values):
 
@@ -646,7 +721,10 @@ The weights/reps/RPE and timers:
 - `weights`
 - `reps`
 - `RPE`
-- `timer`
+- `timers`
+- `amraps`
+- `logrpes`
+- `askweights`
 
 For those, you can specify what set, set variation, day or week you want to change it in. To target specific set, you use the following syntax:
 
@@ -706,7 +784,7 @@ Bench Press / 3x8 / progress: custom(attempt: 0) {~
 
 The `attempt` variable will be increased across workouts, and then reset to 0 once you hit 3 successful attempts.
 
-Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildas! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
+Another use case for the state variables is in reusing the `progress: custom()` logic. The scripts can become pretty large, and usually you want multiple exercises to follow the same logic. So, for that you can reuse it! For that, just specify the exercise you're reusing the logic from like this: `Bench Press / 3x8 / progress: custom() { ...Squat }`. I.e. add it within the curly braces - `{` and `}` (without tildes! So the app would know it's not the script itself). For example, if we want to reuse the logic above, it'd look like this:
 
 {% plannercode %}
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
@@ -753,6 +831,29 @@ Bench Press / 3x8 / progress: custom(shouldBumpWeight+: 0) {~
 In this case, after the last set the app will ask the user for the `shouldBumpWeight` value. And if user
 enters 1, the weight would be increased. Otherwise - it'd stay the same.
 
+When reusing progress logic, you may omit the variables with the same value. I.e., this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom(attempt: 0, increment: 5lb) {~
+  // ...some logic
+~}
+
+Squat / 3x8 / progress: custom(attempt: 0, increment: 10lb) { ...Bench Press }
+{% endplannercode %}
+
+and this:
+
+{% plannercode %}
+Bench Press / 3x8 / progress: custom(attempt: 0, increment: 5lb) {~
+  // ...some logic
+~}
+
+Squat / 3x8 / progress: custom(increment: 10lb) { ...Bench Press }
+{% endplannercode %}
+
+are equivalent (note we skipped `attempt: 0` in the second example).
+
+
 ### Temporary Variables
 
 Sometimes you want to store long math expression value in a variable to use it across the script. You can do it with temporary variables. The syntax looks like this - `var.foo = 30lb`. I.e. they should be prefixed with `var.`. For example:
@@ -785,6 +886,18 @@ The syntax is `for (var.i in weights)`, where `var.i` should always be a tempora
 the expression on the right side of `in` should return an array.
 The `var.i` would contain the index of each set, starting from 1.
 
+### Prints
+
+For debugging purposes, there's `print` function. You can use it to debug your scripts. Liftoscript doesn't support strings, so you can only pass numbers, weights or percentages there. It looks like this:
+
+{% plannercode %}
+print(1, 20lb, 30%)
+print(100, weights[1], completedReps[2])
+print(var.max)
+{% endplannercode %}
+
+It accepts any number of arguments, and you'll see all the prints either in playground or when you finish exercise during workout, after all sets are done.
+
 ### Update
 
 `progress: ` logic updates the weights/reps/etc **in the program**, after you finish a workout. But there's also a way to update sets while you're doing a workout! For example, you want to set the number of drop sets or dropset reps based on the first set completed reps, or something like that.
@@ -794,17 +907,25 @@ For that, you can use `update: custom()` syntax, which is very similar to `progr
 So, the list of variables you can get values from is pretty much the same:
 
 - `weights`
+- `originalWeights`
+- `completedWeights`
 - `reps`
 - `completedReps`
+- `completedRepsLeft`
 - `RPE`
 - `completedRPE`
 - `rm1`
 - `day`
 - `week`
 - `dayInWeek`
+- `programNumberOfSets`
 - `numberOfSets`
+- `completedNumberOfSets`
 - `setVariationIndex`
 - `descriptionIndex`
+- `amraps`
+- `logrpes`
+- `askweights`
 - `setIndex` - index of a set that was tapped (it's 0 for the initial run - before completing any sets)
 
 But assigning new values is only allowed to the following:
@@ -812,7 +933,7 @@ But assigning new values is only allowed to the following:
 - `weights`
 - `reps`
 - `RPE`
-- `timer`
+- `timers`
 - `numberOfSets`
 
 So, to change the 2nd set, you do `weights[2] = 60lb`, and to change all sets, you do `weights = 50lb`.
@@ -822,7 +943,7 @@ You cannot change other set variations, weeks or days, so syntax like `weights[1
 
 By changing `numberOfSets` you can add or delete sets. E.g. if you had 2 sets, and you do `numberOfSets = 5`, you'll add 3 more sets. You can also delete the sets - if you had 5 sets, and you do `numberOfSets = 2`, it'd delete last 3 sets. But again - only if they weren't already finished.
 
-To quickly setup new sets (or change existing), you can use `sets()` function. It accepts 9 arguments (!), and looks like this:
+By default, it will add the same sets as the last set in that exercise. If you want to tweak new sets (or change existing), you can use `sets()` function. It accepts 9 arguments (!), and looks like this:
 
 ```javascript
 sets(fromIndex, toIndex, minReps, maxReps, isAmrap, weight, timer, rpe, shouldLogRpe)
@@ -860,6 +981,25 @@ Squat / 3x8 / update: custom() { ...Bench Press }
 {% endplannercode %}
 
 You can specify both `update: custom()` and any `progress: ` within the same exercise.
+
+### Number of sets
+
+To do number-of-sets-based progressions, you can use `numberOfSets` variable in your `progress` scripts, similar to how you could do it in the `update` scripts. E.g. this is how you could setup a set-based double progression (which would increase sets from 3 to 5, and then would increase weight and reset sets back to 3):
+
+{% plannercode %}
+Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    if (numberOfSets < 5) {
+      numberOfSets += 1
+    } else {
+      weights += 5lb
+      numberOfSets = 3
+    }
+  }
+~}
+{% endplannercode %}
+
+You can also target specific weeks/days/setvariations if you want to. E.g. if you only want to change the number of sets on week 2, day 3, set variation 1, you can do `numberOfSets[2:3:1] += 1`.
 
 ### Set Variations
 
@@ -1046,16 +1186,21 @@ You cannot assign values to them, but you can use their values. They are:
 
 #### For `progress: custom()`:
 
-- `weights[n]` or `w[n]` - weight of an N set. N starts from 1.
+- `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
+- `originalWeights[n]` - initial weight before rounding of an N set. N starts from 1.
+- `completedWeights[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
+- `completedRepsLeft[n]` - number of completed reps for a left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
+- `programNumberOfSets` - how many sets was prescribed by a program.
 - `numberOfSets` or `ns` - how many sets were in the exercise.
+- `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
 
@@ -1072,19 +1217,26 @@ You assign new values to them.
 - `weights[day:week:setvariation:set]` - weight of a set
 - `reps[day:week:setvariation:set]` - number of reps for a set.
 - `RPE[day:week:setvariation:set]` - RPE that's required for a set.
-- `timer[day:week:setvariation:set]` - timer that's assigned for a set.
+- `timers[day:week:setvariation:set]` - timer that's assigned for a set.
+- `amraps[day:week:setvariation:set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[day:week:setvariation:set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[day:week:setvariation:set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 - `rm1` - 1 Rep Max of a current exercise.
 - `setVariationIndex` - index of the current set variation
 - `descriptionIndex` - index of the current description
+- `numberOfSets[week:day:setvariation]` - number of sets for the exercise in this workout
 
 #### For `update: custom()`:
 
 - `weights[set]` - weight of a set
 - `reps[set]` - number of reps for a set.
 - `RPE[set]` - RPE that's required for a set.
-- `timer[set]` - timer that's assigned for a set.
+- `timers[set]` - timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
 - `numberOfSets` - number of sets for the exercise in this workout
+- `amraps[set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 
 ### State variables
 
@@ -1139,28 +1291,55 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Sums all values. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 if (sum(completedReps) >= 15) {
   state.weight += 5lb;
 };
+state.total = sum(1, 2, 3);
+state.allReps = sum(reps, completedReps);
+state.adjusted = sum(10, completedReps);
 ```
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the minimum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.minWeight = min(weights);
+state.smallest = min(7, 2, 5);
+state.lowest = min(reps, completedReps);
+state.capped = min(10, completedReps);
 ```
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the maximum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);
+state.biggest = max(2, 7, 5);
+state.highest = max(reps, completedReps);
+state.floored = max(1, completedReps);
+```
+
+#### `increment`
+
+It's a function that accepts weight, and returns incremented weight - minimum possible increment of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the next
+fixed weight on the equipment.
+
+```javascript
+weights[1] = increment(completedWeights[1]);
+```
+
+#### `decrement`
+
+It's a function that accepts weight, and returns decremented weight - minimum possible decrement of the weight, based on the equipment settings. I.e. it will take into account the available plates, or what's the previous
+fixed weight on the equipment.
+
+```javascript
+weights[1] = decrement(completedWeights[1]);
 ```
 
 #### `sets`
@@ -1178,3 +1357,13 @@ sets(2, 4, 6, 6, 0, 50lb, 8, 0)
 ```
 
 This will set 6 reps, 50lb, non-AMRAP, 50lb, @8 RPE (without logging RPE) to sets from 2 to 4.
+
+<h2 id="how-to-delete-your-account">How to delete your account</h2>
+
+If you want to delete your account, go to Settings (cog icon at the bottom right corner), then Account - and there's a button to delete an account.
+
+You can also email to `info@liftosaur.com`, and I can help with that.
+
+You can delete both local account (all your data stored on a device) and remote account - all your data stored on the servers. All the data there would be deleted permanently.
+
+There're 30 days backups on the servers, so the remote account data will be still in the backups for the next 30 days, and after that it'll be gone completely.

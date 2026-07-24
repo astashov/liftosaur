@@ -1,18 +1,18 @@
 import "mocha";
 import { expect } from "chai";
-import { Weight } from "../src/models/weight";
-import { ParserTestUtils } from "../src/utils/parserTestUtils";
-import { ObjectUtils } from "../src/utils/object";
+import { Weight_build } from "../src/models/weight";
+import { ParserTestUtils_run, ParserTestUtils_bdgs } from "../src/utils/parserTestUtils";
+import { ObjectUtils_pick } from "../src/utils/object";
 
 describe("Parser", () => {
   it("r[]", () => {
-    const result = ParserTestUtils.run("r[state.foo]", { foo: 2 });
+    const result = ParserTestUtils_run("r[state.foo]", { foo: 2 });
     expect(result).to.eql(2);
   });
 
   it("completedReps >= reps", () => {
     const state = { foo: 2 };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       `if (completedReps >= reps) {
         state.foo = state.foo + 3
       }`,
@@ -22,9 +22,74 @@ describe("Parser", () => {
   });
 
   it("ternary", () => {
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 2 })).to.eql(6);
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 4 })).to.eql(4);
-    expect(ParserTestUtils.run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 8 })).to.eql(5);
+    expect(ParserTestUtils_run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 2 })).to.eql(6);
+    expect(ParserTestUtils_run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 4 })).to.eql(4);
+    expect(ParserTestUtils_run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 8 })).to.eql(5);
+  });
+
+  it("division and modulo by zero return 0", () => {
+    expect(ParserTestUtils_run(`state.foo / 0`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.foo / (state.foo - 5)`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`(state.foo - 5) / (state.foo - 5)`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.foo % 0`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.weight / 0`, { weight: Weight_build(150, "lb") })).to.eql(Weight_build(0, "lb"));
+    const state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(`state.weight = state.weight / 0`, state);
+    expect(state.weight).to.eql(Weight_build(0, "lb"));
+  });
+
+  it("errors when passing an array to a function that doesn't accept arrays", () => {
+    expect(() => ParserTestUtils_run(`state.foo = increment(weights)`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays, and 'weights' is an array"
+    );
+    expect(() => ParserTestUtils_run(`weights = increment(weights)`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays, and 'weights' is an array"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = increment((completedReps))`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays"
+    );
+    expect(ParserTestUtils_run(`state.foo = sum(completedReps)`, { foo: 0 })).to.eql(6);
+    expect(ParserTestUtils_run(`state.foo = increment(weights[1])`, { foo: 0 })).to.eql(Weight_build(41, "lb"));
+  });
+
+  it("errors on wrong number of function arguments", () => {
+    expect(() => ParserTestUtils_run(`state.foo = increment()`, { foo: 0 })).to.throw(
+      "Function 'increment' expects 1 argument, but got 0"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = increment(5lb, 3)`, { foo: 0 })).to.throw(
+      "Function 'increment' expects 1 argument, but got 2"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = calculateTrainingMax(100lb)`, { foo: 0 })).to.throw(
+      "Function 'calculateTrainingMax' expects 2 arguments, but got 1"
+    );
+  });
+
+  it("errors on statically known wrong argument types", () => {
+    expect(() => ParserTestUtils_run(`state.foo = calculateTrainingMax(100lb, 5lb)`, { foo: 0 })).to.throw(
+      "Argument 2 (reps) of 'calculateTrainingMax' should be a number of reps, but '5lb' is a weight"
+    );
+  });
+
+  it("errors at runtime on wrong argument types from dynamic values", () => {
+    expect(() =>
+      ParserTestUtils_run(`state.out = calculateTrainingMax(100lb, state.w)`, {
+        out: 0,
+        w: Weight_build(5, "lb"),
+      })
+    ).to.throw("Argument 2 (reps) of 'calculateTrainingMax' should be a number of reps, but got 5lb");
+  });
+
+  it("print returns its first argument, including booleans", () => {
+    const state = { foo: 0 };
+    ParserTestUtils_run(`if (print(completedReps >= reps)) { state.foo = 42 }`, state);
+    expect(state.foo).to.eql(42);
+    expect(ParserTestUtils_run(`state.foo = print(5)`, { foo: 0 })).to.eql(5);
+  });
+
+  it("treats rpe argument of rpeMultiplier as optional", () => {
+    const withDefault = ParserTestUtils_run(`state.foo = rpeMultiplier(5)`, { foo: 0 });
+    const explicit = ParserTestUtils_run(`state.foo = rpeMultiplier(5, 10)`, { foo: 0 });
+    expect(withDefault).to.eql(explicit);
   });
 
   it("Standard progression and deload", () => {
@@ -52,12 +117,12 @@ if (!(completedReps >= reps)) {
     let state = {
       successes: 0,
       failures: 0,
-      weight: Weight.build(150, "lb"),
+      weight: Weight_build(150, "lb"),
     };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [3, 3, 150],
           [3, 3, 150],
@@ -65,17 +130,17 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ successes: 1, failures: 0, weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ successes: 1, failures: 0, weight: Weight_build(150, "lb") });
 
     state = {
       successes: 2,
       failures: 0,
-      weight: Weight.build(150, "lb"),
+      weight: Weight_build(150, "lb"),
     };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [3, 3, 150],
           [3, 3, 150],
@@ -83,17 +148,17 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight_build(155, "lb") });
 
     state = {
       successes: 1,
       failures: 2,
-      weight: Weight.build(150, "lb"),
+      weight: Weight_build(150, "lb"),
     };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [3, 3, 150],
           [3, 3, 150],
@@ -101,7 +166,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight.build(145, "lb") });
+    expect(state).to.eql({ successes: 0, failures: 0, weight: Weight_build(145, "lb") });
   });
 
   it("Basic beginner", () => {
@@ -113,11 +178,11 @@ if (!(completedReps >= reps)) {
       state.weight = state.weight * 0.9
     }
     `;
-    let state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    let state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -125,13 +190,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(152.5, "lb") });
+    expect(state).to.eql({ weight: Weight_build(152.5, "lb") });
 
-    state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -139,13 +204,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight_build(155, "lb") });
 
-    state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -153,7 +218,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(135, "lb") });
+    expect(state).to.eql({ weight: Weight_build(135, "lb") });
   });
 
   it("Basic beginner", () => {
@@ -165,11 +230,11 @@ if (!(completedReps >= reps)) {
       state.weight = state.weight * 0.9
     }
     `;
-    let state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    let state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -177,13 +242,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(152.5, "lb") });
+    expect(state).to.eql({ weight: Weight_build(152.5, "lb") });
 
-    state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -191,13 +256,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight_build(155, "lb") });
 
-    state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -205,7 +270,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(135, "lb") });
+    expect(state).to.eql({ weight: Weight_build(135, "lb") });
   });
 
   it("GZCLP", () => {
@@ -219,11 +284,11 @@ if (!(completedReps >= reps)) {
       state.weight = state.weight * 0.85
     }
     `;
-    let state = { stage: 1, weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    let state = { stage: 1, weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -233,13 +298,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ stage: 1, weight: Weight.build(160, "lb") });
+    expect(state).to.eql({ stage: 1, weight: Weight_build(160, "lb") });
 
-    state = { stage: 1, weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { stage: 1, weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -249,13 +314,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ stage: 2, weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ stage: 2, weight: Weight_build(150, "lb") });
 
-    state = { stage: 3, weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { stage: 3, weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -265,7 +330,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ stage: 1, weight: Weight.build(127.5, "lb") });
+    expect(state).to.eql({ stage: 1, weight: Weight_build(127.5, "lb") });
   });
 
   it("condition with numbers", () => {
@@ -274,11 +339,11 @@ if (!(completedReps >= reps)) {
       state.weight = state.weight + 5lb
     }
     `;
-    let state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    let state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -286,13 +351,13 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(155, "lb") });
+    expect(state).to.eql({ weight: Weight_build(155, "lb") });
 
-    state = { weight: Weight.build(150, "lb") };
-    ParserTestUtils.run(
+    state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -302,7 +367,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(150, "lb") });
+    expect(state).to.eql({ weight: Weight_build(150, "lb") });
   });
 
   it("SBS", () => {
@@ -385,11 +450,11 @@ if (!(completedReps >= reps)) {
     else { state.reps = 20 }
     `;
 
-    const state = { tm: Weight.build(1000, "lb"), week: 1, intensity: 70, reps: 8, lastrep: 9 };
-    ParserTestUtils.run(
+    const state = { tm: Weight_build(1000, "lb"), week: 1, intensity: 70, reps: 8, lastrep: 9 };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -398,7 +463,7 @@ if (!(completedReps >= reps)) {
         ],
       })
     );
-    expect(ObjectUtils.pick(state, ["week", "intensity", "reps", "lastrep"])).to.eql({
+    expect(ObjectUtils_pick(state, ["week", "intensity", "reps", "lastrep"])).to.eql({
       week: 2,
       intensity: 72.5,
       reps: 9,
@@ -410,10 +475,10 @@ if (!(completedReps >= reps)) {
   it("oneliner", () => {
     const program = `if (completedReps >= reps && state.lastsetrir>1) {state.reps=state.reps+1}`;
     const state = { lastsetrir: 3, reps: 5 };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [5, 5, 150],
           [5, 5, 150],
@@ -430,10 +495,10 @@ if (!(completedReps >= reps)) {
       }
     `;
     const state = { reps: 5 };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [
           [6, 2, 150],
           [3, 5, 150],
@@ -449,31 +514,31 @@ if (!(completedReps >= reps)) {
         state.weight = roundWeight(state.weight * 0.323)
       }
     `;
-    const state = { weight: Weight.build(1000, "lb") };
-    const result = ParserTestUtils.run(
+    const state = { weight: Weight_build(1000, "lb") };
+    const result = ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [[3, 5, 150]],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
-    expect(result).to.eql(Weight.build(322.5, "lb"));
+    expect(state).to.eql({ weight: Weight_build(323, "lb") });
+    expect(result).to.eql(Weight_build(323, "lb"));
   });
 
   it("fn in assignment", () => {
     const program = `
       state.weight = roundWeight(state.weight * 0.323123)
     `;
-    const state = { weight: Weight.build(1000, "lb") };
-    ParserTestUtils.run(
+    const state = { weight: Weight_build(1000, "lb") };
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [[3, 5, 150]],
       })
     );
-    expect(state).to.eql({ weight: Weight.build(322.5, "lb") });
+    expect(state).to.eql({ weight: Weight_build(323.1, "lb") });
   });
 
   it("nested conditions 2", () => {
@@ -483,10 +548,10 @@ if (!(completedReps >= reps)) {
     }
     `;
     const state = { failures: 0 };
-    ParserTestUtils.run(
+    ParserTestUtils_run(
       program,
       state,
-      ParserTestUtils.bdgs({
+      ParserTestUtils_bdgs({
         results: [[8, 5, 150]],
       })
     );

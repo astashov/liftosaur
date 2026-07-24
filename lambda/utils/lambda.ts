@@ -1,4 +1,4 @@
-import { Lambda } from "aws-sdk";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import { ILogUtil } from "./log";
 
 export interface ILambdaUtil {
@@ -6,13 +6,13 @@ export interface ILambdaUtil {
 }
 
 export class LambdaUtil implements ILambdaUtil {
-  private _lambda?: Lambda;
+  private _lambda?: LambdaClient;
 
   constructor(private readonly log: ILogUtil) {}
 
-  private get lambda(): Lambda {
+  private get lambda(): LambdaClient {
     if (this._lambda == null) {
-      this._lambda = new Lambda();
+      this._lambda = new LambdaClient({});
     }
     return this._lambda;
   }
@@ -24,13 +24,13 @@ export class LambdaUtil implements ILambdaUtil {
   }): Promise<void> {
     const startTime = Date.now();
     try {
-      const result = await this.lambda
-        .invoke({
+      const result = await this.lambda.send(
+        new InvokeCommand({
           FunctionName: args.name,
           InvocationType: args.invocationType,
-          Payload: JSON.stringify(args.payload),
+          Payload: Buffer.from(JSON.stringify(args.payload)),
         })
-        .promise();
+      );
       this.log.log(`Lambda invocation: ${args.name} / ${args.invocationType} - ${Date.now() - startTime}ms`);
       console.log(result);
     } catch (e) {

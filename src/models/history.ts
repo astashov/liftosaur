@@ -1,26 +1,74 @@
-import { Exercise } from "./exercise";
-import { Progress } from "./progress";
-import { CollectionUtils } from "../utils/collection";
+import {
+  Exercise_getIsUnilateral,
+  Exercise_getVolumeMultiplier,
+  Exercise_onerm,
+  Exercise_toKey,
+  Exercise_get,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+  Exercise_synergistMusclesGroupMultipliers,
+  Exercise_eq,
+  Exercise_fullName,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+} from "./exercise";
+import { Progress_getEntryId, Progress_isCurrent, Progress_lbProgress } from "./progress";
+import { CollectionUtils_sort, CollectionUtils_sortByExpr } from "../utils/collection";
 
-import { Weight } from "./weight";
+import {
+  Weight_compare,
+  Weight_build,
+  Weight_getOneRepMax,
+  Weight_gt,
+  Weight_lt,
+  Weight_gte,
+  Weight_add,
+  Weight_eq,
+  Weight_multiply,
+} from "./weight";
 import {
   IHistoryEntry,
+  IHistoryEntryProgressSnapshot,
   IHistoryRecord,
   ISet,
   IExerciseType,
-  IExerciseId,
   IUnit,
   IWeight,
+  IPercentage,
   ISettings,
-  IProgram,
-  IEquipment,
-  IDayData,
   IScreenMuscle,
-  screenMuscles,
+  IIntervals,
+  IStorage,
+  IStats,
+  IProgramState,
 } from "../types";
-import { ICollectorFn } from "../utils/collector";
-import { Reps } from "./set";
-import { ProgramExercise } from "./programExercise";
+import { Collector, ICollectorFn } from "../utils/collector";
+import {
+  Reps_avgUnilateralCompletedReps,
+  Reps_volume,
+  Reps_isStarted,
+  Reps_setVolume,
+  Reps_isFinishedSet,
+} from "./set";
+import { ProgramExercise_isUsingVariable } from "./programExercise";
+import { IState, updateState } from "./state";
+import { lb, lbu } from "lens-shmens";
+import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_isNotEmpty } from "../utils/object";
+import { IDispatch } from "../ducks/types";
+import { NativeWorkoutBridge_pauseWorkout, NativeWorkoutBridge_resumeWorkout } from "../utils/nativeWorkoutBridge";
+import memoize from "micro-memoize";
+import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatYYYYMMDD } from "../utils/date";
+import {
+  IEvaluatedProgram,
+  Program_getProgramExerciseForKeyAndDay,
+  Program_computeProgressStateChanges,
+} from "./program";
+import {
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_currentDescription,
+} from "../pages/planner/models/plannerProgramExercise";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { Muscle_getAvailableMuscleGroups } from "./muscle";
 
 export interface IHistoricalEntries {
   last: { entry: IHistoryEntry; time: number };
@@ -32,415 +80,645 @@ export interface IHistoryRecordAndEntry {
   entry: IHistoryEntry;
 }
 
-export namespace History {
-  export function buildFromEntry(entry: IHistoryEntry, dayData: IDayData): IHistoryRecord {
-    return {
-      id: 0,
-      date: new Date().toISOString(),
-      programId: "",
-      programName: "",
-      day: dayData.day,
-      week: dayData.week,
-      dayInWeek: dayData.dayInWeek,
-      dayName: dayData.day.toString(),
-      startTime: Date.now(),
-      entries: [entry],
-    };
-  }
+// history id -> exercise key -> personal records
+export type IPersonalRecords = Partial<Record<string, Partial<Record<string, IHistoryEntryPersonalRecords>>>>;
 
-  export function createCustomEntry(exerciseId: IExerciseId, settings: ISettings): IHistoryEntry {
-    const equipment = Exercise.defaultEquipment(exerciseId, settings.exercises);
-    const exerciseType: IExerciseType = { id: exerciseId, equipment };
+export interface IHistoryEntryPersonalRecords {
+  maxWeightSet?: ISet;
+  prevMaxWeightSet?: ISet;
+  max1RMSet?: ISet;
+  prevMax1RMSet?: ISet;
+}
 
-    return {
-      exercise: exerciseType,
-      sets: [],
-      warmupSets: [],
-    };
-  }
+export function History_generateId(timestamp: number): number {
+  return timestamp + Math.floor(Math.random() * 1000);
+}
 
-  export function roundSetsInEntry(entry: IHistoryEntry, settings: ISettings, equipment?: IEquipment): IHistoryEntry {
-    return { ...entry, sets: Reps.roundSets(entry.sets, settings, equipment) };
-  }
+export function History_deleteRecords(storage: IStorage, ids: number[]): IStorage {
+  const idSet = new Set(ids);
+  return { ...storage, history: storage.history.filter((h) => !idSet.has(h.id)) };
+}
 
-  export function finishProgramDay(progress: IHistoryRecord, settings: ISettings, program?: IProgram): IHistoryRecord {
-    const { deletedProgramExercises, ui, ...historyRecord } = progress;
-    return {
-      ...historyRecord,
-      entries: historyRecord.entries.map((entry) => {
-        const programExercise = program?.exercises.filter((pe) => pe.id === entry.programExerciseId)[0];
-        if (Progress.isCurrent(progress)) {
+export function History_createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
+  return {
+    vtype: "history_entry",
+    id: Progress_getEntryId(exerciseType),
+    index,
+    exercise: exerciseType,
+    sets: [],
+    warmupSets: [],
+  };
+}
+
+export function History_finishProgramDay(
+  progress: IHistoryRecord,
+  settings: ISettings,
+  day: number,
+  program?: IEvaluatedProgram,
+  stats?: IStats,
+  forceEndTime: number = Date.now()
+): IHistoryRecord {
+  const { deletedProgramExercises, ui, ...historyRecord } = progress;
+  const updatedAt = forceEndTime;
+  const endTime = Progress_isCurrent(progress) ? forceEndTime : (progress.endTime ?? forceEndTime);
+  return {
+    ...historyRecord,
+    entries: historyRecord.entries.map((entry) => {
+      const originalUpdatePrints = entry.updatePrints;
+      const programExercise =
+        program && entry.programExerciseId
+          ? Program_getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId)
+          : undefined;
+      if (Progress_isCurrent(progress)) {
+        const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+        const { updatePrints, ...entryWithoutPrints } = entry;
+        entry = {
+          ...entryWithoutPrints,
+          sets: entry.sets.map((set) => {
+            return {
+              ...set,
+              completedReps: set.isCompleted ? set.completedReps : undefined,
+              completedRepsLeft: isUnilateral && set.isCompleted ? set.completedRepsLeft : undefined,
+              completedRpe: set.isCompleted ? set.completedRpe : undefined,
+              completedWeight: set.isCompleted ? set.completedWeight : undefined,
+            };
+          }),
+        };
+        if (programExercise != null) {
+          const state = PlannerProgramExercise_getState(programExercise);
+          const useRm1 = ProgramExercise_isUsingVariable(programExercise, "rm1");
+          const descriptionSnapshot = PlannerProgramExercise_currentDescription(programExercise);
+          const progressSnapshot = History_buildProgressSnapshot(
+            entry,
+            settings,
+            programExercise,
+            program,
+            stats,
+            progress.userPromptedStateVars?.[entry.programExerciseId ?? ""],
+            originalUpdatePrints
+          );
           entry = {
             ...entry,
-            sets: entry.sets.map((set) => {
-              return { ...set, weight: Weight.roundConvertTo(set.weight, settings, entry.exercise.equipment) };
-            }),
+            state: { ...state },
+            vars: useRm1 ? { rm1: Exercise_onerm(programExercise.exerciseType, settings) } : {},
+            ...(descriptionSnapshot != null ? { descriptionSnapshot } : {}),
+            ...(progressSnapshot != null ? { progressSnapshot } : {}),
           };
-          if (programExercise != null) {
-            const reuseLogicId = programExercise.reuseLogic?.selected;
-            const state = reuseLogicId ? programExercise.reuseLogic?.states[reuseLogicId]! : programExercise.state;
-            const useRm1 = ProgramExercise.isUsingVariable(programExercise, "rm1");
-            entry = {
-              ...entry,
-              state: { ...state },
-              vars: useRm1 ? { rm1: Exercise.onerm(programExercise.exerciseType, settings) } : {},
-            };
-          }
         }
-        return entry;
-      }),
-      id: Progress.isCurrent(progress) ? Date.now() : progress.id,
-      timerSince: undefined,
-      timerMode: undefined,
-      ...(Progress.isCurrent(progress) ? { endTime: Date.now() } : {}),
-    };
-  }
-
-  export function getMaxSetFromEntry(entry: IHistoryEntry): ISet | undefined {
-    return CollectionUtils.sort(
-      entry.sets.filter((s) => (s.completedReps || 0) > 0),
-      (a, b) => {
-        const weightDiff = Weight.compare(b.weight, a.weight);
-        if (weightDiff === 0 && a.completedReps && b.completedReps) {
-          return b.completedReps - a.completedReps;
-        }
-        return weightDiff;
       }
-    )[0];
-  }
+      return entry;
+    }),
+    vtype: "history_record",
+    id: Progress_isCurrent(progress) ? progress.startTime : progress.id,
+    updatedAt: updatedAt,
+    timerSince: undefined,
+    timerMode: undefined,
+    intervals: History_pauseWorkout(progress.intervals),
+    ...(Progress_isCurrent(progress) ? { endTime } : {}),
+  };
+}
 
-  export function getMaxSet(sets: ISet[]): ISet | undefined {
-    return CollectionUtils.sort(
-      sets.filter((s) => (s.completedReps || 0) > 0),
-      (a, b) => {
-        const weightDiff = Weight.compare(b.weight, a.weight);
-        if (weightDiff === 0 && a.completedReps && b.completedReps) {
-          return b.completedReps - a.completedReps;
-        }
-        return weightDiff;
+function History_buildProgressSnapshot(
+  entry: IHistoryEntry,
+  settings: ISettings,
+  programExercise: IPlannerProgramExercise,
+  program?: IEvaluatedProgram,
+  stats?: IStats,
+  userPromptedStateVars?: IProgramState,
+  updatePrints?: (number | IWeight | IPercentage)[][]
+): IHistoryEntryProgressSnapshot | undefined {
+  const snapshot: IHistoryEntryProgressSnapshot = {};
+  if (program && stats) {
+    const changes = Program_computeProgressStateChanges(
+      entry,
+      programExercise.dayData,
+      settings,
+      programExercise,
+      program,
+      stats,
+      userPromptedStateVars
+    );
+    if (changes) {
+      const diffState = History_compactDiff(changes.diffState);
+      const diffVars = History_compactDiff(changes.diffVars);
+      if (ObjectUtils_isNotEmpty(diffState)) {
+        snapshot.diffState = diffState;
       }
-    )[0];
+      if (ObjectUtils_isNotEmpty(diffVars)) {
+        snapshot.diffVars = diffVars;
+      }
+      if (changes.prints.length > 0) {
+        snapshot.prints = changes.prints;
+      }
+    }
   }
+  if (updatePrints && updatePrints.length > 0) {
+    snapshot.updatePrints = updatePrints;
+  }
+  return ObjectUtils_isNotEmpty(snapshot) ? snapshot : undefined;
+}
 
-  export function findAllPersonalRecords(record: IHistoryRecord, history: IHistoryRecord[]): Map<IExerciseType, ISet> {
-    const prs: Map<IExerciseType, ISet> = new Map();
+function History_compactDiff(diff: Record<string, string | undefined>): Record<string, string> {
+  return ObjectUtils_keys(diff).reduce<Record<string, string>>((memo, key) => {
+    const value = diff[key];
+    if (value != null) {
+      memo[key] = value;
+    }
+    return memo;
+  }, {});
+}
+
+export function History_getMaxWeightSetFromEntry(entry: IHistoryEntry): ISet | undefined {
+  return History_getMaxWeightSet(entry.sets);
+}
+
+export function History_getMax1RMSetFromEntry(entry: IHistoryEntry): ISet | undefined {
+  return History_getMax1RMSet(entry.sets);
+}
+
+export function History_getMaxWeightSet(sets: ISet[]): ISet | undefined {
+  return CollectionUtils_sort(
+    sets.filter((s) => (s.completedReps || 0) > 0),
+    (a, b) => {
+      const weightDiff = Weight_compare(
+        b.completedWeight ?? b.weight ?? Weight_build(0, "lb"),
+        a.completedWeight ?? a.weight ?? Weight_build(0, "lb")
+      );
+      if (weightDiff === 0 && a.completedReps && b.completedReps) {
+        return b.completedReps - a.completedReps;
+      }
+      return weightDiff;
+    }
+  )[0];
+}
+
+export function History_getMax1RMSet(sets: ISet[]): ISet | undefined {
+  return CollectionUtils_sort(
+    sets.filter((s) => (s.completedReps || 0) > 0),
+    (a, b) => {
+      const weightDiff = Weight_compare(
+        Weight_getOneRepMax(
+          b.completedWeight ?? b.weight ?? Weight_build(0, "lb"),
+          Reps_avgUnilateralCompletedReps(b) || 0,
+          b.completedRpe ?? b.rpe ?? 10
+        ),
+        Weight_getOneRepMax(
+          a.completedWeight ?? a.weight ?? Weight_build(0, "lb"),
+          Reps_avgUnilateralCompletedReps(a) || 0,
+          a.completedRpe ?? a.rpe ?? 10
+        )
+      );
+      if (weightDiff === 0 && a.completedReps && b.completedReps) {
+        return b.completedReps - a.completedReps;
+      }
+      return weightDiff;
+    }
+  )[0];
+}
+
+export function History_findAllPersonalRecords(
+  record: IHistoryRecord,
+  history: IHistoryRecord[]
+): Map<IExerciseType, ISet> {
+  const prs: Map<IExerciseType, ISet> = new Map();
+  for (const entry of record.entries) {
+    const set = History_findPersonalRecord(record.id, entry, history);
+    if (set != null) {
+      prs.set(entry.exercise, set);
+    }
+  }
+  return prs;
+}
+
+export function History_findAllUsedExerciseTypes(history: IHistoryRecord[]): Partial<Record<string, IExerciseType>> {
+  const set: Partial<Record<string, IExerciseType>> = {};
+  for (const record of history) {
     for (const entry of record.entries) {
-      const set = History.findPersonalRecord(record.id, entry, history);
-      if (set != null) {
-        prs.set(entry.exercise, set);
+      set[Exercise_toKey(entry.exercise)] = entry.exercise;
+    }
+  }
+  return set;
+}
+
+export function History_collectMinAndMaxTime(): ICollectorFn<IHistoryRecord, { minTime: number; maxTime: number }> {
+  return {
+    fn: (acc, hr) => {
+      if (acc.maxTime < hr.startTime) {
+        acc.maxTime = hr.startTime;
       }
-    }
-    return prs;
-  }
-
-  export function findAllUsedExerciseTypes(history: IHistoryRecord[]): Partial<Record<string, IExerciseType>> {
-    const set: Partial<Record<string, IExerciseType>> = {};
-    for (const record of history) {
-      for (const entry of record.entries) {
-        set[Exercise.toKey(entry.exercise)] = entry.exercise;
+      if (acc.minTime > hr.startTime) {
+        acc.minTime = hr.startTime;
       }
-    }
-    return set;
-  }
+      return acc;
+    },
+    initial: { maxTime: 0, minTime: Infinity },
+  };
+}
 
-  export function collectMinAndMaxTime(): ICollectorFn<IHistoryRecord, { minTime: number; maxTime: number }> {
-    return {
-      fn: (acc, hr) => {
-        if (acc.maxTime < hr.startTime) {
-          acc.maxTime = hr.startTime;
-        }
-        if (acc.minTime > hr.startTime) {
-          acc.minTime = hr.startTime;
-        }
-        return acc;
-      },
-      initial: { maxTime: 0, minTime: Infinity },
-    };
+export function History_collectProgramChangeTimes(): ICollectorFn<
+  IHistoryRecord,
+  {
+    currentProgram?: string;
+    changeProgramTimes: [number, string][];
   }
+> {
+  return {
+    fn: (acc, hr) => {
+      if (!acc.currentProgram || acc.currentProgram !== hr.programName) {
+        acc.currentProgram = hr.programName;
+        acc.changeProgramTimes.push([new Date(Date.parse(hr.date)).getTime() / 1000, acc.currentProgram]);
+      }
+      return acc;
+    },
+    initial: { changeProgramTimes: [] },
+  };
+}
 
-  export function collectProgramChangeTimes(): ICollectorFn<
-    IHistoryRecord,
-    {
-      currentProgram?: string;
-      changeProgramTimes: [number, string][];
-    }
-  > {
-    return {
-      fn: (acc, hr) => {
-        if (!acc.currentProgram || acc.currentProgram !== hr.programName) {
-          acc.currentProgram = hr.programName;
-          acc.changeProgramTimes.push([new Date(Date.parse(hr.date)).getTime() / 1000, acc.currentProgram]);
-        }
-        return acc;
-      },
-      initial: { changeProgramTimes: [] },
-    };
-  }
-
-  export function collectMuscleGroups(
-    settings: ISettings
-  ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[], number[]]>> {
-    return {
-      fn: (acc, hr) => {
-        for (const entry of hr.entries) {
-          const exercise = Exercise.get(entry.exercise, settings.exercises);
-          const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings.exercises);
-          const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings.exercises);
-          for (const muscleGroup of [...screenMuscles, "total"] as const) {
-            let multiplier = 0;
-            if (muscleGroup === "total") {
-              multiplier = 1;
-            } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
-              multiplier = 1;
-            } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
-              multiplier = 0.5;
-            }
-            if (multiplier === 0) {
-              continue;
-            }
-            const muscleGroupAcc = acc[muscleGroup];
-            const date = new Date(hr.startTime);
-            const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
-            const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
-            if (lastTs == null) {
+export function History_collectMuscleGroups(
+  settings: ISettings
+): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[], number[]]>> {
+  return {
+    fn: (acc, hr) => {
+      for (const entry of hr.entries) {
+        const exercise = Exercise_get(entry.exercise, settings.exercises);
+        const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
+        const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings);
+        const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(exercise, settings);
+        for (const muscleGroup of [...Muscle_getAvailableMuscleGroups(settings), "total"] as const) {
+          let multiplier = 0;
+          if (muscleGroup === "total") {
+            multiplier = 1;
+          } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
+            multiplier = 1;
+          } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
+            multiplier = synergistMuscleGroupToMultiplier[muscleGroup] ?? settings.planner.synergistMultiplier;
+          }
+          if (multiplier === 0) {
+            continue;
+          }
+          acc[muscleGroup] = acc[muscleGroup] || [[], [], []];
+          const muscleGroupAcc = acc[muscleGroup];
+          const date = new Date(hr.startTime);
+          const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
+          const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
+          if (lastTs == null) {
+            muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
+            muscleGroupAcc[1].push(0);
+            muscleGroupAcc[2].push(0);
+          } else {
+            const lastDate = new Date(lastTs * 1000);
+            const beginningOfWeekForDate = DateUtils_firstDayOfWeekTimestamp(date, settings.startWeekFromMonday);
+            const beginningOfWeekForLastDate = DateUtils_firstDayOfWeekTimestamp(
+              lastDate,
+              settings.startWeekFromMonday
+            );
+            if (beginningOfWeekForDate !== beginningOfWeekForLastDate) {
               muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
               muscleGroupAcc[1].push(0);
               muscleGroupAcc[2].push(0);
-            } else {
-              const lastDate = new Date(lastTs * 1000);
-              const beginningOfWeekForDate = new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() - date.getDay()
-              );
-              const beginningOfWeekForLastDate = new Date(
-                lastDate.getFullYear(),
-                lastDate.getMonth(),
-                lastDate.getDate() - lastDate.getDay()
-              );
-              if (beginningOfWeekForDate.getTime() !== beginningOfWeekForLastDate.getTime()) {
-                muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
-                muscleGroupAcc[1].push(0);
-                muscleGroupAcc[2].push(0);
-              }
             }
-            muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += Reps.volume(finishedSets).value * multiplier;
-            muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
           }
+          muscleGroupAcc[1][muscleGroupAcc[1].length - 1] +=
+            Reps_volume(finishedSets, settings.units).value *
+            multiplier *
+            Exercise_getVolumeMultiplier(entry.exercise, settings);
+          muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
         }
-        return acc;
-      },
-      initial: {
-        total: [[], [], []],
-        shoulders: [[], [], []],
-        triceps: [[], [], []],
-        back: [[], [], []],
-        abs: [[], [], []],
-        glutes: [[], [], []],
-        hamstrings: [[], [], []],
-        quadriceps: [[], [], []],
-        chest: [[], [], []],
-        biceps: [[], [], []],
-        calves: [[], [], []],
-        forearms: [[], [], []],
-      },
-    };
-  }
+      }
+      return acc;
+    },
+    initial: {},
+  };
+}
 
-  export function collectAllUsedExerciseTypes(): ICollectorFn<IHistoryRecord, Partial<Record<string, IExerciseType>>> {
-    return {
-      fn: (acc, hr) => {
-        for (const entry of hr.entries) {
-          acc[Exercise.toKey(entry.exercise)] = entry.exercise;
+export function History_collectAllUsedExerciseTypes(): ICollectorFn<
+  IHistoryRecord,
+  Partial<Record<string, IExerciseType>>
+> {
+  return {
+    fn: (acc, hr) => {
+      for (const entry of hr.entries) {
+        acc[Exercise_toKey(entry.exercise)] = entry.exercise;
+      }
+      return acc;
+    },
+    initial: {},
+  };
+}
+
+export function History_collectAllHistoryRecordsOfExerciseType(
+  exerciseType: IExerciseType
+): ICollectorFn<IHistoryRecord, IHistoryRecord[]> {
+  return {
+    fn: (acc, hr) => {
+      const hasExercise = hr.entries.some((e) => Exercise_eq(e.exercise, exerciseType));
+      if (hasExercise) {
+        acc.push(hr);
+      }
+      return acc;
+    },
+    initial: [],
+  };
+}
+
+export function History_collectLastEntry(
+  startTime: number,
+  exerciseType: IExerciseType
+): ICollectorFn<
+  IHistoryRecord,
+  { lastHistoryEntry?: IHistoryEntry; lastHistoryRecord?: IHistoryRecord; timestamp?: number }
+> {
+  return {
+    fn: (acc, hr) => {
+      const time = hr.endTime ?? hr.startTime;
+      if (time < startTime && (acc.timestamp == null || time > acc.timestamp)) {
+        const entry = hr.entries.find((e) => Exercise_eq(e.exercise, exerciseType) && Reps_isStarted(e.sets));
+        if (entry) {
+          acc = { lastHistoryEntry: entry, lastHistoryRecord: hr, timestamp: time };
         }
-        return acc;
-      },
-      initial: {},
-    };
-  }
+      }
+      return acc;
+    },
+    initial: {},
+  };
+}
 
-  export function collectAllHistoryRecordsOfExerciseType(
-    exerciseType: IExerciseType
-  ): ICollectorFn<IHistoryRecord, IHistoryRecord[]> {
-    return {
-      fn: (acc, hr) => {
-        const hasExercise = hr.entries.some((e) => Exercise.eq(e.exercise, exerciseType));
-        if (hasExercise) {
-          acc.push(hr);
+export function History_collectLastNote(
+  startTime: number,
+  exerciseType: IExerciseType
+): ICollectorFn<IHistoryRecord, { lastNote?: string; timestamp?: number }> {
+  return {
+    fn: (acc, hr) => {
+      const time = hr.endTime ?? hr.startTime;
+      const twoMonthsAgo = startTime - 60 * 24 * 60 * 60 * 1000;
+      if (time < startTime && time > twoMonthsAgo && (acc.timestamp == null || time > acc.timestamp)) {
+        const entry = hr.entries.find((e) => Exercise_eq(e.exercise, exerciseType));
+        if (entry && entry.notes) {
+          acc = { lastNote: entry.notes, timestamp: time };
         }
-        return acc;
-      },
-      initial: [],
-    };
-  }
+      }
+      return acc;
+    },
+    initial: {},
+  };
+}
 
-  export function collectWeightPersonalRecord(
-    exerciseType: IExerciseType,
-    unit: IUnit
-  ): ICollectorFn<IHistoryRecord, { maxWeight: IWeight; maxWeightHistoryRecord?: IHistoryRecord }> {
-    return {
-      fn: (acc, hr) => {
-        const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
-        const maxSet = getMaxSet(entries.flatMap((e) => e.sets));
-        if (maxSet != null && Weight.gt(maxSet.weight, acc.maxWeight)) {
-          acc = { maxWeight: maxSet.weight, maxWeightHistoryRecord: hr };
+export interface IPrevExerciseData {
+  lastEntry?: IHistoryEntry;
+  lastEntryTimestamp?: number;
+  lastNote?: string;
+  lastNoteTimestamp?: number;
+  count: number;
+}
+
+// One pass over the whole history producing, per exercise key, the data each workout-exercise card
+// needs for its first paint: the previous started entry (for "last time" set values), the recent
+// note, and how many past records contain the exercise. The workout screen builds this once and
+// shares it across all exercise tabs — replacing the per-card O(total history) scans (collectLastEntry
+// + collectLastNote + collectAllHistoryRecordsOfExerciseType) that were the dominant source of
+// mount-frame jank for users with large histories. Mirrors the semantics of those three collectors.
+export function History_buildPrevExerciseData(
+  history: IHistoryRecord[],
+  beforeTime: number
+): Record<string, IPrevExerciseData> {
+  const twoMonthsAgo = beforeTime - 60 * 24 * 60 * 60 * 1000;
+  const result: Record<string, IPrevExerciseData> = {};
+  for (const hr of history) {
+    const time = hr.endTime ?? hr.startTime;
+    const isBefore = time < beforeTime;
+    const seenKeys = new Set<string>();
+    for (const entry of hr.entries) {
+      const key = Exercise_toKey(entry.exercise);
+      let data = result[key];
+      if (data == null) {
+        data = { count: 0 };
+        result[key] = data;
+      }
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        data.count += 1;
+      }
+      if (
+        isBefore &&
+        Reps_isStarted(entry.sets) &&
+        (data.lastEntryTimestamp == null || time > data.lastEntryTimestamp)
+      ) {
+        data.lastEntry = entry;
+        data.lastEntryTimestamp = time;
+      }
+      if (
+        isBefore &&
+        entry.notes &&
+        time > twoMonthsAgo &&
+        (data.lastNoteTimestamp == null || time > data.lastNoteTimestamp)
+      ) {
+        data.lastNote = entry.notes;
+        data.lastNoteTimestamp = time;
+      }
+    }
+  }
+  return result;
+}
+
+export function History_collectWeightPersonalRecord(
+  exerciseType: IExerciseType,
+  unit: IUnit
+): ICollectorFn<IHistoryRecord, { maxWeight: IWeight; maxWeightHistoryRecord?: IHistoryRecord }> {
+  return {
+    fn: (acc, hr) => {
+      const entries = hr.entries.filter((e) => Exercise_eq(e.exercise, exerciseType));
+      const maxSet = History_getMaxWeightSet(entries.flatMap((e) => e.sets));
+      if (maxSet != null) {
+        const weight = maxSet.completedWeight ?? maxSet.weight ?? Weight_build(0, unit);
+        if (Weight_gt(weight, acc.maxWeight)) {
+          acc = { maxWeight: weight, maxWeightHistoryRecord: hr };
         }
-        return acc;
-      },
-      initial: { maxWeight: Weight.build(0, unit) },
-    };
-  }
+      }
+      return acc;
+    },
+    initial: { maxWeight: Weight_build(0, unit) },
+  };
+}
 
-  export function collect1RMPersonalRecord(
-    exerciseType: IExerciseType,
-    settings: ISettings
-  ): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
-    return {
-      fn: (acc, hr) => {
-        const entries = hr.entries.filter((e) => Exercise.eq(e.exercise, exerciseType));
-        const allSets = entries.flatMap((e) => e.sets);
-        const all1RMs = allSets.map<[ISet, IWeight]>((s) => [s, Weight.getOneRepMax(s.weight, s.completedReps || 0)]);
-        const max1RM = CollectionUtils.sort(all1RMs, (a, b) => Weight.compare(b[1], a[1]))[0];
-        if (max1RM != null && Weight.gt(max1RM[1], acc.max1RM)) {
-          acc = { max1RM: max1RM[1], max1RMHistoryRecord: hr, max1RMSet: max1RM[0] };
-        }
-        return acc;
-      },
-      initial: { max1RM: Weight.build(0, settings.units) },
-    };
-  }
+export function History_collect1RMPersonalRecord(
+  exerciseType: IExerciseType,
+  unit: IUnit
+): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
+  return {
+    fn: (acc, hr) => {
+      const entries = hr.entries.filter((e) => Exercise_eq(e.exercise, exerciseType));
+      const allSets = entries.flatMap((e) => e.sets);
+      const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
+        s,
+        Weight_getOneRepMax(s.completedWeight ?? s.weight ?? Weight_build(0, unit), s.completedReps || 0),
+      ]);
+      const max1RM = CollectionUtils_sort(all1RMs, (a, b) => Weight_compare(b[1], a[1]))[0];
+      if (max1RM != null && Weight_gt(max1RM[1], acc.max1RM)) {
+        acc = { max1RM: max1RM[1], max1RMHistoryRecord: hr, max1RMSet: max1RM[0] };
+      }
+      return acc;
+    },
+    initial: { max1RM: Weight_build(0, unit) },
+  };
+}
 
-  export function findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<string, ISet>> {
-    const maxSets: Partial<Record<string, ISet>> = {};
-    for (const r of history) {
-      for (const e of r.entries) {
-        const entryMaxSet = getMaxSetFromEntry(e);
-        const key = Exercise.toKey(e.exercise);
-        if (
-          entryMaxSet != null &&
-          (entryMaxSet.completedReps || 0) > 0 &&
-          Weight.lt(maxSets[key]?.weight || 0, entryMaxSet.weight)
-        ) {
+export function History_findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<string, ISet>> {
+  const maxSets: Partial<Record<string, ISet>> = {};
+  for (const r of history) {
+    for (const e of r.entries) {
+      const entryMaxSet = History_getMaxWeightSetFromEntry(e);
+      const key = Exercise_toKey(e.exercise);
+      if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
+        if (maxSets[key] == null || Weight_lt(maxSets[key].weight || 0, entryMaxSet.weight ?? Weight_build(0, "lb"))) {
           maxSets[key] = entryMaxSet;
         }
       }
     }
-    return maxSets;
   }
+  return maxSets;
+}
 
-  export function findMaxSet(exerciseType: IExerciseType, history: IHistoryRecord[]): ISet | undefined {
-    let maxSet: ISet | undefined = undefined;
-    for (const r of history) {
-      for (const e of r.entries) {
-        if (Exercise.eq(e.exercise, exerciseType)) {
-          const entryMaxSet = getMaxSetFromEntry(e);
-          if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
-            if (maxSet == null || Weight.gt(entryMaxSet.weight, maxSet.weight)) {
-              maxSet = entryMaxSet;
-            }
-          }
-        }
-      }
+export function History_getHistoryRecordsForTimerange(
+  history: IHistoryRecord[],
+  date: number,
+  type: "month" | "week" | "day",
+  startWeekFromMonday?: boolean
+): IHistoryRecord[] {
+  // For given date, get the start and end of the timerange, and return history records that fall within that range
+  const start = new Date(date);
+  const end = new Date(date);
+  if (type === "month") {
+    start.setDate(1);
+    end.setMonth(end.getMonth() + 1);
+    end.setDate(0);
+  } else if (type === "week") {
+    start.setDate(start.getDate() - start.getDay() + (startWeekFromMonday ? 1 : 0));
+    end.setDate(start.getDate() + 6);
+  } else if (type === "day") {
+    start.setHours(0, 0, 0, 0);
+  }
+  end.setHours(23, 59, 59, 999);
+  return history.filter((hr) => {
+    if (Progress_isCurrent(hr)) {
+      return false;
     }
-    return maxSet;
-  }
+    const recordDate = Date.parse(hr.date);
+    const startTime = new Date(recordDate);
+    return startTime >= start && startTime < end;
+  });
+}
 
-  export function findPersonalRecord(id: number, entry: IHistoryEntry, history: IHistoryRecord[]): ISet | undefined {
-    let isMax: boolean | undefined;
-    const entryMaxSet = getMaxSetFromEntry(entry);
-    if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
-      for (const r of history) {
-        if (r.id < id) {
-          for (const e of r.entries) {
-            if (e.exercise.id === entry.exercise.id && e.exercise.equipment === entry.exercise.equipment) {
-              if (isMax == null) {
-                isMax = true;
-              }
-              const maxSet = getMaxSetFromEntry(e);
-              if (maxSet != null && Weight.gte(maxSet.weight, entryMaxSet.weight)) {
-                isMax = false;
-              }
-            }
-          }
-        }
-      }
-    } else {
-      isMax = false;
-    }
-    if (isMax == null || isMax === true) {
-      return entryMaxSet;
-    } else {
-      return undefined;
-    }
-  }
+export function History_getNumberOfPersonalRecords(history: IHistoryRecord[], prs: IPersonalRecords): number {
+  return history.reduce((memo, r) => {
+    return memo + ObjectUtils_keys(prs[r.id] || {})?.length;
+  }, 0);
+}
 
-  export function totalRecordWeight(record: IHistoryRecord, unit: IUnit): IWeight {
-    return record.entries.reduce((memo, e) => Weight.add(memo, totalEntryWeight(e, unit)), Weight.build(0, unit));
-  }
-
-  export function totalRecordReps(record: IHistoryRecord): number {
-    return record.entries.reduce((memo, e) => memo + totalEntryReps(e), 0);
-  }
-
-  export function totalRecordSets(record: IHistoryRecord): number {
-    return record.entries.reduce((memo, e) => memo + totalEntrySets(e), 0);
-  }
-
-  export function totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
-    return entry.sets
-      .filter((s) => (s.completedReps || 0) > 0)
-      .reduce(
-        (memo, set) => Weight.add(memo, Weight.multiply(set.weight, set.completedReps || 0)),
-        Weight.build(0, unit)
-      );
-  }
-
-  export function totalEntryReps(entry: IHistoryEntry): number {
-    return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
-  }
-
-  export function totalEntrySets(entry: IHistoryEntry): number {
-    return getFinishedSets(entry).length;
-  }
-
-  export function getStartedEntries(record: IHistoryRecord): IHistoryEntry[] {
-    return record.entries.filter((e) => e.sets.filter((s) => (s.completedReps || 0) > 0).length > 0);
-  }
-
-  export function getFinishedSets(entry: IHistoryEntry): ISet[] {
-    return entry.sets.filter((s) => Reps.isFinishedSet(s));
-  }
-
-  export function getHistoricalSameDay(
-    history: IHistoryRecord[],
-    progress: IHistoryRecord,
-    currentEntry: IHistoryEntry
-  ): IHistoryRecordAndEntry | undefined {
-    for (const record of history) {
-      if (record.programId === progress.programId && record.day === progress.day) {
-        for (const entry of record.entries) {
+export function History_findMaxSet(exerciseType: IExerciseType, history: IHistoryRecord[]): ISet | undefined {
+  let maxSet: ISet | undefined = undefined;
+  for (const r of history) {
+    for (const e of r.entries) {
+      if (Exercise_eq(e.exercise, exerciseType)) {
+        const entryMaxSet = History_getMaxWeightSetFromEntry(e);
+        if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
           if (
-            Exercise.eq(currentEntry.exercise, entry.exercise) &&
-            currentEntry.programExerciseId === entry.programExerciseId &&
-            entry.sets.length > 0 &&
-            entry.sets.some((s) => (s.completedReps || 0) > 0)
+            maxSet == null ||
+            Weight_gt(entryMaxSet.weight ?? Weight_build(0, "lb"), maxSet.weight ?? Weight_build(0, "lb"))
           ) {
-            return { record, entry };
+            maxSet = entryMaxSet;
           }
         }
       }
     }
+  }
+  return maxSet;
+}
+
+export function History_findPersonalRecord(
+  id: number,
+  entry: IHistoryEntry,
+  history: IHistoryRecord[]
+): ISet | undefined {
+  let isMax: boolean | undefined;
+  const entryMaxSet = History_getMaxWeightSetFromEntry(entry);
+  if (entryMaxSet != null && (entryMaxSet.completedReps || 0) > 0) {
+    for (const r of history) {
+      if (r.id < id) {
+        for (const e of r.entries) {
+          if (e.exercise.id === entry.exercise.id && e.exercise.equipment === entry.exercise.equipment) {
+            if (isMax == null) {
+              isMax = true;
+            }
+            const maxSet = History_getMaxWeightSetFromEntry(e);
+            if (
+              maxSet != null &&
+              Weight_gte(maxSet.weight ?? Weight_build(0, "lb"), entryMaxSet.weight ?? Weight_build(0, "lb"))
+            ) {
+              isMax = false;
+            }
+          }
+        }
+      }
+    }
+  } else {
+    isMax = false;
+  }
+  if (isMax == null || isMax === true) {
+    return entryMaxSet;
+  } else {
     return undefined;
   }
+}
 
-  export function getHistoricalLastDay(
-    history: IHistoryRecord[],
-    currentEntry: IHistoryEntry
-  ): IHistoryRecordAndEntry | undefined {
-    for (const record of history) {
+export function History_totalRecordWeight(record: IHistoryRecord, settings: ISettings): IWeight {
+  return record.entries.reduce(
+    (memo, e) => Weight_add(memo, History_totalEntryWeight(e, settings)),
+    Weight_build(0, settings.units)
+  );
+}
+
+export function History_totalRecordReps(record: IHistoryRecord): number {
+  return record.entries.reduce((memo, e) => memo + History_totalEntryReps(e), 0);
+}
+
+export function History_totalRecordSets(record: IHistoryRecord): number {
+  return record.entries.reduce((memo, e) => memo + History_totalEntrySets(e), 0);
+}
+
+export function History_totalEntryWeight(entry: IHistoryEntry, settings: ISettings): IWeight {
+  const unit = settings.units;
+  const volume = entry.sets
+    .filter((s) => (s.completedReps || 0) > 0)
+    .reduce((memo, set) => Weight_add(memo, Reps_setVolume(set, unit)), Weight_build(0, unit));
+  return Weight_multiply(volume, Exercise_getVolumeMultiplier(entry.exercise, settings));
+}
+
+export function History_totalEntryReps(entry: IHistoryEntry): number {
+  return entry.sets.reduce((memo, set) => memo + (set.completedReps || 0), 0);
+}
+
+export function History_totalEntrySets(entry: IHistoryEntry): number {
+  return History_getFinishedSets(entry).length;
+}
+
+export function History_getStartedEntries(record: IHistoryRecord): IHistoryEntry[] {
+  return record.entries.filter((e) => e.sets.filter((s) => (s.completedReps || 0) > 0).length > 0);
+}
+
+export function History_getFinishedSets(entry: IHistoryEntry): ISet[] {
+  return entry.sets.filter((s) => Reps_isFinishedSet(s));
+}
+
+export function History_getHistoricalSameDay(
+  history: IHistoryRecord[],
+  progress: IHistoryRecord,
+  currentEntry: IHistoryEntry
+): IHistoryRecordAndEntry | undefined {
+  for (const record of history) {
+    if (record.day === progress.day) {
       for (const entry of record.entries) {
         if (
-          Exercise.eq(currentEntry.exercise, entry.exercise) &&
+          Exercise_eq(currentEntry.exercise, entry.exercise) &&
           entry.sets.length > 0 &&
           entry.sets.some((s) => (s.completedReps || 0) > 0)
         ) {
@@ -448,106 +726,370 @@ export namespace History {
         }
       }
     }
+  }
+  return undefined;
+}
+
+export function History_getHistoricalLastDay(
+  history: IHistoryRecord[],
+  currentEntry: IHistoryEntry
+): IHistoryRecordAndEntry | undefined {
+  for (const record of history) {
+    for (const entry of record.entries) {
+      if (
+        Exercise_eq(currentEntry.exercise, entry.exercise) &&
+        entry.sets.length > 0 &&
+        entry.sets.some((s) => (s.completedReps || 0) > 0)
+      ) {
+        return { record, entry };
+      }
+    }
+  }
+  return undefined;
+}
+
+export function History_calories(historyRecord: IHistoryRecord): number {
+  const timeMs = History_workoutTime(historyRecord);
+  const minutes = Math.floor(timeMs / 60000);
+  return minutes * 6;
+}
+
+export function History_getHistoricalAmrapSets(
+  history: IHistoryRecord[],
+  currentEntry: IHistoryEntry,
+  nextSet?: ISet
+): { last: [ISet, number]; max: [ISet, number] } | undefined {
+  if (!nextSet?.isAmrap) {
     return undefined;
   }
-
-  export function getHistoricalAmrapSets(
-    history: IHistoryRecord[],
-    currentEntry: IHistoryEntry,
-    nextSet?: ISet
-  ): { last: [ISet, number]; max: [ISet, number] } | undefined {
-    if (!nextSet?.isAmrap) {
-      return undefined;
-    }
-    let last: [ISet, number] | undefined;
-    let max: [ISet, number] | undefined;
-    for (const record of history) {
-      for (const entry of record.entries) {
-        if (Exercise.eq(currentEntry.exercise, entry.exercise)) {
-          for (const set of entry.sets) {
-            if (set.isAmrap && set.reps === nextSet.reps && Weight.eq(set.weight, nextSet.weight)) {
-              if (last == null) {
-                last = [set, record.startTime];
-              }
-              if (max == null || (set.completedReps || 0) > (max[0].completedReps || 0)) {
-                max = [set, record.startTime];
-              }
+  let last: [ISet, number] | undefined;
+  let max: [ISet, number] | undefined;
+  for (const record of history) {
+    for (const entry of record.entries) {
+      if (Exercise_eq(currentEntry.exercise, entry.exercise)) {
+        for (const set of entry.sets) {
+          if (
+            set.isAmrap &&
+            set.reps === nextSet.reps &&
+            Weight_eq(set.weight ?? Weight_build(0, "lb"), nextSet.weight ?? Weight_build(0, "lb"))
+          ) {
+            if (last == null) {
+              last = [set, record.startTime];
+            }
+            if (max == null || (set.completedReps || 0) > (max[0].completedReps || 0)) {
+              max = [set, record.startTime];
             }
           }
         }
       }
     }
-    return last != null && max != null ? { last, max } : undefined;
+  }
+  return last != null && max != null ? { last, max } : undefined;
+}
+
+export function History_exportAsCSV(history: IHistoryRecord[], settings: ISettings): (string | number | null)[][] {
+  const lines: (string | number | null)[][] = [
+    [
+      "Workout DateTime",
+      "Program",
+      "Day Name",
+      "Exercise",
+      "Is Warmup Set?",
+      "Required Reps",
+      "Completed Reps",
+      "Is AMRAP?",
+      "Required RPE",
+      "Completed RPE",
+      "Log RPE?",
+      "Required Weight Value",
+      "Required Weight Unit",
+      "Completed Weight Value",
+      "Completed Weight Unit",
+      "Ask Weight?",
+      "Completed Reps Time",
+      "Target Muscles",
+      "Synergist Muscles",
+      "Notes",
+    ],
+  ];
+
+  for (const historyRecord of history) {
+    for (const entry of historyRecord.entries) {
+      const exercise = Exercise_get(entry.exercise, settings.exercises);
+      for (const warmupSet of entry.warmupSets) {
+        lines.push([
+          historyRecord.date,
+          historyRecord.programName,
+          historyRecord.dayName,
+          Exercise_fullName(exercise, settings),
+          1,
+          warmupSet.reps ?? null,
+          warmupSet.completedReps ?? null,
+          warmupSet.isAmrap ? 1 : 0,
+          warmupSet.rpe ?? null,
+          warmupSet.completedRpe ?? null,
+          warmupSet.logRpe ? 1 : 0,
+          warmupSet.weight?.value ?? null,
+          warmupSet.weight?.unit ?? null,
+          warmupSet.completedWeight?.value ?? null,
+          warmupSet.completedWeight?.unit ?? null,
+          warmupSet.askWeight ? 1 : 0,
+          warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
+          Exercise_targetMuscles(exercise, settings).join(","),
+          Exercise_synergistMuscles(exercise, settings).join(","),
+          entry.notes ?? "",
+        ]);
+      }
+      for (const set of entry.sets) {
+        lines.push([
+          historyRecord.date,
+          historyRecord.programName,
+          historyRecord.dayName,
+          Exercise_fullName(exercise, settings),
+          0,
+          set.reps ?? null,
+          set.completedReps ?? null,
+          set.isAmrap ? 1 : 0,
+          set.rpe ?? null,
+          set.completedRpe ?? null,
+          set.logRpe ? 1 : 0,
+          set.weight?.value ?? null,
+          set.weight?.unit ?? null,
+          set.completedWeight?.value ?? null,
+          set.completedWeight?.unit ?? null,
+          set.askWeight ? 1 : 0,
+          set.timestamp != null ? new Date(set.timestamp || 0).toISOString() : null,
+          Exercise_targetMuscles(exercise, settings).join(","),
+          Exercise_synergistMuscles(exercise, settings).join(","),
+          entry.notes ?? "",
+        ]);
+      }
+    }
   }
 
-  export function exportAsCSV(history: IHistoryRecord[], settings: ISettings): (string | number | null)[][] {
-    const lines: (string | number | null)[][] = [
-      [
-        "Workout DateTime",
-        "Program",
-        "Day Name",
-        "Exercise",
-        "Equipment",
-        "Is Warmup Set?",
-        "Required Reps",
-        "Completed Reps",
-        "RPE",
-        "Is AMRAP?",
-        "Weight Value",
-        "Weight Unit",
-        "Completed Reps Time",
-        "Target Muscles",
-        "Synergist Muscles",
-        "Notes",
-      ],
-    ];
+  return lines;
+}
 
-    for (const historyRecord of history) {
-      for (const entry of historyRecord.entries) {
-        const exercise = Exercise.get(entry.exercise, settings.exercises);
-        for (const warmupSet of entry.warmupSets) {
-          lines.push([
-            historyRecord.date,
-            historyRecord.programName,
-            historyRecord.dayName,
-            exercise.name,
-            exercise.equipment || null,
-            1,
-            warmupSet.reps,
-            warmupSet.completedReps || null,
-            warmupSet.completedRpe || null,
-            0,
-            warmupSet.weight.value,
-            warmupSet.weight.unit,
-            warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
-            Exercise.targetMuscles(exercise, settings.exercises).join(","),
-            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
-            entry.notes ?? "",
-          ]);
+export function History_pauseWorkoutAction(dispatch: IDispatch): void {
+  const lensGetters = { progress: lb<IState>().p("storage").pi("progress").get() };
+  NativeWorkoutBridge_pauseWorkout();
+  updateState(
+    dispatch,
+    [
+      lbu<IState, typeof lensGetters>(lensGetters)
+        .p("storage")
+        .pi("progress")
+        .i(0)
+        .p("intervals")
+        .recordModify((intervals, getters) => History_pauseWorkout(getters.progress?.[0].intervals)),
+    ],
+    "Pause workout"
+  );
+}
+
+export function History_pauseWorkout(intervals?: IIntervals): IIntervals | undefined {
+  if (intervals && !History_isPaused(intervals)) {
+    const newIntervals = intervals ? ObjectUtils_clone(intervals) : [];
+    let lastInterval = newIntervals[newIntervals.length - 1];
+    if (lastInterval == null) {
+      lastInterval = [Date.now(), undefined];
+      newIntervals.push(lastInterval);
+    }
+    lastInterval[1] = Date.now();
+    return newIntervals;
+  } else {
+    return intervals;
+  }
+}
+
+export function History_resumeWorkoutAction(
+  dispatch: IDispatch,
+  isPlayground: boolean,
+  settings: ISettings,
+  hasSubscription: boolean
+): void {
+  updateState(
+    dispatch,
+    [
+      Progress_lbProgress().recordModify((progress) => {
+        const intervals = History_resumeWorkout(progress, isPlayground, settings.timers.reminder, hasSubscription);
+        return { ...progress, intervals };
+      }),
+    ],
+    "Resume workout"
+  );
+}
+
+export function History_isPaused(intervals?: IIntervals): boolean {
+  return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
+}
+
+export function History_resumeWorkout(
+  historyRecord: IHistoryRecord,
+  isPlayground: boolean,
+  reminder: number | undefined,
+  hasSubscription: boolean
+): IIntervals | undefined {
+  const intervals = historyRecord.intervals;
+  if (History_isPaused(intervals)) {
+    const isStart = !intervals || intervals.length === 0;
+    if (!isPlayground && Progress_isCurrent(historyRecord)) {
+      NativeWorkoutBridge_resumeWorkout({
+        reminder: reminder || 0,
+        isStart,
+        hasSubscription,
+      });
+    }
+    const newIntervals = intervals ? ObjectUtils_clone(intervals) : [];
+    newIntervals.push([Date.now(), undefined]);
+    return newIntervals;
+  } else {
+    return intervals;
+  }
+}
+
+export function History_workoutTime(historyRecord: IHistoryRecord): number {
+  const intervals = historyRecord.intervals || [[historyRecord.startTime, historyRecord.endTime || Date.now()]];
+  return intervals.reduce((memo, interval) => {
+    return memo + ((interval[1] || Date.now()) - interval[0]);
+  }, 0);
+}
+
+export const History_getDateToHistory = memoize(
+  (history: IHistoryRecord[]): Partial<Record<string, IHistoryRecord>> => {
+    return history.reduce<Partial<Record<string, IHistoryRecord>>>((memo, hr) => {
+      memo[DateUtils_formatYYYYMMDD(hr.date)] = hr;
+      return memo;
+    }, {});
+  },
+  { maxSize: 10 }
+);
+
+export const History_getPersonalRecords = memoize(
+  (history: IHistoryRecord[]): IPersonalRecords => {
+    const result: IPersonalRecords = {};
+    const sortedHistory = CollectionUtils_sortByExpr(history, (hr) => hr.endTime ?? hr.startTime);
+    const max1RMSets: Partial<Record<string, ISet | undefined>> = {};
+    const maxWeightSets: Partial<Record<string, ISet | undefined>> = {};
+    for (const record of sortedHistory) {
+      for (const entry of record.entries) {
+        const key = Exercise_toKey(entry.exercise);
+
+        const thisMaxWeightSet = History_getMaxWeightSetFromEntry(entry);
+        const thisMaxWeight = thisMaxWeightSet
+          ? (thisMaxWeightSet.completedWeight ?? thisMaxWeightSet.weight)
+          : undefined;
+        const lastMaxWeight = maxWeightSets[key]?.completedWeight ?? maxWeightSets[key]?.weight;
+        if (thisMaxWeight != null && (lastMaxWeight == null || Weight_gt(thisMaxWeight, lastMaxWeight))) {
+          const prevMaxWeightSet = maxWeightSets[key];
+          maxWeightSets[key] = thisMaxWeightSet;
+          result[record.id] = result[record.id] || {};
+          result[record.id]![key] = result[record.id]![key] || {};
+          result[record.id]![key]!.prevMaxWeightSet = prevMaxWeightSet;
+          result[record.id]![key]!.maxWeightSet = thisMaxWeightSet;
         }
-        for (const set of entry.sets) {
-          lines.push([
-            historyRecord.date,
-            historyRecord.programName,
-            historyRecord.dayName,
-            exercise.name,
-            exercise.equipment || null,
-            0,
-            set.reps,
-            set.completedReps || null,
-            set.completedRpe || null,
-            set.isAmrap ? 1 : 0,
-            set.weight.value,
-            set.weight.unit,
-            set.timestamp != null ? new Date(set.timestamp || 0).toISOString() : null,
-            Exercise.targetMuscles(exercise, settings.exercises).join(","),
-            Exercise.synergistMuscles(exercise, settings.exercises).join(","),
-            entry.notes ?? "",
-          ]);
+
+        const thisMax1RMSet = History_getMax1RMSetFromEntry(entry);
+        const thisMax1RM = thisMax1RMSet
+          ? Weight_getOneRepMax(
+              thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight ?? Weight_build(0, "lb"),
+              Reps_avgUnilateralCompletedReps(thisMax1RMSet) || 0,
+              thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
+            )
+          : undefined;
+        const lastMax1RMSet = max1RMSets[key];
+        const lastMax1RM = lastMax1RMSet
+          ? Weight_getOneRepMax(
+              lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight ?? Weight_build(0, "lb"),
+              lastMax1RMSet ? Reps_avgUnilateralCompletedReps(lastMax1RMSet) || 0 : 0,
+              lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
+            )
+          : undefined;
+        if (thisMax1RM != null && (lastMax1RM == null || Weight_gt(thisMax1RM, lastMax1RM))) {
+          const prevMax1RMSet = max1RMSets[key];
+          max1RMSets[key] = thisMax1RMSet;
+          result[record.id] = result[record.id] || {};
+          result[record.id]![key] = result[record.id]![key] || {};
+          result[record.id]![key]!.prevMax1RMSet = prevMax1RMSet;
+          result[record.id]![key]!.max1RMSet = thisMax1RMSet;
         }
       }
     }
+    return result;
+  },
+  { maxSize: 10 }
+);
 
-    return lines;
-  }
+export interface IGraphsAggregates {
+  sortedHistory: IHistoryRecord[];
+  muscleGroupsData: Record<IScreenMuscle | "total", [number[], number[], number[]]>;
+  programChangeTimes: { currentProgram?: string; changeProgramTimes: [number, string][] };
 }
+
+// Aggregates used by the Graphs screen. Memoized by history+settings refs (lens-shmens
+// gives us stable refs for unchanged subtrees), so this returns instantly across screen
+// mount/unmount cycles. Also called from App.native.tsx during idle time to warm the
+// cache so the first Graphs visit is fast.
+export const History_getGraphsAggregates = memoize(
+  (history: IHistoryRecord[], settings: ISettings): IGraphsAggregates => {
+    const sortedHistory = CollectionUtils_sort(history, (a, b) => {
+      return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
+    });
+    const [muscleGroupsData, programChangeTimes] = Collector.build(sortedHistory)
+      .addFn(History_collectMuscleGroups(settings))
+      .addFn(History_collectProgramChangeTimes())
+      .run();
+    return { sortedHistory, muscleGroupsData, programChangeTimes };
+  },
+  { maxSize: 5 }
+);
+
+export interface IHomeWeekData {
+  firstDayOfWeeks: number[];
+  firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>>;
+  historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>>;
+}
+
+function buildHomeWeekData(history: IHistoryRecord[], startWeekFromMonday: boolean): IHomeWeekData {
+  const firstDayOfWeeksSet: Set<number> = new Set();
+  const historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>> = {};
+  const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
+  for (const record of history) {
+    if (!Progress_isCurrent(record)) {
+      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.endTime ?? record.startTime, startWeekFromMonday);
+      if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
+        firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
+      }
+      firstDayOfWeeksSet.add(firstDayOfWeek);
+      historyRecordDateToFirstDayOfWeek[record.id] = firstDayOfWeek;
+    }
+  }
+  if (firstDayOfWeeksSet.size === 0) {
+    const today = new Date();
+    const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
+    firstDayOfWeeksSet.add(firstDayOfWeek);
+  }
+  return {
+    firstDayOfWeeks: CollectionUtils_sort(Array.from(firstDayOfWeeksSet)),
+    historyRecordDateToFirstDayOfWeek,
+    firstDayOfWeekToHistoryRecord,
+  };
+}
+
+export interface IHomeAggregates {
+  sortedHistoryDesc: IHistoryRecord[];
+  weeksData: IHomeWeekData;
+  prs: IPersonalRecords;
+}
+
+export const History_getHomeAggregates = memoize(
+  (history: IHistoryRecord[], startWeekFromMonday: boolean): IHomeAggregates => {
+    const sortedHistoryDesc = CollectionUtils_sort(history, (a, b) => {
+      return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
+    });
+    const weeksData = buildHomeWeekData(sortedHistoryDesc, startWeekFromMonday);
+    const prs = History_getPersonalRecords(history);
+    return { sortedHistoryDesc, weeksData, prs };
+  },
+  { maxSize: 3 }
+);

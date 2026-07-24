@@ -4,15 +4,10 @@ ENDPOINT="https://api.rollbar.com/api/1/sourcemap"
 VERSION=$(git rev-parse HEAD)
 URL_PREFIX="//www.liftosaur.com"
 DIST_DIR="./dist"
-MAX_CONCURRENT_UPLOADS=3
+MAX_CONCURRENT_UPLOADS=8
 MAX_RETRIES=3
 CURL_TIMEOUT=20
-
-function limit_jobs() {
-    while [ "$(jobs -r | wc -l)" -ge "$MAX_CONCURRENT_UPLOADS" ]; do
-        sleep 1
-    done
-}
+RETRY_DELAY=2
 
 if [ -z "$VERSION" ]; then
     echo "Error: Git commit hash not found. Are you in a Git repository?"
@@ -24,32 +19,63 @@ if [ -z "$ROLLBAR_POST_SERVER_ITEM" ]; then
     exit 1
 fi
 
-for jsfile in $DIST_DIR/*.js; do
+# --fail makes curl treat Rollbar HTTP errors (429/5xx) as failures, and
+# --retry-all-errors then retries on those *and* on -m timeouts. Without --fail,
+# curl exits 0 on an HTTP error and the upload silently fails.
+upload_one() {
+    local mapfile="$1"
+    local minified_url="$2"
+    curl --silent --show-error --fail \
+        -m "$CURL_TIMEOUT" \
+        --retry "$MAX_RETRIES" --retry-delay "$RETRY_DELAY" --retry-all-errors \
+        "$ENDPOINT" \
+        -F access_token="$ROLLBAR_POST_SERVER_ITEM" \
+        -F version="$VERSION" \
+        -F minified_url="$minified_url" \
+        -F source_map=@"$mapfile" \
+        -o /dev/null
+}
+
+upload_bundle() {
+    local jsfile="$1"
+    local mapfile="${jsfile}.map"
+    local relpath="${jsfile#$DIST_DIR/}"
+
+    if upload_one "$mapfile" "$URL_PREFIX/$relpath" \
+        && upload_one "$mapfile" "liftosaur:$URL_PREFIX/$relpath"; then
+        echo "✓ $relpath"
+    else
+        echo "✗ FAILED $relpath" >&2
+        return 1
+    fi
+}
+
+pids=()
+
+while IFS= read -r jsfile; do
     mapfile="${jsfile}.map"
     if [[ -f "$mapfile" ]]; then
-        jsfilename=$(basename $jsfile)
-        
-        echo ""
-        echo "Uploading $jsfilename source map, version $VERSION"
+        upload_bundle "$jsfile" &
+        pids+=("$!")
 
-        (
-            for ((i=1; i<=MAX_RETRIES; i++)); do
-                curl -m $CURL_TIMEOUT $ENDPOINT \
-                    -F access_token=$ROLLBAR_POST_SERVER_ITEM \
-                    -F version=$VERSION \
-                    -F minified_url="$URL_PREFIX/$jsfilename" \
-                    -F source_map=@$mapfile
-                if [ $? -eq 0 ]; then
-                    break
-                else
-                    echo "Retry $i for $jsfilename..."
-                    sleep 2
-                fi
-            done
-        ) &
-
-        limit_jobs
+        while [ "$(jobs -r | wc -l)" -ge "$MAX_CONCURRENT_UPLOADS" ]; do
+            sleep 0.2
+        done
     fi
-done
+done < <(find "$DIST_DIR" -type f -name "*.js")
 
-wait
+failed=0
+if [ "${#pids[@]}" -gt 0 ]; then
+    for pid in "${pids[@]}"; do
+        wait "$pid" || failed=$((failed + 1))
+    done
+fi
+
+if [ "$failed" -gt 0 ]; then
+    echo ""
+    echo "Error: $failed bundle(s) failed to upload source maps."
+    exit 1
+fi
+
+echo ""
+echo "All source maps uploaded for version $VERSION."

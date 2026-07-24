@@ -1,11 +1,14 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
-import type { IAffiliateData } from "./affiliateDashboardContent";
+import type { IAffiliateDashboardSummary, IAffiliateData } from "./affiliateDashboardContent";
 import { AffiliateDashboardContent } from "./affiliateDashboardContent";
 
 export interface IAffiliateDashboardHtmlProps {
   affiliateId: string;
   affiliateData: IAffiliateData[];
+  summary: IAffiliateDashboardSummary;
+  monthlyPayments: { month: string; revenue: number; count: number }[];
+  apiKey: string;
   client: Window["fetch"];
 }
 
@@ -17,9 +20,10 @@ export function AffiliateDashboardHtml(props: IAffiliateDashboardHtmlProps): JSX
       css={["affiliatedashboard"]}
       js={["affiliatedashboard"]}
       maxWidth={1020}
-      title="Affiliate Dashboard"
+      title="Affiliate Dashboard | Liftosaur"
+      canonical={`https://www.liftosaur.com/dashboards/affiliate/${props.affiliateId}`}
       ogTitle="Liftosaur: Affiliate Dashboard"
-      ogDescription="The dashboard to see users' activity came from affiliate"
+      description="The dashboard to see users' activity came from affiliate"
       ogUrl={`https://www.liftosaur.com/dashboards/affiliate/${props.affiliateId}`}
       data={data}
       client={client}

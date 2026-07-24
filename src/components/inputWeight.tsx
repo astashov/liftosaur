@@ -1,158 +1,152 @@
-import { JSX, h } from "preact";
-import { useRef, useState } from "preact/hooks";
-import { Weight } from "../models/weight";
-import { IEquipment, IPercentage, ISettings, IUnit, IWeight } from "../types";
+import { JSX, useEffect, useState } from "react";
+import { View, Pressable, TextInput, Platform } from "react-native";
+import { Text } from "./primitives/text";
+import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
+import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
-import { Input } from "./input";
-import { Modal } from "./modal";
-import { RepMaxCalculator } from "./repMaxCalculator";
+import { useModal } from "../navigation/ModalStateContext";
+import { StringUtils_dashcase } from "../utils/string";
+import { MathUtils_normalizeNumStr } from "../utils/math";
+import { InputWeightUnit } from "./inputWeightUnit";
 
 interface IInputWeightProps {
   value: IWeight | IPercentage;
   label?: string;
-  equipment?: IEquipment;
+  exerciseType?: IExerciseType;
   units?: (IUnit | "%")[];
   settings: ISettings;
-  "data-cy"?: string;
+  "data-testid"?: string;
+  testID?: string;
   onUpdate: (weight: IWeight | IPercentage) => void;
 }
 
 export function InputWeight(props: IInputWeightProps): JSX.Element {
-  const inputRef = useRef<HTMLInputElement>();
-  const unitRef = useRef<HTMLSelectElement>();
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [text, setText] = useState(String(props.value.value));
+  const [unit, setUnit] = useState<IUnit | "%">(props.value.unit);
+  const testId = props.testID || `input-${StringUtils_dashcase(props.label || "")}`;
+  const availableUnits = props.units ?? (["kg", "lb", "%"] as const);
+
+  useEffect(() => {
+    const parsed = Number(text);
+    if (isNaN(parsed) || parsed !== props.value.value) {
+      setText(String(props.value.value));
+    }
+    setUnit(props.value.unit);
+  }, [props.value.value, props.value.unit]);
+
+  function buildWeight(v: number, u: IUnit | "%"): IWeight | IPercentage {
+    return u === "%" ? Weight_buildPct(v) : Weight_build(v, u);
+  }
 
   function getValue(): IWeight | IPercentage | undefined {
-    const inputValue = inputRef.current.value;
-    let value = Number(inputValue);
-    if (inputValue && !isNaN(value)) {
-      value = Math.abs(value);
-      const unit = unitRef.current.value as IUnit | "%";
-      if (unit === "%") {
-        return Weight.buildPct(value);
-      } else {
-        return Weight.build(value, unit);
-      }
+    const v = Number(text);
+    if (isNaN(v)) {
+      return undefined;
     }
-    return undefined;
+    return buildWeight(v, unit);
   }
-  const unit = props.value.unit;
+
+  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+    if (weightValue != null && unit !== "%") {
+      const w = Weight_build(weightValue, unit as IUnit);
+      setText(String(w.value));
+      props.onUpdate(w);
+    }
+  });
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2">
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-minus"
-            data-cy="edit-weight-minus"
-            onClick={() => {
-              const value = getValue();
-              if (value) {
-                if (value.unit === "%") {
-                  const newValue = Math.max(0, value.value - 1);
-                  props.onUpdate(Weight.buildPct(newValue));
-                } else {
-                  const newWeight = Weight.decrement(value, props.settings, props.equipment);
-                  props.onUpdate(newWeight);
+    <View className="w-full">
+      {props.label && <Text className="mb-1 text-xs text-text-secondary">{props.label}</Text>}
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-testid="edit-weight-minus"
+          testID="edit-weight-minus"
+          onPress={() => {
+            const value = getValue();
+            if (value) {
+              if (value.unit === "%") {
+                const newValue = Weight_buildPct(value.value - 1);
+                setText(String(newValue.value));
+                props.onUpdate(newValue);
+              } else {
+                const newWeight = Weight_decrement(value, props.settings, props.exerciseType);
+                setText(String(newWeight.value));
+                props.onUpdate(newWeight);
+              }
+            }
+          }}
+        >
+          <Text className="text-xl font-bold leading-none">-</Text>
+        </Pressable>
+        <View className="flex-row items-center flex-1 gap-2">
+          <View className="flex-1">
+            <TextInput
+              className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
+              keyboardType="numeric"
+              value={text}
+              data-testid={testId}
+              testID={testId}
+              onChangeText={(t) => {
+                const normalized = MathUtils_normalizeNumStr(t);
+                setText(normalized);
+                if (normalized !== "" && !isNaN(Number(normalized))) {
+                  props.onUpdate(buildWeight(Number(normalized), unit));
                 }
+              }}
+              onBlur={() => {
+                const value = getValue();
+                if (value != null) {
+                  props.onUpdate(value);
+                }
+              }}
+              selectTextOnFocus={Platform.OS === "ios"}
+            />
+          </View>
+          <InputWeightUnit
+            value={unit}
+            units={availableUnits}
+            onChange={(u) => {
+              setUnit(u);
+              const v = Number(text);
+              if (!isNaN(v)) {
+                props.onUpdate(buildWeight(v, u));
               }
             }}
-          >
-            -
-          </button>
-        </div>
-        <div className="flex items-center flex-1 gap-2">
-          <div className="flex-1">
-            <Input
-              label={props.label}
-              labelSize="xs"
-              data-cy={props["data-cy"]}
-              inputSize="sm"
-              ref={inputRef}
-              step="0.01"
-              type="number"
-              value={props.value.value}
-              onInput={() => {
-                const value = getValue();
-                if (value != null) {
-                  props.onUpdate(value);
-                }
-              }}
-            />
-          </div>
-          <div>
-            <select
-              ref={unitRef}
-              data-cy="edit-weight-unit"
-              onChange={() => {
-                const value = getValue();
-                if (value != null) {
-                  props.onUpdate(value);
-                }
-              }}
-            >
-              {(["kg", "lb", "%"] as const)
-                .filter((u) => props.units == null || props.units.indexOf(u) !== -1)
-                .map((u) => {
-                  return (
-                    <option value={u} selected={unit === u}>
-                      {u}
-                    </option>
-                  );
-                })}
-            </select>
-          </div>
-        </div>
+          />
+        </View>
         {unit !== "%" && (
-          <div>
-            <button
-              className="w-10 h-10 p-2 leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-calc"
-              data-cy="edit-weight-calculator"
-              onClick={() => {
-                setIsCalculatorOpen(true);
-              }}
-            >
-              <IconCalculator className="inline-block" size={16} />
-            </button>
-          </div>
-        )}
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-purplev2-100 border-grayv2-200 nm-weight-plus"
-            data-cy="edit-weight-plus"
-            onClick={() => {
-              const value = getValue();
-              if (value) {
-                if (value.unit === "%") {
-                  const newValue = value.value + 1;
-                  props.onUpdate(Weight.buildPct(newValue));
-                } else {
-                  const newWeight = Weight.increment(value, props.settings, props.equipment);
-                  props.onUpdate(newWeight);
-                }
-              }
-            }}
+          <Pressable
+            className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+            data-testid="edit-weight-calculator"
+            testID="edit-weight-calculator"
+            onPress={() => openCalculator({ unit: unit as IUnit })}
           >
-            +
-          </button>
-        </div>
-      </div>
-      {isCalculatorOpen && unit !== "%" && (
-        <Modal shouldShowClose={true} onClose={() => setIsCalculatorOpen(false)} isFullWidth={true}>
-          <div style={{ minWidth: "80%" }} data-cy="modal-rep-max-calculator">
-            <RepMaxCalculator
-              backLabel="Back"
-              unit={unit}
-              onSelect={(weightValue) => {
-                if (weightValue != null) {
-                  props.onUpdate(Weight.build(weightValue, unit));
-                }
-                setIsCalculatorOpen(false);
-              }}
-            />
-          </div>
-        </Modal>
-      )}
-    </div>
+            <IconCalculator size={16} />
+          </Pressable>
+        )}
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-testid="edit-weight-plus"
+          testID="edit-weight-plus"
+          onPress={() => {
+            const value = getValue();
+            if (value) {
+              if (value.unit === "%") {
+                const newValue = Weight_buildPct(value.value + 1);
+                setText(String(newValue.value));
+                props.onUpdate(newValue);
+              } else {
+                const newWeight = Weight_increment(value, props.settings, props.exerciseType);
+                setText(String(newWeight.value));
+                props.onUpdate(newWeight);
+              }
+            }
+          }}
+        >
+          <Text className="text-xl font-bold leading-none">+</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }

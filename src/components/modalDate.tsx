@@ -1,57 +1,107 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
-import { DateUtils } from "../utils/date";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
+import { Input } from "./input";
+import { DatePicker } from "./datePicker";
+import { MathUtils_clamp } from "../utils/math";
 
-interface IModalDateProps {
+interface IModalDateContentProps {
   dispatch: IDispatch;
+  progressId: number;
   date: string;
-  isHidden: boolean;
+  time: number;
+  onDone?: () => void;
 }
 
-export function ModalDate(props: IModalDateProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
-  const date = new Date(Date.parse(props.date));
-  const formattedDate = DateUtils.formatYYYYMMDD(date);
+export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
+  const initialDate = new Date(Date.parse(props.date));
+  const hours = Math.floor(props.time / 3600000);
+  const hoursStr = hours.toString().padStart(2, "0");
+  const minutes = Math.floor((props.time % 3600000) / 60000);
+  const minutesStr = minutes.toString().padStart(2, "0");
+
+  const [dateTimestamp, setDateTimestamp] = useState(initialDate.getTime());
+  const [hoursValue, setHoursValue] = useState(hoursStr);
+  const [minutesValue, setMinutesValue] = useState(minutesStr);
+
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput}>
-      <h3 className="pb-2 font-bold">Please enter new date</h3>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input
-          ref={textInput}
-          className="block w-full px-4 py-2 leading-normal bg-white border border-gray-300 rounded-lg appearance-none focus:outline-none focus:shadow-outline"
-          type="date"
-          placeholder="Date"
-          value={formattedDate}
-        />
-        <div className="mt-4 text-right">
-          <Button
-            name="modal-date-cancel"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={() => {
-              props.dispatch({ type: "ConfirmDate", date: undefined });
+    <View>
+      <Text className="pb-2 font-bold">Please enter new date</Text>
+      <DatePicker testID="modal-date-picker" value={dateTimestamp} onChange={setDateTimestamp} />
+      <Text className="pt-2 font-bold">Please enter workout length</Text>
+      <Text className="pb-2 text-xs text-text-secondary">(in hh:mm)</Text>
+      <View className="flex-row items-center">
+        <View className="flex-1">
+          <Input
+            type="tel"
+            placeholder="00"
+            value={hoursValue}
+            inputSize="sm"
+            labelSize="xs"
+            changeType="oninput"
+            changeHandler={(e) => {
+              if (e.success) {
+                setHoursValue(e.data);
+              }
             }}
-          >
-            Cancel
-          </Button>
-          <Button
-            name="modal-date-submit"
-            kind="orange"
-            type="submit"
-            className="ls-modal-set-date"
-            onClick={() => {
-              const value = textInput.current?.value;
-              props.dispatch({ type: "ConfirmDate", date: value });
+          />
+        </View>
+        <View className="items-center justify-center" style={{ width: 16, height: 40 }}>
+          <Text>:</Text>
+        </View>
+        <View className="flex-1">
+          <Input
+            type="tel"
+            placeholder="00"
+            value={minutesValue}
+            inputSize="sm"
+            labelSize="xs"
+            changeType="oninput"
+            changeHandler={(e) => {
+              if (e.success) {
+                setMinutesValue(e.data);
+              }
             }}
-          >
-            Save
-          </Button>
-        </div>
-      </form>
-    </Modal>
+          />
+        </View>
+      </View>
+      <View className="flex-row justify-between mt-4">
+        <Button
+          name="modal-date-cancel"
+          kind="grayv2"
+          className="mr-3"
+          onClick={() => {
+            props.dispatch({ type: "ConfirmDate", id: props.progressId, date: undefined, time: undefined });
+            props.onDone?.();
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          name="modal-date-submit"
+          kind="purple"
+          onClick={() => {
+            const newHoursValue = Number(hoursValue);
+            const newMinutesValue = Number(minutesValue);
+            const newTime =
+              isNaN(newHoursValue) || isNaN(newMinutesValue)
+                ? props.time
+                : MathUtils_clamp(newHoursValue, 0, 99) * 3600000 + MathUtils_clamp(newMinutesValue, 0, 60) * 60000;
+            props.dispatch({
+              type: "ConfirmDate",
+              id: props.progressId,
+              date: DateUtils_formatYYYYMMDD(new Date(dateTimestamp)),
+              time: newTime,
+            });
+            props.onDone?.();
+          }}
+        >
+          Save
+        </Button>
+      </View>
+    </View>
   );
 }

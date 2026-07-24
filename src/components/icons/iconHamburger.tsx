@@ -1,4 +1,5 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -8,7 +9,7 @@ interface IProps {
 }
 
 export function IconHamburger(props: IProps): JSX.Element {
-  const color = props.color ?? "#171718";
+  const color = props.color ?? Tailwind_semantic().icon.neutral;
   const size = props.size ?? 22;
   return (
     <svg

@@ -1,64 +1,56 @@
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { IScreen } from "./screen";
+import { IPlannerState, IPlannerExerciseState } from "../pages/planner/models/types";
 import { IDispatch } from "../ducks/types";
-import { Storage } from "../models/storage";
+import { Storage_getDefault } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
 import { IUser } from "./user";
+import { IProgramIndexEntry } from "./program";
 import {
   IStorage,
   IProgram,
   IHistoryRecord,
-  IProgramExercise,
   IProgramDay,
   ISettings,
   IExerciseType,
   IEquipment,
+  IStats,
+  IImportSession,
 } from "../types";
+import { IImportResult } from "../utils/importTypes";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
-import { IPlannerState } from "../pages/planner/models/types";
+import type { NavigationContainerRef } from "@react-navigation/native";
+import type { IRootStackParamList } from "../navigation/types";
+import type { IScreenData } from "./screen";
+import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
+import type { IIapActiveSubscription, IIapAdapter } from "../utils/iapAdapter";
+import type { IHealthAdapter } from "../utils/healthAdapter";
+import type { Persistence } from "../utils/persistence";
 
 export type IEnv = {
   service: Service;
   audio: IAudioInterface;
   queue: AsyncQueue;
+  persistence: Persistence;
+  navigationRef?: NavigationContainerRef<IRootStackParamList>;
+  getCurrentScreenData?: () => IScreenData | undefined;
+  iap?: IIapAdapter;
+  health?: IHealthAdapter;
 };
-
-export type IFriendStatus = "invited" | "active" | "pending" | "loading";
-
-export interface IFriend {
-  user: {
-    id: string;
-    nickname?: string;
-  };
-  status?: IFriendStatus;
-}
-
-export interface ILike {
-  friendIdHistoryRecordId: string;
-  userId: string;
-  userNickname: string;
-  friendId: string;
-  historyRecordId: number;
-  timestamp: number;
-}
-
-export interface IFriendUser {
-  id: string;
-  nickname: string;
-  storage: Omit<IStorage, "programs" | "stats">;
-}
 
 export interface INotification {
   type: "error" | "success";
   content: string;
 }
 
-export interface IAllFriends {
-  friends: Partial<Record<string, IFriend>>;
-  sortedIds: string[];
-  isLoading: boolean;
+export interface INavCommon {
+  loading: ILoading;
+  userId?: string;
+  currentProgram?: IProgram;
+  isOngoingProgress: boolean;
+  stats: IStats;
+  settings: ISettings;
 }
 
 export interface ILoadingItem {
@@ -72,27 +64,6 @@ export interface ILoadingItem {
 export type ILoading = {
   items: Partial<Record<string, ILoadingItem>>;
 };
-
-export interface IAllComments {
-  comments: Partial<Record<string, IComment[]>>;
-  isLoading: boolean;
-  isPosting: boolean;
-  isRemoving: Partial<Record<string, boolean>>;
-}
-
-export interface IAllLikes {
-  likes: Partial<Record<string, ILike[]>>;
-  isLoading: boolean;
-}
-
-export interface IComment {
-  id: string;
-  userId: string;
-  friendId: string;
-  historyRecordId: string;
-  timestamp: number;
-  text: string;
-}
 
 export interface ISubscriptionLoading {
   monthly?: boolean;
@@ -109,82 +80,158 @@ export interface IStateErrors {
   };
 }
 
+export interface IAppleOffer {
+  yearly: IApplePromotionalOffer;
+  monthly: IApplePromotionalOffer;
+}
+
+export interface IApplePromotionalOffer {
+  offerId: string;
+  signature: string;
+  nonce: string;
+  timestamp: number;
+}
+
+export interface IGoogleOffer {
+  yearly: IGooglePromotionalOffer;
+  monthly: IGooglePromotionalOffer;
+}
+
+export interface IGooglePromotionalOffer {
+  offerId: string;
+  productId: string;
+}
+
+export interface IOfferData {
+  offerId: string;
+  formattedPrice: string;
+}
+
+export interface IAttributionData {
+  isOrganic: boolean;
+  mediaSource: string;
+  campaign: string;
+  adSet: string;
+  ad: string;
+}
+
+export type ITourId = "workout" | "program" | "editProgramExercise";
+
+export interface IStateTour {
+  id: ITourId;
+  enforced: boolean;
+  // Screen the tour was started on. Step `condition`s resolve the active screen
+  // via getCurrentScreenData(), which returns the tour modal once it's open — so
+  // they're evaluated against this snapshot instead, keeping the steps shown in
+  // the modal consistent with the ones that triggered the tour.
+  screenData?: IScreenData;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
+  lastSyncedStorage?: IStorage;
   programs: IProgram[];
-  allFriends: IAllFriends;
-  likes: IAllLikes;
-  friendsHistory: Partial<Record<string, IFriendUser>>;
+  programsIndex: IProgramIndexEntry[];
   notification?: INotification;
-  screenStack: IScreen[];
-  currentHistoryRecord?: number;
+  revisions: Partial<Record<string, string[]>>;
+  prices?: Partial<Record<string, string>>;
+  offers?: Partial<Record<string, IOfferData[]>>;
   loading: ILoading;
   defaultEquipmentExpanded?: IEquipment;
-  currentHistoryRecordUserId?: string;
   subscriptionLoading?: ISubscriptionLoading;
+  subscriptionStatus?: IIapActiveSubscription[];
+  subscriptionStatusLoading?: boolean;
+  // Ephemeral, NON-synced optimistic hint for a just-queued Android plan switch, bridging the gap until
+  // Google's deferred RTDN lands and the server reports `pendingProduct` authoritatively. Session-only
+  // (not persisted/synced) and time-boxed via `until` so it can't drift like the old synced flag did.
+  subscriptionPendingHint?: { productId: string; until: number };
+  ownedLifetime?: boolean;
   progress: Partial<Record<number, IHistoryRecord>>;
-  comments: IAllComments;
   previewProgram?: {
     id: string;
     showCustomPrograms?: boolean;
   };
-  editProgram?: {
-    id: string;
-    dayIndex?: number;
-    weekIndex?: number;
-  };
-  editProgramV2?: IPlannerState;
   muscleView?: {
     type: "program" | "day";
     programId?: string;
-    dayIndex?: number;
+    day?: number;
   };
   viewExerciseType?: IExerciseType;
-  editExercise?: IProgramExercise;
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
+  showHearAboutUs?: boolean;
+  toast?: string;
+  tour?: IStateTour;
+  scrollToHistoryRecordId?: number;
   freshMigrations: boolean;
   errors: IStateErrors;
+  reportedCorruptedStorage?: boolean;
   nosync: boolean;
+  selectedGymId?: string;
+  appleOffer?: IAppleOffer;
+  googleOffer?: IGoogleOffer;
+  deviceId?: string;
+  editProgramStates: Record<string, IPlannerState>;
+  editProgramExerciseStates: Record<string, IPlannerExerciseState>;
+  playgroundState?: IProgramPreviewPlaygroundState;
+  importPreview?: IImportPreview;
+}
+
+export interface IImportPreview {
+  source: IImportSession["source"];
+  result: IImportResult;
 }
 
 export interface ILocalStorage {
   storage?: IStorage;
-  progress?: IHistoryRecord;
+  lastSyncedStorage?: IStorage;
   editDay?: IProgramDay;
 }
 
 export function buildState(args: {
   storage?: IStorage;
-  shouldSkipIntro?: boolean;
   notification?: INotification;
   userId?: string;
   nosync?: boolean;
+  deviceId?: string;
 }): IState {
   return {
-    screenStack: [args.shouldSkipIntro ? "programs" : "first"],
     progress: {},
     programs: [basicBeginnerProgram],
+    programsIndex: [],
     loading: { items: {} },
-    allFriends: { friends: {}, sortedIds: [], isLoading: false },
-    likes: { likes: {}, isLoading: false },
-    friendsHistory: {},
     notification: args.notification,
-    comments: { comments: {}, isLoading: false, isPosting: false, isRemoving: {} },
-    storage: args.storage || Storage.getDefault(),
+    storage: args.storage || Storage_getDefault(),
     user: args.userId ? { email: args.userId, id: args.userId } : undefined,
     errors: {},
+    revisions: {},
     freshMigrations: false,
     nosync: !!args.nosync,
+    deviceId: args.deviceId,
+    editProgramStates: {},
+    editProgramExerciseStates: {},
   };
 }
 
-export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc?: string): void {
+export function updateState(dispatch: IDispatch, lensRecording: ILensRecordingPayload<IState>[], desc: string): void {
   dispatch({ type: "UpdateState", lensRecording, desc });
 }
 
-export function updateSettings(dispatch: IDispatch, lensRecording: ILensRecordingPayload<ISettings>): void {
-  dispatch({ type: "UpdateSettings", lensRecording });
+export function updateSettings(
+  dispatch: IDispatch,
+  lensRecording: ILensRecordingPayload<ISettings>,
+  desc: string
+): void {
+  dispatch({ type: "UpdateSettings", lensRecording, desc });
+}
+
+export function updateProgress(
+  dispatch: IDispatch,
+  lensRecordings: ILensRecordingPayload<IHistoryRecord>[] | ILensRecordingPayload<IHistoryRecord>,
+  desc: string
+): void {
+  const recordings = Array.isArray(lensRecordings) ? lensRecordings : [lensRecordings];
+  dispatch({ type: "UpdateProgress", lensRecordings: recordings, desc });
 }

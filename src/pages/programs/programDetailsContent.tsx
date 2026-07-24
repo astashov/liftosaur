@@ -1,198 +1,182 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/compat";
-import { Settings } from "../../models/settings";
-import { IProgram } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
-import { useLensReducer } from "../../utils/useLensReducer";
-import { IAudioInterface } from "../../lib/audioInterface";
-import { Service } from "../../api/service";
-import { lb } from "lens-shmens";
-import { ProgramDetails } from "./programDetails/programDetails";
-import { IProgramDetailsState } from "./programDetails/types";
-import { ProgramDetailsSettings } from "./programDetails/programDetailsSettings";
-import { ProgramDetailsMusclesModal } from "./programDetails/programDetailsMusclesModal";
-import { ProgramDetailsArnoldGoldenSix } from "./detailed/programDetailsArnoldGoldenSix";
-import { ProgramDetailsGzclp } from "./detailed/programDetailsGzclp";
-import { ProgramDetailsJackedAndTan } from "./detailed/programDetailsJackedAndTan";
-import { ProgramDetailsTheRippler } from "./detailed/programDetailsTheRippler";
-import { ProgramDetailsGzclUhf9w } from "./detailed/programDetailsGzclUhf9w";
-import { ProgramDetailsGzclVdip } from "./detailed/programDetailsGzclVdip";
-import { ProgramDetailsGzclGeneralGainz } from "./detailed/programDetailsGzclGeneralGainz";
-import { ProgramDetailsGzclUhf5w } from "./detailed/programDetailsGzclUhf5w";
-import { ProgramDetailsGzclBurritoButBig } from "./detailed/programDetailsGzclBurritoButBig";
+import { JSX, useState } from "react";
+import { Settings_build } from "../../models/settings";
+import { IProgram, IUnit } from "../../types";
+import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";
+import { ProgramDetailsUpsell } from "./programDetails/programDetailsUpsell";
+import { ProgramDetailsAddButton } from "./programDetails/programDetailsAddButton";
+import {
+  IProgramIndexEntry,
+  Program_fullProgram,
+  Program_evaluate,
+  Program_exerciseRangeFormat,
+} from "../../models/program";
+import { ObjectUtils_clone } from "../../utils/object";
+import { Markdown } from "../../components/markdown";
+import { IPlannerEvalResult } from "../planner/plannerExerciseEvaluator";
+import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
+import { IconArrowRight } from "../../components/icons/iconArrowRight";
+import { PlannerWeekStats } from "../planner/components/plannerWeekStats";
+import { IconWatch } from "../../components/icons/iconWatch";
+import { IconCalendarSmall } from "../../components/icons/iconCalendarSmall";
+import { IconKettlebellSmall } from "../../components/icons/iconKettlebellSmall";
+import { Equipment_currentEquipment } from "../../models/equipment";
+import { equipmentName } from "../../models/exercise";
+import { StringUtils_pluralize } from "../../utils/string";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 
 export interface IProgramDetailsContentProps {
-  selectedProgramId: string;
-  programs: IProgram[];
+  program: IProgram;
+  fullDescription?: string;
+  faq?: string;
   client: Window["fetch"];
-  audio: IAudioInterface;
+  userAgent?: string;
+  isLoggedIn?: boolean;
+  units?: IUnit;
+  indexEntry?: IProgramIndexEntry;
 }
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
-  const service = new Service(props.client);
-  const ref = useRef<HTMLSelectElement>();
-  const initialState: IProgramDetailsState = {
-    programs: props.programs,
-    selectedProgramId: props.selectedProgramId,
-    shouldShowAllScripts: false,
-    shouldShowAllFormulas: false,
-    settings: Settings.build(),
-  };
-  const [state, dispatch] = useLensReducer(initialState, { audio: props.audio, service });
-  const program = state.programs.filter((p) => p.id === state.selectedProgramId)[0] || state.programs[0];
+  const { program, indexEntry } = props;
+  const settings = props.units ? { ...Settings_build(), units: props.units } : Settings_build();
+  const fullProgram = Program_fullProgram(ObjectUtils_clone(program), settings);
+  const evaluatedProgram = Program_evaluate(ObjectUtils_clone(program), settings);
+  const descriptionText = props.fullDescription || program.description;
 
-  if (props.selectedProgramId === "arnoldgoldensix") {
-    return (
-      <ProgramDetailsArnoldGoldenSix
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-the-rippler") {
-    return (
-      <ProgramDetailsTheRippler
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzclp") {
-    return (
-      <ProgramDetailsGzclp
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-jacked-and-tan-2") {
-    return (
-      <ProgramDetailsJackedAndTan
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-uhf-9-weeks") {
-    return (
-      <ProgramDetailsGzclUhf9w
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-general-gainz-burrito-but-big") {
-    return (
-      <ProgramDetailsGzclBurritoButBig
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-uhf-5-weeks") {
-    return (
-      <ProgramDetailsGzclUhf5w
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-vdip") {
-    return (
-      <ProgramDetailsGzclVdip
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  } else if (props.selectedProgramId === "gzcl-general-gainz") {
-    return (
-      <ProgramDetailsGzclGeneralGainz
-        program={program}
-        client={props.client}
-        audio={props.audio}
-        settings={initialState.settings}
-      />
-    );
-  }
+  const firstWeek = evaluatedProgram.weeks[0];
+  const maxWidth = 1200;
 
-  if (typeof window !== "undefined" && window.history) {
-    window.history.replaceState({}, `Liftosaur: Program Details - ${program.name}`, `/programs/${program.id}`);
-  }
+  const evaluatedDays: IPlannerEvalResult[] =
+    firstWeek?.days.map((d) => ({ success: true as const, data: d.exercises })) ?? [];
+
+  const allEquipment = Equipment_currentEquipment(settings);
+  const equipment = (indexEntry?.equipment ?? []).map((e) => equipmentName(e, allEquipment));
+  const exercisesRange = indexEntry?.exercisesRange;
+  const weeksCount = indexEntry?.weeksCount ?? 0;
+
+  const [isSummaryOpen, setIsSummaryOpen] = useState(true);
+  const [isWeekStatsOpen, setIsWeekStatsOpen] = useState(true);
+
   return (
-    <div>
-      <div className="flex program-details-header">
-        <div className="flex-1">
-          <ProgramDetailsSettings settings={state.settings} dispatch={dispatch} />
+    <section className="px-4">
+      <div className="flex flex-col mx-auto lg:flex-row" style={{ gap: "2rem", maxWidth }}>
+        <div className="flex-1 min-w-0">
+          <nav className="pt-2 pb-2 text-xs text-text-secondary" aria-label="Breadcrumb">
+            <a href="/" className="underline hover:text-text-primary">
+              Home
+            </a>
+            <span className="mx-1">/</span>
+            <a href="/programs" className="underline hover:text-text-primary">
+              Programs
+            </a>
+            <span className="mx-1">/</span>
+            <span className="text-text-primary">{program.name}</span>
+          </nav>
+          <h1 className="text-2xl font-bold leading-8">{program.name} Workout Program</h1>
+          {program.author && (
+            <div className="mt-2 mb-4 text-sm font-bold">
+              {program.url ? (
+                <a href={program.url} target="_blank" className="underline text-text-link">
+                  by {program.author}
+                </a>
+              ) : (
+                <span>by {program.author}</span>
+              )}
+            </div>
+          )}
+          <Markdown
+            className="program-details-description"
+            value={descriptionText}
+            directivesData={{
+              exercise: { settings },
+              exerciseExample: { settings, evaluatedProgram },
+            }}
+          />
+          {props.faq && (
+            <Markdown
+              className="program-details-description mt-8"
+              value={`## Frequently Asked Questions\n\n${props.faq}`}
+            />
+          )}
         </div>
-        <div>
-          <div className="px-4 text-right">
-            <select
-              ref={ref}
-              className="py-2 border border-gray-400 rounded-lg"
-              name="selected_program_id"
-              id="selected_program_id"
-              onChange={() => {
-                dispatch(lb<IProgramDetailsState>().p("selectedProgramId").record(ref.current.value));
-                window.history.replaceState(
-                  {},
-                  `Liftosaur: Program Details - ${program.name}`,
-                  `/programs/${program.id}`
-                );
-              }}
-            >
-              {CollectionUtils.sort(state.programs, (a, b) => a.name.localeCompare(b.name)).map((p) => (
-                <option selected={p.id === state.selectedProgramId} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div class="pb-4 text-right px-4">
+        <div className="flex-shrink-0 w-72">
+          <div className="lg:sticky lg:top-4">
             <button
-              onClick={() =>
-                dispatch(lb<IProgramDetailsState>().p("shouldShowAllFormulas").record(!state.shouldShowAllFormulas))
-              }
-              className="mr-2 text-sm italic text-blue-700 underline nm-program-details-toggle-all-formulas"
+              className="flex items-center w-full gap-1 mb-2 text-xl font-bold text-left cursor-pointer"
+              onClick={() => setIsSummaryOpen(!isSummaryOpen)}
             >
-              {state.shouldShowAllFormulas ? "Hide All Formulas" : "Show All Formulas"}
+              <div className="flex items-center justify-center w-4">
+                {isSummaryOpen ? (
+                  <IconArrowDown2 className="inline-block" />
+                ) : (
+                  <IconArrowRight className="inline-block" />
+                )}
+              </div>
+              <div>Summary</div>
             </button>
+            {isSummaryOpen && (
+              <>
+                <div>
+                  {indexEntry?.duration && (
+                    <div className="flex items-center gap-1 mb-2 text-sm text-text-secondary">
+                      <IconWatch width={14} height={18} />
+                      <span>~{indexEntry.duration} min per workout</span>
+                    </div>
+                  )}
+                  <div className="flex mb-2 text-sm text-text-secondary">
+                    <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                    <div>
+                      {weeksCount > 1 && `${weeksCount} ${StringUtils_pluralize("week", weeksCount)}, `}
+                      {indexEntry?.frequency ? `${indexEntry.frequency}x/week` : ""}
+                      {indexEntry?.frequency && exercisesRange ? ", " : ""}
+                      {exercisesRange ? Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
+                    </div>
+                  </div>
+                  {equipment.length > 0 && (
+                    <div className="flex mb-2 text-sm text-text-secondary">
+                      <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
+                      <div>{equipment.join(", ")}</div>
+                    </div>
+                  )}
+                </div>
+                <div className="mb-4">
+                  <ProgramDetailsAddButton
+                    program={program}
+                    settings={settings}
+                    isLoggedIn={props.isLoggedIn}
+                    client={props.client}
+                  />
+                </div>
+              </>
+            )}
             <button
-              onClick={() =>
-                dispatch(lb<IProgramDetailsState>().p("shouldShowAllScripts").record(!state.shouldShowAllScripts))
-              }
-              className="text-sm italic text-blue-700 underline nm-program-details-toggle-all-scripts"
+              className="flex items-center w-full gap-1 mb-2 text-xl font-bold text-left cursor-pointer"
+              onClick={() => setIsWeekStatsOpen(!isWeekStatsOpen)}
             >
-              {state.shouldShowAllScripts ? "Hide All Scripts" : "Show All Scripts"}
+              <div className="flex items-center justify-center w-4">
+                {isWeekStatsOpen ? (
+                  <IconArrowDown2 className="inline-block" />
+                ) : (
+                  <IconArrowRight className="inline-block" />
+                )}
+              </div>
+              <div>Week Stats</div>
             </button>
+            {isWeekStatsOpen && (
+              <PlannerWeekStats
+                hideTitle={true}
+                dispatch={() => {}}
+                evaluatedDays={evaluatedDays}
+                settings={settings}
+              />
+            )}
           </div>
         </div>
       </div>
-      <ProgramDetails
-        settings={state.settings}
-        subscription={{ google: { fake: null }, apple: {} }}
-        key={`${program.id}_${state.shouldShowAllFormulas}_${state.shouldShowAllScripts}`}
-        program={program}
-        shouldShowAllFormulas={state.shouldShowAllFormulas}
-        shouldShowAllScripts={state.shouldShowAllScripts}
-        dispatch={dispatch}
-      />
-      {state.muscles && (
-        <ProgramDetailsMusclesModal
-          muscles={state.muscles}
-          program={program}
-          settings={state.settings}
-          dispatch={dispatch}
-        />
-      )}
-    </div>
+      <div className="w-32 h-px mx-auto my-8 b bg-border-neutral" />
+      <ProgramDetailsWorkoutPlayground program={fullProgram} settings={settings} maxWidth={maxWidth} />
+      <div className="mt-8">
+        <ProgramDetailsUpsell userAgent={props.userAgent} maxWidth={maxWidth} />
+      </div>
+    </section>
   );
 }

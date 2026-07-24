@@ -1,10 +1,12 @@
 # 🏋 Liftosaur: Open-source powerful weight lifting tracker PWA for coders.
 
-Link: https://www.liftosaur.com/about
+* Link: https://www.liftosaur.com
+* **[Features roadmap](https://github.com/astashov/liftosaur/discussions)**
+* **[Bugs](https://github.com/astashov/liftosaur/issues)**
 
 <img src="https://raw.github.com/astashov/liftosaur/master/screenshot2.png" alt="Liftosaur Screenshot" width="360" />
 
-It's a mobile app, that's available as:
+It's mobile app, that's available as:
 
 - [PWA](https://www.liftosaur.com/app) - meaning you can open the page in a browser on your mobile phone, add it to a home screen, and it will behave exactly as a regular app.
 - [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa?referrer=utm_source%3Dgithub) - thin Android app around this PWA with some native features added.
@@ -12,7 +14,7 @@ It's a mobile app, that's available as:
 
 The main idea is to make a weightlifting tracker app, that is flexible enough to implement pretty much any weightlifting routine. It would be a platform for your experiments in weightlifting, you can try any progression and deloading logic you want to see what suits you better. It automatically handles progressive overloads and deloads based on the logic you define. Any program should be possible to implement - Stronglifts 5x5, GZCLP, any 5/3/1s, any PPL, you name it.
 
-To describe the logic, there's a built-in scripting language called [Liftoscript](https://www.liftosaur.com/docs), which is a very simple programming language with JavaScript-like syntax. It has some built-in variables and some custom number types (e.g. `kg` and `lb`), but other than that it's pretty simple. E.g. Stronglifts 5x5 logic could look like this if written in Liftoscript:
+To describe the logic, there's a built-in scripting language called [Liftoscript](https://www.liftosaur.com/doc), which is a very simple programming language with JavaScript-like syntax. It has some built-in variables and some custom number types (e.g. `kg` and `lb`), but other than that it's pretty simple. E.g. Stronglifts 5x5 logic could look like this if written in Liftoscript:
 
 ```js
 if (completedReps >= reps) {
@@ -76,14 +78,21 @@ I deploy everything via AWS CDK, the setup is described in [this blog post](lift
 
 # How to run locally
 
-If you for some reason want to run it locally, just do the standard set of commands:
+If you want to run liftosaur locally firstly ensure that you have Node 18 and npm installed
 
+Then comment out the 
 ```
-$ yarn install
-$ yarn start
+devServer:{ }
+```
+block from the `webpack.config.js` file
+
+Run
+```
+$ npm install
+$ npm start
 ```
 
-Then, open http://localhost:8080/. That's it! But that will only give you offline-like experience, so there will be no local API server running.
+Then, open http://localhost:8080/app. That's it! But that will only give you offline-like experience, so there will be no local API server running.
 
 Running the server is a bit trickier, and frankly still tied to `liftosaur.com` domain, so probably would not be easy to run, you'd need to modify a bunch of things in `liftosaur-cdk/liftosaur-cdk.ts` file. If you still want to try, then you need to set up AWS account, add `AWS_ACCESS_KEY_ID`,`AWS_SECRET_ACCESS_KEY`,`AWS_REGION` env vars, and set the necessary permission policies for your user:
 
@@ -102,7 +111,7 @@ Running the server is a bit trickier, and frankly still tied to `liftosaur.com` 
 
 Create new secrets in AWS Secrets Manager, with the names listed in `secretArns` variable in `liftosaur-cdk.ts`. Those could be pretty much any random strings.
 
-Then, run `yarn cdk-deploy`, that should create 2 environments - one for prod, one for dev. Again, there could be some things you want to change in `lifosaur-cdk.ts` to make it work. After that, run `yarn start:server`, and it will start a local server.
+Then, run `npm cdk-deploy`, that should create 2 environments - one for prod, one for dev. Again, there could be some things you want to change in `lifosaur-cdk.ts` to make it work. After that, run `npm start:server`, and it will start a local server.
 
 # Contributing
 

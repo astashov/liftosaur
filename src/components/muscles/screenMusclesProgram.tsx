@@ -1,31 +1,31 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
-import { Muscle } from "../../models/muscle";
+import { Muscle_normalizePoints, Muscle_getPointsForProgram } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
-import { ILoading } from "../../models/state";
-import { IScreen } from "../../models/screen";
-import { HelpMuscles } from "../help/helpMuscles";
+import { INavCommon } from "../../models/state";
+import { Program_evaluate } from "../../models/program";
 
 interface IProps {
   dispatch: IDispatch;
   settings: ISettings;
   program: IProgram;
-  screenStack: IScreen[];
-  loading: ILoading;
+  navCommon: INavCommon;
 }
 
 export function ScreenMusclesProgram(props: IProps): JSX.Element {
-  const points = Muscle.normalizePoints(Muscle.getPointsForProgram(props.program, props.settings));
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const points = Muscle_normalizePoints(
+    Muscle_getPointsForProgram(evaluatedProgram, props.navCommon.stats, props.settings)
+  );
   return (
     <ScreenMuscles
       dispatch={props.dispatch}
-      loading={props.loading}
       settings={props.settings}
-      screenStack={props.screenStack}
       points={points}
+      navCommon={props.navCommon}
       title={props.program.name}
-      helpContent={<HelpMuscles />}
+      helpKey="muscles"
     />
   );
 }

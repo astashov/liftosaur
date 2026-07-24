@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerState } from "../models/types";
 
@@ -16,7 +16,7 @@ export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX
     return (
       <button
         className={`${
-          props.isInvertedColors ? "text-white" : "text-bluev2"
+          props.isInvertedColors ? "text-text-alwayswhite" : "text-text-link"
         } border-none underline nm-planner-add-custom-exercise`}
         onClick={() => {
           props.dispatch(
@@ -32,7 +32,8 @@ export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX
                 types: [],
                 muscleGroups: [],
                 customExerciseName,
-              })
+              }),
+            "Open custom exercise modal"
           );
         }}
       >

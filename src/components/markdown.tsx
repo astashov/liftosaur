@@ -1,27 +1,185 @@
-import { h, JSX } from "preact";
-import micromark from "micromark";
-import gfm from "micromark-extension-gfm";
-import gfmHtml from "micromark-extension-gfm/html";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import MarkdownIt from "markdown-it";
+import { LinkButton } from "./linkButton";
+import { IEvaluatedProgram } from "../models/program";
+import { ISettings } from "../types";
+import { Exercise_findByNameAndEquipment } from "../models/exercise";
+import { ExerciseTooltip } from "./exerciseTooltip";
+
+const md = new MarkdownIt({ html: true, linkify: true });
+
+function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
+  let result = text;
+  if (directivesData?.exercise) {
+    result = result.replace(/\[\{([^}]+)\}\]/g, (_match, name: string) => {
+      return `<strong class="md-exercise-directive md" data-name="${name.trim()}">${name.trim()}</strong>`;
+    });
+  }
+  if (directivesData?.exerciseExample) {
+    result = result.replace(/^:::exercise-example\{([^}]*)\}[ \t]*$/gm, (_match, attrsStr: string) => {
+      const attrs: Record<string, string> = {};
+      for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
+        attrs[m[1]] = m[2];
+      }
+      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}" data-onerm="${attrs.onerm || ""}"></div>`;
+    });
+  }
+  return result;
+}
+
+export interface IMarkdownDirectivesData {
+  exercise?: { settings: ISettings };
+  exerciseExample?: { settings: ISettings; evaluatedProgram: IEvaluatedProgram };
+}
 
 interface IProps {
   value: string;
+  className?: string;
+  truncate?: number;
+  directivesData?: IMarkdownDirectivesData;
 }
 
 export function Markdown(props: IProps): JSX.Element {
-  const result = micromark(props.value, {
-    extensions: [gfm()],
-    htmlExtensions: [gfmHtml],
-  });
+  const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
+  const [isTruncated, setIsTruncated] = useState(props.truncate != null);
+  const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
+  const preprocessed = preprocessDirectives(stringValue, props.directivesData);
+  const value = typeof preprocessed === "string" ? preprocessed : String(preprocessed ?? "");
+  const result = md.render(value);
+  let className = props.className || "markdown";
+  if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
+    className += ` line-clamp-${props.truncate}`;
+  }
+
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const container = containerRef.current;
+    if (isTruncated) {
+      setShouldTruncate(container!.scrollHeight > container!.clientHeight);
+    }
     if (container) {
       for (const element of Array.from(container.querySelectorAll("a"))) {
         element.setAttribute("target", "_blank");
       }
+      hydrateLiftoscriptCodeBlocks(container);
+      setTimeout(() => {
+        if (props.directivesData?.exercise) {
+          hydrateExerciseDirectives(container, props.directivesData.exercise.settings);
+        }
+        if (props.directivesData?.exerciseExample) {
+          hydrateExerciseExampleDirectives(
+            container,
+            props.directivesData.exerciseExample.settings,
+            props.directivesData.exerciseExample.evaluatedProgram
+          );
+        }
+      }, 0);
     }
   });
 
-  return <div ref={containerRef} className="markdown" dangerouslySetInnerHTML={{ __html: result }} />;
+  return (
+    <div>
+      <div ref={containerRef} className={className} dangerouslySetInnerHTML={{ __html: result }} />
+      {shouldTruncate && props.truncate != null && (
+        <div className="leading-none" style={{ marginTop: "-0.125rem" }}>
+          <LinkButton
+            name="truncate-markdown"
+            className="text-xs font-normal"
+            onClick={() => setIsTruncated(!isTruncated)}
+          >
+            {isTruncated ? "Show more" : "Show less"}
+          </LinkButton>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function hydrateLiftoscriptCodeBlocks(container: HTMLElement): void {
+  const codeEls = Array.from(container.querySelectorAll("code.language-liftoscript"));
+  if (codeEls.length === 0) {
+    return;
+  }
+  import("../pages/planner/components/plannerCodeBlock").then((mod) => {
+    for (const codeEl of codeEls) {
+      if (codeEl.getAttribute("data-hydrated")) {
+        continue;
+      }
+      codeEl.setAttribute("data-hydrated", "true");
+      const script = codeEl.textContent || "";
+      const pre = codeEl.parentElement;
+      if (pre && pre.tagName === "PRE") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "md-liftoscript-block";
+        pre.parentNode!.replaceChild(wrapper, pre);
+        createRoot(wrapper).render(<mod.PlannerCodeBlock script={script} />);
+      }
+    }
+  });
+}
+
+function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings): void {
+  for (const el of Array.from(container.querySelectorAll(".md-exercise-directive"))) {
+    if (el.getAttribute("data-hydrated")) {
+      continue;
+    }
+    el.setAttribute("data-hydrated", "true");
+    const name = el.getAttribute("data-name") || "";
+    const exercise = Exercise_findByNameAndEquipment(name, settings.exercises);
+    if (!exercise) {
+      continue;
+    }
+    const exerciseType = { id: exercise.id, equipment: exercise.equipment };
+    el.textContent = "";
+    createRoot(el).render(<ExerciseTooltip exerciseType={exerciseType} settings={settings} name={name} />);
+  }
+}
+
+function hydrateExerciseExampleDirectives(
+  container: HTMLElement,
+  settings: ISettings,
+  evaluatedProgram: IEvaluatedProgram
+): void {
+  for (const el of Array.from(container.querySelectorAll(".md-exercise-example"))) {
+    if (el.getAttribute("data-hydrated")) {
+      continue;
+    }
+    el.setAttribute("data-hydrated", "true");
+    const exercise = el.getAttribute("data-exercise") || "";
+    const equipment = el.getAttribute("data-equipment") || "";
+    const key = el.getAttribute("data-key") || "";
+    const weeksStr = el.getAttribute("data-weeks") || "";
+    const weekLabelsStr = el.getAttribute("data-week-labels") || "";
+    const onermStr = el.getAttribute("data-onerm") || "";
+
+    const exerciseType = { id: exercise, equipment };
+    const weekLabels = weekLabelsStr ? weekLabelsStr.split(",") : [];
+
+    let weekSetup: { name: string }[] | undefined;
+    if (weeksStr) {
+      const [start, end] = weeksStr.split("-").map(Number);
+      weekSetup = evaluatedProgram.weeks.slice(start - 1, end).map((w, i) => ({
+        name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+        weekIndex: start - 1 + i,
+      }));
+    } else if (weekLabels.length > 0) {
+      weekSetup = evaluatedProgram.weeks.map((w, i) => ({
+        name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+      }));
+    }
+
+    import("../pages/programs/programDetails/programDetailsExerciseExample").then((mod) => {
+      createRoot(el as HTMLElement).render(
+        <mod.ProgramDetailsExerciseExample
+          program={evaluatedProgram}
+          settings={settings}
+          programExerciseKey={key}
+          exerciseType={exerciseType}
+          weekSetup={weekSetup}
+          defaultOnerm={onermStr ? parseFloat(onermStr) : undefined}
+        />
+      );
+    });
+  }
 }

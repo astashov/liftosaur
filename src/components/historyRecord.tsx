@@ -1,136 +1,220 @@
-import { h, JSX } from "preact";
+import { JSX, memo } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { DateUtils } from "../utils/date";
-import { TimeUtils } from "../utils/time";
-import { Progress } from "../models/progress";
-import { ComparerUtils } from "../utils/comparer";
-import { memo } from "preact/compat";
+import { DateUtils_format } from "../utils/date";
+import { TimeUtils_formatHOrMin } from "../utils/time";
+import { Progress_isCurrent, Progress_isFullyEmptySet } from "../models/progress";
+import { ComparerUtils_noFns } from "../utils/comparer";
 import { IHistoryRecord, ISettings } from "../types";
-import { IconComments } from "./icons/iconComments";
-import { IAllComments, IAllLikes } from "../models/state";
-import { HtmlUtils } from "../utils/html";
-import { ButtonLike } from "./buttonLike";
+import {
+  IPersonalRecords,
+  History_workoutTime,
+  History_totalRecordWeight,
+  History_totalRecordReps,
+  History_totalRecordSets,
+} from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
-import { IconProfile } from "./icons/iconProfile";
 import { HistoryEntryView } from "./historyEntry";
+import { Button } from "./button";
+import { Exercise_toKey } from "../models/exercise";
+import { SimpleMarkdown } from "./simpleMarkdown";
+import { StringUtils_pluralize } from "../utils/string";
+import { n } from "../utils/math";
+import { IEvaluatedProgramDay } from "../models/program";
+import { Thunk_startProgramDay, Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IProps {
   historyRecord: IHistoryRecord;
+  showTitle?: boolean;
+  programDay?: IEvaluatedProgramDay;
   isOngoing: boolean;
+  prs?: IPersonalRecords;
   settings: ISettings;
-  comments: IAllComments;
   dispatch: IDispatch;
-  likes?: IAllLikes;
-  userId?: string;
-  friendId?: string;
-  nickname?: string;
+}
+
+function getNativeCardShadow(): Record<string, unknown> {
+  return Platform.select({
+    ios: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+    },
+    android: { elevation: 2 },
+    default: {},
+  }) as Record<string, unknown>;
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
-  const { historyRecord, dispatch, nickname, friendId } = props;
+  const { historyRecord, dispatch } = props;
+  const isCurrent = Progress_isCurrent(historyRecord);
+  const description = isCurrent ? props.programDay?.description : undefined;
 
   const entries = historyRecord.entries;
-  return (
-    <div
-      data-cy="history-record"
-      className={`history-record-${nickname} rounded-2xl mx-4 mb-4 px-4 text-sm ${
-        props.nickname
-          ? "bg-orange-100"
-          : Progress.isCurrent(historyRecord)
-          ? props.isOngoing
-            ? "bg-yellow-100 border border-yellow-400"
-            : "bg-purplev2-200"
-          : "bg-grayv2-50"
-      }`}
-      style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
-      onClick={(event) => {
-        if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-          if (Progress.isCurrent(historyRecord)) {
-            dispatch({ type: "StartProgramDayAction" });
-          } else {
-            editHistoryRecord(
-              historyRecord,
-              dispatch,
-              Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord),
-              props.friendId
-            );
-          }
-        }
-      }}
-    >
-      <div className="py-4">
-        {props.nickname && (
-          <div>
-            <IconProfile /> {props.nickname}
-          </div>
-        )}
-        <div className="flex">
-          <div className="flex-1 font-bold" data-cy="history-record-date">
-            {Progress.isCurrent(historyRecord) ? (
-              !props.isOngoing ? (
-                <span data-cy="start-workout" className="underline">
-                  Start
-                </span>
-              ) : (
-                <span data-cy="start-workout" className="underline">
-                  Continue
-                </span>
-              )
-            ) : (
-              DateUtils.format(historyRecord.date)
-            )}
-          </div>
-          <div className="flex-1 text-xs text-right text-gray-600" data-cy="history-record-program">
-            {historyRecord.programName}, {historyRecord.dayName}
-          </div>
-        </div>
-        <div className="flex flex-col mt-2" data-cy="history-entry">
-          {entries.map((entry, i) => {
-            const isNext = Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord);
-            return (
-              <HistoryEntryView
-                entry={entry}
-                isNext={isNext}
-                isLast={i === entries.length - 1}
-                settings={props.settings}
-                showNotes={true}
-              />
-            );
-          })}
-        </div>
-        {historyRecord.notes && <p className="mt-1 text-sm text-grayv2-main">{historyRecord.notes}</p>}
-        {!Progress.isCurrent(historyRecord) && historyRecord.startTime != null && historyRecord.endTime != null && (
-          <div className="flex items-center mt-1 text-gray-600" style={{ minHeight: "1.8em" }}>
-            <div className="text-left">
-              <IconWatch />{" "}
-              <span className="inline-block align-middle" style={{ paddingTop: "2px" }}>
-                {TimeUtils.formatHHMM(historyRecord.endTime - historyRecord.startTime)}
-              </span>
-            </div>
-            <div className="flex-1 text-right">
-              <ButtonLike
-                dispatch={dispatch}
-                historyRecordId={historyRecord.id}
-                userId={props.userId}
-                friendId={friendId}
-                likes={props.likes}
-              />
-              {props.comments.comments[historyRecord.id] != null ? (
-                <span className="p-2 align-center">
-                  <IconComments />
-                  <span className="pl-1">{props.comments.comments[historyRecord.id]?.length || 0}</span>
-                </span>
-              ) : undefined}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}, ComparerUtils.noFns);
 
-function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean, userId?: string): void {
+  const handleCardPress = (): void => {
+    if (Progress_isCurrent(historyRecord)) {
+      dispatch(Thunk_startProgramDay());
+    } else {
+      editHistoryRecord(
+        historyRecord,
+        dispatch,
+        Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord)
+      );
+    }
+  };
+
+  return (
+    <View data-testid="history-record" testID="history-record" className="pt-2">
+      {props.showTitle && (
+        <Text
+          data-testid="history-record-date"
+          testID="history-record-date"
+          className="mx-1 mb-1 text-base font-semibold"
+        >
+          {!isCurrent ? DateUtils_format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
+        </Text>
+      )}
+      <Pressable
+        className={`rounded-2xl px-4 ${
+          isCurrent
+            ? props.isOngoing
+              ? "bg-background-cardyellow border border-border-cardyellow"
+              : "border border-border-cardpurple bg-background-cardpurple"
+            : "bg-background-cardpurple border border-border-cardpurple"
+        }`}
+        style={getNativeCardShadow()}
+        onPress={handleCardPress}
+      >
+        <View className="py-4">
+          <View className="pb-2">
+            <View data-testid="history-record-program" testID="history-record-program">
+              <Text className="text-sm font-semibold">{historyRecord.dayName}</Text>
+              <Text className="text-xs text-text-secondary">{historyRecord.programName}</Text>
+            </View>
+          </View>
+          {description && (
+            <View className="text-sm">
+              <SimpleMarkdown value={description} />
+            </View>
+          )}
+          <View data-testid="history-entry" testID="history-entry">
+            {entries.map((entry, i) => {
+              const isNext = isCurrent && Progress_isFullyEmptySet(historyRecord);
+              const exerciseKey = Exercise_toKey(entry.exercise);
+              const pr = props.prs?.[props.historyRecord.id]?.[exerciseKey] || undefined;
+              return (
+                <HistoryEntryView
+                  key={i}
+                  entry={entry}
+                  prs={pr}
+                  isOngoing={props.isOngoing}
+                  isNext={isNext}
+                  isLast={isNext && i === entries.length - 1}
+                  settings={props.settings}
+                  showNotes={true}
+                />
+              );
+            })}
+          </View>
+          {!isCurrent && <HistoryRecordStats historyRecord={historyRecord} settings={props.settings} />}
+          {historyRecord.notes && (
+            <View className="mt-2">
+              <Text>
+                <Text className="text-sm">Note: </Text>
+                <Text className="text-sm text-text-secondary">{historyRecord.notes}</Text>
+              </Text>
+            </View>
+          )}
+          {isCurrent && (
+            <View className="mt-2">
+              {!props.isOngoing ? (
+                <Button
+                  name="start-workout-button"
+                  data-testid="start-workout"
+                  testID="start-workout"
+                  kind="purple"
+                  className="w-full"
+                  onPress={handleCardPress}
+                >
+                  Start
+                </Button>
+              ) : (
+                <Button
+                  name="continue-workout-button"
+                  data-testid="start-workout"
+                  testID="start-workout"
+                  kind="purple"
+                  className="w-full"
+                  onPress={handleCardPress}
+                >
+                  Continue
+                </Button>
+              )}
+            </View>
+          )}
+        </View>
+      </Pressable>
+    </View>
+  );
+}, ComparerUtils_noFns);
+
+interface IHistoryRecordStats {
+  historyRecord: IHistoryRecord;
+  settings: ISettings;
+}
+
+function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
+  const record = props.historyRecord;
+  const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
+  const totalWeight = History_totalRecordWeight(record, props.settings);
+  const totalReps = History_totalRecordReps(record);
+  const totalSets = History_totalRecordSets(record);
+  const setsUnit = StringUtils_pluralize("set", totalSets);
+  const repsUnit = StringUtils_pluralize("rep", totalReps);
+
+  return (
+    <View className="flex-row justify-between mt-4">
+      <HistoryRecordProperty
+        icon={
+          <View className="mb-1 mr-1">
+            <IconWatch />
+          </View>
+        }
+        value={time}
+        hasPadding={true}
+        unit={timeUnit}
+      />
+      <HistoryRecordProperty value={n(totalWeight.value)} unit={totalWeight.unit} />
+      <HistoryRecordProperty value={totalSets} hasPadding={true} unit={setsUnit} />
+      <HistoryRecordProperty value={totalReps} hasPadding={true} unit={repsUnit} />
+    </View>
+  );
+}
+
+interface IHistoryRecordPropertyProps {
+  icon?: JSX.Element;
+  value: string | number;
+  hasPadding?: boolean;
+  unit?: string;
+}
+
+function HistoryRecordProperty(props: IHistoryRecordPropertyProps): JSX.Element {
+  return (
+    <View className="flex-row items-center">
+      {props.icon}
+      <Text className="text-base font-semibold">{props.value}</Text>
+      {props.unit && (
+        <Text className={`text-sm text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</Text>
+      )}
+    </View>
+  );
+}
+
+function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean): void {
   if (!isNext) {
-    dispatch({ type: "EditHistoryRecord", historyRecord, userId });
+    dispatch(Thunk_editHistoryRecord(historyRecord));
   }
 }

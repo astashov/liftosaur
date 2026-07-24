@@ -1,19 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
-import UPlot from "uplot";
-import { useRef, useEffect, useState } from "preact/hooks";
-import { CollectionUtils } from "../utils/collection";
-import { DateUtils } from "../utils/date";
-import { Exercise, equipmentName } from "../models/exercise";
-import { Weight } from "../models/weight";
+import { JSX, memo, useMemo, useState } from "react";
+import { usePerfWhyRender } from "../utils/usePerfWhyRender";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
+import { Select } from "./primitives/select";
+import { CollectionUtils_sort, CollectionUtils_inGroupsOf } from "../utils/collection";
+import { DateUtils_format } from "../utils/date";
+import { equipmentName, Exercise_eq, Exercise_get, Exercise_getVolumeMultiplier } from "../models/exercise";
+import {
+  Weight_convertTo,
+  Weight_build,
+  Weight_getOneRepMax,
+  Weight_isOrPct,
+  Weight_display,
+  Weight_multiply,
+} from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
-import { GraphsPlugins } from "../utils/graphsPlugins";
 import { IDispatch } from "../ducks/types";
-import { HtmlUtils } from "../utils/html";
-import { Reps } from "../models/set";
-import { ObjectUtils } from "../utils/object";
+import { Reps_volume } from "../models/set";
+import { ObjectUtils_keys } from "../utils/object";
+import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
+import { Tailwind_colors } from "../utils/tailwindConfig";
+import { Thunk_editHistoryRecord } from "../ducks/thunks";
+import { LineChart, ILineChartSeries } from "./lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphProps {
+  id?: string;
   history: IHistoryRecord[];
   isWithOneRm?: boolean;
   isWithProgramLines?: boolean;
@@ -27,6 +39,13 @@ interface IGraphProps {
   bodyweightData?: [number, number][];
   initialType?: IExerciseSelectedType;
   dispatch?: IDispatch;
+  isInteractive?: boolean;
+}
+
+interface IGraphData {
+  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
+  historyRecords: { [key: number]: IHistoryRecord };
+  changeProgramTimes: [number, string][];
 }
 
 function getData(
@@ -35,39 +54,44 @@ function getData(
   settings: ISettings,
   isWithOneRm?: boolean,
   bodyweightData?: [number, number][]
-): {
-  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
-  historyRecords: { [key: number]: IHistoryRecord };
-  changeProgramTimes: [number, string][];
-} {
+): IGraphData {
   const changeProgramTimes: [number, string][] = [];
   let currentProgram: string | undefined = undefined;
   const historyRecords: { [key: number]: IHistoryRecord } = {};
-  const normalizedData = CollectionUtils.sort(history, (a, b) => a.startTime - b.startTime).reduce<
+  const normalizedData = CollectionUtils_sort(history, (a, b) => a.startTime - b.startTime).reduce<
     [number, number | null, number | null, number | null, number | null, number | null][]
-  >((memo, i) => {
+  >((acc, i) => {
     if (!currentProgram || currentProgram !== i.programName) {
       currentProgram = i.programName;
       changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
     }
-    const entry = i.entries.filter((e) => Exercise.eq(e.exercise, exerciseType))[0];
+    const entry = i.entries.filter((e) => Exercise_eq(e.exercise, exerciseType))[0];
     if (entry != null) {
-      const maxSet = CollectionUtils.sort(entry.sets, (a, b) => {
-        return b.weight !== a.weight
-          ? Weight.compare(b.weight, a.weight)
-          : (b.completedReps || 0) - (a.completedReps || 0);
-      }).find((s) => s.completedReps != null && s.completedReps > 0);
-      const volume = Reps.volume(entry.sets);
+      const maxSet = History_getMaxWeightSetFromEntry(entry);
+      const maxe1RMSet = History_getMax1RMSetFromEntry(entry);
+      const volume = Weight_multiply(
+        Reps_volume(entry.sets, settings.units),
+        Exercise_getVolumeMultiplier(entry.exercise, settings)
+      );
       if (maxSet != null) {
+        const convertedWeight = Weight_convertTo(
+          maxSet.completedWeight ?? maxSet.weight ?? Weight_build(0, settings.units),
+          settings.units
+        );
         let onerm = null;
         if (isWithOneRm) {
-          onerm = Weight.getOneRepMax(maxSet.weight, maxSet.completedReps || 0).value;
+          const set = maxe1RMSet || maxSet;
+          onerm = Weight_getOneRepMax(
+            Weight_convertTo(set.completedWeight ?? set.weight ?? Weight_build(0, settings.units), settings.units),
+            set.completedReps || 0,
+            set.completedRpe ?? set.rpe ?? 10
+          ).value;
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
-        memo.push([
+        acc.push([
           timestamp,
-          Weight.convertTo(maxSet.weight, settings.units).value,
+          Weight_convertTo(convertedWeight, settings.units).value,
           maxSet.completedReps!,
           onerm,
           volume.value,
@@ -75,265 +99,277 @@ function getData(
         ]);
       }
     }
-    return memo;
+    return acc;
   }, []);
   const normalizedBodyweightData = (bodyweightData || []).map<
     [number, number | null, number | null, number | null, number | null, number | null]
   >((i) => {
     return [i[0], null, null, null, null, i[1]];
   });
-  const sorted = CollectionUtils.sort(
+  const sorted = CollectionUtils_sort(
     normalizedData.concat(normalizedBodyweightData),
     (a, b) => (a[0] || 0) - (b[0] || 0)
   );
   const data = sorted.reduce<
     [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]
   >(
-    (memo, i) => {
-      memo[0].push(i[0]);
-      memo[1].push(i[1]);
-      memo[2].push(i[2]);
-      memo[3].push(i[3]);
-      memo[4].push(i[4]);
-      memo[5].push(i[5]);
-      return memo;
+    (acc, i) => {
+      const lastIdx = acc[0].length - 1;
+      if (lastIdx >= 0 && acc[0][lastIdx] === i[0]) {
+        acc[1][lastIdx] = acc[1][lastIdx] ?? i[1];
+        acc[2][lastIdx] = acc[2][lastIdx] ?? i[2];
+        acc[3][lastIdx] = acc[3][lastIdx] ?? i[3];
+        acc[4][lastIdx] = acc[4][lastIdx] ?? i[4];
+        acc[5][lastIdx] = acc[5][lastIdx] ?? i[5];
+        return acc;
+      }
+      acc[0].push(i[0]);
+      acc[1].push(i[1]);
+      acc[2].push(i[2]);
+      acc[3].push(i[3]);
+      acc[4].push(i[4]);
+      acc[5].push(i[5]);
+      return acc;
     },
     [[], [], [], [], [], []]
   );
   return { data, changeProgramTimes, historyRecords };
 }
 
-export function GraphExercise(props: IGraphProps): JSX.Element {
+function GraphExerciseInner(props: IGraphProps): JSX.Element {
+  usePerfWhyRender("graph", props as unknown as Record<string, unknown>);
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
-  const eqName = equipmentName(props.exercise.equipment, props.settings.equipment);
+  const eqName = equipmentName(props.exercise.equipment);
+  const units = props.settings.units;
+  const exercise = Exercise_get(props.exercise, props.settings.exercises);
+
+  const result = useMemo(
+    () => getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData),
+    [props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData]
+  );
+
+  const series: ILineChartSeries[] = useMemo(
+    () => [
+      {
+        label: "Weight",
+        show: selectedType === "weight",
+        color: Tailwind_colors().red[500],
+        width: 1.5,
+      },
+      {
+        label: "Reps",
+        show: false,
+        color: Tailwind_colors().yellow[500],
+        width: 1,
+      },
+      {
+        label: "e1RM",
+        show: Boolean(props.isWithOneRm) && selectedType === "weight",
+        color: Tailwind_colors().blue[500],
+        width: 1.5,
+      },
+      {
+        label: "Volume",
+        show: selectedType === "volume",
+        color: Tailwind_colors().red[500],
+        width: 1.5,
+      },
+      {
+        label: "Bodyweight",
+        show: true,
+        color: Tailwind_colors().green[500],
+        width: 1,
+      },
+    ],
+    [selectedType, props.isWithOneRm]
+  );
+
+  const yearSec = 365 * 24 * 60 * 60;
+  const xMin = props.isSameXAxis ? Math.max(props.minX, props.maxX - yearSec) : undefined;
+  const xMax = props.isSameXAxis ? props.maxX : undefined;
+
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
+
+  const timestamps = result.data[0];
+  const cursorTimestamp = cursorIdx != null ? timestamps[cursorIdx] : null;
+  const cursorRecord = cursorTimestamp != null ? result.historyRecords[cursorTimestamp] : undefined;
 
   return (
-    <div className="relative mx-1">
-      <div className="absolute z-10 text-xs text-grayv2-main" style={{ top: "2rem", left: "0.75rem" }}>
-        {props.subtitle || eqName}
-      </div>
-      <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
-        <select
-          className="p-2 text-right"
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.currentTarget.value as any)}
-        >
-          <option selected={selectedType === "weight"} value="weight">
-            Max Weight
-          </option>
-          <option selected={selectedType === "volume"} value="volume">
-            Volume
-          </option>
-        </select>
-      </div>
-      <GraphExerciseContent key={selectedType} {...{ ...props, selectedType }} />
-    </div>
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        <View className="flex-row items-center mb-1">
+          <View className="flex-1">
+            <View>
+              <Text className="text-lg font-semibold leading-6 text-left u-title">{props.title || exercise.name}</Text>
+            </View>
+            <View>
+              <Text className="text-xs leading-4 text-left text-text-secondary">{props.subtitle || eqName}</Text>
+            </View>
+          </View>
+          <View>
+            <Select
+              value={selectedType}
+              onChange={(v) => setSelectedType(v as IExerciseSelectedType)}
+              options={[
+                { value: "weight", label: "Max Weight" },
+                { value: "volume", label: "Volume" },
+              ]}
+              className="p-2 text-xs text-right bg-background-default"
+            />
+          </View>
+        </View>
+        <View className="relative">
+          <LineChart
+            ref={chartRef}
+            data={result.data}
+            series={series}
+            height={320}
+            xMin={xMin}
+            xMax={xMax}
+            programLines={props.isWithProgramLines ? result.changeProgramTimes : undefined}
+            onCursorChange={handleCursorChange}
+            yAxisFormatter={(v) => `${Math.round(v)}`}
+            isInteractive={props.isInteractive}
+          />
+          <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
+            <GraphExerciseLegend
+              cursorIdx={cursorIdx}
+              data={result.data}
+              units={units}
+              selectedType={selectedType}
+              isWithOneRm={props.isWithOneRm}
+              record={cursorRecord}
+              exercise={props.exercise}
+              dispatch={props.dispatch}
+            />
+          </GraphLegendOverlay>
+        </View>
+      </View>
+    </View>
   );
 }
 
-function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSelectedType }): JSX.Element {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
-  const selectedHistoryRecordRef = useRef<IHistoryRecord | undefined>(null);
-  const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise.toKey(props.exercise)}`;
-  const units = props.settings.units;
-  useEffect(() => {
-    const rect = graphRef.current.getBoundingClientRect();
-    const exercise = Exercise.get(props.exercise, props.settings.exercises);
-    const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
-    const data = result.data;
-    const opts: UPlot.Options = {
-      title: props.title || `${exercise.name}`,
-      class: "graph-max-weight",
-      width: rect.width,
-      height: rect.height,
-      cursor: {
-        y: false,
-        lock: true,
-      },
-      plugins: [
-        GraphsPlugins.zoom(),
-        ...(props.isWithProgramLines ? [GraphsPlugins.programLines(result.changeProgramTimes)] : []),
-        {
-          hooks: {
-            setCursor: [
-              (self: UPlot): void => {
-                const idx = self.cursor.idx!;
-                const timestamp = data[0][idx];
-                const date = new Date(timestamp * 1000);
-                const weight = data[1][idx];
-                const reps = data[2][idx];
-                const onerm = data[3][idx];
-                const volume = data[4][idx];
-                const bodyweight = data[5][idx];
-                const historyRecord = result.historyRecords[timestamp];
-                const dispatch = props.dispatch;
-                let text: string;
-                if (weight != null && units != null && reps != null) {
-                  if (props.selectedType === "weight") {
-                    text = `<div><div class="text-center">${DateUtils.format(
-                      date
-                    )}, <strong>${weight}</strong> ${units}s x <strong>${reps}</strong> reps`;
-                    if (props.isWithOneRm && onerm != null) {
-                      text += `, 1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
-                    }
-                    if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
-                    }
-                    text += "</span>";
-                  } else {
-                    text = `<div><div class="text-center">${DateUtils.format(
-                      date
-                    )}, Volume: <strong>${volume} ${units}s</strong>`;
-                    if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-bluev2 nm-graph-exercise-workout">Workout</button>`;
-                    }
-                    text += "</span>";
-                  }
-                } else if (bodyweight != null) {
-                  text = `<span>${DateUtils.format(date)}, Bodyweight - <strong>${bodyweight}</strong> ${units}</div>`;
-                } else {
-                  return;
-                }
-                text += "</div>";
-                const entryNotes = historyRecord.entries
-                  .filter((e) => Exercise.eq(props.exercise, e.exercise))
-                  .map((e) => e.notes)
-                  .filter((e) => e);
-                if (historyRecord.notes || entryNotes.length > 0) {
-                  text += "<div class='text-sm text-grayv2-main'>";
-                  if (entryNotes.length > 0) {
-                    text += `<ul>${entryNotes.map((e) => `<li>${HtmlUtils.escapeHtml(e || "")}</li>`)}</ul>`;
-                  }
-                  if (historyRecord.notes) {
-                    text += `<div><span class='font-bold'>Workout: </span><span>${HtmlUtils.escapeHtml(
-                      historyRecord.notes || ""
-                    )}</span></div>`;
-                  }
-                  text += "</div>";
-                }
+export const GraphExercise = memo(GraphExerciseInner);
 
-                const entries = historyRecord.entries.filter((e) => e.exercise.id === props.exercise.id);
-                const stateVars = [];
-                for (const entry of entries) {
-                  for (const key of ObjectUtils.keys(entry.state || {})) {
-                    const value = entry.state?.[key];
-                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
-                    stateVars.push(`${key}: <strong>${displayValue}</strong>`);
-                  }
-                  for (const key of ObjectUtils.keys(entry.vars || {})) {
-                    const name = { rm1: "1 Rep Max" }[key] || key;
-                    const value = entry.vars?.[key];
-                    const displayValue = Weight.is(value) ? Weight.display(value) : value;
-                    stateVars.push(`${name}: <strong>${displayValue}</strong>`);
-                  }
-                }
-                const groups = CollectionUtils.inGroupsOf(2, stateVars);
-                if (groups.length > 0) {
-                  text += `<ul>${groups
-                    .map(([a, b]) => {
-                      return `<li class="flex flex-row gap-4 text-xs"><div class="flex-1">${a}</div><div class="flex-1">${
-                        b ?? ""
-                      }</div></li>`;
-                    })
-                    .join("")}</ul>`;
-                }
+interface IGraphExerciseLegendProps {
+  cursorIdx: number | null;
+  data: IGraphData["data"];
+  units: string;
+  selectedType: IExerciseSelectedType;
+  isWithOneRm?: boolean;
+  record?: IHistoryRecord;
+  exercise: IExerciseType;
+  dispatch?: IDispatch;
+}
 
-                text += "</div>";
-                if (legendRef.current != null) {
-                  legendRef.current.innerHTML = text;
-                  selectedHistoryRecordRef.current = historyRecord;
-                }
-              },
-            ],
-          },
-        },
-      ],
-      scales: props.isSameXAxis ? { x: { min: props.minX, max: props.maxX } } : undefined,
-      legend: {
-        show: false,
-      },
-      series: [
-        {},
-        {
-          label: "Weight",
-          show: props.selectedType === "weight",
-          value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "red",
-          width: 1,
-          spanGaps: true,
-        },
-        {
-          show: false,
-          label: "Reps",
-          stroke: "blue",
-          width: 1,
-        },
-        {
-          label: "1RM",
-          show: props.isWithOneRm && props.selectedType === "weight",
-          value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "#28839F",
-          width: 1,
-          spanGaps: true,
-        },
-        {
-          label: "Volume",
-          show: props.selectedType === "volume",
-          value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "#FF8066",
-          width: 1,
-          spanGaps: true,
-        },
-        {
-          label: "Bodyweight",
-          value: (self, rawValue) => `${rawValue} ${units}`,
-          stroke: "green",
-          width: 1,
-          spanGaps: true,
-        },
-      ],
-    };
+function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | null {
+  const { cursorIdx, data, units } = props;
+  if (cursorIdx == null) {
+    return null;
+  }
+  const timestamp = data[0][cursorIdx];
+  const weight = data[1][cursorIdx];
+  const reps = data[2][cursorIdx];
+  const onerm = data[3][cursorIdx];
+  const volume = data[4][cursorIdx];
+  const bodyweight = data[5][cursorIdx];
+  const date = new Date(timestamp * 1000);
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+  const entryNotes = (props.record?.entries || [])
+    .filter((e) => Exercise_eq(props.exercise, e.exercise))
+    .map((e) => e.notes)
+    .filter((e): e is string => !!e);
 
-    const underEl = graphRef.current.querySelector(".over");
-    const underRect = underEl?.getBoundingClientRect();
-
-    function handler(): void {
-      function onMove(event: TouchEvent): void {
-        const offset = window.pageYOffset;
-        const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
-      }
-
-      function onEnd(): void {
-        window.removeEventListener("touchmove", onMove);
-        window.removeEventListener("touchend", onEnd);
-      }
-
-      window.addEventListener("touchmove", onMove);
-      window.addEventListener("touchend", onEnd);
+  const entries = (props.record?.entries || []).filter((e) => e.exercise.id === props.exercise.id);
+  const stateVars: string[] = [];
+  for (const entry of entries) {
+    for (const key of ObjectUtils_keys(entry.state || {})) {
+      const value = entry.state?.[key];
+      const displayValue = Weight_isOrPct(value) ? Weight_display(value) : value;
+      stateVars.push(`${key}: ${displayValue}`);
     }
-
-    if (underEl != null) {
-      underEl.addEventListener("touchstart", handler);
+    for (const key of ObjectUtils_keys(entry.vars || {})) {
+      const name = ({ rm1: "1 Rep Max" } as Record<string, string>)[key] || key;
+      const value = entry.vars?.[key];
+      const displayValue = Weight_isOrPct(value) ? Weight_display(value) : value;
+      stateVars.push(`${name}: ${displayValue}`);
     }
+  }
+  const groups = CollectionUtils_inGroupsOf(2, stateVars);
 
-    (window as any)[graphGoToHistoryRecordFnName] = (): void => {
-      if (props.dispatch && selectedHistoryRecordRef.current != null) {
-        props.dispatch({ type: "EditHistoryRecord", historyRecord: selectedHistoryRecordRef.current });
-      }
-    };
-    return () => {
-      delete (window as any)[graphGoToHistoryRecordFnName];
-    };
-  }, []);
+  const onWorkoutPress = (): void => {
+    if (props.record && props.dispatch) {
+      props.dispatch(Thunk_editHistoryRecord(props.record));
+    }
+  };
 
   return (
-    <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
-    </div>
+    <View className="pr-6">
+      {weight != null && reps != null ? (
+        <View className="flex-row flex-wrap items-center">
+          {props.selectedType === "weight" ? (
+            <>
+              <Text className="text-sm">
+                {DateUtils_format(date)}, <Text className="text-sm font-bold">{weight}</Text> {units}s x{" "}
+                <Text className="text-sm font-bold">{reps}</Text> reps
+                {props.isWithOneRm && onerm != null && (
+                  <Text className="text-sm">
+                    , e1RM = <Text className="text-sm font-bold">{onerm.toFixed(2)}</Text> {units}s
+                  </Text>
+                )}
+              </Text>
+              {!!(props.record && props.dispatch) && (
+                <Pressable onPress={onWorkoutPress}>
+                  <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
+                </Pressable>
+              )}
+            </>
+          ) : (
+            <>
+              <Text className="text-sm">
+                {DateUtils_format(date)}, Volume:{" "}
+                <Text className="text-sm font-bold">
+                  {volume} {units}s
+                </Text>
+              </Text>
+              {!!(props.record && props.dispatch) && (
+                <Pressable onPress={onWorkoutPress}>
+                  <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+      ) : bodyweight != null ? (
+        <Text className="text-sm">
+          {DateUtils_format(date)}, Bodyweight - <Text className="text-sm font-bold">{bodyweight}</Text> {units}
+        </Text>
+      ) : null}
+      {!!(entryNotes.length > 0 || props.record?.notes) && (
+        <View className="mt-1">
+          {entryNotes.map((n, i) => (
+            <Text key={i} className="text-xs text-text-secondary">
+              • {n}
+            </Text>
+          ))}
+          {!!props.record?.notes && (
+            <Text className="text-xs text-text-secondary">
+              <Text className="text-xs font-bold">Workout: </Text>
+              {props.record.notes}
+            </Text>
+          )}
+        </View>
+      )}
+      {groups.length > 0 && (
+        <View className="mt-1">
+          {groups.map(([a, b], i) => (
+            <View key={i} className="flex-row gap-4">
+              <Text className="flex-1 text-xs">{a}</Text>
+              <Text className="flex-1 text-xs">{b ?? ""}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
   );
 }

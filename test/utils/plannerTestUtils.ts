@@ -1,61 +1,85 @@
-import { PlannerToProgram } from "../../src/models/plannerToProgram";
-import { Program } from "../../src/models/program";
-import { Settings } from "../../src/models/settings";
-import { PlannerProgram } from "../../src/pages/planner/models/plannerProgram";
-import { IProgram, ISettings, IPlannerProgram } from "../../src/types";
-import { UidFactory } from "../../src/utils/generator";
-import { IWeightChange, ProgramExercise } from "../../src/models/programExercise";
-import { CollectionUtils } from "../../src/utils/collection";
-import { ProgramToPlanner } from "../../src/models/programToPlanner";
+import {
+  Program_create,
+  Program_evaluate,
+  Program_applyEvaluatedProgram,
+  Program_nextHistoryRecord,
+  Program_runAllFinishDayScripts,
+} from "../../src/models/program";
+import { Settings_build } from "../../src/models/settings";
+import {
+  PlannerProgram_evaluateText,
+  PlannerProgram_replaceWeight,
+  PlannerProgram_generateFullText,
+  PlannerProgram_replaceAndValidateExercise,
+} from "../../src/pages/planner/models/plannerProgram";
+import { IProgram, ISettings, IPlannerProgram, IExerciseType, IStats, IWeight } from "../../src/types";
+import { IWeightChange, ProgramExercise_weightChanges } from "../../src/models/programExercise";
+import { PlannerKey_fromFullName } from "../../src/pages/planner/plannerKey";
+import { Stats_getEmpty } from "../../src/models/stats";
 
 export interface ICompletedEntries {
   completedReps: number[][];
+  completedWeights?: IWeight[][];
 }
 
-export class PlannerTestUtils {
-  public static get(
-    text: string,
-    settings: ISettings = Settings.build()
-  ): { program: IProgram; planner: IPlannerProgram } {
-    const planner: IPlannerProgram = { name: "MyProgram", weeks: PlannerProgram.evaluateText(text) };
-    const program = new PlannerToProgram(UidFactory.generateUid(8), 1, [], planner, settings).convertToProgram();
-    return { program, planner };
-  }
+export function PlannerTestUtils_get(text: string): { program: IProgram; planner: IPlannerProgram } {
+  const planner: IPlannerProgram = { vtype: "planner", name: "MyProgram", weeks: PlannerProgram_evaluateText(text) };
+  const program: IProgram = { ...Program_create("MyProgram"), planner };
+  return { program, planner };
+}
 
-  public static changeWeight(programText: string, cb: (weightChanges: IWeightChange[]) => IWeightChange[]): string {
-    const { planner, program } = PlannerTestUtils.get(programText);
-    const programExercise = program.exercises[0];
-    const dayData = { week: 1, day: 1, dayInWeek: 1 };
-    const settings = Settings.build();
-    const weightChanges = ProgramExercise.weightChanges(dayData, programExercise, program.exercises, settings);
-    const newWeightChanges = cb(weightChanges);
-    const newProgramExercise = PlannerProgram.replaceWeight(programExercise, newWeightChanges);
-    const newProgram = {
-      ...program,
-      exercises: CollectionUtils.setBy(program.exercises, "id", programExercise.id, newProgramExercise),
-    };
-    const newPlanner = new ProgramToPlanner(newProgram, planner, settings, {}, {}).convertToPlanner();
-    newProgram.planner = newPlanner;
-    return PlannerProgram.generateFullText(newPlanner.weeks);
-  }
+export function PlannerTestUtils_changeWeight(
+  programText: string,
+  cb: (weightChanges: IWeightChange[]) => IWeightChange[]
+): string {
+  const { program } = PlannerTestUtils_get(programText);
+  const settings = Settings_build();
+  const evaluatedProgram = Program_evaluate(program, settings);
+  const programExercise = evaluatedProgram.weeks[0].days[0].exercises[0];
+  const weightChanges = ProgramExercise_weightChanges(evaluatedProgram, programExercise.key);
+  const newWeightChanges = cb(weightChanges);
+  const newEvaluatedProgram = PlannerProgram_replaceWeight(evaluatedProgram, programExercise.key, newWeightChanges);
+  const newProgram = Program_applyEvaluatedProgram(program, newEvaluatedProgram, settings);
+  return PlannerProgram_generateFullText(newProgram.planner?.weeks || []);
+}
 
-  public static finish(
-    text: string,
-    completed: ICompletedEntries,
-    settings: ISettings = Settings.build()
-  ): { program: IProgram } {
-    const { program } = PlannerTestUtils.get(text, settings);
-    const nextHistoryRecord = Program.nextProgramRecord(program, settings);
-    for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
-      for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
-        const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];
-        const completedReps = completed.completedReps?.[entryIndex]?.[setIndex];
-        if (set != null && completedReps != null) {
-          set.completedReps = completedReps;
-        }
+export function PlannerTestUtils_changeExercise(
+  programText: string,
+  oldExercise: string,
+  newExercise: IExerciseType
+): string {
+  const { program } = PlannerTestUtils_get(programText);
+  const settings = Settings_build();
+  const key = PlannerKey_fromFullName(oldExercise, settings.exercises);
+  const result = PlannerProgram_replaceAndValidateExercise(program, key, newExercise, settings);
+  if (result.success) {
+    return PlannerProgram_generateFullText(result.data.planner?.weeks || []);
+  } else {
+    throw result.error;
+  }
+}
+
+export function PlannerTestUtils_finish(
+  text: string,
+  completed: ICompletedEntries,
+  settings: ISettings = Settings_build(),
+  stats: IStats = Stats_getEmpty(),
+  dayIndex?: number
+): { program: IProgram } {
+  const { program } = PlannerTestUtils_get(text);
+  const nextHistoryRecord = Program_nextHistoryRecord(program, settings, Stats_getEmpty(), dayIndex);
+  for (let entryIndex = 0; entryIndex < completed.completedReps.length; entryIndex++) {
+    for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
+      const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];
+      const completedReps = completed.completedReps?.[entryIndex]?.[setIndex];
+      const completedWeights = completed.completedWeights?.[entryIndex]?.[setIndex];
+      if (set != null && completedReps != null) {
+        set.completedReps = completedReps;
+        set.completedWeight = completedWeights ?? set.weight;
+        set.isCompleted = true;
       }
     }
-    const { program: newProgram } = Program.runAllFinishDayScripts(program, nextHistoryRecord, settings);
-    return { program: newProgram };
   }
+  const { program: newProgram } = Program_runAllFinishDayScripts(program, nextHistoryRecord, stats, settings);
+  return { program: newProgram };
 }
