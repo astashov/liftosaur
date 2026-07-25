@@ -2,7 +2,7 @@ import { IHistoryRecord, ICustomExercise, ISettings, IWeight, VHistoryRecord } f
 import Papa from "papaparse";
 import { CollectionUtils_compact, CollectionUtils_groupByKey } from "./collection";
 import { ObjectUtils_values } from "./object";
-import { Exercise_findByName, Exercise_getIsUnilateral } from "../models/exercise";
+import { Exercise_findByName, Exercise_getIsUnilateral, Exercise_sanitizeName } from "../models/exercise";
 import { Weight_build } from "../models/weight";
 import { UidFactory_generateUid } from "./generator";
 import { Progress_getEntryId } from "../models/progress";
@@ -516,14 +516,17 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(hevyCsvRaw: string
       let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
       let exerciseId: string;
       if (!exerciseNameAndEquipment) {
-        const maybeExerciseId = backMap[record.exercise_title];
+        // Key by the sanitized name so titles differing only in stripped characters
+        // (e.g. "Cable Row (Wide)" vs "Cable Row Wide") merge into one custom exercise.
+        const sanitizedTitle = Exercise_sanitizeName(record.exercise_title);
+        const maybeExerciseId = backMap[sanitizedTitle];
         if (!maybeExerciseId) {
           exerciseId = UidFactory_generateUid(8);
-          backMap[record.exercise_title] = exerciseId;
+          backMap[sanitizedTitle] = exerciseId;
           customExercises[exerciseId] = {
             vtype: "custom_exercise",
             id: exerciseId,
-            name: record.exercise_title,
+            name: sanitizedTitle,
             isDeleted: false,
             meta: {
               bodyParts: [],
@@ -536,7 +539,7 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(hevyCsvRaw: string
         } else {
           exerciseId = maybeExerciseId;
         }
-        exerciseNameAndEquipment = [record.exercise_title, undefined];
+        exerciseNameAndEquipment = [sanitizedTitle, undefined];
       } else {
         const [exerciseName] = exerciseNameAndEquipment;
         const exercise = Exercise_findByName(exerciseName, {})!;

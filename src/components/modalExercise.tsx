@@ -36,6 +36,7 @@ import {
   Exercise_synergistMusclesGroups,
   Exercise_targetMuscles,
   Exercise_synergistMuscles,
+  Exercise_nameError,
 } from "../models/exercise";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
@@ -487,6 +488,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           <Button
             name="custom-exercise-create"
             kind="purple"
+            disabled={Exercise_nameError(state.name) != null}
             data-testid="custom-exercise-create"
             testID="custom-exercise-create"
             onClick={() => {
@@ -673,13 +675,7 @@ function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
         onInput={(e) => {
           const value = e.currentTarget.value?.trim() || "";
           setName(value);
-          if (!value) {
-            setNameError("Name cannot be empty");
-          } else if (/[/{}()\t\n\r#\[\]|!]+/.test(value)) {
-            setNameError("Name cannot contain special characters: '/{}()#[]|!'");
-          } else {
-            setNameError(undefined);
-          }
+          setNameError(Exercise_nameError(value));
         }}
       />
       <div className="my-2 text-sm">

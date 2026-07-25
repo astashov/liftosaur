@@ -5,6 +5,7 @@ import { IExercisePickerState } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Exercise_nameError } from "../../models/exercise";
 
 interface IProps {
   templateName?: string;
@@ -29,12 +30,9 @@ export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props
           className="px-4 py-2 mt-1 text-base leading-5 border rounded-lg min-h-10 bg-background-default border-border-prominent text-text-primary"
           onChangeText={(rawValue) => {
             const value = rawValue?.trim() || "";
-            if (!value) {
-              setNameError("Name cannot be empty");
-            } else if (/[/{}()\t\n\r#\[\]|!]+/.test(value)) {
-              setNameError("Name cannot contain special characters: '/{}()#[]|!'");
-            } else {
-              setNameError(undefined);
+            const error = Exercise_nameError(value);
+            setNameError(error);
+            if (error == null) {
               props.dispatch(
                 lb<IExercisePickerState>().p("templateName").record(value),
                 `Set template name to ${value}`

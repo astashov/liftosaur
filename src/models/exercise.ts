@@ -4289,6 +4289,28 @@ function getCustomExercisesNameIndex(customExercises: IAllCustomExercises): Map<
   return index;
 }
 
+// These characters are Liftoscript syntax — grammar separators (/{}()#[]|!) or the label
+// delimiter (:) — so a name containing them can't round-trip through planner text: replacing
+// an exercise with it would leave the program with a syntax error.
+const forbiddenExerciseNameChars = /[/{}()#[\]|!:\t\n\r]/;
+const forbiddenExerciseNameCharsAll = new RegExp(forbiddenExerciseNameChars.source, "g");
+
+export function Exercise_nameError(name: string): string | undefined {
+  const trimmed = name.trim();
+  if (trimmed.length === 0) {
+    return "Name cannot be empty";
+  }
+  if (forbiddenExerciseNameChars.test(trimmed)) {
+    return "Name cannot contain special characters: / { } ( ) # [ ] | ! :";
+  }
+  return undefined;
+}
+
+export function Exercise_sanitizeName(name: string): string {
+  const sanitized = name.replace(forbiddenExerciseNameCharsAll, " ").replace(/\s+/g, " ").trim();
+  return sanitized || "Exercise";
+}
+
 export function Exercise_findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
   const lowercaseName = name.toLowerCase();
   // Custom exercises win over built-ins on name collision, so shipping a built-in with the same

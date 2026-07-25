@@ -715,6 +715,37 @@ describe("Liftohistory", () => {
       expect(customExercises[keys[0]].name).to.equal("My Custom Exercise");
     });
 
+    it("round-trips custom exercises whose names contain grammar-rejected characters", () => {
+      const settings = buildSettings();
+      settings.exercises = {
+        abcd1234: {
+          vtype: "custom_exercise",
+          id: "abcd1234",
+          name: "Meadows Row (Ganbaru)",
+          isDeleted: false,
+          types: [],
+          meta: { bodyParts: [], targetMuscles: [], synergistMuscles: [], sortedEquipment: [] },
+        },
+      };
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "abcd1234" },
+            sets: [buildSet({ completedReps: 10, completedWeight: Weight_build(50, "kg") })],
+          }),
+        ],
+      });
+      const serialized = LiftohistorySerializer_serialize(record, settings);
+      expect(serialized).to.contain("Meadows Row Ganbaru");
+      const result = LiftohistoryDeserializer_deserialize(serialized, buildSettings());
+      expect(result.success).to.be.true;
+      if (!result.success) {
+        return;
+      }
+      const names = Object.values(result.data.customExercises).map((e) => e.name);
+      expect(names).to.deep.equal(["Meadows Row Ganbaru"]);
+    });
+
     it("parses kg weights", () => {
       const settings = buildSettings();
       const text = `2026-02-28T10:30:00.000Z / exercises: {

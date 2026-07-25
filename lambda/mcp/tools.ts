@@ -424,7 +424,11 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     inputSchema: {
       type: "object",
       properties: {
-        name: { type: "string", description: "Exercise name" },
+        name: {
+          type: "string",
+          description:
+            'Exercise name. Must not contain Liftoscript syntax characters: / { } ( ) # [ ] | ! : — e.g. use "Press - Machine" instead of "Press (Machine)"',
+        },
         targetMuscles: {
           type: "string",
           description: 'JSON array of primary target muscles. E.g. ["Quadriceps", "Gluteus Maximus"]',
@@ -451,7 +455,11 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
       type: "object",
       properties: {
         id: { type: "string", description: "Custom exercise ID" },
-        name: { type: "string", description: "New exercise name (optional)" },
+        name: {
+          type: "string",
+          description:
+            "New exercise name (optional). Must not contain Liftoscript syntax characters: / { } ( ) # [ ] | ! :",
+        },
         targetMuscles: {
           type: "string",
           description: "JSON array of primary target muscles (optional, replaces existing)",

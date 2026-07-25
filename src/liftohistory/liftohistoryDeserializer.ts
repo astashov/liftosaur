@@ -29,7 +29,11 @@ import {
   NonSeparator,
 } from "./liftohistoryParser.terms";
 import { IHistoryRecord, IHistoryEntry, ISet, ISettings, ICustomExercise, IExerciseType } from "../types";
-import { Exercise_findByNameAndEquipment, Exercise_createCustomExercise } from "../models/exercise";
+import {
+  Exercise_findByNameAndEquipment,
+  Exercise_createCustomExercise,
+  Exercise_sanitizeName,
+} from "../models/exercise";
 import { Weight_parse } from "../models/weight";
 import { UidFactory_generateUid } from "../utils/generator";
 import { StringUtils_dashcase } from "../utils/string";
@@ -270,7 +274,7 @@ function deserializeExerciseLine(
     return undefined;
   }
 
-  const exerciseName = getValue(nameNode, text).trim();
+  const exerciseName = Exercise_sanitizeName(getValue(nameNode, text));
 
   const allCustomExercises = { ...settings.exercises, ...customExercises };
   const exercise = Exercise_findByNameAndEquipment(exerciseName, allCustomExercises);

@@ -11,7 +11,7 @@ import {
 import Papa from "papaparse";
 import { CollectionUtils_groupByKey, CollectionUtils_compact, CollectionUtils_sortBy } from "./collection";
 import { ObjectUtils_values } from "./object";
-import { Exercise_findByNameAndEquipment, Exercise_getIsUnilateral } from "../models/exercise";
+import { Exercise_findByNameAndEquipment, Exercise_getIsUnilateral, Exercise_sanitizeName } from "../models/exercise";
 import { Weight_build } from "../models/weight";
 import { StringUtils_dashcase } from "./string";
 import { Progress_getEntryId } from "../models/progress";
@@ -194,7 +194,7 @@ export function ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
     const rawEntries = CollectionUtils_compact(ObjectUtils_values(CollectionUtils_groupByKey(records, "exercise")));
     const entries = rawEntries.map((rawSets, index) => {
       const firstSet = rawSets[0];
-      const exerciseName = firstSet.exercise || "Unknown";
+      const exerciseName = Exercise_sanitizeName(firstSet.exercise || "Unknown");
       const exercise = Exercise_findByNameAndEquipment(exerciseName, settings.exercises);
       let exerciseId: string;
       let exerciseEquipment: string | undefined = undefined;

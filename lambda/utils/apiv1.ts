@@ -38,6 +38,7 @@ import {
   Exercise_createCustomExercise,
   Exercise_editCustomExercise,
   Exercise_deleteCustomExercise,
+  Exercise_nameError,
 } from "../../src/models/exercise";
 import { Playground_run, Playground_validateProgramText } from "../../src/playground/playground";
 import {
@@ -635,8 +636,9 @@ export async function ApiV1_createCustomExercise(
   types: IExerciseKind[],
   di: IDI
 ): Promise<IApiResult<ICustomExerciseResponse>> {
-  if (!name.trim()) {
-    return err(400, "invalid_input", "Exercise name is required");
+  const nameError = Exercise_nameError(name);
+  if (nameError) {
+    return err(400, "invalid_input", nameError);
   }
   const validation = validateExerciseFields(targetMuscles, synergistMuscles, types);
   if (validation) {
@@ -698,7 +700,13 @@ export async function ApiV1_updateCustomExercise(
   }
 
   const newName = fields.name?.trim() ?? existing.name;
-  if (!newName) {
+  // Only validate an incoming name — a legacy invalid name shouldn't block updates to other fields.
+  if (fields.name != null) {
+    const newNameError = Exercise_nameError(fields.name);
+    if (newNameError) {
+      return err(400, "invalid_input", newNameError);
+    }
+  } else if (!newName) {
     return err(400, "invalid_input", "Exercise name cannot be empty");
   }
   const validation = validateExerciseFields(

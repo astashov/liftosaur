@@ -1,5 +1,5 @@
 import { IHistoryRecord, IHistoryEntry, ISet, ISettings, IProgram } from "../types";
-import { Exercise_get, Exercise_fullName } from "../models/exercise";
+import { Exercise_get, Exercise_fullName, Exercise_sanitizeName } from "../models/exercise";
 import { Weight_print } from "../models/weight";
 import { emptyProgramId, Program_evaluate, Program_isEmpty } from "../models/program";
 import { n } from "../utils/math";
@@ -87,7 +87,9 @@ function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, pro
 
 function serializeEntry(entry: IHistoryEntry, settings: ISettings): string {
   const exercise = Exercise_get(entry.exercise, settings.exercises);
-  let line = Exercise_fullName(exercise, settings);
+  // Legacy custom exercise names may contain characters the liftohistory grammar rejects,
+  // which would make the export unparseable on re-import.
+  let line = Exercise_fullName({ ...exercise, name: Exercise_sanitizeName(exercise.name) }, settings);
 
   const completedStr = serializeCompletedSets(entry.sets);
   if (completedStr) {

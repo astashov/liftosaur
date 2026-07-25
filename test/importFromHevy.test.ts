@@ -108,6 +108,20 @@ describe("ImportFromHevy", () => {
     expect(result.historyRecords[1].entries[0].exercise.id).to.equal(ids[0]);
   });
 
+  it("sanitizes unknown exercise names and merges titles that only differ in stripped characters", () => {
+    const result = ImportFromHevy_convertHevyCsvToHistoryRecords(
+      buildCsv(
+        row({ exercise_title: "Kroc Row (Wide)", set_index: "0" }),
+        row({ exercise_title: "Kroc Row Wide", set_index: "1" })
+      ),
+      buildSettings()
+    );
+    expect(result.errors).to.eql([]);
+    const ids = Object.keys(result.customExercises);
+    expect(ids).to.have.length(1);
+    expect(result.customExercises[ids[0]]?.name).to.equal("Kroc Row Wide");
+  });
+
   it("skips rows with malformed dates and reports row errors", () => {
     const result = ImportFromHevy_convertHevyCsvToHistoryRecords(
       buildCsv(row(), row({ start_time: "garbage", end_time: "garbage", set_index: "1" })),

@@ -683,7 +683,18 @@ describe("MCP", () => {
       expect(result.statusCode).to.equal(200);
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
-      expect(body.result.content[0].text).to.include("name");
+      expect(body.result.content[0].text).to.include("Name cannot be empty");
+    });
+
+    it("rejects names with Liftoscript syntax characters", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Press (Machine)" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("Name cannot contain special characters");
     });
 
     it("rejects invalid muscle names", async () => {
