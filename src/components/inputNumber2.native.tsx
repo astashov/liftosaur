@@ -17,6 +17,7 @@ import {
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
 import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
+import { lg } from "../utils/posthog";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
@@ -377,9 +378,10 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   ]);
 
   const focusSelf = useCallback(() => {
+    lg(`focus-nm-${props.name}`);
     scrollIntoView();
     openKeyboard(buildKeyboardConfig());
-  }, [scrollIntoView, openKeyboard, buildKeyboardConfig]);
+  }, [scrollIntoView, openKeyboard, buildKeyboardConfig, props.name]);
 
   useEffect(() => {
     if (!isFocused) {

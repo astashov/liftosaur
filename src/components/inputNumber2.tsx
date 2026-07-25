@@ -587,6 +587,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         onFocus={() => {
           debugSessionRef.current = Date.now();
           lg("kbd-focus", { sid: debugSessionRef.current });
+          lg(`focus-nm-${props.name}`);
           setIsFocused(true);
         }}
         onBlur={(event) => {

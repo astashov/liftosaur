@@ -36,6 +36,7 @@ import { CollectionUtils_removeAt } from "../utils/collection";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgressEntry_showEditSetModal } from "../models/editProgressEntry";
+import { useTrackClick } from "../utils/clickTracking";
 import { Reps_enforceCompletedSet, Reps_setsStatus, Reps_avgUnilateralCompletedReps } from "../models/set";
 import {
   Weight_eq,
@@ -112,6 +113,7 @@ interface IWorkoutExerciseSet {
 }
 
 function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
+  const trackClick = useTrackClick();
   const set = props.set;
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
@@ -450,6 +452,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                 data-testid="edit-set-target"
                 testID="edit-set-target"
                 onPress={() => {
+                  trackClick("workout-set-edit");
                   close();
                   EditProgressEntry_showEditSetModal(
                     props.dispatch,
@@ -472,6 +475,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
               data-testid="delete-set"
               testID="delete-set"
               onPress={() => {
+                trackClick("workout-set-delete");
                 close();
                 updateProgress(
                   props.dispatch,
