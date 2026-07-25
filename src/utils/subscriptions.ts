@@ -5,6 +5,7 @@ import { lb } from "lens-shmens";
 import { ISubscription } from "../types";
 import { UidFactory_generateUid } from "./generator";
 import { CollectionUtils_removeBy } from "./collection";
+import { SubscriptionReceipts_cleanupApple } from "./subscriptionReceipts";
 import { Thunk_postevent } from "../ducks/thunks";
 
 export function Subscriptions_hasSubscription(subscription: ISubscription): boolean {
@@ -109,41 +110,18 @@ export function Subscriptions_cleanupOutdatedAppleReceipts(
       return [value.value, await Subscriptions_verifyAppleReceipt(userId, service, value.value)];
     })
   ).then((results) => {
-    const validReceipts = results.filter(([, result]) => result).map(([key]) => key);
-    const validReceipt = validReceipts[validReceipts.length - 1];
-    if (validReceipt) {
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .p("storage")
-            .p("subscription")
-            .p("apple")
-            .recordModify((apple) => {
-              const existing = apple.find((r) => r.value === validReceipt);
-              if (existing) {
-                return [existing];
-              } else {
-                return [
-                  {
-                    vtype: "subscription_receipt",
-                    value: validReceipt,
-                    id: UidFactory_generateUid(6),
-                    createdAt: Date.now(),
-                  },
-                ];
-              }
-            }),
-        ],
-        "Clean up outdated Apple receipts - leave only the valid one"
-      );
-    } else {
-      updateState(
-        dispatch,
-        [lb<IState>().p("storage").p("subscription").p("apple").record([])],
-        "Clean up outdated Apple receipts - remove all"
-      );
-    }
+    const verdicts = new Map(results);
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("subscription")
+          .p("apple")
+          .recordModify((apple) => SubscriptionReceipts_cleanupApple(apple, verdicts)),
+      ],
+      "Clean up outdated Apple receipts"
+    );
   });
 }
 
