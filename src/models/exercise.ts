@@ -4389,6 +4389,22 @@ export function Exercise_findByNameAndEquipment(
   }
   let exerciseId = Exercise_findIdByName(name, customExercises);
   if (exerciseId != null && equipment !== null) {
+    // Users can have both "X" and "X, <Equipment>" custom exercises. Before custom exercises
+    // were included in the split-name lookup, "X, <Equipment>" resolved to the custom of that
+    // exact name (history is keyed by it), so an exact full-string custom match must beat the
+    // bare-name custom + parsed equipment interpretation. Built-in bare-name matches keep
+    // winning as they always did — flipping those would re-key history too.
+    if (customExercises[exerciseId] != null) {
+      const fullNameExerciseId = getCustomExercisesNameIndex(customExercises).get(
+        normalizeExerciseName(nameAndEquipment)
+      );
+      if (fullNameExerciseId != null && fullNameExerciseId !== exerciseId) {
+        const fullNameExercise = Exercise_findById(fullNameExerciseId, customExercises);
+        if (fullNameExercise != null) {
+          return { ...fullNameExercise };
+        }
+      }
+    }
     const exercise = Exercise_findById(exerciseId, customExercises);
     if (exercise != null) {
       return { ...exercise, equipment: equipment || exercise.defaultEquipment };

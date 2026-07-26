@@ -85,3 +85,34 @@ describe("Exercise — custom exercise wins over built-in on name collision", ()
     expect(Exercise_findByNameAndEquipment("Squat", {})?.id).to.eql("squat");
   });
 });
+
+describe("Exercise — custom exercises named 'X' and 'X, <Equipment>' coexist", () => {
+  const customExercises: IAllCustomExercises = {
+    "custom-bare": buildCustom("custom-bare", "Chest Supported Row", false),
+    "custom-full": buildCustom("custom-full", "Chest Supported Row, Dumbbell", false),
+  };
+
+  it("exact full-name custom match wins over bare-name custom + parsed equipment", () => {
+    const exercise = Exercise_findByNameAndEquipment("Chest Supported Row, Dumbbell", customExercises);
+    expect(exercise?.id).to.eql("custom-full");
+    expect(exercise?.equipment).to.eql(undefined);
+  });
+
+  it("bare name still resolves to the bare custom exercise", () => {
+    expect(Exercise_findByNameAndEquipment("Chest Supported Row", customExercises)?.id).to.eql("custom-bare");
+  });
+
+  it("bare custom + parsed equipment still resolves when no full-name custom exists", () => {
+    const onlyBare: IAllCustomExercises = { "custom-bare": buildCustom("custom-bare", "Chest Supported Row", false) };
+    const exercise = Exercise_findByNameAndEquipment("Chest Supported Row, Dumbbell", onlyBare);
+    expect(exercise?.id).to.eql("custom-bare");
+    expect(exercise?.equipment).to.eql("dumbbell");
+  });
+
+  it("built-in bare-name match still wins over a full-name custom", () => {
+    const fullOnly: IAllCustomExercises = {
+      "custom-full": buildCustom("custom-full", "Squat, Barbell", false),
+    };
+    expect(Exercise_findByNameAndEquipment("Squat, Barbell", fullOnly)?.id).to.eql("squat");
+  });
+});
