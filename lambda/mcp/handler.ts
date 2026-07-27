@@ -311,6 +311,9 @@ async function handleToolCall(
     return textResult(req.id, "Active subscription required to use MCP tools", { isError: true });
   }
 
+  // No try/catch here on purpose: the executor returns tool errors for all anticipated argument
+  // problems, so anything that still throws is a genuine server bug — let it propagate to the router,
+  // which reports it to Rollbar and responds with a sanitized 500 (no internal exception text leaks).
   const result = await McpToolExecutor_execute(toolName, args, userId, user, di);
   if (!result.success) {
     di.log.log(`[MCP] ${toolName} -> error: ${result.error.message}`);

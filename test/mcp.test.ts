@@ -620,6 +620,45 @@ describe("MCP", () => {
       expect(body.result.isError).to.equal(true);
       expect(body.result.content[0].text).to.include("Hint");
     });
+
+    it("returns tool error when programText is missing (e.g. passed as 'program')", async () => {
+      const program = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const result = await handler(buildMcpEvent(toolCall("run_playground", { program }), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("programText");
+    });
+
+    it("returns tool error instead of 500 for non-JSON commands", async () => {
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("run_playground", {
+            programText: "Squat / 3x5 100lb / progress: lp(5lb)",
+            commands: "complete_all_sets(); finish_workout();",
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("JSON array of command strings");
+    });
+
+    it("accepts commands as a native array", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("run_playground", { programText, commands: ["complete_set(1, 1)", "finish_workout()"] }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      expect(parseBody(result).result.isError).to.be.undefined;
+    });
   });
 
   describe("custom exercises", () => {
@@ -695,6 +734,20 @@ describe("MCP", () => {
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
       expect(body.result.content[0].text).to.include("Name cannot contain special characters");
+    });
+
+    it("rejects valid JSON of the wrong shape for targetMuscles", async () => {
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", { name: "Sled Push", targetMuscles: "{}" }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("targetMuscles must be a JSON array of muscle names");
     });
 
     it("rejects invalid muscle names", async () => {
