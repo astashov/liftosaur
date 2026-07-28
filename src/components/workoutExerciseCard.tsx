@@ -294,8 +294,9 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   }, [kebabActions, runKebabAction, trackClick]);
 
   const onPressExerciseStats = useCallback(() => {
+    trackClick("workout-exercise-stats");
     dispatch(Thunk_pushExerciseStatsScreen(entryExercise));
-  }, [dispatch, entryExercise]);
+  }, [dispatch, entryExercise, trackClick]);
 
   const onChangeNotes = useCallback(
     (text: string) => {

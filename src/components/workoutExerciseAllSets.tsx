@@ -31,6 +31,7 @@ import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 import { memo, useCallback, useMemo } from "react";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { useTrackClick } from "../utils/clickTracking";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -128,22 +129,25 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const lbSetByIndex = useMemo(() => sets.map((_, i) => props.lbSets.i(i)), [props.lbSets, sets.length]);
 
   const { dispatch, lbWarmupSets, lbSets, lastSets, exerciseType, settings } = props;
+  const trackClick = useTrackClick();
   const onAddWarmupSet = useCallback(() => {
+    trackClick("workout-add-warmup-set");
     const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
     updateProgress(
       dispatch,
       [lbWarmupSets.recordModify((s) => Reps_addSet(s, unilateral, undefined, true))],
       "add-warmupset"
     );
-  }, [dispatch, exerciseType, lbWarmupSets, settings]);
+  }, [dispatch, exerciseType, lbWarmupSets, settings, trackClick]);
   const onAddSet = useCallback(() => {
+    trackClick("workout-add-set");
     const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
     updateProgress(
       dispatch,
       [lbSets.recordModify((s) => Reps_addSet(s, unilateral, lastSets ? lastSets[lastSets.length - 1] : undefined))],
       "add-set"
     );
-  }, [dispatch, exerciseType, lbSets, lastSets, settings]);
+  }, [dispatch, exerciseType, lbSets, lastSets, settings, trackClick]);
 
   const onSuppressProgress = useCallback(
     (isSuppressed: boolean) => {

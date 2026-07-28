@@ -227,19 +227,21 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     });
   }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted]);
   const onEditSetTimer = useCallback(() => {
+    trackClick("workout-set-timer-edit-open");
     updateProgress(
       dispatch,
       [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record({ entryIndex, setIndex })],
       "open-set-timer-edit"
     );
-  }, [dispatch, entryIndex, setIndex]);
+  }, [dispatch, entryIndex, setIndex, trackClick]);
   const onOpenRoundingInfo = useCallback(() => {
+    trackClick("workout-rounding-info");
     updateProgress(
       dispatch,
       [lb<IHistoryRecord>().pi("ui", {}).p("roundingModal").record({ entryIndex, setIndex })],
       "open-rounding-info"
     );
-  }, [dispatch, entryIndex, setIndex]);
+  }, [dispatch, entryIndex, setIndex, trackClick]);
   const isRoundedWeight =
     props.type !== "warmup" &&
     props.settings.workoutSettings.targetType === "target" &&

@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { Pressable, Platform, InteractionManager } from "react-native";
+import { useTrackClick } from "../utils/clickTracking";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -146,6 +147,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   }, [roundingModal, progress.id]);
 
   const dispatch = props.dispatch;
+  const trackClick = useTrackClick();
   const isCurrent = Progress_isCurrent(progress);
   const onDeletePress = useCallback(async (): Promise<void> => {
     const confirmed = await Dialog_confirm(
@@ -157,10 +159,12 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   }, [dispatch, isCurrent, progress.id]);
 
   const onDeletePressHandler = useCallback(() => {
+    trackClick("workout-delete");
     onDeletePress().catch(() => undefined);
-  }, [onDeletePress]);
+  }, [onDeletePress, trackClick]);
 
   const onTitleClick = useCallback(() => {
+    trackClick("workout-change-date");
     dispatch({
       type: "ChangeDate",
       id: progress.id,
@@ -168,9 +172,10 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
       time: History_workoutTime(progress),
     });
     navigateToModal("dateModal", { progressId: progress.id });
-  }, [dispatch, progress]);
+  }, [dispatch, progress, trackClick]);
 
   const onPauseResume = useCallback(() => {
+    trackClick(History_isPaused(props.progress.intervals) ? "workout-resume" : "workout-pause");
     if (History_isPaused(props.progress.intervals)) {
       History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
       const currentEntryIndex = props.progress.currentEntryIndex || 0;
@@ -180,7 +185,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     } else {
       History_pauseWorkoutAction(dispatch);
     }
-  }, [dispatch, props.progress, props.settings, props.subscription]);
+  }, [dispatch, props.progress, props.settings, props.subscription, trackClick]);
 
   const navSubtitle = useMemo(() => {
     return !isCurrent && progress.endTime ? (

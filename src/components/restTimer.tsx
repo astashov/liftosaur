@@ -15,6 +15,7 @@ import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { Reps_findNextEntryAndSetIndex } from "../models/set";
 import { Progress_getCurrentProgress } from "../models/progress";
 import { SendMessage_print } from "../utils/sendMessage";
+import { useTrackClick } from "../utils/clickTracking";
 
 function useRestTimerTick(isActive: boolean): void {
   const [, setTick] = useState(0);
@@ -50,6 +51,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const prevProps = useRef<IProps>(props);
   const sentNotification = useRef<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const trackClick = useTrackClick();
   const insets = useSafeAreaInsets();
   const keyboardActiveId = useCustomKeyboardActiveId();
   const { height: windowHeight } = useWindowDimensions();
@@ -162,11 +164,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
             testID="rest-timer-minus"
             className="relative items-center justify-center m-2"
             style={{ minWidth: 40, minHeight: 40 }}
-            onPress={() =>
+            onPress={() => {
+              trackClick("rest-timer-minus");
               props.dispatch(
                 Thunk_updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
-              )
-            }
+              );
+            }}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <Text numberOfLines={1} className="font-bold text-text-alwayswhite">
@@ -178,7 +181,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
             testID="rest-timer-cancel"
             className="relative items-center justify-center my-2"
             style={{ minWidth: 40, minHeight: 40 }}
-            onPress={() => props.dispatch({ type: "StopTimer" })}
+            onPress={() => {
+              trackClick("rest-timer-cancel");
+              props.dispatch({ type: "StopTimer" });
+            }}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <IconTrash color="white" />
@@ -213,11 +219,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
             testID="rest-timer-plus"
             className="relative items-center justify-center m-2"
             style={{ minWidth: 40, minHeight: 40 }}
-            onPress={() =>
+            onPress={() => {
+              trackClick("rest-timer-plus");
               props.dispatch(
                 Thunk_updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
-              )
-            }
+              );
+            }}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
             <Text numberOfLines={1} className="font-bold text-text-alwayswhite">
@@ -237,7 +244,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
       <Pressable
         data-testid="rest-timer-collapsed"
         testID="rest-timer-collapsed"
-        onPress={() => setIsExpanded(true)}
+        onPress={() => {
+          trackClick("rest-timer-expand");
+          setIsExpanded(true);
+        }}
         className={`${bgClass} items-center px-2 py-2 rounded-lg`}
         style={[{ minWidth: 64 }, shadowStyle]}
       >

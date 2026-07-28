@@ -601,6 +601,10 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
 
   const onDragEnd = useCallback(
     (startIndex: number, endIndex: number) => {
+      // DraggableList2 fires onDragEnd even for no-op drags (release in place), which shouldn't count.
+      if (startIndex !== endIndex) {
+        trackClick("workout-reorder-drag");
+      }
       updateProgress(
         dispatch,
         [
@@ -622,7 +626,7 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
         onClick(endIndex);
       }, 0);
     },
-    [dispatch, onClick]
+    [dispatch, onClick, trackClick]
   );
   return (
     <View collapsable={false} className="py-1 border-b bg-background-default border-background-subtle">

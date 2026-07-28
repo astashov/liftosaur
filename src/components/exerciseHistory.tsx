@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { usePerfWhyRender } from "../utils/usePerfWhyRender";
+import { useTrackClick } from "../utils/clickTracking";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
@@ -171,9 +172,11 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
   const xs = StyledText_remToPx("xs", rem);
   const exerciseEntries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, fullExercise));
   const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
+  const trackClick = useTrackClick();
   const onClick = useCallback(() => {
+    trackClick("exercise-history-record");
     dispatch(Thunk_editHistoryRecord(historyRecord));
-  }, [dispatch, historyRecord]);
+  }, [dispatch, historyRecord, trackClick]);
   return (
     <MenuItemWrapper onClick={onClick} name={`${historyRecord.startTime}`}>
       <View className="py-2">

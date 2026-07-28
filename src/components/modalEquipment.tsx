@@ -18,6 +18,7 @@ import { ILensRecordingPayload, lb } from "lens-shmens";
 import { IState } from "../models/state";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { GroupHeader } from "./groupHeader";
+import { useTrackClick } from "../utils/clickTracking";
 
 interface IModalEquipmentProps {
   settings: ISettings;
@@ -31,6 +32,7 @@ interface IModalEquipmentProps {
 export type IModalEquipmentContentProps = Omit<IModalEquipmentProps, "onClose">;
 
 export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.Element {
+  const trackClick = useTrackClick();
   const availableEquipment = ObjectUtils_filter(Equipment_getCurrentGym(props.settings).equipment, (k, v) => {
     return !v?.isDeleted;
   });
@@ -57,6 +59,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           ]),
         ]}
         onChange={(value) => {
+          trackClick("equipment-modal-change");
           EditEquipment_setEquipmentForExercise(
             props.exercise,
             value === "" ? undefined : value,

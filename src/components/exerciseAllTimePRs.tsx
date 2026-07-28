@@ -8,6 +8,7 @@ import { DateUtils_format } from "../utils/date";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
+import { useTrackClick } from "../utils/clickTracking";
 
 interface IExerciseAllTimePRsProps {
   settings: ISettings;
@@ -18,6 +19,7 @@ interface IExerciseAllTimePRsProps {
 
 function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
   const { maxWeight, max1RM } = props;
+  const trackClick = useTrackClick();
 
   return (
     <View
@@ -30,7 +32,12 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
         <MenuItem
           name="Max Weight"
           expandName={true}
-          onClick={() => maxWeight.historyRecord && props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord))}
+          onClick={() => {
+            trackClick("exercise-pr-record");
+            if (maxWeight.historyRecord) {
+              props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord));
+            }
+          }}
           value={
             <View>
               <Text className="text-text-primary text-right" data-testid="max-weight-value" testID="max-weight-value">
@@ -50,7 +57,12 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
         <MenuItem
           isBorderless={true}
           expandValue={true}
-          onClick={() => max1RM.historyRecord && props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord))}
+          onClick={() => {
+            trackClick("exercise-pr-record");
+            if (max1RM.historyRecord) {
+              props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord));
+            }
+          }}
           name="Max 1RM"
           value={
             <View>
