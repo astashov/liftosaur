@@ -4269,18 +4269,24 @@ function normalizeExerciseName(name: string): string {
   return name.toLowerCase().replace(/\s*,\s*/g, ",");
 }
 
+interface ICustomExercisesNameIndex {
+  live: Map<string, IExerciseId>;
+  deleted: Map<string, IExerciseId>;
+}
+
 // Cache a normalized-name -> id index per customExercises object, since Exercise_findIdByName is called
 // once per exercise reference during program evaluation, and accounts can have hundreds of custom exercises.
-const customExercisesNameIndexCache = new WeakMap<IAllCustomExercises, Map<string, IExerciseId>>();
-function getCustomExercisesNameIndex(customExercises: IAllCustomExercises): Map<string, IExerciseId> {
+const customExercisesNameIndexCache = new WeakMap<IAllCustomExercises, ICustomExercisesNameIndex>();
+function getCustomExercisesNameIndex(customExercises: IAllCustomExercises): ICustomExercisesNameIndex {
   let index = customExercisesNameIndexCache.get(customExercises);
   if (index == null) {
-    index = new Map();
+    index = { live: new Map(), deleted: new Map() };
     for (const ce of ObjectUtils_values(customExercises)) {
       if (ce?.name && ce.id) {
         const key = normalizeExerciseName(ce.name);
-        if (!index.has(key)) {
-          index.set(key, ce.id);
+        const map = ce.isDeleted ? index.deleted : index.live;
+        if (!map.has(key)) {
+          map.set(key, ce.id);
         }
       }
     }
@@ -4312,12 +4318,14 @@ export function Exercise_sanitizeName(name: string): string {
 }
 
 export function Exercise_findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
-  const lowercaseName = name.toLowerCase();
-  // Custom exercises win over built-ins on name collision, so shipping a built-in with the same
+  const index = getCustomExercisesNameIndex(customExercises);
+  const key = normalizeExerciseName(name);
+  // Live customs win over built-ins on name collision, so shipping a built-in with the same
   // name as a user's existing custom exercise never silently re-points their programs/history.
-  return (
-    getCustomExercisesNameIndex(customExercises).get(normalizeExerciseName(name)) || nameToIdMapping[lowercaseName]
-  );
+  // Deleted customs resolve last: they must not shadow a built-in (deleting the custom is the
+  // user's only way back to it), but a name matching nothing else should still resolve so
+  // history records and planner text referencing it keep displaying.
+  return index.live.get(key) || nameToIdMapping[name.toLowerCase()] || index.deleted.get(key);
 }
 
 export function Exercise_get(type: IExerciseType, customExercises: IAllCustomExercises): IExercise {
@@ -4394,10 +4402,15 @@ export function Exercise_findByNameAndEquipment(
     // exact name (history is keyed by it), so an exact full-string custom match must beat the
     // bare-name custom + parsed equipment interpretation. Built-in bare-name matches keep
     // winning as they always did — flipping those would re-key history too.
-    if (customExercises[exerciseId] != null) {
-      const fullNameExerciseId = getCustomExercisesNameIndex(customExercises).get(
-        normalizeExerciseName(nameAndEquipment)
-      );
+    const bareNameCustom = customExercises[exerciseId];
+    if (bareNameCustom != null) {
+      const index = getCustomExercisesNameIndex(customExercises);
+      const fullNameKey = normalizeExerciseName(nameAndEquipment);
+      // A deleted full-name custom loses only to a live bare-name custom; when the bare match
+      // is itself a tombstone, the exact full-name tombstone still wins so history keyed by it
+      // doesn't re-point.
+      const fullNameExerciseId =
+        index.live.get(fullNameKey) ?? (bareNameCustom.isDeleted ? index.deleted.get(fullNameKey) : undefined);
       if (fullNameExerciseId != null && fullNameExerciseId !== exerciseId) {
         const fullNameExercise = Exercise_findById(fullNameExerciseId, customExercises);
         if (fullNameExercise != null) {
