@@ -333,8 +333,10 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
     decrement: ([vals], context) => decrement(vals, context),
     zeroOrGte: ([a, b]) => zeroOrGte(a, b),
     print: (args, context) => {
-      // flat() without filtering: booleans must survive so `if (print(cond))` keeps working
-      const flatArgs = [...args.flat()] as (number | IWeight | IPercentage)[];
+      // flat() without filtering: booleans must survive so `if (print(cond))` keeps working.
+      // Liftoscript has no null — undefined values (e.g. completedReps of skipped sets) become 0,
+      // otherwise they'd serialize to null and fail storage validation.
+      const flatArgs = [...args.flat()].map((arg) => arg ?? 0) as (number | IWeight | IPercentage)[];
       context.prints = context.prints || [];
       context.prints.push(flatArgs);
       return flatArgs[0];
