@@ -978,9 +978,15 @@ export function Progress_applyBindings(
     "originalWeights",
     "askweights",
   ] as const;
-  const entry = ObjectUtils_clone(oldEntry);
+  // Deep-clone ONLY `sets` (the part the loop below mutates) and shallow-spread the rest of the entry,
+  // so `exercise`/`warmupSets` keep their reference. The previous whole-entry ObjectUtils_clone gave
+  // entry.exercise a value-identical NEW reference on every set completion, which defeated the
+  // O(per-exercise-history) memos in the graph/history workout cards downstream.
   const lastCompletedIndex = CollectionUtils_findIndexReverse(bindings.completedReps, (r) => r != null) + 1;
-  entry.sets = entry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 0));
+  const entry: IHistoryEntry = {
+    ...oldEntry,
+    sets: ObjectUtils_clone(oldEntry.sets.slice(0, Math.max(lastCompletedIndex, bindings.numberOfSets, 0))),
+  };
   for (const key of keys) {
     for (let i = 0; i < bindings[key].length; i += 1) {
       if (entry.sets[i] == null) {

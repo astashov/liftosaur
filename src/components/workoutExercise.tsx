@@ -54,7 +54,11 @@ interface IWorkoutExerciseProps {
 
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   usePerfRenderCount("WorkoutExercise");
-  const exerciseType = props.entry.exercise;
+  // Stabilize the exercise reference by identity: props.entry.exercise gets rebuilt (value-identical,
+  // new ref) on every set completion, and it feeds GraphExercise/ExerciseHistory and their O(history)
+  // memos — so key it on the exercise key so those stay memoized across set completions regardless of
+  // any upstream reference churn.
+  const exerciseType = useMemo(() => props.entry.exercise, [Exercise_toKey(props.entry.exercise)]);
 
   const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
   useEffect(() => {
