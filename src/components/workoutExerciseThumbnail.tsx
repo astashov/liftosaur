@@ -63,7 +63,8 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
           className={`items-center flex-row justify-center w-14 h-14 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
           style={{
             borderWidth: isCurrent ? 2 : 1,
-            marginHorizontal: !isCurrent ? 1 : 0,
+            padding: !isCurrent ? 1 : 0,
+            marginVertical: isCurrent ? 1 : 0,
           }}
         >
           <ExerciseImage
