@@ -138,6 +138,10 @@
 		C0FF1C00000000000000C011 /* ComplicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FF1C00000000000000B010 /* ComplicationStore.swift */; };
 		CAF0000000000000000000B1 /* notification.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF0000000000000000000F1 /* notification.caf */; };
 		CDEAC135073AE09BCE6C4E5D /* FastText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A41D91319A9E1C5A962BD7 /* FastText.swift */; };
+		ED17A00000000000000000C1 /* LiftoEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED17A00000000000000000B1 /* LiftoEditorView.swift */; };
+		ED17A00000000000000000C3 /* RCTLiftoEditorView.mm in Sources */ = {isa = PBXBuildFile; fileRef = ED17A00000000000000000B3 /* RCTLiftoEditorView.mm */; };
+		ED17A00000000000000000C5 /* RCTLiftoEditorRegistrar.mm in Sources */ = {isa = PBXBuildFile; fileRef = ED17A00000000000000000B5 /* RCTLiftoEditorRegistrar.mm */; };
+		ED17A00000000000000000D1 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = ED17A00000000000000000D2 /* Runestone */; };
 		EE0003000000000000000003 /* RCTLiftosaurEventReporter.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */; };
 		EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */; };
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
@@ -332,6 +336,11 @@
 		DD9788074553024D2C5DC450 /* RCTLiftosaurTimer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurTimer.h; path = Liftosaur/RCTLiftosaurTimer.h; sourceTree = "<group>"; };
 		DD99D9B7ADD2478880135CFC /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
 		E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurShareImpl.swift; path = Liftosaur/LiftosaurShareImpl.swift; sourceTree = "<group>"; };
+		ED17A00000000000000000B1 /* LiftoEditorView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftoEditorView.swift; path = Liftosaur/LiftoEditor/LiftoEditorView.swift; sourceTree = "<group>"; };
+		ED17A00000000000000000B2 /* RCTLiftoEditorView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftoEditorView.h; path = Liftosaur/LiftoEditor/RCTLiftoEditorView.h; sourceTree = "<group>"; };
+		ED17A00000000000000000B3 /* RCTLiftoEditorView.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftoEditorView.mm; path = Liftosaur/LiftoEditor/RCTLiftoEditorView.mm; sourceTree = "<group>"; };
+		ED17A00000000000000000B4 /* RCTLiftoEditorRegistrar.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftoEditorRegistrar.h; path = Liftosaur/LiftoEditor/RCTLiftoEditorRegistrar.h; sourceTree = "<group>"; };
+		ED17A00000000000000000B5 /* RCTLiftoEditorRegistrar.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftoEditorRegistrar.mm; path = Liftosaur/LiftoEditor/RCTLiftoEditorRegistrar.mm; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		EE0001000000000000000001 /* RCTLiftosaurEventReporter.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurEventReporter.h; path = Liftosaur/RCTLiftosaurEventReporter.h; sourceTree = "<group>"; };
 		EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurEventReporter.mm; path = Liftosaur/RCTLiftosaurEventReporter.mm; sourceTree = "<group>"; };
@@ -356,6 +365,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */,
+				ED17A00000000000000000D1 /* Runestone in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +446,11 @@
 				2E2DCE34013D967839DD9676 /* RCTFastTextRegistrar.h */,
 				7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */,
 				A0A41D91319A9E1C5A962BD7 /* FastText.swift */,
+				ED17A00000000000000000B1 /* LiftoEditorView.swift */,
+				ED17A00000000000000000B2 /* RCTLiftoEditorView.h */,
+				ED17A00000000000000000B3 /* RCTLiftoEditorView.mm */,
+				ED17A00000000000000000B4 /* RCTLiftoEditorRegistrar.h */,
+				ED17A00000000000000000B5 /* RCTLiftoEditorRegistrar.mm */,
 			);
 			name = Liftosaur;
 			sourceTree = "<group>";
@@ -672,6 +687,9 @@
 				3AACC5C52FB351D0001C68AA /* PBXTargetDependency */,
 			);
 			name = Liftosaur;
+			packageProductDependencies = (
+				ED17A00000000000000000D2 /* Runestone */,
+			);
 			productName = Liftosaur;
 			productReference = 13B07F961A680F5B00A75B9A /* Liftosaur.app */;
 			productType = "com.apple.product-type.application";
@@ -765,7 +783,8 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
+				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -888,13 +907,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -931,13 +946,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -978,6 +989,9 @@
 				326EEB1E8DD314E2E32D357B /* RCTFastTextView.mm in Sources */,
 				270E1C6BE4D30A01EEE7E60B /* RCTFastTextRegistrar.mm in Sources */,
 				CDEAC135073AE09BCE6C4E5D /* FastText.swift in Sources */,
+				ED17A00000000000000000C1 /* LiftoEditorView.swift in Sources */,
+				ED17A00000000000000000C3 /* RCTLiftoEditorView.mm in Sources */,
+				ED17A00000000000000000C5 /* RCTLiftoEditorRegistrar.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1689,9 +1703,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
+		};
+		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Runestone;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -1699,6 +1717,10 @@
 		3AACC60E2FB35357001C68AA /* QuickJSCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = QuickJSCore;
+		};
+		ED17A00000000000000000D2 /* Runestone */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Runestone;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

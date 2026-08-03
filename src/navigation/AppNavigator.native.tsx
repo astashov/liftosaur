@@ -36,6 +36,7 @@ import {
 } from "./screens/NavScreenOnboarding";
 import { NavScreenProgress, NavScreenFinishDay, NavScreenSubscription } from "./screens/NavScreenWorkout";
 import { NavScreenGraphs } from "./screens/NavScreenGraphs";
+import { NavScreenEditorPlayground } from "./screens/NavScreenEditorPlayground";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -358,6 +359,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen
           name="subscription"
           component={NavScreenSubscription}
+          options={{ headerShown: true, header: NavHeader }}
+        />
+        <RootStack.Screen
+          name="editorPlayground"
+          component={NavScreenEditorPlayground}
           options={{ headerShown: true, header: NavHeader }}
         />
         <RootStack.Group

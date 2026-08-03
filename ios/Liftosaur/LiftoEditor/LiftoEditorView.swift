@@ -1,0 +1,158 @@
+import UIKit
+import Runestone
+
+// Native host for the Liftoscript editor: a Runestone TextView driven by externally
+// computed styled ranges (Lezer parses on the RN JS thread and pushes ranges back).
+// The ObjC++ Fabric layer (RCTLiftoEditorView.mm) only marshals props/commands/events;
+// everything UIKit lives here. The @objc surface uses only primitives/Foundation types
+// so no Runestone type leaks into Liftosaur-Swift.h.
+@objc public class LiftoEditorContentView: UIView {
+  @objc public var onTextDelta: ((Int, Int, String, Int) -> Void)?
+  @objc public var onSelectionChange: ((Int, Int) -> Void)?
+  @objc public var onContentSizeChange: ((Double, Double) -> Void)?
+
+  private let textView = TextView()
+  private let rangesStore = ExternalRangesStore()
+  private var hasSetInitialText = false
+  private var contentSizeObservation: NSKeyValueObservation?
+  private var lastReportedContentHeight: CGFloat = -1
+
+  public override init(frame: CGRect) {
+    super.init(frame: frame)
+    textView.editorDelegate = self
+    textView.setLanguageMode(ExternalRangesLanguageMode(store: rangesStore))
+    textView.showLineNumbers = false
+    textView.isLineWrappingEnabled = true
+    textView.autocorrectionType = .no
+    textView.autocapitalizationType = .none
+    textView.spellCheckingType = .no
+    textView.smartQuotesType = .no
+    textView.smartDashesType = .no
+    textView.smartInsertDeleteType = .no
+    textView.backgroundColor = .clear
+    // Both matter for caret-drag accuracy: bounce lets a long-press drag rubber-band the
+    // content under the finger, and .automatic inset (under the native-stack nav controller)
+    // skews the vertical touch->text-position mapping.
+    textView.alwaysBounceVertical = false
+    textView.contentInsetAdjustmentBehavior = .never
+    addSubview(textView)
+    contentSizeObservation = textView.observe(\.contentSize, options: [.new]) { [weak self] observedTextView, _ in
+      guard let self = self else {
+        return
+      }
+      let size = observedTextView.contentSize
+      if abs(size.height - self.lastReportedContentHeight) > 0.5 {
+        self.lastReportedContentHeight = size.height
+        self.onContentSizeChange?(Double(size.width), Double(size.height))
+      }
+    }
+  }
+
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  public override func layoutSubviews() {
+    super.layoutSubviews()
+    textView.frame = bounds
+  }
+
+  @objc public func setInitialText(_ text: String) {
+    if !hasSetInitialText {
+      hasSetInitialText = true
+      textView.text = text
+    }
+  }
+
+  @objc public func applyText(_ text: String) {
+    textView.text = text
+  }
+
+  @objc public func prepareForReuse() {
+    hasSetInitialText = false
+    lastReportedContentHeight = -1
+    textView.text = ""
+    rangesStore.setRanges([])
+  }
+
+  @objc public func applySelection(_ start: Int, end: Int) {
+    let length = (textView.text as NSString).length
+    let clampedStart = max(0, min(start, length))
+    let clampedEnd = max(clampedStart, min(end, length))
+    textView.selectedRange = NSRange(location: clampedStart, length: clampedEnd - clampedStart)
+  }
+
+  @objc public func applyReplaceRange(_ start: Int, end: Int, text: String) {
+    let length = (textView.text as NSString).length
+    guard start >= 0, end >= start, end <= length else {
+      return
+    }
+    textView.replace(NSRange(location: start, length: end - start), withText: text)
+  }
+
+  // Fabric attaches the event emitter after updateProps, so the content-size emission
+  // triggered by the initial setText is dropped; the ObjC++ layer calls this to re-send
+  // once the emitter is in place.
+  @objc public func flushContentSize() {
+    let size = textView.contentSize
+    lastReportedContentHeight = size.height
+    onContentSizeChange?(Double(size.width), Double(size.height))
+  }
+
+  @objc public func applyStyledRangesJson(_ json: String) {
+    guard let data = json.data(using: .utf8),
+      let items = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]]
+    else {
+      return
+    }
+    let ranges = items.compactMap { item -> ExternalStyledRange? in
+      guard let start = item["start"] as? Int, let end = item["end"] as? Int, end > start else {
+        return nil
+      }
+      return ExternalStyledRange(
+        range: NSRange(location: start, length: end - start),
+        color: LiftoEditorContentView.parseColor(item["color"] as? String),
+        backgroundColor: LiftoEditorContentView.parseColor(item["backgroundColor"] as? String),
+        isBold: item["bold"] as? Bool ?? false,
+        isItalic: item["italic"] as? Bool ?? false
+      )
+    }
+    rangesStore.setRanges(ranges)
+    textView.redisplayVisibleLines()
+  }
+
+  private static func parseColor(_ value: String?) -> UIColor? {
+    guard var hex = value?.trimmingCharacters(in: .whitespaces), hex.hasPrefix("#") else {
+      return nil
+    }
+    hex.removeFirst()
+    if hex.count == 3 {
+      hex = hex.map { "\($0)\($0)" }.joined()
+    }
+    guard hex.count == 6 || hex.count == 8, let raw = UInt64(hex, radix: 16) else {
+      return nil
+    }
+    let hasAlpha = hex.count == 8
+    let rgb = hasAlpha ? raw >> 8 : raw
+    let alpha = hasAlpha ? CGFloat(raw & 0xff) / 255.0 : 1.0
+    return UIColor(
+      red: CGFloat((rgb >> 16) & 0xff) / 255.0,
+      green: CGFloat((rgb >> 8) & 0xff) / 255.0,
+      blue: CGFloat(rgb & 0xff) / 255.0,
+      alpha: alpha
+    )
+  }
+}
+
+extension LiftoEditorContentView: TextViewDelegate {
+  public func textView(_ textView: TextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    let lengthAfter = (textView.text as NSString).length - range.length + (text as NSString).length
+    onTextDelta?(range.location, range.location + range.length, text, lengthAfter)
+    return true
+  }
+
+  public func textViewDidChangeSelection(_ textView: TextView) {
+    let range = textView.selectedRange
+    onSelectionChange?(range.location, range.location + range.length)
+  }
+}

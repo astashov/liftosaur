@@ -1,0 +1,15 @@
+{
+  "originHash" : "c873fc9dd793a3f3a24e0ace72173035a17f4a1492910bcc5c1fdb39dc9120ca",
+  "pins" : [
+    {
+      "identity" : "tree-sitter",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tree-sitter/tree-sitter",
+      "state" : {
+        "revision" : "98be227227af10cc7a269cb3ffb23686c0610b17",
+        "version" : "0.20.9"
+      }
+    }
+  ],
+  "version" : 3
+}

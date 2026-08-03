@@ -43,6 +43,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     ConversionManager.sharedInstance.setFirstLaunchTime(Date())
 
     RCTFastTextRegistrar.registerComponent()
+    RCTLiftoEditorRegistrar.registerComponent()
 
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)

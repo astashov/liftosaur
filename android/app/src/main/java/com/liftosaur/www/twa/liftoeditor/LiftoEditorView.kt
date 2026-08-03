@@ -1,0 +1,191 @@
+package com.liftosaur.www.twa.liftoeditor
+
+import android.graphics.Color
+import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.UIManagerHelper
+import com.facebook.react.uimanager.events.Event
+import io.github.rosemoe.sora.event.ContentChangeEvent
+import io.github.rosemoe.sora.event.SelectionChangeEvent
+import io.github.rosemoe.sora.lang.styling.MappedSpans
+import io.github.rosemoe.sora.lang.styling.Styles
+import io.github.rosemoe.sora.lang.styling.TextStyle
+import io.github.rosemoe.sora.widget.CodeEditor
+import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
+import org.json.JSONArray
+
+class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor(reactContext) {
+  private var hasSetInitialText = false
+  private var suppressEvents = false
+  // Arbitrary hex colors get dynamic scheme ids above sora's built-in range (END_COLOR_ID=66);
+  // the scheme stores colors in a SparseIntArray so unknown ids are fine.
+  private val colorIds = HashMap<String, Int>()
+  private var nextColorId = 1000
+  private var lastReportedContentHeightDp = -1f
+
+  init {
+    setWordwrap(true)
+    setLineNumberEnabled(false)
+    typefaceText = android.graphics.Typeface.MONOSPACE
+    subscribeEvent(ContentChangeEvent::class.java) { event, _ -> handleContentChange(event) }
+    subscribeEvent(SelectionChangeEvent::class.java) { event, _ -> handleSelectionChange(event) }
+  }
+
+  override fun onSizeChanged(w: Int, h: Int, oldWidth: Int, oldHeight: Int) {
+    super.onSizeChanged(w, h, oldWidth, oldHeight)
+    post { emitContentSize() }
+  }
+
+  private fun emitContentSize() {
+    val heightPx = try {
+      getLayout().layoutHeight
+    } catch (e: Exception) {
+      return
+    }
+    val d = resources.displayMetrics.density
+    val heightDp = heightPx / d
+    if (kotlin.math.abs(heightDp - lastReportedContentHeightDp) > 0.5f) {
+      lastReportedContentHeightDp = heightDp
+      emit { surfaceId, viewId -> ContentSizeChangeEvent(surfaceId, viewId, width / d, heightDp) }
+    }
+  }
+
+  fun setInitialTextOnce(text: String) {
+    if (!hasSetInitialText) {
+      hasSetInitialText = true
+      applyText(text)
+    }
+  }
+
+  fun applyText(text: String) {
+    suppressEvents = true
+    try {
+      setText(text)
+    } finally {
+      suppressEvents = false
+    }
+  }
+
+  fun applyStyledRanges(json: String) {
+    val ranges = try {
+      JSONArray(json)
+    } catch (e: Exception) {
+      return
+    }
+    val normalStyle = TextStyle.makeStyle(EditorColorScheme.TEXT_NORMAL)
+    val builder = MappedSpans.Builder()
+    builder.addIfNeeded(0, 0, normalStyle)
+    val indexer = text.indexer
+    val textLength = text.length
+    for (i in 0 until ranges.length()) {
+      val item = ranges.optJSONObject(i) ?: continue
+      val start = item.optInt("start", -1)
+      val end = item.optInt("end", -1)
+      if (start < 0 || end <= start || end > textLength) {
+        continue
+      }
+      val style = TextStyle.makeStyle(
+        colorId(item.optString("color", "")),
+        0,
+        item.optBoolean("bold", false),
+        item.optBoolean("italic", false),
+        false
+      )
+      val startPos = indexer.getCharPosition(start)
+      val endPos = indexer.getCharPosition(end)
+      for (line in startPos.line..endPos.line) {
+        builder.addIfNeeded(line, if (line == startPos.line) startPos.column else 0, style)
+      }
+      builder.addIfNeeded(endPos.line, endPos.column, normalStyle)
+    }
+    setStyles(Styles(builder.build()))
+  }
+
+  private fun colorId(hex: String): Int {
+    if (hex.isEmpty()) {
+      return EditorColorScheme.TEXT_NORMAL
+    }
+    return colorIds.getOrPut(hex) {
+      val id = nextColorId++
+      colorScheme.setColor(id, parseHexColor(hex) ?: Color.BLACK)
+      id
+    }
+  }
+
+  private fun parseHexColor(value: String): Int? {
+    val v = value.trim()
+    if (!v.startsWith("#")) {
+      return try {
+        Color.parseColor(v)
+      } catch (e: IllegalArgumentException) {
+        null
+      }
+    }
+    val hex = v.substring(1)
+    // android.graphics.Color handles #RRGGBB/#AARRGGBB but not CSS #RGB or #RRGGBBAA.
+    val normalized = when (hex.length) {
+      3 -> "#${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}"
+      6 -> v
+      8 -> "#${hex.substring(6, 8)}${hex.substring(0, 6)}"
+      else -> return null
+    }
+    return try {
+      Color.parseColor(normalized)
+    } catch (e: IllegalArgumentException) {
+      null
+    }
+  }
+
+  fun applySelection(start: Int, end: Int) {
+    val length = text.length
+    val clampedStart = start.coerceIn(0, length)
+    val clampedEnd = end.coerceIn(clampedStart, length)
+    val indexer = text.indexer
+    val startPos = indexer.getCharPosition(clampedStart)
+    if (clampedStart == clampedEnd) {
+      setSelection(startPos.line, startPos.column)
+    } else {
+      val endPos = indexer.getCharPosition(clampedEnd)
+      setSelectionRegion(startPos.line, startPos.column, endPos.line, endPos.column)
+    }
+  }
+
+  fun applyReplaceRange(start: Int, end: Int, replacement: String) {
+    val length = text.length
+    if (start < 0 || end < start || end > length) {
+      return
+    }
+    text.replace(start, end, replacement)
+  }
+
+  private fun handleContentChange(event: ContentChangeEvent) {
+    // Size changes on programmatic setText too, so this stays ahead of the suppress guard;
+    // posted because the wrap layout rebuilds after the content listener fires.
+    post { emitContentSize() }
+    if (suppressEvents) {
+      return
+    }
+    val textLength = text.length
+    when (event.action) {
+      ContentChangeEvent.ACTION_INSERT ->
+        emit { surfaceId, viewId ->
+          TextDeltaEvent(surfaceId, viewId, event.changeStart.index, event.changeStart.index, event.changedText.toString(), textLength)
+        }
+      ContentChangeEvent.ACTION_DELETE ->
+        emit { surfaceId, viewId ->
+          TextDeltaEvent(surfaceId, viewId, event.changeStart.index, event.changeEnd.index, "", textLength)
+        }
+    }
+  }
+
+  private fun handleSelectionChange(event: SelectionChangeEvent) {
+    if (suppressEvents) {
+      return
+    }
+    emit { surfaceId, viewId -> EditorSelectionChangeEvent(surfaceId, viewId, event.left.index, event.right.index) }
+  }
+
+  private fun emit(create: (surfaceId: Int, viewId: Int) -> Event<*>) {
+    val dispatcher = UIManagerHelper.getEventDispatcherForReactTag(reactContext, id) ?: return
+    dispatcher.dispatchEvent(create(UIManagerHelper.getSurfaceId(reactContext), id))
+  }
+}

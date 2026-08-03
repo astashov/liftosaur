@@ -13,6 +13,7 @@ import com.liftosaur.www.twa.eventreporter.EventReporterTombstone
 import com.liftosaur.www.twa.eventreporter.LastTerminationHolder
 import com.liftosaur.www.twa.eventreporter.LiftosaurEventReporterPackage
 import com.liftosaur.www.twa.fasttext.FastTextPackage
+import com.liftosaur.www.twa.liftoeditor.LiftoEditorPackage
 import com.liftosaur.www.twa.imageresizer.LiftosaurImageResizerPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPath
@@ -34,6 +35,7 @@ class MainApplication : Application(), ReactApplication {
           add(LiftosaurEventReporterPackage())
           add(LftUpdaterPackage())
           add(FastTextPackage())
+          add(LiftoEditorPackage())
           add(LiftosaurImageResizerPackage())
         },
       jsMainModulePath = "index",

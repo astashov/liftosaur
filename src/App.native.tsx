@@ -320,6 +320,8 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (globalThis as any).debugLogin = (apiKey?: string) =>
         new Promise((resolve) => setTimeout(() => dispatch(Thunk_debugTestLogin(apiKey, resolve)), 0));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).openEditorPlayground = () => navigationRef.navigate("editorPlayground");
     }
   }, []);
 
