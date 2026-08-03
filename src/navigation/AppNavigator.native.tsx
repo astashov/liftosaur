@@ -102,6 +102,7 @@ import { NavModalPlates } from "./modals/NavModalPlates";
 import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
 import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
 import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
+import { NavModalEditorSheetExercisePicker } from "./modals/NavModalEditorSheetExercisePicker";
 import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
 import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
 import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
@@ -383,6 +384,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
+          <RootStack.Screen name="editorSheetExercisePickerModal" component={NavModalEditorSheetExercisePicker} />
         </RootStack.Group>
         <RootStack.Group
           screenOptions={{

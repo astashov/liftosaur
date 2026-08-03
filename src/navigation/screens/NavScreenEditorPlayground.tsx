@@ -69,13 +69,11 @@ export function NavScreenEditorPlayground(): JSX.Element {
             <Text className="text-sm text-text-secondary mb-2">Tap a number to edit, or use pills below</Text>
           )}
           <View className="flex-row flex-wrap">
-            {controller.pills.map((pill) => (
-              <Pill
-                key={pill.label}
-                label={pill.label}
-                onPress={() => controller.insertPill(pill.insertAt, pill.insertText)}
-              />
-            ))}
+            {controller.pills
+              .filter((pill) => pill.action == null)
+              .map((pill) => (
+                <Pill key={pill.label} label={pill.label} onPress={() => controller.applyPill(pill)} />
+              ))}
             <Pill label="Aa Edit as text" emphasized={true} onPress={controller.switchToFreeform} />
             <Pill label="Open in sheet" emphasized={true} onPress={() => navigation.navigate("editorSheetModal")} />
           </View>

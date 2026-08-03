@@ -181,12 +181,12 @@ import Runestone
 // The app's code font (same face FastText/styledText use); colors come from the external
 // styled ranges, so the theme only carries the base font and neutral colors.
 private final class LiftoEditorTheme: Runestone.Theme {
-  let font: UIFont = UIFont(name: "Iosevka", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
+  let font: UIFont = UIFont(name: "Iosevka", size: 16) ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
   let textColor: UIColor = .label
   let gutterBackgroundColor: UIColor = .clear
   let gutterHairlineColor: UIColor = .clear
   let lineNumberColor: UIColor = .secondaryLabel
-  let lineNumberFont: UIFont = UIFont(name: "Iosevka", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
+  let lineNumberFont: UIFont = UIFont(name: "Iosevka", size: 16) ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
   let selectedLineBackgroundColor: UIColor = .clear
   let selectedLinesLineNumberColor: UIColor = .secondaryLabel
   let selectedLinesGutterBackgroundColor: UIColor = .clear

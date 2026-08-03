@@ -1,5 +1,5 @@
 import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef, useCallback } from "react";
-import type { IMuscle, IExerciseKind } from "../types";
+import type { IMuscle, IExerciseKind, IExerciseType, IExercisePickerSelectedExercise, IDayData } from "../types";
 import { getNavigationRef } from "./navUtils";
 
 export interface IInputSelectModalData {
@@ -46,8 +46,17 @@ export interface IExerciseCloneLibraryResult {
   types: IExerciseKind[];
 }
 
+export interface IEditorSheetExercisePickerModalData {
+  exerciseType?: IExerciseType;
+  label?: string;
+  templateName?: string;
+  programId?: string;
+  dayData?: Required<IDayData>;
+}
+
 export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
+  editorSheetExercisePickerModal: IEditorSheetExercisePickerModalData;
   textInputModal: ITextInputModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
   exerciseTypesPickerModal: IExerciseTypesPickerModalData;
@@ -60,6 +69,7 @@ export interface IModalDataMap {
 
 export interface IModalResultMap {
   inputSelectModal: string;
+  editorSheetExercisePickerModal: IExercisePickerSelectedExercise;
   textInputModal: string;
   repMaxCalculatorModal: number;
   exerciseTypesPickerModal: IExerciseKind[];

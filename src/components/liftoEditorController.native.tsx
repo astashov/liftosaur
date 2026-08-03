@@ -61,7 +61,7 @@ export interface ILiftoEditorController {
   >;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
-  insertPill: (insertAt: number, insertText: string) => void;
+  applyPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToFreeform: () => void;
   switchToStructured: () => void;
@@ -196,12 +196,16 @@ export function useLiftoEditorController(
     if (tokens.length === 0) {
       return;
     }
-    // The reference point is the start of whatever is focused now (active number, focused
-    // level, or last tap); › goes to the first token strictly after it, ‹ strictly before.
+    // The reference point is the start of whatever is focused now; › goes to the first
+    // token strictly after it, ‹ strictly before. The focused token must win over the
+    // level — a level can start before its focused token (`warmup: none` focuses `none`
+    // but the property level starts at `warmup`), and using the level start would make
+    // › land on the current token again.
     const ctx = contextRef.current;
     const levelIndex = focusedLevelIndex();
     const current =
       activeRef.current?.start ??
+      focusedTokenRef.current?.start ??
       (ctx != null && levelIndex != null ? ctx.levels[levelIndex]?.start : undefined) ??
       anchorRef.current ??
       -1;
@@ -384,23 +388,34 @@ export function useLiftoEditorController(
     }
   }, [mode]);
 
-  // Focus survives the insert (the rail should update in place, not vanish); refs shift by
-  // the inserted length when the insert lands before them, and the text-change effect
-  // recomputes the context at the shifted anchor.
-  function insertPill(insertAt: number, insertText: string): void {
+  // Focus survives the edit (the rail should update in place, not vanish); refs shift by
+  // the length delta when the edit lands before them, and the text-change effect recomputes
+  // the context at the shifted anchor. When the edit overlaps the anchor/focused token
+  // (replace-style pills transform the very token that's focused), the refs snap to the
+  // replacement's extent so the context resolves inside the new text.
+  function applyPill(pill: ILiftoEditorPill): void {
     if (activeRef.current != null) {
       activeRef.current = undefined;
       closeKeyboard();
     }
+    const delta = pill.text.length - (pill.end - pill.start);
     const anchor = anchorRef.current;
-    if (anchor != null && insertAt <= anchor) {
-      anchorRef.current = anchor + insertText.length;
+    if (anchor != null) {
+      if (pill.end <= anchor) {
+        anchorRef.current = anchor + delta;
+      } else if (pill.start < anchor) {
+        anchorRef.current = pill.start;
+      }
     }
     const focused = focusedTokenRef.current;
-    if (focused != null && insertAt <= focused.start) {
-      focusedTokenRef.current = { start: focused.start + insertText.length, end: focused.end + insertText.length };
+    if (focused != null) {
+      if (pill.end <= focused.start) {
+        focusedTokenRef.current = { start: focused.start + delta, end: focused.end + delta };
+      } else if (pill.start < focused.end && pill.end > focused.start) {
+        focusedTokenRef.current = { start: pill.start, end: pill.start + pill.text.length };
+      }
     }
-    handleRef.current?.replaceRange(insertAt, insertAt, insertText);
+    handleRef.current?.replaceRange(pill.start, pill.end, pill.text);
   }
 
   function removeFocused(): void {
@@ -412,20 +427,36 @@ export function useLiftoEditorController(
     }
     const currentText = textRef.current;
     let start = level.start;
-    // A removed section takes its leading " / " separator with it, so "5x5 / 100kg / progress"
-    // minus the weight yields "5x5 / progress", not "5x5 /  / progress".
-    let i = start - 1;
-    while (i >= 0 && currentText[i] === " ") {
-      i -= 1;
+    let end = level.end;
+    // A removed item takes a separator with it. For comma-list items (set groups, state
+    // vars) a trailing comma wins — "3x8, 5x5" minus the first group must keep its
+    // leading " / ". Everything else eats its leading " / " or ", ", so
+    // "5x5 / 100kg / progress" minus the weight yields "5x5 / progress".
+    const isCommaListItem = level.nodeName === "ExerciseSet" || level.nodeName === "KeyValue";
+    let j = end;
+    while (j < currentText.length && currentText[j] === " ") {
+      j += 1;
     }
-    if (i >= 0 && currentText[i] === "/") {
-      i -= 1;
+    if (isCommaListItem && currentText[j] === ",") {
+      j += 1;
+      while (j < currentText.length && currentText[j] === " ") {
+        j += 1;
+      }
+      end = j;
+    } else {
+      let i = start - 1;
       while (i >= 0 && currentText[i] === " ") {
         i -= 1;
       }
-      start = i + 1;
+      if (i >= 0 && (currentText[i] === "/" || currentText[i] === ",")) {
+        i -= 1;
+        while (i >= 0 && currentText[i] === " ") {
+          i -= 1;
+        }
+        start = i + 1;
+      }
     }
-    handleRef.current?.replaceRange(start, level.end, "");
+    handleRef.current?.replaceRange(start, end, "");
     deactivate();
     applyContext(undefined, undefined);
   }
@@ -460,7 +491,7 @@ export function useLiftoEditorController(
     },
     walkFocus,
     selectLevel,
-    insertPill,
+    applyPill,
     removeFocused,
     switchToFreeform,
     switchToStructured,

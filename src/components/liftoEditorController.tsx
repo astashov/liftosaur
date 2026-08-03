@@ -15,7 +15,7 @@ export interface ILiftoEditorController {
   >;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
-  insertPill: (insertAt: number, insertText: string) => void;
+  applyPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToFreeform: () => void;
   switchToStructured: () => void;

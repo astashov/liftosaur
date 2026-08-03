@@ -1,0 +1,114 @@
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
+import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
+import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
+import { Program_evaluate, Program_getProgram, Program_getExerciseTypesForWeekDay } from "../../models/program";
+import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
+import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
+import type { ICustomExercise, IExercisePickerSelectedExercise, IExercisePickerState } from "../../types";
+import type { IExercisePickerSettings } from "../../components/exercisePicker/exercisePickerSettings";
+import type { ILensDispatch } from "../../utils/useLensReducer";
+
+// Exercise picker for the Liftoscript editor sheet: unlike the edit-program picker it has
+// no planner edit state — the picker UI state is local, and the selection is handed back
+// to the sheet via the modal result channel (the sheet rewrites the name token itself).
+export function NavModalEditorSheetExercisePicker(): JSX.Element {
+  const navigation = useNavigation();
+  const modalDispatch = useModalDispatch();
+  const data = useModalData("editorSheetExercisePickerModal");
+  const { state, dispatch } = useAppState();
+  const settings = state.storage.settings;
+
+  const [pickerState, setPickerState] = useState<IExercisePickerState>(() => ({
+    mode: "program",
+    screenStack: ["exercisePicker"],
+    sort: data?.exerciseType ? (settings.workoutSettings.pickerSort ?? "name_asc") : "name_asc",
+    filters: {},
+    label: data?.label,
+    templateName: data?.templateName,
+    exerciseType: data?.exerciseType,
+    selectedTab: data?.templateName != null ? 1 : 0,
+    selectedExercises: data?.exerciseType
+      ? [{ type: "adhoc", exerciseType: data.exerciseType, label: data.label }]
+      : [],
+  }));
+
+  const pickerDispatch: ILensDispatch<IExercisePickerState> = useCallback((recordings) => {
+    const all = Array.isArray(recordings) ? recordings : [recordings];
+    setPickerState((prev) => all.reduce((memo, recording) => recording.fn(memo), prev));
+  }, []);
+
+  const evaluatedProgram = useMemo(() => {
+    const program = data?.programId != null ? Program_getProgram(state, data.programId) : undefined;
+    return program != null ? Program_evaluate(program, settings) : undefined;
+  }, [data?.programId]);
+  const usedExerciseTypes = useMemo(
+    () =>
+      evaluatedProgram != null && data?.dayData != null
+        ? Program_getExerciseTypesForWeekDay(evaluatedProgram, data.dayData.week, data.dayData.dayInWeek)
+        : [],
+    [evaluatedProgram, data?.dayData]
+  );
+
+  const onClose = useCallback((): void => {
+    Modal_clear(modalDispatch, "editorSheetExercisePickerModal");
+    navigation.goBack();
+  }, [modalDispatch, navigation]);
+
+  const onChoose = useCallback(
+    (selectedExercises: IExercisePickerSelectedExercise[]): void => {
+      const selected = selectedExercises[0];
+      if (selected != null) {
+        Modal_setResult(modalDispatch, "editorSheetExercisePickerModal", selected);
+      }
+      onClose();
+    },
+    [modalDispatch, onClose]
+  );
+
+  const onChangeCustomExercise = useCallback(
+    (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => {
+      Exercise_handleCustomExerciseChange(dispatch, action, exercise, notes, settings);
+    },
+    [dispatch, settings]
+  );
+  const onStar = useCallback((key: string) => Settings_toggleStarredExercise(dispatch, key), [dispatch]);
+  const onChangeSettings = useCallback(
+    (pickerSettings: IExercisePickerSettings) => Settings_changePickerSettings(dispatch, pickerSettings),
+    [dispatch]
+  );
+
+  const shouldGoBack = data == null;
+  useEffect(() => {
+    if (shouldGoBack) {
+      navigation.goBack();
+    }
+  }, [shouldGoBack]);
+
+  if (shouldGoBack) {
+    return <></>;
+  }
+
+  return (
+    <SheetScreenContainer onClose={onClose}>
+      <TransparentModal onClose={onClose}>
+        <ExercisePickerContent
+          settings={settings}
+          isLoggedIn={!!state.user?.id}
+          exercisePicker={pickerState}
+          usedExerciseTypes={usedExerciseTypes}
+          evaluatedProgram={evaluatedProgram}
+          dispatch={pickerDispatch}
+          onChoose={onChoose}
+          onChangeCustomExercise={onChangeCustomExercise}
+          onStar={onStar}
+          onChangeSettings={onChangeSettings}
+          onClose={onClose}
+        />
+      </TransparentModal>
+    </SheetScreenContainer>
+  );
+}
