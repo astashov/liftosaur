@@ -1,5 +1,6 @@
 import { SyntaxNode } from "@lezer/common";
 import { parser } from "../../pages/planner/plannerExerciseParser";
+import { parser as liftoscriptParser } from "../../liftoscript";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
@@ -47,12 +48,48 @@ function nodeStyles(): Partial<Record<PlannerNodeName, INodeStyle>> {
   };
 }
 
+// Mirrors liftoscriptLanguage.ts styleTags resolved through plannerEditor.ts's HighlightStyle
+// (Number is a subtag of literal, Unit of keyword), except StateVariable is styled as a whole —
+// web's nested Keyword rule splits "state.foo" into differently-colored pieces, which looks
+// accidental rather than intentional.
+function liftoscriptNodeStyles(): Partial<Record<string, INodeStyle>> {
+  const syntax = Tailwind_semantic().syntax;
+  return {
+    StateVariable: { color: syntax.variable },
+    Keyword: { color: syntax.keyword },
+    Unit: { color: syntax.keyword },
+    Number: { color: syntax.literal },
+    LineComment: { color: syntax.comment },
+  };
+}
+
+// The Liftoscript planner token includes the {~ ~} delimiters; the liftoscript grammar
+// @skips them, so parsing the raw slice works and the delimiters stay unstyled.
+function pushLiftoscriptRanges(text: string, from: number, to: number, ranges: ILiftoEditorStyledRange[]): void {
+  const styles = liftoscriptNodeStyles();
+  const tree = liftoscriptParser.parse(text.slice(from, to));
+  tree.iterate({
+    enter: (node) => {
+      const style = styles[node.name];
+      if (style != null && node.to > node.from) {
+        ranges.push({ start: from + node.from, end: from + node.to, ...style });
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
 export function LiftoEditorBrain_computeStyledRanges(text: string): ILiftoEditorStyledRange[] {
   const styles = nodeStyles();
   const ranges: ILiftoEditorStyledRange[] = [];
   const tree = parser.parse(text);
   tree.iterate({
     enter: (node) => {
+      if (node.name === PlannerNodeName.Liftoscript) {
+        pushLiftoscriptRanges(text, node.from, node.to, ranges);
+        return false;
+      }
       const style = styles[node.name as PlannerNodeName];
       if (style != null && node.to > node.from) {
         ranges.push({ start: node.from, end: node.to, ...style });
