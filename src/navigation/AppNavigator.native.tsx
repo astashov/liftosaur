@@ -37,6 +37,7 @@ import {
 import { NavScreenProgress, NavScreenFinishDay, NavScreenSubscription } from "./screens/NavScreenWorkout";
 import { NavScreenGraphs } from "./screens/NavScreenGraphs";
 import { NavScreenEditorPlayground } from "./screens/NavScreenEditorPlayground";
+import { NavModalEditorSheet } from "./modals/NavModalEditorSheet";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -374,6 +375,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           }}
         >
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+          <RootStack.Screen name="editorSheetModal" component={NavModalEditorSheet} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />

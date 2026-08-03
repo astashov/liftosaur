@@ -96,7 +96,12 @@ export function TransparentModal(props: IProps): JSX.Element {
           <SheetDragHandle className="items-center py-2">
             <View className="rounded-full bg-text-disabled" style={{ width: 36, height: 5 }} />
           </SheetDragHandle>
-          {Platform.OS === "android" ? <View className="flex-1">{props.children}</View> : props.children}
+          {/* flex-1 collapses to zero height inside the auto-height (fitContent) sheet */}
+          {Platform.OS === "android" && !props.fitContent ? (
+            <View className="flex-1">{props.children}</View>
+          ) : (
+            props.children
+          )}
         </Animated.View>
       </View>
     </SheetPanContext.Provider>

@@ -60,6 +60,10 @@ export function CustomKeyboardProvider(props: {
   children: ReactNode;
   applySafeAreaBottom?: boolean;
   inline?: boolean;
+  // Auto-height host (fit-content sheets): children keep their natural height and the
+  // keyboard adds inline space below them instead of overlaying (the flex:1 wrapper of the
+  // default layout collapses inside auto-height parents).
+  fitContent?: boolean;
   noShadow?: boolean;
 }): JSX.Element {
   const [height, setHeight] = useState(0);
@@ -148,7 +152,7 @@ export function CustomKeyboardProvider(props: {
     [height, animatedHeight, activeId, openKeyboard, closeKeyboard]
   );
 
-  const inlineOnAndroid = props.inline && Platform.OS === "android";
+  const inlineLayout = (props.inline && Platform.OS === "android") || props.fitContent;
 
   const keyboardNode = renderedConfig && (
     <NativeCustomKeyboard
@@ -174,7 +178,7 @@ export function CustomKeyboardProvider(props: {
   return (
     <CustomKeyboardContext.Provider value={value}>
       <View
-        style={inlineOnAndroid ? undefined : { flex: 1 }}
+        style={inlineLayout ? undefined : { flex: 1 }}
         onTouchStart={(e) => {
           if (activeConfig == null) {
             return;
@@ -211,7 +215,7 @@ export function CustomKeyboardProvider(props: {
         {props.children}
       </View>
       {shouldMount &&
-        (inlineOnAndroid ? (
+        (inlineLayout ? (
           <View>
             <Animated.View style={{ height: animatedHeight }} />
             <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>

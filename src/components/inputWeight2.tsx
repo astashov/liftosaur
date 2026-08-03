@@ -200,7 +200,7 @@ interface IPlatesCalculatorProps {
   exerciseType: IExerciseType;
 }
 
-const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
+export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
   const { plates, totalWeight: weight } = Weight_calculatePlates(
     props.weight,
     props.settings,

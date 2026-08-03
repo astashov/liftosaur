@@ -23,6 +23,7 @@ import Runestone
   public override init(frame: CGRect) {
     super.init(frame: frame)
     textView.editorDelegate = self
+    textView.theme = LiftoEditorTheme()
     textView.setLanguageMode(ExternalRangesLanguageMode(store: rangesStore))
     textView.showLineNumbers = false
     textView.isLineWrappingEnabled = true
@@ -108,6 +109,11 @@ import Runestone
     let clampedStart = max(0, min(start, length))
     let clampedEnd = max(clampedStart, min(end, length))
     textView.selectedRange = NSRange(location: clampedStart, length: clampedEnd - clampedStart)
+    // Programmatic selection while editable means JS wants a real editing session
+    // (structured → freeform hand-off), so bring up the system keyboard too.
+    if textView.isEditable && !textView.isFirstResponder {
+      textView.becomeFirstResponder()
+    }
   }
 
   @objc public func applyReplaceRange(_ start: Int, end: Int, text: String) {
@@ -169,6 +175,28 @@ import Runestone
       blue: CGFloat(rgb & 0xff) / 255.0,
       alpha: alpha
     )
+  }
+}
+
+// The app's code font (same face FastText/styledText use); colors come from the external
+// styled ranges, so the theme only carries the base font and neutral colors.
+private final class LiftoEditorTheme: Runestone.Theme {
+  let font: UIFont = UIFont(name: "Iosevka", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
+  let textColor: UIColor = .label
+  let gutterBackgroundColor: UIColor = .clear
+  let gutterHairlineColor: UIColor = .clear
+  let lineNumberColor: UIColor = .secondaryLabel
+  let lineNumberFont: UIFont = UIFont(name: "Iosevka", size: 14) ?? .monospacedSystemFont(ofSize: 14, weight: .regular)
+  let selectedLineBackgroundColor: UIColor = .clear
+  let selectedLinesLineNumberColor: UIColor = .secondaryLabel
+  let selectedLinesGutterBackgroundColor: UIColor = .clear
+  let invisibleCharactersColor: UIColor = .tertiaryLabel
+  let pageGuideHairlineColor: UIColor = .clear
+  let pageGuideBackgroundColor: UIColor = .clear
+  let markedTextBackgroundColor: UIColor = .systemFill
+
+  func textColor(for highlightName: String) -> UIColor? {
+    nil
   }
 }
 

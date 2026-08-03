@@ -89,6 +89,7 @@ export type IRootStackParamList = {
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
   editorPlayground: undefined;
+  editorSheetModal: undefined;
   amrapModal: NonNullable<IHistoryRecord["amrapModal"]> &
     ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });
   exercisePickerModal: { progressId: number };

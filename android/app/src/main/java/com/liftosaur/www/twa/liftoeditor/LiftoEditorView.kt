@@ -26,7 +26,11 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   init {
     setWordwrap(true)
     setLineNumberEnabled(false)
-    typefaceText = android.graphics.Typeface.MONOSPACE
+    typefaceText = try {
+      android.graphics.Typeface.createFromAsset(reactContext.assets, "fonts/Iosevka-Regular.ttf")
+    } catch (e: Exception) {
+      android.graphics.Typeface.MONOSPACE
+    }
     subscribeEvent(ContentChangeEvent::class.java) { event, _ -> handleContentChange(event) }
     subscribeEvent(SelectionChangeEvent::class.java) { event, _ -> handleSelectionChange(event) }
     subscribeEvent(ClickEvent::class.java) { event, _ ->
@@ -154,6 +158,12 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     } else {
       val endPos = indexer.getCharPosition(clampedEnd)
       setSelectionRegion(startPos.line, startPos.column, endPos.line, endPos.column)
+    }
+    // Programmatic selection while editable means JS wants a real editing session
+    // (structured → freeform hand-off), so bring up the IME too.
+    if (isEditable) {
+      requestFocus()
+      showSoftInput()
     }
   }
 
