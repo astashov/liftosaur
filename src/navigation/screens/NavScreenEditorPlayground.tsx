@@ -69,7 +69,7 @@ export function NavScreenEditorPlayground(): JSX.Element {
             <Text className="text-sm text-text-secondary mb-2">Tap a number to edit, or use pills below</Text>
           )}
           <View className="flex-row flex-wrap">
-            {(controller.context?.pills ?? []).map((pill) => (
+            {controller.pills.map((pill) => (
               <Pill
                 key={pill.label}
                 label={pill.label}

@@ -35,6 +35,10 @@ export interface ILiftoEditorProps {
 export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   const nativeRef = useRef<React.ElementRef<typeof LiftoEditorNative>>(null);
   const textRef = useRef(props.initialText);
+  // Set on programmatic replaceRange: the post-edit text, known before the native TextDelta
+  // round trip. Pushing ranges computed from it in the same command batch as the replace
+  // (and never from the then-stale mirror) is what prevents a one-frame highlight flash.
+  const predictedTextRef = useRef<string | undefined>(undefined);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
   const { onTextChange, onSelectionChange, onTap, autoHeight, handleRef, extraStyledRanges } = props;
   const extraStyledRangesRef = useRef(extraStyledRanges);
@@ -43,7 +47,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   const pushStyledRanges = useCallback(() => {
     if (nativeRef.current != null) {
       const ranges = LiftoEditorBrain_flattenRanges([
-        ...LiftoEditorBrain_computeStyledRanges(textRef.current),
+        ...LiftoEditorBrain_computeStyledRanges(predictedTextRef.current ?? textRef.current),
         ...(extraStyledRangesRef.current ?? []),
       ]);
       Commands.setStyledRanges(nativeRef.current, JSON.stringify(ranges));
@@ -72,6 +76,9 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       replaceRange: (start, end, text) => {
         if (nativeRef.current != null) {
           Commands.replaceRange(nativeRef.current, start, end, text);
+          const base = predictedTextRef.current ?? textRef.current;
+          predictedTextRef.current = base.slice(0, start) + text + base.slice(end);
+          pushStyledRanges();
         }
       },
       getText: () => textRef.current,
@@ -89,7 +96,16 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       if (textRef.current.length !== textLength) {
         console.warn("LiftoEditor mirror desync", { mirror: textRef.current.length, native: textLength });
       }
-      pushStyledRanges();
+      if (predictedTextRef.current != null) {
+        if (predictedTextRef.current === textRef.current) {
+          // Prediction confirmed; its ranges were already pushed alongside the replace.
+          predictedTextRef.current = undefined;
+        }
+        // Otherwise this is an intermediate delta of a multi-event replace (Android emits
+        // delete+insert); hold pushes until the mirror catches up.
+      } else {
+        pushStyledRanges();
+      }
       onTextChange?.(textRef.current);
     },
     [pushStyledRanges, onTextChange]

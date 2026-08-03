@@ -34,6 +34,38 @@ public final class ExternalRangesStore {
         lock.unlock()
     }
 
+    // Shifts stored ranges for an edit so the line repaint that happens before the host
+    // pushes freshly computed ranges (an async JS round trip) stays aligned instead of
+    // flashing stale colors. Precision inside the edited range doesn't matter — the next
+    // setRanges replaces everything.
+    public func applyEdit(in editRange: NSRange, replacementLength: Int) {
+        let delta = replacementLength - editRange.length
+        if delta == 0 {
+            return
+        }
+        lock.lock()
+        ranges = ranges.compactMap { styledRange in
+            var location = styledRange.range.location
+            var length = styledRange.range.length
+            if editRange.upperBound <= location {
+                location += delta
+            } else if editRange.location < location + length {
+                length = max(0, length + delta)
+            }
+            if length == 0 {
+                return nil
+            }
+            return ExternalStyledRange(
+                range: NSRange(location: location, length: length),
+                color: styledRange.color,
+                backgroundColor: styledRange.backgroundColor,
+                isBold: styledRange.isBold,
+                isItalic: styledRange.isItalic
+            )
+        }
+        lock.unlock()
+    }
+
     func ranges(intersecting lineRange: NSRange) -> [ExternalStyledRange] {
         lock.lock()
         defer { lock.unlock() }

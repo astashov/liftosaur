@@ -1,4 +1,4 @@
-import { ILiftoEditorContext } from "./primitives/liftoEditorBrain";
+import { ILiftoEditorContext, ILiftoEditorPill } from "./primitives/liftoEditorBrain";
 import { ILiftoEditorProps } from "./primitives/liftoEditor";
 
 export type ILiftoEditorMode = "structured" | "freeform";
@@ -8,6 +8,7 @@ export interface ILiftoEditorController {
   text: string;
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
+  pills: ILiftoEditorPill[];
   editorProps: Pick<
     ILiftoEditorProps,
     "initialText" | "autoHeight" | "editable" | "extraStyledRanges" | "handleRef" | "onTextChange" | "onTap"

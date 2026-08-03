@@ -153,14 +153,14 @@ export interface ILiftoEditorLevel {
   nodeName: string;
   start: number;
   end: number;
+  pills: ILiftoEditorPill[];
 }
 
 export interface ILiftoEditorContext {
   // Outer -> inner; breadcrumb is levels' labels. Each level carries its node's extent for
-  // level highlighting and its node name for sibling walking.
+  // level highlighting, its node name for sibling walking, and the add-actions valid there.
   breadcrumb: string[];
   levels: ILiftoEditorLevel[];
-  pills: ILiftoEditorPill[];
 }
 
 function nodeText(text: string, node: SyntaxNode): string {
@@ -185,6 +185,133 @@ function endOfExerciseLine(text: string, exercise: SyntaxNode): number {
     end -= 1;
   }
   return end;
+}
+
+function trimmedEnd(text: string, node: SyntaxNode): number {
+  let end = node.to;
+  while (end > node.from && text[end - 1] === " ") {
+    end -= 1;
+  }
+  return end;
+}
+
+function setGroupPills(text: string, set: SyntaxNode): ILiftoEditorPill[] {
+  const insertAt = trimmedEnd(text, set);
+  const pills: ILiftoEditorPill[] = [];
+  const hasWeight =
+    set.getChild(PlannerNodeName.WeightWithPlus) != null ||
+    set.getChild(PlannerNodeName.PercentageWithPlus) != null ||
+    set.getChild(PlannerNodeName.AskWeight) != null;
+  if (!hasWeight) {
+    pills.push({ label: "Add weight", insertAt, insertText: " 100lb" });
+  }
+  if (set.getChild(PlannerNodeName.Rpe) == null) {
+    pills.push({ label: "Add RPE", insertAt, insertText: " @8" });
+  }
+  // A set timer subsumes the rest timer (`30s|60s`), so offer either only while the set
+  // has no timer of any kind — mixing `60s` with `30s|60s` is ambiguous.
+  const hasAnyTimer =
+    set.getChild(PlannerNodeName.SetTimer) != null || set.getChild(PlannerNodeName.Timer) != null;
+  if (!hasAnyTimer) {
+    pills.push({ label: "Add set timer", insertAt, insertText: " 30s|60s" });
+    pills.push({ label: "Add rest timer", insertAt, insertText: " 60s" });
+  }
+  if (set.getChild(PlannerNodeName.SetPart) != null) {
+    pills.push({ label: "Add another set group", insertAt, insertText: ", 3x8" });
+  }
+  if (set.getChild(PlannerNodeName.Auto) == null) {
+    pills.push({ label: "Add auto", insertAt, insertText: " auto" });
+  }
+  return pills;
+}
+
+function warmupSetsPills(text: string, warmupSets: SyntaxNode): ILiftoEditorPill[] {
+  return [{ label: "Add another warmup set group", insertAt: trimmedEnd(text, warmupSets), insertText: ", 1x5 50%" }];
+}
+
+// State vars live in custom()'s argument list; lp()/sum()/etc have fixed signatures.
+function customStateVarPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
+  const nameNode = fn.getChild(PlannerNodeName.FunctionName);
+  if (nameNode == null || nodeText(text, nameNode) !== "custom") {
+    return [];
+  }
+  const args = fn.getChildren(PlannerNodeName.FunctionArgument);
+  if (args.length > 0) {
+    return [{ label: "Add state var", insertAt: args[args.length - 1].to, insertText: ", myvar: 0" }];
+  }
+  if (text[nameNode.to] === "(") {
+    return [{ label: "Add state var", insertAt: nameNode.to + 1, insertText: "myvar: 0" }];
+  }
+  return [{ label: "Add state var", insertAt: nameNode.to, insertText: "(myvar: 0)" }];
+}
+
+function propertyPills(text: string, property: SyntaxNode): ILiftoEditorPill[] {
+  const nameNode = property.getChild(PlannerNodeName.ExercisePropertyName);
+  const name = nameNode != null ? nodeText(text, nameNode) : "";
+  if (name === "warmup") {
+    const warmupSets = property.getChild(PlannerNodeName.WarmupExerciseSets);
+    return warmupSets != null ? warmupSetsPills(text, warmupSets) : [];
+  }
+  if (name === "progress" || name === "update") {
+    const fn = property.getChild(PlannerNodeName.FunctionExpression);
+    return fn != null ? customStateVarPills(text, fn) : [];
+  }
+  return [];
+}
+
+function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
+  const pills: ILiftoEditorPill[] = [];
+  const properties = exercisePropertyNames(text, exercise);
+  const lineEnd = endOfExerciseLine(text, exercise);
+  const sections = exercise.getChildren(PlannerNodeName.ExerciseSection);
+  const setNodes = sections.flatMap((section) => {
+    const sets = section.getChild(PlannerNodeName.ExerciseSets);
+    return sets != null ? sets.getChildren(PlannerNodeName.ExerciseSet) : [];
+  });
+  const hasSetGroups = setNodes.some((set) => set.getChild(PlannerNodeName.SetPart) != null);
+  const hasGlobals = setNodes.some((set) => set.getChild(PlannerNodeName.SetPart) == null);
+  const hasReuse = sections.some((section) => section.getChild(PlannerNodeName.ReuseSectionWithWeekDay) != null);
+  const hasSuperset = sections.some((section) => section.getChild(PlannerNodeName.Superset) != null);
+  const variations = exercise.getChild(PlannerNodeName.ExerciseVariations);
+  const nameNode = variations
+    ?.getChild(PlannerNodeName.ExerciseVariation)
+    ?.getChild(PlannerNodeName.ExerciseName);
+  if (!properties.includes("warmup")) {
+    pills.push({ label: "Add warmups", insertAt: lineEnd, insertText: " / warmup: 2x5 45%, 1x3 60%" });
+  }
+  if (!properties.includes("used")) {
+    pills.push({ label: "Add used: none", insertAt: lineEnd, insertText: " / used: none" });
+  }
+  // A label is just a `word:` prefix inside the exercise name token.
+  if (nameNode != null && !nodeText(text, nameNode).includes(":")) {
+    pills.push({ label: "Add label", insertAt: nameNode.from, insertText: "label: " });
+  }
+  if (!hasSetGroups) {
+    pills.push({ label: "Add sets", insertAt: lineEnd, insertText: " / 3x8" });
+  }
+  if (hasSetGroups && !hasGlobals) {
+    pills.push({ label: "Add globals", insertAt: lineEnd, insertText: " / 100lb" });
+  }
+  if (!properties.includes("id")) {
+    pills.push({ label: "Add id: tags", insertAt: lineEnd, insertText: " / id: tags(1)" });
+  }
+  if (!hasReuse) {
+    pills.push({ label: "Reuse…", insertAt: lineEnd, insertText: " / ...Squat" });
+  }
+  if (exercise.getChild(PlannerNodeName.Repeat) == null && variations != null) {
+    pills.push({ label: "Repeat…", insertAt: variations.to, insertText: "[1-4]" });
+    pills.push({ label: "Add forced order…", insertAt: variations.to, insertText: "[1]" });
+  }
+  if (!hasSuperset) {
+    pills.push({ label: "Enable superset", insertAt: lineEnd, insertText: " / superset: Bench Press" });
+  }
+  if (!properties.includes("progress")) {
+    pills.push({ label: "Add progress", insertAt: lineEnd, insertText: " / progress: lp(5lb)" });
+  }
+  if (!properties.includes("update")) {
+    pills.push({ label: "Add update", insertAt: lineEnd, insertText: " / update: custom() {~ ~}" });
+  }
+  return pills;
 }
 
 // Flattens possibly-overlapping styled ranges into sorted non-overlapping segments with
@@ -212,24 +339,20 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
   const tree = parser.parse(text);
   const inner = tree.resolveInner(index, -1);
   const levels: ILiftoEditorLevel[] = [];
-  const pills: ILiftoEditorPill[] = [];
-  let setNode: SyntaxNode | undefined;
-  let exerciseNode: SyntaxNode | undefined;
   for (let node: SyntaxNode | null = inner; node != null; node = node.parent) {
     const name = node.name as PlannerNodeName;
     if (name === PlannerNodeName.ExerciseSet) {
-      setNode = node;
-      const parent = node.parent;
-      const siblings = parent?.getChildren(PlannerNodeName.ExerciseSet) ?? [];
+      const isGlobals = node.getChild(PlannerNodeName.SetPart) == null;
+      const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseSet) ?? [];
       const setIndex = siblings.findIndex((s) => s.from === node!.from);
       levels.unshift({
-        label: `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`,
+        label: isGlobals ? "Globals" : `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`,
         nodeName: name,
         start: node.from,
         end: node.to,
+        pills: setGroupPills(text, node),
       });
     } else if (name === PlannerNodeName.ExerciseExpression) {
-      exerciseNode = node;
       const exerciseName = node
         .getChild(PlannerNodeName.ExerciseVariations)
         ?.getChild(PlannerNodeName.ExerciseVariation)
@@ -239,6 +362,7 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
         nodeName: name,
         start: node.from,
         end: endOfExerciseLine(text, node),
+        pills: exercisePills(text, node),
       });
     } else if (name === PlannerNodeName.ExerciseProperty) {
       const propertyName = node.getChild(PlannerNodeName.ExercisePropertyName);
@@ -249,6 +373,7 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
           nodeName: name,
           start: node.from,
           end: node.to,
+          pills: propertyPills(text, node),
         });
       }
     } else if (name === PlannerNodeName.FunctionExpression) {
@@ -259,6 +384,7 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
           nodeName: name,
           start: node.from,
           end: node.to,
+          pills: customStateVarPills(text, node),
         });
       }
     } else {
@@ -267,34 +393,17 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
         // Week/Day tokens include their trailing linebreak; keep the highlight on the line.
         const end =
           name === PlannerNodeName.Week || name === PlannerNodeName.Day ? endOfExerciseLine(text, node) : node.to;
-        levels.unshift({ label, nodeName: name, start: node.from, end });
+        levels.unshift({
+          label,
+          nodeName: name,
+          start: node.from,
+          end,
+          pills: name === PlannerNodeName.WarmupExerciseSets ? warmupSetsPills(text, node) : [],
+        });
       }
     }
   }
-  if (setNode != null) {
-    const setText = nodeText(text, setNode);
-    let insertAt = setNode.to;
-    while (insertAt > setNode.from && text[insertAt - 1] === " ") {
-      insertAt -= 1;
-    }
-    if (!/@/.test(setText)) {
-      pills.push({ label: "+ RPE", insertAt, insertText: " @8" });
-    }
-    if (!/\d+s/.test(setText)) {
-      pills.push({ label: "+ Rest timer", insertAt, insertText: " 60s" });
-    }
-  }
-  if (exerciseNode != null) {
-    const properties = exercisePropertyNames(text, exerciseNode);
-    const lineEnd = endOfExerciseLine(text, exerciseNode);
-    if (!properties.includes("warmup")) {
-      pills.push({ label: "+ Warmup", insertAt: lineEnd, insertText: " / warmup: 2x5 45%" });
-    }
-    if (!properties.includes("progress")) {
-      pills.push({ label: "+ Progress", insertAt: lineEnd, insertText: " / progress: lp(5lb)" });
-    }
-  }
-  return { breadcrumb: levels.map((level) => level.label), levels, pills };
+  return { breadcrumb: levels.map((level) => level.label), levels };
 }
 
 export interface IFocusToken {

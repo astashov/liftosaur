@@ -9,7 +9,6 @@ import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
-import { IconHelp } from "../../components/icons/iconHelp";
 import { IconUiMode } from "../../components/icons/iconUiMode";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
@@ -158,7 +157,7 @@ function EditorSheetBody(props: { onClose: () => void }): JSX.Element {
           <View className="flex-row items-center border-b border-border-neutral">
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className="flex-1">
               <View className="flex-row items-center gap-2 px-3 py-2">
-                {(controller.context?.pills ?? []).map((pill) => {
+                {controller.pills.map((pill) => {
                   const hue = pillHue(pill.label);
                   return (
                     <Pressable
@@ -173,7 +172,7 @@ function EditorSheetBody(props: { onClose: () => void }): JSX.Element {
                     </Pressable>
                   );
                 })}
-                {(controller.context?.pills ?? []).length === 0 ? (
+                {controller.pills.length === 0 ? (
                   <Text className="text-xs text-text-secondary py-1.5">Tap a token to see actions</Text>
                 ) : null}
               </View>

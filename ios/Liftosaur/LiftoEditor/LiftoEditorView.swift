@@ -213,6 +213,10 @@ private final class LiftoEditorTapDelegateProxy: NSObject, UIGestureRecognizerDe
 
 extension LiftoEditorContentView: TextViewDelegate {
   public func textView(_ textView: TextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+    // Shift the external ranges for this edit before Runestone rehighlights the line —
+    // fresh ranges only arrive after an async JS round trip, and repainting with the
+    // unshifted ones flashes wrong colors for a frame.
+    rangesStore.applyEdit(in: range, replacementLength: (text as NSString).length)
     let lengthAfter = (textView.text as NSString).length - range.length + (text as NSString).length
     onTextDelta?(range.location, range.location + range.length, text, lengthAfter)
     return true

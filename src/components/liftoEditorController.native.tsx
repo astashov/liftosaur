@@ -3,6 +3,7 @@ import { Pressable, View } from "react-native";
 import {
   ILiftoEditorContext,
   ILiftoEditorHandle,
+  ILiftoEditorPill,
   ILiftoEditorStyledRange,
   INumericToken,
   LiftoEditorBrain_contextAt,
@@ -52,6 +53,8 @@ export interface ILiftoEditorController {
   text: string;
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
+  // Add-actions for the active breadcrumb level; selecting a level swaps the rail.
+  pills: ILiftoEditorPill[];
   editorProps: Pick<
     ILiftoEditorProps,
     "initialText" | "autoHeight" | "editable" | "extraStyledRanges" | "handleRef" | "onTextChange" | "onTap"
@@ -381,10 +384,23 @@ export function useLiftoEditorController(
     }
   }, [mode]);
 
+  // Focus survives the insert (the rail should update in place, not vanish); refs shift by
+  // the inserted length when the insert lands before them, and the text-change effect
+  // recomputes the context at the shifted anchor.
   function insertPill(insertAt: number, insertText: string): void {
+    if (activeRef.current != null) {
+      activeRef.current = undefined;
+      closeKeyboard();
+    }
+    const anchor = anchorRef.current;
+    if (anchor != null && insertAt <= anchor) {
+      anchorRef.current = anchor + insertText.length;
+    }
+    const focused = focusedTokenRef.current;
+    if (focused != null && insertAt <= focused.start) {
+      focusedTokenRef.current = { start: focused.start + insertText.length, end: focused.end + insertText.length };
+    }
     handleRef.current?.replaceRange(insertAt, insertAt, insertText);
-    deactivate();
-    applyContext(undefined, undefined);
   }
 
   function removeFocused(): void {
@@ -432,6 +448,7 @@ export function useLiftoEditorController(
     text,
     context,
     activeLevelIndex,
+    pills: levels[activeLevelIndex]?.pills ?? [],
     editorProps: {
       initialText,
       autoHeight: true,
