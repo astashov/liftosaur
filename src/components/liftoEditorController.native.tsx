@@ -91,6 +91,7 @@ export function useLiftoEditorController(
   const activeRef = useRef<IActiveNumber | undefined>(undefined);
   const anchorRef = useRef<number | undefined>(undefined);
   const focusedTokenRef = useRef<{ start: number; end: number } | undefined>(undefined);
+  const lastTapTimeRef = useRef(0);
   const pendingCaretRef = useRef<number | undefined>(undefined);
   const contextRef = useRef<ILiftoEditorContext | undefined>(undefined);
   const focusLevelRef = useRef<number | undefined>(undefined);
@@ -356,13 +357,24 @@ export function useLiftoEditorController(
   }
 
   function handleTap(index: number): void {
-    // Tapping the already-focused token again drills past structured mode into freeform,
-    // with the caret landing where the finger did.
+    // Double-tapping the already-focused token drills past structured mode into freeform,
+    // with the caret landing where the finger did. A slow re-tap just keeps the focus —
+    // accidental second taps shouldn't yank the user into text editing.
+    const now = Date.now();
+    const sinceLastTap = now - lastTapTimeRef.current;
+    lastTapTimeRef.current = now;
     const focused = focusedTokenRef.current;
     if (focused != null && index >= focused.start && index <= focused.end) {
-      pendingCaretRef.current = index;
-      switchToFreeform();
-      return;
+      if (sinceLastTap < 300) {
+        pendingCaretRef.current = index;
+        switchToFreeform();
+        return;
+      }
+      // Keypad open: the slow re-tap shouldn't reset the typed buffer. Otherwise fall
+      // through so a re-tap on a numeric token whose keypad was closed reopens it.
+      if (activeRef.current != null) {
+        return;
+      }
     }
     const tokens = LiftoEditorBrain_numericTokens(textRef.current);
     const token = tokens.find((t) => index >= t.start && index <= t.end);
