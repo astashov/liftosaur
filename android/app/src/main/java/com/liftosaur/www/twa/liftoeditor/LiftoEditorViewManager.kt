@@ -22,6 +22,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.setInitialTextOnce(value ?: "")
   }
 
+  override fun setEditable(view: LiftoEditorView, value: Boolean) {
+    view.isEditable = value
+  }
+
   override fun setFontSize(view: LiftoEditorView, value: Float) {
     if (value > 0f) {
       view.setTextSize(value)
@@ -49,6 +53,7 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
       "topTextDelta" to mapOf("registrationName" to "onTextDelta"),
       "topEditorSelectionChange" to mapOf("registrationName" to "onEditorSelectionChange"),
       "topEditorContentSizeChange" to mapOf("registrationName" to "onEditorContentSizeChange"),
+      "topEditorTap" to mapOf("registrationName" to "onEditorTap"),
     )
 
   companion object {

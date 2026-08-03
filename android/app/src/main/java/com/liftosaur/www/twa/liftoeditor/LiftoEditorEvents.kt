@@ -38,6 +38,16 @@ class ContentSizeChangeEvent(
     }
 }
 
+class EditorTapEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val index: Int,
+) : Event<EditorTapEvent>(surfaceId, viewId) {
+  override fun getEventName(): String = "topEditorTap"
+
+  override fun getEventData(): WritableMap = Arguments.createMap().apply { putInt("index", index) }
+}
+
 class EditorSelectionChangeEvent(
   surfaceId: Int,
   viewId: Int,

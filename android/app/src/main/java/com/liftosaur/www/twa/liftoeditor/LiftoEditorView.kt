@@ -4,6 +4,7 @@ import android.graphics.Color
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.Event
+import io.github.rosemoe.sora.event.ClickEvent
 import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.event.SelectionChangeEvent
 import io.github.rosemoe.sora.lang.styling.MappedSpans
@@ -28,6 +29,12 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     typefaceText = android.graphics.Typeface.MONOSPACE
     subscribeEvent(ContentChangeEvent::class.java) { event, _ -> handleContentChange(event) }
     subscribeEvent(SelectionChangeEvent::class.java) { event, _ -> handleSelectionChange(event) }
+    subscribeEvent(ClickEvent::class.java) { event, _ ->
+      if (!isEditable) {
+        val index = event.charPosition.index
+        emit { surfaceId, viewId -> EditorTapEvent(surfaceId, viewId, index) }
+      }
+    }
   }
 
   override fun onSizeChanged(w: Int, h: Int, oldWidth: Int, oldHeight: Int) {
@@ -83,9 +90,10 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
       if (start < 0 || end <= start || end > textLength) {
         continue
       }
+      val backgroundColor = item.optString("backgroundColor", "")
       val style = TextStyle.makeStyle(
         colorId(item.optString("color", "")),
-        0,
+        if (backgroundColor.isEmpty()) 0 else colorId(backgroundColor),
         item.optBoolean("bold", false),
         item.optBoolean("italic", false),
         false

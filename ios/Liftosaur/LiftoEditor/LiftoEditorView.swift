@@ -10,12 +10,15 @@ import Runestone
   @objc public var onTextDelta: ((Int, Int, String, Int) -> Void)?
   @objc public var onSelectionChange: ((Int, Int) -> Void)?
   @objc public var onContentSizeChange: ((Double, Double) -> Void)?
+  @objc public var onTap: ((Int) -> Void)?
 
   private let textView = TextView()
   private let rangesStore = ExternalRangesStore()
   private var hasSetInitialText = false
   private var contentSizeObservation: NSKeyValueObservation?
   private var lastReportedContentHeight: CGFloat = -1
+  private var structuredTapRecognizer: UITapGestureRecognizer?
+  private let tapDelegateProxy = LiftoEditorTapDelegateProxy()
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
@@ -36,6 +39,14 @@ import Runestone
     textView.alwaysBounceVertical = false
     textView.contentInsetAdjustmentBehavior = .never
     addSubview(textView)
+    // Only active in structured (non-editable) mode; in editable mode Runestone's own
+    // gesture handling owns taps. Simultaneous recognition is required because Runestone's
+    // UITextInteraction recognizers otherwise claim the tap and force this one to fail.
+    let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleStructuredTap(_:)))
+    tapRecognizer.isEnabled = false
+    tapRecognizer.delegate = tapDelegateProxy
+    textView.addGestureRecognizer(tapRecognizer)
+    structuredTapRecognizer = tapRecognizer
     contentSizeObservation = textView.observe(\.contentSize, options: [.new]) { [weak self] observedTextView, _ in
       guard let self = self else {
         return
@@ -73,6 +84,23 @@ import Runestone
     lastReportedContentHeight = -1
     textView.text = ""
     rangesStore.setRanges([])
+  }
+
+  @objc public func applyEditable(_ editable: Bool) {
+    textView.isEditable = editable
+    structuredTapRecognizer?.isEnabled = !editable
+    if !editable {
+      textView.resignFirstResponder()
+    }
+  }
+
+  @objc private func handleStructuredTap(_ recognizer: UITapGestureRecognizer) {
+    // location(in:) on a scroll view is in bounds space, whose origin is contentOffset,
+    // so the point is already in text-content coordinates.
+    let point = recognizer.location(in: textView)
+    if let index = textView.characterIndex(at: point) {
+      onTap?(index)
+    }
   }
 
   @objc public func applySelection(_ start: Int, end: Int) {
@@ -141,6 +169,17 @@ import Runestone
       blue: CGFloat(rgb & 0xff) / 255.0,
       alpha: alpha
     )
+  }
+}
+
+// Conforming LiftoEditorContentView (an @objc public class) to the ObjC protocol directly
+// would leak the conformance into Liftosaur-Swift.h; keep it on a fileprivate proxy.
+private final class LiftoEditorTapDelegateProxy: NSObject, UIGestureRecognizerDelegate {
+  func gestureRecognizer(
+    _ gestureRecognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+  ) -> Bool {
+    true
   }
 }
 

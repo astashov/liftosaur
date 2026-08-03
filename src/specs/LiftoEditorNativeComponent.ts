@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type { HostComponent, ViewProps } from "react-native";
-import type { Int32, Float, DirectEventHandler } from "react-native/Libraries/Types/CodegenTypes";
+import type { Int32, Float, DirectEventHandler, WithDefault } from "react-native/Libraries/Types/CodegenTypes";
 import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
 import codegenNativeCommands from "react-native/Libraries/Utilities/codegenNativeCommands";
 
@@ -24,12 +24,19 @@ interface ContentSizeChangeEvent {
   height: Float;
 }
 
+interface EditorTapEvent {
+  index: Int32;
+}
+
 export interface NativeProps extends ViewProps {
   initialText?: string;
   fontSize?: Float;
+  // false = structured mode: read-only, system keyboard suppressed, taps emit onEditorTap.
+  editable?: WithDefault<boolean, true>;
   onTextDelta?: DirectEventHandler<TextDeltaEvent>;
   onEditorSelectionChange?: DirectEventHandler<SelectionChangeEvent>;
   onEditorContentSizeChange?: DirectEventHandler<ContentSizeChangeEvent>;
+  onEditorTap?: DirectEventHandler<EditorTapEvent>;
 }
 
 interface NativeCommands {

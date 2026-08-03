@@ -60,6 +60,14 @@ static NSString *LiftoEditorNSString(const std::string &string) {
       const auto &eventEmitter = static_cast<const LiftoEditorEventEmitter &>(*strongSelf->_eventEmitter);
       eventEmitter.onEditorContentSizeChange({.width = width, .height = height});
     };
+    _editorView.onTap = ^(NSInteger index) {
+      RCTLiftoEditorView *strongSelf = weakSelf;
+      if (strongSelf == nil || strongSelf->_eventEmitter == nil) {
+        return;
+      }
+      const auto &eventEmitter = static_cast<const LiftoEditorEventEmitter &>(*strongSelf->_eventEmitter);
+      eventEmitter.onEditorTap({.index = (int)index});
+    };
     self.contentView = _editorView;
   }
   return self;
@@ -71,7 +79,11 @@ static NSString *LiftoEditorNSString(const std::string &string) {
 
 - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &)oldProps {
   const auto &newProps = static_cast<const LiftoEditorProps &>(*props);
+  const auto &prevProps = static_cast<const LiftoEditorProps &>(*_props);
   [_editorView setInitialText:LiftoEditorNSString(newProps.initialText)];
+  if (newProps.editable != prevProps.editable) {
+    [_editorView applyEditable:newProps.editable];
+  }
   [super updateProps:props oldProps:oldProps];
 }
 

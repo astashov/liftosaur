@@ -1,7 +1,12 @@
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { NativeSyntheticEvent, StyleProp, ViewStyle } from "react-native";
 import LiftoEditorNative, { Commands } from "../../specs/LiftoEditorNativeComponent";
-import { ILiftoEditorHandle, LiftoEditorBrain_computeStyledRanges } from "./liftoEditorBrain";
+import {
+  ILiftoEditorHandle,
+  ILiftoEditorStyledRange,
+  LiftoEditorBrain_computeStyledRanges,
+  LiftoEditorBrain_flattenRanges,
+} from "./liftoEditorBrain";
 
 interface ITextDeltaEvent {
   start: number;
@@ -19,29 +24,40 @@ export interface ILiftoEditorProps {
   initialText: string;
   style?: StyleProp<ViewStyle>;
   autoHeight?: boolean;
+  editable?: boolean;
+  extraStyledRanges?: ILiftoEditorStyledRange[];
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
   onSelectionChange?: (start: number, end: number) => void;
+  onTap?: (index: number) => void;
 }
 
 export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   const nativeRef = useRef<React.ElementRef<typeof LiftoEditorNative>>(null);
   const textRef = useRef(props.initialText);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
-  const { onTextChange, onSelectionChange, autoHeight, handleRef } = props;
+  const { onTextChange, onSelectionChange, onTap, autoHeight, handleRef, extraStyledRanges } = props;
+  const extraStyledRangesRef = useRef(extraStyledRanges);
+  extraStyledRangesRef.current = extraStyledRanges;
 
   const pushStyledRanges = useCallback(() => {
     if (nativeRef.current != null) {
-      Commands.setStyledRanges(
-        nativeRef.current,
-        JSON.stringify(LiftoEditorBrain_computeStyledRanges(textRef.current))
-      );
+      const ranges = LiftoEditorBrain_flattenRanges([
+        ...LiftoEditorBrain_computeStyledRanges(textRef.current),
+        ...(extraStyledRangesRef.current ?? []),
+      ]);
+      Commands.setStyledRanges(nativeRef.current, JSON.stringify(ranges));
     }
   }, []);
 
   useEffect(() => {
     pushStyledRanges();
   }, [pushStyledRanges]);
+
+  const extraStyledRangesKey = JSON.stringify(extraStyledRanges ?? []);
+  useEffect(() => {
+    pushStyledRanges();
+  }, [extraStyledRangesKey, pushStyledRanges]);
 
   useEffect(() => {
     if (handleRef == null) {
@@ -91,9 +107,11 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       ref={nativeRef}
       style={[props.style, autoHeight && contentHeight != null ? { height: contentHeight } : null]}
       initialText={props.initialText}
+      editable={props.editable ?? true}
       onTextDelta={handleTextDelta}
       onEditorSelectionChange={handleSelectionChange}
       onEditorContentSizeChange={autoHeight ? (event) => setContentHeight(event.nativeEvent.height) : undefined}
+      onEditorTap={onTap != null ? (event) => onTap(event.nativeEvent.index) : undefined}
     />
   );
 }
