@@ -18,7 +18,7 @@ import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert } from "../../utils/dialog";
 import type { IExercisePickerSelectedExercise, IPlannerProgram, ISettings } from "../../types";
-import type { ILiftoEditorPill } from "../../components/primitives/liftoEditorBrain";
+import type { ILiftoEditorPill, ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
@@ -39,25 +39,22 @@ Bench Press, Barbell / 3x8-10 @8 60s / 80% / warmup: 2x5 45%, 1x3 60%
 Deadlift[1-3] / 1x5 / 150kg+ / update: custom() {~ weights += 2.5kg ~}
 `;
 
-// Pills wear the syntax color of what they insert, so the chip previews the code (design).
-function pillHue(label: string): { fg: string; bd: string; bg: string } {
+function pillHue(category: ILiftoEditorPillCategory): { fg: string; bd: string; bg: string } {
   const pill = Tailwind_semantic().editorpill;
-  if (/weight|RPE/i.test(label)) {
-    return { fg: pill.weightfg, bd: pill.weightbd, bg: pill.weightbg };
+  switch (category) {
+    case "weight":
+      return { fg: pill.weightfg, bd: pill.weightbd, bg: pill.weightbg };
+    case "timer":
+      return { fg: pill.timerfg, bd: pill.timerbd, bg: pill.timerbg };
+    case "logic":
+      return { fg: pill.logicfg, bd: pill.logicbd, bg: pill.logicbg };
+    case "sets":
+      return { fg: pill.setsfg, bd: pill.setsbd, bg: pill.setsbg };
+    case "progress":
+      return { fg: pill.progressfg, bd: pill.progressbd, bg: pill.progressbg };
+    case "neutral":
+      return { fg: pill.neutralfg, bd: pill.neutralbd, bg: pill.neutralbg };
   }
-  if (/timer/i.test(label)) {
-    return { fg: pill.timerfg, bd: pill.timerbd, bg: pill.timerbg };
-  }
-  if (/auto|state var|success|deload/i.test(label)) {
-    return { fg: pill.logicfg, bd: pill.logicbd, bg: pill.logicbg };
-  }
-  if (/set group|sets|rep range|fixed reps|variation|warmup/i.test(label)) {
-    return { fg: pill.setsfg, bd: pill.setsbd, bg: pill.setsbg };
-  }
-  if (/progress|update|switch to/i.test(label)) {
-    return { fg: pill.progressfg, bd: pill.progressbd, bg: pill.progressbg };
-  }
-  return { fg: pill.neutralfg, bd: pill.neutralbd, bg: pill.neutralbg };
 }
 
 function hintForContext(controller: ILiftoEditorController): { short: string; detail: string } | undefined {
@@ -241,7 +238,7 @@ function EditorSheetBody(props: {
     const existingLabel = token.text.includes(":") ? token.text.split(":")[0].trim() : undefined;
     const pickedName = selectionToName(selected, state.storage.settings);
     const newName = existingLabel != null && !pickedName.includes(":") ? `${existingLabel}: ${pickedName}` : pickedName;
-    controller.applyPill({ label: "exercise", start: token.start, end: token.end, text: newName });
+    controller.applyPill({ label: "exercise", category: "neutral", start: token.start, end: token.end, text: newName });
   });
   const openRename = useModal("textInputModal", (value) => {
     const token = actionRangeRef.current;
@@ -252,7 +249,7 @@ function EditorSheetBody(props: {
     if (token == null || newLabel === "") {
       return;
     }
-    controller.applyPill({ label: "rename", start: token.start, end: token.end, text: newLabel });
+    controller.applyPill({ label: "rename", category: "neutral", start: token.start, end: token.end, text: newLabel });
   });
   const onPillPress = (pill: ILiftoEditorPill): void => {
     if (pill.action === "changeExercise") {
@@ -326,7 +323,7 @@ function EditorSheetBody(props: {
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className="flex-1">
               <View className="flex-row items-center gap-2 px-3 py-2">
                 {controller.pills.map((pill) => {
-                  const hue = pillHue(pill.label);
+                  const hue = pillHue(pill.category);
                   return (
                     <Pressable
                       key={pill.label}

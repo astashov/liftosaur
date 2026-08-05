@@ -3,7 +3,6 @@ import { Pressable, View } from "react-native";
 import {
   ILiftoEditorContext,
   ILiftoEditorHandle,
-  ILiftoEditorPill,
   ILiftoEditorStyledRange,
   IEditorToken,
   IEditorTokenNumeric,
@@ -11,6 +10,7 @@ import {
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
 } from "./primitives/liftoEditorBrain";
+import { ILiftoEditorPill } from "./primitives/liftoEditorActions";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { Text } from "./primitives/text";
 import { PlatesCalculator } from "./inputWeight2";

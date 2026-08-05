@@ -1,4 +1,5 @@
-import { ILiftoEditorContext, ILiftoEditorPill } from "./primitives/liftoEditorBrain";
+import { ILiftoEditorContext } from "./primitives/liftoEditorBrain";
+import { ILiftoEditorPill } from "./primitives/liftoEditorActions";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { IExerciseType } from "../types";
 
