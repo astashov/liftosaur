@@ -14,6 +14,12 @@ function nodeText(text: string, node: SyntaxNode): string {
   return text.slice(node.from, node.to);
 }
 
+export interface ITextEdit {
+  start: number;
+  end: number;
+  text: string;
+}
+
 export interface ILiftoEditorStyledRange {
   start: number;
   end: number;
