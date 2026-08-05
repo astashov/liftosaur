@@ -13,6 +13,7 @@ import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYP
 import { Storage_applyStorageUpdate2, Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
 import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
 import { ObjectUtils_clone } from "../../src/utils/object";
+import { Sync_getStorageUpdate2 } from "../../src/utils/sync";
 import { UidFactory_generateUid } from "../../src/utils/generator";
 
 describe("VersionTracker", () => {
@@ -1669,6 +1670,52 @@ describe("VersionTracker", () => {
 
       expect(phoneSetsRef.map((s) => s.id)).to.deep.equal(snapshotSetIds);
       expect(phone.progress[0].entries[0].sets).to.equal(phoneSetsRef);
+    });
+  });
+
+  describe("subscription receipt sync (plain number → collection version transition)", () => {
+    it("should keep a newly added receipt syncable after merging server storage with a plain number version", () => {
+      const phoneTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "and_device" });
+
+      // Empty subscription arrays historically got plain-number versions on the server
+      const serverVersions = {
+        subscription: { apple: 1000, google: 1000 },
+      } as IVersions<IStorage>;
+      const serverStorage = {
+        ...Storage_getDefault(),
+        originalId: 2000,
+        _versions: ObjectUtils_clone(serverVersions),
+      };
+
+      const receipt: ISubscriptionReceipt = {
+        vtype: "subscription_receipt",
+        value: JSON.stringify({ productId: "com.liftosaur.subscription.and_lifetime", token: "tok123" }),
+        id: "receipt1",
+        createdAt: 5000,
+      };
+      const phoneBase = { ...Storage_getDefault(), originalId: 1500 };
+      const phoneWithReceipt = {
+        ...phoneBase,
+        subscription: { ...phoneBase.subscription, google: [receipt] },
+      };
+      const phoneVersions = phoneTracker.updateVersions(
+        phoneBase,
+        phoneWithReceipt,
+        ObjectUtils_clone(serverVersions),
+        {},
+        5000
+      );
+      const phoneStorage = { ...phoneWithReceipt, _versions: phoneVersions };
+
+      // Dirty response arrives right after the receipt was stored locally
+      const merged = Storage_mergeStorage(phoneStorage, serverStorage, "and_device");
+
+      expect(merged.subscription.google).to.have.lengthOf(1);
+      expect(merged.subscription.google[0].id).to.equal("receipt1");
+
+      // The receipt must still show up in the next sync update against the server's storage
+      const update = Sync_getStorageUpdate2(merged, serverStorage, "and_device");
+      expect(update.storage?.subscription?.google?.[0]?.id).to.equal("receipt1");
     });
   });
 });

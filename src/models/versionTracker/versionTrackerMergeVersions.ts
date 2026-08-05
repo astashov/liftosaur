@@ -59,6 +59,13 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
     }
 
     if (isFieldVersion(diffVersion)) {
+      // A plain field version for an array only ever describes its itemless era (updateVersions
+      // emits numbers only when neither side has trackable items), so per-item tracking always
+      // supersedes it. Returning the number here would erase the items' versions while
+      // mergeByVersions keeps their data, leaving them permanently invisible to sync diffs.
+      if (isCollectionVersions(fullVersion)) {
+        return fullVersion;
+      }
       return diffVersion;
     }
 
