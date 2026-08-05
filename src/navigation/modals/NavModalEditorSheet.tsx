@@ -7,12 +7,14 @@ import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
 import { useModal, IEditorSheetExercisePickerModalData } from "../ModalStateContext";
 import {
+  IEvaluatedProgram,
   Program_evaluate,
   Program_getAllProgramExercises,
   Program_getProgram,
   Program_getProgramExercise,
 } from "../../models/program";
 import { PlannerProgram_isValid } from "../../pages/planner/models/plannerProgram";
+import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert } from "../../utils/dialog";
@@ -348,28 +350,53 @@ function EditorSheetBody(props: {
   );
 }
 
+// Where the exercise's source text physically lives: repeat instances carry the
+// declaration's text/line but their own dayData, so anchor edits to the non-repeat
+// declaration that repeats into the opened week.
+function findDeclaration(
+  evaluatedProgram: IEvaluatedProgram,
+  programExercise: IPlannerProgramExercise
+): IPlannerProgramExercise {
+  if (!programExercise.isRepeat) {
+    return programExercise;
+  }
+  return (
+    Program_getAllProgramExercises(evaluatedProgram).find(
+      (e) => e.key === programExercise.key && !e.isRepeat && e.repeating.includes(programExercise.dayData.week)
+    ) ?? programExercise
+  );
+}
+
+// Identical exercise lines commonly appear in several weeks (repeated weeks written out),
+// so the replacement must target the declaration's exact day and line, not the first
+// occurrence anywhere in the planner.
 function replaceExerciseTextInPlanner(
   planner: IPlannerProgram,
+  declaration: IPlannerProgramExercise,
   oldText: string,
   newText: string
 ): IPlannerProgram | undefined {
-  for (let weekIndex = 0; weekIndex < planner.weeks.length; weekIndex += 1) {
-    const week = planner.weeks[weekIndex];
-    for (let dayIndex = 0; dayIndex < week.days.length; dayIndex += 1) {
-      const day = week.days[dayIndex];
-      const at = day.exerciseText.indexOf(oldText);
-      if (at !== -1) {
-        const newExerciseText = day.exerciseText.slice(0, at) + newText + day.exerciseText.slice(at + oldText.length);
-        const newWeeks = planner.weeks.map((w, wi) =>
-          wi === weekIndex
-            ? { ...w, days: w.days.map((d, di) => (di === dayIndex ? { ...d, exerciseText: newExerciseText } : d)) }
-            : w
-        );
-        return { ...planner, weeks: newWeeks };
-      }
-    }
+  const weekIndex = declaration.dayData.week - 1;
+  const dayIndex = declaration.dayData.dayInWeek - 1;
+  const day = planner.weeks[weekIndex]?.days[dayIndex];
+  if (day == null) {
+    return undefined;
   }
-  return undefined;
+  const lineStart = day.exerciseText
+    .split("\n")
+    .slice(0, declaration.line - 1)
+    .reduce((sum, l) => sum + l.length + 1, 0);
+  const at = day.exerciseText.indexOf(oldText, lineStart);
+  if (at === -1) {
+    return undefined;
+  }
+  const newExerciseText = day.exerciseText.slice(0, at) + newText + day.exerciseText.slice(at + oldText.length);
+  const newWeeks = planner.weeks.map((w, wi) =>
+    wi === weekIndex
+      ? { ...w, days: w.days.map((d, di) => (di === dayIndex ? { ...d, exerciseText: newExerciseText } : d)) }
+      : w
+  );
+  return { ...planner, weeks: newWeeks };
 }
 
 export function NavModalEditorSheet(): JSX.Element {
@@ -389,7 +416,9 @@ export function NavModalEditorSheet(): JSX.Element {
     }
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
     const programExercise = Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key);
-    return programExercise != null ? { program, evaluatedProgram, programExercise } : undefined;
+    return programExercise != null
+      ? { program, evaluatedProgram, programExercise, declaration: findDeclaration(evaluatedProgram, programExercise) }
+      : undefined;
   });
 
   const onClose = (): void => {
@@ -424,7 +453,12 @@ export function NavModalEditorSheet(): JSX.Element {
       Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
       return;
     }
-    const newPlanner = replaceExerciseTextInPlanner(snapshot.program.planner, snapshot.programExercise.text, trimmed);
+    const newPlanner = replaceExerciseTextInPlanner(
+      snapshot.program.planner,
+      snapshot.declaration,
+      snapshot.declaration.text,
+      trimmed
+    );
     if (newPlanner == null) {
       Dialog_alert("Couldn't find this exercise in the program anymore, so the changes weren't saved.");
       onClose();
