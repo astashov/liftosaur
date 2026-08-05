@@ -72,7 +72,7 @@ export function NavScreenEditorPlayground(): JSX.Element {
             {controller.pills
               .filter((pill) => pill.action == null)
               .map((pill) => (
-                <Pill key={pill.label} label={pill.label} onPress={() => controller.applyPill(pill)} />
+                <Pill key={pill.label} label={pill.label} onPress={() => controller.pressPill(pill)} />
               ))}
             <Pill label="Aa Edit as text" emphasized={true} onPress={controller.switchToFreeform} />
             <Pill label="Open in sheet" emphasized={true} onPress={() => navigation.navigate("editorSheetModal")} />

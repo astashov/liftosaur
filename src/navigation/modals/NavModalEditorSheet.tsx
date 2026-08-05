@@ -12,13 +12,12 @@ import {
   Program_getProgram,
   Program_getProgramExercise,
 } from "../../models/program";
-import { Exercise_fullName, Exercise_get } from "../../models/exercise";
 import { PlannerProgram_isValid } from "../../pages/planner/models/plannerProgram";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert } from "../../utils/dialog";
-import type { IExercisePickerSelectedExercise, IPlannerProgram, ISettings } from "../../types";
-import type { ILiftoEditorPill, ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
+import type { IExercisePickerSelectedExercise, IPlannerProgram } from "../../types";
+import type { ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
@@ -211,14 +210,6 @@ function HintBar(props: { hint: { short: string; detail: string }; onDismiss: ()
   );
 }
 
-function selectionToName(selected: IExercisePickerSelectedExercise, settings: ISettings): string {
-  if (selected.type === "template") {
-    return selected.label ? `${selected.label}: ${selected.name}` : selected.name;
-  }
-  const label = "label" in selected ? selected.label : undefined;
-  return Exercise_fullName(Exercise_get(selected.exerciseType, settings.exercises), settings, label);
-}
-
 function EditorSheetBody(props: {
   initialText: string;
   headerLabel: string;
@@ -226,53 +217,44 @@ function EditorSheetBody(props: {
   onEditReuse?: (targetName: string) => void;
   onDone: (text: string) => void;
 }): JSX.Element {
-  const { state } = useAppState();
-  const actionRangeRef = useRef<{ start: number; end: number; text: string } | undefined>(undefined);
+  // useModal registers its result callback once, but the controller hands a fresh
+  // callback per action invocation — these refs bridge the two.
+  const pickerSelectRef = useRef<((selected: IExercisePickerSelectedExercise) => void) | undefined>(undefined);
+  const renameSubmitRef = useRef<((value: string) => void) | undefined>(undefined);
   const openExercisePicker = useModal("editorSheetExercisePickerModal", (selected) => {
-    const token = actionRangeRef.current;
-    actionRangeRef.current = undefined;
-    if (token == null) {
-      return;
+    const onSelect = pickerSelectRef.current;
+    pickerSelectRef.current = undefined;
+    if (selected != null && onSelect != null) {
+      onSelect(selected);
     }
-    // A `label:` prefix survives the swap unless the picked exercise carries its own label.
-    const existingLabel = token.text.includes(":") ? token.text.split(":")[0].trim() : undefined;
-    const pickedName = selectionToName(selected, state.storage.settings);
-    const newName = existingLabel != null && !pickedName.includes(":") ? `${existingLabel}: ${pickedName}` : pickedName;
-    controller.applyPill({ label: "exercise", category: "neutral", start: token.start, end: token.end, text: newName });
   });
   const openRename = useModal("textInputModal", (value) => {
-    const token = actionRangeRef.current;
-    actionRangeRef.current = undefined;
-    // Strip characters that would break out of the label token (parens close a set label,
-    // ":" ends an exercise label, "/" starts a new section).
-    const newLabel = value.trim().replace(/[():/]/g, "");
-    if (token == null || newLabel === "") {
-      return;
+    const onSubmit = renameSubmitRef.current;
+    renameSubmitRef.current = undefined;
+    if (value != null && onSubmit != null) {
+      onSubmit(value);
     }
-    controller.applyPill({ label: "rename", category: "neutral", start: token.start, end: token.end, text: newLabel });
   });
-  const onPillPress = (pill: ILiftoEditorPill): void => {
-    if (pill.action === "changeExercise") {
-      actionRangeRef.current = { start: pill.start, end: pill.end, text: pill.text };
-      openExercisePicker(props.pickerData ?? {});
-    } else if (pill.action === "editReuse") {
-      props.onEditReuse?.(pill.text);
-    } else if (pill.action === "rename") {
-      actionRangeRef.current = { start: pill.start, end: pill.end, text: pill.text };
-      openRename({
-        title: "Rename label",
-        inputLabel: "Label",
-        placeholder: pill.text,
-        submitLabel: "Rename",
-        dataCyPrefix: "rename-label",
-      });
-    } else {
-      controller.applyPill(pill);
-    }
-  };
   const controller = useLiftoEditorController(props.initialText, {
     showKeypadNav: false,
     exerciseType: props.pickerData?.exerciseType,
+    actions: {
+      pickExercise: (_current, onSelect) => {
+        pickerSelectRef.current = onSelect;
+        openExercisePicker(props.pickerData ?? {});
+      },
+      promptRename: (current, onSubmit) => {
+        renameSubmitRef.current = onSubmit;
+        openRename({
+          title: "Rename label",
+          inputLabel: "Label",
+          placeholder: current,
+          submitLabel: "Rename",
+          dataCyPrefix: "rename-label",
+        });
+      },
+      editReuse: (targetName) => props.onEditReuse?.(targetName),
+    },
   });
   const [hintDismissed, setHintDismissed] = useState(false);
   const hint = hintForContext(controller);
@@ -329,7 +311,7 @@ function EditorSheetBody(props: {
                       key={pill.label}
                       className="rounded-lg px-3 py-1.5"
                       style={{ backgroundColor: hue.bg, borderWidth: 1, borderColor: hue.bd }}
-                      onPress={() => onPillPress(pill)}
+                      onPress={() => controller.pressPill(pill)}
                     >
                       <Text className="text-xs font-bold" style={{ color: hue.fg }}>
                         {pill.label}

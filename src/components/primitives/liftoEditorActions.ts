@@ -1,5 +1,6 @@
 import { SyntaxNode } from "@lezer/common";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
+import { ITextEdit } from "./liftoEditorBrain";
 
 // What the user can DO at each syntax node: the pill registry (label + category + static
 // templates) and the per-node builders that decide which pills apply and where they splice.
@@ -401,6 +402,26 @@ export function LiftoEditorActions_labelRenamePill(text: string, nameNode: Synta
     return undefined;
   }
   return renamePill(nameText.slice(0, colonIdx), nameNode.from, nameNode.from + colonIdx);
+}
+
+// Fulfillment transforms for action pills: the controller collects the modal result from
+// the host and turns it into a text edit here.
+
+// A `label:` prefix survives the swap unless the picked exercise carries its own label.
+export function LiftoEditorActions_swapExerciseEdit(target: ITextEdit, pickedName: string): ITextEdit {
+  const existingLabel = target.text.includes(":") ? target.text.split(":")[0].trim() : undefined;
+  const text = existingLabel != null && !pickedName.includes(":") ? `${existingLabel}: ${pickedName}` : pickedName;
+  return { start: target.start, end: target.end, text };
+}
+
+// Strip characters that would break out of the label token (parens close a set label,
+// ":" ends an exercise label, "/" starts a new section); undefined when nothing is left.
+export function LiftoEditorActions_renameEdit(target: ITextEdit, newLabel: string): ITextEdit | undefined {
+  const sanitized = newLabel.trim().replace(/[():/]/g, "");
+  if (sanitized === "") {
+    return undefined;
+  }
+  return { start: target.start, end: target.end, text: sanitized };
 }
 
 export function LiftoEditorActions_pillsForNode(text: string, node: SyntaxNode): ILiftoEditorPill[] {

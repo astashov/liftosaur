@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { ILiftoEditorContext, ILiftoEditorHandle } from "./primitives/liftoEditorBrain";
-import { ILiftoEditorPill } from "./primitives/liftoEditorActions";
+import { ILiftoEditorContext, ILiftoEditorHandle, ITextEdit } from "./primitives/liftoEditorBrain";
+import {
+  ILiftoEditorPill,
+  LiftoEditorActions_renameEdit,
+  LiftoEditorActions_swapExerciseEdit,
+} from "./primitives/liftoEditorActions";
 import {
   ILiftoEditorMode,
   ILiftoEditorSession,
@@ -33,7 +37,8 @@ import { useCloseCustomKeyboard, useOpenCustomKeyboard } from "../navigation/Cus
 import { useModal } from "../navigation/ModalStateContext";
 import { useTrackedState, untrack } from "../navigation/TrackedStateContext";
 import { Weight_build } from "../models/weight";
-import { IExerciseType, IPercentageUnit, IUnit } from "../types";
+import { Exercise_fullName, Exercise_get } from "../models/exercise";
+import { IExercisePickerSelectedExercise, IExerciseType, IPercentageUnit, ISettings, IUnit } from "../types";
 
 export type { ILiftoEditorMode };
 
@@ -47,7 +52,9 @@ export interface ILiftoEditorController {
   editorProps: ILiftoEditorBaseProps;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
-  applyPill: (pill: ILiftoEditorPill) => void;
+  // The single pill entry point: plain pills apply as text edits; action pills route
+  // through the host-provided openers in options.actions.
+  pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToFreeform: () => void;
   switchToStructured: () => void;
@@ -57,12 +64,30 @@ export interface ILiftoEditorController {
 // weight stepping need one for bar/equipment resolution.
 const sampleExerciseType: IExerciseType = { id: "squat", equipment: "barbell" };
 
+// The host supplies just the modal/navigation openers; the controller owns what happens
+// with their results (name building, label preservation, sanitization, the edit itself),
+// so every surface gets identical swap/rename semantics.
+export interface ILiftoEditorControllerActions {
+  pickExercise?: (current: string, onSelect: (selected: IExercisePickerSelectedExercise) => void) => void;
+  promptRename?: (current: string, onSubmit: (value: string) => void) => void;
+  editReuse?: (targetName: string) => void;
+}
+
 export interface ILiftoEditorControllerOptions {
   // The sheet surface hosts breadcrumbs and ‹ › in its own header (always visible), so its
   // keypad drops the whole breadcrumb row. Screen surface keeps it in the keypad.
   showKeypadNav?: boolean;
   // Drives equipment-aware weight stepping and the plates readout.
   exerciseType?: IExerciseType;
+  actions?: ILiftoEditorControllerActions;
+}
+
+function selectionToName(selected: IExercisePickerSelectedExercise, settings: ISettings): string {
+  if (selected.type === "template") {
+    return selected.label ? `${selected.label}: ${selected.name}` : selected.name;
+  }
+  const label = "label" in selected ? selected.label : undefined;
+  return Exercise_fullName(Exercise_get(selected.exerciseType, settings.exercises), settings, label);
 }
 
 // The imperative shell around the pure LiftoEditorSession state machine: holds the session,
@@ -74,6 +99,7 @@ export function useLiftoEditorController(
 ): ILiftoEditorController {
   const showKeypadNav = options?.showKeypadNav ?? true;
   const exerciseType = options?.exerciseType ?? sampleExerciseType;
+  const actions = options?.actions;
   const [session, setSession] = useState<ILiftoEditorSession>(() => LiftoEditorSession_create(initialText));
   const sessionRef = useRef(session);
   const handleRef = useRef<ILiftoEditorHandle | undefined>(undefined);
@@ -174,6 +200,29 @@ export function useLiftoEditorController(
     });
   }
 
+  function pressPill(pill: ILiftoEditorPill): void {
+    // The pill's range stays valid while the modal is up: structured mode blocks typing,
+    // and the modal blocks further pill presses.
+    const target: ITextEdit = { start: pill.start, end: pill.end, text: pill.text };
+    if (pill.action === "changeExercise") {
+      actions?.pickExercise?.(pill.text, (selected) => {
+        const edit = LiftoEditorActions_swapExerciseEdit(target, selectionToName(selected, settings));
+        dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, ...edit }));
+      });
+    } else if (pill.action === "rename") {
+      actions?.promptRename?.(pill.text, (value) => {
+        const edit = LiftoEditorActions_renameEdit(target, value);
+        if (edit != null) {
+          dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, ...edit }));
+        }
+      });
+    } else if (pill.action === "editReuse") {
+      actions?.editReuse?.(pill.text);
+    } else {
+      dispatch(LiftoEditorSession_applyPill(sessionRef.current, pill));
+    }
+  }
+
   // The editable prop flips on the freeform render commit; the caret can only be placed
   // (and the system keyboard summoned) after the native side has applied it.
   useEffect(() => {
@@ -207,7 +256,7 @@ export function useLiftoEditorController(
     },
     walkFocus: (direction) => dispatch(LiftoEditorSession_walkFocus(sessionRef.current, direction)),
     selectLevel: (index) => dispatch(LiftoEditorSession_selectLevel(sessionRef.current, index)),
-    applyPill: (pill) => dispatch(LiftoEditorSession_applyPill(sessionRef.current, pill)),
+    pressPill,
     removeFocused: () => dispatch(LiftoEditorSession_removeFocused(sessionRef.current)),
     switchToFreeform: () => dispatch(LiftoEditorSession_switchToFreeform(sessionRef.current)),
     switchToStructured: () => dispatch(LiftoEditorSession_switchToStructured(sessionRef.current)),
