@@ -101,10 +101,7 @@ export function LiftoEditorBrain_computeStyledRanges(text: string): ILiftoEditor
   return ranges;
 }
 
-export interface INumericToken {
-  start: number;
-  end: number;
-  text: string;
+export interface IEditorTokenNumeric {
   kind: "weight" | "percentage" | "timer" | "number";
   // Weights in function args (lp/dp/sum increments) step by a plain unit; weights in set
   // sections (incl. globals and warmups) are real lifted weights, so the controller steps
@@ -112,9 +109,21 @@ export interface INumericToken {
   inFunctionArgs: boolean;
 }
 
+export interface IEditorToken {
+  start: number;
+  end: number;
+  text: string;
+  // ‹ › stops on it. False only for numeric tap-targets nested inside a larger stop (the
+  // timers inside a `30s|60s` SetTimer, ints inside a ReuseSection) — tapping them opens
+  // the keypad, but the walk treats the enclosing token as one stop.
+  walkStop: boolean;
+  // Present iff tapping the token opens the numeric keypad.
+  numeric?: IEditorTokenNumeric;
+}
+
 // "Whole" = the node's entire text (digits + suffix, e.g. "100kg", "45%", "60s") is one
 // steppable token — as opposed to bare Int/Float leaves, which become "number" tokens.
-const wholeNumericTokenKinds: Partial<Record<PlannerNodeName, INumericToken["kind"]>> = {
+const wholeNumericTokenKinds: Partial<Record<PlannerNodeName, IEditorTokenNumeric["kind"]>> = {
   [PlannerNodeName.Weight]: "weight",
   [PlannerNodeName.Percentage]: "percentage",
   [PlannerNodeName.Timer]: "timer",
@@ -127,8 +136,8 @@ function liftoscriptNumericSpans(
   text: string,
   from: number,
   to: number
-): { start: number; end: number; kind: INumericToken["kind"] }[] {
-  const spans: { start: number; end: number; kind: INumericToken["kind"] }[] = [];
+): { start: number; end: number; kind: IEditorTokenNumeric["kind"] }[] {
+  const spans: { start: number; end: number; kind: IEditorTokenNumeric["kind"] }[] = [];
   const tree = liftoscriptParser.parse(text.slice(from, to));
   tree.iterate({
     enter: (node) => {
@@ -159,62 +168,27 @@ function isInFunctionArgs(node: SyntaxNode): boolean {
   return false;
 }
 
-export function LiftoEditorBrain_numericTokens(text: string): INumericToken[] {
-  const tokens: INumericToken[] = [];
-  const tree = parser.parse(text);
-  tree.iterate({
-    enter: (node) => {
-      if (node.name === PlannerNodeName.Liftoscript) {
-        for (const span of liftoscriptNumericSpans(text, node.from, node.to)) {
-          tokens.push({ ...span, text: text.slice(span.start, span.end), inFunctionArgs: true });
-        }
-        return false;
-      }
-      const whole = wholeNumericTokenKinds[node.name as PlannerNodeName];
-      if (whole != null) {
-        tokens.push({
-          start: node.from,
-          end: node.to,
-          text: text.slice(node.from, node.to),
-          kind: whole,
-          inFunctionArgs: isInFunctionArgs(node.node),
-        });
-        return false;
-      }
-      if (node.name === PlannerNodeName.Int || node.name === PlannerNodeName.Float) {
-        tokens.push({
-          start: node.from,
-          end: node.to,
-          text: text.slice(node.from, node.to),
-          kind: "number",
-          inFunctionArgs: isInFunctionArgs(node.node),
-        });
-        return false;
-      }
-      return true;
-    },
-  });
-  return tokens;
-}
-
 // Set-section weights never reach this table — the controller steps them through
 // Weight_increment/decrement so equipment settings (plates, fixed weights) apply.
 // The weight entry here only serves function-argument weights like lp() increments.
-const stepByKind: Record<INumericToken["kind"], (suffix: string) => number> = {
+const stepByKind: Record<IEditorTokenNumeric["kind"], (suffix: string) => number> = {
   weight: () => 1,
   percentage: () => 1,
   timer: () => 15,
   number: () => 1,
 };
 
-export function LiftoEditorBrain_stepToken(token: INumericToken, direction: 1 | -1): string | undefined {
+export function LiftoEditorBrain_stepToken(token: IEditorToken, direction: 1 | -1): string | undefined {
+  if (token.numeric == null) {
+    return undefined;
+  }
   const match = token.text.match(/^([+-]?)(\d+(?:\.\d+)?)(.*)$/);
   if (match == null) {
     return undefined;
   }
   const [, sign, num, suffix] = match;
   const value = parseFloat(`${sign}${num}`);
-  const step = stepByKind[token.kind](suffix);
+  const step = stepByKind[token.numeric.kind](suffix);
   const next = Math.round((value + step * direction) * 100) / 100;
   return `${next}${suffix}`;
 }
@@ -751,23 +725,10 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
   return { breadcrumb: levels.map((level) => level.label), levels };
 }
 
-export interface IFocusToken {
-  start: number;
-  end: number;
-  isNumeric: boolean;
-}
-
-// Word-level tokens that a ‹ › press hops between, opaque leaf tokens included so nothing
-// gets silently skipped. Whole numeric terminals (Weight/Percentage/Timer) come first in the
-// checks because they'd otherwise be missed — their digits are not separate Int nodes.
-const numericFocusNames = new Set<string>([
-  PlannerNodeName.Weight,
-  PlannerNodeName.Percentage,
-  PlannerNodeName.Timer,
-  PlannerNodeName.Int,
-  PlannerNodeName.Float,
-]);
-
+// Non-numeric word-level stops. A tap or ‹ › lands on the whole token; unlike numeric
+// tokens they open no keypad. The walk descends INTO them looking for nested numeric
+// tap-targets (a SetTimer's inner timers, a ReuseSection's week/day ints) — those come out
+// with walkStop: false so the enclosing token stays a single ‹ › stop.
 const plainFocusNames = new Set<string>([
   PlannerNodeName.ExerciseName,
   PlannerNodeName.ExercisePropertyName,
@@ -781,28 +742,63 @@ const plainFocusNames = new Set<string>([
   PlannerNodeName.SetLabel,
 ]);
 
-export function LiftoEditorBrain_focusTokens(text: string): IFocusToken[] {
+// The single walk behind both ‹ › focus hopping (walkStop tokens) and keypad targeting
+// (numeric tokens). Whole numeric terminals (Weight/Percentage/Timer) are checked before
+// plain names because their digits are not separate Int nodes.
+export function LiftoEditorBrain_tokens(text: string): IEditorToken[] {
   const tree = parser.parse(text);
-  const tokens: IFocusToken[] = [];
+  const tokens: IEditorToken[] = [];
+  const plainStopStack: { from: number; to: number }[] = [];
+  const plainSpan = (start: number, end: number): IEditorToken => {
+    return { start, end, text: text.slice(start, end), walkStop: true };
+  };
   tree.iterate({
     enter: (node) => {
       if (node.to <= node.from) {
         return true;
       }
+      const insidePlainStop = plainStopStack.length > 0;
       if (node.name === PlannerNodeName.Liftoscript) {
         for (const span of liftoscriptNumericSpans(text, node.from, node.to)) {
-          tokens.push({ start: span.start, end: span.end, isNumeric: true });
+          tokens.push({
+            start: span.start,
+            end: span.end,
+            text: text.slice(span.start, span.end),
+            walkStop: true,
+            numeric: { kind: span.kind, inFunctionArgs: true },
+          });
         }
         return false;
       }
-      if (numericFocusNames.has(node.name)) {
-        tokens.push({ start: node.from, end: node.to, isNumeric: true });
+      const whole = wholeNumericTokenKinds[node.name as PlannerNodeName];
+      if (whole != null) {
+        tokens.push({
+          start: node.from,
+          end: node.to,
+          text: text.slice(node.from, node.to),
+          walkStop: !insidePlainStop,
+          numeric: { kind: whole, inFunctionArgs: isInFunctionArgs(node.node) },
+        });
         return false;
+      }
+      if (node.name === PlannerNodeName.Int || node.name === PlannerNodeName.Float) {
+        tokens.push({
+          start: node.from,
+          end: node.to,
+          text: text.slice(node.from, node.to),
+          walkStop: !insidePlainStop,
+          numeric: { kind: "number", inFunctionArgs: isInFunctionArgs(node.node) },
+        });
+        return false;
+      }
+      if (insidePlainStop) {
+        // The enclosing token already is the stop; keep descending for numeric tap-targets.
+        return true;
       }
       // State var names in custom(): the raw Keyword token inside KeyValue, so tapping
       // `myvar` in `custom(myvar: 0)` focuses it (the value stays a numeric keypad stop).
       if (node.name === PlannerNodeName.Keyword && node.node.parent?.name === PlannerNodeName.KeyValue) {
-        tokens.push({ start: node.from, end: node.to, isNumeric: false });
+        tokens.push(plainSpan(node.from, node.to));
         return false;
       }
       if (plainFocusNames.has(node.name)) {
@@ -814,21 +810,28 @@ export function LiftoEditorBrain_focusTokens(text: string): IFocusToken[] {
         ) {
           const colonIdx = text.slice(node.from, node.to).indexOf(":");
           if (colonIdx !== -1) {
-            tokens.push({ start: node.from, end: node.from + colonIdx, isNumeric: false });
+            tokens.push(plainSpan(node.from, node.from + colonIdx));
             let rest = node.from + colonIdx + 1;
             while (text[rest] === " ") {
               rest += 1;
             }
             if (rest < node.to) {
-              tokens.push({ start: rest, end: node.to, isNumeric: false });
+              tokens.push(plainSpan(rest, node.to));
             }
             return false;
           }
         }
-        tokens.push({ start: node.from, end: node.to, isNumeric: false });
-        return false;
+        tokens.push(plainSpan(node.from, node.to));
+        plainStopStack.push({ from: node.from, to: node.to });
+        return true;
       }
       return true;
+    },
+    leave: (node) => {
+      const top = plainStopStack[plainStopStack.length - 1];
+      if (top != null && top.from === node.from && top.to === node.to) {
+        plainStopStack.pop();
+      }
     },
   });
   return tokens;

@@ -5,11 +5,11 @@ import {
   ILiftoEditorHandle,
   ILiftoEditorPill,
   ILiftoEditorStyledRange,
-  INumericToken,
+  IEditorToken,
+  IEditorTokenNumeric,
   LiftoEditorBrain_contextAt,
-  LiftoEditorBrain_focusTokens,
-  LiftoEditorBrain_numericTokens,
   LiftoEditorBrain_stepToken,
+  LiftoEditorBrain_tokens,
 } from "./primitives/liftoEditorBrain";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { Text } from "./primitives/text";
@@ -24,28 +24,35 @@ import { IExerciseType, IPercentageUnit, IUnit } from "../types";
 export type ILiftoEditorMode = "structured" | "freeform";
 
 interface IActiveNumber {
-  start: number;
+  // Discriminant for future non-numeric keypad sessions (e.g. an IActiveText).
+  type: "number";
+  // The token as it was at activation; its start stays valid while the keypad is open.
+  token: IEditorToken;
+  // token.numeric, non-optional by construction (only numeric tokens activate).
+  numeric: IEditorTokenNumeric;
+  // Live span length — typing grows/shrinks the token in place.
   length: number;
   buffer: string;
   suffix: string;
-  kind: INumericToken["kind"];
-  inFunctionArgs: boolean;
   // The first digit after focusing replaces the value (type-to-replace), the rest append.
   fresh: boolean;
 }
 
-function parseToken(token: INumericToken): IActiveNumber | undefined {
+function parseToken(token: IEditorToken): IActiveNumber | undefined {
+  if (token.numeric == null) {
+    return undefined;
+  }
   const match = token.text.match(/^([+-]?\d+(?:\.\d+)?)(.*)$/);
   if (match == null) {
     return undefined;
   }
   return {
-    start: token.start,
+    type: "number",
+    token,
+    numeric: token.numeric,
     length: token.text.length,
     buffer: match[1],
     suffix: match[2],
-    kind: token.kind,
-    inFunctionArgs: token.inFunctionArgs,
     fresh: true,
   };
 }
@@ -92,7 +99,7 @@ export function useLiftoEditorController(
   const handleRef = useRef<ILiftoEditorHandle | undefined>(undefined);
   const activeRef = useRef<IActiveNumber | undefined>(undefined);
   const anchorRef = useRef<number | undefined>(undefined);
-  const focusedTokenRef = useRef<{ start: number; end: number } | undefined>(undefined);
+  const focusedTokenRef = useRef<IEditorToken | undefined>(undefined);
   const lastTapTimeRef = useRef(0);
   const pendingCaretRef = useRef<number | undefined>(undefined);
   const contextRef = useRef<ILiftoEditorContext | undefined>(undefined);
@@ -115,7 +122,7 @@ export function useLiftoEditorController(
 
   function currentAnchor(): number | undefined {
     const active = activeRef.current;
-    return active != null ? Math.min(active.start + 1, active.start + active.length) : anchorRef.current;
+    return active != null ? Math.min(active.token.start + 1, active.token.start + active.length) : anchorRef.current;
   }
 
   function focusedLevelIndex(): number | undefined {
@@ -146,8 +153,8 @@ export function useLiftoEditorController(
     }
     if (active != null) {
       ranges.push({
-        start: active.start,
-        end: active.start + active.length,
+        start: active.token.start,
+        end: active.token.start + active.length,
         backgroundColor: `${Tailwind_semantic().syntax.literal}33`,
       });
     }
@@ -172,30 +179,30 @@ export function useLiftoEditorController(
       return;
     }
     const tokenText = `${active.buffer === "" || active.buffer === "-" ? "0" : active.buffer}${active.suffix}`;
-    handleRef.current?.replaceRange(active.start, active.start + active.length, tokenText);
+    handleRef.current?.replaceRange(active.token.start, active.token.start + active.length, tokenText);
     active.length = tokenText.length;
     refreshHighlight();
     // Rebuild the keypad config so addons that depend on the value (plates readout) update.
-    if (active.kind === "weight") {
+    if (active.numeric.kind === "weight") {
       openNumberKeyboard();
     }
   }
 
-  function activateToken(token: INumericToken): void {
+  function activateToken(token: IEditorToken): void {
     const parsed = parseToken(token);
     if (parsed == null) {
       return;
     }
     activeRef.current = parsed;
     anchorRef.current = Math.min(token.start + 1, token.end);
-    focusedTokenRef.current = { start: token.start, end: token.end };
+    focusedTokenRef.current = token;
     const ctx = LiftoEditorBrain_contextAt(textRef.current, Math.min(token.start + 1, token.end));
     applyContext(ctx, undefined);
     openNumberKeyboard();
   }
 
   function walkFocus(direction: 1 | -1): void {
-    const tokens = LiftoEditorBrain_focusTokens(textRef.current);
+    const tokens = LiftoEditorBrain_tokens(textRef.current).filter((t) => t.walkStop);
     if (tokens.length === 0) {
       return;
     }
@@ -207,7 +214,7 @@ export function useLiftoEditorController(
     const ctx = contextRef.current;
     const levelIndex = focusedLevelIndex();
     const current =
-      activeRef.current?.start ??
+      activeRef.current?.token.start ??
       focusedTokenRef.current?.start ??
       (ctx != null && levelIndex != null ? ctx.levels[levelIndex]?.start : undefined) ??
       anchorRef.current ??
@@ -218,19 +225,14 @@ export function useLiftoEditorController(
     } else {
       next = [...tokens].reverse().find((t) => t.start < current) ?? tokens[tokens.length - 1];
     }
-    if (next.isNumeric) {
-      const numeric = LiftoEditorBrain_numericTokens(textRef.current).find(
-        (t) => t.start === next!.start && t.end === next!.end
-      );
-      if (numeric != null) {
-        activateToken(numeric);
-        return;
-      }
+    if (next.numeric != null) {
+      activateToken(next);
+      return;
     }
     activeRef.current = undefined;
     closeKeyboard();
     anchorRef.current = Math.min(next.start + 1, next.end);
-    focusedTokenRef.current = { start: next.start, end: next.end };
+    focusedTokenRef.current = next;
     applyContext(LiftoEditorBrain_contextAt(textRef.current, Math.min(next.start + 1, next.end)), undefined);
   }
 
@@ -259,13 +261,13 @@ export function useLiftoEditorController(
       return;
     }
     const breadcrumb = showKeypadNav
-      ? LiftoEditorBrain_contextAt(textRef.current, active.start + 1).breadcrumb.join(" › ")
+      ? LiftoEditorBrain_contextAt(textRef.current, active.token.start + 1).breadcrumb.join(" › ")
       : "";
-    const isWeight = active.kind === "weight" && (active.suffix === "kg" || active.suffix === "lb");
+    const isWeight = active.numeric.kind === "weight" && (active.suffix === "kg" || active.suffix === "lb");
     const weightValue = parseFloat(active.buffer);
     // Function-arg and script weights are increments, not lifted loads — no plates readout.
     const evaluatedWeight =
-      isWeight && !active.inFunctionArgs && Number.isFinite(weightValue)
+      isWeight && !active.numeric.inFunctionArgs && Number.isFinite(weightValue)
         ? Weight_build(weightValue, active.suffix as IUnit)
         : undefined;
     openKeyboard({
@@ -305,8 +307,8 @@ export function useLiftoEditorController(
             openCalculator({ unit: active.suffix as "kg" | "lb" });
           }
         : undefined,
-      enableUnits: active.kind === "weight" ? (["kg", "lb"] as IUnit[]) : undefined,
-      selectedUnit: active.kind === "weight" ? (active.suffix as IUnit) : undefined,
+      enableUnits: active.numeric.kind === "weight" ? (["kg", "lb"] as IUnit[]) : undefined,
+      selectedUnit: active.numeric.kind === "weight" ? (active.suffix as IUnit) : undefined,
       onInput: (key) => {
         const current = activeRef.current;
         if (current == null) {
@@ -344,7 +346,7 @@ export function useLiftoEditorController(
     if (active == null) {
       return;
     }
-    if (active.kind === "weight" && !active.inFunctionArgs) {
+    if (active.numeric.kind === "weight" && !active.numeric.inFunctionArgs) {
       const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
       const unit: IUnit = active.suffix === "kg" ? "kg" : "lb";
       const stepFn = direction > 0 ? Weight_increment : Weight_decrement;
@@ -357,11 +359,11 @@ export function useLiftoEditorController(
     const tokenText = `${active.buffer}${active.suffix}`;
     const stepped = LiftoEditorBrain_stepToken(
       {
-        start: active.start,
-        end: active.start + active.length,
+        start: active.token.start,
+        end: active.token.start + active.length,
         text: tokenText,
-        kind: active.kind,
-        inFunctionArgs: active.inFunctionArgs,
+        walkStop: active.token.walkStop,
+        numeric: active.numeric,
       },
       direction
     );
@@ -397,15 +399,14 @@ export function useLiftoEditorController(
         return;
       }
     }
-    const tokens = LiftoEditorBrain_numericTokens(textRef.current);
-    const token = tokens.find((t) => index >= t.start && index <= t.end);
+    const tokens = LiftoEditorBrain_tokens(textRef.current);
+    const token = tokens.find((t) => t.numeric != null && index >= t.start && index <= t.end);
     if (token != null) {
       activateToken(token);
     } else {
       activeRef.current = undefined;
       anchorRef.current = index;
-      const focusToken = LiftoEditorBrain_focusTokens(textRef.current).find((t) => index >= t.start && index <= t.end);
-      focusedTokenRef.current = focusToken != null ? { start: focusToken.start, end: focusToken.end } : undefined;
+      focusedTokenRef.current = tokens.find((t) => t.walkStop && index >= t.start && index <= t.end);
       closeKeyboard();
       applyContext(LiftoEditorBrain_contextAt(textRef.current, index), undefined);
     }
@@ -443,9 +444,16 @@ export function useLiftoEditorController(
     const focused = focusedTokenRef.current;
     if (focused != null) {
       if (pill.end <= focused.start) {
-        focusedTokenRef.current = { start: focused.start + delta, end: focused.end + delta };
+        focusedTokenRef.current = { ...focused, start: focused.start + delta, end: focused.end + delta };
       } else if (pill.start < focused.end && pill.end > focused.start) {
-        focusedTokenRef.current = { start: pill.start, end: pill.start + pill.text.length };
+        // The old token is gone; only the span matters after a snap (re-tap and walking
+        // re-derive tokens from fresh text), so a synthetic non-numeric token suffices.
+        focusedTokenRef.current = {
+          start: pill.start,
+          end: pill.start + pill.text.length,
+          text: pill.text,
+          walkStop: true,
+        };
       }
     }
     handleRef.current?.replaceRange(pill.start, pill.end, pill.text);
