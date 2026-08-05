@@ -29,7 +29,7 @@ import { Text } from "../../components/primitives/text";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { IconUiMode } from "../../components/icons/iconUiMode";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
-import { Tailwind_colors } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 const sampleText = `# Week 1
 ## Day 1
@@ -41,23 +41,23 @@ Deadlift[1-3] / 1x5 / 150kg+ / update: custom() {~ weights += 2.5kg ~}
 
 // Pills wear the syntax color of what they insert, so the chip previews the code (design).
 function pillHue(label: string): { fg: string; bd: string; bg: string } {
-  const colors = Tailwind_colors();
+  const pill = Tailwind_semantic().editorpill;
   if (/weight|RPE/i.test(label)) {
-    return { fg: colors.green["800"], bd: colors.green["200"], bg: colors.green["50"] };
+    return { fg: pill.weightfg, bd: pill.weightbd, bg: pill.weightbg };
   }
   if (/timer/i.test(label)) {
-    return { fg: colors.purple["800"], bd: colors.purple["200"], bg: colors.purple["50"] };
+    return { fg: pill.timerfg, bd: pill.timerbd, bg: pill.timerbg };
   }
   if (/auto|state var|success|deload/i.test(label)) {
-    return { fg: colors.blue["800"], bd: colors.blue["200"], bg: colors.blue["50"] };
+    return { fg: pill.logicfg, bd: pill.logicbd, bg: pill.logicbg };
   }
   if (/set group|sets|rep range|fixed reps|variation|warmup/i.test(label)) {
-    return { fg: colors.yellow["800"], bd: colors.yellow["200"], bg: colors.yellow["50"] };
+    return { fg: pill.setsfg, bd: pill.setsbd, bg: pill.setsbg };
   }
   if (/progress|update|switch to/i.test(label)) {
-    return { fg: colors.purple["700"], bd: colors.purple["200"], bg: colors.purple["50"] };
+    return { fg: pill.progressfg, bd: pill.progressbd, bg: pill.progressbg };
   }
-  return { fg: colors.darkgray["800"], bd: colors.lightgray["300"], bg: colors.lightgray["50"] };
+  return { fg: pill.neutralfg, bd: pill.neutralbd, bg: pill.neutralbg };
 }
 
 function hintForContext(controller: ILiftoEditorController): { short: string; detail: string } | undefined {
@@ -89,7 +89,7 @@ function hintForContext(controller: ILiftoEditorController): { short: string; de
 function SheetCrumbs(props: { controller: ILiftoEditorController }): JSX.Element {
   const { controller } = props;
   const levels = controller.context?.levels ?? [];
-  const colors = Tailwind_colors();
+  const semantic = Tailwind_semantic();
   if (levels.length === 0) {
     return <Text className="text-sm text-text-secondary">Tap a token to focus</Text>;
   }
@@ -107,8 +107,8 @@ function SheetCrumbs(props: { controller: ILiftoEditorController }): JSX.Element
                   textDecorationLine: "underline",
                   // Android ignores textDecorationStyle and falls back to a solid underline.
                   textDecorationStyle: "dotted",
-                  textDecorationColor: isActive ? colors.purple["500"] : colors.lightgray["400"],
-                  ...(isActive ? { color: colors.purple["500"] } : null),
+                  textDecorationColor: isActive ? semantic.text.purple : semantic.text.disabled,
+                  ...(isActive ? { color: semantic.text.purple } : null),
                 }}
               >
                 {level.label}
@@ -147,7 +147,7 @@ function useSystemKeyboardHeight(): number {
 // that only gets measured; tapping interpolates the container height between the two
 // measurements while cross-fading the layers.
 function HintBar(props: { hint: { short: string; detail: string }; onDismiss: () => void }): JSX.Element {
-  const yellow = Tailwind_colors().yellow;
+  const semantic = Tailwind_semantic();
   const [expanded, setExpanded] = useState(false);
   const collapsedHeight = useSharedValue(0);
   const expandedHeight = useSharedValue(0);
@@ -170,7 +170,11 @@ function HintBar(props: { hint: { short: string; detail: string }; onDismiss: ()
 
   return (
     <Pressable
-      style={{ backgroundColor: yellow["50"], borderBottomWidth: 1, borderBottomColor: yellow["200"] }}
+      style={{
+        backgroundColor: semantic.background.cardyellow,
+        borderBottomWidth: 1,
+        borderBottomColor: semantic.border.cardyellow,
+      }}
       onPress={toggle}
       // CustomKeyboardProvider closes the keypad on any stationary tap that bubbles up to
       // it; expanding/dismissing the hint shouldn't dismiss the keypad.
@@ -184,7 +188,7 @@ function HintBar(props: { hint: { short: string; detail: string }; onDismiss: ()
             collapsedHeight.value = e.nativeEvent.layout.height;
           }}
         >
-          <Text className="text-xs font-semibold" style={{ color: yellow["900"] }} numberOfLines={1}>
+          <Text className="text-xs font-semibold" style={{ color: semantic.text.cardyellow }} numberOfLines={1}>
             {props.hint.short}
           </Text>
         </Animated.View>
@@ -195,31 +199,16 @@ function HintBar(props: { hint: { short: string; detail: string }; onDismiss: ()
             expandedHeight.value = e.nativeEvent.layout.height;
           }}
         >
-          <Text className="text-xs font-semibold" style={{ color: yellow["900"] }}>
+          <Text className="text-xs font-semibold" style={{ color: semantic.text.cardyellow }}>
             {props.hint.short}
           </Text>
-          <Text className="text-xs pt-1" style={{ color: yellow["800"] }}>
+          <Text className="text-xs pt-1" style={{ color: semantic.text.cardyellowsubtle }}>
             {props.hint.detail}
           </Text>
         </Animated.View>
       </Animated.View>
-      <Pressable
-        className="items-center justify-center rounded-md"
-        style={{
-          position: "absolute",
-          top: 8,
-          right: 12,
-          width: 18,
-          height: 18,
-          backgroundColor: "#fff",
-          borderWidth: 1,
-          borderColor: yellow["200"],
-        }}
-        onPress={props.onDismiss}
-      >
-        <Text className="text-xs font-bold" style={{ color: yellow["800"] }}>
-          ✕
-        </Text>
+      <Pressable style={{ position: "absolute", top: 8, right: 12 }} onPress={props.onDismiss}>
+        <IconCloseCircleOutline size={18} />
       </Pressable>
     </Pressable>
   );
@@ -284,10 +273,13 @@ function EditorSheetBody(props: {
       controller.applyPill(pill);
     }
   };
-  const controller = useLiftoEditorController(props.initialText, { showKeypadNav: false });
+  const controller = useLiftoEditorController(props.initialText, {
+    showKeypadNav: false,
+    exerciseType: props.pickerData?.exerciseType,
+  });
   const [hintDismissed, setHintDismissed] = useState(false);
   const hint = hintForContext(controller);
-  const accent = Tailwind_colors().purple["500"];
+  const accent = Tailwind_semantic().text.purple;
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();

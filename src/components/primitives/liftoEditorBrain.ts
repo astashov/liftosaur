@@ -106,26 +106,89 @@ export interface INumericToken {
   end: number;
   text: string;
   kind: "weight" | "percentage" | "timer" | "number";
+  // Weights in function args (lp/dp/sum increments) step by a plain unit; weights in set
+  // sections (incl. globals and warmups) are real lifted weights, so the controller steps
+  // them through Weight_increment/decrement to respect equipment settings.
+  inFunctionArgs: boolean;
 }
 
+// "Whole" = the node's entire text (digits + suffix, e.g. "100kg", "45%", "60s") is one
+// steppable token — as opposed to bare Int/Float leaves, which become "number" tokens.
 const wholeNumericTokenKinds: Partial<Record<PlannerNodeName, INumericToken["kind"]>> = {
   [PlannerNodeName.Weight]: "weight",
   [PlannerNodeName.Percentage]: "percentage",
   [PlannerNodeName.Timer]: "timer",
 };
 
+// Numeric spans inside a {~ ~} script body, found by nest-parsing like the highlighting
+// does. They all count as "function args" for stepping: script weights are increments
+// (weights += 5lb), not lifted loads, so they step by a plain unit.
+function liftoscriptNumericSpans(
+  text: string,
+  from: number,
+  to: number
+): { start: number; end: number; kind: INumericToken["kind"] }[] {
+  const spans: { start: number; end: number; kind: INumericToken["kind"] }[] = [];
+  const tree = liftoscriptParser.parse(text.slice(from, to));
+  tree.iterate({
+    enter: (node) => {
+      const kind =
+        node.name === "WeightExpression"
+          ? ("weight" as const)
+          : node.name === "Percentage"
+            ? ("percentage" as const)
+            : node.name === "NumberExpression"
+              ? ("number" as const)
+              : undefined;
+      if (kind != null && node.to > node.from) {
+        spans.push({ start: from + node.from, end: from + node.to, kind });
+        return false;
+      }
+      return true;
+    },
+  });
+  return spans;
+}
+
+function isInFunctionArgs(node: SyntaxNode): boolean {
+  for (let cur: SyntaxNode | null = node.parent; cur != null; cur = cur.parent) {
+    if (cur.name === PlannerNodeName.FunctionExpression) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function LiftoEditorBrain_numericTokens(text: string): INumericToken[] {
   const tokens: INumericToken[] = [];
   const tree = parser.parse(text);
   tree.iterate({
     enter: (node) => {
+      if (node.name === PlannerNodeName.Liftoscript) {
+        for (const span of liftoscriptNumericSpans(text, node.from, node.to)) {
+          tokens.push({ ...span, text: text.slice(span.start, span.end), inFunctionArgs: true });
+        }
+        return false;
+      }
       const whole = wholeNumericTokenKinds[node.name as PlannerNodeName];
       if (whole != null) {
-        tokens.push({ start: node.from, end: node.to, text: text.slice(node.from, node.to), kind: whole });
+        tokens.push({
+          start: node.from,
+          end: node.to,
+          text: text.slice(node.from, node.to),
+          kind: whole,
+          inFunctionArgs: isInFunctionArgs(node.node),
+        });
         return false;
       }
       if (node.name === PlannerNodeName.Int || node.name === PlannerNodeName.Float) {
-        tokens.push({ start: node.from, end: node.to, text: text.slice(node.from, node.to), kind: "number" });
+        tokens.push({
+          start: node.from,
+          end: node.to,
+          text: text.slice(node.from, node.to),
+          kind: "number",
+          inFunctionArgs: isInFunctionArgs(node.node),
+        });
         return false;
       }
       return true;
@@ -134,9 +197,12 @@ export function LiftoEditorBrain_numericTokens(text: string): INumericToken[] {
   return tokens;
 }
 
+// Set-section weights never reach this table — the controller steps them through
+// Weight_increment/decrement so equipment settings (plates, fixed weights) apply.
+// The weight entry here only serves function-argument weights like lp() increments.
 const stepByKind: Record<INumericToken["kind"], (suffix: string) => number> = {
-  weight: (suffix) => (suffix === "kg" ? 2.5 : 5),
-  percentage: () => 2.5,
+  weight: () => 1,
+  percentage: () => 1,
   timer: () => 15,
   number: () => 1,
 };
@@ -722,6 +788,12 @@ export function LiftoEditorBrain_focusTokens(text: string): IFocusToken[] {
     enter: (node) => {
       if (node.to <= node.from) {
         return true;
+      }
+      if (node.name === PlannerNodeName.Liftoscript) {
+        for (const span of liftoscriptNumericSpans(text, node.from, node.to)) {
+          tokens.push({ start: span.start, end: span.end, isNumeric: true });
+        }
+        return false;
       }
       if (numericFocusNames.has(node.name)) {
         tokens.push({ start: node.from, end: node.to, isNumeric: true });

@@ -20,16 +20,22 @@ interface ISelectionChangeEvent {
   end: number;
 }
 
-export interface ILiftoEditorProps {
+// The controller-driven surface: everything useLiftoEditorController produces as editorProps.
+// Host surfaces layer presentation concerns (style, selection callbacks) on top via
+// ILiftoEditorProps.
+export interface ILiftoEditorBaseProps {
   initialText: string;
-  style?: StyleProp<ViewStyle>;
   autoHeight?: boolean;
   editable?: boolean;
   extraStyledRanges?: ILiftoEditorStyledRange[];
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
-  onSelectionChange?: (start: number, end: number) => void;
   onTap?: (index: number) => void;
+}
+
+export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
+  style?: StyleProp<ViewStyle>;
+  onSelectionChange?: (start: number, end: number) => void;
 }
 
 export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {

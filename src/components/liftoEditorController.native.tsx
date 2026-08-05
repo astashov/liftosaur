@@ -11,13 +11,13 @@ import {
   LiftoEditorBrain_numericTokens,
   LiftoEditorBrain_stepToken,
 } from "./primitives/liftoEditorBrain";
-import { ILiftoEditorProps } from "./primitives/liftoEditor";
+import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { Text } from "./primitives/text";
 import { PlatesCalculator } from "./inputWeight2";
 import { useCloseCustomKeyboard, useOpenCustomKeyboard } from "../navigation/CustomKeyboardContext";
 import { useModal } from "../navigation/ModalStateContext";
 import { useTrackedState, untrack } from "../navigation/TrackedStateContext";
-import { Weight_build } from "../models/weight";
+import { Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { IExerciseType, IPercentageUnit, IUnit } from "../types";
 
@@ -29,6 +29,7 @@ interface IActiveNumber {
   buffer: string;
   suffix: string;
   kind: INumericToken["kind"];
+  inFunctionArgs: boolean;
   // The first digit after focusing replaces the value (type-to-replace), the rest append.
   fresh: boolean;
 }
@@ -44,6 +45,7 @@ function parseToken(token: INumericToken): IActiveNumber | undefined {
     buffer: match[1],
     suffix: match[2],
     kind: token.kind,
+    inFunctionArgs: token.inFunctionArgs,
     fresh: true,
   };
 }
@@ -55,10 +57,7 @@ export interface ILiftoEditorController {
   activeLevelIndex: number;
   // Add-actions for the active breadcrumb level; selecting a level swaps the rail.
   pills: ILiftoEditorPill[];
-  editorProps: Pick<
-    ILiftoEditorProps,
-    "initialText" | "autoHeight" | "editable" | "extraStyledRanges" | "handleRef" | "onTextChange" | "onTap"
-  >;
+  editorProps: ILiftoEditorBaseProps;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
   applyPill: (pill: ILiftoEditorPill) => void;
@@ -67,14 +66,16 @@ export interface ILiftoEditorController {
   switchToStructured: () => void;
 }
 
-// Playground-only: plates math needs an exercise for bar/equipment resolution; real screens
-// will resolve it from the focused line's exercise name.
+// Fallback when the host doesn't provide an exercise (the playground): plates math and
+// weight stepping need one for bar/equipment resolution.
 const sampleExerciseType: IExerciseType = { id: "squat", equipment: "barbell" };
 
 export interface ILiftoEditorControllerOptions {
   // The sheet surface hosts breadcrumbs and ‹ › in its own header (always visible), so its
   // keypad drops the whole breadcrumb row. Screen surface keeps it in the keypad.
   showKeypadNav?: boolean;
+  // Drives equipment-aware weight stepping and the plates readout.
+  exerciseType?: IExerciseType;
 }
 
 export function useLiftoEditorController(
@@ -82,6 +83,7 @@ export function useLiftoEditorController(
   options?: ILiftoEditorControllerOptions
 ): ILiftoEditorController {
   const showKeypadNav = options?.showKeypadNav ?? true;
+  const exerciseType = options?.exerciseType ?? sampleExerciseType;
   const [mode, setMode] = useState<ILiftoEditorMode>("structured");
   const [text, setText] = useState(initialText);
   const [context, setContext] = useState<ILiftoEditorContext | undefined>(undefined);
@@ -261,8 +263,11 @@ export function useLiftoEditorController(
       : "";
     const isWeight = active.kind === "weight" && (active.suffix === "kg" || active.suffix === "lb");
     const weightValue = parseFloat(active.buffer);
+    // Function-arg and script weights are increments, not lifted loads — no plates readout.
     const evaluatedWeight =
-      isWeight && Number.isFinite(weightValue) ? Weight_build(weightValue, active.suffix as IUnit) : undefined;
+      isWeight && !active.inFunctionArgs && Number.isFinite(weightValue)
+        ? Weight_build(weightValue, active.suffix as IUnit)
+        : undefined;
     openKeyboard({
       id: "liftoEditorNumber",
       isNegative: active.buffer.startsWith("-"),
@@ -286,7 +291,7 @@ export function useLiftoEditorController(
             ) : null}
             {evaluatedWeight != null ? (
               <View className="px-4 py-1">
-                <PlatesCalculator weight={evaluatedWeight} settings={settings} exerciseType={sampleExerciseType} />
+                <PlatesCalculator weight={evaluatedWeight} settings={settings} exerciseType={exerciseType} />
               </View>
             ) : undefined}
           </View>
@@ -339,9 +344,25 @@ export function useLiftoEditorController(
     if (active == null) {
       return;
     }
+    if (active.kind === "weight" && !active.inFunctionArgs) {
+      const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
+      const unit: IUnit = active.suffix === "kg" ? "kg" : "lb";
+      const stepFn = direction > 0 ? Weight_increment : Weight_decrement;
+      const next = stepFn(Weight_build(value, unit), settings, exerciseType);
+      active.buffer = `${next.value}`;
+      active.suffix = next.unit;
+      applyBuffer();
+      return;
+    }
     const tokenText = `${active.buffer}${active.suffix}`;
     const stepped = LiftoEditorBrain_stepToken(
-      { start: active.start, end: active.start + active.length, text: tokenText, kind: active.kind },
+      {
+        start: active.start,
+        end: active.start + active.length,
+        text: tokenText,
+        kind: active.kind,
+        inFunctionArgs: active.inFunctionArgs,
+      },
       direction
     );
     if (stepped == null) {

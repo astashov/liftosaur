@@ -80,7 +80,9 @@
     "success": { "light": "@colors.green.600", "dark": "@colors.green.400" },
     "error": { "light": "@colors.red.600", "dark": "@colors.red.400" },
     "purple": { "light": "@colors.purple.500", "dark": "@colors.purple.400" },
-    "alwayswhite": { "light": "@colors.white", "dark": "@colors.white" }
+    "alwayswhite": { "light": "@colors.white", "dark": "@colors.white" },
+    "cardyellow": { "light": "@colors.yellow.900", "dark": "@colors.yellow.300" },
+    "cardyellowsubtle": { "light": "@colors.yellow.800", "dark": "@colors.yellow.400" }
   },
   "button": {
     "primarybackground": { "light": "@colors.purple.500", "dark": "@colors.purple.500" },
@@ -115,5 +117,25 @@
     "attributeValue": { "light": "@colors.blue.400", "dark": "@colors.blue.600" },
     "annotation": { "light": "@colors.yellow.500", "dark": "@colors.yellow.400" },
     "docComment": { "light": "@colors.green.700", "dark": "@colors.green.300" }
+  },
+  "editorpill": {
+    "weightfg": { "light": "@colors.green.800", "dark": "@colors.green.400" },
+    "weightbd": { "light": "@colors.green.200", "dark": "@colors.greengray.800" },
+    "weightbg": { "light": "@colors.green.50", "dark": "@colors.greengray.950" },
+    "timerfg": { "light": "@colors.purple.800", "dark": "@colors.purple.300" },
+    "timerbd": { "light": "@colors.purple.200", "dark": "@colors.darkgray.800" },
+    "timerbg": { "light": "@colors.purple.50", "dark": "@colors.darkgray.950" },
+    "logicfg": { "light": "@colors.blue.800", "dark": "@colors.blue.400" },
+    "logicbd": { "light": "@colors.blue.200", "dark": "@colors.darkgray.800" },
+    "logicbg": { "light": "@colors.blue.50", "dark": "@colors.darkgray.950" },
+    "setsfg": { "light": "@colors.yellow.800", "dark": "@colors.yellow.500" },
+    "setsbd": { "light": "@colors.yellow.200", "dark": "@colors.yellowgray.800" },
+    "setsbg": { "light": "@colors.yellow.50", "dark": "@colors.yellowgray.950" },
+    "progressfg": { "light": "@colors.purple.700", "dark": "@colors.purple.300" },
+    "progressbd": { "light": "@colors.purple.200", "dark": "@colors.darkgray.800" },
+    "progressbg": { "light": "@colors.purple.50", "dark": "@colors.darkgray.950" },
+    "neutralfg": { "light": "@colors.darkgray.800", "dark": "@colors.lightgray.300" },
+    "neutralbd": { "light": "@colors.lightgray.300", "dark": "@colors.lightgray.800" },
+    "neutralbg": { "light": "@colors.lightgray.50", "dark": "@colors.darkgray.900" }
   }
 }

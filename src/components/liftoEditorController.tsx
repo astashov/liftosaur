@@ -1,5 +1,6 @@
 import { ILiftoEditorContext, ILiftoEditorPill } from "./primitives/liftoEditorBrain";
-import { ILiftoEditorProps } from "./primitives/liftoEditor";
+import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
+import { IExerciseType } from "../types";
 
 export type ILiftoEditorMode = "structured" | "freeform";
 
@@ -9,10 +10,7 @@ export interface ILiftoEditorController {
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
   pills: ILiftoEditorPill[];
-  editorProps: Pick<
-    ILiftoEditorProps,
-    "initialText" | "autoHeight" | "editable" | "extraStyledRanges" | "handleRef" | "onTextChange" | "onTap"
-  >;
+  editorProps: ILiftoEditorBaseProps;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
   applyPill: (pill: ILiftoEditorPill) => void;
@@ -23,6 +21,7 @@ export interface ILiftoEditorController {
 
 export interface ILiftoEditorControllerOptions {
   showKeypadNav?: boolean;
+  exerciseType?: IExerciseType;
 }
 
 // Native-only (drives the native LiftoEditor + custom keyboard); web keeps CodeMirror.
