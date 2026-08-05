@@ -6,6 +6,8 @@ import com.facebook.react.uimanager.UIManagerHelper
 import com.facebook.react.uimanager.events.Event
 import io.github.rosemoe.sora.event.ClickEvent
 import io.github.rosemoe.sora.event.ContentChangeEvent
+import io.github.rosemoe.sora.event.DoubleClickEvent
+import io.github.rosemoe.sora.event.LongPressEvent
 import io.github.rosemoe.sora.event.SelectionChangeEvent
 import io.github.rosemoe.sora.lang.styling.MappedSpans
 import io.github.rosemoe.sora.lang.styling.Styles
@@ -37,6 +39,23 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
       if (!isEditable) {
         val index = event.charPosition.index
         emit { surfaceId, viewId -> EditorTapEvent(surfaceId, viewId, index) }
+      }
+    }
+    // The second tap of a double-tap arrives as sora's double-tap gesture, not a ClickEvent:
+    // in structured mode that would select the word (handles + action popup) and JS would
+    // never see the tap that switches to freeform. Intercept sora's default and re-emit it
+    // as a plain tap; the JS session's own timing turns it into the freeform switch.
+    subscribeEvent(DoubleClickEvent::class.java) { event, _ ->
+      if (!isEditable) {
+        event.intercept()
+        val index = event.charPosition.index
+        emit { surfaceId, viewId -> EditorTapEvent(surfaceId, viewId, index) }
+      }
+    }
+    // Same reasoning: read-only structured mode shouldn't sprout native selection UI.
+    subscribeEvent(LongPressEvent::class.java) { event, _ ->
+      if (!isEditable) {
+        event.intercept()
       }
     }
   }
