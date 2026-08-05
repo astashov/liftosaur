@@ -26,7 +26,6 @@ import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
-import { IconUiMode } from "../../components/icons/iconUiMode";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
@@ -236,7 +235,6 @@ function EditorSheetBody(props: {
     }
   });
   const controller = useLiftoEditorController(props.initialText, {
-    showKeypadNav: false,
     exerciseType: props.pickerData?.exerciseType,
     actions: {
       pickExercise: (_current, onSelect) => {
@@ -289,14 +287,12 @@ function EditorSheetBody(props: {
                 <IconArrowRight />
               </Pressable>
             </>
-          ) : (
-            <Pressable className="p-2" onPress={controller.switchToStructured}>
-              <IconUiMode />
-            </Pressable>
-          )}
-          <Pressable onPress={() => props.onDone(controller.text)}>
+          ) : null}
+          {/* Freeform "Apply" folds the text edits back into structured mode (the sheet stays
+              open); structured "Save" commits to the program and closes. */}
+          <Pressable onPress={isFreeform ? controller.switchToStructured : () => props.onDone(controller.text)}>
             <Text className="text-base font-bold" style={{ color: accent }}>
-              Done
+              {isFreeform ? "Apply" : "Save"}
             </Text>
           </Pressable>
         </View>

@@ -479,11 +479,3 @@ export function LiftoEditorSession_highlight(session: ILiftoEditorSession): ILif
   }
   return ranges;
 }
-
-export function LiftoEditorSession_keypadBreadcrumb(session: ILiftoEditorSession): string {
-  const active = session.active;
-  if (active == null) {
-    return "";
-  }
-  return LiftoEditorBrain_contextAt(session.text, active.token.start + 1).breadcrumb.join(" › ");
-}

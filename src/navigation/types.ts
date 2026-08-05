@@ -88,7 +88,6 @@ export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
-  editorPlayground: undefined;
   editorSheetModal: { programId: string; key: string; dayData: Required<IDayData> } | undefined;
   editorSheetExercisePickerModal: undefined;
   amrapModal: NonNullable<IHistoryRecord["amrapModal"]> &

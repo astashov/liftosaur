@@ -16,7 +16,6 @@ export interface ILiftoEditorController {
   selectLevel: (index: number) => void;
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
-  switchToFreeform: () => void;
   switchToStructured: () => void;
 }
 
@@ -27,7 +26,6 @@ export interface ILiftoEditorControllerActions {
 }
 
 export interface ILiftoEditorControllerOptions {
-  showKeypadNav?: boolean;
   exerciseType?: IExerciseType;
   actions?: ILiftoEditorControllerActions;
 }

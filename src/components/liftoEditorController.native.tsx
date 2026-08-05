@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { ILiftoEditorContext, ILiftoEditorHandle, ITextEdit } from "./primitives/liftoEditorBrain";
 import {
   ILiftoEditorPill,
@@ -16,7 +16,6 @@ import {
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
   LiftoEditorSession_highlight,
-  LiftoEditorSession_keypadBreadcrumb,
   LiftoEditorSession_keypadInput,
   LiftoEditorSession_pills,
   LiftoEditorSession_removeFocused,
@@ -24,14 +23,12 @@ import {
   LiftoEditorSession_setBufferValue,
   LiftoEditorSession_setUnit,
   LiftoEditorSession_step,
-  LiftoEditorSession_switchToFreeform,
   LiftoEditorSession_switchToStructured,
   LiftoEditorSession_tap,
   LiftoEditorSession_textChanged,
   LiftoEditorSession_walkFocus,
 } from "./primitives/liftoEditorSession";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
-import { Text } from "./primitives/text";
 import { PlatesCalculator } from "./inputWeight2";
 import { useCloseCustomKeyboard, useOpenCustomKeyboard } from "../navigation/CustomKeyboardContext";
 import { useModal } from "../navigation/ModalStateContext";
@@ -56,12 +53,11 @@ export interface ILiftoEditorController {
   // through the host-provided openers in options.actions.
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
-  switchToFreeform: () => void;
   switchToStructured: () => void;
 }
 
-// Fallback when the host doesn't provide an exercise (the playground): plates math and
-// weight stepping need one for bar/equipment resolution.
+// Fallback when the host doesn't provide an exercise (e.g. template exercises without an
+// exerciseType): plates math and weight stepping need one for bar/equipment resolution.
 const sampleExerciseType: IExerciseType = { id: "squat", equipment: "barbell" };
 
 // The host supplies just the modal/navigation openers; the controller owns what happens
@@ -74,9 +70,6 @@ export interface ILiftoEditorControllerActions {
 }
 
 export interface ILiftoEditorControllerOptions {
-  // The sheet surface hosts breadcrumbs and ‹ › in its own header (always visible), so its
-  // keypad drops the whole breadcrumb row. Screen surface keeps it in the keypad.
-  showKeypadNav?: boolean;
   // Drives equipment-aware weight stepping and the plates readout.
   exerciseType?: IExerciseType;
   actions?: ILiftoEditorControllerActions;
@@ -97,7 +90,6 @@ export function useLiftoEditorController(
   initialText: string,
   options?: ILiftoEditorControllerOptions
 ): ILiftoEditorController {
-  const showKeypadNav = options?.showKeypadNav ?? true;
   const exerciseType = options?.exerciseType ?? sampleExerciseType;
   const actions = options?.actions;
   const [session, setSession] = useState<ILiftoEditorSession>(() => LiftoEditorSession_create(initialText));
@@ -135,7 +127,6 @@ export function useLiftoEditorController(
     if (active == null) {
       return;
     }
-    const breadcrumb = showKeypadNav ? LiftoEditorSession_keypadBreadcrumb(sess) : "";
     const isWeight = active.numeric.kind === "weight" && (active.suffix === "kg" || active.suffix === "lb");
     const weightValue = parseFloat(active.buffer);
     // Function-arg and script weights are increments, not lifted loads — no plates readout.
@@ -149,32 +140,9 @@ export function useLiftoEditorController(
       withDot: active.buffer.includes("."),
       allowDot: true,
       keyboardAddon:
-        showKeypadNav || evaluatedWeight != null ? (
-          <View className="py-1">
-            {showKeypadNav ? (
-              <View className="flex-row items-center justify-between px-4">
-                <Pressable
-                  className="px-4 py-1"
-                  onPress={() => dispatch(LiftoEditorSession_walkFocus(sessionRef.current, -1))}
-                >
-                  <Text className="text-lg font-semibold text-text-primary">‹</Text>
-                </Pressable>
-                <Text className="text-sm text-text-secondary" numberOfLines={1}>
-                  {breadcrumb}
-                </Text>
-                <Pressable
-                  className="px-4 py-1"
-                  onPress={() => dispatch(LiftoEditorSession_walkFocus(sessionRef.current, 1))}
-                >
-                  <Text className="text-lg font-semibold text-text-primary">›</Text>
-                </Pressable>
-              </View>
-            ) : null}
-            {evaluatedWeight != null ? (
-              <View className="px-4 py-1">
-                <PlatesCalculator weight={evaluatedWeight} settings={settings} exerciseType={exerciseType} />
-              </View>
-            ) : undefined}
+        evaluatedWeight != null ? (
+          <View className="px-4 py-2">
+            <PlatesCalculator weight={evaluatedWeight} settings={settings} exerciseType={exerciseType} />
           </View>
         ) : undefined,
       enableCalculator: isWeight,
@@ -258,7 +226,6 @@ export function useLiftoEditorController(
     selectLevel: (index) => dispatch(LiftoEditorSession_selectLevel(sessionRef.current, index)),
     pressPill,
     removeFocused: () => dispatch(LiftoEditorSession_removeFocused(sessionRef.current)),
-    switchToFreeform: () => dispatch(LiftoEditorSession_switchToFreeform(sessionRef.current)),
     switchToStructured: () => dispatch(LiftoEditorSession_switchToStructured(sessionRef.current)),
   };
 }
