@@ -8,10 +8,12 @@ import {
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
 } from "./liftoEditorBrain";
-import { ILiftoEditorPill } from "./liftoEditorActions";
-import { Weight_build, Weight_decrement, Weight_increment } from "../../models/weight";
+import { ILiftoEditorPill, LiftoEditorActions_isPillBoundary } from "./liftoEditorActions";
+import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
+import { Exercise_onerm } from "../../models/exercise";
+import { MathUtils_roundFloat } from "../../utils/math";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { IExerciseType, ISettings, IUnit } from "../../types";
+import { IExerciseType, IPercentageUnit, ISettings, IUnit } from "../../types";
 
 // The structured-editing interaction state machine, pure by construction: every user
 // gesture is a `(session, input) -> { session, effects }` transition. Timestamps and
@@ -120,13 +122,14 @@ function bufferEdit(active: IActiveNumber): { active: IActiveNumber; edit: IText
   };
 }
 
-// Rebuild the keypad config after weight edits so addons that depend on the value (plates
-// readout) update; other kinds keep the keypad as-is.
+// Rebuild the keypad config after weight/percentage edits so addons that depend on the
+// value (plates readout, resolved weight) update; other kinds keep the keypad as-is.
 function bufferResult(session: ILiftoEditorSession, active: IActiveNumber): ILiftoEditorSessionResult {
   const applied = bufferEdit(active);
+  const kind = applied.active.numeric.kind;
   return {
     session: { ...session, active: applied.active },
-    effects: { edits: [applied.edit], keypad: applied.active.numeric.kind === "weight" ? "open" : undefined },
+    effects: { edits: [applied.edit], keypad: kind === "weight" || kind === "percentage" ? "open" : undefined },
   };
 }
 
@@ -264,12 +267,45 @@ export function LiftoEditorSession_keypadInput(session: ILiftoEditorSession, key
   return bufferResult(session, { ...active, buffer, fresh: false });
 }
 
-export function LiftoEditorSession_setUnit(session: ILiftoEditorSession, unit: IUnit): ILiftoEditorSessionResult {
+export function LiftoEditorSession_setUnit(
+  session: ILiftoEditorSession,
+  unit: IUnit | IPercentageUnit,
+  settings: ISettings,
+  exerciseType: IExerciseType
+): ILiftoEditorSessionResult {
   const active = session.active;
   if (active == null) {
     return { session, effects: {} };
   }
-  return bufferResult(session, { ...active, suffix: unit });
+  const plus = active.suffix.endsWith("+") ? "+" : "";
+  const currentUnit = active.suffix.startsWith("%") ? "%" : active.suffix.startsWith("kg") ? "kg" : "lb";
+  if (unit === currentUnit) {
+    return { session, effects: {} };
+  }
+  const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
+  const rm1 = Exercise_onerm(exerciseType, settings);
+  let buffer = active.buffer;
+  let kind = active.numeric.kind;
+  // kg <-> lb keeps the raw value (matching the workout weight input); % conversions go
+  // through the exercise's 1RM so the token keeps referring to the same lifted load.
+  if (unit === "%") {
+    if (rm1.value <= 0) {
+      return { session, effects: {} };
+    }
+    const weight = Weight_convertTo(Weight_build(value, currentUnit as IUnit), rm1.unit);
+    buffer = `${MathUtils_roundFloat((weight.value / rm1.value) * 100, 2)}`;
+    kind = "percentage";
+  } else if (currentUnit === "%") {
+    const weight = Weight_round(Weight_build((rm1.value * value) / 100, rm1.unit), settings, unit, exerciseType);
+    buffer = `${Weight_convertTo(weight, unit).value}`;
+    kind = "weight";
+  }
+  return bufferResult(session, {
+    ...active,
+    buffer,
+    suffix: `${unit}${plus}`,
+    numeric: { ...active.numeric, kind },
+  });
 }
 
 // The 1RM-calculator result: the keypad was closed for the modal, so always reopen it.
@@ -299,7 +335,8 @@ export function LiftoEditorSession_step(
   // fixed weights). Function-arg and script weights are increments and step a plain unit.
   if (active.numeric.kind === "weight" && !active.numeric.inFunctionArgs) {
     const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
-    const unit: IUnit = active.suffix === "kg" ? "kg" : "lb";
+    // startsWith: WeightWithPlus tokens carry the "+" in the suffix ("kg+").
+    const unit: IUnit = active.suffix.startsWith("kg") ? "kg" : "lb";
     const stepFn = direction > 0 ? Weight_increment : Weight_decrement;
     const next = stepFn(Weight_build(value, unit), settings, exerciseType);
     return bufferResult(session, { ...active, buffer: `${next.value}`, suffix: next.unit });
@@ -457,9 +494,19 @@ export function LiftoEditorSession_activeLevelIndex(session: ILiftoEditorSession
   return session.focusLevel != null ? Math.min(session.focusLevel, levels.length - 1) : levels.length - 1;
 }
 
+// Leaf levels (a weight, a percentage) have no own pills — fall through to the nearest
+// structural ancestor, so focusing a token surfaces its context's actions. The walk stops
+// at the first pill-boundary level even if its rail is empty: `used: none` should show
+// "No actions", not the whole exercise's pills.
 export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEditorPill[] {
   const levels = session.context?.levels ?? [];
-  return levels[LiftoEditorSession_activeLevelIndex(session)]?.pills ?? [];
+  for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
+    const level = levels[i];
+    if (level != null && LiftoEditorActions_isPillBoundary(level.nodeName)) {
+      return level.pills;
+    }
+  }
+  return [];
 }
 
 export function LiftoEditorSession_highlight(session: ILiftoEditorSession): ILiftoEditorStyledRange[] {

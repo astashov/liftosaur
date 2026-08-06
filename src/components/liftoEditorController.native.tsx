@@ -33,9 +33,9 @@ import { PlatesCalculator } from "./inputWeight2";
 import { useCloseCustomKeyboard, useOpenCustomKeyboard } from "../navigation/CustomKeyboardContext";
 import { useModal } from "../navigation/ModalStateContext";
 import { useTrackedState, untrack } from "../navigation/TrackedStateContext";
-import { Weight_build } from "../models/weight";
-import { Exercise_fullName, Exercise_get } from "../models/exercise";
-import { IExercisePickerSelectedExercise, IExerciseType, IPercentageUnit, ISettings, IUnit } from "../types";
+import { Weight_build, Weight_round } from "../models/weight";
+import { Exercise_fullName, Exercise_get, Exercise_onerm } from "../models/exercise";
+import { IExercisePickerSelectedExercise, IExerciseType, IPercentageUnit, ISettings, IUnit, IWeight } from "../types";
 
 export type { ILiftoEditorMode };
 
@@ -127,12 +127,41 @@ export function useLiftoEditorController(
     if (active == null) {
       return;
     }
-    const isWeight = active.numeric.kind === "weight" && (active.suffix === "kg" || active.suffix === "lb");
-    const weightValue = parseFloat(active.buffer);
+    const suffixUnit = active.suffix.startsWith("%")
+      ? "%"
+      : active.suffix.startsWith("kg")
+        ? "kg"
+        : active.suffix.startsWith("lb")
+          ? "lb"
+          : undefined;
+    const isWeight = active.numeric.kind === "weight" && (suffixUnit === "kg" || suffixUnit === "lb");
+    const isPercentage = active.numeric.kind === "percentage" && suffixUnit === "%";
+    // Warmup percentages resolve against the first work set, not the 1RM, so neither the
+    // 1RM-based unit conversion nor the resolved-weight readout applies there.
+    const inWarmup = sess.context?.levels.some((l) => l.nodeName === "WarmupExerciseSets") ?? false;
+    const canUseRm1 = !active.numeric.inFunctionArgs && !inWarmup;
+    const value = parseFloat(active.buffer);
     // Function-arg and script weights are increments, not lifted loads — no plates readout.
-    const evaluatedWeight =
-      isWeight && !active.numeric.inFunctionArgs && Number.isFinite(weightValue)
-        ? Weight_build(weightValue, active.suffix as IUnit)
+    let evaluatedWeight: IWeight | undefined;
+    if (isWeight && canUseRm1 && Number.isFinite(value)) {
+      evaluatedWeight = Weight_build(value, suffixUnit as IUnit);
+    } else if (isPercentage && canUseRm1 && Number.isFinite(value)) {
+      const rm1 = Exercise_onerm(exerciseType, settings);
+      if (rm1.value > 0) {
+        evaluatedWeight = Weight_round(
+          Weight_build((rm1.value * value) / 100, rm1.unit),
+          settings,
+          rm1.unit,
+          exerciseType
+        );
+      }
+    }
+    const enableUnits: (IUnit | IPercentageUnit)[] | undefined = isWeight
+      ? canUseRm1
+        ? ["kg", "lb", "%"]
+        : ["kg", "lb"]
+      : isPercentage && canUseRm1
+        ? ["kg", "lb", "%"]
         : undefined;
     openKeyboard({
       id: "liftoEditorNumber",
@@ -151,18 +180,16 @@ export function useLiftoEditorController(
             // closeKeyboard (not the config's onBlur) keeps the active session, so the
             // modal result can re-apply into the same token and reopen the keypad.
             closeKeyboard();
-            openCalculator({ unit: active.suffix as "kg" | "lb" });
+            openCalculator({ unit: suffixUnit as "kg" | "lb" });
           }
         : undefined,
-      enableUnits: active.numeric.kind === "weight" ? (["kg", "lb"] as IUnit[]) : undefined,
-      selectedUnit: active.numeric.kind === "weight" ? (active.suffix as IUnit) : undefined,
+      enableUnits,
+      selectedUnit: enableUnits != null ? suffixUnit : undefined,
       onInput: (key) => dispatch(LiftoEditorSession_keypadInput(sessionRef.current, key)),
       onPlus: () => dispatch(LiftoEditorSession_step(sessionRef.current, 1, settings, exerciseType)),
       onMinus: () => dispatch(LiftoEditorSession_step(sessionRef.current, -1, settings, exerciseType)),
       onChangeUnits: (unit: IUnit | IPercentageUnit) => {
-        if (unit === "kg" || unit === "lb") {
-          dispatch(LiftoEditorSession_setUnit(sessionRef.current, unit));
-        }
+        dispatch(LiftoEditorSession_setUnit(sessionRef.current, unit, settings, exerciseType));
       },
       onBlur: () => dispatch(LiftoEditorSession_deactivate(sessionRef.current)),
     });

@@ -42,6 +42,8 @@ export const LiftoEditorActions_pillDefs = {
   addStateVar: { label: "Add state var", category: "logic" },
   require2Successes: { label: "Require 2 successes", category: "logic", template: ", 2, 0" },
   addDeload: { label: "Add deload on failure", category: "logic" },
+  makeWeight: { label: "Make weight", category: "weight" },
+  makeNumber: { label: "Make number", category: "weight" },
   addSetGroup: { label: "Add another set group", category: "sets", template: ", 3x8" },
   addSetVariation: { label: "Add set variation", category: "sets", template: " / 3x8" },
   addSets: { label: "Add sets", category: "sets", template: " / 3x8" },
@@ -389,8 +391,23 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
 }
 
 function keyValuePills(text: string, node: SyntaxNode): ILiftoEditorPill[] {
+  const pills: ILiftoEditorPill[] = [];
   const keyword = node.getChild(PlannerNodeName.Keyword);
-  return keyword != null ? [renamePill(nodeText(text, keyword), keyword.from, keyword.to)] : [];
+  if (keyword != null) {
+    pills.push(renamePill(nodeText(text, keyword), keyword.from, keyword.to));
+  }
+  const numberNode = node.getChild(PlannerNodeName.Number);
+  if (numberNode != null) {
+    pills.push(replacePill(defs.makeWeight, numberNode, `${nodeText(text, numberNode)}lb`));
+  }
+  const weightNode = node.getChild(PlannerNodeName.Weight);
+  if (weightNode != null) {
+    const numericPart = nodeText(text, weightNode).match(/^[+-]?\d+(?:\.\d+)?/);
+    if (numericPart != null) {
+      pills.push(replacePill(defs.makeNumber, weightNode, numericPart[0]));
+    }
+  }
+  return pills;
 }
 
 // The `label:` prefix of `label: Name` (one ExerciseName token in the grammar); undefined
@@ -424,33 +441,28 @@ export function LiftoEditorActions_renameEdit(target: ITextEdit, newLabel: strin
   return { start: target.start, end: target.end, text: sanitized };
 }
 
+const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxNode) => ILiftoEditorPill[]>> = {
+  [PlannerNodeName.ExerciseSet]: setGroupPills,
+  [PlannerNodeName.ExerciseExpression]: exercisePills,
+  [PlannerNodeName.ExerciseProperty]: propertyPills,
+  [PlannerNodeName.FunctionExpression]: fnPills,
+  [PlannerNodeName.KeyValue]: keyValuePills,
+  [PlannerNodeName.ExerciseSets]: setsPills,
+  [PlannerNodeName.SetPart]: setPartPills,
+  [PlannerNodeName.Timer]: restTimerPills,
+  [PlannerNodeName.SetTimer]: setTimerPills,
+  [PlannerNodeName.WarmupExerciseSets]: warmupSetsPills,
+  [PlannerNodeName.ReuseSection]: reuseSectionPills,
+  [PlannerNodeName.SetLabel]: setLabelPills,
+};
+
 export function LiftoEditorActions_pillsForNode(text: string, node: SyntaxNode): ILiftoEditorPill[] {
-  switch (node.name as PlannerNodeName) {
-    case PlannerNodeName.ExerciseSet:
-      return setGroupPills(text, node);
-    case PlannerNodeName.ExerciseExpression:
-      return exercisePills(text, node);
-    case PlannerNodeName.ExerciseProperty:
-      return propertyPills(text, node);
-    case PlannerNodeName.FunctionExpression:
-      return fnPills(text, node);
-    case PlannerNodeName.KeyValue:
-      return keyValuePills(text, node);
-    case PlannerNodeName.ExerciseSets:
-      return setsPills(text, node);
-    case PlannerNodeName.SetPart:
-      return setPartPills(text, node);
-    case PlannerNodeName.Timer:
-      return restTimerPills(text, node);
-    case PlannerNodeName.SetTimer:
-      return setTimerPills(text, node);
-    case PlannerNodeName.WarmupExerciseSets:
-      return warmupSetsPills(text, node);
-    case PlannerNodeName.ReuseSection:
-      return reuseSectionPills(text, node);
-    case PlannerNodeName.SetLabel:
-      return setLabelPills(text, node);
-    default:
-      return [];
-  }
+  return pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
+}
+
+// Levels of these node types own their pill rail: the rail's ancestor fall-through stops
+// here even when the pill list is empty, so e.g. `used: none` shows "No actions" instead
+// of the whole exercise's pills.
+export function LiftoEditorActions_isPillBoundary(nodeName: string): boolean {
+  return nodeName in pillBuilders;
 }
