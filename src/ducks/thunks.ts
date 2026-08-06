@@ -1280,8 +1280,8 @@ export function Thunk_pushToEditProgramExercise(
       dispatch(Thunk_log("ls-program-edit-exercise-screen"));
       const { navigateTo, navigateToModal } = await getNavigationService();
       // Prototype: from-workout edits open the Liftoscript editor sheet instead of the
-      // full edit screen (native only — the sheet modal isn't registered on web).
-      if (isFromWorkout && Platform.OS !== "web") {
+      // full edit screen.
+      if (isFromWorkout) {
         navigateToModal("editorSheetModal", { programId, key, dayData });
       } else {
         navigateTo("editProgramExercise", { programId, key, dayData, fromWorkout: isFromWorkout });

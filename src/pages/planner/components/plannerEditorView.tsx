@@ -11,6 +11,9 @@ interface IProps {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
+  // The program editors' error presentation (dark-red band, white text) follows
+  // lineNumbers by default; hosts without a gutter (the editor sheet) opt in explicitly.
+  redError?: boolean;
   onCustomErrorCta?: (error: string) => JSX.Element | undefined;
   customExercises: IAllCustomExercises;
   exerciseFullNames: string[];
@@ -90,9 +93,17 @@ export function PlannerEditorView(props: IProps): JSX.Element {
 
   return (
     <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web, Iosevka" }}>
-      <div className={props.lineNumbers ? "planner-editor-error sticky bg-background-darkred z-30" : ""}>
+      <div
+        className={
+          (props.redError ?? props.lineNumbers) ? "planner-editor-error sticky bg-background-darkred z-30" : ""
+        }
+      >
         {props.error && (
-          <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />
+          <EvalResult
+            redTheme={props.redError ?? props.lineNumbers}
+            error={props.error}
+            onCustomErrorCta={props.onCustomErrorCta}
+          />
         )}
       </div>
       <div data-testid="planner-editor" className={className} ref={divRef}></div>
