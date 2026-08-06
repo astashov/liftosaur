@@ -16,6 +16,9 @@ import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
 interface IProps {
   children: ReactNode;
   onClose: () => void;
+  // Pre-animation veto: the sheet slides out before onClose fires, so any "discard
+  // changes?" confirmation must happen here, while the sheet is still visible.
+  shouldClose?: () => boolean | Promise<boolean>;
   fitContent?: boolean;
 }
 
@@ -49,7 +52,15 @@ export function TransparentModal(props: IProps): JSX.Element {
     ]).start();
   }, []);
 
-  const handleClose = useCallback(() => {
+  const shouldCloseRef = useRef(props.shouldClose);
+  shouldCloseRef.current = props.shouldClose;
+
+  const handleClose = useCallback(async () => {
+    if (shouldCloseRef.current != null && !(await shouldCloseRef.current())) {
+      // A drag-to-dismiss can leave the sheet partially dragged down; snap it back.
+      Animated.spring(translateY, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
+      return;
+    }
     Animated.parallel([
       Animated.timing(translateY, { toValue: sheetHeight, duration: 200, useNativeDriver: true }),
       Animated.timing(overlayOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),

@@ -4,6 +4,7 @@ interface IProps {
   children: ReactNode;
   shouldShowClose?: boolean;
   fitContent?: boolean;
+  shouldClose?: () => boolean | Promise<boolean>;
   onClose: () => void;
 }
 

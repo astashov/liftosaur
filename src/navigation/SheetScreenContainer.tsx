@@ -6,6 +6,9 @@ interface IProps {
   children: ReactNode;
   shouldShowClose?: boolean;
   fitContent?: boolean;
+  // Pre-animation veto: the sheet slides out before onClose fires, so any "discard
+  // changes?" confirmation must happen here, while the sheet is still visible.
+  shouldClose?: () => boolean | Promise<boolean>;
   onClose: () => void;
 }
 
@@ -15,6 +18,8 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
   const sheetRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(props.onClose);
   onCloseRef.current = props.onClose;
+  const shouldCloseRef = useRef(props.shouldClose);
+  shouldCloseRef.current = props.shouldClose;
 
   useEffect(() => {
     setContainerRef(document.getElementById("bottomsheet"));
@@ -29,7 +34,10 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
     };
   }, []);
 
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback(async () => {
+    if (shouldCloseRef.current != null && !(await shouldCloseRef.current())) {
+      return;
+    }
     setIsVisible(false);
     setTimeout(() => {
       onCloseRef.current();

@@ -3,6 +3,7 @@ import { JSX, ReactNode, CSSProperties } from "react";
 interface IProps {
   children: ReactNode;
   onClose: () => void;
+  shouldClose?: () => boolean | Promise<boolean>;
   fitContent?: boolean;
 }
 
