@@ -17,13 +17,13 @@ import { PlannerProgram_isValid } from "../../pages/planner/models/plannerProgra
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
-import { Dialog_alert } from "../../utils/dialog";
-import type { IExercisePickerSelectedExercise, IPlannerProgram } from "../../types";
+import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
+import type { IDayData, IExercisePickerSelectedExercise, IPlannerProgram } from "../../types";
 import type { ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
-import { CustomKeyboardProvider } from "../CustomKeyboardContext";
+import { CustomKeyboardProvider, useCloseCustomKeyboard } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
@@ -212,9 +212,17 @@ function HintBar(props: { hint: { short: string; detail: string }; onDismiss: ()
   );
 }
 
+interface IEditorSheetInstanceOption {
+  dayData: Required<IDayData>;
+  label: string;
+  isSelected: boolean;
+}
+
 function EditorSheetBody(props: {
   initialText: string;
   headerLabel: string;
+  instances: IEditorSheetInstanceOption[];
+  onSelectInstance: (instance: IEditorSheetInstanceOption) => void;
   pickerData?: IEditorSheetExercisePickerModalData;
   onEditReuse?: (targetName: string) => void;
   onDone: (text: string) => void;
@@ -263,7 +271,23 @@ function EditorSheetBody(props: {
   const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();
+  const closeKeyboard = useCloseCustomKeyboard();
   const isFreeform = controller.mode === "freeform";
+
+  const selectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
+    if (instance.isSelected) {
+      return;
+    }
+    if (controller.text.trim() !== props.initialText.trim()) {
+      if (!(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
+        return;
+      }
+    }
+    // The keypad host lives outside this component; switching remounts the body and would
+    // otherwise leave an orphaned keypad open.
+    closeKeyboard();
+    props.onSelectInstance(instance);
+  };
 
   return (
     // Auto-height: the sheet hugs the content; the nested fit-content keyboard host adds
@@ -272,7 +296,30 @@ function EditorSheetBody(props: {
       <View>
         <View className="flex-row items-center gap-2 px-4 pb-2 border-b border-border-neutral">
           <View className="flex-1">
-            <Text className="text-xs font-bold text-text-secondary">{props.headerLabel}</Text>
+            {props.instances.length > 1 ? (
+              <FadeScrollView className="mb-1" contentClassName="gap-1">
+                {props.instances.map((instance) => (
+                  <Pressable
+                    key={instance.label}
+                    className={`px-2 py-0.5 rounded border ${
+                      instance.isSelected
+                        ? "bg-background-default border-button-primarybackground"
+                        : "bg-background-subtle border-background-subtle"
+                    }`}
+                    onPress={() => selectInstance(instance)}
+                  >
+                    <Text
+                      className="text-xs font-bold text-text-secondary"
+                      style={instance.isSelected ? { color: accent } : undefined}
+                    >
+                      {instance.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </FadeScrollView>
+            ) : (
+              <Text className="text-xs font-bold text-text-secondary">{props.headerLabel}</Text>
+            )}
             {isFreeform ? (
               <Text className="text-sm text-text-secondary">Editing as text</Text>
             ) : (
@@ -416,8 +463,28 @@ export function NavModalEditorSheet(): JSX.Element {
     }
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
     const programExercise = Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key);
-    return programExercise != null ? { evaluatedProgram, programExercise } : undefined;
+    if (programExercise == null) {
+      return undefined;
+    }
+    // One entry per declaration: repeat instances share the declaration's text, so a chip
+    // per repeated week would be several ways to edit the same source line.
+    const instances = Program_getAllProgramExercises(evaluatedProgram).filter(
+      (e) => e.key === params.key && !e.isRepeat
+    );
+    return {
+      evaluatedProgram,
+      programExercise,
+      instances,
+      initialDayData: findDeclaration(evaluatedProgram, programExercise).dayData,
+    };
   });
+  const [selectedDayData, setSelectedDayData] = useState(snapshot?.initialDayData ?? params?.dayData);
+  const currentExercise =
+    snapshot != null && selectedDayData != null
+      ? (snapshot.instances.find(
+          (e) => e.dayData.week === selectedDayData.week && e.dayData.dayInWeek === selectedDayData.dayInWeek
+        ) ?? snapshot.programExercise)
+      : undefined;
 
   const onClose = (): void => {
     navigation.goBack();
@@ -443,7 +510,7 @@ export function NavModalEditorSheet(): JSX.Element {
 
   const onDone = (newText: string): void => {
     const trimmed = newText.trim();
-    if (params == null || snapshot == null || trimmed === snapshot.programExercise.text) {
+    if (params == null || snapshot == null || currentExercise == null || trimmed === currentExercise.text) {
       onClose();
       return;
     }
@@ -461,7 +528,7 @@ export function NavModalEditorSheet(): JSX.Element {
       return;
     }
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
-    const programExercise = Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key);
+    const programExercise = Program_getProgramExercise(currentExercise.dayData.day, evaluatedProgram, params.key);
     const declaration = programExercise != null ? findDeclaration(evaluatedProgram, programExercise) : undefined;
     const newPlanner =
       declaration != null
@@ -493,16 +560,25 @@ export function NavModalEditorSheet(): JSX.Element {
     onClose();
   };
 
-  const initialText = snapshot?.programExercise.text ?? sampleText;
-  const headerLabel = params != null ? `WK ${params.dayData.week} · DAY ${params.dayData.dayInWeek}` : "WK 1 · DAY 1";
+  const initialText = currentExercise?.text ?? sampleText;
+  const dayData = selectedDayData ?? params?.dayData;
+  const headerLabel = dayData != null ? `WK ${dayData.week} · DAY ${dayData.dayInWeek}` : "WK 1 · DAY 1";
+  const instances: IEditorSheetInstanceOption[] = (snapshot?.instances ?? []).map((e) => ({
+    dayData: e.dayData,
+    label: `WK ${e.dayData.week} · DAY ${e.dayData.dayInWeek}`,
+    isSelected:
+      selectedDayData != null &&
+      e.dayData.week === selectedDayData.week &&
+      e.dayData.dayInWeek === selectedDayData.dayInWeek,
+  }));
   const pickerData: IEditorSheetExercisePickerModalData | undefined =
-    snapshot != null && params != null
+    snapshot != null && params != null && currentExercise != null && dayData != null
       ? {
-          exerciseType: snapshot.programExercise.exerciseType,
-          label: snapshot.programExercise.label,
-          templateName: snapshot.programExercise.exerciseType == null ? snapshot.programExercise.name : undefined,
+          exerciseType: currentExercise.exerciseType,
+          label: currentExercise.label,
+          templateName: currentExercise.exerciseType == null ? currentExercise.name : undefined,
           programId: params.programId,
-          dayData: params.dayData,
+          dayData,
         }
       : undefined;
 
@@ -511,8 +587,12 @@ export function NavModalEditorSheet(): JSX.Element {
       <TransparentModal onClose={onClose} fitContent={true}>
         <CustomKeyboardProvider applySafeAreaBottom={false} fitContent={true} noShadow={true}>
           <EditorSheetBody
+            // Remount on instance switch: the controller reads initialText only once.
+            key={dayData != null ? `${dayData.week}-${dayData.dayInWeek}` : "default"}
             initialText={initialText}
             headerLabel={headerLabel}
+            instances={instances}
+            onSelectInstance={(instance) => setSelectedDayData(instance.dayData)}
             pickerData={pickerData}
             onEditReuse={onEditReuse}
             onDone={onDone}
