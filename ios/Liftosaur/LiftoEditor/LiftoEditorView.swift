@@ -15,6 +15,7 @@ import Runestone
   private let textView = TextView()
   private let rangesStore = ExternalRangesStore()
   private var hasSetInitialText = false
+  private var currentFontSize: Double = 16
   private var contentSizeObservation: NSKeyValueObservation?
   private var lastReportedContentHeight: CGFloat = -1
   private var structuredTapRecognizer: UITapGestureRecognizer?
@@ -23,7 +24,7 @@ import Runestone
   public override init(frame: CGRect) {
     super.init(frame: frame)
     textView.editorDelegate = self
-    textView.theme = LiftoEditorTheme()
+    textView.theme = LiftoEditorTheme(fontSize: 16)
     textView.setLanguageMode(ExternalRangesLanguageMode(store: rangesStore))
     textView.showLineNumbers = false
     textView.isLineWrappingEnabled = true
@@ -85,6 +86,14 @@ import Runestone
     lastReportedContentHeight = -1
     textView.text = ""
     rangesStore.setRanges([])
+  }
+
+  @objc public func applyFontSize(_ size: Double) {
+    guard size > 0, size != currentFontSize else {
+      return
+    }
+    currentFontSize = size
+    textView.theme = LiftoEditorTheme(fontSize: CGFloat(size))
   }
 
   @objc public func applyEditable(_ editable: Bool) {
@@ -181,12 +190,12 @@ import Runestone
 // The app's code font (same face FastText/styledText use); colors come from the external
 // styled ranges, so the theme only carries the base font and neutral colors.
 private final class LiftoEditorTheme: Runestone.Theme {
-  let font: UIFont = UIFont(name: "Iosevka", size: 16) ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
+  let font: UIFont
   let textColor: UIColor = .label
   let gutterBackgroundColor: UIColor = .clear
   let gutterHairlineColor: UIColor = .clear
   let lineNumberColor: UIColor = .secondaryLabel
-  let lineNumberFont: UIFont = UIFont(name: "Iosevka", size: 16) ?? .monospacedSystemFont(ofSize: 16, weight: .regular)
+  let lineNumberFont: UIFont
   let selectedLineBackgroundColor: UIColor = .clear
   let selectedLinesLineNumberColor: UIColor = .secondaryLabel
   let selectedLinesGutterBackgroundColor: UIColor = .clear
@@ -194,6 +203,12 @@ private final class LiftoEditorTheme: Runestone.Theme {
   let pageGuideHairlineColor: UIColor = .clear
   let pageGuideBackgroundColor: UIColor = .clear
   let markedTextBackgroundColor: UIColor = .systemFill
+
+  init(fontSize: CGFloat) {
+    let font = UIFont(name: "Iosevka", size: fontSize) ?? .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+    self.font = font
+    self.lineNumberFont = font
+  }
 
   func textColor(for highlightName: String) -> UIColor? {
     nil

@@ -81,6 +81,9 @@ static NSString *LiftoEditorNSString(const std::string &string) {
   const auto &newProps = static_cast<const LiftoEditorProps &>(*props);
   const auto &prevProps = static_cast<const LiftoEditorProps &>(*_props);
   [_editorView setInitialText:LiftoEditorNSString(newProps.initialText)];
+  if (newProps.fontSize != prevProps.fontSize) {
+    [_editorView applyFontSize:newProps.fontSize];
+  }
   if (newProps.editable != prevProps.editable) {
     [_editorView applyEditable:newProps.editable];
   }

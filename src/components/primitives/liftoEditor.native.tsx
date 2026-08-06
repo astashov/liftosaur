@@ -1,6 +1,7 @@
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { NativeSyntheticEvent, StyleProp, ViewStyle } from "react-native";
 import LiftoEditorNative, { Commands } from "../../specs/LiftoEditorNativeComponent";
+import { useRem } from "../../utils/useRem";
 import {
   ILiftoEditorHandle,
   ILiftoEditorStyledRange,
@@ -40,6 +41,9 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
 
 export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   const nativeRef = useRef<React.ElementRef<typeof LiftoEditorNative>>(null);
+  // The editor's base font is 16pt at the default rem, so the current rem value IS the
+  // scaled font size — this is what makes the editor follow the Appearance size slider.
+  const fontSize = useRem();
   const textRef = useRef(props.initialText);
   // Set on programmatic replaceRange: the post-edit text, known before the native TextDelta
   // round trip. Pushing ranges computed from it in the same command batch as the replace
@@ -129,6 +133,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       ref={nativeRef}
       style={[props.style, autoHeight && contentHeight != null ? { height: contentHeight } : null]}
       initialText={props.initialText}
+      fontSize={fontSize}
       editable={props.editable ?? true}
       onTextDelta={handleTextDelta}
       onEditorSelectionChange={handleSelectionChange}

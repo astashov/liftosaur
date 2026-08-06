@@ -30,7 +30,10 @@ export function NavModalEditorSheetExercisePicker(): JSX.Element {
     label: data?.label,
     templateName: data?.templateName,
     exerciseType: data?.exerciseType,
-    selectedTab: data?.templateName != null ? 1 : 0,
+    selectedTab: 0,
+    // The sheet only swaps the name token, so labels/templates are edited in the text itself.
+    hideLabel: true,
+    hideTemplate: true,
     selectedExercises: data?.exerciseType
       ? [{ type: "adhoc", exerciseType: data.exerciseType, label: data.label }]
       : [],
