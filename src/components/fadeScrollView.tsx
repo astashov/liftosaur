@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useId } from "react";
+import { JSX, ReactNode, RefObject, useId } from "react";
 import { ScrollView, View } from "react-native";
 import { Svg, Defs, LinearGradient, Stop, Rect } from "./primitives/svg";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -10,6 +10,7 @@ interface IProps {
   // Must match the background the scroller sits on for the overlay to read as a fade.
   color?: string;
   fadeWidth?: number;
+  scrollRef?: RefObject<ScrollView | null>;
 }
 
 // Horizontal scroller whose right edge fades content out into the background. The gradient
@@ -22,7 +23,15 @@ export function FadeScrollView(props: IProps): JSX.Element {
   const fadeWidth = props.fadeWidth ?? 24;
   return (
     <View className={`relative ${props.className ?? ""}`}>
-      <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+      {/* The automatic inset under the native-stack modal gives the scroller vertical
+          scrollable range, which reads as a rubbery vertical drag on the chip rails. */}
+      <ScrollView
+        ref={props.scrollRef}
+        horizontal={true}
+        showsHorizontalScrollIndicator={false}
+        alwaysBounceVertical={false}
+        contentInsetAdjustmentBehavior="never"
+      >
         <View className={`flex-row items-center ${props.contentClassName ?? ""}`} style={{ paddingRight: fadeWidth }}>
           {props.children}
         </View>
