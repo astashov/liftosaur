@@ -264,10 +264,10 @@ export function EditProgramUiHelpers_getWeeks2(
   fullName: string,
   ignoreRepeats: boolean = false
 ): number[] {
-  const day = evaluatedProgram.weeks[dayData.week - 1].days[dayData.dayInWeek - 1];
+  const day = evaluatedProgram.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
   const weeks: Set<number> = new Set();
   weeks.add(dayData.week);
-  const exercise = day.exercises.find((e) => e.fullName === fullName);
+  const exercise = day?.exercises.find((e) => e.fullName === fullName);
   if (!ignoreRepeats && exercise != null) {
     for (const repeating of exercise.repeating) {
       weeks.add(repeating);

@@ -33,7 +33,7 @@ interface IEditProgramExerciseDayProps {
 }
 
 export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX.Element {
-  const day = props.evaluatedProgram.weeks[props.weekIndex].days[props.dayInWeekIndex];
+  const day = props.evaluatedProgram.weeks[props.weekIndex]?.days[props.dayInWeekIndex];
   const plannerExercise = day?.exercises.find((exercise) => exercise.key === props.exerciseKey);
   const hasSetVariations = (plannerExercise?.evaluatedSetVariations.length ?? 0) > 1;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
