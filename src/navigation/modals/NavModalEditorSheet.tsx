@@ -30,6 +30,7 @@ import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
+import { IconTrash } from "../../components/icons/iconTrash";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 const sampleText = `# Week 1
@@ -370,13 +371,10 @@ function EditorSheetBody(props: {
             </FadeScrollView>
             <View className="flex-row items-center border-l border-border-neutral">
               {(controller.context?.levels ?? []).length > 0 ? (
-                <Pressable className="pl-2 py-1" onPress={controller.removeFocused}>
-                  <IconCloseCircleOutline />
+                <Pressable className="px-4 py-2" onPress={controller.removeFocused}>
+                  <IconTrash width={15} height={18} />
                 </Pressable>
               ) : null}
-              <View className="px-2 py-1">
-                <Text className="text-base font-bold text-text-secondary">⋮</Text>
-              </View>
             </View>
           </View>
         ) : null}
