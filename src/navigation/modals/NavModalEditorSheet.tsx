@@ -16,7 +16,7 @@ import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
-import type { IPlannerProgram, ISettings } from "../../types";
+import type { IPlannerProgram, IProgram, ISettings } from "../../types";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
@@ -85,6 +85,14 @@ function cleanErrorMessage(message: string): string {
   return message.replace(/\s*\(\d+:\d+\)$/, "");
 }
 
+// From the program editor the source of truth is the unsaved draft in editProgramStates,
+// not the last saved program — reading storage there would edit stale text and clobber
+// the user's other pending edits on save.
+function resolveProgram(state: IState, programId: string, isFromWorkout: boolean): IProgram | undefined {
+  const draft = !isFromWorkout ? state.editProgramStates[programId]?.current.program : undefined;
+  return draft ?? Program_getProgram(state, programId);
+}
+
 // The evaluator can throw outright on drafts it never sees from saved programs (e.g. a
 // reuse pointing at a week that doesn't exist) — and live validation feeds it every
 // keystroke, so a throw must become an error result, not a crash.
@@ -143,6 +151,7 @@ export function NavModalEditorSheet(): JSX.Element {
   const route = useRoute<{ key: string; name: "editorSheetModal"; params: IRootStackParamList["editorSheetModal"] }>();
   const params = route.params;
   const { state, dispatch } = useAppState();
+  const isFromWorkout = params?.fromWorkout ?? true;
   // Snapshot the exercise on open: the controller only reads initialText once, and
   // re-evaluating the program on every state change would waste work while the sheet is up.
   // Saving must NOT use this — onDone re-resolves from the current state at commit time.
@@ -150,7 +159,7 @@ export function NavModalEditorSheet(): JSX.Element {
     if (params == null) {
       return undefined;
     }
-    const program = Program_getProgram(state, params.programId);
+    const program = resolveProgram(state, params.programId, isFromWorkout);
     if (program == null) {
       return undefined;
     }
@@ -205,7 +214,12 @@ export function NavModalEditorSheet(): JSX.Element {
       return;
     }
     navigation.dispatch(
-      StackActions.push("editorSheetModal", { programId: params.programId, key: target.key, dayData: target.dayData })
+      StackActions.push("editorSheetModal", {
+        programId: params.programId,
+        key: target.key,
+        dayData: target.dayData,
+        fromWorkout: params.fromWorkout,
+      })
     );
   };
 
@@ -222,7 +236,7 @@ export function NavModalEditorSheet(): JSX.Element {
     // Re-resolve from the current state, not the open-time snapshot: a stacked reuse sheet
     // can save this same program while this sheet is up, and writing the snapshot's program
     // back would silently revert that save.
-    const program = Program_getProgram(state, params.programId);
+    const program = resolveProgram(state, params.programId, isFromWorkout);
     if (program?.planner == null) {
       Dialog_alert("Couldn't find this program anymore, so the changes weren't saved.");
       onClose();
@@ -246,19 +260,30 @@ export function NavModalEditorSheet(): JSX.Element {
       return;
     }
     const updatedProgram = { ...program, planner: replaced.planner };
-    const lensUpdates = [
-      lb<IState>()
-        .p("storage")
-        .p("programs")
-        .recordModify((programs) => CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram)),
-    ];
-    // Mirror into an open program editor so it doesn't overwrite this edit on its own save.
-    if (state.editProgramStates[updatedProgram.id] != null) {
-      lensUpdates.push(
-        lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)
+    const hasEditorDraft = state.editProgramStates[updatedProgram.id] != null;
+    if (!isFromWorkout && hasEditorDraft) {
+      // From the program editor the edit stays a draft — the editor's own Save commits
+      // it to storage, same as the full edit-exercise screen.
+      updateState(
+        dispatch,
+        [lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)],
+        "Update program from edit exercise"
       );
+    } else {
+      const lensUpdates = [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((programs) => CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram)),
+      ];
+      // Mirror into an open program editor so it doesn't overwrite this edit on its own save.
+      if (hasEditorDraft) {
+        lensUpdates.push(
+          lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)
+        );
+      }
+      updateState(dispatch, lensUpdates, "Save program changes");
     }
-    updateState(dispatch, lensUpdates, "Save program changes");
     onClose();
   };
 
@@ -272,7 +297,7 @@ export function NavModalEditorSheet(): JSX.Element {
     if (params == null || snapshot == null || currentExercise == null || trimmed === "") {
       return undefined;
     }
-    const program = Program_getProgram(state, params.programId);
+    const program = resolveProgram(state, params.programId, isFromWorkout);
     if (program?.planner == null) {
       return undefined;
     }

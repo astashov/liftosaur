@@ -1278,14 +1278,10 @@ export function Thunk_pushToEditProgramExercise(
       : editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
     if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
       dispatch(Thunk_log("ls-program-edit-exercise-screen"));
-      const { navigateTo, navigateToModal } = await getNavigationService();
-      // Prototype: from-workout edits open the Liftoscript editor sheet instead of the
+      const { navigateToModal } = await getNavigationService();
+      // Prototype: exercise edits open the Liftoscript editor sheet instead of the
       // full edit screen.
-      if (isFromWorkout) {
-        navigateToModal("editorSheetModal", { programId, key, dayData });
-      } else {
-        navigateTo("editProgramExercise", { programId, key, dayData, fromWorkout: isFromWorkout });
-      }
+      navigateToModal("editorSheetModal", { programId, key, dayData, fromWorkout: isFromWorkout });
     } else {
       dispatch(Thunk_pushScreen("main"));
     }
