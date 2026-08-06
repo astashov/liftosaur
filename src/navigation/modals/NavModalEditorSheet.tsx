@@ -13,7 +13,8 @@ import {
   Program_getProgram,
   Program_getProgramExercise,
 } from "../../models/program";
-import { PlannerProgram_isValid } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
+import type { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
@@ -25,6 +26,7 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider, useCloseCustomKeyboard } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
+import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoEditorBrain";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
@@ -382,6 +384,7 @@ function EditorSheetBody(props: {
   onSelectInstance: (instance: IEditorSheetInstanceOption) => void;
   pickerData?: IEditorSheetExercisePickerModalData;
   onEditReuse?: (targetName: string) => void;
+  validateText?: (text: string) => IEditorSheetLiveError | undefined;
   onDone: (text: string) => void;
 }): JSX.Element {
   // useModal registers its result callback once, but the controller hands a fresh
@@ -423,6 +426,24 @@ function EditorSheetBody(props: {
     },
   });
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [liveError, setLiveError] = useState<IEditorSheetLiveError | undefined>(undefined);
+  const validateTextRef = useRef(props.validateText);
+  validateTextRef.current = props.validateText;
+  const liveErrorText = controller.text;
+  // Debounced: validation evaluates the whole program, too heavy per keystroke.
+  useEffect(() => {
+    const timer = setTimeout(() => setLiveError(validateTextRef.current?.(liveErrorText)), 300);
+    return () => clearTimeout(timer);
+  }, [liveErrorText]);
+  // Clamp against the current text: between debounce ticks the error range can be stale.
+  const errorStyledRanges: ILiftoEditorStyledRange[] = [];
+  if (liveError?.from != null && liveError.to != null && liveError.from < controller.text.length) {
+    errorStyledRanges.push({
+      start: liveError.from,
+      end: Math.min(Math.max(liveError.to, liveError.from + 1), controller.text.length),
+      backgroundColor: `${Tailwind_semantic().text.error}26`,
+    });
+  }
   const hint = hintForContext(controller);
   const accent = Tailwind_semantic().text.purple;
   const { height: windowHeight } = useWindowDimensions();
@@ -534,12 +555,20 @@ function EditorSheetBody(props: {
             </View>
           </View>
         ) : null}
+        {liveError != null ? (
+          <View className="px-3 py-2 border-b bg-background-lighterror border-border-neutral">
+            <Text className="text-xs font-semibold text-text-error">{liveError.message}</Text>
+          </View>
+        ) : null}
         {!isFreeform && hint != null && !hintDismissed ? (
           <HintBar hint={hint} onDismiss={() => setHintDismissed(true)} />
         ) : null}
         <ScrollView style={{ maxHeight: windowHeight * 0.45 }}>
           <View className="px-4 py-3">
-            <LiftoEditor {...controller.editorProps} />
+            <LiftoEditor
+              {...controller.editorProps}
+              extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+            />
           </View>
         </ScrollView>
         {systemKeyboardHeight > 0 ? (
@@ -575,7 +604,7 @@ function replaceExerciseTextInPlanner(
   declaration: IPlannerProgramExercise,
   oldText: string,
   newText: string
-): IPlannerProgram | undefined {
+): { planner: IPlannerProgram; dayTextOffset: number } | undefined {
   const weekIndex = declaration.dayData.week - 1;
   const dayIndex = declaration.dayData.dayInWeek - 1;
   const day = planner.weeks[weekIndex]?.days[dayIndex];
@@ -596,7 +625,48 @@ function replaceExerciseTextInPlanner(
       ? { ...w, days: w.days.map((d, di) => (di === dayIndex ? { ...d, exerciseText: newExerciseText } : d)) }
       : w
   );
-  return { ...planner, weeks: newWeeks };
+  return { planner: { ...planner, weeks: newWeeks }, dayTextOffset: at };
+}
+
+interface IEditorSheetLiveError {
+  message: string;
+  from?: number;
+  to?: number;
+}
+
+function cleanErrorMessage(message: string): string {
+  return message.replace(/\s*\(\d+:\d+\)$/, "");
+}
+
+// Errors inside the edited exercise come back with blurb-local from/to (so the sheet can
+// tint the line); errors elsewhere (e.g. the edit broke a `...reuse` on another day) are
+// message-only, prefixed with where they are.
+function findEvalError(
+  evaluatedWeeks: IPlannerEvalResult[][],
+  edited: { weekIndex: number; dayIndex: number; from: number; to: number }
+): IEditorSheetLiveError | undefined {
+  let firstOutside: IEditorSheetLiveError | undefined;
+  for (let wi = 0; wi < evaluatedWeeks.length; wi += 1) {
+    for (let di = 0; di < evaluatedWeeks[wi].length; di += 1) {
+      const result = evaluatedWeeks[wi][di];
+      if (!result.success) {
+        const error = result.error;
+        const isInEdited =
+          wi === edited.weekIndex && di === edited.dayIndex && error.from >= edited.from && error.to <= edited.to;
+        if (isInEdited) {
+          return {
+            message: cleanErrorMessage(error.message),
+            from: error.from - edited.from,
+            to: error.to - edited.from,
+          };
+        }
+        firstOutside = firstOutside ?? {
+          message: `Week ${wi + 1}, Day ${di + 1}: ${cleanErrorMessage(error.message)}`,
+        };
+      }
+    }
+  }
+  return firstOutside;
 }
 
 export function NavModalEditorSheet(): JSX.Element {
@@ -684,20 +754,27 @@ export function NavModalEditorSheet(): JSX.Element {
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
     const programExercise = Program_getProgramExercise(currentExercise.dayData.day, evaluatedProgram, params.key);
     const declaration = programExercise != null ? findDeclaration(evaluatedProgram, programExercise) : undefined;
-    const newPlanner =
+    const replaced =
       declaration != null
         ? replaceExerciseTextInPlanner(program.planner, declaration, declaration.text, trimmed)
         : undefined;
-    if (newPlanner == null) {
+    if (declaration == null || replaced == null) {
       Dialog_alert("Couldn't find this exercise in the program anymore, so the changes weren't saved.");
       onClose();
       return;
     }
-    if (!PlannerProgram_isValid(newPlanner, state.storage.settings)) {
-      Dialog_alert("There's a syntax error in the exercise, fix it before saving.");
+    const { evaluatedWeeks } = PlannerProgram_evaluate(replaced.planner, state.storage.settings);
+    const evalError = findEvalError(evaluatedWeeks, {
+      weekIndex: declaration.dayData.week - 1,
+      dayIndex: declaration.dayData.dayInWeek - 1,
+      from: replaced.dayTextOffset,
+      to: replaced.dayTextOffset + trimmed.length,
+    });
+    if (evalError != null) {
+      Dialog_alert(evalError.message);
       return;
     }
-    const updatedProgram = { ...program, planner: newPlanner };
+    const updatedProgram = { ...program, planner: replaced.planner };
     const lensUpdates = [
       lb<IState>()
         .p("storage")
@@ -712,6 +789,40 @@ export function NavModalEditorSheet(): JSX.Element {
     }
     updateState(dispatch, lensUpdates, "Save program changes");
     onClose();
+  };
+
+  // Live validation for the banner/line-tint: splices the draft text into the *current*
+  // program and evaluates. The declaration is resolved from the open-time snapshot (one
+  // full evaluation per call instead of two); if a stacked reuse sheet changed this very
+  // exercise the splice lookup misses and validation just goes quiet — save still
+  // re-resolves and re-validates from scratch.
+  const validateText = (newText: string): IEditorSheetLiveError | undefined => {
+    const trimmed = newText.trim();
+    if (params == null || snapshot == null || currentExercise == null || trimmed === "") {
+      return undefined;
+    }
+    const program = Program_getProgram(state, params.programId);
+    if (program?.planner == null) {
+      return undefined;
+    }
+    const declaration = findDeclaration(snapshot.evaluatedProgram, currentExercise);
+    const replaced = replaceExerciseTextInPlanner(program.planner, declaration, declaration.text, trimmed);
+    if (replaced == null) {
+      return undefined;
+    }
+    const { evaluatedWeeks } = PlannerProgram_evaluate(replaced.planner, state.storage.settings);
+    const error = findEvalError(evaluatedWeeks, {
+      weekIndex: declaration.dayData.week - 1,
+      dayIndex: declaration.dayData.dayInWeek - 1,
+      from: replaced.dayTextOffset,
+      to: replaced.dayTextOffset + trimmed.length,
+    });
+    if (error?.from != null && error.to != null) {
+      // The splice uses the trimmed text while the editor shows the untrimmed draft.
+      const leading = newText.length - newText.trimStart().length;
+      return { ...error, from: error.from + leading, to: error.to + leading };
+    }
+    return error;
   };
 
   const initialText = currentExercise?.text ?? sampleText;
@@ -749,6 +860,7 @@ export function NavModalEditorSheet(): JSX.Element {
             onSelectInstance={(instance) => setSelectedDayData(instance.dayData)}
             pickerData={pickerData}
             onEditReuse={onEditReuse}
+            validateText={validateText}
             onDone={onDone}
           />
         </CustomKeyboardProvider>
