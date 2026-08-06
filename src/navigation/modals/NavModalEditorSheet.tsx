@@ -404,8 +404,9 @@ export function NavModalEditorSheet(): JSX.Element {
   const route = useRoute<{ key: string; name: "editorSheetModal"; params: IRootStackParamList["editorSheetModal"] }>();
   const params = route.params;
   const { state, dispatch } = useAppState();
-  // Snapshot the program and exercise on open: the controller only reads initialText once,
-  // and re-evaluating the program on every state change would waste work while the sheet is up.
+  // Snapshot the exercise on open: the controller only reads initialText once, and
+  // re-evaluating the program on every state change would waste work while the sheet is up.
+  // Saving must NOT use this — onDone re-resolves from the current state at commit time.
   const [snapshot] = useState(() => {
     if (params == null) {
       return undefined;
@@ -416,9 +417,7 @@ export function NavModalEditorSheet(): JSX.Element {
     }
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
     const programExercise = Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key);
-    return programExercise != null
-      ? { program, evaluatedProgram, programExercise, declaration: findDeclaration(evaluatedProgram, programExercise) }
-      : undefined;
+    return programExercise != null ? { evaluatedProgram, programExercise } : undefined;
   });
 
   const onClose = (): void => {
@@ -445,7 +444,7 @@ export function NavModalEditorSheet(): JSX.Element {
 
   const onDone = (newText: string): void => {
     const trimmed = newText.trim();
-    if (snapshot == null || snapshot.program.planner == null || trimmed === snapshot.programExercise.text) {
+    if (params == null || snapshot == null || trimmed === snapshot.programExercise.text) {
       onClose();
       return;
     }
@@ -453,12 +452,22 @@ export function NavModalEditorSheet(): JSX.Element {
       Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
       return;
     }
-    const newPlanner = replaceExerciseTextInPlanner(
-      snapshot.program.planner,
-      snapshot.declaration,
-      snapshot.declaration.text,
-      trimmed
-    );
+    // Re-resolve from the current state, not the open-time snapshot: a stacked reuse sheet
+    // can save this same program while this sheet is up, and writing the snapshot's program
+    // back would silently revert that save.
+    const program = Program_getProgram(state, params.programId);
+    if (program?.planner == null) {
+      Dialog_alert("Couldn't find this program anymore, so the changes weren't saved.");
+      onClose();
+      return;
+    }
+    const evaluatedProgram = Program_evaluate(program, state.storage.settings);
+    const programExercise = Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key);
+    const declaration = programExercise != null ? findDeclaration(evaluatedProgram, programExercise) : undefined;
+    const newPlanner =
+      declaration != null
+        ? replaceExerciseTextInPlanner(program.planner, declaration, declaration.text, trimmed)
+        : undefined;
     if (newPlanner == null) {
       Dialog_alert("Couldn't find this exercise in the program anymore, so the changes weren't saved.");
       onClose();
@@ -468,7 +477,7 @@ export function NavModalEditorSheet(): JSX.Element {
       Dialog_alert("There's a syntax error in the exercise, fix it before saving.");
       return;
     }
-    const updatedProgram = { ...snapshot.program, planner: newPlanner };
+    const updatedProgram = { ...program, planner: newPlanner };
     const lensUpdates = [
       lb<IState>()
         .p("storage")
