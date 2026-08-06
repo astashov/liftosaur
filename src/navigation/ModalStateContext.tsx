@@ -17,6 +17,7 @@ export interface ITextInputModalData {
   placeholder: string;
   submitLabel: string;
   dataCyPrefix: string;
+  maxLength?: number;
 }
 
 export interface IRepMaxCalculatorModalData {

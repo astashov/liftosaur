@@ -51,6 +51,7 @@ export function NavModalTextInput(): JSX.Element {
           requiredMessage={`${data.inputLabel} cannot be empty`}
           type="text"
           placeholder={data.placeholder}
+          maxLength={data.maxLength}
           changeType="oninput"
           changeHandler={setResult}
           handleRef={inputHandle}
