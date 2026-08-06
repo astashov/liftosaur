@@ -693,7 +693,7 @@ set all the weights equals to the weight of the last finished set and add 5lb to
 This is the list of available variables you can get values from in your `progress: custom()` scripts:
 
 - `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
-- `originalWeights[n]` or `cw[n]` - initial weight before rounding of an N set. N starts from 1.
+- `originalWeights[n]` - initial weight before rounding of an N set. N starts from 1.
 - `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
