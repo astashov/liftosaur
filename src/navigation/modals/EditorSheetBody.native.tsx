@@ -159,6 +159,11 @@ const editorNodeHints: Partial<Record<string, IEditorHint>> = {
     detail:
       "'aux: Bench Press' and 'Bench Press' count as separate exercises with their own progress, so the same movement can appear twice in a program.",
   },
+  ExerciseVariation: {
+    short: "Exercise variation: alternative movements, the app uses the current one.",
+    detail:
+      "'Squat | Pistol Squat' — '!' marks the current variation (the first one when unmarked). Sets and progress are shared; progress scripts switch it via 'exerciseVariationIndex'.",
+  },
 };
 
 const editorFallbackHints = {
@@ -184,6 +189,11 @@ const editorFallbackHints = {
   setGroup: {
     short: "Set group: sets × reps, then weight. % here resolve against your 1RM.",
     detail: "E.g. '3x8-10 @8 60s 80%' — 3 sets of 8-10 reps at RPE 8, 60s rest timer, at 80% of your 1RM.",
+  },
+  setVariation: {
+    short: "Set variation: one of several sets×reps schemes, the app uses the current one.",
+    detail:
+      "'3x8 / ! 5x5' — '!' marks the current variation (the first one when unmarked). Progress scripts switch it via 'setVariationIndex', e.g. on failure in GZCLP.",
   },
   valueWeight: {
     short: "Weight value.",
@@ -219,6 +229,10 @@ function hintForContext(controller: ILiftoEditorController): IEditorHint | undef
   }
   if (level.nodeName === "ExerciseSet" && level.label === "Globals") {
     return editorFallbackHints.globals;
+  }
+  // The Sets level is numbered ("Sets 2") only when the exercise has multiple set variations.
+  if (level.nodeName === "ExerciseSets" && level.label !== "Sets") {
+    return editorFallbackHints.setVariation;
   }
   // Only set-group weights support the '+' suffix (the grammar's WeightWithPlus); weights
   // inside function args, state vars or scripts are plain values and get their own hint.

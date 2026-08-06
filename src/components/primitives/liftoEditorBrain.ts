@@ -6,8 +6,10 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import {
   ILiftoEditorPill,
   LiftoEditorActions_endOfExerciseLine,
+  LiftoEditorActions_enclosingExercise,
   LiftoEditorActions_labelRenamePill,
   LiftoEditorActions_pillsForNode,
+  LiftoEditorActions_setVariationSections,
 } from "./liftoEditorActions";
 
 function nodeText(text: string, node: SyntaxNode): string {
@@ -216,7 +218,6 @@ export interface ILiftoEditorHandle {
 }
 
 const breadcrumbLabels: Partial<Record<PlannerNodeName, string>> = {
-  [PlannerNodeName.ExerciseSets]: "Sets",
   [PlannerNodeName.SetPart]: "Sets×Reps",
   [PlannerNodeName.Weight]: "Weight",
   [PlannerNodeName.WeightWithPlus]: "Weight",
@@ -289,6 +290,31 @@ export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoE
         end: node.to,
         pills: LiftoEditorActions_pillsForNode(text, node),
       });
+    } else if (name === PlannerNodeName.ExerciseSets) {
+      const exercise = LiftoEditorActions_enclosingExercise(node);
+      const variations = exercise != null ? LiftoEditorActions_setVariationSections(exercise) : [];
+      const variationIndex = variations.findIndex((s) => s.from === node!.from);
+      levels.unshift({
+        label: variations.length > 1 && variationIndex !== -1 ? `Sets ${variationIndex + 1}` : "Sets",
+        nodeName: name,
+        start: node.from,
+        end: node.to,
+        pills: LiftoEditorActions_pillsForNode(text, node),
+      });
+    } else if (name === PlannerNodeName.ExerciseVariation) {
+      const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseVariation) ?? [];
+      // Single-variation exercises (the common case) get no level: the exercise level
+      // already covers the name, and "Variation 1" would just be noise.
+      if (siblings.length > 1) {
+        const variationIndex = siblings.findIndex((s) => s.from === node!.from);
+        levels.unshift({
+          label: `Variation ${variationIndex + 1}`,
+          nodeName: name,
+          start: node.from,
+          end: node.to,
+          pills: LiftoEditorActions_pillsForNode(text, node),
+        });
+      }
     } else if (name === PlannerNodeName.ExerciseExpression) {
       const exerciseName = node
         .getChild(PlannerNodeName.ExerciseVariations)

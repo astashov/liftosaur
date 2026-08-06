@@ -20,6 +20,9 @@ export interface ILiftoEditorPill {
   start: number;
   end: number;
   text: string;
+  // Additional disjoint spans applied together with the primary edit, in original-text
+  // coordinates ("Make current" inserts a marker here and removes one elsewhere).
+  extraEdits?: ITextEdit[];
   action?: "changeExercise" | "rename" | "editReuse";
 }
 
@@ -113,6 +116,67 @@ function trimmedEnd(text: string, node: SyntaxNode): number {
   return end;
 }
 
+export function LiftoEditorActions_enclosingExercise(node: SyntaxNode): SyntaxNode | null {
+  let cur: SyntaxNode | null = node;
+  while (cur != null && cur.name !== PlannerNodeName.ExerciseExpression) {
+    cur = cur.parent;
+  }
+  return cur;
+}
+
+// The exercise's set variations: sets sections with at least one real set group. Globals
+// sections parse as ExerciseSets too but can't be a variation.
+export function LiftoEditorActions_setVariationSections(exercise: SyntaxNode): SyntaxNode[] {
+  return exercise
+    .getChildren(PlannerNodeName.ExerciseSection)
+    .map((section) => section.getChild(PlannerNodeName.ExerciseSets))
+    .filter(
+      (sets): sets is SyntaxNode =>
+        sets != null &&
+        sets.getChildren(PlannerNodeName.ExerciseSet).some((set) => set.getChild(PlannerNodeName.SetPart) != null)
+    );
+}
+
+// Both variation kinds (set variations, exercise variations) share the `!` convention:
+// the marked sibling is current, the first one when nothing is marked. Making the first
+// current just unmarks the marked one; anything else gets marked (plus the old marker
+// removed), so the text never carries a redundant `!` on the first sibling.
+function makeCurrentPill(
+  text: string,
+  target: SyntaxNode,
+  siblings: SyntaxNode[],
+  category: ILiftoEditorPillCategory
+): ILiftoEditorPill | undefined {
+  const index = siblings.findIndex((s) => s.from === target.from);
+  if (siblings.length < 2 || index === -1) {
+    return undefined;
+  }
+  const markedIndex = siblings.findIndex((s) => s.getChild(PlannerNodeName.CurrentVariation) != null);
+  if (index === (markedIndex === -1 ? 0 : markedIndex)) {
+    return undefined;
+  }
+  const marker = markedIndex === -1 ? null : siblings[markedIndex].getChild(PlannerNodeName.CurrentVariation);
+  let markerRemoval: ITextEdit | undefined;
+  if (marker != null) {
+    let end = marker.to;
+    while (end < text.length && text[end] === " ") {
+      end += 1;
+    }
+    markerRemoval = { start: marker.from, end, text: "" };
+  }
+  if (index === 0 && markerRemoval != null) {
+    return { label: "Make current", category, ...markerRemoval };
+  }
+  return {
+    label: "Make current",
+    category,
+    start: target.from,
+    end: target.from,
+    text: "! ",
+    extraEdits: markerRemoval != null ? [markerRemoval] : undefined,
+  };
+}
+
 function setGroupPills(text: string, set: SyntaxNode): ILiftoEditorPill[] {
   const insertAt = trimmedEnd(text, set);
   const pills: ILiftoEditorPill[] = [];
@@ -154,7 +218,36 @@ function setsPills(text: string, sets: SyntaxNode): ILiftoEditorPill[] {
     return [];
   }
   const at = trimmedEnd(text, sets);
-  return [insertPill(defs.addSetGroup, at), insertPill(defs.addSetVariation, at)];
+  const pills = [insertPill(defs.addSetGroup, at), insertPill(defs.addSetVariation, at)];
+  const exercise = LiftoEditorActions_enclosingExercise(sets);
+  if (exercise != null) {
+    const current = makeCurrentPill(text, sets, LiftoEditorActions_setVariationSections(exercise), "sets");
+    if (current != null) {
+      pills.unshift(current);
+    }
+  }
+  return pills;
+}
+
+function exerciseVariationPills(text: string, variation: SyntaxNode): ILiftoEditorPill[] {
+  const pills: ILiftoEditorPill[] = [];
+  const siblings = variation.parent?.getChildren(PlannerNodeName.ExerciseVariation) ?? [];
+  const current = makeCurrentPill(text, variation, siblings, "neutral");
+  if (current != null) {
+    pills.push(current);
+  }
+  const nameNode = variation.getChild(PlannerNodeName.ExerciseName);
+  if (nameNode != null) {
+    pills.push({
+      label: "Change exercise…",
+      category: "neutral",
+      start: nameNode.from,
+      end: nameNode.to,
+      text: nodeText(text, nameNode),
+      action: "changeExercise",
+    });
+  }
+  return pills;
 }
 
 function setPartPills(text: string, setPart: SyntaxNode): ILiftoEditorPill[] {
@@ -305,10 +398,7 @@ function reuseSectionPills(text: string, reuse: SyntaxNode): ILiftoEditorPill[] 
   if (reuse.parent?.getChild(PlannerNodeName.WeekDay) == null) {
     pills.push(insertPill(defs.fromWeekDay, trimmedEnd(text, reuse)));
   }
-  let exercise: SyntaxNode | null = reuse.parent;
-  while (exercise != null && exercise.name !== PlannerNodeName.ExerciseExpression) {
-    exercise = exercise.parent;
-  }
+  const exercise = LiftoEditorActions_enclosingExercise(reuse);
   if (exercise != null) {
     const hasOwnSets = exercise
       .getChildren(PlannerNodeName.ExerciseSection)
@@ -358,9 +448,7 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
   if (!hasSetGroups) {
     pills.push(insertPill(defs.addSets, lineEnd));
   }
-  const setGroupSections = setsSections.filter((sets) =>
-    sets.getChildren(PlannerNodeName.ExerciseSet).some((set) => set.getChild(PlannerNodeName.SetPart) != null)
-  );
+  const setGroupSections = LiftoEditorActions_setVariationSections(exercise);
   const lastSetGroupSection = setGroupSections[setGroupSections.length - 1];
   if (lastSetGroupSection != null) {
     pills.push(insertPill(defs.addSetVariation, trimmedEnd(text, lastSetGroupSection)));
@@ -443,6 +531,7 @@ export function LiftoEditorActions_renameEdit(target: ITextEdit, newLabel: strin
 
 const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxNode) => ILiftoEditorPill[]>> = {
   [PlannerNodeName.ExerciseSet]: setGroupPills,
+  [PlannerNodeName.ExerciseVariation]: exerciseVariationPills,
   [PlannerNodeName.ExerciseExpression]: exercisePills,
   [PlannerNodeName.ExerciseProperty]: propertyPills,
   [PlannerNodeName.FunctionExpression]: fnPills,

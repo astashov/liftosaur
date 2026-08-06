@@ -368,29 +368,42 @@ export function LiftoEditorSession_applyPill(
   session: ILiftoEditorSession,
   pill: ILiftoEditorPill
 ): ILiftoEditorSessionResult {
-  const delta = pill.text.length - (pill.end - pill.start);
+  // Multi-span pills ("Make current") carry extraEdits; all spans are disjoint and in
+  // original-text coordinates. Walking them ascending keeps anchor/token bookkeeping in
+  // sync (each iteration shifts the edit into already-applied coordinates).
+  const edits = [{ start: pill.start, end: pill.end, text: pill.text }, ...(pill.extraEdits ?? [])].sort(
+    (a, b) => a.start - b.start
+  );
   let anchor = session.anchor;
-  if (anchor != null) {
-    if (pill.end <= anchor) {
-      anchor = anchor + delta;
-    } else if (pill.start < anchor) {
-      anchor = pill.start;
-    }
-  }
   let focusedToken = session.focusedToken;
-  if (focusedToken != null) {
-    if (pill.end <= focusedToken.start) {
-      focusedToken = { ...focusedToken, start: focusedToken.start + delta, end: focusedToken.end + delta };
-    } else if (pill.start < focusedToken.end && pill.end > focusedToken.start) {
-      // The old token is gone; only the span matters after a snap (re-tap and walking
-      // re-derive tokens from fresh text), so a synthetic non-numeric token suffices.
-      focusedToken = { start: pill.start, end: pill.start + pill.text.length, text: pill.text, walkStop: true };
+  let shift = 0;
+  for (const edit of edits) {
+    const start = edit.start + shift;
+    const end = edit.end + shift;
+    const delta = edit.text.length - (edit.end - edit.start);
+    if (anchor != null) {
+      if (end <= anchor) {
+        anchor = anchor + delta;
+      } else if (start < anchor) {
+        anchor = start;
+      }
     }
+    if (focusedToken != null) {
+      if (end <= focusedToken.start) {
+        focusedToken = { ...focusedToken, start: focusedToken.start + delta, end: focusedToken.end + delta };
+      } else if (start < focusedToken.end && end > focusedToken.start) {
+        // The old token is gone; only the span matters after a snap (re-tap and walking
+        // re-derive tokens from fresh text), so a synthetic non-numeric token suffices.
+        focusedToken = { start, end: start + edit.text.length, text: edit.text, walkStop: true };
+      }
+    }
+    shift += delta;
   }
   return {
     session: { ...session, active: undefined, anchor, focusedToken },
     effects: {
-      edits: [{ start: pill.start, end: pill.end, text: pill.text }],
+      // Descending so the sequential replaceRange calls don't invalidate later offsets.
+      edits: [...edits].reverse(),
       keypad: session.active != null ? "close" : undefined,
     },
   };
@@ -405,16 +418,18 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
   const text = session.text;
   let start = level.start;
   let end = level.end;
-  // A removed item takes a separator with it. For comma-list items (set groups, state
-  // vars) a trailing comma wins — "3x8, 5x5" minus the first group must keep its
-  // leading " / ". Everything else eats its leading " / " or ", ", so
-  // "5x5 / 100kg / progress" minus the weight yields "5x5 / progress".
-  const isCommaListItem = level.nodeName === "ExerciseSet" || level.nodeName === "KeyValue";
+  // A removed item takes a separator with it. For list items (set groups and state vars
+  // separated by ",", exercise variations by "|") a trailing separator wins — "3x8, 5x5"
+  // minus the first group must keep its leading " / ". Everything else eats its leading
+  // " / " or ", ", so "5x5 / 100kg / progress" minus the weight yields "5x5 / progress".
+  const isExerciseVariation = level.nodeName === "ExerciseVariation";
+  const listSeparator =
+    level.nodeName === "ExerciseSet" || level.nodeName === "KeyValue" ? "," : isExerciseVariation ? "|" : undefined;
   let j = end;
   while (j < text.length && text[j] === " ") {
     j += 1;
   }
-  if (isCommaListItem && text[j] === ",") {
+  if (listSeparator != null && text[j] === listSeparator) {
     j += 1;
     while (j < text.length && text[j] === " ") {
       j += 1;
@@ -425,7 +440,7 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
     while (i >= 0 && text[i] === " ") {
       i -= 1;
     }
-    if (i >= 0 && (text[i] === "/" || text[i] === ",")) {
+    if (i >= 0 && (isExerciseVariation ? text[i] === "|" : text[i] === "/" || text[i] === ",")) {
       i -= 1;
       while (i >= 0 && text[i] === " ") {
         i -= 1;
