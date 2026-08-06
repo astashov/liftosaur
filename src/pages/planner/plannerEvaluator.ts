@@ -865,6 +865,9 @@ export function PlannerEvaluator_findOriginalExercisesAtWeekDay(
 ): { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] {
   const originalExercises: { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] = [];
   const week = program[atWeek - 1];
+  if (week == null) {
+    return originalExercises;
+  }
   const candidateDays = atDay != null ? [week[atDay - 1]] : week;
   const originalKey = PlannerKey_fromFullName(fullName, settings.exercises);
   for (let dayInWeekIndex = 0; dayInWeekIndex < candidateDays.length; dayInWeekIndex += 1) {
