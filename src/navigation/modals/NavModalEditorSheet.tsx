@@ -27,6 +27,7 @@ import { CustomKeyboardProvider } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
+import { FadeScrollView } from "../../components/fadeScrollView";
 import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -300,28 +301,26 @@ function EditorSheetBody(props: {
         </View>
         {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
           <View className="flex-row items-center border-b border-border-neutral">
-            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} className="flex-1">
-              <View className="flex-row items-center gap-2 px-3 py-2">
-                {controller.pills.map((pill) => {
-                  const hue = pillHue(pill.category);
-                  return (
-                    <Pressable
-                      key={pill.label}
-                      className="rounded-lg px-3 py-1.5"
-                      style={{ backgroundColor: hue.bg, borderWidth: 1, borderColor: hue.bd }}
-                      onPress={() => controller.pressPill(pill)}
-                    >
-                      <Text className="text-xs font-bold" style={{ color: hue.fg }}>
-                        {pill.label}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-                {controller.pills.length === 0 ? (
-                  <Text className="text-xs text-text-secondary py-1.5">No actions</Text>
-                ) : null}
-              </View>
-            </ScrollView>
+            <FadeScrollView className="flex-1" contentClassName="gap-2 px-3 py-2">
+              {controller.pills.map((pill) => {
+                const hue = pillHue(pill.category);
+                return (
+                  <Pressable
+                    key={pill.label}
+                    className="rounded-lg px-3 py-1.5"
+                    style={{ backgroundColor: hue.bg, borderWidth: 1, borderColor: hue.bd }}
+                    onPress={() => controller.pressPill(pill)}
+                  >
+                    <Text className="text-xs font-bold" style={{ color: hue.fg }}>
+                      {pill.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+              {controller.pills.length === 0 ? (
+                <Text className="text-xs text-text-secondary py-1.5">No actions</Text>
+              ) : null}
+            </FadeScrollView>
             <View className="flex-row items-center border-l border-border-neutral">
               {(controller.context?.levels ?? []).length > 0 ? (
                 <Pressable className="pl-2 py-1" onPress={controller.removeFocused}>
