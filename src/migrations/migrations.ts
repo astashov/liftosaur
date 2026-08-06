@@ -77,6 +77,7 @@ export const migrations = {
   },
   "20250305183455_cleanup_custom_exercises": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.exerciseData = storage.settings.exerciseData || {};
     for (const customExerciseKey of ObjectUtils_keys(storage.settings.exercises)) {
       const customExercise = storage.settings.exercises[customExerciseKey]!;
       delete customExercise.defaultEquipment;
@@ -323,6 +324,7 @@ export const migrations = {
   },
   "20260124114134_convert_muscle_multipliers_to_object": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.exerciseData = storage.settings.exerciseData || {};
     for (const key of ObjectUtils_keys(storage.settings.exerciseData)) {
       const exerciseData = storage.settings.exerciseData[key];
       if (exerciseData?.muscleMultipliers && Array.isArray(exerciseData.muscleMultipliers)) {
