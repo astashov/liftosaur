@@ -92,7 +92,7 @@ main();
 
 setTimeout(() => {
   const appEl = document.getElementById("app");
-  if (appEl && appEl.childElementCount === 0) {
+  if (appEl && appEl.childElementCount === 0 && !/HeadlessChrome/i.test(navigator.userAgent)) {
     Rollbar.error("White screen detected - app failed to render after 10s");
   }
 }, 10000);
