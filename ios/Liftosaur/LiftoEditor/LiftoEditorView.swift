@@ -98,6 +98,10 @@ import Runestone
 
   @objc public func applyEditable(_ editable: Bool) {
     textView.isEditable = editable
+    // Selection gestures must die with editability: otherwise the double tap that enters
+    // freeform ALSO triggers the system word-selection, which then fights the programmatic
+    // caret and swallows typing until the user taps elsewhere.
+    textView.isSelectable = editable
     structuredTapRecognizer?.isEnabled = !editable
     if !editable {
       textView.resignFirstResponder()
