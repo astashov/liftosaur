@@ -67,6 +67,11 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
               {Exercise_nameWithEquipment(exercise, props.settings)}
               {isPr && " \u{1F3C6}"}
             </Text>
+            {showNotes && entry.notes && (
+              <View>
+                <Text className="mt-1 text-sm text-text-secondary">{entry.notes}</Text>
+              </View>
+            )}
           </View>
           <View className="shrink">
             <HistoryRecordSetsView
@@ -83,7 +88,6 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
             />
           </View>
         </View>
-        {showNotes && entry.notes && <Text className="mt-1 text-sm text-text-secondary">{entry.notes}</Text>}
       </View>
     </View>
   );
