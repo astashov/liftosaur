@@ -16,7 +16,7 @@ import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
-import type { IPlannerProgram, IProgram, ISettings } from "../../types";
+import type { IDayData, IPlannerProgram, IProgram, ISettings } from "../../types";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
@@ -83,6 +83,17 @@ function replaceExerciseTextInPlanner(
 
 function cleanErrorMessage(message: string): string {
   return message.replace(/\s*\(\d+:\d+\)$/, "");
+}
+
+// In a single-week program the week name is the same on every chip, so only day names carry
+// information there.
+function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData: IDayData): string {
+  const week = dayData.week != null ? evaluatedProgram?.weeks[dayData.week - 1] : undefined;
+  const day = dayData.dayInWeek != null ? week?.days[dayData.dayInWeek - 1] : undefined;
+  if (week == null || day == null) {
+    return `Week ${dayData.week ?? 1} · Day ${dayData.dayInWeek ?? 1}`;
+  }
+  return evaluatedProgram != null && evaluatedProgram.weeks.length === 1 ? day.name : `${week.name} · ${day.name}`;
 }
 
 // From the program editor the source of truth is the unsaved draft in editProgramStates,
@@ -346,10 +357,10 @@ export function NavModalEditorSheet(): JSX.Element {
   }, [navigation]);
 
   const dayData = selectedDayData ?? params?.dayData;
-  const headerLabel = dayData != null ? `WK ${dayData.week} · DAY ${dayData.dayInWeek}` : "WK 1 · DAY 1";
+  const headerLabel = dayData != null ? instanceLabel(snapshot?.evaluatedProgram, dayData) : "Week 1 · Day 1";
   const instances: IEditorSheetInstanceOption[] = (snapshot?.instances ?? []).map((e) => ({
     dayData: e.dayData,
-    label: `WK ${e.dayData.week} · DAY ${e.dayData.dayInWeek}`,
+    label: instanceLabel(snapshot?.evaluatedProgram, e.dayData),
     isSelected:
       selectedDayData != null &&
       e.dayData.week === selectedDayData.week &&

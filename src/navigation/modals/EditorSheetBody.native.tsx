@@ -489,7 +489,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               <FadeScrollView className="mb-1" contentClassName="gap-1" scrollRef={railRef}>
                 {props.instances.map((instance) => (
                   <Pressable
-                    key={instance.label}
+                    key={`${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                     testID={`editor-sheet-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                     onLayout={instance.isSelected ? scrollSelectedIntoView : undefined}
                     className={`px-2 py-0.5 rounded border ${

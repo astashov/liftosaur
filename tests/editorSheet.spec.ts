@@ -11,12 +11,12 @@ const singleWeek = `# Week 1
 ## Day 1
 Squat / 3x8 / 100lb / progress: lp(5lb)`;
 
-const twoWeeks = `# Week 1
-## Day 1
+const twoWeeks = `# Intro Week
+## Push Day
 Squat / 3x8 / 100lb
 
-# Week 2
-## Day 1
+# Volume Week
+## Push Day
 Squat / 5x5 / 120lb`;
 
 // Seed a program from planner text and land on the UI editor with an unsaved draft
@@ -94,6 +94,8 @@ test("week chips switch the edited declaration and warn about unsaved changes", 
 
   const sheet = page.getByTestId("editor-sheet");
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
+  await expect(sheet.getByTestId("editor-sheet-instance-1-1")).toHaveText("Intro Week · Push Day");
+  await expect(sheet.getByTestId("editor-sheet-instance-2-1")).toHaveText("Volume Week · Push Day");
 
   await sheet.getByTestId("editor-sheet-instance-2-1").click();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 5x5 / 120lb");
