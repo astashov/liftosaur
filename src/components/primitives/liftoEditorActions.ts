@@ -64,10 +64,10 @@ export const LiftoEditorActions_pillDefs = {
   addIdTags: { label: "Add id: tags", category: "neutral", template: " / id: tags(1)" },
   reuse: { label: "Reuse…", category: "neutral", template: " / ...Squat" },
   reuseScript: { label: "Reuse script from…", category: "neutral", template: " { ...Squat }" },
-  fromWeekDay: { label: "From specific week/day…", category: "neutral", template: "[2:1]" },
+  fromWeekDay: { label: "From specific week/day…", category: "neutral", template: "[1:1]" },
   repeat: { label: "Repeat…", category: "neutral", template: "[1-4]" },
   forcedOrder: { label: "Add forced order…", category: "neutral", template: "[1]" },
-  enableSuperset: { label: "Enable superset", category: "neutral", template: " / superset: Bench Press" },
+  enableSuperset: { label: "Enable superset", category: "neutral", template: " / superset: A" },
 } satisfies Record<string, IPillDef>;
 
 const defs = LiftoEditorActions_pillDefs;
@@ -438,42 +438,42 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
   if (!properties.includes("warmup")) {
     pills.push(insertPill(defs.addWarmups, lineEnd, " / warmup: 2x5 45%, 1x3 60%"));
   }
-  if (!properties.includes("used")) {
-    pills.push(insertPill(defs.addUsedNone, lineEnd));
-  }
-  // A label is just a `word:` prefix inside the exercise name token.
-  if (nameNode != null && !nodeText(text, nameNode).includes(":")) {
-    pills.push(insertPill(defs.addLabel, nameNode.from));
-  }
   if (!hasSetGroups) {
     pills.push(insertPill(defs.addSets, lineEnd));
+  }
+  if (hasSetGroups && !hasGlobals) {
+    pills.push(insertPill(defs.addGlobals, lineEnd));
   }
   const setGroupSections = LiftoEditorActions_setVariationSections(exercise);
   const lastSetGroupSection = setGroupSections[setGroupSections.length - 1];
   if (lastSetGroupSection != null) {
     pills.push(insertPill(defs.addSetVariation, trimmedEnd(text, lastSetGroupSection)));
   }
-  if (hasSetGroups && !hasGlobals) {
-    pills.push(insertPill(defs.addGlobals, lineEnd));
-  }
-  if (!properties.includes("id")) {
-    pills.push(insertPill(defs.addIdTags, lineEnd));
-  }
-  if (!hasReuse) {
-    pills.push(insertPill(defs.reuse, lineEnd));
-  }
-  if (exercise.getChild(PlannerNodeName.Repeat) == null && variations != null) {
-    pills.push(insertPill(defs.repeat, variations.to));
-    pills.push(insertPill(defs.forcedOrder, variations.to));
-  }
-  if (!hasSuperset) {
-    pills.push(insertPill(defs.enableSuperset, lineEnd));
+  if (!properties.includes("used")) {
+    pills.push(insertPill(defs.addUsedNone, lineEnd));
   }
   if (!properties.includes("progress")) {
     pills.push(insertPill(defs.addProgress, lineEnd));
   }
   if (!properties.includes("update")) {
     pills.push(insertPill(defs.addUpdate, lineEnd));
+  }
+  if (!hasSuperset) {
+    pills.push(insertPill(defs.enableSuperset, lineEnd));
+  }
+  if (!hasReuse) {
+    pills.push(insertPill(defs.reuse, lineEnd));
+  }
+  // A label is just a `word:` prefix inside the exercise name token.
+  if (nameNode != null && !nodeText(text, nameNode).includes(":")) {
+    pills.push(insertPill(defs.addLabel, nameNode.from));
+  }
+  if (exercise.getChild(PlannerNodeName.Repeat) == null && variations != null) {
+    pills.push(insertPill(defs.repeat, variations.to));
+    pills.push(insertPill(defs.forcedOrder, variations.to));
+  }
+  if (!properties.includes("id")) {
+    pills.push(insertPill(defs.addIdTags, lineEnd));
   }
   return pills;
 }

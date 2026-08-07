@@ -1,11 +1,10 @@
 import { test, expect, Page } from "@playwright/test";
 import {
   startpage,
-  PlaywrightUtils_typeKeyboard,
-  PlaywrightUtils_swipeLeft,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_createProgramWithCode,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
 async function createSetTimerProgram(page: Page, exercise: string): Promise<void> {
@@ -114,7 +113,7 @@ test("set timer - clear recorded time", async ({ page }) => {
   await expect(page.getByTestId("set-timer-value")).toHaveCount(0);
 });
 
-test("set timer - editor Set Time column and overflow round-trip to liftoscript", async ({ page }) => {
+test("set timer - editor round-trips set-time overflow to liftoscript", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
   await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
@@ -125,45 +124,10 @@ test("set timer - editor Set Time column and overflow round-trip to liftoscript"
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Bench Press / 1x1 100lb 45s+|90s");
 
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(0));
-  await page.getByTestId("edit-set").nth(0).click();
-  await page.getByTestId("menu-item-name-set-time").click();
-  await page.getByTestId("menu-item-name-rest").click();
-  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
-
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-time-value-field"), "45");
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-timer-value-field"), "90");
-
-  // Toggle "count up past target" (the `+` overflow) from the set-time keyboard addon.
-  await page.getByTestId("input-set-time-value-field").click();
-  await page.getByTestId("keyboard-addon-set-time-overflow").click();
-  await page.getByTestId("keyboard-close").click();
-
-  await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("editor-v2-perday-program").click();
-
   await expect(page.getByTestId("planner-editor")).toContainText("45s+|90s");
-});
-
-test("set timer - editor bottom sheet renames Timer to Rest", async ({ page }) => {
-  await page.goto(startpage + "?skipintro=1");
-  await PlaywrightUtils_disableTours(page);
-  await PlaywrightUtils_createProgram(page, "My Program");
-
-  await page.getByTestId("tab-edit").click();
-  await page.getByTestId("add-exercise").click();
-  await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
-  await page.getByTestId("menu-item-bench-press-barbell").click();
-  await page.getByTestId("exercise-picker-confirm").click();
-  await page.getByTestId("edit-exercise").click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(0));
-  await page.getByTestId("edit-set").nth(0).click();
-
-  await expect(page.getByTestId("menu-item-name-rest")).toBeVisible();
-  await expect(page.getByTestId("menu-item-name-set-time")).toBeVisible();
-  await expect(page.getByTestId("menu-item-name-timer")).toHaveCount(0);
 });
 
 test("set timer - recording a timed set prompts the AMRAP modal (reps, weight, RPE)", async ({ page }) => {

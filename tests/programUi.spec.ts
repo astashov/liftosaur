@@ -1,13 +1,11 @@
 import { test, expect } from "@playwright/test";
 import {
   startpage,
-  PlaywrightUtils_typeKeyboard,
-  PlaywrightUtils_swipeLeft,
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
-  PlaywrightUtils_select,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
 test("Warmups", async ({ page }) => {
@@ -21,35 +19,8 @@ test("Warmups", async ({ page }) => {
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Bench Press / 1x1 / 100lb / warmup: 2x5 30%, 1x4 82%, 1x4 90lb");
 
-  await page.getByTestId("edit-exercise-warmups-customize").click();
-
-  await PlaywrightUtils_typeKeyboard(
-    page,
-    page.getByTestId("warmup-set").nth(1).getByTestId("input-set-weight-field"),
-    "30"
-  );
-  await page.getByTestId("warmup-set").nth(2).getByTestId("input-set-weight-field").click();
-  await page.getByTestId("keyboard-plus").click();
-  await page.getByTestId("keyboard-plus").click();
-  await page.getByTestId("keyboard-close").click();
-  await PlaywrightUtils_typeKeyboard(
-    page,
-    page.getByTestId("warmup-set").nth(2).getByTestId("input-set-reps-field"),
-    "4"
-  );
-
-  await page.getByTestId("add-warmup-set").click();
-  await PlaywrightUtils_typeKeyboard(
-    page,
-    page.getByTestId("warmup-set").nth(3).getByTestId("input-set-weight-field"),
-    "90"
-  );
-  await page.getByTestId("warmup-set").nth(3).getByTestId("input-set-weight-field").click();
-  await page.getByTestId("keyboard-unit-lb").click();
-  await page.getByTestId("keyboard-close").click();
-
-  await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText(
     "Bench Press / 1x1 / 100lb / warmup: 2x5 30%, 1x4 82%, 1x4 90lb"
@@ -66,47 +37,11 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(
+    page,
+    "Bench Press / 2x5+ 110lb+, 2x2 100lb, 1x2 100lb @8 150s / 1x5+ 110lb+, 2x2 100lb, 1x2 100lb @8 150s"
+  );
 
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field"), "5");
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field"), "110");
-  await page.getByTestId("input-set-reps-field").click();
-  await page.getByTestId("keyboard-addon-amrap").click();
-  await page.getByTestId("keyboard-close").click();
-  await page.getByTestId("input-set-weight-field").click();
-  await page.getByTestId("keyboard-addon-ask-weight").click();
-  await page.getByTestId("keyboard-close").click();
-
-  await page.getByTestId("add-set").click();
-  await page.getByTestId("add-set").click();
-
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(2), "2");
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(2), "100");
-  await page.getByTestId("input-set-reps-field").nth(2).click();
-  await page.getByTestId("keyboard-addon-amrap").click();
-  await page.getByTestId("keyboard-close").click();
-  await page.getByTestId("input-set-weight-field").nth(2).click();
-  await page.getByTestId("keyboard-addon-ask-weight").click();
-  await page.getByTestId("keyboard-close").click();
-
-  await page.getByTestId("add-set").click();
-  await page.getByTestId("add-set").click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(4));
-  await page.getByTestId("edit-set").nth(4).click();
-  await page.getByTestId("menu-item-name-rpe").click();
-  await page.getByTestId("menu-item-name-rest").click();
-  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
-
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-timer-value-field"), "150");
-
-  await page.getByTestId("day-kebab-menu").click();
-  await page.getByTestId("program-exercise-toggle-set-variations").click();
-  await page.getByTestId("set-variations-scroll-right").click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-variation-2").getByTestId("set-x").nth(0));
-  await page.getByTestId("set-variation-2").getByTestId("delete-set").nth(0).click();
-
-  await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("editor-v2-perday-program").click();
 
   await expect(page.getByTestId("planner-editor")).toContainText(
@@ -171,29 +106,8 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Bench Press / ...Squat / @8");
 
-  await PlaywrightUtils_select(page, page.getByTestId("edit-exercise-reuse-sets"), "reuse-select", "squat_barbell");
-  await page.getByTestId("edit-exercise-override-sets").click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(0));
-  await page.getByTestId("edit-set").nth(0).click();
-  await page.getByTestId("menu-item-name-rpe").click();
-  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-rpe-field").nth(0), "8");
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(1));
-  await page.getByTestId("edit-set").nth(1).click();
-  await page.getByTestId("menu-item-name-rpe").click();
-  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-rpe-field").nth(1), "8");
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(2));
-  await page.getByTestId("edit-set").nth(2).click();
-  await page.getByTestId("menu-item-name-rpe").click();
-  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
-  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-rpe-field").nth(2), "8");
-
-  await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Bench Press / ...Squat / @8");
 });
@@ -221,22 +135,7 @@ Bicep Curl / 3x3`
 
   await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("exercise-bicepcurl_dumbbell").getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Bicep Curl / 3x3 / progress: custom() { ...Overhead Press }");
 
-  await page.getByTestId("program-exercise-navbar-kebab").click();
-  await page.getByTestId("program-exercise-toggle-progress").click();
-  await PlaywrightUtils_select(
-    page,
-    page.getByTestId("menu-item-program-exercise-progress-type"),
-    "program-exercise-progress-type-select",
-    "custom"
-  );
-  await PlaywrightUtils_select(
-    page,
-    page.getByTestId("menu-item-program-exercise-progress-reuse"),
-    "program-exercise-progress-reuse-select",
-    "Overhead Press"
-  );
-
-  await page.getByTestId("save-program-exercise").click();
   await expect(page.getByTestId("exercise-bicepcurl_dumbbell")).toContainText("Reusing progress of 'Overhead Press'");
 });

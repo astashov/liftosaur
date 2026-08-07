@@ -58,7 +58,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   };
 
   return (
-    <View className="px-4 pb-4">
+    <View testID="editor-sheet" className="px-4 pb-4">
       {/* pr-10 clears the sheet container's absolutely-positioned close button. */}
       <View className="flex-row items-center gap-2 pb-2 pr-10">
         <View className="flex-1">
@@ -67,6 +67,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               {props.instances.map((instance) => (
                 <Pressable
                   key={instance.label}
+                  testID={`editor-sheet-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                   onLayout={instance.isSelected ? scrollSelectedIntoView : undefined}
                   className={`px-2 py-0.5 rounded border ${
                     instance.isSelected
@@ -88,7 +89,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             <Text className="text-xs font-bold text-text-secondary">{props.headerLabel}</Text>
           )}
         </View>
-        <Pressable className="p-2" onPress={() => props.onDone(text)}>
+        <Pressable testID="editor-sheet-save" className="p-2" onPress={() => props.onDone(text)}>
           <Text className="text-base font-bold" style={{ color: accent }}>
             Save
           </Text>

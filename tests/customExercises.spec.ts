@@ -2,9 +2,9 @@ import { test, expect } from "@playwright/test";
 import {
   startpage,
   PlaywrightUtils_disableSubscriptions,
-  PlaywrightUtils_swipeLeft,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
 test("CRUD custom exercises", async ({ page }) => {
@@ -29,19 +29,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("edit-exercise").click();
-
-  await page.getByTestId("edit-exercise-warmups-customize").click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
-  await page.getByTestId("delete-warmup-set").nth(0).click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
-  await page.getByTestId("delete-warmup-set").nth(0).click();
-
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
-  await page.getByTestId("delete-warmup-set").nth(0).click();
-
-  await page.getByTestId("save-program-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "My Exercise 2 / 1x1 / 100lb / warmup: none");
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
@@ -54,10 +42,8 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
-  await page.getByTestId("edit-exercise").click();
-
-  await page.getByTestId("add-set").click();
-  await page.getByTestId("edit-program-exercise-change").click();
+  // A single-instance exercise's swap goes straight to the picker (no one/all menu).
+  await page.getByTestId("edit-exercise-swap").click();
   await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
   await page.getByTestId("custom-exercise-delete").click();
 
@@ -67,7 +53,8 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("menu-item-blah-one").click();
   await page.getByTestId("exercise-picker-confirm").click();
-  await page.getByTestId("save-program-exercise").click();
+  await page.getByTestId("edit-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Blah One / 2x1 / 100lb / warmup: none");
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();
 
@@ -81,9 +68,8 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
-  await page.getByTestId("edit-exercise").click();
+  await page.getByTestId("edit-exercise-swap").click();
 
-  await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-create").click();
 
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise 2");
@@ -102,7 +88,6 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("menu-item-my-exercise-3").click();
   await page.getByTestId("exercise-picker-confirm").click();
-  await page.getByTestId("save-program-exercise").click();
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-home").click();
 

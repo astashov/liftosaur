@@ -5,6 +5,7 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
 const ladderProgram = `# Week 1
@@ -37,11 +38,7 @@ test("Program screen shows non-current exercise variations", async ({ page }) =>
 test("Edit program exercise: switch the current variation", async ({ page }) => {
   await seedProgram(page, ladderProgram);
   await page.getByTestId("edit-exercise").first().click();
-
-  // A ladder (>1 variation) opens with the variations section already expanded.
-  await expect(page.getByTestId("exercise-variations")).toBeVisible();
-  await page.getByTestId("exercise-variation-make-current-2").click();
-  await page.getByTestId("save-program-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Squat | ! Pistol Squat | Front Squat / 3x8 / 100lb");
 
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText("! Pistol Squat");
@@ -50,26 +47,17 @@ test("Edit program exercise: switch the current variation", async ({ page }) => 
 test("Edit program exercise: remove a variation", async ({ page }) => {
   await seedProgram(page, ladderProgram);
   await page.getByTestId("edit-exercise").first().click();
-
-  await expect(page.getByTestId("exercise-variations")).toBeVisible();
-  await page.getByTestId("exercise-variation-remove-3").click();
-  await page.getByTestId("save-program-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Squat | Pistol Squat / 3x8 / 100lb");
 
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText("Pistol Squat");
   await expect(page.getByTestId("planner-editor")).not.toContainText("Front Squat");
 });
 
-test("Edit program exercise: add a variation via the picker", async ({ page }) => {
+test("Edit program exercise: add a variation", async ({ page }) => {
   await seedProgram(page, `# Week 1\n## Day 1\nSquat | Pistol Squat / 3x8 / 100lb`);
   await page.getByTestId("edit-exercise").first().click();
-
-  await expect(page.getByTestId("exercise-variations")).toBeVisible();
-  await page.getByTestId("exercise-variations-add").click();
-  await page.getByTestId("exercise-filter-by-name").fill("Front Squat");
-  await page.getByTestId("menu-item-front-squat-barbell").click();
-  await page.getByTestId("exercise-picker-confirm").click();
-  await page.getByTestId("save-program-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Squat | Pistol Squat | Front Squat / 3x8 / 100lb");
 
   await page.getByTestId("editor-v2-perday-program").click();
   await expect(page.getByTestId("planner-editor")).toContainText("Front Squat");

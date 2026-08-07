@@ -5,6 +5,7 @@ import {
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
 test("Supersets", async ({ page }) => {
@@ -47,15 +48,7 @@ Overhead Press / 2x8 100lb / superset: A`
     .getByTestId("exercise-overheadpress_barbell")
     .getByTestId("edit-exercise")
     .click();
-
-  await page.getByTestId("edit-day-1-1").getByTestId("day-kebab-menu").click();
-  await page.getByTestId("edit-menu-exercise-toggle-supersets").click();
-  await page.getByTestId("edit-day-1-1").getByTestId("superset-group").click();
-  await page.getByTestId("superset-group-b").click();
-  await expect(page.getByTestId("edit-day-1-1").getByTestId("edit-exercise-superset-exercises")).toContainText(
-    "Bench Press, Overhead Press"
-  );
-  await page.getByTestId("save-program-exercise").click();
+  await PlaywrightUtils_saveExerciseInSheet(page, "Overhead Press / 2x8 45lb / superset: B");
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();

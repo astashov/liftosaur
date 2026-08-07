@@ -490,6 +490,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
                 {props.instances.map((instance) => (
                   <Pressable
                     key={instance.label}
+                    testID={`editor-sheet-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                     onLayout={instance.isSelected ? scrollSelectedIntoView : undefined}
                     className={`px-2 py-0.5 rounded border ${
                       instance.isSelected
@@ -530,7 +531,10 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           ) : null}
           {/* Freeform "Apply" folds the text edits back into structured mode (the sheet stays
               open); structured "Save" commits to the program and closes. */}
-          <Pressable onPress={isFreeform ? controller.switchToStructured : () => props.onDone(controller.text)}>
+          <Pressable
+            testID="editor-sheet-save"
+            onPress={isFreeform ? controller.switchToStructured : () => props.onDone(controller.text)}
+          >
             <Text className="text-base font-bold" style={{ color: accent }}>
               {isFreeform ? "Apply" : "Save"}
             </Text>
