@@ -54,6 +54,7 @@ export const LiftoEditorActions_pillDefs = {
   makeFixedReps: { label: "Make fixed reps", category: "sets" },
   addWarmupSetGroup: { label: "Add another warmup set group", category: "sets", template: ", 1x5 50%" },
   addWarmups: { label: "Add warmups", category: "sets" },
+  removeWarmups: { label: "Remove warmups", category: "sets" },
   overrideSets: { label: "Override sets", category: "sets", template: " / 3x8" },
   addProgress: { label: "Add progress", category: "progress", template: " / progress: lp(5lb)" },
   addUpdate: { label: "Add update", category: "progress", template: " / update: custom() {~ ~}" },
@@ -283,7 +284,16 @@ function setTimerPills(text: string, timer: SyntaxNode): ILiftoEditorPill[] {
 }
 
 function warmupSetsPills(text: string, warmupSets: SyntaxNode): ILiftoEditorPill[] {
-  return [insertPill(defs.addWarmupSetGroup, trimmedEnd(text, warmupSets))];
+  return [
+    insertPill(defs.addWarmupSetGroup, trimmedEnd(text, warmupSets)),
+    {
+      label: defs.removeWarmups.label,
+      category: defs.removeWarmups.category,
+      start: warmupSets.from,
+      end: trimmedEnd(text, warmupSets),
+      text: "none",
+    },
+  ];
 }
 
 const progressionDefaults: Record<string, string> = {

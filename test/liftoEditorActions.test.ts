@@ -98,6 +98,12 @@ describe("LiftoEditorActions", () => {
       ).to.equal("Squat / 3x8 / warmup: 2x5 45%, 1x5 50%");
     });
 
+    it("converts warmups to none", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill("Squat / 3x8 / warmup: 2x5 45%, 1x3 60%", "2x5", "Warmup sets", "Remove warmups")
+      ).to.equal("Squat / 3x8 / warmup: none");
+    });
+
     it("replaces warmup: none with default warmups", () => {
       expect(LiftoEditorTestUtils_pressPill("Squat / 3x8 / warmup: none", "none", "Warmup", "Add warmups")).to.equal(
         "Squat / 3x8 / warmup: 2x5 45%, 1x3 60%"
