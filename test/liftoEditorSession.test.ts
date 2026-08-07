@@ -82,6 +82,24 @@ describe("LiftoEditorSession", () => {
       expect(consumed.session.pendingCaret).to.equal(undefined);
     });
 
+    it("switches to freeform on a quick double tap in token-free text, like a script body", () => {
+      const text = "Squat / 1x5 / progress: custom() {~ weights += 2.5kg ~}";
+      const index = LiftoEditorTestUtils_pos(text, "weights");
+      const first = LiftoEditorSession_tap(LiftoEditorSession_create(text), index, 1000);
+      expect(first.session.focusedToken).to.equal(undefined);
+      const second = LiftoEditorSession_tap(first.session, index + 1, 1200);
+      expect(second.session.mode).to.equal("freeform");
+      expect(second.session.pendingCaret).to.equal(index + 1);
+    });
+
+    it("treats quick taps on two different tokens as navigation, not a double tap", () => {
+      const text = "Squat / 3x8 100kg";
+      const first = tapAt(text, "3");
+      const second = LiftoEditorSession_tap(first.session, LiftoEditorTestUtils_pos(text, "8"), 1200);
+      expect(second.session.mode).to.equal("structured");
+      expect(second.session.active?.buffer).to.equal("8");
+    });
+
     it("keeps the typed buffer on a slow re-tap while the keypad is open", () => {
       const text = "Squat / 3x8 100kg";
       const first = tapAt(text, "100kg");

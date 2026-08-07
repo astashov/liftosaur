@@ -52,6 +52,7 @@ export interface ILiftoEditorSession {
   // Keypad editing session; non-null means the keypad is (or should be) open.
   active: IActiveNumber | undefined;
   lastTapTime: number;
+  lastTapIndex: number | undefined;
   // Caret to place once the freeform render commits editable on the native side.
   pendingCaret: number | undefined;
 }
@@ -76,6 +77,7 @@ export function LiftoEditorSession_create(text: string): ILiftoEditorSession {
     focusedToken: undefined,
     active: undefined,
     lastTapTime: 0,
+    lastTapIndex: undefined,
     pendingCaret: undefined,
   };
 }
@@ -157,24 +159,31 @@ export function LiftoEditorSession_tap(
   index: number,
   now: number
 ): ILiftoEditorSessionResult {
-  // Double-tapping the already-focused token drills past structured mode into freeform,
-  // with the caret landing where the finger did. A slow re-tap just keeps the focus —
-  // accidental second taps shouldn't yank the user into text editing.
+  // Double-tapping drills past structured mode into freeform, with the caret landing where
+  // the finger did — anywhere in the text, not just on a token (script bodies and
+  // punctuation produce no token at all). Two quick taps count as a double tap when they
+  // land on the same token, or — in token-free space — within a couple of characters;
+  // quick taps on two different tokens are fast navigation, not a double tap.
   const sinceLastTap = now - session.lastTapTime;
-  const tapped: ILiftoEditorSession = { ...session, lastTapTime: now };
-  const focused = session.focusedToken;
-  if (focused != null && index >= focused.start && index <= focused.end) {
-    if (sinceLastTap < 300) {
+  const tapped: ILiftoEditorSession = { ...session, lastTapTime: now, lastTapIndex: index };
+  const tokens = LiftoEditorBrain_tokens(session.text);
+  const tokenAt = (i: number): IEditorToken | undefined => tokens.find((t) => i >= t.start && i <= t.end);
+  if (sinceLastTap < 300 && session.lastTapIndex != null) {
+    const prevToken = tokenAt(session.lastTapIndex);
+    const thisToken = tokenAt(index);
+    const isSamePlace =
+      prevToken != null || thisToken != null ? prevToken === thisToken : Math.abs(index - session.lastTapIndex) <= 3;
+    if (isSamePlace) {
       const result = LiftoEditorSession_switchToFreeform(tapped);
       return { ...result, session: { ...result.session, pendingCaret: index } };
     }
+  }
+  const focused = session.focusedToken;
+  if (focused != null && index >= focused.start && index <= focused.end && session.active != null) {
     // Keypad open: the slow re-tap shouldn't reset the typed buffer. Otherwise fall
     // through so a re-tap on a numeric token whose keypad was closed reopens it.
-    if (session.active != null) {
-      return { session: tapped, effects: {} };
-    }
+    return { session: tapped, effects: {} };
   }
-  const tokens = LiftoEditorBrain_tokens(session.text);
   const numericToken = tokens.find((t) => t.numeric != null && index >= t.start && index <= t.end);
   if (numericToken != null) {
     return activateToken(tapped, numericToken);
