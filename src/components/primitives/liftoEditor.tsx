@@ -9,6 +9,7 @@ export interface ILiftoEditorBaseProps {
   initialText: string;
   autoHeight?: boolean;
   editable?: boolean;
+  bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;

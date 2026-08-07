@@ -28,6 +28,10 @@ export interface ILiftoEditorBaseProps {
   initialText: string;
   autoHeight?: boolean;
   editable?: boolean;
+  // Extra empty space below the last line, INSIDE the editor view (autoHeight only).
+  // Android's sora draws the cursor drop handle on the editor canvas, so it clips at the
+  // view's bottom edge unless the view extends past the text.
+  bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
@@ -131,7 +135,10 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   return (
     <LiftoEditorNative
       ref={nativeRef}
-      style={[props.style, autoHeight && contentHeight != null ? { height: contentHeight } : null]}
+      style={[
+        props.style,
+        autoHeight && contentHeight != null ? { height: contentHeight + (props.bottomPadding ?? 0) } : null,
+      ]}
       initialText={props.initialText}
       fontSize={fontSize}
       editable={props.editable ?? true}

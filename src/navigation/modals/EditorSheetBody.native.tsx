@@ -1,8 +1,12 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { Keyboard, LayoutChangeEvent, Platform, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { lb } from "lens-shmens";
 import { useModal } from "../ModalStateContext";
+import { useAppState } from "../StateContext";
+import { IState, updateState } from "../../models/state";
 import { Dialog_confirm } from "../../utils/dialog";
 import type { IExercisePickerSelectedExercise } from "../../types";
 import type { ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
@@ -12,8 +16,8 @@ import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoE
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
-import { IconArrowRight } from "../../components/icons/iconArrowRight";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
+import { IconHelp } from "../../components/icons/iconHelp";
 import { IconTrash } from "../../components/icons/iconTrash";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
@@ -41,6 +45,8 @@ interface IEditorHint {
   short: string;
   detail: string;
 }
+
+const editorHintsHelpId = "lifto-editor-hints";
 
 const editorPropertyHints: Partial<Record<string, IEditorHint>> = {
   progress: {
@@ -283,22 +289,28 @@ function SheetCrumbs(props: { controller: ILiftoEditorController }): JSX.Element
 // Must render inside the sheet's own CustomKeyboardProvider: native-stack modal screens sit
 // above the app root in the native hierarchy, so the root keyboard host would draw BEHIND
 // the sheet (same reason NavModalEditTarget nests a provider).
-// Android is adjustResize (the window shrinks under the IME), so only iOS needs manual
-// keyboard avoidance for the bottom-anchored sheet.
+// Returns how much of the IME the window did NOT absorb. iOS never resizes; Android
+// adjustResize shrinks the window on old versions, but targetSdk 35+ edge-to-edge
+// enforcement (Android 15+) ignores it — so subtract the actual window shrink instead of
+// assuming either behavior.
 function useSystemKeyboardHeight(): number {
   const [height, setHeight] = useState(0);
+  const { height: windowHeight } = useWindowDimensions();
+  const noKeyboardWindowHeight = useRef(windowHeight);
+  if (height === 0) {
+    noKeyboardWindowHeight.current = windowHeight;
+  }
   useEffect(() => {
-    if (Platform.OS !== "ios") {
-      return;
-    }
-    const showSub = Keyboard.addListener("keyboardWillShow", (e) => setHeight(e.endCoordinates.height));
-    const hideSub = Keyboard.addListener("keyboardWillHide", () => setHeight(0));
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (e) => setHeight(e.endCoordinates.height));
+    const hideSub = Keyboard.addListener(hideEvent, () => setHeight(0));
     return () => {
       showSub.remove();
       hideSub.remove();
     };
   }, []);
-  return height;
+  return Math.max(0, height - Math.max(0, noKeyboardWindowHeight.current - windowHeight));
 }
 
 // Animated expand/collapse without knowing content height upfront: the collapsed row sits
@@ -414,7 +426,26 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
       editReuse: (targetName) => props.onEditReuse?.(targetName),
     },
   });
-  const [hintDismissed, setHintDismissed] = useState(false);
+  const { state, dispatch } = useAppState();
+  const hintDismissed = state.storage.helps.includes(editorHintsHelpId);
+  const setHintDismissed = (dismissed: boolean): void => {
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("helps")
+          .recordModify((helps) =>
+            dismissed
+              ? helps.includes(editorHintsHelpId)
+                ? helps
+                : [...helps, editorHintsHelpId]
+              : helps.filter((h) => h !== editorHintsHelpId)
+          ),
+      ],
+      dismissed ? "Dismiss editor hints" : "Enable editor hints"
+    );
+  };
   const [liveError, setLiveError] = useState<IEditorSheetLiveError | undefined>(undefined);
   const validateTextRef = useRef(props.validateText);
   validateTextRef.current = props.validateText;
@@ -475,6 +506,27 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     props.onSelectInstance(instance);
   };
 
+  // When the whole text fits, lock the editor's vertical scroll so token-hopping swipes
+  // don't also drag the content around.
+  const [editorScroll, setEditorScroll] = useState({ container: 0, content: 0 });
+  const isEditorScrollable = editorScroll.content > editorScroll.container + 1;
+
+  // Horizontal swipes anywhere over the editor hop between tokens (swipe right = next).
+  // Flings don't fire on taps or vertical scrolls, so those pass through untouched; in
+  // freeform mode the swipes are off to not fight native text selection.
+  const walkFling = Gesture.Race(
+    Gesture.Fling()
+      .direction(Directions.RIGHT)
+      .enabled(!isFreeform)
+      .runOnJS(true)
+      .onStart(() => controller.walkFocus(1)),
+    Gesture.Fling()
+      .direction(Directions.LEFT)
+      .enabled(!isFreeform)
+      .runOnJS(true)
+      .onStart(() => controller.walkFocus(-1))
+  );
+
   return (
     // Auto-height: the sheet hugs the content; the nested fit-content keyboard host adds
     // inline space below when the keypad opens, growing the sheet. The cap keeps the whole
@@ -517,17 +569,10 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               <SheetCrumbs controller={controller} />
             )}
           </View>
-          {!isFreeform ? (
-            <>
-              <Pressable className="p-2" onPress={() => controller.walkFocus(-1)}>
-                <View style={{ transform: [{ rotate: "180deg" }] }}>
-                  <IconArrowRight width={7 * iconScale} height={12 * iconScale} />
-                </View>
-              </Pressable>
-              <Pressable className="p-2" onPress={() => controller.walkFocus(1)}>
-                <IconArrowRight width={7 * iconScale} height={12 * iconScale} />
-              </Pressable>
-            </>
+          {!isFreeform && hint != null && hintDismissed ? (
+            <Pressable testID="editor-sheet-show-hint" className="p-1" onPress={() => setHintDismissed(false)}>
+              <IconHelp size={20 * iconScale} color={Tailwind_semantic().icon.neutral} />
+            </Pressable>
           ) : null}
           {/* Freeform "Apply" folds the text edits back into structured mode (the sheet stays
               open); structured "Save" commits to the program and closes. */}
@@ -579,16 +624,40 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
         {!isFreeform && hint != null && !hintDismissed ? (
           <HintBar hint={hint} onDismiss={() => setHintDismissed(true)} />
         ) : null}
-        <ScrollView style={{ flexShrink: 1 }}>
-          <View className="px-4 py-3">
-            <LiftoEditor
-              {...controller.editorProps}
-              extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
-            />
-          </View>
-        </ScrollView>
+        <GestureDetector gesture={walkFling}>
+          <ScrollView
+            style={{ flexShrink: 1 }}
+            scrollEnabled={isEditorScrollable}
+            onLayout={(e) => {
+              const height = e.nativeEvent.layout.height;
+              setEditorScroll((prev) => (prev.container === height ? prev : { ...prev, container: height }));
+            }}
+            onContentSizeChange={(_w, height) =>
+              setEditorScroll((prev) => (prev.content === height ? prev : { ...prev, content: height }))
+            }
+          >
+            <View className="px-4 py-3">
+              <LiftoEditor
+                {...controller.editorProps}
+                // Room for Android's cursor drop handle under the last line (~24dp, not
+                // rem-scaled — the handle is a fixed-size system graphic).
+                bottomPadding={isFreeform ? 24 : 0}
+                extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+              />
+            </View>
+          </ScrollView>
+        </GestureDetector>
+        {/* iOS reports the raw IME height, which overlaps the home-indicator area the sheet
+            already pads for — subtract it. Android's ReactRootView already subtracts the
+            system bars from the reported height (imeInsets - systemBars), so subtracting
+            insets.bottom again would leave a keyboard-topper-sized strip covered. The extra
+            1rem keeps the last text line from sitting flush against the IME. */}
         {systemKeyboardHeight > 0 ? (
-          <View style={{ height: Math.max(0, systemKeyboardHeight - insets.bottom) }} />
+          <View
+            style={{
+              height: Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) + 16 * iconScale,
+            }}
+          />
         ) : null}
       </View>
     </View>
