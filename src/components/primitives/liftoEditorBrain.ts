@@ -283,6 +283,8 @@ export interface ILiftoEditorHandle {
   setSelection: (start: number, end: number) => void;
   replaceRange: (start: number, end: number, text: string) => void;
   getText: () => string;
+  // Asks the native side for the range's vertical extent; answered via onCaretRect.
+  requestCaretRect: (start: number, end: number) => void;
 }
 
 const breadcrumbLabels: Partial<Record<PlannerNodeName, string>> = {

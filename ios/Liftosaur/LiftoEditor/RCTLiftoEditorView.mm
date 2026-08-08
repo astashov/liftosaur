@@ -68,6 +68,14 @@ static NSString *LiftoEditorNSString(const std::string &string) {
       const auto &eventEmitter = static_cast<const LiftoEditorEventEmitter &>(*strongSelf->_eventEmitter);
       eventEmitter.onEditorTap({.index = (int)index});
     };
+    _editorView.onCaretRect = ^(double top, double bottom) {
+      RCTLiftoEditorView *strongSelf = weakSelf;
+      if (strongSelf == nil || strongSelf->_eventEmitter == nil) {
+        return;
+      }
+      const auto &eventEmitter = static_cast<const LiftoEditorEventEmitter &>(*strongSelf->_eventEmitter);
+      eventEmitter.onEditorCaretRect({.top = top, .bottom = bottom});
+    };
     self.contentView = _editorView;
   }
   return self;
@@ -122,6 +130,10 @@ static NSString *LiftoEditorNSString(const std::string &string) {
 
 - (void)replaceRange:(NSInteger)start end:(NSInteger)end text:(NSString *)text {
   [_editorView applyReplaceRange:start end:end text:text];
+}
+
+- (void)requestCaretRect:(NSInteger)start end:(NSInteger)end {
+  [_editorView requestCaretRect:start end:end];
 }
 
 @end

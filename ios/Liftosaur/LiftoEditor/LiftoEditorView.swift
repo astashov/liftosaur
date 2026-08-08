@@ -11,6 +11,7 @@ import Runestone
   @objc public var onSelectionChange: ((Int, Int) -> Void)?
   @objc public var onContentSizeChange: ((Double, Double) -> Void)?
   @objc public var onTap: ((Int) -> Void)?
+  @objc public var onCaretRect: ((Double, Double) -> Void)?
 
   private let textView = TextView()
   private let rangesStore = ExternalRangesStore()
@@ -127,6 +128,26 @@ import Runestone
     if textView.isEditable && !textView.isFirstResponder {
       textView.becomeFirstResponder()
     }
+  }
+
+  // Structured mode never sets a selection (that would sprout native selection UI), so the
+  // focused range comes from JS and its rect has to be resolved on demand. caretRect is in
+  // the text view's content space; the text view fills our bounds, so subtracting the content
+  // offset lands it in this view's coordinates.
+  @objc public func requestCaretRect(_ start: Int, end: Int) {
+    let length = textView.text.utf16.count
+    let clampedStart = min(max(start, 0), length)
+    let clampedEnd = min(max(end, clampedStart), length)
+    guard let startPosition = textView.position(from: textView.beginningOfDocument, offset: clampedStart) else {
+      return
+    }
+    let startRect = textView.caretRect(for: startPosition)
+    var bottom = startRect.maxY
+    if let endPosition = textView.position(from: textView.beginningOfDocument, offset: clampedEnd) {
+      bottom = max(bottom, textView.caretRect(for: endPosition).maxY)
+    }
+    let offsetY = textView.contentOffset.y
+    onCaretRect?(Double(startRect.minY - offsetY), Double(bottom - offsetY))
   }
 
   @objc public func applyReplaceRange(_ start: Int, end: Int, text: String) {

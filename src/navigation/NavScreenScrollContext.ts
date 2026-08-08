@@ -6,6 +6,8 @@ export type INavScreenScrollListener = (e: NativeSyntheticEvent<NativeScrollEven
 export interface INavScreenScrollContextValue {
   scrollRef: RefObject<ScrollView | null>;
   scrollYRef: RefObject<number>;
+  // Height of the screen's footer slot (0 when there is none) — what docked chrome occludes.
+  footerHeightRef: RefObject<number>;
   addScrollListener: (listener: INavScreenScrollListener) => () => void;
 }
 

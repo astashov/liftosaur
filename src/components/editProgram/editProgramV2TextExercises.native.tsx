@@ -1,6 +1,7 @@
 import type { JSX } from "react";
-import { useEffect, useRef } from "react";
-import { View, ScrollView } from "react-native";
+import { useContext, useEffect, useRef } from "react";
+import { View, ScrollView, useWindowDimensions } from "react-native";
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { LensBuilder, lb } from "lens-shmens";
 import { Text } from "../primitives/text";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
@@ -17,6 +18,11 @@ import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
 import { useLiftoEditorFocusClaim } from "../liftoEditorFocus";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
+import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
+
+// Breathing room between the focused token and the top of the docked chrome.
+const caretRevealMargin = 16;
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -51,6 +57,44 @@ interface IDayEditorProps {
 function DayEditor(props: IDayEditorProps): JSX.Element {
   const controller = useLiftoEditorController(props.initialText);
   useLiftoEditorFocusClaim(props.focusId, controller);
+
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const editorBoxRef = useRef<View>(null);
+  const keypadHeight = useCustomKeyboardHeight();
+  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
+  const { height: windowHeight } = useWindowDimensions();
+  // The dock is anchored to the footer slot and rides above the keypad, so together they
+  // occlude the footer's height plus whichever of the keypad/tab bar is taller.
+  const occludedRef = useRef(0);
+  occludedRef.current = (scrollCtx?.footerHeightRef.current ?? 0) + Math.max(tabBarHeight, keypadHeight);
+  const revealCaret = (rect: { top: number; bottom: number }): void => {
+    const scrollNode = scrollCtx?.scrollRef.current;
+    const scrollYRef = scrollCtx?.scrollYRef;
+    const editorBox = editorBoxRef.current;
+    if (scrollNode == null || scrollYRef == null || editorBox == null) {
+      return;
+    }
+    editorBox.measureInWindow((_x, y) => {
+      const visibleBottom = windowHeight - occludedRef.current - caretRevealMargin;
+      const caretBottom = y + rect.bottom;
+      if (caretBottom <= visibleBottom) {
+        return;
+      }
+      scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + (caretBottom - visibleBottom)), animated: true });
+    });
+  };
+
+  // Re-asked when the keypad opens too: the focused token can be fine until the keypad
+  // grows the occluded strip underneath it.
+  const focusedLevel = controller.context?.levels[controller.activeLevelIndex];
+  const focusStart = focusedLevel?.start;
+  const focusEnd = focusedLevel?.end;
+  const handleRef = controller.editorProps.handleRef;
+  useEffect(() => {
+    if (focusStart != null && focusEnd != null) {
+      handleRef?.current?.requestCaretRect(focusStart, focusEnd);
+    }
+  }, [focusStart, focusEnd, keypadHeight, handleRef]);
 
   const textRef = useRef(controller.text);
   textRef.current = controller.text;
@@ -99,11 +143,14 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
         className="p-2 border rounded-lg"
         style={{ borderColor: error != null ? Tailwind_semantic().text.error : Tailwind_semantic().border.neutral }}
       >
-        <LiftoEditor
-          {...controller.editorProps}
-          bottomPadding={controller.mode === "freeform" ? 24 : 0}
-          extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
-        />
+        <View ref={editorBoxRef}>
+          <LiftoEditor
+            {...controller.editorProps}
+            bottomPadding={controller.mode === "freeform" ? 24 : 0}
+            extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+            onCaretRect={revealCaret}
+          />
+        </View>
       </View>
       {error != null ? (
         <View className="px-1 pt-1">

@@ -48,6 +48,21 @@ class EditorTapEvent(
   override fun getEventData(): WritableMap = Arguments.createMap().apply { putInt("index", index) }
 }
 
+class EditorCaretRectEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val top: Float,
+  private val bottom: Float,
+) : Event<EditorCaretRectEvent>(surfaceId, viewId) {
+  override fun getEventName(): String = "topEditorCaretRect"
+
+  override fun getEventData(): WritableMap =
+    Arguments.createMap().apply {
+      putDouble("top", top.toDouble())
+      putDouble("bottom", bottom.toDouble())
+    }
+}
+
 class EditorSelectionChangeEvent(
   surfaceId: Int,
   viewId: Int,
