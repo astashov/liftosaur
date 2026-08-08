@@ -43,11 +43,11 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
   return (
     <View className="flex-1 w-0 min-w-0">
       <EditProgramLiftoEditor
-        // The controller reads initialText once, so a day that gets replaced underneath us
-        // (clone, reorder, delete) has to remount.
+        // A day that gets replaced underneath us (clone, reorder, delete) is a different
+        // document, not an edit of this one, so it remounts.
         key={plannerDay.id ?? `${weekIndex}-${dayIndex}`}
         focusId={`day-${weekIndex}-${dayIndex}`}
-        initialText={plannerDay.exerciseText}
+        text={plannerDay.exerciseText}
         settings={props.settings}
         evaluatedProgram={props.evaluatedProgram}
         error={evaluatedDay.success ? undefined : evaluatedDay.error}

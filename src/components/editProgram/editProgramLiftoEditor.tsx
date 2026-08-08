@@ -134,7 +134,10 @@ export interface IEditProgramLiftoEditorContext {
 }
 
 interface IEditProgramLiftoEditorProps {
-  initialText: string;
+  // The document, from whoever owns it. Read once to seed the editor; after that a value that
+  // isn't what this editor last committed is treated as an edit from elsewhere (undo/redo, a
+  // change made on another surface) and applied as one.
+  text: string;
   focusId: string;
   settings: ISettings;
   evaluatedProgram: IEvaluatedProgram;
@@ -211,7 +214,7 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
     return contextAtRef.current(focusOffsetRef.current).exercises.find((e) => e.key === key);
   };
 
-  const controller = useLiftoEditorController(props.initialText, {
+  const controller = useLiftoEditorController(props.text, {
     surface: "inline",
     exerciseTypeFor: props.exerciseTypeFor,
     actions: {
@@ -380,7 +383,7 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
   // Committing on every keystroke re-evaluates the whole program (and re-renders every day
   // card, since a fresh evaluation produces all-new objects). Structured pill edits still
   // land within one debounce window.
-  const committedRef = useRef(props.initialText);
+  const committedRef = useRef(props.text);
   const text = controller.text;
   useEffect(() => {
     if (text === committedRef.current) {
@@ -392,6 +395,34 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
     }, 300);
     return () => clearTimeout(timer);
   }, [text]);
+
+  // Text from elsewhere, applied through the same channel as a pill edit rather than by
+  // remounting: the native view keeps its scroll and only the changed lines redraw, where a
+  // remount blinks the whole editor. Anything this editor committed itself comes back through
+  // this same prop and is not an external edit. Whatever the caret was on is likely gone with
+  // the old text, so focus is dropped first.
+  const blurRef = useRef(controller.blur);
+  blurRef.current = controller.blur;
+  const externalText = props.text;
+  useEffect(() => {
+    if (externalText === committedRef.current || externalText === textRef.current) {
+      return;
+    }
+    const live = textRef.current;
+    let start = 0;
+    while (start < live.length && start < externalText.length && live[start] === externalText[start]) {
+      start += 1;
+    }
+    let liveEnd = live.length;
+    let externalEnd = externalText.length;
+    while (liveEnd > start && externalEnd > start && live[liveEnd - 1] === externalText[externalEnd - 1]) {
+      liveEnd -= 1;
+      externalEnd -= 1;
+    }
+    committedRef.current = externalText;
+    blurRef.current();
+    handleRef?.current?.replaceRange(start, liveEnd, externalText.slice(start, externalEnd));
+  }, [externalText, handleRef]);
 
   const onLineChangeRef = useRef(props.onLineChange);
   onLineChangeRef.current = props.onLineChange;

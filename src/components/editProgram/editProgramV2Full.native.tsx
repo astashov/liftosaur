@@ -26,10 +26,10 @@ export interface IEditProgramV2FullProps {
 
 export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   const [fulltext, setFulltext] = useState(() => PlannerProgram_generateFullText(props.plannerProgram.weeks));
+  // What this editor's own last commit regenerates to. Anything else the program turns into
+  // (undo/redo, an edit from another screen) is a change from outside, and the editor applies
+  // it as an edit.
   const expectedRegenRef = useRef(fulltext);
-  // The editor is uncontrolled — it reads its text once — so text that changes underneath it
-  // (undo/redo, a mode switch, an edit from another screen) can only land by remounting.
-  const [revision, setRevision] = useState(0);
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
   const { evaluatedWeeks } = useMemo(() => {
@@ -45,7 +45,6 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
     }
     expectedRegenRef.current = regen;
     setFulltext(regen);
-    setRevision((r) => r + 1);
   }, [props.plannerProgram.weeks]);
 
   useEffect(() => {
@@ -64,9 +63,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   return (
     <View className="px-4 pt-4">
       <EditProgramLiftoEditor
-        key={revision}
         focusId="full"
-        initialText={fulltext}
+        text={fulltext}
         settings={props.settings}
         evaluatedProgram={props.evaluatedProgram}
         error={
