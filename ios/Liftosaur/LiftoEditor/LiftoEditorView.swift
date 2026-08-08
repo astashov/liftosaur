@@ -28,6 +28,12 @@ import Runestone
     textView.theme = LiftoEditorTheme(fontSize: 16)
     textView.setLanguageMode(ExternalRangesLanguageMode(store: rangesStore))
     textView.showLineNumbers = false
+    // Runestone's 3pt default leaves the number touching the first character. The gutter's
+    // own trailing padding is inside its background, so the gap to the code comes from the
+    // text container instead — padding it there would only widen the tinted strip.
+    textView.gutterLeadingPadding = 6
+    textView.gutterTrailingPadding = 4
+    textView.textContainerInset = UIEdgeInsets(top: 0, left: 4, bottom: 0, right: 0)
     textView.isLineWrappingEnabled = true
     textView.autocorrectionType = .no
     textView.autocapitalizationType = .none
@@ -122,6 +128,10 @@ import Runestone
     }
     currentFontSize = size
     textView.theme = LiftoEditorTheme(fontSize: CGFloat(size))
+  }
+
+  @objc public func applyShowLineNumbers(_ show: Bool) {
+    textView.showLineNumbers = show
   }
 
   @objc public func applyEditable(_ editable: Bool) {
@@ -258,13 +268,15 @@ import Runestone
 private final class LiftoEditorTheme: Runestone.Theme {
   let font: UIFont
   let textColor: UIColor = .label
-  let gutterBackgroundColor: UIColor = .clear
+  // A tint rather than a solid: it has to read as a gutter against both the light and the
+  // dark editor background, and the system fills are the only ones that follow both.
+  let gutterBackgroundColor: UIColor = .quaternarySystemFill
   let gutterHairlineColor: UIColor = .clear
   let lineNumberColor: UIColor = .secondaryLabel
   let lineNumberFont: UIFont
   let selectedLineBackgroundColor: UIColor = .clear
   let selectedLinesLineNumberColor: UIColor = .secondaryLabel
-  let selectedLinesGutterBackgroundColor: UIColor = .clear
+  let selectedLinesGutterBackgroundColor: UIColor = .quaternarySystemFill
   let invisibleCharactersColor: UIColor = .tertiaryLabel
   let pageGuideHairlineColor: UIColor = .clear
   let pageGuideBackgroundColor: UIColor = .clear

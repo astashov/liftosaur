@@ -95,6 +95,9 @@ static NSString *LiftoEditorNSString(const std::string &string) {
   if (newProps.editable != prevProps.editable) {
     [_editorView applyEditable:newProps.editable];
   }
+  if (newProps.showLineNumbers != prevProps.showLineNumbers) {
+    [_editorView applyShowLineNumbers:newProps.showLineNumbers];
+  }
   [super updateProps:props oldProps:oldProps];
 }
 

@@ -21,6 +21,7 @@ export interface ILiftoEditorBaseProps {
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   style?: StyleProp<ViewStyle>;
+  showLineNumbers?: boolean;
   onSelectionChange?: (start: number, end: number) => void;
 }
 

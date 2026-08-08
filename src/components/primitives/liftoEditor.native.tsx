@@ -54,6 +54,9 @@ export interface ILiftoEditorBaseProps {
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   style?: StyleProp<ViewStyle>;
+  // Numbering restarts per editor, so this only reads as the document's own numbering where
+  // the document is a whole day.
+  showLineNumbers?: boolean;
   onSelectionChange?: (start: number, end: number) => void;
 }
 
@@ -209,6 +212,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       initialText={props.initialText}
       fontSize={fontSize}
       editable={props.editable ?? true}
+      showLineNumbers={props.showLineNumbers ?? false}
       onTextDelta={handleTextDelta}
       onEditorSelectionChange={handleSelectionChange}
       onEditorContentSizeChange={autoHeight ? (event) => setContentHeight(event.nativeEvent.height) : undefined}
