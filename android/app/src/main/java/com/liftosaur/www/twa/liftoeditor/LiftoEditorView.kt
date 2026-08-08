@@ -30,7 +30,8 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   private var hasSetInitialText = false
   private var suppressEvents = false
   // Arbitrary hex colors get dynamic scheme ids above sora's built-in range (END_COLOR_ID=66);
-  // the scheme stores colors in a SparseIntArray so unknown ids are fine.
+  // the scheme stores colors in a SparseIntArray so unknown ids are fine. Ids are only
+  // meaningful within one scheme, which is why the view owns its own — see init.
   private val colorIds = HashMap<String, Int>()
   private var nextColorId = 1000
   private var lastReportedContentHeightDp = -1f
@@ -40,6 +41,11 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   private val styledRanges = ArrayList<StyledRange>()
 
   init {
+    // CodeEditor defaults to EditorColorScheme.getDefault(), a process-wide singleton. Two
+    // live editors would both hand out dynamic id 1000, 1001... for their own palettes and
+    // overwrite each other's entries in it, so an editor left on screen behind another one
+    // repaints with the other's colors.
+    colorScheme = EditorColorScheme()
     setWordwrap(true)
     setLineNumberEnabled(false)
     typefaceText = try {
