@@ -52,12 +52,17 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.applyReplaceRange(start, end, text ?: "")
   }
 
+  override fun requestCaretRect(view: LiftoEditorView, start: Int, end: Int) {
+    view.requestCaretRect(start, end)
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
     mutableMapOf(
       "topTextDelta" to mapOf("registrationName" to "onTextDelta"),
       "topEditorSelectionChange" to mapOf("registrationName" to "onEditorSelectionChange"),
       "topEditorContentSizeChange" to mapOf("registrationName" to "onEditorContentSizeChange"),
       "topEditorTap" to mapOf("registrationName" to "onEditorTap"),
+      "topEditorCaretRect" to mapOf("registrationName" to "onEditorCaretRect"),
     )
 
   companion object {

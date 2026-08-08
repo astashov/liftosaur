@@ -15,6 +15,8 @@ export interface ILiftoEditorBaseProps {
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
   onTap?: (index: number) => void;
+  // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
+  onCaretRect?: (rect: { top: number; bottom: number }) => void;
 }
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {

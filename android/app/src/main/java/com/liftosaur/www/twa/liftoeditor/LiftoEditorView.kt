@@ -280,6 +280,25 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     text.replace(start, end, replacement)
   }
 
+  // Structured mode never sets a selection (that would sprout native selection UI), so the
+  // focused range comes from JS and the row has to be resolved on demand. Offsets are content
+  // pixels; with autoHeight the editor never scrolls internally, but subtract the offset
+  // anyway so this stays correct if that changes.
+  fun requestCaretRect(start: Int, end: Int) {
+    val layout = try {
+      getLayout()
+    } catch (e: Exception) {
+      return
+    }
+    val length = text.length
+    val row = layout.getRowIndexForPosition(start.coerceIn(0, length))
+    val endRow = layout.getRowIndexForPosition(end.coerceIn(0, length))
+    val d = resources.displayMetrics.density
+    val top = (getRowTop(row) - offsetY) / d
+    val bottom = (getRowBottom(maxOf(row, endRow)) - offsetY) / d
+    emit { surfaceId, viewId -> EditorCaretRectEvent(surfaceId, viewId, top, bottom) }
+  }
+
   private fun handleContentChange(event: ContentChangeEvent) {
     // Size changes on programmatic setText too, so this stays ahead of the suppress guard;
     // posted because the wrap layout rebuilds after the content listener fires.

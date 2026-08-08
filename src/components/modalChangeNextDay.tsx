@@ -60,7 +60,9 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
     scrollYRef.current = e.nativeEvent.contentOffset.y;
     scrollListenersRef.current.forEach((l) => l(e));
   }, []);
-  const scrollCtx = useMemo(() => ({ scrollRef, scrollYRef, addScrollListener }), [addScrollListener]);
+  // No footer slot on this screen, so nothing occludes the bottom of the scroll content.
+  const footerHeightRef = useRef(0);
+  const scrollCtx = useMemo(() => ({ scrollRef, scrollYRef, footerHeightRef, addScrollListener }), [addScrollListener]);
 
   useEffect(() => {
     scrollYRef.current = 0;

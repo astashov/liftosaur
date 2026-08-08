@@ -24,6 +24,11 @@ interface ISelectionChangeEvent {
   end: number;
 }
 
+interface ICaretRectEvent {
+  top: number;
+  bottom: number;
+}
+
 // The controller-driven surface: everything useLiftoEditorController produces as editorProps.
 // Host surfaces layer presentation concerns (style, selection callbacks) on top via
 // ILiftoEditorProps.
@@ -43,6 +48,8 @@ export interface ILiftoEditorBaseProps {
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
   onTap?: (index: number) => void;
+  // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
+  onCaretRect?: (rect: { top: number; bottom: number }) => void;
 }
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
@@ -61,7 +68,8 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   // (and never from the then-stale mirror) is what prevents a one-frame highlight flash.
   const predictedTextRef = useRef<string | undefined>(undefined);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
-  const { onTextChange, onSelectionChange, onTap, autoHeight, handleRef, extraStyledRanges, parseCache } = props;
+  const { onTextChange, onSelectionChange, onTap, onCaretRect, autoHeight, handleRef, extraStyledRanges, parseCache } =
+    props;
   const extraStyledRangesRef = useRef(extraStyledRanges);
   extraStyledRangesRef.current = extraStyledRanges;
   const ownCacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
@@ -138,6 +146,11 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
         }
       },
       getText: () => textRef.current,
+      requestCaretRect: (start, end) => {
+        if (nativeRef.current != null) {
+          Commands.requestCaretRect(nativeRef.current, start, end);
+        }
+      },
     };
     return () => {
       handleRef.current = undefined;
@@ -200,6 +213,12 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       onEditorSelectionChange={handleSelectionChange}
       onEditorContentSizeChange={autoHeight ? (event) => setContentHeight(event.nativeEvent.height) : undefined}
       onEditorTap={onTap != null ? (event) => onTap(event.nativeEvent.index) : undefined}
+      onEditorCaretRect={
+        onCaretRect != null
+          ? (event: NativeSyntheticEvent<ICaretRectEvent>) =>
+              onCaretRect({ top: event.nativeEvent.top, bottom: event.nativeEvent.bottom })
+          : undefined
+      }
     />
   );
 }

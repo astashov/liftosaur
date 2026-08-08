@@ -30,6 +30,7 @@ export function NavScreenContent(props: {
   const contentSizeRef = useRef({ width: 0, height: 0 });
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   const [footerHeight, setFooterHeight] = useState(0);
+  const footerHeightRef = useRef(0);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -48,6 +49,7 @@ export function NavScreenContent(props: {
   );
 
   const onFooterLayout = useCallback((e: LayoutChangeEvent) => {
+    footerHeightRef.current = e.nativeEvent.layout.height;
     setFooterHeight(e.nativeEvent.layout.height);
   }, []);
 
@@ -98,7 +100,10 @@ export function NavScreenContent(props: {
     [notifyListeners]
   );
 
-  const contextValue = useMemo(() => ({ scrollRef, scrollYRef, addScrollListener }), [addScrollListener]);
+  const contextValue = useMemo(
+    () => ({ scrollRef, scrollYRef, footerHeightRef, addScrollListener }),
+    [addScrollListener]
+  );
 
   const scrollMarkers = usePerfScrollMarkers("NavScreenContent");
 

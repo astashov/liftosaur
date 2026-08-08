@@ -28,6 +28,13 @@ interface EditorTapEvent {
   index: Int32;
 }
 
+// Vertical extent (dp) of a character range inside the editor's own content box. Emitted in
+// response to requestCaretRect so a host can scroll it clear of docked chrome.
+interface EditorCaretRectEvent {
+  top: Float;
+  bottom: Float;
+}
+
 export interface NativeProps extends ViewProps {
   initialText?: string;
   fontSize?: Float;
@@ -37,6 +44,7 @@ export interface NativeProps extends ViewProps {
   onEditorSelectionChange?: DirectEventHandler<SelectionChangeEvent>;
   onEditorContentSizeChange?: DirectEventHandler<ContentSizeChangeEvent>;
   onEditorTap?: DirectEventHandler<EditorTapEvent>;
+  onEditorCaretRect?: DirectEventHandler<EditorCaretRectEvent>;
 }
 
 interface NativeCommands {
@@ -58,10 +66,20 @@ interface NativeCommands {
   // through shouldChangeText; sora's Content.replace fires ContentChangeEvent), so the JS
   // mirror needs no special handling for programmatic edits.
   replaceRange: (viewRef: React.ElementRef<HostComponent<NativeProps>>, start: Int32, end: Int32, text: string) => void;
+  // Request/response: focus in structured mode is driven from JS (taps, pills, breadcrumbs),
+  // so the native side has no selection to report a rect for on its own.
+  requestCaretRect: (viewRef: React.ElementRef<HostComponent<NativeProps>>, start: Int32, end: Int32) => void;
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ["setText", "setStyledRanges", "patchStyledRanges", "setSelection", "replaceRange"],
+  supportedCommands: [
+    "setText",
+    "setStyledRanges",
+    "patchStyledRanges",
+    "setSelection",
+    "replaceRange",
+    "requestCaretRect",
+  ],
 });
 
 export default codegenNativeComponent<NativeProps>("LiftoEditor");
