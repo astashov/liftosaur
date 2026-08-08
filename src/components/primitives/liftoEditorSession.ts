@@ -516,6 +516,23 @@ export function LiftoEditorSession_deactivate(session: ILiftoEditorSession): ILi
   };
 }
 
+// Focus moved to a different editor on the same screen. Unlike deactivate — which only ends
+// the keypad session — this drops the whole focus stack, so the backgrounded editor stops
+// drawing its level and active-token highlights.
+export function LiftoEditorSession_blur(session: ILiftoEditorSession): ILiftoEditorSessionResult {
+  return {
+    session: {
+      ...session,
+      active: undefined,
+      focusedToken: undefined,
+      context: undefined,
+      focusLevel: undefined,
+      anchor: undefined,
+    },
+    effects: { keypad: "close" },
+  };
+}
+
 export function LiftoEditorSession_switchToFreeform(session: ILiftoEditorSession): ILiftoEditorSessionResult {
   return {
     session: {

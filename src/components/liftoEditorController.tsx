@@ -17,6 +17,8 @@ export interface ILiftoEditorController {
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToStructured: () => void;
+  // Drops the focus stack when another editor on the same screen takes over.
+  blur: () => void;
 }
 
 export interface ILiftoEditorControllerActions {

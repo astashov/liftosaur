@@ -14,6 +14,7 @@ import {
   ILiftoEditorSessionResult,
   LiftoEditorSession_activeLevelIndex,
   LiftoEditorSession_applyPill,
+  LiftoEditorSession_blur,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
@@ -56,6 +57,8 @@ export interface ILiftoEditorController {
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToStructured: () => void;
+  // Drops the focus stack when another editor on the same screen takes over.
+  blur: () => void;
 }
 
 // Fallback when the host doesn't provide an exercise (e.g. template exercises without an
@@ -272,5 +275,6 @@ export function useLiftoEditorController(
     pressPill,
     removeFocused: () => dispatch(LiftoEditorSession_removeFocused(sessionRef.current)),
     switchToStructured: () => dispatch(LiftoEditorSession_switchToStructured(sessionRef.current)),
+    blur: () => dispatch(LiftoEditorSession_blur(sessionRef.current)),
   };
 }
