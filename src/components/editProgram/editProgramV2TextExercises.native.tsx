@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { useContext, useEffect, useRef } from "react";
-import { View, ScrollView, useWindowDimensions } from "react-native";
+import { Keyboard, View, ScrollView, useWindowDimensions } from "react-native";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { LensBuilder, lb } from "lens-shmens";
 import { Text } from "../primitives/text";
@@ -16,10 +16,11 @@ import { IconWatch } from "../icons/iconWatch";
 import { LiftoEditor } from "../primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
-import { useLiftoEditorFocusClaim } from "../liftoEditorFocus";
+import { useLiftoEditorBlurFocused, useLiftoEditorFocusClaim } from "../liftoEditorFocus";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
+import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 
 // Breathing room between the focused token and the top of the docked chrome.
 const caretRevealMargin = 16;
@@ -61,12 +62,14 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
   const scrollCtx = useContext(NavScreenScrollContext);
   const editorBoxRef = useRef<View>(null);
   const keypadHeight = useCustomKeyboardHeight();
+  const systemKeyboardHeight = useSystemKeyboardHeight();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const { height: windowHeight } = useWindowDimensions();
   // The dock is anchored to the footer slot and rides above the keypad, so together they
   // occlude the footer's height plus whichever of the keypad/tab bar is taller.
   const occludedRef = useRef(0);
-  occludedRef.current = (scrollCtx?.footerHeightRef.current ?? 0) + Math.max(tabBarHeight, keypadHeight);
+  occludedRef.current =
+    (scrollCtx?.footerHeightRef.current ?? 0) + Math.max(tabBarHeight, keypadHeight, systemKeyboardHeight);
   const revealCaret = (rect: { top: number; bottom: number }): void => {
     const scrollNode = scrollCtx?.scrollRef.current;
     const scrollYRef = scrollCtx?.scrollYRef;
@@ -95,6 +98,52 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
       handleRef?.current?.requestCaretRect(focusStart, focusEnd);
     }
   }, [focusStart, focusEnd, keypadHeight, handleRef]);
+
+  // Freeform has no focus stack — the caret is the native selection, so follow that instead.
+  const isFreeform = controller.mode === "freeform";
+  // Every way out of freeform ends with the keyboard going away — the dock is hidden there,
+  // so it's scroll-to-dismiss on iOS and the back button on Android. Treat that as the exit
+  // rather than giving each path its own handler.
+  //
+  // Dropping focus is the point: switchToStructured alone only flips the mode and leaves the
+  // level stack empty, which brings the dock back in its "Tap a token to focus" state. The
+  // mode still has to come back with it, or the editor stays editable and the next tap goes
+  // straight to text entry with no way back to the structured UI.
+  const blurFocused = useLiftoEditorBlurFocused();
+  const exitFreeformRef = useRef<() => void>(() => undefined);
+  exitFreeformRef.current = () => {
+    controller.switchToStructured();
+    blurFocused();
+  };
+  // Only after the keyboard has actually appeared: entering freeform flips this flag ~50ms
+  // before the caret placement summons the IME (the controller waits for the native side to
+  // commit `editable` first), and a hide event landing in that window — a stale one, or the
+  // custom keypad closing on the way in — would bounce straight back out.
+  useEffect(() => {
+    if (!isFreeform) {
+      return;
+    }
+    let hasShown = false;
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
+      hasShown = true;
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      if (hasShown) {
+        exitFreeformRef.current();
+      }
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [isFreeform]);
+  const lastSelectionRef = useRef<{ start: number; end: number } | undefined>(undefined);
+  useEffect(() => {
+    const selection = lastSelectionRef.current;
+    if (isFreeform && selection != null) {
+      handleRef?.current?.requestCaretRect(selection.start, selection.end);
+    }
+  }, [isFreeform, systemKeyboardHeight, handleRef]);
 
   const textRef = useRef(controller.text);
   textRef.current = controller.text;
@@ -149,6 +198,12 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
             bottomPadding={controller.mode === "freeform" ? 24 : 0}
             extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
             onCaretRect={revealCaret}
+            onSelectionChange={(start, end) => {
+              lastSelectionRef.current = { start, end };
+              if (isFreeform) {
+                handleRef?.current?.requestCaretRect(start, end);
+              }
+            }}
           />
         </View>
       </View>

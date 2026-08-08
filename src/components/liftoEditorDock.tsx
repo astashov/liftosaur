@@ -1,8 +1,8 @@
 import { JSX, useContext, useMemo } from "react";
 import { Animated, Pressable, View } from "react-native";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
-import { Text } from "./primitives/text";
-import { useCustomKeyboardAnimatedHeight } from "../navigation/CustomKeyboardContext";
+import { useCustomKeyboardAnimatedHeight, useCustomKeyboardHeight } from "../navigation/CustomKeyboardContext";
+import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
 import { LiftoEditorHints_forContext } from "./primitives/liftoEditorHints";
 import {
   LiftoEditorCrumbs,
@@ -30,22 +30,31 @@ export function LiftoEditorDock(): JSX.Element | null {
   // it standing above the tab bar actually overlaps us. Clamped at 0 so a keypad shorter than
   // the tab bar doesn't push the dock down into it.
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
+  // Not for freeform (the dock is hidden there) but for the system keyboard raised by some
+  // other field on the screen — a day name, say — while a token still holds the dock. The two
+  // keyboards are mutually exclusive, so gate the static height on the keypad being shut
+  // rather than adding both; a stale IME height would otherwise stack on top of the keypad.
+  const isKeypadOpen = useCustomKeyboardHeight() > 0;
+  const imeHeight = useSystemKeyboardHeight();
+  const systemKeyboardHeight = isKeypadOpen ? 0 : imeHeight;
   const keypadLift = useMemo(
     () =>
-      Animated.subtract(keypadHeight, tabBarHeight).interpolate({
+      Animated.subtract(Animated.add(keypadHeight, systemKeyboardHeight), tabBarHeight).interpolate({
         inputRange: [0, 1],
         outputRange: [0, -1],
         extrapolateLeft: "clamp",
         extrapolateRight: "extend",
       }),
-    [keypadHeight, tabBarHeight]
+    [keypadHeight, systemKeyboardHeight, tabBarHeight]
   );
   const iconScale = useRem() / 16;
 
+  // Nothing focused, which includes freeform — that's plain text editing against the system
+  // keyboard, with no focus stack to describe. Its hide-keyboard affordance is the text view's
+  // own inputAccessoryView, so the dock stays out of it entirely.
   if (entry == null) {
     return null;
   }
-  const isFreeform = entry.controller.mode === "freeform";
   const hint = LiftoEditorHints_forContext(
     entry.controller.context,
     entry.controller.activeLevelIndex,
@@ -62,13 +71,9 @@ export function LiftoEditorDock(): JSX.Element | null {
           A gap here would push the help icon visibly away from it. */}
       <View className="flex-row items-center py-0 pl-4">
         <View className="flex-1">
-          {isFreeform ? (
-            <Text className="text-sm text-text-secondary">Editing as text</Text>
-          ) : (
-            <LiftoEditorCrumbs controller={entry.controller} />
-          )}
+          <LiftoEditorCrumbs controller={entry.controller} />
         </View>
-        {!isFreeform && hint != null && hintDismissed ? (
+        {hint != null && hintDismissed ? (
           <Pressable testID="editor-dock-show-hint" className="py-2 pl-2 pr-1" onPress={() => setHintDismissed(false)}>
             <IconHelp size={20 * iconScale} color={Tailwind_semantic().icon.neutral} />
           </Pressable>
@@ -78,19 +83,15 @@ export function LiftoEditorDock(): JSX.Element | null {
           className="items-center w-10 py-2"
           // Left slop stays small so it doesn't swallow taps meant for the help icon.
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
-          onPress={isFreeform ? entry.controller.switchToStructured : blurFocused}
+          onPress={blurFocused}
         >
-          {isFreeform ? (
-            <Text className="text-xs font-bold text-text-purple">Apply</Text>
-          ) : (
-            <IconCloseCircleOutline size={20 * iconScale} />
-          )}
+          <IconCloseCircleOutline size={20 * iconScale} />
         </Pressable>
       </View>
-      {!isFreeform && hint != null && !hintDismissed ? (
+      {hint != null && !hintDismissed ? (
         <LiftoEditorHintBar hint={hint} onDismiss={() => setHintDismissed(true)} />
       ) : null}
-      {!isFreeform && (entry.controller.context?.levels ?? []).length > 0 ? (
+      {(entry.controller.context?.levels ?? []).length > 0 ? (
         <LiftoEditorPillRail controller={entry.controller} className="pb-4" />
       ) : null}
     </Animated.View>

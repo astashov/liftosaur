@@ -20,6 +20,9 @@ export function NavScreenContent(props: {
   children: ReactNode;
   stickyHeaderIndices?: number[];
   footer?: ReactNode;
+  // Opt-in per screen rather than global: on-drag dismisses on any scroll, which is wrong
+  // for form-ish screens but right where the keyboard covers what you're reading.
+  keyboardDismissMode?: "none" | "on-drag" | "interactive";
 }): JSX.Element {
   const navigation = useNavigation();
   const isScrolledRef = useRef(false);
@@ -115,6 +118,7 @@ export function NavScreenContent(props: {
       className="flex-1 bg-background-default"
       contentContainerStyle={{ flexGrow: 1, paddingBottom: props.footer != null ? footerHeight : 0 }}
       automaticallyAdjustKeyboardInsets={true}
+      keyboardDismissMode={props.keyboardDismissMode}
       onScroll={onScroll}
       onLayout={onScrollViewLayout}
       onContentSizeChange={onContentSizeChange}
