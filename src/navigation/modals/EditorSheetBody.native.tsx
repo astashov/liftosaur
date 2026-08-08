@@ -7,9 +7,12 @@ import { lb } from "lens-shmens";
 import { useModal } from "../ModalStateContext";
 import { useAppState } from "../StateContext";
 import { IState, updateState } from "../../models/state";
-import { Dialog_confirm } from "../../utils/dialog";
+import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import type { IExercisePickerSelectedExercise } from "../../types";
-import type { ILiftoEditorPillCategory } from "../../components/primitives/liftoEditorActions";
+import type {
+  ILiftoEditorPillCategory,
+  ILiftoEditorReuseSelection,
+} from "../../components/primitives/liftoEditorActions";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoEditorBrain";
@@ -50,24 +53,24 @@ const editorHintsHelpId = "lifto-editor-hints";
 
 const editorPropertyHints: Partial<Record<string, IEditorHint>> = {
   progress: {
-    short: "Progress: how program exercise changes after a workouts.",
+    short: "Progress: how the exercise changes after workouts.",
     detail:
       "Runs after you finish a workout and adjusts the future ones. Defined via a function — tap it to learn what it does. 'progress: none' disables it, e.g. for a deload week.",
   },
   update: {
-    short: "Update: a script that runs after every completed set.",
+    short: "Update: a script that runs when the workout starts and after each set.",
     detail:
       "'setIndex' is the set you just completed — 0 means it's running before the workout starts. Use it to adjust the remaining sets right away, e.g. '{~ if (setIndex == 1) { weights += 2.5kg } ~}'.",
   },
   warmup: {
-    short: "Warmups: sets that are not accounted in progress/update and for volume",
+    short: "Warmups: warmup sets — not counted for progress, update or volume.",
     detail:
       "E.g. 'warmup: 2x5 45%, 1x3 135lb' — percentages here are of the first work set's weight, not your 1RM. 'warmup: none' removes warmups.",
   },
   used: {
     short: "'used: none' removes this exercise from workouts — others can still reuse it.",
     detail:
-      "With an unknown exercise name it acts as a template (e.g. '...T1'). Updating its reps/weights moves those values into overrides in the exercises reusing it. Also handy for reserving exercises for quick swapping.",
+      "With an unknown exercise name it acts as a template (e.g. '...T1'). Templates never progress, so reusing them never breaks — while a reuser that progresses gets its changed values extracted into overrides on its own line.",
   },
   id: {
     short: "Id: tags this exercise so other exercises' scripts can reach its state.",
@@ -149,7 +152,7 @@ const editorNodeHints: Partial<Record<string, IEditorHint>> = {
   },
   WeekDay: {
     short: "Week/Day: where to reuse the exercise from.",
-    detail: "'[2]' — day 2 of the current week, '[2:1]' — week 2, day 1, '[_:1]' — day 1 of every week.",
+    detail: "'[2]' — day 2 of the current week, '[2:1]' — week 2, day 1. '_' means the current week: '[_:1]'.",
   },
   Repeat: {
     short: "Repeat: this exercise repeats across the listed weeks.",
@@ -158,7 +161,8 @@ const editorNodeHints: Partial<Record<string, IEditorHint>> = {
   },
   Superset: {
     short: "Superset: exercises sharing a group name alternate together.",
-    detail: "'superset: A' — all exercises marked with group 'A' are performed as a superset in the workout.",
+    detail:
+      "'superset: A' — completing a set jumps to the next exercise marked with group 'A'. Groups match within the same day only.",
   },
   KeyValue: {
     short: "State variable: a value the script remembers between workouts.",
@@ -419,6 +423,17 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
       onSubmit(value);
     }
   });
+  const reuseSelectRef = useRef<
+    { items: ILiftoEditorReuseSelection[]; onSelect: (selection: ILiftoEditorReuseSelection) => void } | undefined
+  >(undefined);
+  const openReuseSelect = useModal("inputSelectModal", (value) => {
+    const pending = reuseSelectRef.current;
+    reuseSelectRef.current = undefined;
+    const selection = value != null ? pending?.items.find((item) => item.fullName === value) : undefined;
+    if (pending != null && selection != null) {
+      pending.onSelect(selection);
+    }
+  });
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
     actions: {
@@ -438,6 +453,32 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
         });
       },
       editReuse: (targetName) => props.onEditReuse?.(targetName),
+      pickReuse: (kind, onSelect) => {
+        const candidates = props.reuseCandidates;
+        const items: ILiftoEditorReuseSelection[] =
+          kind === "sets"
+            ? (candidates?.sets ?? [])
+            : ((kind === "progress" ? candidates?.progress : candidates?.update) ?? []).map((fullName) => ({
+                fullName,
+              }));
+        if (items.length === 0) {
+          Dialog_alert(
+            kind === "sets"
+              ? "There are no other exercises in this program to reuse sets from."
+              : "There are no other exercises with their own custom() script to reuse."
+          );
+          return;
+        }
+        reuseSelectRef.current = { items, onSelect };
+        openReuseSelect({
+          name: "editor-sheet-reuse",
+          values: items.map((item) => [item.fullName, item.fullName]),
+          hint:
+            kind === "sets"
+              ? "You can only reuse sets of exercises that don't reuse other exercises"
+              : "You can only reuse scripts that don't reuse other scripts",
+        });
+      },
     },
   });
   const { state, dispatch } = useAppState();
@@ -493,6 +534,14 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   const closeKeyboard = useCloseCustomKeyboard();
   const isFreeform = controller.mode === "freeform";
   const railRef = useRef<ScrollView>(null);
+  const pillRailRef = useRef<ScrollView>(null);
+  // Keyed on the level's start (not end) so typing into the focused token — which only
+  // moves its end — doesn't yank the rail back while it's being used.
+  const activeLevel = controller.context?.levels[controller.activeLevelIndex];
+  const pillRailResetKey = `${controller.activeLevelIndex}:${activeLevel?.start ?? -1}`;
+  useEffect(() => {
+    pillRailRef.current?.scrollTo({ x: 0, animated: false });
+  }, [pillRailResetKey]);
   // Only on the initial layout: the body remounts on instance switch, and reacting to later
   // re-layouts would yank the rail away from wherever the user scrolled it.
   const hasAutoScrolledRail = useRef(false);
@@ -601,7 +650,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
         </View>
         {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
           <View className="flex-row items-center border-b border-border-neutral">
-            <FadeScrollView className="flex-1" contentClassName="gap-2 px-3 py-2">
+            <FadeScrollView className="flex-1" contentClassName="gap-2 px-3 py-2" scrollRef={pillRailRef}>
               {controller.pills.map((pill) => {
                 const hue = pillHue(pill.category);
                 return (
