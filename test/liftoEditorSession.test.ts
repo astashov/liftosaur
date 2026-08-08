@@ -391,6 +391,22 @@ describe("LiftoEditorSession", () => {
     it("removing auto eats its leading space", () => {
       expect(removeLevel("Squat / 3x8 100lb auto 60s", "auto", "Auto")).to.equal("Squat / 3x8 100lb 60s");
     });
+
+    it("removing a script reuse restores an empty script body", () => {
+      expect(removeLevel("Squat / 3x8 / progress: custom() { ...t1 }", "...t1", "Reuse")).to.equal(
+        "Squat / 3x8 / progress: custom() {~ ~}"
+      );
+      expect(removeLevel("Squat / 3x8 / update: custom() { ...t1 }", "...t1", "Reuse")).to.equal(
+        "Squat / 3x8 / update: custom() {~ ~}"
+      );
+    });
+
+    it("removing a property's function value takes the whole property", () => {
+      expect(removeLevel("Squat / 3x8 / id: tags(2)", "tags", "tags()")).to.equal("Squat / 3x8");
+      expect(removeLevel("Squat / 3x8 / progress: lp(5lb) / update: custom() {~ ~}", "lp", "lp()")).to.equal(
+        "Squat / 3x8 / update: custom() {~ ~}"
+      );
+    });
   });
 
   describe("mode switching", () => {
@@ -432,6 +448,11 @@ describe("LiftoEditorSession", () => {
     it("stops at an empty boundary instead of surfacing ancestor pills", () => {
       const tap = tapAt("Squat / 3x8 / used: none", "none");
       expect(LiftoEditorSession_pills(tap.session)).to.deep.equal([]);
+    });
+
+    it("focusing a label offers only renaming", () => {
+      const tap = tapAt("aux: Squat / 3x8", "aux");
+      expect(LiftoEditorSession_pills(tap.session).map((p) => p.label)).to.deep.equal(["Rename…"]);
     });
   });
 

@@ -302,6 +302,26 @@ export function LiftoEditorBrain_enclosingSetGroup(
   return { nodeName: node.name, start: node.from, end: node.to, isOnlyGroup: siblings.length <= 1 };
 }
 
+// The `...X` of a script reuse (`custom() { ...X }`) can't just be deleted — `{ }` without
+// tildes doesn't parse — so removal must swap the whole body back to an empty script.
+export function LiftoEditorBrain_scriptReuseBody(
+  text: string,
+  level: { nodeName: string; start: number }
+): { start: number; end: number } | undefined {
+  if (level.nodeName !== PlannerNodeName.ReuseSection) {
+    return undefined;
+  }
+  let node: SyntaxNode | null = parser.parse(text).resolveInner(level.start + 1, -1);
+  while (node != null && node.name !== PlannerNodeName.ReuseSection) {
+    node = node.parent;
+  }
+  const body = node?.parent;
+  if (body == null || body.name !== PlannerNodeName.ReuseLiftoscript) {
+    return undefined;
+  }
+  return { start: body.from, end: body.to };
+}
+
 export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoEditorContext {
   const tree = parser.parse(text);
   const inner = tree.resolveInner(index, -1);

@@ -6,6 +6,7 @@ import {
   ITextEdit,
   LiftoEditorBrain_contextAt,
   LiftoEditorBrain_enclosingSetGroup,
+  LiftoEditorBrain_scriptReuseBody,
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
 } from "./liftoEditorBrain";
@@ -430,20 +431,29 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
   let nodeName = level.nodeName;
   let start = level.start;
   let end = level.end;
+  const scriptBody = LiftoEditorBrain_scriptReuseBody(text, level);
+  if (scriptBody != null) {
+    return {
+      session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
+      effects: { edits: [{ start: scriptBody.start, end: scriptBody.end, text: "{~ ~}" }], keypad: "close" },
+    };
+  }
   // Removing a group's sets×reps alone leaves nonsense ("warmup: 40%"; "3x8 100lb" minus
-  // "3x8" reads as globals) — promote to the whole set group. And when everything after
-  // "warmup:" would go (the last warmup group, or the Warmup sets level itself), take the
-  // whole property: an empty "warmup:" doesn't parse.
+  // "3x8" reads as globals) — promote to the whole set group. And when a property's whole
+  // value would go — its function ("id:" minus "tags(2)"), the last warmup group, or the
+  // Warmup sets level itself — take the whole property: a dangling "name:" doesn't parse.
   const group = LiftoEditorBrain_enclosingSetGroup(text, level);
-  const removesAllWarmups =
-    (group?.isOnlyGroup === true && group.nodeName === "WarmupExerciseSet") || nodeName === "WarmupExerciseSets";
-  const warmupProperty = removesAllWarmups
+  const removesPropertyValue =
+    (group?.isOnlyGroup === true && group.nodeName === "WarmupExerciseSet") ||
+    nodeName === "WarmupExerciseSets" ||
+    nodeName === "FunctionExpression";
+  const propertyLevel = removesPropertyValue
     ? levels
         .slice(0, levelIndex)
         .reverse()
         .find((l) => l.nodeName === "ExerciseProperty")
     : undefined;
-  const target = warmupProperty ?? group;
+  const target = propertyLevel ?? group;
   if (target != null) {
     nodeName = target.nodeName;
     start = target.start;
