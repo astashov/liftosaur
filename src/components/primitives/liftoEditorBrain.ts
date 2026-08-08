@@ -2,6 +2,7 @@ import { SyntaxNode, Tree, TreeFragment } from "@lezer/common";
 import { parser } from "../../pages/planner/plannerExerciseParser";
 import { parser as liftoscriptParser } from "../../liftoscript";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
+import { IDayData } from "../../types";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import {
   ILiftoEditorPill,
@@ -326,6 +327,26 @@ export interface ILiftoEditorContext {
   levels: ILiftoEditorLevel[];
 }
 
+// Week/Day headers are siblings of the exercises rather than their parents, so which day an
+// offset belongs to is "how many headers came before it" rather than an ancestor walk. Read
+// off the raw lines: a line can only start with "#" as a header (comments start with "//"),
+// and a whole-program document is big enough that this is worth not parsing for.
+export function LiftoEditorBrain_dayDataAt(text: string, index: number): Required<IDayData> {
+  let weeks = 0;
+  let daysInWeek = 0;
+  let days = 0;
+  for (const line of text.slice(0, index).split("\n")) {
+    if (line.startsWith("##")) {
+      daysInWeek += 1;
+      days += 1;
+    } else if (line.startsWith("#")) {
+      weeks += 1;
+      daysInWeek = 0;
+    }
+  }
+  return { week: Math.max(1, weeks), dayInWeek: Math.max(1, daysInWeek), day: Math.max(1, days) };
+}
+
 // Flattens possibly-overlapping styled ranges into sorted non-overlapping segments with
 // merged properties (later input ranges win per property). The native sides assume exactly
 // this. Sweep-line rather than filtering all ranges per segment — the naive version was
@@ -634,13 +655,13 @@ export function LiftoEditorBrain_contextAt(
         });
       }
     } else {
-      const label = breadcrumbLabels[name];
+      const isHeader = name === PlannerNodeName.Week || name === PlannerNodeName.Day;
+      // "# Week 1" reads better as its own name than as the generic "Week", and in full-program
+      // mode the crumb is the only thing saying where in the program the caret is.
+      const label = (isHeader ? nodeText(text, node).replace(/^#+/, "").trim() : "") || breadcrumbLabels[name];
       if (label != null && levels[0]?.label !== label) {
         // Week/Day tokens include their trailing linebreak; keep the highlight on the line.
-        const end =
-          name === PlannerNodeName.Week || name === PlannerNodeName.Day
-            ? LiftoEditorActions_endOfExerciseLine(text, node)
-            : node.to;
+        const end = isHeader ? LiftoEditorActions_endOfExerciseLine(text, node) : node.to;
         levels.unshift({
           label,
           nodeName: name,

@@ -74,6 +74,7 @@ export const EditProgramView = memo(function EditProgramView(
       ) : ui.mode === "full" ? (
         <EditProgramV2Full
           plannerProgram={planner}
+          evaluatedProgram={props.evaluatedProgram}
           ui={ui}
           lbUi={lb<IPlannerState>().pi("ui")}
           settings={props.settings}

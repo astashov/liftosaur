@@ -11,6 +11,7 @@ import {
 } from "../../pages/planner/models/plannerProgram";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
+import { IEvaluatedProgram } from "../../models/program";
 import { Settings_getTheme } from "../../models/settings";
 
 export interface IEditProgramV2FullProps {
@@ -19,6 +20,9 @@ export interface IEditProgramV2FullProps {
   ui: IPlannerUi;
   lbUi: LensBuilder<IPlannerState, IPlannerUi, {}, undefined>;
   plannerDispatch: ILensDispatch<IPlannerState>;
+  // Only the native structured editor uses this — it drives its exercise picker and reuse
+  // pickers, which the web CodeMirror body doesn't have.
+  evaluatedProgram: IEvaluatedProgram;
 }
 
 export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {

@@ -5,6 +5,7 @@ import {
   ILiftoEditorStyledRange,
   LiftoEditorBrain_computeStyledRanges,
   LiftoEditorBrain_contextAt,
+  LiftoEditorBrain_dayDataAt,
   LiftoEditorBrain_diffStyledRanges,
   LiftoEditorBrain_flattenRanges,
   LiftoEditorBrain_shiftStyledRanges,
@@ -88,10 +89,14 @@ describe("LiftoEditorBrain", () => {
       expect(breadcrumbAt("Squat[1-3] / 3x8", "[1-3]")).to.include("Repeat");
     });
 
-    it("labels week and day lines", () => {
+    it("labels week and day lines with their own names", () => {
       const text = "# Week 1\n## Day 1\nSquat / 3x8";
-      expect(breadcrumbAt(text, "# Week 1")).to.deep.equal(["Week"]);
-      expect(breadcrumbAt(text, "## Day 1")).to.deep.equal(["Day"]);
+      expect(breadcrumbAt(text, "# Week 1")).to.deep.equal(["Week 1"]);
+      expect(breadcrumbAt(text, "## Day 1")).to.deep.equal(["Day 1"]);
+    });
+
+    it("falls back to the generic label for an unnamed week or day", () => {
+      expect(breadcrumbAt("#\nSquat / 3x8", "#")).to.deep.equal(["Week"]);
     });
 
     it("returns no levels outside any node", () => {
@@ -108,6 +113,40 @@ describe("LiftoEditorBrain", () => {
       const text = "Squat / 3x8\nBench Press / 5x5";
       const level = LiftoEditorTestUtils_contextAt(text, "3x8").levels[0];
       expect(text.slice(level.start, level.end)).to.equal("Squat / 3x8");
+    });
+  });
+
+  describe("dayDataAt", () => {
+    const program = "# Week 1\n## Day 1\nSquat / 3x8\n\n## Day 2\nBench Press / 5x5\n\n# Week 2\n## Day 1\nSquat / 3x5";
+
+    it("attributes an offset to the day whose headers precede it", () => {
+      expect(LiftoEditorBrain_dayDataAt(program, LiftoEditorTestUtils_pos(program, "3x8"))).to.deep.equal({
+        week: 1,
+        dayInWeek: 1,
+        day: 1,
+      });
+      expect(LiftoEditorBrain_dayDataAt(program, LiftoEditorTestUtils_pos(program, "5x5"))).to.deep.equal({
+        week: 1,
+        dayInWeek: 2,
+        day: 2,
+      });
+      expect(LiftoEditorBrain_dayDataAt(program, LiftoEditorTestUtils_pos(program, "3x5"))).to.deep.equal({
+        week: 2,
+        dayInWeek: 1,
+        day: 3,
+      });
+    });
+
+    it("counts the header the offset is inside of", () => {
+      expect(LiftoEditorBrain_dayDataAt(program, LiftoEditorTestUtils_pos(program, "Day 2"))).to.deep.equal({
+        week: 1,
+        dayInWeek: 2,
+        day: 2,
+      });
+    });
+
+    it("falls back to the first day for text with no headers", () => {
+      expect(LiftoEditorBrain_dayDataAt("Squat / 3x8", 5)).to.deep.equal({ week: 1, dayInWeek: 1, day: 1 });
     });
   });
 
