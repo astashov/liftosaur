@@ -83,6 +83,7 @@ import {
   IExportedPlannerProgram,
   IPlannerProgramExercise,
   IPlannerProgramExerciseWithType,
+  IReuseCandidate,
 } from "../pages/planner/models/types";
 import memoize from "micro-memoize";
 import { PlannerProgram_switchToUnit } from "../pages/planner/models/plannerProgram";
@@ -1428,6 +1429,56 @@ export function Program_addDayFromHistoryRecord(
     planner: newPlanner,
   };
   return { program: newProgram, dayData: newDayData };
+}
+
+export function Program_getReuseSetsCandidates(
+  key: string,
+  evaluatedProgram: IEvaluatedProgram,
+  dayData: Required<IDayData>
+): Record<string, IReuseCandidate> {
+  const result: Record<string, IReuseCandidate> = {};
+  PP_iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
+    if (
+      exercise.key === key &&
+      ((dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) || exercise.isRepeat)
+    ) {
+      return;
+    }
+    if (exercise.reuse != null || exercise.progress?.reuse != null || exercise.update?.reuse != null) {
+      return;
+    }
+    let reuseSetCandidate = result[exercise.key];
+    if (!reuseSetCandidate) {
+      reuseSetCandidate = {
+        exercise,
+        weekAndDays: {},
+      };
+      result[exercise.key] = reuseSetCandidate;
+    }
+    reuseSetCandidate.weekAndDays[weekIndex + 1] = reuseSetCandidate.weekAndDays[weekIndex + 1] || new Set<number>();
+    reuseSetCandidate.weekAndDays[weekIndex + 1].add(dayInWeekIndex + 1);
+  });
+  return result;
+}
+
+export function Program_getScriptReuseCandidates(
+  key: string,
+  notused: boolean,
+  evaluatedProgram: IEvaluatedProgram,
+  type: "progress" | "update"
+): string[] {
+  const result: Record<string, string> = {};
+  PP_iterate2(evaluatedProgram.weeks, (exercise) => {
+    if (exercise.key === key) {
+      return;
+    }
+    const script = type === "progress" ? exercise.progress : exercise.update;
+    if (!script || script.type !== "custom" || (!(!notused && exercise.notused) && script.reuse)) {
+      return;
+    }
+    result[exercise.fullName] = exercise.fullName;
+  });
+  return Object.keys(result);
 }
 
 export function Program_getReusingSetsExercises(

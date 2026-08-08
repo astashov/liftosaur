@@ -3,7 +3,9 @@ import { View } from "react-native";
 import { ILiftoEditorContext, ILiftoEditorHandle, ITextEdit } from "./primitives/liftoEditorBrain";
 import {
   ILiftoEditorPill,
+  ILiftoEditorReuseSelection,
   LiftoEditorActions_renameEdit,
+  LiftoEditorActions_reuseTargetText,
   LiftoEditorActions_swapExerciseEdit,
 } from "./primitives/liftoEditorActions";
 import {
@@ -67,6 +69,7 @@ export interface ILiftoEditorControllerActions {
   pickExercise?: (current: string, onSelect: (selected: IExercisePickerSelectedExercise) => void) => void;
   promptRename?: (current: string, onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
+  pickReuse?: (kind: "sets" | "progress" | "update", onSelect: (selection: ILiftoEditorReuseSelection) => void) => void;
 }
 
 export interface ILiftoEditorControllerOptions {
@@ -213,6 +216,20 @@ export function useLiftoEditorController(
       });
     } else if (pill.action === "editReuse") {
       actions?.editReuse?.(pill.text);
+    } else if (
+      (pill.action === "reuseSets" || pill.action === "reuseProgressScript" || pill.action === "reuseUpdateScript") &&
+      actions?.pickReuse != null
+    ) {
+      // Without a pickReuse host (falls to the plain branch) the pill degrades to its
+      // static template ("Reuse…") or a no-op self-replace ("Change…").
+      const kind = pill.action === "reuseSets" ? "sets" : pill.action === "reuseProgressScript" ? "progress" : "update";
+      const isSets = pill.action === "reuseSets";
+      actions.pickReuse(kind, (selection) => {
+        // Script reuse can't carry `[w:d]` — the grammar only allows it on sets reuse.
+        const reuseTarget = LiftoEditorActions_reuseTargetText(isSets ? selection : { fullName: selection.fullName });
+        const text = (pill.reuseTemplate ?? "{target}").replace("{target}", reuseTarget);
+        dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, text }));
+      });
     } else {
       dispatch(LiftoEditorSession_applyPill(sessionRef.current, pill));
     }

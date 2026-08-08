@@ -9,7 +9,11 @@ import {
   Program_getAllProgramExercises,
   Program_getProgram,
   Program_getProgramExercise,
+  Program_getReuseSetsCandidates,
+  Program_getScriptReuseCandidates,
 } from "../../models/program";
+import { ObjectUtils_keys, ObjectUtils_values } from "../../utils/object";
+import type { ILiftoEditorReuseSelection } from "../../components/primitives/liftoEditorActions";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import type { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
@@ -22,7 +26,11 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
 import { EditorSheetBody } from "./EditorSheetBody";
-import type { IEditorSheetInstanceOption, IEditorSheetLiveError } from "./editorSheetTypes";
+import type {
+  IEditorSheetInstanceOption,
+  IEditorSheetLiveError,
+  IEditorSheetReuseCandidates,
+} from "./editorSheetTypes";
 
 const sampleText = `# Week 1
 ## Day 1
@@ -94,6 +102,25 @@ function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData:
     return `Week ${dayData.week ?? 1} · Day ${dayData.dayInWeek ?? 1}`;
   }
   return evaluatedProgram != null && evaluatedProgram.weeks.length === 1 ? day.name : `${week.name} · ${day.name}`;
+}
+
+// Mirrors the reuse-sets select of the edit-exercise screen: plain `...Name` resolves in
+// the current week, so week/day are attached only when that would be wrong or ambiguous —
+// target absent from this week, present on several of its days, or the same exercise.
+function reuseSetsSelections(
+  key: string,
+  evaluatedProgram: IEvaluatedProgram,
+  dayData: Required<IDayData>
+): ILiftoEditorReuseSelection[] {
+  const candidates = Program_getReuseSetsCandidates(key, evaluatedProgram, dayData);
+  return ObjectUtils_values(candidates).map((candidate) => {
+    const currentWeekDays = candidate.weekAndDays[dayData.week];
+    const week = currentWeekDays == null ? Number(ObjectUtils_keys(candidate.weekAndDays)[0]) : undefined;
+    const needsDay =
+      week != null || candidate.exercise.key === key || (currentWeekDays != null && currentWeekDays.size > 1);
+    const day = needsDay ? Array.from(candidate.weekAndDays[week ?? dayData.week] ?? [])[0] : undefined;
+    return { fullName: candidate.exercise.fullName, week, day };
+  });
 }
 
 // From the program editor the source of truth is the unsaved draft in editProgramStates,
@@ -370,6 +397,24 @@ export function NavModalEditorSheet(): JSX.Element {
     snapshot != null
       ? Array.from(new Set(Program_getAllProgramExercises(snapshot.evaluatedProgram).map((e) => e.fullName)))
       : [];
+  const reuseCandidates: IEditorSheetReuseCandidates | undefined =
+    snapshot != null && params != null && currentExercise != null && dayData != null
+      ? {
+          sets: reuseSetsSelections(params.key, snapshot.evaluatedProgram, dayData),
+          progress: Program_getScriptReuseCandidates(
+            params.key,
+            !!currentExercise.notused,
+            snapshot.evaluatedProgram,
+            "progress"
+          ),
+          update: Program_getScriptReuseCandidates(
+            params.key,
+            !!currentExercise.notused,
+            snapshot.evaluatedProgram,
+            "update"
+          ),
+        }
+      : undefined;
   const pickerData: IEditorSheetExercisePickerModalData | undefined =
     snapshot != null && params != null && currentExercise != null && dayData != null
       ? {
@@ -401,6 +446,7 @@ export function NavModalEditorSheet(): JSX.Element {
             exerciseFullNames={exerciseFullNames}
             pickerData={pickerData}
             onEditReuse={onEditReuse}
+            reuseCandidates={reuseCandidates}
             validateText={validateText}
             onDone={onDone}
           />

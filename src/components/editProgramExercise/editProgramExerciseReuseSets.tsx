@@ -8,11 +8,14 @@ import {
   IReuseCandidate,
   IPlannerExerciseUi,
 } from "../../pages/planner/models/types";
-import { IDayData, ISettings } from "../../types";
+import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program_getReusingSetsExercises } from "../../models/program";
+import {
+  IEvaluatedProgram,
+  Program_getReuseSetsCandidates,
+  Program_getReusingSetsExercises,
+} from "../../models/program";
 import { InputSelect } from "../inputSelect";
-import { PP_iterate2 } from "../../models/pp";
 import { lb } from "lens-shmens";
 import { ObjectUtils_entries, ObjectUtils_mapValues, ObjectUtils_keys, ObjectUtils_clone } from "../../utils/object";
 import {
@@ -32,43 +35,13 @@ interface IEditProgramExerciseReuseSetsExerciseProps {
   settings: ISettings;
 }
 
-function getReuseSetsCandidates(
-  key: string,
-  evaluatedProgram: IEvaluatedProgram,
-  dayData: Required<IDayData>
-): Record<string, IReuseCandidate> {
-  const result: Record<string, IReuseCandidate> = {};
-  PP_iterate2(evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-    if (
-      exercise.key === key &&
-      ((dayData.week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1) || exercise.isRepeat)
-    ) {
-      return;
-    }
-    if (exercise.reuse != null || exercise.progress?.reuse != null || exercise.update?.reuse != null) {
-      return;
-    }
-    let reuseSetCandidate = result[exercise.key];
-    if (!reuseSetCandidate) {
-      reuseSetCandidate = {
-        exercise,
-        weekAndDays: {},
-      };
-      result[exercise.key] = reuseSetCandidate;
-    }
-    reuseSetCandidate.weekAndDays[weekIndex + 1] = reuseSetCandidate.weekAndDays[weekIndex + 1] || new Set<number>();
-    reuseSetCandidate.weekAndDays[weekIndex + 1].add(dayInWeekIndex + 1);
-  });
-  return result;
-}
-
 export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExerciseReuseSetsExerciseProps): JSX.Element {
   const plannerExercise = props.plannerExercise;
 
   const reuse = plannerExercise.reuse;
   const reuseKey = reuse?.exercise?.key;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-  const reuseSetsCandidates = getReuseSetsCandidates(
+  const reuseSetsCandidates = Program_getReuseSetsCandidates(
     plannerExercise.key,
     props.evaluatedProgram,
     plannerExercise.dayData

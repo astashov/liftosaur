@@ -2,6 +2,7 @@ import "mocha";
 import { expect } from "chai";
 import {
   LiftoEditorActions_renameEdit,
+  LiftoEditorActions_reuseTargetText,
   LiftoEditorActions_swapExerciseEdit,
 } from "../src/components/primitives/liftoEditorActions";
 import {
@@ -201,7 +202,7 @@ describe("LiftoEditorActions", () => {
       ).to.equal("Squat / 3x8 / progress: custom(x: 1, myvar: 0) {~ ~}");
     });
 
-    it("custom without a body offers reusing another exercise's script", () => {
+    it("custom without a body inserts the reuse template after it", () => {
       expect(
         LiftoEditorTestUtils_pressPill(
           "Squat / 3x8 / progress: custom(x: 1)",
@@ -210,9 +211,6 @@ describe("LiftoEditorActions", () => {
           "Reuse script from…"
         )
       ).to.equal("Squat / 3x8 / progress: custom(x: 1) { ...Squat }");
-      expect(
-        LiftoEditorTestUtils_pillLabels("Squat / 3x8 / progress: custom() {~ ~}", "custom", "custom()")
-      ).to.not.include("Reuse script from…");
     });
   });
 
@@ -258,6 +256,70 @@ describe("LiftoEditorActions", () => {
       );
       expect(LiftoEditorTestUtils_pillLabels("Squat / ...Bench Press / 5x5", "...Bench", "Reuse")).to.not.include(
         "Override sets"
+      );
+    });
+
+    it("offers changing the reuse target, including its week/day", () => {
+      const pills = LiftoEditorTestUtils_pills("Squat / ...Bench Press[2:1] / 3x8", "...Bench", "Reuse");
+      const change = pills.find((p) => p.label === "Change…");
+      expect(change?.action).to.equal("reuseSets");
+      expect(change?.text).to.equal("...Bench Press[2:1]");
+    });
+
+    it("offers changing a script reuse via that property's picker", () => {
+      const progressPills = LiftoEditorTestUtils_pills(
+        "Squat / 3x8 / progress: custom() { ...Bench Press }",
+        "...Bench",
+        "Reuse"
+      );
+      expect(progressPills.find((p) => p.label === "Change…")?.action).to.equal("reuseProgressScript");
+      expect(progressPills.map((p) => p.label)).to.not.include.members(["From specific week/day…", "Override sets"]);
+      const updatePills = LiftoEditorTestUtils_pills(
+        "Squat / 3x8 / update: custom() { ...Bench Press }",
+        "...Bench",
+        "Reuse"
+      );
+      expect(updatePills.find((p) => p.label === "Change…")?.action).to.equal("reuseUpdateScript");
+    });
+
+    it("Reuse… routes through the picker with a template fallback", () => {
+      const pills = LiftoEditorTestUtils_pills("Squat / 3x8", "Squat", "Squat");
+      const reuse = pills.find((p) => p.label === "Reuse…");
+      expect(reuse?.action).to.equal("reuseSets");
+      expect(reuse?.text).to.equal(" / ...Squat");
+      expect(reuse?.reuseTemplate).to.equal(" / {target}");
+    });
+
+    it("Reuse script from… carries which property's scripts to pick", () => {
+      const progressPills = LiftoEditorTestUtils_pills("Squat / 3x8 / progress: custom()", "custom", "custom()");
+      expect(progressPills.find((p) => p.label === "Reuse script from…")?.action).to.equal("reuseProgressScript");
+      const updatePills = LiftoEditorTestUtils_pills("Squat / 3x8 / update: custom()", "custom", "custom()");
+      expect(updatePills.find((p) => p.label === "Reuse script from…")?.action).to.equal("reuseUpdateScript");
+    });
+
+    it("Reuse script from… on a custom() with a body swaps the body", () => {
+      const pills = LiftoEditorTestUtils_pills(
+        "Squat / 3x8 / progress: custom() {~ weights += 5lb ~}",
+        "custom",
+        "custom()"
+      );
+      const reuse = pills.find((p) => p.label === "Reuse script from…");
+      expect(reuse?.action).to.equal("reuseProgressScript");
+      expect(reuse?.text).to.equal("{~ weights += 5lb ~}");
+      expect(reuse?.reuseTemplate).to.equal("{ {target} }");
+      const updatePills = LiftoEditorTestUtils_pills(
+        "Squat / 3x8 / update: custom() {~ weights = 5lb ~}",
+        "custom",
+        "custom()"
+      );
+      expect(updatePills.find((p) => p.label === "Reuse script from…")?.action).to.equal("reuseUpdateScript");
+    });
+
+    it("builds reuse target text with week/day only when the selection carries them", () => {
+      expect(LiftoEditorActions_reuseTargetText({ fullName: "Bench Press" })).to.equal("...Bench Press");
+      expect(LiftoEditorActions_reuseTargetText({ fullName: "Bench Press", day: 2 })).to.equal("...Bench Press[2]");
+      expect(LiftoEditorActions_reuseTargetText({ fullName: "Bench Press", week: 2, day: 1 })).to.equal(
+        "...Bench Press[2:1]"
       );
     });
   });
@@ -424,6 +486,22 @@ describe("LiftoEditorActions", () => {
       const rename = labelPills.find((p) => p.label === "Rename…");
       expect(rename?.action).to.equal("rename");
       expect(rename?.text).to.equal("myo");
+    });
+
+    it("a repeat offers only adding forced order", () => {
+      expect(LiftoEditorTestUtils_pillLabels("Squat[1-4] / 3x8", "1-4", "Repeat")).to.deep.equal(["Add forced order…"]);
+      expect(LiftoEditorTestUtils_pressPill("Squat[1-4] / 3x8", "1-4", "Repeat", "Add forced order…")).to.equal(
+        "Squat[1-4,1] / 3x8"
+      );
+    });
+
+    it("a forced order offers only adding repeat", () => {
+      expect(LiftoEditorTestUtils_pillLabels("Squat[2] / 3x8", "2", "Repeat")).to.deep.equal(["Repeat…"]);
+      expect(LiftoEditorTestUtils_pressPill("Squat[2] / 3x8", "2", "Repeat", "Repeat…")).to.equal("Squat[1-4,2] / 3x8");
+    });
+
+    it("a repeat with forced order offers nothing", () => {
+      expect(LiftoEditorTestUtils_pillLabels("Squat[1-4,2] / 3x8", "1-4", "Repeat")).to.deep.equal([]);
     });
 
     it("offers only renaming the superset group", () => {

@@ -23,7 +23,19 @@ export interface ILiftoEditorPill {
   // Additional disjoint spans applied together with the primary edit, in original-text
   // coordinates ("Make current" inserts a marker here and removes one elsewhere).
   extraEdits?: ITextEdit[];
-  action?: "changeExercise" | "rename" | "editReuse";
+  action?: "changeExercise" | "rename" | "editReuse" | "reuseSets" | "reuseProgressScript" | "reuseUpdateScript";
+  // For reuse* actions: how the picked `...Target[w:d]` lands in this pill's range —
+  // "{target}" gets substituted (" / {target}" appends a section, "{ {target} }" swaps a
+  // script body, bare "{target}" swaps just the reuse target).
+  reuseTemplate?: string;
+}
+
+// What the reuse picker hands back: the sets variant carries week/day when the target is
+// ambiguous (absent from the current week, present on several days, or the same exercise).
+export interface ILiftoEditorReuseSelection {
+  fullName: string;
+  week?: number;
+  day?: number;
 }
 
 interface IPillDef {
@@ -274,6 +286,22 @@ function setLabelPills(text: string, label: SyntaxNode): ILiftoEditorPill[] {
   return [renamePill(text.slice(label.from + 1, label.to - 1), label.from + 1, label.to - 1)];
 }
 
+// One Repeat node serves both bracket meanings: RepRange entries repeat the exercise
+// across weeks, bare Rep entries force the exercise order. Offer whichever is missing,
+// spliced inside the existing brackets ("[1-4]" → "[1-4,1]", "[2]" → "[1-4,2]").
+function repeatPills(text: string, repeat: SyntaxNode): ILiftoEditorPill[] {
+  const hasRepeat = repeat.getChildren(PlannerNodeName.RepRange).length > 0;
+  const hasOrder = repeat.getChildren(PlannerNodeName.Rep).length > 0;
+  const pills: ILiftoEditorPill[] = [];
+  if (!hasOrder) {
+    pills.push(insertPill(defs.forcedOrder, repeat.to - 1, ",1"));
+  }
+  if (!hasRepeat) {
+    pills.push(insertPill(defs.repeat, repeat.from + 1, "1-4,"));
+  }
+  return pills;
+}
+
 function supersetPills(text: string, superset: SyntaxNode): ILiftoEditorPill[] {
   const name = superset.getChild(PlannerNodeName.ExerciseName);
   if (name == null) {
@@ -360,12 +388,34 @@ function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
       pills.push(insertPill(defs.addStateVar, nameNode.to, "(myvar: 0)"));
     }
   }
-  const hasBody =
-    fn.getChild(PlannerNodeName.Liftoscript) != null || fn.getChild(PlannerNodeName.ReuseLiftoscript) != null;
-  if (!hasBody) {
-    pills.push(insertPill(defs.reuseScript, trimmedEnd(text, fn)));
+  const body = fn.getChild(PlannerNodeName.Liftoscript) ?? fn.getChild(PlannerNodeName.ReuseLiftoscript);
+  const action = enclosingPropertyName(text, fn) === "update" ? "reuseUpdateScript" : "reuseProgressScript";
+  if (body == null) {
+    pills.push({ ...insertPill(defs.reuseScript, trimmedEnd(text, fn)), action, reuseTemplate: " { {target} }" });
+  } else {
+    // With a body the pill swaps it for the reuse form (`{~ ... ~}` → `{ ...Name }`).
+    const bodyEnd = trimmedEnd(text, body);
+    pills.push({
+      label: defs.reuseScript.label,
+      category: defs.reuseScript.category,
+      start: body.from,
+      end: bodyEnd,
+      text: text.slice(body.from, bodyEnd),
+      action,
+      reuseTemplate: "{ {target} }",
+    });
   }
   return pills;
+}
+
+export function LiftoEditorActions_reuseTargetText(selection: ILiftoEditorReuseSelection): string {
+  const weekDay =
+    selection.week != null
+      ? `[${selection.week}:${selection.day ?? 1}]`
+      : selection.day != null
+        ? `[${selection.day}]`
+        : "";
+  return `...${selection.fullName}${weekDay}`;
 }
 
 function fnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
@@ -422,6 +472,26 @@ function propertyPills(text: string, property: SyntaxNode): ILiftoEditorPill[] {
 
 function reuseSectionPills(text: string, reuse: SyntaxNode): ILiftoEditorPill[] {
   const pills: ILiftoEditorPill[] = [];
+  // The same ReuseSection node also lives inside `custom() { ...X }` — there the picker
+  // must offer that property's scripts, and week/day makes no sense (the grammar allows
+  // WeekDay only on the sets-reuse form).
+  const isScriptReuse = reuse.parent?.name === PlannerNodeName.ReuseLiftoscript;
+  const weekDay = reuse.parent?.getChild(PlannerNodeName.WeekDay);
+  const changeEnd = weekDay != null ? weekDay.to : trimmedEnd(text, reuse);
+  pills.push({
+    label: "Change…",
+    category: "neutral",
+    start: reuse.from,
+    end: changeEnd,
+    // Fallback when no picker host is wired: replacing with itself is a no-op.
+    text: text.slice(reuse.from, changeEnd),
+    action: isScriptReuse
+      ? enclosingPropertyName(text, reuse) === "update"
+        ? "reuseUpdateScript"
+        : "reuseProgressScript"
+      : "reuseSets",
+    reuseTemplate: "{target}",
+  });
   const targetName = reuse.getChild(PlannerNodeName.ExerciseName);
   if (targetName != null) {
     pills.push({
@@ -433,11 +503,11 @@ function reuseSectionPills(text: string, reuse: SyntaxNode): ILiftoEditorPill[] 
       action: "editReuse",
     });
   }
-  if (reuse.parent?.getChild(PlannerNodeName.WeekDay) == null) {
+  if (!isScriptReuse && weekDay == null) {
     pills.push(insertPill(defs.fromWeekDay, trimmedEnd(text, reuse)));
   }
   const exercise = LiftoEditorActions_enclosingExercise(reuse);
-  if (exercise != null) {
+  if (!isScriptReuse && exercise != null) {
     const hasOwnSets = exercise
       .getChildren(PlannerNodeName.ExerciseSection)
       .some((section) => section.getChild(PlannerNodeName.ExerciseSets) != null);
@@ -500,7 +570,7 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
     pills.push(insertPill(defs.enableSuperset, lineEnd));
   }
   if (!hasReuse) {
-    pills.push(insertPill(defs.reuse, lineEnd));
+    pills.push({ ...insertPill(defs.reuse, lineEnd), action: "reuseSets", reuseTemplate: " / {target}" });
   }
   // A label is just a `word:` prefix inside the exercise name token.
   if (nameNode != null && !nodeText(text, nameNode).includes(":")) {
@@ -582,6 +652,14 @@ const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxN
   [PlannerNodeName.ReuseSection]: reuseSectionPills,
   [PlannerNodeName.SetLabel]: setLabelPills,
   [PlannerNodeName.Superset]: supersetPills,
+  [PlannerNodeName.Repeat]: repeatPills,
+  // The only ExerciseName level is the synthesized Label one (brain builds its rename pill
+  // directly); registering it here makes Label a pill boundary, so focusing a label shows
+  // just Rename instead of falling through to the whole exercise's rail.
+  [PlannerNodeName.ExerciseName]: (text, node) => {
+    const pill = LiftoEditorActions_labelRenamePill(text, node);
+    return pill != null ? [pill] : [];
+  },
 };
 
 export function LiftoEditorActions_pillsForNode(text: string, node: SyntaxNode): ILiftoEditorPill[] {

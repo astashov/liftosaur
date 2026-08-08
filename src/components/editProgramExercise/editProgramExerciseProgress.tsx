@@ -16,8 +16,8 @@ import {
   IEvaluatedProgram,
   Program_getReusingCustomProgressExercises,
   Program_getReusingSetProgressExercises,
+  Program_getScriptReuseCandidates,
 } from "../../models/program";
-import { PP_iterate2 } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
@@ -33,7 +33,6 @@ import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import { navigateToModal } from "../../navigation/navigationService";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
-import { ObjectUtils_entries } from "../../utils/object";
 
 interface IEditProgramExerciseProgressProps {
   program: IProgram;
@@ -51,18 +50,7 @@ function getProgressReuseCandidates(
   notused: boolean,
   evaluatedProgram: IEvaluatedProgram
 ): [string, string][] {
-  const result: Record<string, string> = {};
-  PP_iterate2(evaluatedProgram.weeks, (exercise) => {
-    if (exercise.key === key) {
-      return;
-    }
-    const progress = exercise.progress;
-    if (!progress || progress.type !== "custom" || (!(!notused && exercise.notused) && progress.reuse)) {
-      return;
-    }
-    result[exercise.fullName] = exercise.fullName;
-  });
-  return ObjectUtils_entries(result);
+  return Program_getScriptReuseCandidates(key, notused, evaluatedProgram, "progress").map((name) => [name, name]);
 }
 
 export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressProps): JSX.Element {

@@ -1,5 +1,15 @@
 import type { IDayData } from "../../types";
 import type { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
+import type { ILiftoEditorReuseSelection } from "../../components/primitives/liftoEditorActions";
+
+// Precomputed by the host (needs the evaluated program): what the "Reuse…" pills can
+// offer. Sets candidates carry week/day when plain `...Name` would be ambiguous; script
+// candidates are exercises with a non-reusing custom() of that property.
+export interface IEditorSheetReuseCandidates {
+  sets: ILiftoEditorReuseSelection[];
+  progress: string[];
+  update: string[];
+}
 
 export interface IEditorSheetLiveError {
   message: string;
@@ -26,6 +36,7 @@ export interface IEditorSheetBodyProps {
   // unsaved changes.
   onTextChange?: (text: string) => void;
   onEditReuse?: (targetName: string) => void;
+  reuseCandidates?: IEditorSheetReuseCandidates;
   validateText?: (text: string) => IEditorSheetLiveError | undefined;
   onDone: (text: string) => void;
 }
