@@ -70,7 +70,10 @@ export function LiftoEditorDock(): JSX.Element | null {
           edge, which is what aligns it with the hint bar's dismiss and the pill rail's trash.
           A gap here would push the help icon visibly away from it. */}
       <View className="flex-row items-center py-0 pl-4">
-        <View className="flex-1">
+        {/* Stretched rather than content-height: the row is already as tall as the w-10 close
+            button, and spanning it gives the crumbs' padding and hitSlop room to work inside
+            the parent's bounds — Android clips anything past them — without the row growing. */}
+        <View className="justify-center flex-1 self-stretch">
           <LiftoEditorCrumbs controller={entry.controller} />
         </View>
         {hint != null && hintDismissed ? (

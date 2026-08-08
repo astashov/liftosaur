@@ -64,13 +64,16 @@ export function LiftoEditorCrumbs(props: { controller: ILiftoEditorController })
     return <Text className="text-sm text-text-secondary">Tap a token to focus</Text>;
   }
   return (
-    <View className="flex-row flex-wrap items-center">
+    <View className="flex-row flex-wrap items-center py-1">
       {levels.map((level, i) => {
         const isActive = i === controller.activeLevelIndex;
         return (
           <View key={`${level.nodeName}-${level.start}`} className="flex-row items-center">
             {i > 0 ? <Text className="text-xs text-text-secondary px-1">/</Text> : null}
-            <Pressable onPress={() => controller.selectLevel(i)}>
+            {/* A line of text-xs is a thin target vertically. Horizontal slop stays at 4 —
+                that's exactly half the px-1 separator either side, so neighbouring crumbs
+                meet without overlapping and stealing each other's taps. */}
+            <Pressable hitSlop={{ top: 10, bottom: 10, left: 4, right: 4 }} onPress={() => controller.selectLevel(i)}>
               <Text
                 className="text-xs text-text-secondary"
                 style={{
