@@ -12,6 +12,7 @@ import {
   LiftoEditorParseCache,
 } from "./liftoEditorBrain";
 import { ILiftoEditorPill, LiftoEditorActions_isPillBoundary } from "./liftoEditorActions";
+import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
 import { Exercise_onerm } from "../../models/exercise";
 import { MathUtils_roundFloat } from "../../utils/math";
@@ -41,8 +42,14 @@ export interface IActiveNumber {
   fresh: boolean;
 }
 
+// Where the editor is embedded. Not a capability flag — it's about what the document
+// contains: a sheet holds one exercise, an inline editor holds the whole day, so some
+// actions are meaningless there (see surfacePills).
+export type ILiftoEditorSurface = "sheet" | "inline";
+
 export interface ILiftoEditorSession {
   mode: ILiftoEditorMode;
+  surface: ILiftoEditorSurface;
   text: string;
   // The parse cache this editing session owns. Shared by reference across derived sessions
   // (the spread copies it along) so every transition and the editor view hit the same trees,
@@ -75,9 +82,10 @@ export interface ILiftoEditorSessionResult {
   effects: ILiftoEditorSessionEffects;
 }
 
-export function LiftoEditorSession_create(text: string): ILiftoEditorSession {
+export function LiftoEditorSession_create(text: string, surface: ILiftoEditorSurface = "sheet"): ILiftoEditorSession {
   return {
     mode: "structured",
+    surface,
     text,
     cache: new LiftoEditorParseCache(),
     context: undefined,
@@ -584,12 +592,24 @@ export function LiftoEditorSession_activeLevelIndex(session: ILiftoEditorSession
 // structural ancestor, so focusing a token surfaces its context's actions. The walk stops
 // at the first pill-boundary level even if its rail is empty: `used: none` should show
 // "No actions", not the whole exercise's pills.
+// Which exercise the caret sits in, as the planner's fullName. Inline this is the only way
+// to tell — the document holds every exercise in the day.
+export function LiftoEditorSession_focusedExerciseFullName(session: ILiftoEditorSession): string | undefined {
+  return session.context?.levels.find((level) => level.nodeName === PlannerNodeName.ExerciseExpression)?.fullName;
+}
+
+// "Edit reused exercise…" opens a second editor on the reuse target. Inline that's noise:
+// the whole day is already on screen, so the target is a few lines up in this very editor.
+function surfacePills(pills: ILiftoEditorPill[], surface: ILiftoEditorSurface): ILiftoEditorPill[] {
+  return surface === "inline" ? pills.filter((pill) => pill.action !== "editReuse") : pills;
+}
+
 export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEditorPill[] {
   const levels = session.context?.levels ?? [];
   for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
     const level = levels[i];
     if (level != null && LiftoEditorActions_isPillBoundary(level.nodeName)) {
-      return level.pills;
+      return surfacePills(level.pills, session.surface);
     }
   }
   return [];

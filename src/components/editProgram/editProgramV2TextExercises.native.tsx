@@ -9,7 +9,13 @@ import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBloc
 import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
-import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
+import { IDayData, IExercisePickerSelectedExercise, IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
+import { IEvaluatedProgram } from "../../models/program";
+import { LiftoEditorReuse_candidates } from "../liftoEditorReuse";
+import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
+import type { ILiftoEditorReuseSelection } from "../primitives/liftoEditorActions";
+import { useModal } from "../../navigation/ModalStateContext";
+import { Dialog_alert } from "../../utils/dialog";
 import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -36,6 +42,9 @@ interface IEditProgramV2TextExercisesProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
   weekIndex: number;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
+  programId: string;
+  evaluatedProgram: IEvaluatedProgram;
+  dayData: Required<IDayData>;
 }
 
 function lineAt(text: string, index: number): number {
@@ -52,12 +61,122 @@ interface IDayEditorProps {
   initialText: string;
   focusId: string;
   evaluatedDay: IPlannerEvalResult;
+  settings: ISettings;
+  programId: string;
+  evaluatedProgram: IEvaluatedProgram;
+  dayData: Required<IDayData>;
   onChange: (text: string) => void;
   onLineChange: (line: number) => void;
 }
 
 function DayEditor(props: IDayEditorProps): JSX.Element {
-  const controller = useLiftoEditorController(props.initialText);
+  // Which of the day's exercises an action is about. The name comes from the editor's own
+  // live parse, the key it's matched against from the last evaluation — so right after the
+  // name is edited, and until the commit debounce lands, this misses. Missing degrades the
+  // pills; matching on position instead would keep working there but silently answer with
+  // the wrong exercise whenever a line has been added or removed.
+  const evaluatedExercises = props.evaluatedDay.success ? props.evaluatedDay.data : [];
+  const exerciseByFullName = (fullName: string | undefined): IPlannerProgramExercise | undefined => {
+    if (fullName == null) {
+      return undefined;
+    }
+    const key = PlannerKey_fromFullName(fullName, props.settings.exercises);
+    return evaluatedExercises.find((e) => e.key === key);
+  };
+
+  // useModal registers its result callback once, but the controller hands a fresh callback
+  // per invocation — these refs bridge the two. Several day editors are mounted at once;
+  // useModal only delivers a result to the instance that opened the modal.
+  const pickerSelectRef = useRef<((selected: IExercisePickerSelectedExercise) => void) | undefined>(undefined);
+  const renameSubmitRef = useRef<((value: string) => void) | undefined>(undefined);
+  const reuseSelectRef = useRef<
+    { items: ILiftoEditorReuseSelection[]; onSelect: (selection: ILiftoEditorReuseSelection) => void } | undefined
+  >(undefined);
+  const openExercisePicker = useModal("editorSheetExercisePickerModal", (selected) => {
+    const onSelect = pickerSelectRef.current;
+    pickerSelectRef.current = undefined;
+    if (selected != null && onSelect != null) {
+      onSelect(selected);
+    }
+  });
+  const openRename = useModal("textInputModal", (value) => {
+    const onSubmit = renameSubmitRef.current;
+    renameSubmitRef.current = undefined;
+    if (value != null && onSubmit != null) {
+      onSubmit(value);
+    }
+  });
+  const openReuseSelect = useModal("inputSelectModal", (value) => {
+    const pending = reuseSelectRef.current;
+    reuseSelectRef.current = undefined;
+    const selection = value != null ? pending?.items.find((item) => item.fullName === value) : undefined;
+    if (pending != null && selection != null) {
+      pending.onSelect(selection);
+    }
+  });
+
+  const controller = useLiftoEditorController(props.initialText, {
+    surface: "inline",
+    exerciseTypeFor: (fullName) => exerciseByFullName(fullName)?.exerciseType,
+    actions: {
+      pickExercise: (_current, exerciseFullName, onSelect) => {
+        pickerSelectRef.current = onSelect;
+        const exercise = exerciseByFullName(exerciseFullName);
+        openExercisePicker({
+          exerciseType: exercise?.exerciseType,
+          label: exercise?.label,
+          templateName: exercise?.exerciseType == null ? exercise?.name : undefined,
+          programId: props.programId,
+          dayData: props.dayData,
+        });
+      },
+      promptRename: (current, onSubmit) => {
+        renameSubmitRef.current = onSubmit;
+        openRename({
+          title: "Rename label",
+          inputLabel: "Label",
+          placeholder: current,
+          submitLabel: "Rename",
+          dataCyPrefix: "rename-label",
+          maxLength: 8,
+        });
+      },
+      pickReuse: (kind, exerciseFullName, onSelect) => {
+        const exercise = exerciseByFullName(exerciseFullName);
+        if (exercise == null) {
+          Dialog_alert("Couldn't tell which exercise this is — try again once the program re-evaluates.");
+          return;
+        }
+        const candidates = LiftoEditorReuse_candidates(
+          exercise.key,
+          !!exercise.notused,
+          props.evaluatedProgram,
+          props.dayData
+        );
+        const items: ILiftoEditorReuseSelection[] =
+          kind === "sets"
+            ? candidates.sets
+            : (kind === "progress" ? candidates.progress : candidates.update).map((fullName) => ({ fullName }));
+        if (items.length === 0) {
+          Dialog_alert(
+            kind === "sets"
+              ? "There are no other exercises in this program to reuse sets from."
+              : "There are no other exercises with their own custom() script to reuse."
+          );
+          return;
+        }
+        reuseSelectRef.current = { items, onSelect };
+        openReuseSelect({
+          name: "editor-inline-reuse",
+          values: items.map((item) => [item.fullName, item.fullName]),
+          hint:
+            kind === "sets"
+              ? "You can only reuse sets of exercises that don't reuse other exercises"
+              : "You can only reuse scripts that don't reuse other scripts",
+        });
+      },
+    },
+  });
   useLiftoEditorFocusClaim(props.focusId, controller);
 
   const scrollCtx = useContext(NavScreenScrollContext);
@@ -258,6 +377,10 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         focusId={`day-${weekIndex}-${dayIndex}`}
         initialText={plannerDay.exerciseText}
         evaluatedDay={evaluatedDay}
+        settings={props.settings}
+        programId={props.programId}
+        evaluatedProgram={props.evaluatedProgram}
+        dayData={props.dayData}
         onChange={(text) => {
           plannerDispatch(
             lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(text),

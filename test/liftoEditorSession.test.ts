@@ -7,6 +7,7 @@ import {
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
+  LiftoEditorSession_focusedExerciseFullName,
   LiftoEditorSession_highlight,
   LiftoEditorSession_keypadInput,
   LiftoEditorSession_pills,
@@ -406,6 +407,50 @@ describe("LiftoEditorSession", () => {
       expect(removeLevel("Squat / 3x8 / progress: lp(5lb) / update: custom() {~ ~}", "lp", "lp()")).to.equal(
         "Squat / 3x8 / update: custom() {~ ~}"
       );
+    });
+  });
+
+  describe("focused exercise", () => {
+    function fullNameAt(text: string, needle: string): string | undefined {
+      const tap = LiftoEditorSession_tap(LiftoEditorSession_create(text), LiftoEditorTestUtils_pos(text, needle), 1000);
+      return LiftoEditorSession_focusedExerciseFullName(tap.session);
+    }
+
+    it("names the exercise the caret is in, across a multi-exercise document", () => {
+      const text = "Squat / 3x8 / 100kg\nT1: Bench Press, Barbell / 3x5";
+      expect(fullNameAt(text, "100kg")).to.equal("Squat");
+      expect(fullNameAt(text, "3x5")).to.equal("T1: Bench Press, Barbell");
+    });
+
+    // The breadcrumb label is only the first variation, but the planner knows this exercise
+    // by every variation — matching on the label would miss it entirely.
+    it("keeps every variation", () => {
+      const text = "Squat, Barbell | Front Squat / 2x10";
+      expect(fullNameAt(text, "2x10")).to.equal("Squat, Barbell | Front Squat");
+    });
+
+    it("is undefined when nothing is focused", () => {
+      expect(LiftoEditorSession_focusedExerciseFullName(LiftoEditorSession_create("Squat / 3x8"))).to.equal(undefined);
+    });
+  });
+
+  describe("surface", () => {
+    function pillsAt(text: string, needle: string, surface: "sheet" | "inline"): string[] {
+      const session = LiftoEditorSession_create(text, surface);
+      const tap = LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(text, needle), 1000);
+      return LiftoEditorSession_pills(tap.session).map((pill) => pill.label);
+    }
+
+    it("offers the reuse target's own editor only on a sheet", () => {
+      const text = "Squat / ...Bench Press";
+      expect(pillsAt(text, "Bench Press", "sheet")).to.include("Edit reused exercise…");
+      expect(pillsAt(text, "Bench Press", "inline")).to.not.include("Edit reused exercise…");
+    });
+
+    it("leaves every other pill alone", () => {
+      const text = "Squat / ...Bench Press";
+      const sheet = pillsAt(text, "Bench Press", "sheet").filter((l) => l !== "Edit reused exercise…");
+      expect(pillsAt(text, "Bench Press", "inline")).to.deep.equal(sheet);
     });
   });
 

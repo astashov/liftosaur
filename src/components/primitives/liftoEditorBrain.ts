@@ -314,6 +314,9 @@ export interface ILiftoEditorLevel {
   start: number;
   end: number;
   pills: ILiftoEditorPill[];
+  // Exercise levels only: every variation, i.e. the planner's fullName. The label is just
+  // the first variation — enough for a breadcrumb, but not enough to identify the exercise.
+  fullName?: string;
 }
 
 export interface ILiftoEditorContext {
@@ -562,8 +565,8 @@ export function LiftoEditorBrain_contextAt(
         });
       }
     } else if (name === PlannerNodeName.ExerciseExpression) {
-      const exerciseName = node
-        .getChild(PlannerNodeName.ExerciseVariations)
+      const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+      const exerciseName = variations
         ?.getChild(PlannerNodeName.ExerciseVariation)
         ?.getChild(PlannerNodeName.ExerciseName);
       levels.unshift({
@@ -572,6 +575,7 @@ export function LiftoEditorBrain_contextAt(
         start: node.from,
         end: LiftoEditorActions_endOfExerciseLine(text, node),
         pills: LiftoEditorActions_pillsForNode(text, node),
+        fullName: variations != null ? nodeText(text, variations).trim() : undefined,
       });
     } else if (name === PlannerNodeName.KeyValue) {
       const keyword = node.getChild(PlannerNodeName.Keyword);
