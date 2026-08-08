@@ -64,6 +64,12 @@ describe("LiftoEditorActions", () => {
         "Squat / 3x12"
       );
     });
+
+    it("also offers the enclosing set group's pills", () => {
+      const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8", "3x8", "Sets×Reps");
+      expect(labels[0]).to.equal("Make rep range");
+      expect(labels).to.include.members(["Add weight", "Add RPE", "Add set timer", "Add rest timer"]);
+    });
   });
 
   describe("timer pills", () => {
@@ -83,6 +89,13 @@ describe("LiftoEditorActions", () => {
       expect(LiftoEditorTestUtils_pressPill("Squat / 3x8 30s|?", "30s|?", "Set timer", "Back to rest timer")).to.equal(
         "Squat / 3x8 60s"
       );
+    });
+
+    it("also offers the enclosing set group's pills, minus timer adds", () => {
+      const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8 90s", "90s", "Rest timer");
+      expect(labels[0]).to.equal("Split set/rest timer");
+      expect(labels).to.include.members(["Add weight", "Add RPE"]);
+      expect(labels).to.not.include.members(["Add set timer", "Add rest timer"]);
     });
   });
 
@@ -138,6 +151,31 @@ describe("LiftoEditorActions", () => {
       const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8 / progress: lp(5lb)", "lp", "Progress");
       expect(labels).to.include.members(["Switch to dp", "Switch to sum", "Switch to custom"]);
       expect(labels).to.not.include("Switch to lp");
+    });
+
+    it("offers no state var pill on update custom()", () => {
+      const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8 / update: custom() {~ ~}", "custom", "custom()");
+      expect(labels).to.not.include("Add state var");
+    });
+
+    it("offers progressions on progress: none", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill("Squat / 3x8 / progress: none", "none", "Progress", "Switch to lp")
+      ).to.equal("Squat / 3x8 / progress: lp(5lb)");
+      expect(LiftoEditorTestUtils_pillLabels("Squat / 3x8 / progress: none", "none", "Progress")).to.not.include(
+        "Switch to none"
+      );
+    });
+
+    it("switches a progression to none", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill(
+          "Squat / 3x8 / progress: custom(foo: 1) {~ weights += 5lb ~}",
+          "custom",
+          "Progress",
+          "Switch to none"
+        )
+      ).to.equal("Squat / 3x8 / progress: none");
     });
 
     it("switching replaces the whole function call", () => {
@@ -386,6 +424,13 @@ describe("LiftoEditorActions", () => {
       const rename = labelPills.find((p) => p.label === "Rename…");
       expect(rename?.action).to.equal("rename");
       expect(rename?.text).to.equal("myo");
+    });
+
+    it("offers only renaming the superset group", () => {
+      const supersetPills = LiftoEditorTestUtils_pills("Squat / 3x8 / superset: A", "superset", "Superset");
+      expect(supersetPills.map((p) => p.label)).to.deep.equal(["Rename…"]);
+      expect(supersetPills[0].action).to.equal("rename");
+      expect(supersetPills[0].text).to.equal("A");
     });
   });
 

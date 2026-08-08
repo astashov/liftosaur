@@ -96,6 +96,11 @@ const editorProgressFunctionHints: Partial<Record<string, IEditorHint>> = {
     detail:
       "'custom() {~ if (completedReps >= reps) { weights += 5lb } ~}'. Reuse another exercise's script with 'custom() { ...Squat }'.",
   },
+  none: {
+    short: "none: suppresses the progression defined for this exercise.",
+    detail:
+      "Nothing changes after workouts, even when a reused exercise or a repeated declaration defines a progression. Mostly used on deload weeks so the weights stay put.",
+  },
 };
 
 const editorNodeHints: Partial<Record<string, IEditorHint>> = {
@@ -222,6 +227,15 @@ function hintForContext(controller: ILiftoEditorController): IEditorHint | undef
     if (functionHint != null) {
       return functionHint;
     }
+  }
+  // `progress: none` has no FunctionExpression level, so the none hint keys off the
+  // property's own text.
+  if (
+    level.nodeName === "ExerciseProperty" &&
+    property === "progress" &&
+    /:\s*none\b/.test(controller.text.slice(level.start, level.end))
+  ) {
+    return editorProgressFunctionHints.none;
   }
   if (level.nodeName === "ExerciseProperty" || level.nodeName === "FunctionExpression") {
     return (property != null ? editorPropertyHints[property] : undefined) ?? editorFallbackHints.property;

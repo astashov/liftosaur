@@ -274,6 +274,15 @@ function setLabelPills(text: string, label: SyntaxNode): ILiftoEditorPill[] {
   return [renamePill(text.slice(label.from + 1, label.to - 1), label.from + 1, label.to - 1)];
 }
 
+function supersetPills(text: string, superset: SyntaxNode): ILiftoEditorPill[] {
+  const name = superset.getChild(PlannerNodeName.ExerciseName);
+  if (name == null) {
+    return [];
+  }
+  const end = trimmedEnd(text, name);
+  return [renamePill(text.slice(name.from, end), name.from, end)];
+}
+
 function restTimerPills(text: string, timer: SyntaxNode): ILiftoEditorPill[] {
   return [replacePill(defs.splitTimer, timer, `30s|${nodeText(text, timer)}`)];
 }
@@ -301,6 +310,7 @@ const progressionDefaults: Record<string, string> = {
   dp: "dp(5lb, 8, 12)",
   sum: "sum(25, 5lb)",
   custom: "custom() {~ ~}",
+  none: "none",
 };
 
 // lp(increment, successes, successCounter, decrement, failures, failureCounter).
@@ -321,7 +331,19 @@ function lpPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
   return pills;
 }
 
+function enclosingPropertyName(text: string, node: SyntaxNode): string | undefined {
+  for (let cur: SyntaxNode | null = node.parent; cur != null; cur = cur.parent) {
+    if (cur.name === PlannerNodeName.ExerciseProperty) {
+      const nameNode = cur.getChild(PlannerNodeName.ExercisePropertyName);
+      return nameNode != null ? nodeText(text, nameNode) : undefined;
+    }
+  }
+  return undefined;
+}
+
 // State vars live in custom()'s argument list; lp()/sum()/dp() have fixed signatures.
+// Only progress custom() declares them — update custom() reads the same exercise's state,
+// so offering "Add state var" there would splice an invalid declaration.
 function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
   const nameNode = fn.getChild(PlannerNodeName.FunctionName);
   if (nameNode == null) {
@@ -329,12 +351,14 @@ function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
   }
   const pills: ILiftoEditorPill[] = [];
   const args = fn.getChildren(PlannerNodeName.FunctionArgument);
-  if (args.length > 0) {
-    pills.push(insertPill(defs.addStateVar, args[args.length - 1].to, ", myvar: 0"));
-  } else if (text[nameNode.to] === "(") {
-    pills.push(insertPill(defs.addStateVar, nameNode.to + 1, "myvar: 0"));
-  } else {
-    pills.push(insertPill(defs.addStateVar, nameNode.to, "(myvar: 0)"));
+  if (enclosingPropertyName(text, fn) !== "update") {
+    if (args.length > 0) {
+      pills.push(insertPill(defs.addStateVar, args[args.length - 1].to, ", myvar: 0"));
+    } else if (text[nameNode.to] === "(") {
+      pills.push(insertPill(defs.addStateVar, nameNode.to + 1, "myvar: 0"));
+    } else {
+      pills.push(insertPill(defs.addStateVar, nameNode.to, "(myvar: 0)"));
+    }
   }
   const hasBody =
     fn.getChild(PlannerNodeName.Liftoscript) != null || fn.getChild(PlannerNodeName.ReuseLiftoscript) != null;
@@ -356,16 +380,14 @@ function fnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
   return [];
 }
 
-function progressSwitchPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
-  const nameNode = fn.getChild(PlannerNodeName.FunctionName);
-  const current = nameNode != null ? nodeText(text, nameNode) : "";
+function progressSwitchPills(value: SyntaxNode, current: string): ILiftoEditorPill[] {
   return Object.keys(progressionDefaults)
     .filter((name) => name !== current)
     .map((name) => ({
       label: `Switch to ${name}`,
       category: "progress" as const,
-      start: fn.from,
-      end: fn.to,
+      start: value.from,
+      end: value.to,
       text: progressionDefaults[name],
     }));
 }
@@ -383,7 +405,13 @@ function propertyPills(text: string, property: SyntaxNode): ILiftoEditorPill[] {
   }
   if (name === "progress") {
     const fn = property.getChild(PlannerNodeName.FunctionExpression);
-    return fn != null ? [...fnPills(text, fn), ...progressSwitchPills(text, fn)] : [];
+    if (fn != null) {
+      const fnNameNode = fn.getChild(PlannerNodeName.FunctionName);
+      const fnName = fnNameNode != null ? nodeText(text, fnNameNode) : "";
+      return [...fnPills(text, fn), ...progressSwitchPills(fn, fnName)];
+    }
+    const none = property.getChild(PlannerNodeName.None);
+    return none != null ? progressSwitchPills(none, "none") : [];
   }
   if (name === "update") {
     const fn = property.getChild(PlannerNodeName.FunctionExpression);
@@ -553,10 +581,20 @@ const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxN
   [PlannerNodeName.WarmupExerciseSets]: warmupSetsPills,
   [PlannerNodeName.ReuseSection]: reuseSectionPills,
   [PlannerNodeName.SetLabel]: setLabelPills,
+  [PlannerNodeName.Superset]: supersetPills,
 };
 
 export function LiftoEditorActions_pillsForNode(text: string, node: SyntaxNode): ILiftoEditorPill[] {
-  return pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
+  const own = pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
+  // Set-group children with their own rails (sets×reps, timers, set label) would otherwise
+  // hide the group's additive actions: the rail walk stops at the first pill boundary, so
+  // focusing "3x8" showed only "Make rep range" while focusing the weight (no own rail)
+  // fell through to the full group rail.
+  const parent = node.parent;
+  if (node.name !== PlannerNodeName.ExerciseSet && parent?.name === PlannerNodeName.ExerciseSet) {
+    return [...own, ...setGroupPills(text, parent)];
+  }
+  return own;
 }
 
 // Levels of these node types own their pill rail: the rail's ancestor fall-through stops
