@@ -1,5 +1,5 @@
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from "react-native";
+import { Animated, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, View } from "react-native";
 import { Text } from "./primitives/text";
 
 import { IProgram, ISettings, IStats } from "../types";
@@ -60,12 +60,29 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
     scrollYRef.current = e.nativeEvent.contentOffset.y;
     scrollListenersRef.current.forEach((l) => l(e));
   }, []);
+  const scrollAnimatedY = useRef(new Animated.Value(0)).current;
+  const onAnimatedScroll = useMemo(
+    () =>
+      Animated.event([{ nativeEvent: { contentOffset: { y: scrollAnimatedY } } }], {
+        useNativeDriver: Platform.OS !== "web",
+        listener: onScroll,
+      }),
+    [scrollAnimatedY, onScroll]
+  );
   // No footer slot on this screen, so nothing occludes the bottom of the scroll content and
   // there's nothing to measure a viewport against.
   const viewportRef = useRef<View>(null);
   const scrollCtx = useMemo(
-    () => ({ scrollRef, scrollYRef, viewportRef, footerHeight: 0, addScrollListener }),
-    [addScrollListener]
+    () => ({
+      scrollRef,
+      scrollYRef,
+      scrollAnimatedY,
+      viewportRef,
+      footerHeight: 0,
+      stickyHeaderHeight: 0,
+      addScrollListener,
+    }),
+    [scrollAnimatedY, addScrollListener]
   );
 
   useEffect(() => {
@@ -128,11 +145,11 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
 
   return (
     <NavScreenScrollContext.Provider value={scrollCtx}>
-      <ScrollView
+      <Animated.ScrollView
         ref={scrollRef}
         className="flex-1"
         keyboardShouldPersistTaps="handled"
-        onScroll={onScroll}
+        onScroll={onAnimatedScroll}
         scrollEventThrottle={16}
       >
         {header}
@@ -150,7 +167,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
             onSelect={handleSelect}
           />
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </NavScreenScrollContext.Provider>
   );
 }
