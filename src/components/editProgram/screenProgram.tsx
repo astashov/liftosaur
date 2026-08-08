@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Platform } from "react-native";
 import { Pressable } from "../primitives/pressable";
 import { Text } from "../primitives/text";
 import { IDispatch } from "../../ducks/types";
@@ -399,6 +399,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
         <NavScreenContent
           stickyHeaderIndices={STICKY_INDICES}
           footer={showEditorDock ? <LiftoEditorDock /> : undefined}
+          // Freeform editing hides the dock, so dragging is how the keyboard goes away on
+          // iOS; Android also has the back button.
+          keyboardDismissMode={showEditorDock ? (Platform.OS === "ios" ? "interactive" : "on-drag") : undefined}
         >
           <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
             <EditProgramHeader

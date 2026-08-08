@@ -69,16 +69,25 @@ export function LiftoEditorFocusProvider(props: { children: ReactNode }): JSX.El
   return <LiftoEditorFocusContext.Provider value={storeRef.current}>{props.children}</LiftoEditorFocusContext.Provider>;
 }
 
-// An editor claims the dock whenever it has a focus stack. No dependency array: the claim has
-// to republish on every render of the focused editor so the dock sees the current pills.
+// An editor holds the dock exactly while it has a focus stack. No dependency array: the claim
+// has to republish on every render of the focused editor so the dock sees the current pills.
+//
+// Releasing on the way out matters as much as claiming: an editor that only ever claimed would
+// stop republishing once it lost focus, leaving the store holding a stale controller — the dock
+// would then render from a mode and pill set that no longer exist.
 export function useLiftoEditorFocusClaim(id: string, controller: ILiftoEditorController): void {
   const store = useContext(LiftoEditorFocusContext);
   const blurRef = useRef(controller.blur);
   blurRef.current = controller.blur;
   const hasFocus = controller.context != null;
   useEffect(() => {
-    if (store != null && hasFocus) {
+    if (store == null) {
+      return;
+    }
+    if (hasFocus) {
       store.claim(id, controller, () => blurRef.current());
+    } else {
+      store.release(id);
     }
   });
   useEffect(() => {
