@@ -1,5 +1,6 @@
-import { JSX } from "react";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { JSX, useContext, useEffect } from "react";
+import { View } from "react-native";
+import { BottomTabBarHeightCallbackContext, type BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import type { NavigationState } from "@react-navigation/native";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { buildNavCommon } from "../utils";
@@ -20,11 +21,26 @@ function getTopRouteOfActiveTab(tabState: BottomTabBarProps["state"]): IScreen |
 export function Footer2Wrapper(props: BottomTabBarProps): JSX.Element | null {
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
+  // BottomTabView only learns the tab bar's height if the bar reports it; with a custom
+  // tabBar that never does, BottomTabBarHeightContext keeps react-navigation's estimate for
+  // the *default* bar, which is shorter than this footer. Anything positioning against the
+  // tab bar — the editor dock — reads that value, so report the measured height instead.
+  const setTabBarHeight = useContext(BottomTabBarHeightCallbackContext);
   const topRoute = getTopRouteOfActiveTab(props.state);
-  if (topRoute != null && screensWithoutFooter.includes(topRoute)) {
+  const isHidden = topRoute != null && screensWithoutFooter.includes(topRoute);
+  useEffect(() => {
+    if (isHidden) {
+      setTabBarHeight?.(0);
+    }
+  }, [isHidden, setTabBarHeight]);
+  if (isHidden) {
     return null;
   }
   const currentTab = props.state.routes[props.state.index].name as ITab;
   const navCommon = untrack(buildNavCommon(state));
-  return <Footer2View dispatch={dispatch} navCommon={navCommon} currentTab={currentTab} />;
+  return (
+    <View onLayout={(e) => setTabBarHeight?.(e.nativeEvent.layout.height)}>
+      <Footer2View dispatch={dispatch} navCommon={navCommon} currentTab={currentTab} />
+    </View>
+  );
 }
