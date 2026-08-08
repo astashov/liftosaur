@@ -39,6 +39,8 @@ import { ProgramPreview_buildWeeks, ProgramPreviewWeekContent } from "../preview
 import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
 import { NavScreenContent } from "../../navigation/NavScreenContent";
+import { LiftoEditorFocusProvider } from "../liftoEditorFocus";
+import { LiftoEditorDock } from "../liftoEditorDock";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useTimedMemo } from "../../utils/useTimedMemo";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
@@ -389,24 +391,31 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     perTabStickyHeader = <View className="bg-background-default" />;
   }
 
+  const showEditorDock = activeTabLabel === "Edit" && ui.mode === "perday";
+
   return (
     <PerfProfiler id="ScreenProgram.shell" onRender={onProfile}>
-      <NavScreenContent stickyHeaderIndices={STICKY_INDICES}>
-        <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
-          <EditProgramHeader
-            evaluatedProgram={evaluatedProgram}
-            settings={props.settings}
-            onChangeProgram={onChangeProgram}
-            onChangeDay={onChangeDay}
-            onChangeName={onChangeName}
-          />
-        </PerfProfiler>
-        <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
-        <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
-          {perTabStickyHeader}
-        </PerfProfiler>
-        {tabContent}
-      </NavScreenContent>
+      <LiftoEditorFocusProvider>
+        <NavScreenContent
+          stickyHeaderIndices={STICKY_INDICES}
+          footer={showEditorDock ? <LiftoEditorDock /> : undefined}
+        >
+          <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
+            <EditProgramHeader
+              evaluatedProgram={evaluatedProgram}
+              settings={props.settings}
+              onChangeProgram={onChangeProgram}
+              onChangeDay={onChangeDay}
+              onChangeName={onChangeName}
+            />
+          </PerfProfiler>
+          <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
+          <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
+            {perTabStickyHeader}
+          </PerfProfiler>
+          {tabContent}
+        </NavScreenContent>
+      </LiftoEditorFocusProvider>
     </PerfProfiler>
   );
 });
