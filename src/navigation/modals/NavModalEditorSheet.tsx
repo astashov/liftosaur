@@ -384,7 +384,7 @@ export function NavModalEditorSheet(): JSX.Element {
           exerciseType: currentExercise.exerciseType,
           label: currentExercise.label,
           templateName: currentExercise.exerciseType == null ? currentExercise.name : undefined,
-          programId: params.programId,
+          evaluatedProgram: snapshot.evaluatedProgram,
           dayData,
         }
       : undefined;

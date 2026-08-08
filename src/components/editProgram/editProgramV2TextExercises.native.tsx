@@ -44,7 +44,6 @@ interface IEditProgramV2TextExercisesProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
   weekIndex: number;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
-  programId: string;
   evaluatedProgram: IEvaluatedProgram;
   dayData: Required<IDayData>;
 }
@@ -154,7 +153,6 @@ interface IDayEditorProps {
   focusId: string;
   evaluatedDay: IPlannerEvalResult;
   settings: ISettings;
-  programId: string;
   evaluatedProgram: IEvaluatedProgram;
   dayData: Required<IDayData>;
   onChange: (text: string) => void;
@@ -218,7 +216,7 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
           exerciseType: exercise?.exerciseType,
           label: exercise?.label,
           templateName: exercise?.exerciseType == null ? exercise?.name : undefined,
-          programId: props.programId,
+          evaluatedProgram: props.evaluatedProgram,
           dayData: props.dayData,
         });
       },
@@ -476,7 +474,6 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         initialText={plannerDay.exerciseText}
         evaluatedDay={evaluatedDay}
         settings={props.settings}
-        programId={props.programId}
         evaluatedProgram={props.evaluatedProgram}
         dayData={props.dayData}
         onChange={(text) => {

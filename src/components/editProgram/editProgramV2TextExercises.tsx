@@ -28,7 +28,6 @@ interface IEditProgramV2TextExercisesProps {
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
   // Only the native structured editor uses these — they drive its exercise picker and
   // reuse pickers, which the web CodeMirror body doesn't have.
-  programId: string;
   evaluatedProgram: IEvaluatedProgram;
   dayData: Required<IDayData>;
 }

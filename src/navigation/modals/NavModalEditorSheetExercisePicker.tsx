@@ -5,7 +5,7 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
-import { Program_evaluate, Program_getProgram, Program_getExerciseTypesForWeekDay } from "../../models/program";
+import { Program_getExerciseTypesForWeekDay } from "../../models/program";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import type { ICustomExercise, IExercisePickerSelectedExercise, IExercisePickerState } from "../../types";
@@ -44,10 +44,7 @@ export function NavModalEditorSheetExercisePicker(): JSX.Element {
     setPickerState((prev) => all.reduce((memo, recording) => recording.fn(memo), prev));
   }, []);
 
-  const evaluatedProgram = useMemo(() => {
-    const program = data?.programId != null ? Program_getProgram(state, data.programId) : undefined;
-    return program != null ? Program_evaluate(program, settings) : undefined;
-  }, [data?.programId]);
+  const evaluatedProgram = data?.evaluatedProgram;
   const usedExerciseTypes = useMemo(
     () =>
       evaluatedProgram != null && data?.dayData != null
