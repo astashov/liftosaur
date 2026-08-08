@@ -226,6 +226,7 @@ const breadcrumbLabels: Partial<Record<PlannerNodeName, string>> = {
   [PlannerNodeName.Rpe]: "RPE",
   [PlannerNodeName.Timer]: "Rest timer",
   [PlannerNodeName.SetTimer]: "Set timer",
+  [PlannerNodeName.Auto]: "Auto",
   [PlannerNodeName.WarmupExerciseSets]: "Warmup sets",
   [PlannerNodeName.WarmupSetPart]: "Sets×Reps",
   [PlannerNodeName.Repeat]: "Repeat",
@@ -271,6 +272,34 @@ export function LiftoEditorBrain_flattenRanges(ranges: ILiftoEditorStyledRange[]
     result.push(merged);
   }
   return result;
+}
+
+// A set group whose Sets×Reps is removed stops reading as a set group ("warmup: 40%", or a
+// weight that now looks like globals), so removal must target the whole group. Warmup
+// groups aren't breadcrumb levels, so the extent is re-derived from the tree; isOnlyGroup
+// lets the caller cascade further when the group list would end up empty.
+export function LiftoEditorBrain_enclosingSetGroup(
+  text: string,
+  level: { nodeName: string; start: number }
+): { nodeName: string; start: number; end: number; isOnlyGroup: boolean } | undefined {
+  const groupName =
+    level.nodeName === PlannerNodeName.SetPart
+      ? PlannerNodeName.ExerciseSet
+      : level.nodeName === PlannerNodeName.WarmupSetPart
+        ? PlannerNodeName.WarmupExerciseSet
+        : undefined;
+  if (groupName == null) {
+    return undefined;
+  }
+  let node: SyntaxNode | null = parser.parse(text).resolveInner(level.start + 1, -1);
+  while (node != null && node.name !== groupName) {
+    node = node.parent;
+  }
+  if (node == null) {
+    return undefined;
+  }
+  const siblings = node.parent?.getChildren(groupName) ?? [];
+  return { nodeName: node.name, start: node.from, end: node.to, isOnlyGroup: siblings.length <= 1 };
 }
 
 export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoEditorContext {
@@ -499,6 +528,25 @@ export function LiftoEditorBrain_tokens(text: string): IEditorToken[] {
             }
             return false;
           }
+        }
+        // SetTimer is one terminal ("30s|60s"), so its two timers aren't Int children the
+        // descent below could find — split them out here as keypad tap-targets.
+        if (node.name === PlannerNodeName.SetTimer) {
+          tokens.push(plainSpan(node.from, node.to));
+          const raw = text.slice(node.from, node.to);
+          const timerRe = /\d+s/g;
+          let timerMatch: RegExpExecArray | null;
+          while ((timerMatch = timerRe.exec(raw)) != null) {
+            const start = node.from + timerMatch.index;
+            tokens.push({
+              start,
+              end: start + timerMatch[0].length,
+              text: timerMatch[0],
+              walkStop: false,
+              numeric: { kind: "timer", inFunctionArgs: false },
+            });
+          }
+          return false;
         }
         tokens.push(plainSpan(node.from, node.to));
         plainStopStack.push({ from: node.from, to: node.to });

@@ -5,6 +5,7 @@ import {
   ILiftoEditorStyledRange,
   ITextEdit,
   LiftoEditorBrain_contextAt,
+  LiftoEditorBrain_enclosingSetGroup,
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
 } from "./liftoEditorBrain";
@@ -420,20 +421,45 @@ export function LiftoEditorSession_applyPill(
 
 export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): ILiftoEditorSessionResult {
   const levelIndex = focusedLevelIndex(session);
-  const level = session.context != null && levelIndex != null ? session.context.levels[levelIndex] : undefined;
+  const levels = session.context?.levels ?? [];
+  const level = levelIndex != null ? levels[levelIndex] : undefined;
   if (level == null) {
     return { session, effects: {} };
   }
   const text = session.text;
+  let nodeName = level.nodeName;
   let start = level.start;
   let end = level.end;
+  // Removing a group's sets×reps alone leaves nonsense ("warmup: 40%"; "3x8 100lb" minus
+  // "3x8" reads as globals) — promote to the whole set group. And when everything after
+  // "warmup:" would go (the last warmup group, or the Warmup sets level itself), take the
+  // whole property: an empty "warmup:" doesn't parse.
+  const group = LiftoEditorBrain_enclosingSetGroup(text, level);
+  const removesAllWarmups =
+    (group?.isOnlyGroup === true && group.nodeName === "WarmupExerciseSet") || nodeName === "WarmupExerciseSets";
+  const warmupProperty = removesAllWarmups
+    ? levels
+        .slice(0, levelIndex)
+        .reverse()
+        .find((l) => l.nodeName === "ExerciseProperty")
+    : undefined;
+  const target = warmupProperty ?? group;
+  if (target != null) {
+    nodeName = target.nodeName;
+    start = target.start;
+    end = target.end;
+  }
   // A removed item takes a separator with it. For list items (set groups and state vars
   // separated by ",", exercise variations by "|") a trailing separator wins — "3x8, 5x5"
   // minus the first group must keep its leading " / ". Everything else eats its leading
   // " / " or ", ", so "5x5 / 100kg / progress" minus the weight yields "5x5 / progress".
-  const isExerciseVariation = level.nodeName === "ExerciseVariation";
+  const isExerciseVariation = nodeName === "ExerciseVariation";
   const listSeparator =
-    level.nodeName === "ExerciseSet" || level.nodeName === "KeyValue" ? "," : isExerciseVariation ? "|" : undefined;
+    nodeName === "ExerciseSet" || nodeName === "WarmupExerciseSet" || nodeName === "KeyValue"
+      ? ","
+      : isExerciseVariation
+        ? "|"
+        : undefined;
   let j = end;
   while (j < text.length && text[j] === " ") {
     j += 1;
@@ -454,8 +480,10 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
       while (i >= 0 && text[i] === " ") {
         i -= 1;
       }
-      start = i + 1;
     }
+    // With no separator this still eats the leading spaces, so removing a mid-group item
+    // ("3x8 auto 60s" minus "auto") doesn't leave a double space behind.
+    start = i + 1;
   }
   return {
     session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },

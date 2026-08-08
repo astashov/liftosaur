@@ -199,6 +199,18 @@ describe("LiftoEditorSession", () => {
       expect(stepped.session.active?.buffer).to.equal("45");
       expect(stepped.session.active?.suffix).to.equal("s");
     });
+
+    it("activates each timer of a combined set timer separately", () => {
+      const text = "Squat / 3x8 30s|60s";
+      const setPart = tapAt(text, "30s");
+      expect(setPart.effects.keypad).to.equal("open");
+      expect(setPart.session.active?.buffer).to.equal("30");
+      expect(setPart.session.active?.suffix).to.equal("s");
+      const restPart = tapAt(text, "60s");
+      expect(restPart.session.active?.buffer).to.equal("60");
+      const stepped = LiftoEditorSession_step(restPart.session, 1, buildSettings(), exerciseType);
+      expect(run(restPart.session, stepped).text).to.equal("Squat / 3x8 30s|75s");
+    });
   });
 
   describe("setUnit", () => {
@@ -350,6 +362,34 @@ describe("LiftoEditorSession", () => {
 
     it("a removed marked sets section takes its marker along", () => {
       expect(removeLevel("Squat / 3x8 / ! 5x5 100lb", "5x5", "Sets 2")).to.equal("Squat / 3x8");
+    });
+
+    it("removing sets×reps takes the whole set group", () => {
+      expect(removeLevel("Squat / 3x8 100lb / progress: lp(5lb)", "3x8", "Sets×Reps")).to.equal(
+        "Squat / progress: lp(5lb)"
+      );
+    });
+
+    it("removing sets×reps of a first set group eats its trailing comma", () => {
+      expect(removeLevel("Squat / 3x8 100lb, 5x5 120lb", "3x8", "Sets×Reps")).to.equal("Squat / 5x5 120lb");
+    });
+
+    it("removing a warmup group's sets×reps takes the whole group", () => {
+      expect(removeLevel("Squat / 3x8 / warmup: 1x10 40%, 1x5 60%", "1x10", "Sets×Reps")).to.equal(
+        "Squat / 3x8 / warmup: 1x5 60%"
+      );
+    });
+
+    it("removing the last warmup group takes the whole warmup property", () => {
+      expect(removeLevel("Squat / 3x8 100lb / warmup: 1x10 40%", "1x10", "Sets×Reps")).to.equal("Squat / 3x8 100lb");
+    });
+
+    it("removing the warmup sets level takes the whole warmup property", () => {
+      expect(removeLevel("Squat / 3x8 / warmup: 1x10 40%", "1x10", "Warmup sets")).to.equal("Squat / 3x8");
+    });
+
+    it("removing auto eats its leading space", () => {
+      expect(removeLevel("Squat / 3x8 100lb auto 60s", "auto", "Auto")).to.equal("Squat / 3x8 100lb 60s");
     });
   });
 
