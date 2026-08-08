@@ -391,7 +391,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     perTabStickyHeader = <View className="bg-background-default" />;
   }
 
-  const showEditorDock = activeTabLabel === "Edit" && ui.mode === "perday";
+  const showEditorDock = activeTabLabel === "Edit" && (ui.mode === "perday" || ui.mode === "full");
 
   return (
     <PerfProfiler id="ScreenProgram.shell" onRender={onProfile}>
