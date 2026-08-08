@@ -1,5 +1,6 @@
 import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef, useCallback } from "react";
 import type { IMuscle, IExerciseKind, IExerciseType, IExercisePickerSelectedExercise, IDayData } from "../types";
+import type { IEvaluatedProgram } from "../models/program";
 import { getNavigationRef } from "./navUtils";
 
 export interface IInputSelectModalData {
@@ -51,7 +52,9 @@ export interface IEditorSheetExercisePickerModalData {
   exerciseType?: IExerciseType;
   label?: string;
   templateName?: string;
-  programId?: string;
+  // Handed over rather than looked up by id: while the program editor is open the program
+  // that matters is the unsaved draft, and only the opener knows which one that is.
+  evaluatedProgram?: IEvaluatedProgram;
   dayData?: Required<IDayData>;
 }
 
