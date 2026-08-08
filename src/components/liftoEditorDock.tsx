@@ -2,7 +2,7 @@ import { JSX, useContext, useMemo } from "react";
 import { Animated, Pressable, View } from "react-native";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { useCustomKeyboardAnimatedHeight, useCustomKeyboardHeight } from "../navigation/CustomKeyboardContext";
-import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
+import { useSystemKeyboardHeightFromScreenBottom } from "../utils/useSystemKeyboardHeight";
 import { LiftoEditorHints_forContext } from "./primitives/liftoEditorHints";
 import {
   LiftoEditorCrumbs,
@@ -34,8 +34,9 @@ export function LiftoEditorDock(): JSX.Element | null {
   // other field on the screen — a day name, say — while a token still holds the dock. The two
   // keyboards are mutually exclusive, so gate the static height on the keypad being shut
   // rather than adding both; a stale IME height would otherwise stack on top of the keypad.
+  // Measured from the screen bottom, since it's about to be compared with the tab bar.
   const isKeypadOpen = useCustomKeyboardHeight() > 0;
-  const imeHeight = useSystemKeyboardHeight();
+  const imeHeight = useSystemKeyboardHeightFromScreenBottom();
   const systemKeyboardHeight = isKeypadOpen ? 0 : imeHeight;
   const keypadLift = useMemo(
     () =>
