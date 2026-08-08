@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { useContext, useEffect, useRef } from "react";
-import { Keyboard, View, ScrollView, useWindowDimensions } from "react-native";
+import { Keyboard, Platform, View, ScrollView } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { LensBuilder, lb } from "lens-shmens";
@@ -27,10 +27,12 @@ import { useLiftoEditorBlurFocused, useLiftoEditorFocusClaim } from "../liftoEdi
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
-import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
+import { useSystemKeyboardHeight, useSystemKeyboardHeightFromScreenBottom } from "../../utils/useSystemKeyboardHeight";
 
-// Breathing room between the focused token and the top of the docked chrome.
-const caretRevealMargin = 16;
+// Breathing room between the focused token and whatever is docked below it. Android needs
+// more: its caret drags a drop handle that hangs below the line, and clearing only the line
+// leaves the handle itself under the keyboard's suggestion strip.
+const caretRevealMargin = Platform.OS === "android" ? 32 : 16;
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -183,28 +185,36 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
   const editorBoxRef = useRef<View>(null);
   const keypadHeight = useCustomKeyboardHeight();
   const systemKeyboardHeight = useSystemKeyboardHeight();
+  const systemKeyboardFromScreenBottom = useSystemKeyboardHeightFromScreenBottom();
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
-  const { height: windowHeight } = useWindowDimensions();
-  // The dock is anchored to the footer slot and rides above the keypad, so together they
-  // occlude the footer's height plus whichever of the keypad/tab bar is taller.
+  // How much of the scroll area is covered from the bottom. The viewport already ends at the
+  // tab bar, so only the part of a keyboard standing above the tab bar eats into it — the
+  // same lift the dock itself rides on. The dock is stacked on top of that. Both keyboards
+  // have to be measured from the same edge as the tab bar, which pads for the bottom inset.
   const footerHeight = scrollCtx?.footerHeight ?? 0;
-  const occluded = footerHeight + Math.max(tabBarHeight, keypadHeight, systemKeyboardHeight);
+  const occluded =
+    footerHeight + Math.max(0, keypadHeight - tabBarHeight, systemKeyboardFromScreenBottom - tabBarHeight);
   const occludedRef = useRef(occluded);
   occludedRef.current = occluded;
+  // Both boxes are measured in window coordinates so their difference is exact whatever the
+  // window's origin is; nothing here is derived from window height or safe-area insets.
   const revealCaret = (rect: { top: number; bottom: number }): void => {
     const scrollNode = scrollCtx?.scrollRef.current;
     const scrollYRef = scrollCtx?.scrollYRef;
+    const viewport = scrollCtx?.viewportRef.current;
     const editorBox = editorBoxRef.current;
-    if (scrollNode == null || scrollYRef == null || editorBox == null) {
+    if (scrollNode == null || scrollYRef == null || viewport == null || editorBox == null) {
       return;
     }
-    editorBox.measureInWindow((_x, y) => {
-      const visibleBottom = windowHeight - occludedRef.current - caretRevealMargin;
-      const caretBottom = y + rect.bottom;
-      if (caretBottom <= visibleBottom) {
-        return;
-      }
-      scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + (caretBottom - visibleBottom)), animated: true });
+    viewport.measureInWindow((_vx, vy, _vw, vh) => {
+      editorBox.measureInWindow((_x, y) => {
+        const visibleBottom = vy + vh - occludedRef.current - caretRevealMargin;
+        const caretBottom = y + rect.bottom;
+        if (caretBottom <= visibleBottom) {
+          return;
+        }
+        scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + (caretBottom - visibleBottom)), animated: true });
+      });
     });
   };
 

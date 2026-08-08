@@ -402,6 +402,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
           // Freeform editing hides the dock, so dragging is how the keyboard goes away on
           // iOS; Android also has the back button.
           keyboardDismissMode={showEditorDock ? (Platform.OS === "ios" ? "interactive" : "on-drag") : undefined}
+          // Freeform raises the system keyboard over a day editor that can sit at the very
+          // bottom of the list, and the reveal can only scroll as far as the content allows.
+          avoidSystemKeyboard={showEditorDock}
         >
           <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
             <EditProgramHeader

@@ -12,9 +12,19 @@ import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 import { INavScreenScrollListener, NavScreenScrollContext } from "./NavScreenScrollContext";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
+import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
 
 export { NavScreenScrollContext } from "./NavScreenScrollContext";
 export type { INavScreenScrollListener, INavScreenScrollContextValue } from "./NavScreenScrollContext";
+
+// Android has no automaticallyAdjustKeyboardInsets, and under edge-to-edge the window doesn't
+// shrink for the IME either — so without this the content can't be scrolled past the keyboard
+// at all, and anything trying to reveal a focused line just hits the end of the scroll range.
+// Its own component so opening the keyboard re-renders the spacer, not the whole screen.
+function SystemKeyboardSpacer(): JSX.Element {
+  const height = useSystemKeyboardHeight();
+  return <View style={{ height }} />;
+}
 
 export function NavScreenContent(props: {
   children: ReactNode;
@@ -23,6 +33,9 @@ export function NavScreenContent(props: {
   // Opt-in per screen rather than global: on-drag dismisses on any scroll, which is wrong
   // for form-ish screens but right where the keyboard covers what you're reading.
   keyboardDismissMode?: "none" | "on-drag" | "interactive";
+  // Android only (iOS gets it from automaticallyAdjustKeyboardInsets). Opt-in because it
+  // lengthens the scroll content on every screen that turns it on, keyboard up or not.
+  avoidSystemKeyboard?: boolean;
 }): JSX.Element {
   const navigation = useNavigation();
   const isScrolledRef = useRef(false);
@@ -33,6 +46,7 @@ export function NavScreenContent(props: {
   const contentSizeRef = useRef({ width: 0, height: 0 });
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   const [footerHeight, setFooterHeight] = useState(0);
+  const viewportRef = useRef<View>(null);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -102,7 +116,7 @@ export function NavScreenContent(props: {
   );
 
   const contextValue = useMemo(
-    () => ({ scrollRef, scrollYRef, footerHeight, addScrollListener }),
+    () => ({ scrollRef, scrollYRef, viewportRef, footerHeight, addScrollListener }),
     [footerHeight, addScrollListener]
   );
 
@@ -134,13 +148,15 @@ export function NavScreenContent(props: {
     >
       {props.children}
       <Animated.View style={{ height: animatedKeyboardHeight }} />
+      {props.avoidSystemKeyboard === true && Platform.OS === "android" ? <SystemKeyboardSpacer /> : null}
     </ScrollView>
   );
 
   return (
     <NavScreenScrollContext.Provider value={contextValue}>
       {props.footer != null ? (
-        <View className="flex-1">
+        // Spans exactly the scroll area — the footer below is absolutely positioned inside it.
+        <View ref={viewportRef} className="flex-1">
           {scrollView}
           <View onLayout={onFooterLayout} className="absolute bottom-0 left-0 right-0" pointerEvents="box-none">
             {props.footer}
