@@ -48,11 +48,23 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     colorScheme = EditorColorScheme()
     setWordwrap(true)
     setLineNumberEnabled(false)
-    typefaceText = try {
+    // A tint instead of sora's opaque panel and divider, which would draw a second border
+    // inside the one the host already puts around the editor. Translucent gray so it reads
+    // the same way over either background.
+    colorScheme.setColor(EditorColorScheme.LINE_NUMBER_BACKGROUND, 0x14808080)
+    colorScheme.setColor(EditorColorScheme.LINE_DIVIDER, Color.TRANSPARENT)
+    val density = reactContext.resources.displayMetrics.density
+    // Left margin is inside the tinted strip, right margin is the gap to the code.
+    setDividerMargin(4f * density, 4f * density)
+    val codeTypeface = try {
       android.graphics.Typeface.createFromAsset(reactContext.assets, "fonts/Iosevka-Regular.ttf")
     } catch (e: Exception) {
       android.graphics.Typeface.MONOSPACE
     }
+    typefaceText = codeTypeface
+    // Line numbers default to MONOSPACE, whose metrics differ from the text's — they end up
+    // both looking foreign and sitting a shade off the line they label.
+    typefaceLineNumber = codeTypeface
     subscribeEvent(ContentChangeEvent::class.java) { event, _ -> handleContentChange(event) }
     subscribeEvent(SelectionChangeEvent::class.java) { event, _ -> handleSelectionChange(event) }
     subscribeEvent(ClickEvent::class.java) { event, _ ->

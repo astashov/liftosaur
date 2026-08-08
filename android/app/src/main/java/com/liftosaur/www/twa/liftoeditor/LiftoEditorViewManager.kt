@@ -26,6 +26,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.isEditable = value
   }
 
+  override fun setShowLineNumbers(view: LiftoEditorView, value: Boolean) {
+    view.setLineNumberEnabled(value)
+  }
+
   override fun setFontSize(view: LiftoEditorView, value: Float) {
     if (value > 0f) {
       view.setTextSize(value)

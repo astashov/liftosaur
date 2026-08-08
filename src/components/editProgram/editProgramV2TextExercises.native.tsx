@@ -436,6 +436,9 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
           <View ref={editorBoxRef}>
             <LiftoEditor
               {...controller.editorProps}
+              // The eval error quotes a line, and this editor's document is exactly the day
+              // the error came from, so its own numbering is what that line refers to.
+              showLineNumbers={true}
               bottomPadding={isFreeform ? 24 : 0}
               extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
               onCaretRect={revealCaret}

@@ -467,7 +467,12 @@ extension LayoutManager {
         let fontLineHeight = theme.lineNumberFont.lineHeight
         let xPosition = safeAreaInsets.left + gutterWidthService.gutterLeadingPadding
         var yPosition = textContainerInset.top + line.yPosition
-        if lineController.numberOfLineFragments > 1 {
+        if let baseline = lineController.firstLineFragmentBaseline {
+            // Sit the number on the same baseline as the text it labels. Centering the two
+            // boxes instead leaves them a point or so apart, because UILabel and CoreText
+            // don't put the baseline in the same place inside a box of the same height.
+            yPosition += baseline - theme.lineNumberFont.ascender
+        } else if lineController.numberOfLineFragments > 1 {
             // There are more than one line fragments, so we align the line number at the top.
             yPosition += (fontLineHeight * lineHeightMultiplier - fontLineHeight) / 2
         } else {

@@ -40,6 +40,9 @@ export interface NativeProps extends ViewProps {
   fontSize?: Float;
   // false = structured mode: read-only, system keyboard suppressed, taps emit onEditorTap.
   editable?: WithDefault<boolean, true>;
+  // Numbering is per-editor, so it only means something where the document is a whole day —
+  // that's also where eval errors quote a line to go find.
+  showLineNumbers?: WithDefault<boolean, false>;
   onTextDelta?: DirectEventHandler<TextDeltaEvent>;
   onEditorSelectionChange?: DirectEventHandler<SelectionChangeEvent>;
   onEditorContentSizeChange?: DirectEventHandler<ContentSizeChangeEvent>;

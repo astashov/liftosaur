@@ -44,6 +44,15 @@ final class LineController {
     var lineWidth: CGFloat {
         ceil(typesetter.maximumLineWidth)
     }
+    // Distance from the top of the line to the first line fragment's text baseline — the
+    // same position LineFragmentRenderer draws at. nil until the line has been typeset.
+    var firstLineFragmentBaseline: CGFloat? {
+        guard let lineFragment = typesetter.lineFragments.first else {
+            return nil
+        }
+        let scaledHeight = lineFragment.scaledSize.height
+        return scaledHeight - lineFragment.descent - (scaledHeight - lineFragment.baseSize.height) / 2
+    }
     var lineHeight: CGFloat {
         if let lineHeight = _lineHeight {
             return lineHeight
