@@ -11,7 +11,7 @@ import {
   useLiftoEditorHintDismissed,
 } from "./liftoEditorChrome";
 import { useLiftoEditorBlurFocused, useLiftoEditorFocusEntry } from "./liftoEditorFocus";
-import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
+import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconHelp } from "./icons/iconHelp";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { useRem } from "../utils/useRem";
@@ -82,6 +82,8 @@ export function LiftoEditorDock(): JSX.Element | null {
             <IconHelp size={20 * iconScale} color={Tailwind_semantic().icon.neutral} />
           </Pressable>
         ) : null}
+        {/* A chevron, not an ✕: this dismisses the dock, and an ✕ next to a breadcrumb reads
+            as deleting whatever the breadcrumb points at. */}
         <Pressable
           testID="editor-dock-close"
           className="items-center w-10 py-2"
@@ -89,7 +91,7 @@ export function LiftoEditorDock(): JSX.Element | null {
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
           onPress={blurFocused}
         >
-          <IconCloseCircleOutline size={20 * iconScale} />
+          <IconArrowDown2 width={13 * iconScale} height={8 * iconScale} />
         </Pressable>
       </View>
       {hint != null && !hintDismissed ? (
