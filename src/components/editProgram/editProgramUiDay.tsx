@@ -435,6 +435,9 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
               evaluatedDay={evaluatedDay}
               settings={props.settings}
               ui={props.ui}
+              programId={props.programId}
+              evaluatedProgram={props.evaluatedProgram}
+              dayData={props.dayData}
             />
           </View>
         )}

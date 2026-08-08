@@ -59,7 +59,9 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
     actions: {
-      pickExercise: (_current, onSelect) => {
+      // The sheet edits one exercise, so its picker data and reuse candidates are
+      // precomputed by the host and knowing where the focused exercise starts adds nothing.
+      pickExercise: (_current, _exerciseStart, onSelect) => {
         pickerSelectRef.current = onSelect;
         openExercisePicker(props.pickerData ?? {});
       },
@@ -75,7 +77,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
         });
       },
       editReuse: (targetName) => props.onEditReuse?.(targetName),
-      pickReuse: (kind, onSelect) => {
+      pickReuse: (kind, _exerciseStart, onSelect) => {
         const candidates = props.reuseCandidates;
         const items: ILiftoEditorReuseSelection[] =
           kind === "sets"

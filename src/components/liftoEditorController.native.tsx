@@ -10,6 +10,7 @@ import {
 } from "./primitives/liftoEditorActions";
 import {
   ILiftoEditorMode,
+  ILiftoEditorSurface,
   ILiftoEditorSession,
   ILiftoEditorSessionResult,
   LiftoEditorSession_activeLevelIndex,
@@ -18,6 +19,7 @@ import {
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
+  LiftoEditorSession_focusedExerciseFullName,
   LiftoEditorSession_highlight,
   LiftoEditorSession_keypadInput,
   LiftoEditorSession_pills,
@@ -40,7 +42,7 @@ import { Weight_build, Weight_round } from "../models/weight";
 import { Exercise_fullName, Exercise_get, Exercise_onerm } from "../models/exercise";
 import { IExercisePickerSelectedExercise, IExerciseType, IPercentageUnit, ISettings, IUnit, IWeight } from "../types";
 
-export type { ILiftoEditorMode };
+export type { ILiftoEditorMode, ILiftoEditorSurface };
 
 export interface ILiftoEditorController {
   mode: ILiftoEditorMode;
@@ -68,16 +70,31 @@ const sampleExerciseType: IExerciseType = { id: "squat", equipment: "barbell" };
 // The host supplies just the modal/navigation openers; the controller owns what happens
 // with their results (name building, label preservation, sanitization, the edit itself),
 // so every surface gets identical swap/rename semantics.
+// `exerciseFullName` is the planner fullName of the exercise the caret is in — how an
+// inline host tells which of the day's exercises an action is about (a sheet edits one, so
+// it ignores the argument).
 export interface ILiftoEditorControllerActions {
-  pickExercise?: (current: string, onSelect: (selected: IExercisePickerSelectedExercise) => void) => void;
+  pickExercise?: (
+    current: string,
+    exerciseFullName: string | undefined,
+    onSelect: (selected: IExercisePickerSelectedExercise) => void
+  ) => void;
   promptRename?: (current: string, onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
-  pickReuse?: (kind: "sets" | "progress" | "update", onSelect: (selection: ILiftoEditorReuseSelection) => void) => void;
+  pickReuse?: (
+    kind: "sets" | "progress" | "update",
+    exerciseFullName: string | undefined,
+    onSelect: (selection: ILiftoEditorReuseSelection) => void
+  ) => void;
 }
 
 export interface ILiftoEditorControllerOptions {
-  // Drives equipment-aware weight stepping and the plates readout.
+  surface?: ILiftoEditorSurface;
+  // Drives equipment-aware weight stepping and the plates readout. A sheet edits one
+  // exercise, so it can pass a constant; inline the document holds the whole day, so
+  // equipment has to be looked up per focused exercise.
   exerciseType?: IExerciseType;
+  exerciseTypeFor?: (exerciseFullName: string) => IExerciseType | undefined;
   actions?: ILiftoEditorControllerActions;
 }
 
@@ -96,9 +113,21 @@ export function useLiftoEditorController(
   initialText: string,
   options?: ILiftoEditorControllerOptions
 ): ILiftoEditorController {
-  const exerciseType = options?.exerciseType ?? sampleExerciseType;
   const actions = options?.actions;
-  const [session, setSession] = useState<ILiftoEditorSession>(() => LiftoEditorSession_create(initialText));
+  const [session, setSession] = useState<ILiftoEditorSession>(() =>
+    LiftoEditorSession_create(initialText, options?.surface)
+  );
+  // Resolved from the session it's about, never from the render's — dispatch opens the
+  // keypad with the *next* session, and that transition is exactly when focus can cross
+  // from one exercise to another.
+  function resolveExerciseType(sess: ILiftoEditorSession): IExerciseType {
+    const fullName = LiftoEditorSession_focusedExerciseFullName(sess);
+    return (
+      (fullName != null ? options?.exerciseTypeFor?.(fullName) : undefined) ??
+      options?.exerciseType ??
+      sampleExerciseType
+    );
+  }
   const sessionRef = useRef(session);
   const handleRef = useRef<ILiftoEditorHandle | undefined>(undefined);
   const openKeyboard = useOpenCustomKeyboard();
@@ -133,6 +162,7 @@ export function useLiftoEditorController(
     if (active == null) {
       return;
     }
+    const exerciseType = resolveExerciseType(sess);
     const suffixUnit = active.suffix.startsWith("%")
       ? "%"
       : active.suffix.startsWith("kg")
@@ -205,8 +235,9 @@ export function useLiftoEditorController(
     // The pill's range stays valid while the modal is up: structured mode blocks typing,
     // and the modal blocks further pill presses.
     const target: ITextEdit = { start: pill.start, end: pill.end, text: pill.text };
+    const exerciseFullName = LiftoEditorSession_focusedExerciseFullName(sessionRef.current);
     if (pill.action === "changeExercise") {
-      actions?.pickExercise?.(pill.text, (selected) => {
+      actions?.pickExercise?.(pill.text, exerciseFullName, (selected) => {
         const edit = LiftoEditorActions_swapExerciseEdit(target, selectionToName(selected, settings));
         dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, ...edit }));
       });
@@ -227,7 +258,7 @@ export function useLiftoEditorController(
       // static template ("Reuse…") or a no-op self-replace ("Change…").
       const kind = pill.action === "reuseSets" ? "sets" : pill.action === "reuseProgressScript" ? "progress" : "update";
       const isSets = pill.action === "reuseSets";
-      actions.pickReuse(kind, (selection) => {
+      actions.pickReuse(kind, exerciseFullName, (selection) => {
         // Script reuse can't carry `[w:d]` — the grammar only allows it on sets reuse.
         const reuseTarget = LiftoEditorActions_reuseTargetText(isSets ? selection : { fullName: selection.fullName });
         const text = (pill.reuseTemplate ?? "{target}").replace("{target}", reuseTarget);
