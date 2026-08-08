@@ -1,6 +1,6 @@
-import type { JSX } from "react";
-import { useContext, useEffect, useRef } from "react";
-import { Keyboard, Platform, View, ScrollView } from "react-native";
+import type { JSX, ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Animated, Keyboard, LayoutChangeEvent, Platform, View, ScrollView } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { LensBuilder, lb } from "lens-shmens";
@@ -57,6 +57,96 @@ function lineAt(text: string, index: number): number {
     }
   }
   return line;
+}
+
+interface IDayErrorProps {
+  message?: string;
+  children: ReactNode;
+}
+
+// The error rides along the top edge of the day it belongs to, staying put while any part of
+// that day is on screen — a day can be several screens tall, and an error parked at its far
+// end is out of sight exactly while you're typing the line that caused it. RN has no
+// position:sticky, and the ScrollView's own sticky headers only apply to its direct children,
+// so this follows the scroll offset by hand.
+function DayError(props: IDayErrorProps): JSX.Element {
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const containerRef = useRef<View>(null);
+  const bannerHeightRef = useRef(0);
+  const stickyHeaderHeight = scrollCtx?.stickyHeaderHeight ?? 0;
+  // Where the day starts in scroll-content coordinates, and how far the banner may travel
+  // before it would outrun the day's bottom edge.
+  const [anchor, setAnchor] = useState({ top: 0, range: 0 });
+
+  // Both boxes in window coordinates, turned into a content offset with the scroll position
+  // that was live at the same moment — on Android edge-to-edge the window and measureInWindow
+  // don't share an origin, so nothing here may come from window height or insets.
+  const remeasure = useCallback(() => {
+    const viewport = scrollCtx?.viewportRef.current;
+    const container = containerRef.current;
+    if (viewport == null || container == null) {
+      return;
+    }
+    viewport.measureInWindow((_vx, vy) => {
+      container.measureInWindow((_x, y, _w, height) => {
+        const top = y - vy + (scrollCtx?.scrollYRef.current ?? 0);
+        const range = Math.max(0, height - bannerHeightRef.current);
+        setAnchor((prev) => (prev.top === top && prev.range === range ? prev : { top, range }));
+      });
+    });
+  }, [scrollCtx]);
+
+  // The day's own onLayout covers everything below it moving, but not an ancestor resizing
+  // above it — that leaves this day where it was relative to its parent. A changed content
+  // height is the one signal that catches both.
+  const contentHeightRef = useRef(0);
+  useEffect(() => {
+    return scrollCtx?.addScrollListener((e) => {
+      const contentHeight = e.nativeEvent.contentSize.height;
+      if (contentHeight !== contentHeightRef.current) {
+        contentHeightRef.current = contentHeight;
+        remeasure();
+      }
+    });
+  }, [scrollCtx, remeasure]);
+
+  const onBannerLayout = (e: LayoutChangeEvent): void => {
+    bannerHeightRef.current = e.nativeEvent.layout.height;
+    remeasure();
+  };
+
+  // Interpolated rather than followed in JS: the scroll listeners run a frame or two behind
+  // the scroll itself, which the eye reads as the banner drifting away from the top edge
+  // whenever you flick.
+  const scrollAnimatedY = scrollCtx?.scrollAnimatedY;
+  const translateY = useMemo(() => {
+    const pinnedAt = anchor.top - stickyHeaderHeight;
+    if (scrollAnimatedY == null || anchor.range <= 0) {
+      return 0;
+    }
+    return scrollAnimatedY.interpolate({
+      inputRange: [pinnedAt, pinnedAt + anchor.range],
+      outputRange: [0, anchor.range],
+      extrapolate: "clamp",
+    });
+  }, [scrollAnimatedY, anchor, stickyHeaderHeight]);
+
+  return (
+    <View ref={containerRef} onLayout={remeasure}>
+      {props.message != null ? (
+        // Drawn over the editor rather than pushing it: once pinned it has to cover whatever
+        // line it has slid down onto, so it needs the raised order and an opaque background.
+        <Animated.View
+          className="px-2 py-1 mb-1 bg-background-lighterror"
+          style={{ transform: [{ translateY }], zIndex: 1 }}
+          onLayout={onBannerLayout}
+        >
+          <Text className="text-xs font-semibold text-text-error">{props.message}</Text>
+        </Animated.View>
+      ) : null}
+      {props.children}
+    </View>
+  );
 }
 
 interface IDayEditorProps {
@@ -337,7 +427,7 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
   );
 
   return (
-    <View>
+    <DayError message={error?.message}>
       <View
         className="p-2 border rounded-lg"
         style={{ borderColor: error != null ? Tailwind_semantic().text.error : Tailwind_semantic().border.neutral }}
@@ -359,12 +449,7 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
           </View>
         </GestureDetector>
       </View>
-      {error != null ? (
-        <View className="px-1 pt-1">
-          <Text className="text-xs font-semibold text-text-error">{error.message}</Text>
-        </View>
-      ) : null}
-    </View>
+    </DayError>
   );
 }
 
