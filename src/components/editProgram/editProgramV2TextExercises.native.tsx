@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { useContext, useEffect, useRef } from "react";
 import { Keyboard, View, ScrollView, useWindowDimensions } from "react-native";
+import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { LensBuilder, lb } from "lens-shmens";
 import { Text } from "../primitives/text";
@@ -67,9 +68,10 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
   const { height: windowHeight } = useWindowDimensions();
   // The dock is anchored to the footer slot and rides above the keypad, so together they
   // occlude the footer's height plus whichever of the keypad/tab bar is taller.
-  const occludedRef = useRef(0);
-  occludedRef.current =
-    (scrollCtx?.footerHeightRef.current ?? 0) + Math.max(tabBarHeight, keypadHeight, systemKeyboardHeight);
+  const footerHeight = scrollCtx?.footerHeight ?? 0;
+  const occluded = footerHeight + Math.max(tabBarHeight, keypadHeight, systemKeyboardHeight);
+  const occludedRef = useRef(occluded);
+  occludedRef.current = occluded;
   const revealCaret = (rect: { top: number; bottom: number }): void => {
     const scrollNode = scrollCtx?.scrollRef.current;
     const scrollYRef = scrollCtx?.scrollYRef;
@@ -87,8 +89,11 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
     });
   };
 
-  // Re-asked when the keypad opens too: the focused token can be fine until the keypad
-  // grows the occluded strip underneath it.
+  // Re-asked whenever the occluded strip grows, not just when focus moves: the token can be
+  // perfectly visible until the keypad opens under it, and on the first focus the dock is
+  // still going from zero to its full height — the rect can come back before that layout
+  // lands, so the answer has to be recomputed once the dock has actually measured. Its height
+  // varies by token too, since the hint bar and pill rail come and go.
   const focusedLevel = controller.context?.levels[controller.activeLevelIndex];
   const focusStart = focusedLevel?.start;
   const focusEnd = focusedLevel?.end;
@@ -97,7 +102,7 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
     if (focusStart != null && focusEnd != null) {
       handleRef?.current?.requestCaretRect(focusStart, focusEnd);
     }
-  }, [focusStart, focusEnd, keypadHeight, handleRef]);
+  }, [focusStart, focusEnd, keypadHeight, footerHeight, handleRef]);
 
   // Freeform has no focus stack — the caret is the native selection, so follow that instead.
   const isFreeform = controller.mode === "freeform";
@@ -186,26 +191,44 @@ function DayEditor(props: IDayEditorProps): JSX.Element {
     });
   }
 
+  // Same token-hopping swipes as the editor sheet (swipe right = next). Flings don't fire on
+  // taps or on the screen's vertical scroll, so both pass through; freeform turns them off so
+  // they don't fight native text selection.
+  const walkFling = Gesture.Race(
+    Gesture.Fling()
+      .direction(Directions.RIGHT)
+      .enabled(!isFreeform)
+      .runOnJS(true)
+      .onStart(() => controller.walkFocus(1)),
+    Gesture.Fling()
+      .direction(Directions.LEFT)
+      .enabled(!isFreeform)
+      .runOnJS(true)
+      .onStart(() => controller.walkFocus(-1))
+  );
+
   return (
     <View>
       <View
         className="p-2 border rounded-lg"
         style={{ borderColor: error != null ? Tailwind_semantic().text.error : Tailwind_semantic().border.neutral }}
       >
-        <View ref={editorBoxRef}>
-          <LiftoEditor
-            {...controller.editorProps}
-            bottomPadding={controller.mode === "freeform" ? 24 : 0}
-            extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
-            onCaretRect={revealCaret}
-            onSelectionChange={(start, end) => {
-              lastSelectionRef.current = { start, end };
-              if (isFreeform) {
-                handleRef?.current?.requestCaretRect(start, end);
-              }
-            }}
-          />
-        </View>
+        <GestureDetector gesture={walkFling}>
+          <View ref={editorBoxRef}>
+            <LiftoEditor
+              {...controller.editorProps}
+              bottomPadding={isFreeform ? 24 : 0}
+              extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+              onCaretRect={revealCaret}
+              onSelectionChange={(start, end) => {
+                lastSelectionRef.current = { start, end };
+                if (isFreeform) {
+                  handleRef?.current?.requestCaretRect(start, end);
+                }
+              }}
+            />
+          </View>
+        </GestureDetector>
       </View>
       {error != null ? (
         <View className="px-1 pt-1">
