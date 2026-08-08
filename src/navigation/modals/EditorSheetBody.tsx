@@ -4,6 +4,7 @@ import { useAppState } from "../StateContext";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
 import { Dialog_confirm } from "../../utils/dialog";
+import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -89,11 +90,15 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             <Text className="text-xs font-bold text-text-secondary">{props.headerLabel}</Text>
           )}
         </View>
-        <Pressable testID="editor-sheet-save" className="p-2" onPress={() => props.onDone(text)}>
-          <Text className="text-base font-bold" style={{ color: accent }}>
-            Save
-          </Text>
-        </Pressable>
+        <Button
+          name="editor-sheet-save"
+          kind="purple"
+          buttonSize="sm"
+          className="text-xs"
+          onPress={() => props.onDone(text)}
+        >
+          Save
+        </Button>
       </View>
       <PlannerEditorView
         name="editor-sheet"

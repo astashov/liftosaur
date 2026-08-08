@@ -17,6 +17,7 @@ import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboa
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoEditorBrain";
 import { ILiftoEditorController, useLiftoEditorController } from "../../components/liftoEditorController";
+import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
@@ -639,14 +640,15 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           ) : null}
           {/* Freeform "Apply" folds the text edits back into structured mode (the sheet stays
               open); structured "Save" commits to the program and closes. */}
-          <Pressable
-            testID="editor-sheet-save"
+          <Button
+            name="editor-sheet-save"
+            kind="purple"
+            buttonSize="sm"
+            className="text-xs"
             onPress={isFreeform ? controller.switchToStructured : () => props.onDone(controller.text)}
           >
-            <Text className="text-base font-bold" style={{ color: accent }}>
-              {isFreeform ? "Apply" : "Save"}
-            </Text>
-          </Pressable>
+            {isFreeform ? "Apply" : "Save"}
+          </Button>
         </View>
         {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
           <View className="flex-row items-center border-b border-border-neutral">
