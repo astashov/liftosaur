@@ -16,6 +16,15 @@ import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
 import org.json.JSONArray
 
+private class StyledRange(
+  var start: Int,
+  var end: Int,
+  val color: String,
+  val backgroundColor: String,
+  val bold: Boolean,
+  val italic: Boolean,
+)
+
 class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor(reactContext) {
   private var hasSetInitialText = false
   private var suppressEvents = false
@@ -24,6 +33,10 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   private val colorIds = HashMap<String, Int>()
   private var nextColorId = 1000
   private var lastReportedContentHeightDp = -1f
+  // The store behind the delta protocol: what JS pushed last, shifted through subsequent
+  // edits with the same rule the JS mirror (and iOS's ExternalRangesStore) uses, so
+  // patchStyledRanges windows line up. Sorted by start, non-overlapping.
+  private val styledRanges = ArrayList<StyledRange>()
 
   init {
     setWordwrap(true)
@@ -96,33 +109,92 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   }
 
   fun applyStyledRanges(json: String) {
+    val ranges = parseRanges(json) ?: return
+    styledRanges.clear()
+    styledRanges.addAll(ranges)
+    rebuildSpans()
+  }
+
+  // Delta protocol: replaces stored ranges whose start falls in [start, end) with the given
+  // ones (sorted, all inside the window), so per-keystroke updates carry only the edited
+  // region instead of the whole document's ranges.
+  fun applyStyledRangesPatch(start: Int, end: Int, json: String) {
+    val inserted = parseRanges(json) ?: return
+    styledRanges.removeAll { it.start in start until end }
+    val insertAt = styledRanges.indexOfFirst { it.start >= end }.let { if (it == -1) styledRanges.size else it }
+    styledRanges.addAll(insertAt, inserted)
+    rebuildSpans()
+  }
+
+  private fun parseRanges(json: String): List<StyledRange>? {
     val ranges = try {
       JSONArray(json)
     } catch (e: Exception) {
+      return null
+    }
+    val result = ArrayList<StyledRange>(ranges.length())
+    for (i in 0 until ranges.length()) {
+      val item = ranges.optJSONObject(i) ?: continue
+      val start = item.optInt("start", -1)
+      val end = item.optInt("end", -1)
+      if (start < 0 || end <= start) {
+        continue
+      }
+      result.add(
+        StyledRange(
+          start,
+          end,
+          item.optString("color", ""),
+          item.optString("backgroundColor", ""),
+          item.optBoolean("bold", false),
+          item.optBoolean("italic", false),
+        )
+      )
+    }
+    return result
+  }
+
+  // Same rule as iOS's ExternalRangesStore.applyEdit and the JS mirror — any change here
+  // must land in all three places, or patch windows stop lining up.
+  private fun shiftStyledRanges(editStart: Int, editEnd: Int, insertedLength: Int) {
+    val delta = insertedLength - (editEnd - editStart)
+    if (delta == 0) {
       return
     }
+    val iterator = styledRanges.listIterator()
+    while (iterator.hasNext()) {
+      val range = iterator.next()
+      if (editEnd <= range.start) {
+        range.start += delta
+        range.end += delta
+      } else if (editStart < range.end) {
+        range.end = maxOf(range.start, range.end + delta)
+      }
+      if (range.end <= range.start) {
+        iterator.remove()
+      }
+    }
+  }
+
+  private fun rebuildSpans() {
     val normalStyle = TextStyle.makeStyle(EditorColorScheme.TEXT_NORMAL)
     val builder = MappedSpans.Builder()
     builder.addIfNeeded(0, 0, normalStyle)
     val indexer = text.indexer
     val textLength = text.length
-    for (i in 0 until ranges.length()) {
-      val item = ranges.optJSONObject(i) ?: continue
-      val start = item.optInt("start", -1)
-      val end = item.optInt("end", -1)
-      if (start < 0 || end <= start || end > textLength) {
+    for (range in styledRanges) {
+      if (range.end > textLength) {
         continue
       }
-      val backgroundColor = item.optString("backgroundColor", "")
       val style = TextStyle.makeStyle(
-        colorId(item.optString("color", "")),
-        if (backgroundColor.isEmpty()) 0 else colorId(backgroundColor),
-        item.optBoolean("bold", false),
-        item.optBoolean("italic", false),
+        colorId(range.color),
+        if (range.backgroundColor.isEmpty()) 0 else colorId(range.backgroundColor),
+        range.bold,
+        range.italic,
         false
       )
-      val startPos = indexer.getCharPosition(start)
-      val endPos = indexer.getCharPosition(end)
+      val startPos = indexer.getCharPosition(range.start)
+      val endPos = indexer.getCharPosition(range.end)
       for (line in startPos.line..endPos.line) {
         builder.addIfNeeded(line, if (line == startPos.line) startPos.column else 0, style)
       }
@@ -199,18 +271,25 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     // posted because the wrap layout rebuilds after the content listener fires.
     post { emitContentSize() }
     if (suppressEvents) {
+      // applyText replaced the whole document; stored ranges are meaningless and JS
+      // follows up with a full set.
+      styledRanges.clear()
       return
     }
     val textLength = text.length
     when (event.action) {
-      ContentChangeEvent.ACTION_INSERT ->
+      ContentChangeEvent.ACTION_INSERT -> {
+        shiftStyledRanges(event.changeStart.index, event.changeStart.index, event.changedText.length)
         emit { surfaceId, viewId ->
           TextDeltaEvent(surfaceId, viewId, event.changeStart.index, event.changeStart.index, event.changedText.toString(), textLength)
         }
-      ContentChangeEvent.ACTION_DELETE ->
+      }
+      ContentChangeEvent.ACTION_DELETE -> {
+        shiftStyledRanges(event.changeStart.index, event.changeEnd.index, 0)
         emit { surfaceId, viewId ->
           TextDeltaEvent(surfaceId, viewId, event.changeStart.index, event.changeEnd.index, "", textLength)
         }
+      }
     }
   }
 

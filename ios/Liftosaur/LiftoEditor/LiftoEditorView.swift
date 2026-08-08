@@ -147,12 +147,28 @@ import Runestone
   }
 
   @objc public func applyStyledRangesJson(_ json: String) {
+    guard let ranges = LiftoEditorContentView.parseRanges(json) else {
+      return
+    }
+    rangesStore.setRanges(ranges)
+    textView.redisplayVisibleLines()
+  }
+
+  @objc public func applyStyledRangesPatch(_ start: Int, end: Int, json: String) {
+    guard let ranges = LiftoEditorContentView.parseRanges(json) else {
+      return
+    }
+    rangesStore.applyPatch(windowStart: start, windowEnd: end, ranges: ranges)
+    textView.redisplayVisibleLines()
+  }
+
+  private static func parseRanges(_ json: String) -> [ExternalStyledRange]? {
     guard let data = json.data(using: .utf8),
       let items = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]]
     else {
-      return
+      return nil
     }
-    let ranges = items.compactMap { item -> ExternalStyledRange? in
+    return items.compactMap { item -> ExternalStyledRange? in
       guard let start = item["start"] as? Int, let end = item["end"] as? Int, end > start else {
         return nil
       }
@@ -164,8 +180,6 @@ import Runestone
         isItalic: item["italic"] as? Bool ?? false
       )
     }
-    rangesStore.setRanges(ranges)
-    textView.redisplayVisibleLines()
   }
 
   private static func parseColor(_ value: String?) -> UIColor? {

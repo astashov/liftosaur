@@ -3,6 +3,7 @@ import {
   ILiftoEditorLevel,
   ITextEdit,
   LiftoEditorBrain_contextAt,
+  LiftoEditorParseCache,
 } from "../../src/components/primitives/liftoEditorBrain";
 import { ILiftoEditorPill } from "../../src/components/primitives/liftoEditorActions";
 
@@ -19,12 +20,18 @@ export function LiftoEditorTestUtils_pos(text: string, needle: string, occurrenc
   return index + 1;
 }
 
+// A fresh cache per call: every assertion starts from an empty slate, so no test can be
+// affected by what another one parsed.
 export function LiftoEditorTestUtils_contextAt(
   text: string,
   needle: string,
   occurrence: number = 0
 ): ILiftoEditorContext {
-  return LiftoEditorBrain_contextAt(text, LiftoEditorTestUtils_pos(text, needle, occurrence));
+  return LiftoEditorBrain_contextAt(
+    new LiftoEditorParseCache(),
+    text,
+    LiftoEditorTestUtils_pos(text, needle, occurrence)
+  );
 }
 
 export function LiftoEditorTestUtils_level(

@@ -9,6 +9,7 @@ import {
   LiftoEditorBrain_scriptReuseBody,
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
+  LiftoEditorParseCache,
 } from "./liftoEditorBrain";
 import { ILiftoEditorPill, LiftoEditorActions_isPillBoundary } from "./liftoEditorActions";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
@@ -43,6 +44,11 @@ export interface IActiveNumber {
 export interface ILiftoEditorSession {
   mode: ILiftoEditorMode;
   text: string;
+  // The parse cache this editing session owns. Shared by reference across derived sessions
+  // (the spread copies it along) so every transition and the editor view hit the same trees,
+  // and collected with the session when the editor closes. Mutable, but only as a memo —
+  // it can never change what a transition returns.
+  cache: LiftoEditorParseCache;
   // The breadcrumb stack at the anchor; undefined = nothing focused.
   context: ILiftoEditorContext | undefined;
   // Active breadcrumb level; undefined = innermost.
@@ -73,6 +79,7 @@ export function LiftoEditorSession_create(text: string): ILiftoEditorSession {
   return {
     mode: "structured",
     text,
+    cache: new LiftoEditorParseCache(),
     context: undefined,
     focusLevel: undefined,
     anchor: undefined,
@@ -149,7 +156,7 @@ function activateToken(session: ILiftoEditorSession, token: IEditorToken): ILift
       active: parsed,
       anchor,
       focusedToken: token,
-      context: LiftoEditorBrain_contextAt(session.text, anchor),
+      context: LiftoEditorBrain_contextAt(session.cache, session.text, anchor),
       focusLevel: undefined,
     },
     effects: { keypad: "open" },
@@ -168,7 +175,7 @@ export function LiftoEditorSession_tap(
   // quick taps on two different tokens are fast navigation, not a double tap.
   const sinceLastTap = now - session.lastTapTime;
   const tapped: ILiftoEditorSession = { ...session, lastTapTime: now, lastTapIndex: index };
-  const tokens = LiftoEditorBrain_tokens(session.text);
+  const tokens = LiftoEditorBrain_tokens(session.cache, session.text);
   const tokenAt = (i: number): IEditorToken | undefined => tokens.find((t) => i >= t.start && i <= t.end);
   if (sinceLastTap < 300 && session.lastTapIndex != null) {
     const prevToken = tokenAt(session.lastTapIndex);
@@ -196,7 +203,7 @@ export function LiftoEditorSession_tap(
       active: undefined,
       anchor: index,
       focusedToken: tokens.find((t) => t.walkStop && index >= t.start && index <= t.end),
-      context: LiftoEditorBrain_contextAt(session.text, index),
+      context: LiftoEditorBrain_contextAt(session.cache, session.text, index),
       focusLevel: undefined,
     },
     effects: { keypad: "close" },
@@ -207,7 +214,7 @@ export function LiftoEditorSession_walkFocus(
   session: ILiftoEditorSession,
   direction: 1 | -1
 ): ILiftoEditorSessionResult {
-  const tokens = LiftoEditorBrain_tokens(session.text).filter((t) => t.walkStop);
+  const tokens = LiftoEditorBrain_tokens(session.cache, session.text).filter((t) => t.walkStop);
   if (tokens.length === 0) {
     return { session, effects: {} };
   }
@@ -239,7 +246,7 @@ export function LiftoEditorSession_walkFocus(
       active: undefined,
       anchor,
       focusedToken: next,
-      context: LiftoEditorBrain_contextAt(session.text, anchor),
+      context: LiftoEditorBrain_contextAt(session.cache, session.text, anchor),
       focusLevel: undefined,
     },
     effects: { keypad: "close" },
@@ -431,7 +438,7 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
   let nodeName = level.nodeName;
   let start = level.start;
   let end = level.end;
-  const scriptBody = LiftoEditorBrain_scriptReuseBody(text, level);
+  const scriptBody = LiftoEditorBrain_scriptReuseBody(session.cache, text, level);
   if (scriptBody != null) {
     return {
       session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
@@ -442,7 +449,7 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
   // "3x8" reads as globals) — promote to the whole set group. And when a property's whole
   // value would go — its function ("id:" minus "tags(2)"), the last warmup group, or the
   // Warmup sets level itself — take the whole property: a dangling "name:" doesn't parse.
-  const group = LiftoEditorBrain_enclosingSetGroup(text, level);
+  const group = LiftoEditorBrain_enclosingSetGroup(session.cache, text, level);
   const removesPropertyValue =
     (group?.isOnlyGroup === true && group.nodeName === "WarmupExerciseSet") ||
     nodeName === "WarmupExerciseSets" ||
@@ -545,7 +552,7 @@ export function LiftoEditorSession_textChanged(session: ILiftoEditorSession, new
   if (session.context != null) {
     const anchor = currentAnchor(next);
     if (anchor != null) {
-      return { ...next, context: LiftoEditorBrain_contextAt(newText, Math.min(anchor, newText.length)) };
+      return { ...next, context: LiftoEditorBrain_contextAt(session.cache, newText, Math.min(anchor, newText.length)) };
     }
   }
   return next;

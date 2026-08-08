@@ -1,6 +1,6 @@
 import { JSX } from "react";
 import { StyleProp, ViewStyle } from "react-native";
-import { ILiftoEditorHandle, ILiftoEditorStyledRange } from "./liftoEditorBrain";
+import { ILiftoEditorHandle, ILiftoEditorStyledRange, LiftoEditorParseCache } from "./liftoEditorBrain";
 
 // The controller-driven surface: everything useLiftoEditorController produces as editorProps.
 // Host surfaces layer presentation concerns (style, selection callbacks) on top via
@@ -11,6 +11,7 @@ export interface ILiftoEditorBaseProps {
   editable?: boolean;
   bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
+  parseCache?: LiftoEditorParseCache;
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
   onTap?: (index: number) => void;

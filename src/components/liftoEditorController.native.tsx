@@ -257,6 +257,7 @@ export function useLiftoEditorController(
     editorProps: {
       initialText,
       autoHeight: true,
+      parseCache: session.cache,
       editable: session.mode === "freeform",
       extraStyledRanges: LiftoEditorSession_highlight(session),
       handleRef,

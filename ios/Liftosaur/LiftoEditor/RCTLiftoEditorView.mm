@@ -112,6 +112,10 @@ static NSString *LiftoEditorNSString(const std::string &string) {
   [_editorView applyStyledRangesJson:rangesJson];
 }
 
+- (void)patchStyledRanges:(NSInteger)start end:(NSInteger)end rangesJson:(NSString *)rangesJson {
+  [_editorView applyStyledRangesPatch:start end:end json:rangesJson];
+}
+
 - (void)setSelection:(NSInteger)start end:(NSInteger)end {
   [_editorView applySelection:start end:end];
 }

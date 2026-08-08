@@ -44,6 +44,15 @@ interface NativeCommands {
   // JSON array of {start, end, color?, backgroundColor?, italic?, bold?} — JSON keeps the
   // command signature stable during the spike; flatten to typed arrays if profiling says so.
   setStyledRanges: (viewRef: React.ElementRef<HostComponent<NativeProps>>, rangesJson: string) => void;
+  // Delta protocol: replaces stored ranges whose start falls in [start, end) with the given
+  // ones (same JSON shape, all inside the window). Keeps per-keystroke payloads proportional
+  // to the edited region instead of resending the whole document's ranges.
+  patchStyledRanges: (
+    viewRef: React.ElementRef<HostComponent<NativeProps>>,
+    start: Int32,
+    end: Int32,
+    rangesJson: string
+  ) => void;
   setSelection: (viewRef: React.ElementRef<HostComponent<NativeProps>>, start: Int32, end: Int32) => void;
   // Fires the same onTextDelta as user edits on both platforms (Runestone routes replace()
   // through shouldChangeText; sora's Content.replace fires ContentChangeEvent), so the JS
@@ -52,7 +61,7 @@ interface NativeCommands {
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ["setText", "setStyledRanges", "setSelection", "replaceRange"],
+  supportedCommands: ["setText", "setStyledRanges", "patchStyledRanges", "setSelection", "replaceRange"],
 });
 
 export default codegenNativeComponent<NativeProps>("LiftoEditor");

@@ -34,10 +34,36 @@ public final class ExternalRangesStore {
         lock.unlock()
     }
 
+    // Delta protocol: replaces stored ranges whose start falls in [windowStart, windowEnd)
+    // with the given ones (sorted, all inside the window), so per-keystroke updates carry
+    // only the edited region. Ranges outside the window were already aligned by applyEdit.
+    public func applyPatch(windowStart: Int, windowEnd: Int, ranges newRanges: [ExternalStyledRange]) {
+        lock.lock()
+        var result: [ExternalStyledRange] = []
+        result.reserveCapacity(ranges.count + newRanges.count)
+        var inserted = false
+        for styledRange in ranges {
+            let location = styledRange.range.location
+            if location >= windowStart && location < windowEnd {
+                continue
+            }
+            if location >= windowEnd && !inserted {
+                result.append(contentsOf: newRanges)
+                inserted = true
+            }
+            result.append(styledRange)
+        }
+        if !inserted {
+            result.append(contentsOf: newRanges)
+        }
+        ranges = result
+        lock.unlock()
+    }
+
     // Shifts stored ranges for an edit so the line repaint that happens before the host
     // pushes freshly computed ranges (an async JS round trip) stays aligned instead of
     // flashing stale colors. Precision inside the edited range doesn't matter — the next
-    // setRanges replaces everything.
+    // setRanges or patch replaces the edit's neighborhood.
     public func applyEdit(in editRange: NSRange, replacementLength: Int) {
         let delta = replacementLength - editRange.length
         if delta == 0 {

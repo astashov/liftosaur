@@ -1,4 +1,4 @@
-import { SyntaxNode } from "@lezer/common";
+import { SyntaxNode, Tree, TreeFragment } from "@lezer/common";
 import { parser } from "../../pages/planner/plannerExerciseParser";
 import { parser as liftoscriptParser } from "../../liftoscript";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
@@ -14,6 +14,64 @@ import {
 
 function nodeText(text: string, node: SyntaxNode): string {
   return text.slice(node.from, node.to);
+}
+
+// Every gesture re-derives tokens/context/styles from the same text, and each brain
+// function used to run its own full parse — a single tap cost 2+ parses, a keystroke 3+.
+// One cache instance shared by all of them makes them parse once. It's owned by whoever
+// is editing (the session creates one, the editor view borrows it) rather than living in
+// the module, so two editors never evict each other's tree and it dies with its owner.
+export class LiftoEditorParseCache {
+  private lastParse: { text: string; tree: Tree } | undefined;
+  // Script bodies are small and repeat across keystrokes (an edit elsewhere leaves them
+  // byte-identical), so a keyed memo covers them; the cap only guards against unbounded
+  // growth over a very long session.
+  private readonly liftoscriptTrees = new Map<string, Tree>();
+
+  // Consecutive versions reparse incrementally: the edited span is recovered by
+  // prefix/suffix diff and everything outside it is reused from the previous tree, so
+  // typing cost stays proportional to the edited line, not the document.
+  public parse(text: string): Tree {
+    const previous = this.lastParse;
+    if (previous?.text === text) {
+      return previous.tree;
+    }
+    let tree: Tree;
+    if (previous == null) {
+      tree = parser.parse(text);
+    } else {
+      const old = previous.text;
+      let from = 0;
+      const minLength = Math.min(old.length, text.length);
+      while (from < minLength && old.charCodeAt(from) === text.charCodeAt(from)) {
+        from += 1;
+      }
+      let toA = old.length;
+      let toB = text.length;
+      while (toA > from && toB > from && old.charCodeAt(toA - 1) === text.charCodeAt(toB - 1)) {
+        toA -= 1;
+        toB -= 1;
+      }
+      const fragments = TreeFragment.applyChanges(TreeFragment.addTree(previous.tree), [
+        { fromA: from, toA, fromB: from, toB },
+      ]);
+      tree = parser.parse(text, fragments);
+    }
+    this.lastParse = { text, tree };
+    return tree;
+  }
+
+  public parseLiftoscript(source: string): Tree {
+    let tree = this.liftoscriptTrees.get(source);
+    if (tree == null) {
+      if (this.liftoscriptTrees.size > 500) {
+        this.liftoscriptTrees.clear();
+      }
+      tree = liftoscriptParser.parse(source);
+      this.liftoscriptTrees.set(source, tree);
+    }
+    return tree;
+  }
 }
 
 export interface ITextEdit {
@@ -83,9 +141,15 @@ function liftoscriptNodeStyles(): Partial<Record<string, INodeStyle>> {
 
 // The Liftoscript planner token includes the {~ ~} delimiters; the liftoscript grammar
 // @skips them, so parsing the raw slice works and the delimiters stay unstyled.
-function pushLiftoscriptRanges(text: string, from: number, to: number, ranges: ILiftoEditorStyledRange[]): void {
+function pushLiftoscriptRanges(
+  cache: LiftoEditorParseCache,
+  text: string,
+  from: number,
+  to: number,
+  ranges: ILiftoEditorStyledRange[]
+): void {
   const styles = liftoscriptNodeStyles();
-  const tree = liftoscriptParser.parse(text.slice(from, to));
+  const tree = cache.parseLiftoscript(text.slice(from, to));
   tree.iterate({
     enter: (node) => {
       const style = styles[node.name];
@@ -98,14 +162,17 @@ function pushLiftoscriptRanges(text: string, from: number, to: number, ranges: I
   });
 }
 
-export function LiftoEditorBrain_computeStyledRanges(text: string): ILiftoEditorStyledRange[] {
+export function LiftoEditorBrain_computeStyledRanges(
+  cache: LiftoEditorParseCache,
+  text: string
+): ILiftoEditorStyledRange[] {
   const styles = nodeStyles();
   const ranges: ILiftoEditorStyledRange[] = [];
-  const tree = parser.parse(text);
+  const tree = cache.parse(text);
   tree.iterate({
     enter: (node) => {
       if (node.name === PlannerNodeName.Liftoscript) {
-        pushLiftoscriptRanges(text, node.from, node.to, ranges);
+        pushLiftoscriptRanges(cache, text, node.from, node.to, ranges);
         return false;
       }
       const style = styles[node.name as PlannerNodeName];
@@ -151,12 +218,13 @@ const wholeNumericTokenKinds: Partial<Record<PlannerNodeName, IEditorTokenNumeri
 // does. They all count as "function args" for stepping: script weights are increments
 // (weights += 5lb), not lifted loads, so they step by a plain unit.
 function liftoscriptNumericSpans(
+  cache: LiftoEditorParseCache,
   text: string,
   from: number,
   to: number
 ): { start: number; end: number; kind: IEditorTokenNumeric["kind"] }[] {
   const spans: { start: number; end: number; kind: IEditorTokenNumeric["kind"] }[] = [];
-  const tree = liftoscriptParser.parse(text.slice(from, to));
+  const tree = cache.parseLiftoscript(text.slice(from, to));
   tree.iterate({
     enter: (node) => {
       const kind =
@@ -254,18 +322,30 @@ export interface ILiftoEditorContext {
 }
 
 // Flattens possibly-overlapping styled ranges into sorted non-overlapping segments with
-// merged properties (later ranges win per property). The native sides assume exactly this.
+// merged properties (later input ranges win per property). The native sides assume exactly
+// this. Sweep-line rather than filtering all ranges per segment — the naive version was
+// O(ranges²) and dominated every keystroke on multi-hundred-line programs.
 export function LiftoEditorBrain_flattenRanges(ranges: ILiftoEditorStyledRange[]): ILiftoEditorStyledRange[] {
   const boundaries = Array.from(new Set(ranges.flatMap((r) => [r.start, r.end]))).sort((a, b) => a - b);
+  const byStart = ranges
+    .map((range, inputIndex) => ({ range, inputIndex }))
+    .sort((a, b) => a.range.start - b.range.start);
   const result: ILiftoEditorStyledRange[] = [];
+  let nextToEnter = 0;
+  let active: { range: ILiftoEditorStyledRange; inputIndex: number }[] = [];
   for (let i = 0; i < boundaries.length - 1; i += 1) {
     const start = boundaries[i];
     const end = boundaries[i + 1];
-    const covering = ranges.filter((r) => r.start <= start && r.end >= end);
-    if (covering.length === 0) {
+    while (nextToEnter < byStart.length && byStart[nextToEnter].range.start <= start) {
+      active.push(byStart[nextToEnter]);
+      nextToEnter += 1;
+    }
+    active = active.filter((a) => a.range.end >= end);
+    if (active.length === 0) {
       continue;
     }
-    const merged = covering.reduce<ILiftoEditorStyledRange>((acc, r) => ({ ...acc, ...r, start, end }), {
+    const covering = [...active].sort((a, b) => a.inputIndex - b.inputIndex);
+    const merged = covering.reduce<ILiftoEditorStyledRange>((acc, a) => ({ ...acc, ...a.range, start, end }), {
       start,
       end,
     });
@@ -274,11 +354,121 @@ export function LiftoEditorBrain_flattenRanges(ranges: ILiftoEditorStyledRange[]
   return result;
 }
 
+// Mirrors the native stores' edit shifting (ExternalRangesStore.applyEdit on iOS and its
+// Kotlin twin) so the JS-side mirror of pushed ranges stays byte-identical with what the
+// native side holds between pushes. Any rule change here must land on both native sides too.
+export function LiftoEditorBrain_shiftStyledRanges(
+  ranges: ILiftoEditorStyledRange[],
+  editStart: number,
+  editEnd: number,
+  insertedLength: number
+): ILiftoEditorStyledRange[] {
+  const delta = insertedLength - (editEnd - editStart);
+  if (delta === 0) {
+    return ranges;
+  }
+  const result: ILiftoEditorStyledRange[] = [];
+  for (const range of ranges) {
+    let start = range.start;
+    let end = range.end;
+    if (editEnd <= start) {
+      start += delta;
+      end += delta;
+    } else if (editStart < end) {
+      end = Math.max(start, end + delta);
+    }
+    if (end > start) {
+      result.push(start === range.start && end === range.end ? range : { ...range, start, end });
+    }
+  }
+  return result;
+}
+
+export interface IStyledRangesPatch {
+  start: number;
+  end: number;
+  ranges: ILiftoEditorStyledRange[];
+}
+
+function styledRangesEqual(a: ILiftoEditorStyledRange, b: ILiftoEditorStyledRange): boolean {
+  return (
+    a.start === b.start &&
+    a.end === b.end &&
+    a.color === b.color &&
+    a.backgroundColor === b.backgroundColor &&
+    a.bold === b.bold &&
+    a.italic === b.italic
+  );
+}
+
+// The delta protocol's JS half: previous = the mirror of what the native store holds (last
+// push shifted through subsequent edits), next = freshly computed flattened ranges. Returns
+// the window to replace, "unchanged" when no push is needed, or "full" when the diff spans
+// most of the document and a full resend is cheaper. Both arrays must be flattened (sorted,
+// non-overlapping) — the window math relies on it.
+//
+// editedSpan (next-text coordinates) forces ranges intersecting a just-applied programmatic
+// edit into the window even when they compare equal: Android applies a replace as separate
+// delete+insert shifts, whose composition can drop or shorten a range that the one-shot
+// shift (this mirror, and iOS) preserves — replacing the edit's neighborhood wholesale makes
+// that divergence unobservable.
+export function LiftoEditorBrain_diffStyledRanges(
+  previous: ILiftoEditorStyledRange[],
+  next: ILiftoEditorStyledRange[],
+  editedSpan?: { start: number; end: number }
+): IStyledRangesPatch | "unchanged" | "full" {
+  let prefix = 0;
+  const maxPrefix = Math.min(previous.length, next.length);
+  while (prefix < maxPrefix && styledRangesEqual(previous[prefix], next[prefix])) {
+    prefix += 1;
+  }
+  let suffix = 0;
+  const maxSuffix = maxPrefix - prefix;
+  while (
+    suffix < maxSuffix &&
+    styledRangesEqual(previous[previous.length - 1 - suffix], next[next.length - 1 - suffix])
+  ) {
+    suffix += 1;
+  }
+  let windowStart: number | undefined;
+  let windowEnd: number | undefined;
+  const extend = (rangeStart: number): void => {
+    windowStart = windowStart == null ? rangeStart : Math.min(windowStart, rangeStart);
+    windowEnd = windowEnd == null ? rangeStart + 1 : Math.max(windowEnd, rangeStart + 1);
+  };
+  for (let i = prefix; i < previous.length - suffix; i += 1) {
+    extend(previous[i].start);
+  }
+  for (let i = prefix; i < next.length - suffix; i += 1) {
+    extend(next[i].start);
+  }
+  if (editedSpan != null && editedSpan.end > editedSpan.start) {
+    for (const ranges of [previous, next]) {
+      for (const range of ranges) {
+        if (range.start < editedSpan.end && range.end > editedSpan.start) {
+          extend(range.start);
+        }
+      }
+    }
+  }
+  if (windowStart == null || windowEnd == null) {
+    return "unchanged";
+  }
+  const finalStart = windowStart;
+  const finalEnd = windowEnd;
+  const inside = next.filter((r) => r.start >= finalStart && r.start < finalEnd);
+  if (inside.length > next.length / 2) {
+    return "full";
+  }
+  return { start: windowStart, end: windowEnd, ranges: inside };
+}
+
 // A set group whose Sets×Reps is removed stops reading as a set group ("warmup: 40%", or a
 // weight that now looks like globals), so removal must target the whole group. Warmup
 // groups aren't breadcrumb levels, so the extent is re-derived from the tree; isOnlyGroup
 // lets the caller cascade further when the group list would end up empty.
 export function LiftoEditorBrain_enclosingSetGroup(
+  cache: LiftoEditorParseCache,
   text: string,
   level: { nodeName: string; start: number }
 ): { nodeName: string; start: number; end: number; isOnlyGroup: boolean } | undefined {
@@ -291,7 +481,7 @@ export function LiftoEditorBrain_enclosingSetGroup(
   if (groupName == null) {
     return undefined;
   }
-  let node: SyntaxNode | null = parser.parse(text).resolveInner(level.start + 1, -1);
+  let node: SyntaxNode | null = cache.parse(text).resolveInner(level.start + 1, -1);
   while (node != null && node.name !== groupName) {
     node = node.parent;
   }
@@ -305,13 +495,14 @@ export function LiftoEditorBrain_enclosingSetGroup(
 // The `...X` of a script reuse (`custom() { ...X }`) can't just be deleted — `{ }` without
 // tildes doesn't parse — so removal must swap the whole body back to an empty script.
 export function LiftoEditorBrain_scriptReuseBody(
+  cache: LiftoEditorParseCache,
   text: string,
   level: { nodeName: string; start: number }
 ): { start: number; end: number } | undefined {
   if (level.nodeName !== PlannerNodeName.ReuseSection) {
     return undefined;
   }
-  let node: SyntaxNode | null = parser.parse(text).resolveInner(level.start + 1, -1);
+  let node: SyntaxNode | null = cache.parse(text).resolveInner(level.start + 1, -1);
   while (node != null && node.name !== PlannerNodeName.ReuseSection) {
     node = node.parent;
   }
@@ -322,8 +513,12 @@ export function LiftoEditorBrain_scriptReuseBody(
   return { start: body.from, end: body.to };
 }
 
-export function LiftoEditorBrain_contextAt(text: string, index: number): ILiftoEditorContext {
-  const tree = parser.parse(text);
+export function LiftoEditorBrain_contextAt(
+  cache: LiftoEditorParseCache,
+  text: string,
+  index: number
+): ILiftoEditorContext {
+  const tree = cache.parse(text);
   const inner = tree.resolveInner(index, -1);
   const levels: ILiftoEditorLevel[] = [];
   for (let node: SyntaxNode | null = inner; node != null; node = node.parent) {
@@ -473,8 +668,8 @@ const plainFocusNames = new Set<string>([
 // The single walk behind both ‹ › focus hopping (walkStop tokens) and keypad targeting
 // (numeric tokens). Whole numeric terminals (Weight/Percentage/Timer) are checked before
 // plain names because their digits are not separate Int nodes.
-export function LiftoEditorBrain_tokens(text: string): IEditorToken[] {
-  const tree = parser.parse(text);
+export function LiftoEditorBrain_tokens(cache: LiftoEditorParseCache, text: string): IEditorToken[] {
+  const tree = cache.parse(text);
   const tokens: IEditorToken[] = [];
   const plainStopStack: { from: number; to: number }[] = [];
   const plainSpan = (start: number, end: number): IEditorToken => {
@@ -487,7 +682,7 @@ export function LiftoEditorBrain_tokens(text: string): IEditorToken[] {
       }
       const insidePlainStop = plainStopStack.length > 0;
       if (node.name === PlannerNodeName.Liftoscript) {
-        for (const span of liftoscriptNumericSpans(text, node.from, node.to)) {
+        for (const span of liftoscriptNumericSpans(cache, text, node.from, node.to)) {
           tokens.push({
             start: span.start,
             end: span.end,

@@ -40,6 +40,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.applyStyledRanges(rangesJson ?: "")
   }
 
+  override fun patchStyledRanges(view: LiftoEditorView, start: Int, end: Int, rangesJson: String?) {
+    view.applyStyledRangesPatch(start, end, rangesJson ?: "")
+  }
+
   override fun setSelection(view: LiftoEditorView, start: Int, end: Int) {
     view.applySelection(start, end)
   }

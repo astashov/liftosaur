@@ -2,11 +2,15 @@ import "mocha";
 import { expect } from "chai";
 import {
   IEditorToken,
+  ILiftoEditorStyledRange,
   LiftoEditorBrain_computeStyledRanges,
   LiftoEditorBrain_contextAt,
+  LiftoEditorBrain_diffStyledRanges,
   LiftoEditorBrain_flattenRanges,
+  LiftoEditorBrain_shiftStyledRanges,
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
+  LiftoEditorParseCache,
 } from "../src/components/primitives/liftoEditorBrain";
 import { LiftoEditorTestUtils_contextAt, LiftoEditorTestUtils_pos } from "./utils/liftoEditorTestUtils";
 
@@ -16,7 +20,9 @@ function breadcrumbAt(text: string, needle: string, occurrence: number = 0): str
 
 function tokenAt(text: string, needle: string, occurrence: number = 0): IEditorToken | undefined {
   const index = LiftoEditorTestUtils_pos(text, needle, occurrence);
-  return LiftoEditorBrain_tokens(text).find((t) => index >= t.start && index <= t.end && t.text === needle);
+  return LiftoEditorBrain_tokens(new LiftoEditorParseCache(), text).find(
+    (t) => index >= t.start && index <= t.end && t.text === needle
+  );
 }
 
 describe("LiftoEditorBrain", () => {
@@ -89,7 +95,7 @@ describe("LiftoEditorBrain", () => {
     });
 
     it("returns no levels outside any node", () => {
-      expect(LiftoEditorBrain_contextAt("", 0).levels).to.deep.equal([]);
+      expect(LiftoEditorBrain_contextAt(new LiftoEditorParseCache(), "", 0).levels).to.deep.equal([]);
     });
 
     it("keeps week/day level extents on their line", () => {
@@ -196,7 +202,7 @@ describe("LiftoEditorBrain", () => {
   describe("styled ranges", () => {
     it("styles known node kinds", () => {
       const text = "Squat / 3x8 100kg 60s";
-      const ranges = LiftoEditorBrain_computeStyledRanges(text);
+      const ranges = LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), text);
       const spanOf = (needle: string): { start: number; end: number } | undefined =>
         ranges.find((r) => text.slice(r.start, r.end) === needle);
       expect(spanOf("3x8")).to.not.equal(undefined);
@@ -208,7 +214,7 @@ describe("LiftoEditorBrain", () => {
     it("nest-parses liftoscript bodies", () => {
       // The liftoscript grammar styles the number and its unit as separate nodes.
       const text = "Squat / 3x8 / update: custom() {~ weights += 2.5kg ~}";
-      const ranges = LiftoEditorBrain_computeStyledRanges(text);
+      const ranges = LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), text);
       expect(ranges.some((r) => text.slice(r.start, r.end) === "2.5")).to.equal(true);
       expect(ranges.some((r) => text.slice(r.start, r.end) === "weights")).to.equal(true);
     });
@@ -223,6 +229,215 @@ describe("LiftoEditorBrain", () => {
         { start: 5, end: 10, color: "red", bold: true },
         { start: 10, end: 15, bold: true },
       ]);
+    });
+
+    it("matches the reference flatten on dense overlapping range sets", () => {
+      const reference = (ranges: ILiftoEditorStyledRange[]): ILiftoEditorStyledRange[] => {
+        const boundaries = Array.from(new Set(ranges.flatMap((r) => [r.start, r.end]))).sort((a, b) => a - b);
+        const result: ILiftoEditorStyledRange[] = [];
+        for (let i = 0; i < boundaries.length - 1; i += 1) {
+          const start = boundaries[i];
+          const end = boundaries[i + 1];
+          const covering = ranges.filter((r) => r.start <= start && r.end >= end);
+          if (covering.length === 0) {
+            continue;
+          }
+          result.push(
+            covering.reduce<ILiftoEditorStyledRange>((acc, r) => ({ ...acc, ...r, start, end }), { start, end })
+          );
+        }
+        return result;
+      };
+      let seed = 42;
+      const rand = (): number => {
+        seed = (seed * 1103515245 + 12345) % 2147483648;
+        return seed / 2147483648;
+      };
+      const ranges: ILiftoEditorStyledRange[] = [];
+      for (let i = 0; i < 300; i += 1) {
+        const start = Math.floor(rand() * 120);
+        const end = start + 1 + Math.floor(rand() * 25);
+        ranges.push({ start, end, ...(rand() > 0.5 ? { color: `c${i % 7}` } : { bold: true }) });
+      }
+      expect(LiftoEditorBrain_flattenRanges(ranges)).to.deep.equal(reference(ranges));
+    });
+
+    it("incremental reparse over successive edits matches a from-scratch parse", () => {
+      const full =
+        "Squat / 3x8 100lb 60s, 1x5 @8 / warmup: 1x10 45% / progress: custom(inc: 5lb) {~ weights += state.inc ~}";
+      // Char-by-char build-up drives the prefix/suffix diff + TreeFragment reuse path on
+      // every step; the fresh cache below has nothing to reuse, so it parses from scratch.
+      const typed = new LiftoEditorParseCache();
+      for (let i = 1; i <= full.length; i += 1) {
+        LiftoEditorBrain_computeStyledRanges(typed, full.slice(0, i));
+      }
+      const caretAt = full.indexOf("100lb") + 1;
+      expect(LiftoEditorBrain_computeStyledRanges(typed, full)).to.deep.equal(
+        LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), full)
+      );
+      expect(LiftoEditorBrain_tokens(typed, full)).to.deep.equal(
+        LiftoEditorBrain_tokens(new LiftoEditorParseCache(), full)
+      );
+      expect(LiftoEditorBrain_contextAt(typed, full, caretAt).breadcrumb).to.deep.equal(
+        LiftoEditorBrain_contextAt(new LiftoEditorParseCache(), full, caretAt).breadcrumb
+      );
+    });
+
+    it("shifts ranges for edits like the native stores do", () => {
+      const ranges: ILiftoEditorStyledRange[] = [
+        { start: 0, end: 5, color: "a" },
+        { start: 8, end: 12, color: "b" },
+        { start: 20, end: 25, color: "c" },
+      ];
+      // Insertion before everything shifts all; straddling range grows; deletion swallowing
+      // a range drops it; same-length replacement is a no-op.
+      expect(LiftoEditorBrain_shiftStyledRanges(ranges, 0, 0, 3).map((r) => [r.start, r.end])).to.deep.equal([
+        [3, 8],
+        [11, 15],
+        [23, 28],
+      ]);
+      expect(LiftoEditorBrain_shiftStyledRanges(ranges, 10, 10, 2).map((r) => [r.start, r.end])).to.deep.equal([
+        [0, 5],
+        [8, 14],
+        [22, 27],
+      ]);
+      expect(LiftoEditorBrain_shiftStyledRanges(ranges, 7, 13, 0).map((r) => [r.start, r.end])).to.deep.equal([
+        [0, 5],
+        [14, 19],
+      ]);
+      expect(LiftoEditorBrain_shiftStyledRanges(ranges, 8, 12, 4)).to.deep.equal(ranges);
+    });
+
+    describe("diffStyledRanges", () => {
+      // What both native stores do with a patch: drop ranges starting inside the window,
+      // splice the patch's ranges in.
+      function applyPatch(
+        mirror: ILiftoEditorStyledRange[],
+        patch: { start: number; end: number; ranges: ILiftoEditorStyledRange[] }
+      ): ILiftoEditorStyledRange[] {
+        const kept = mirror.filter((r) => r.start < patch.start || r.start >= patch.end);
+        return [...kept, ...patch.ranges].sort((a, b) => a.start - b.start);
+      }
+
+      it("returns unchanged for identical range sets", () => {
+        const ranges = LiftoEditorBrain_flattenRanges(
+          LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), "Squat / 3x8 100lb 60s")
+        );
+        expect(LiftoEditorBrain_diffStyledRanges(ranges, [...ranges])).to.equal("unchanged");
+      });
+
+      it("produces a patch that reproduces the fresh ranges when applied to the shifted mirror", () => {
+        const before = "Squat / 3x8 100lb 60s / progress: lp(5lb)\nBench Press / 5x5 60kg\nDeadlift / 1x5 140kg";
+        const edits: [number, number, string][] = [
+          [before.indexOf("100lb"), before.indexOf("100lb") + 5, "102.5lb"],
+          [before.indexOf("5x5"), before.indexOf("5x5") + 3, "3x3, 1x1"],
+          [before.indexOf(" 60s"), before.indexOf(" 60s") + 4, ""],
+          [before.indexOf("140kg") + 5, before.indexOf("140kg") + 5, " @9"],
+        ];
+        for (const [start, end, inserted] of edits) {
+          const previous = LiftoEditorBrain_flattenRanges(
+            LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), before)
+          );
+          const after = before.slice(0, start) + inserted + before.slice(end);
+          const next = LiftoEditorBrain_flattenRanges(
+            LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), after)
+          );
+          const mirror = LiftoEditorBrain_shiftStyledRanges(previous, start, end, inserted.length);
+          const diff = LiftoEditorBrain_diffStyledRanges(mirror, next, { start, end: start + inserted.length });
+          // "unchanged" is legal only when the shift alone already reproduced the fresh
+          // ranges (pure deletions do this) — the native store did the same shift.
+          if (diff === "unchanged") {
+            expect(mirror).to.deep.equal(next);
+          } else {
+            expect(diff).to.not.equal("full");
+            if (diff !== "full") {
+              expect(applyPatch(mirror, diff)).to.deep.equal(next);
+              expect(diff.ranges.length).to.be.lessThan(next.length);
+            }
+          }
+        }
+      });
+
+      it("forces ranges intersecting the edited span into the window even when they compare equal", () => {
+        const mirror: ILiftoEditorStyledRange[] = [
+          { start: 0, end: 5, color: "a" },
+          { start: 10, end: 15, color: "b" },
+          { start: 20, end: 25, color: "c" },
+        ];
+        const diff = LiftoEditorBrain_diffStyledRanges(mirror, [...mirror], { start: 12, end: 14 });
+        expect(diff).to.not.equal("unchanged");
+        if (diff !== "unchanged" && diff !== "full") {
+          expect(diff.start).to.be.at.most(10);
+          expect(diff.end).to.be.greaterThan(10);
+          expect(diff.ranges).to.deep.equal([{ start: 10, end: 15, color: "b" }]);
+        }
+      });
+
+      it("falls back to full when most of the document changed", () => {
+        const previous = LiftoEditorBrain_flattenRanges(
+          LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), "Squat / 3x8 100lb 60s")
+        );
+        const next = previous.map((r) => ({ ...r, color: "changed" }));
+        expect(LiftoEditorBrain_diffStyledRanges(previous, next)).to.equal("full");
+      });
+
+      it("handles pure additions and removals at the edges", () => {
+        const base: ILiftoEditorStyledRange[] = [
+          { start: 5, end: 10, color: "a" },
+          { start: 12, end: 18, color: "b" },
+          { start: 20, end: 30, color: "c" },
+          { start: 32, end: 40, color: "d" },
+        ];
+        const withHighlight = [...base.slice(0, 2), { start: 18, end: 19, backgroundColor: "h" }, ...base.slice(2)];
+        const diff = LiftoEditorBrain_diffStyledRanges(base, withHighlight);
+        expect(diff).to.not.equal("unchanged");
+        if (diff !== "unchanged" && diff !== "full") {
+          expect(applyPatch(base, diff)).to.deep.equal(withHighlight);
+        }
+        const removal = LiftoEditorBrain_diffStyledRanges(withHighlight, base);
+        expect(removal).to.not.equal("unchanged");
+        if (removal !== "unchanged" && removal !== "full") {
+          expect(applyPatch(withHighlight, removal)).to.deep.equal(base);
+        }
+      });
+    });
+
+    it("keeps two caches independent so concurrent editors don't evict each other", () => {
+      const a = "Squat / 3x8 100lb / progress: lp(5lb)";
+      const b = "# Week 2\n## Day 1\nBench Press / 5x5 60kg 90s";
+      const cacheA = new LiftoEditorParseCache();
+      const cacheB = new LiftoEditorParseCache();
+      // Alternating documents through one cache is what used to thrash the single global
+      // slot; with a cache each, both keep their own tree and stay correct.
+      for (let i = 0; i < 3; i += 1) {
+        LiftoEditorBrain_computeStyledRanges(cacheA, a);
+        LiftoEditorBrain_computeStyledRanges(cacheB, b);
+      }
+      expect(LiftoEditorBrain_computeStyledRanges(cacheA, a)).to.deep.equal(
+        LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), a)
+      );
+      expect(LiftoEditorBrain_computeStyledRanges(cacheB, b)).to.deep.equal(
+        LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), b)
+      );
+    });
+
+    it("incremental reparse handles mid-text edits, deletions and replacements", () => {
+      const base =
+        "Squat / 3x8 100lb / progress: lp(5lb)\nBench Press / 5x5 60kg 90s / update: custom() {~ weights = 1lb ~}";
+      const variants = [
+        base.replace("100lb", "102.5lb"),
+        base.replace(" 90s", ""),
+        base.replace("3x8", "3x8, 2x5"),
+        base.replace("Bench Press", "Overhead Press"),
+        base.slice(0, base.indexOf("\n")),
+      ];
+      for (const variant of variants) {
+        const edited = new LiftoEditorParseCache();
+        LiftoEditorBrain_computeStyledRanges(edited, base);
+        expect(LiftoEditorBrain_computeStyledRanges(edited, variant)).to.deep.equal(
+          LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), variant)
+        );
+      }
     });
   });
 });

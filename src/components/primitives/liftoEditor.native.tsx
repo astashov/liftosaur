@@ -6,7 +6,10 @@ import {
   ILiftoEditorHandle,
   ILiftoEditorStyledRange,
   LiftoEditorBrain_computeStyledRanges,
+  LiftoEditorBrain_diffStyledRanges,
   LiftoEditorBrain_flattenRanges,
+  LiftoEditorBrain_shiftStyledRanges,
+  LiftoEditorParseCache,
 } from "./liftoEditorBrain";
 
 interface ITextDeltaEvent {
@@ -33,6 +36,10 @@ export interface ILiftoEditorBaseProps {
   // view's bottom edge unless the view extends past the text.
   bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
+  // The controller's session cache. Highlighting runs on predicted text (one edit ahead of
+  // the session), so sharing it means that parse warms the tree the session then reads.
+  // Standalone hosts without a controller get their own.
+  parseCache?: LiftoEditorParseCache;
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string) => void;
   onTap?: (index: number) => void;
@@ -54,18 +61,40 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   // (and never from the then-stale mirror) is what prevents a one-frame highlight flash.
   const predictedTextRef = useRef<string | undefined>(undefined);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
-  const { onTextChange, onSelectionChange, onTap, autoHeight, handleRef, extraStyledRanges } = props;
+  const { onTextChange, onSelectionChange, onTap, autoHeight, handleRef, extraStyledRanges, parseCache } = props;
   const extraStyledRangesRef = useRef(extraStyledRanges);
   extraStyledRangesRef.current = extraStyledRanges;
+  const ownCacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
+  if (parseCache == null && ownCacheRef.current == null) {
+    ownCacheRef.current = new LiftoEditorParseCache();
+  }
+  const cacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
+  cacheRef.current = parseCache ?? ownCacheRef.current;
+  // Mirror of the ranges the native store currently holds: last push, shifted through
+  // subsequent edits with the same algorithm the native side uses. undefined = never
+  // pushed (or desynced) — the next push sends the full set.
+  const rangesMirrorRef = useRef<ILiftoEditorStyledRange[] | undefined>(undefined);
+  const pendingEditedSpanRef = useRef<{ start: number; end: number } | undefined>(undefined);
 
   const pushStyledRanges = useCallback(() => {
-    if (nativeRef.current != null) {
-      const ranges = LiftoEditorBrain_flattenRanges([
-        ...LiftoEditorBrain_computeStyledRanges(predictedTextRef.current ?? textRef.current),
-        ...(extraStyledRangesRef.current ?? []),
-      ]);
-      Commands.setStyledRanges(nativeRef.current, JSON.stringify(ranges));
+    const cache = cacheRef.current;
+    if (nativeRef.current == null || cache == null) {
+      return;
     }
+    const next = LiftoEditorBrain_flattenRanges([
+      ...LiftoEditorBrain_computeStyledRanges(cache, predictedTextRef.current ?? textRef.current),
+      ...(extraStyledRangesRef.current ?? []),
+    ]);
+    const previous = rangesMirrorRef.current;
+    const editedSpan = pendingEditedSpanRef.current;
+    pendingEditedSpanRef.current = undefined;
+    const diff = previous != null ? LiftoEditorBrain_diffStyledRanges(previous, next, editedSpan) : "full";
+    if (diff === "full") {
+      Commands.setStyledRanges(nativeRef.current, JSON.stringify(next));
+    } else if (diff !== "unchanged") {
+      Commands.patchStyledRanges(nativeRef.current, diff.start, diff.end, JSON.stringify(diff.ranges));
+    }
+    rangesMirrorRef.current = next;
   }, []);
 
   useEffect(() => {
@@ -92,6 +121,19 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
           Commands.replaceRange(nativeRef.current, start, end, text);
           const base = predictedTextRef.current ?? textRef.current;
           predictedTextRef.current = base.slice(0, start) + text + base.slice(end);
+          // The native store shifts itself when the replace lands (before this queued push
+          // is processed), so the mirror must shift too for the diff to line up. The edited
+          // span is forced into the patch window because Android applies the replace as
+          // delete+insert, whose composed shift can drop ranges this one-shot shift keeps.
+          if (rangesMirrorRef.current != null) {
+            rangesMirrorRef.current = LiftoEditorBrain_shiftStyledRanges(
+              rangesMirrorRef.current,
+              start,
+              end,
+              text.length
+            );
+          }
+          pendingEditedSpanRef.current = { start, end: start + text.length };
           pushStyledRanges();
         }
       },
@@ -109,15 +151,27 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       textRef.current = text.slice(0, start) + insertedText + text.slice(end);
       if (textRef.current.length !== textLength) {
         console.warn("LiftoEditor mirror desync", { mirror: textRef.current.length, native: textLength });
+        // The ranges mirror is derived from the same event stream, so it can't be trusted
+        // either — drop it and let the next push resend the full set.
+        rangesMirrorRef.current = undefined;
       }
       if (predictedTextRef.current != null) {
         if (predictedTextRef.current === textRef.current) {
-          // Prediction confirmed; its ranges were already pushed alongside the replace.
+          // Prediction confirmed; its ranges (and the mirror shift) were already applied
+          // alongside the replace.
           predictedTextRef.current = undefined;
         }
         // Otherwise this is an intermediate delta of a multi-event replace (Android emits
         // delete+insert); hold pushes until the mirror catches up.
       } else {
+        if (rangesMirrorRef.current != null) {
+          rangesMirrorRef.current = LiftoEditorBrain_shiftStyledRanges(
+            rangesMirrorRef.current,
+            start,
+            end,
+            insertedText.length
+          );
+        }
         pushStyledRanges();
       }
       onTextChange?.(textRef.current);
