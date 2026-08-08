@@ -7,6 +7,7 @@ import com.facebook.react.uimanager.events.Event
 import io.github.rosemoe.sora.event.ClickEvent
 import io.github.rosemoe.sora.event.ContentChangeEvent
 import io.github.rosemoe.sora.event.DoubleClickEvent
+import io.github.rosemoe.sora.event.HandleStateChangeEvent
 import io.github.rosemoe.sora.event.LongPressEvent
 import io.github.rosemoe.sora.event.SelectionChangeEvent
 import io.github.rosemoe.sora.lang.styling.MappedSpans
@@ -70,6 +71,13 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
       if (!isEditable) {
         event.intercept()
       }
+    }
+    // Extending a selection means dragging a handle vertically, which the enclosing RN
+    // ScrollView otherwise claims once the drag passes the touch slop — sora gets
+    // ACTION_CANCEL, the selection snaps back and the page scrolls instead. sora dispatches
+    // this synchronously on the handle's ACTION_DOWN, before any move can be intercepted.
+    subscribeEvent(HandleStateChangeEvent::class.java) { event, _ ->
+      parent?.requestDisallowInterceptTouchEvent(event.isHeld)
     }
   }
 
