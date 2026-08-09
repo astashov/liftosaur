@@ -15,7 +15,7 @@ import {
 } from "../types";
 import { n } from "../utils/math";
 import { Dialog_alert } from "../utils/dialog";
-import { ObjectUtils_isEqual, ObjectUtils_entries } from "../utils/object";
+import { ObjectUtils_isEqual, ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
 import {
   Weight_eqNull,
   Weight_eq,
@@ -41,7 +41,7 @@ import {
 import { IEvaluatedProgram, Program_getProgramExercise } from "./program";
 import { Exercise_get, Exercise_fullName, Exercise_buildName } from "./exercise";
 import { CollectionUtils_compact } from "../utils/collection";
-import { PP_iterate2 } from "./pp";
+import { PP_iterate2, PP_iterateTopLineExercises } from "./pp";
 import { PlannerKey_fromFullName, PlannerKey_fromPlannerExercise } from "../pages/planner/plannerKey";
 import { IPlannerTopLineItem } from "../pages/planner/plannerExerciseEvaluator";
 
@@ -56,6 +56,20 @@ interface IPlannerToProgram2Globals {
 }
 
 type IDereuseDecision = "sets" | "weight" | "rpe" | "timer" | "setTimer" | "progress" | "update";
+
+type IShareablePropertyName = "progress" | "update" | "warmup";
+interface IPropertyCandidate {
+  location: string;
+  exercise: IPlannerProgramExercise;
+  isOrigin: boolean;
+}
+// Where a shared property gets printed, and which instance it's read from. Those differ because
+// the UI edits shared properties on the first instance only (EditProgramUiHelpers_changeFirstInstance).
+// TODO: once the editProgramExercise UI is gone (the editor sheet edits Liftoscript text directly,
+// so it never goes through here), drop 'exercise' and read the property off the origin instance.
+type IPropertyTarget = { location: string; exercise: IPlannerProgramExercise };
+type IPropertyTargets = Record<IShareablePropertyName, Record<string, IPropertyTarget>>;
+type IPropertyCandidates = Record<IShareablePropertyName, Record<string, IPropertyCandidate[]>>;
 
 export interface IPlannerToProgramConvertOpts {
   renameMapping?: Record<string, { to: string; dayData?: Required<IDayData> }>;
@@ -306,6 +320,92 @@ export class ProgramToPlanner {
     }
   }
 
+  private addPropertyCandidate(
+    candidates: Record<string, IPropertyCandidate[]>,
+    key: string,
+    candidate: IPropertyCandidate
+  ): void {
+    candidates[key] = candidates[key] || [];
+    candidates[key].push(candidate);
+  }
+
+  // 'progress'/'update'/'warmup' are shared across every instance of an exercise, so they're printed
+  // only once. Authors deliberately place bulky blocks away from the top of the program (e.g. on the
+  // last week), so print them back where they were written instead of on the first instance.
+  private getPropertyTargets(
+    groupedTopLineMap: IPlannerTopLineItem[][][][],
+    opts: IPlannerToProgramConvertOpts
+  ): IPropertyTargets {
+    const candidates: IPropertyCandidates = { progress: {}, update: {}, warmup: {} };
+    PP_iterateTopLineExercises(groupedTopLineMap, (line, weekIndex, dayInWeekIndex, dayIndex) => {
+      const value = this.getRenamedValue(opts, line, weekIndex, dayInWeekIndex);
+      const exercise = Program_getProgramExercise(dayIndex + 1, this.program, value);
+      if (exercise == null) {
+        return;
+      }
+      const location = `${weekIndex}_${dayInWeekIndex}`;
+      const dereuseDecisions = this.shouldReuseSets(exercise) ? this.getDereuseDecisions(exercise) : [];
+      const progress = exercise.progress;
+      if (
+        progress != null &&
+        progress.type !== "none" &&
+        (progress.reuse || progress.script) &&
+        (!exercise.reuse || dereuseDecisions.includes("progress"))
+      ) {
+        this.addPropertyCandidate(candidates.progress, exercise.key, {
+          location,
+          exercise,
+          isOrigin: exercise.points.progressPoint != null,
+        });
+      }
+      const update = exercise.update;
+      if (
+        update != null &&
+        (update.reuse || update.script) &&
+        (!exercise.reuse || dereuseDecisions.includes("update"))
+      ) {
+        this.addPropertyCandidate(candidates.update, exercise.key, {
+          location,
+          exercise,
+          isOrigin: exercise.points.updatePoint != null,
+        });
+      }
+      if (exercise.warmupSets != null) {
+        this.addPropertyCandidate(candidates.warmup, exercise.key, {
+          location,
+          exercise,
+          isOrigin: exercise.points.warmupPoint != null,
+        });
+      }
+    });
+    const targets: IPropertyTargets = { progress: {}, update: {}, warmup: {} };
+    for (const property of ObjectUtils_keys(candidates)) {
+      for (const key of ObjectUtils_keys(candidates[property])) {
+        const list = candidates[property][key];
+        const origin = list.find((c) => c.isOrigin) || list[0];
+        if (origin != null) {
+          targets[property][key] = { location: origin.location, exercise: list[0].exercise };
+        }
+      }
+    }
+    return targets;
+  }
+
+  private getPropertySource(
+    targets: IPropertyTargets,
+    property: IShareablePropertyName,
+    key: string,
+    weekIndex: number,
+    dayInWeekIndex: number,
+    fallback: IPlannerProgramExercise
+  ): IPlannerProgramExercise | undefined {
+    const target = targets[property][key];
+    if (target == null) {
+      return fallback;
+    }
+    return target.location === `${weekIndex}_${dayInWeekIndex}` ? target.exercise : undefined;
+  }
+
   public convertToPlanner(opts: IPlannerToProgramConvertOpts = {}): IPlannerProgram {
     const plannerWeeks: IPlannerProgramWeek[] = [];
     const plannerProgram = this.program.planner;
@@ -320,6 +420,7 @@ export class ProgramToPlanner {
     let groupedTopLineMap = PlannerProgram_groupedTopLines(topLineMap);
     groupedTopLineMap = opts.reorder ? this.reorderGroupedTopLine(groupedTopLineMap, opts.reorder) : groupedTopLineMap;
     groupedTopLineMap = opts.add ? this.addGroupedTopLine(groupedTopLineMap, opts.add) : groupedTopLineMap;
+    const propertyTargets = this.getPropertyTargets(groupedTopLineMap, opts);
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};
@@ -499,8 +600,12 @@ export class ProgramToPlanner {
                   }
                 }
 
-                if (!addedWarmupsMap[key] && evalExercise?.warmupSets) {
-                  const warmupSets = this.getWarmupSets(evalExercise);
+                const warmupSource =
+                  !addedWarmupsMap[key] && evalExercise?.warmupSets
+                    ? this.getPropertySource(propertyTargets, "warmup", key, weekIndex, dayInWeekIndex, evalExercise)
+                    : undefined;
+                if (warmupSource != null) {
+                  const warmupSets = this.getWarmupSets(warmupSource);
                   if (warmupSets != null) {
                     plannerExercise += ` / warmup: ${warmupSets}`;
                     addedWarmupsMap[key] = true;
@@ -520,11 +625,21 @@ export class ProgramToPlanner {
                 const update = evalExercise.update;
                 if (!addedUpdateMap[key] && update && (update.reuse || update.script)) {
                   if (!evalExercise.reuse || dereuseDecisions.includes("update")) {
-                    const updateStr = ProgramToPlanner.getUpdate(evalExercise, this.settings);
-                    if (updateStr) {
-                      plannerExercise += ` / ${updateStr}`;
+                    const source = this.getPropertySource(
+                      propertyTargets,
+                      "update",
+                      key,
+                      weekIndex,
+                      dayInWeekIndex,
+                      evalExercise
+                    );
+                    if (source != null) {
+                      const updateStr = ProgramToPlanner.getUpdate(source, this.settings);
+                      if (updateStr) {
+                        plannerExercise += ` / ${updateStr}`;
+                      }
+                      addedUpdateMap[key] = true;
                     }
-                    addedUpdateMap[key] = true;
                   } else if (update.reuse?.fullName === evalExercise.reuse.fullName) {
                     addedUpdateMap[key] = true;
                   }
@@ -535,11 +650,21 @@ export class ProgramToPlanner {
                   plannerExercise += ` / progress: none`;
                 } else if (!addedProgressMap[key] && progress && (progress.reuse || progress.script)) {
                   if (!evalExercise.reuse || dereuseDecisions.includes("progress")) {
-                    const progressStr = ProgramToPlanner.getProgress(evalExercise, this.settings, false);
-                    if (progressStr) {
-                      plannerExercise += ` / ${progressStr}`;
+                    const source = this.getPropertySource(
+                      propertyTargets,
+                      "progress",
+                      key,
+                      weekIndex,
+                      dayInWeekIndex,
+                      evalExercise
+                    );
+                    if (source != null) {
+                      const progressStr = ProgramToPlanner.getProgress(source, this.settings, false);
+                      if (progressStr) {
+                        plannerExercise += ` / ${progressStr}`;
+                      }
+                      addedProgressMap[key] = true;
                     }
-                    addedProgressMap[key] = true;
                   } else if (progress.reuse?.fullName === evalExercise.reuse.fullName) {
                     addedProgressMap[key] = true;
                   }

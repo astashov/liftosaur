@@ -20,6 +20,8 @@ import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/plann
 import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { Stats_getEmpty } from "../src/models/stats";
+import { EditProgramUiHelpers_changeFirstInstance } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
+import { PlannerProgramExercise_buildProgress } from "../src/pages/planner/models/plannerProgramExercise";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
@@ -2329,6 +2331,117 @@ customLogic[1-3] / used: none / 2x5-30 / 5lb / warmup: none / update: custom() {
       const settings = Settings_build();
       const record = Program_nextHistoryRecord(program, settings, Stats_getEmpty());
       expect(record.entries[0].sets.length).to.equal(2);
+    });
+  });
+
+  describe("shared property placement", () => {
+    function roundtrip(text: string): string {
+      const { program } = PlannerTestUtils_get(text);
+      const settings = Settings_build();
+      const evaluated = Program_evaluate(program, settings);
+      const planner = new ProgramToPlanner(evaluated, settings).convertToPlanner();
+      return PlannerProgram_generateFullText(planner.weeks).trim();
+    }
+
+    it("keeps progress on the week it was written on", () => {
+      expect(
+        roundtrip(`# Week 1
+## Day 1
+Squat / 3x8 100lb
+
+# Week 2
+## Day 1
+Squat / 3x8 100lb / progress: lp(5lb)`)
+      ).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 100lb
+
+
+# Week 2
+## Day 1
+Squat / 3x8 / 100lb / progress: lp(5lb)`);
+    });
+
+    it("keeps update and warmup on the day they were written on", () => {
+      expect(
+        roundtrip(`# Week 1
+## Day 1
+Squat / 3x8 100lb
+## Day 2
+Squat / 3x8 100lb / warmup: 2x5 50lb / update: custom() {~ weights = 100lb ~}`)
+      ).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 100lb
+
+## Day 2
+Squat / 3x8 / 100lb / warmup: 2x5 50lb / update: custom() {~ weights = 100lb ~}`);
+    });
+
+    it("keeps progress on the last week after finishing a workout", () => {
+      const { program } = PlannerTestUtils_finish(
+        `# Week 1
+## Day 1
+Squat / 3x8 100lb
+
+# Week 2
+## Day 1
+Squat / 3x8 100lb / progress: lp(5lb, 3, 0)`,
+        { completedReps: [[8, 8, 8]] }
+      );
+      expect(PlannerProgram_generateFullText(program.planner!.weeks).trim()).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 100lb
+
+
+# Week 2
+## Day 1
+Squat / 3x8 / 100lb / progress: lp(5lb, 3, 1)`);
+    });
+
+    it("applies a UI progress edit at the week the progress was written on", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x8 100lb
+
+# Week 2
+## Day 1
+Squat / 3x8 100lb / progress: lp(5lb)`;
+      const settings = Settings_build();
+      const { planner, program } = PlannerTestUtils_get(text);
+      const exercise = Program_evaluate(program, settings).weeks[0].days[0].exercises[0];
+      const newPlanner = EditProgramUiHelpers_changeFirstInstance(planner, exercise, settings, false, (e) => {
+        const result = PlannerProgramExercise_buildProgress("lp", ["10lb"]);
+        if (result.success) {
+          e.progress = result.data;
+        }
+      });
+      expect(PlannerProgram_generateFullText(newPlanner.weeks).trim()).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 100lb
+
+
+# Week 2
+## Day 1
+Squat / 3x8 / 100lb / progress: lp(10lb)`);
+    });
+
+    it("still prints progress on the first instance when it's written there", () => {
+      expect(
+        roundtrip(`# Week 1
+## Day 1
+Squat / 3x8 100lb / progress: lp(5lb)
+
+# Week 2
+## Day 1
+Squat / 3x8 100lb`)
+      ).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 100lb / progress: lp(5lb)
+
+
+# Week 2
+## Day 1
+Squat / 3x8 / 100lb`);
     });
   });
 });

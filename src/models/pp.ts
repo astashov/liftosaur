@@ -1,5 +1,5 @@
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluator";
+import { IPlannerEvalResult, IPlannerTopLineItem } from "../pages/planner/plannerExerciseEvaluator";
 import { IEvaluatedProgramWeek } from "./program";
 export function PP_iterate2(
   evaluatedWeeks: IEvaluatedProgramWeek[],
@@ -21,6 +21,33 @@ export function PP_iterate2(
         const shouldReturn = cb(exercise, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex);
         if (!!shouldReturn) {
           return;
+        }
+      }
+      dayIndex += 1;
+    }
+  }
+}
+
+// Walks the exercise lines of a program's source text rather than its evaluated exercises. The
+// week/day/dayIndex it yields line up with PP_iterate2, since both the top line map and the
+// evaluated weeks are built one-to-one from planner.weeks.
+export function PP_iterateTopLineExercises(
+  groupedTopLines: IPlannerTopLineItem[][][][],
+  cb: (line: IPlannerTopLineItem, weekIndex: number, dayInWeekIndex: number, dayIndex: number) => boolean | void
+): void {
+  let dayIndex = 0;
+  for (let weekIndex = 0; weekIndex < groupedTopLines.length; weekIndex++) {
+    const week = groupedTopLines[weekIndex];
+    for (let dayInWeekIndex = 0; dayInWeekIndex < week.length; dayInWeekIndex++) {
+      for (const group of week[dayInWeekIndex]) {
+        for (const line of group) {
+          if (line.type !== "exercise") {
+            continue;
+          }
+          const shouldReturn = cb(line, weekIndex, dayInWeekIndex, dayIndex);
+          if (!!shouldReturn) {
+            return;
+          }
         }
       }
       dayIndex += 1;
