@@ -7,6 +7,10 @@ export interface ILiftoEditorHint {
 
 export const LiftoEditorHints_helpId = "lifto-editor-hints";
 
+// Both structured-mode surfaces (the sheet and the inline dock) teach the same two gestures,
+// and they sit next to each other often enough that differing wording would read as a bug.
+export const LiftoEditorHints_gestures = "Swipe to switch elements · double-tap to type";
+
 const editorPropertyHints: Partial<Record<string, ILiftoEditorHint>> = {
   progress: {
     short: "Progress: how the exercise changes after workouts.",

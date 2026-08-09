@@ -21,6 +21,7 @@ import type { IDayData, IPlannerProgram, IProgram, ISettings } from "../../types
 import type { IRootStackParamList } from "../types";
 import { Platform, View } from "react-native";
 import { Text } from "../../components/primitives/text";
+import { LiftoEditorHints_gestures } from "../../components/primitives/liftoEditorHints";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
@@ -402,9 +403,7 @@ export function NavModalEditorSheet(): JSX.Element {
             // Solid rounded chip: the keypad slides in underneath the hint, and without a
             // background it would show through the letters mid-animation.
             <View className="self-center rounded-lg bg-background-default p-1 px-2">
-              <Text className="text-xs font-semibold text-center text-text-secondary">
-                Swipe to switch elements · double-tap to type
-              </Text>
+              <Text className="text-xs text-center text-text-secondary">{LiftoEditorHints_gestures}</Text>
             </View>
           ) : undefined
         }

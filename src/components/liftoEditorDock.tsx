@@ -1,9 +1,10 @@
 import { JSX, useContext, useMemo } from "react";
 import { Animated, Pressable, View } from "react-native";
+import { Text } from "./primitives/text";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { useCustomKeyboardAnimatedHeight, useCustomKeyboardHeight } from "../navigation/CustomKeyboardContext";
 import { useSystemKeyboardHeightFromScreenBottom } from "../utils/useSystemKeyboardHeight";
-import { LiftoEditorHints_forContext } from "./primitives/liftoEditorHints";
+import { LiftoEditorHints_forContext, LiftoEditorHints_gestures } from "./primitives/liftoEditorHints";
 import {
   LiftoEditorCrumbs,
   LiftoEditorHintBar,
@@ -67,6 +68,9 @@ export function LiftoEditorDock(): JSX.Element | null {
       className="border-t bg-background-default border-border-neutral"
       style={{ transform: [{ translateY: keypadLift }] }}
     >
+      {/* Centered on the dock rather than over the crumbs: the dock only ever exists while a
+          token holds focus, so these are exactly the two gestures that work right now. */}
+      <Text className="pt-2 text-xs text-center text-text-secondary">{LiftoEditorHints_gestures}</Text>
       {/* No right padding and no gap: the close button is a w-10 centered column flush to the
           edge, which is what aligns it with the hint bar's dismiss and the pill rail's trash.
           A gap here would push the help icon visibly away from it. */}
