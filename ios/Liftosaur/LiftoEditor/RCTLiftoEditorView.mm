@@ -98,6 +98,9 @@ static NSString *LiftoEditorNSString(const std::string &string) {
   if (newProps.showLineNumbers != prevProps.showLineNumbers) {
     [_editorView applyShowLineNumbers:newProps.showLineNumbers];
   }
+  if (newProps.colors != prevProps.colors) {
+    [_editorView applyColorsJson:LiftoEditorNSString(newProps.colors)];
+  }
   [super updateProps:props oldProps:oldProps];
 }
 

@@ -1,6 +1,7 @@
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { NativeSyntheticEvent, StyleProp, ViewStyle } from "react-native";
 import LiftoEditorNative, { Commands } from "../../specs/LiftoEditorNativeComponent";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import {
   ILiftoEditorHandle,
@@ -58,6 +59,22 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   // the document is a whole day.
   showLineNumbers?: boolean;
   onSelectionChange?: (start: number, end: number) => void;
+}
+
+// Same picks as the web editor's dark chrome in editorWebview.css, expressed semantically so
+// light mode comes out of the same call. The background stays the host view's and the gutter
+// keeps its theme-independent tint, so neither has a color here.
+// `selection` is the one translucent token: iOS draws the selection with UIKit's own
+// UITextSelectionView, which Runestone re-adds ABOVE the text, so an opaque color hides the
+// selected glyphs (Android's sora paints it behind them and wouldn't care).
+function editorColors(): string {
+  return JSON.stringify({
+    text: Tailwind_semantic().text.primary,
+    selection: Tailwind_semantic().background.editorselection,
+    caret: Tailwind_semantic().text.primary,
+    handle: Tailwind_semantic().icon.purple,
+    lineNumber: Tailwind_semantic().text.secondary,
+  });
 }
 
 export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
@@ -213,6 +230,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
       fontSize={fontSize}
       editable={props.editable ?? true}
       showLineNumbers={props.showLineNumbers ?? false}
+      colors={editorColors()}
       onTextDelta={handleTextDelta}
       onEditorSelectionChange={handleSelectionChange}
       onEditorContentSizeChange={autoHeight ? (event) => setContentHeight(event.nativeEvent.height) : undefined}

@@ -620,14 +620,14 @@ export function LiftoEditorSession_highlight(session: ILiftoEditorSession): ILif
   const levelIndex = focusedLevelIndex(session);
   const level = session.context != null && levelIndex != null ? session.context.levels[levelIndex] : undefined;
   if (level != null && level.end > level.start) {
-    ranges.push({ start: level.start, end: level.end, backgroundColor: `${Tailwind_semantic().syntax.comment}33` });
+    ranges.push({ start: level.start, end: level.end, backgroundColor: Tailwind_semantic().background.editorfocus });
   }
   const active = session.active;
   if (active != null) {
     ranges.push({
       start: active.token.start,
       end: active.token.start + active.length,
-      backgroundColor: `${Tailwind_semantic().syntax.literal}33`,
+      backgroundColor: Tailwind_semantic().background.editoractive,
     });
   }
   return ranges;

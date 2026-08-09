@@ -16,6 +16,7 @@ import io.github.rosemoe.sora.lang.styling.TextStyle
 import io.github.rosemoe.sora.widget.CodeEditor
 import io.github.rosemoe.sora.widget.schemes.EditorColorScheme
 import org.json.JSONArray
+import org.json.JSONObject
 
 private class StyledRange(
   var start: Int,
@@ -48,6 +49,12 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     colorScheme = EditorColorScheme()
     setWordwrap(true)
     setLineNumberEnabled(false)
+    // sora's public constructor builds its *light* default scheme and paints the whole canvas
+    // with it on every draw, so an RN backgroundColor on this view never shows. The host view
+    // owns the background (same as iOS, where every theme background is .clear); the rest of
+    // the scheme's chrome comes from the app palette via applyColors.
+    colorScheme.setColor(EditorColorScheme.WHOLE_BACKGROUND, Color.TRANSPARENT)
+    colorScheme.setColor(EditorColorScheme.CURRENT_LINE, Color.TRANSPARENT)
     // A tint instead of sora's opaque panel and divider, which would draw a second border
     // inside the one the host already puts around the editor. Translucent gray so it reads
     // the same way over either background.
@@ -132,6 +139,25 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     } finally {
       suppressEvents = false
     }
+  }
+
+  fun applyColors(json: String) {
+    val colors = try {
+      JSONObject(json)
+    } catch (e: Exception) {
+      return
+    }
+    applyColor(colors, "text", EditorColorScheme.TEXT_NORMAL)
+    applyColor(colors, "selection", EditorColorScheme.SELECTED_TEXT_BACKGROUND)
+    applyColor(colors, "caret", EditorColorScheme.SELECTION_INSERT)
+    applyColor(colors, "handle", EditorColorScheme.SELECTION_HANDLE)
+    applyColor(colors, "lineNumber", EditorColorScheme.LINE_NUMBER)
+    applyColor(colors, "lineNumber", EditorColorScheme.LINE_NUMBER_CURRENT)
+  }
+
+  private fun applyColor(colors: JSONObject, key: String, colorId: Int) {
+    val color = parseHexColor(colors.optString(key)) ?: return
+    colorScheme.setColor(colorId, color)
   }
 
   fun applyStyledRanges(json: String) {
