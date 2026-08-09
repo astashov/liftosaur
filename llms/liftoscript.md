@@ -30,7 +30,7 @@ Bench Press / 1x5, 1x3, 1x1, 5x5
 
 That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets of 5 reps.
 
-If you don't specify the weight and RPE, it'll keep the weight empty during workout, so user would have to specify it themselves to finish a set. If the set specified the `RPE though - it'll infer the weight calculated from
+If you don't specify the weight and RPE, it'll keep the weight empty during workout, so user would have to specify it themselves to finish a set. If the set specifies the RPE though - it'll infer the weight calculated from
 <abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
 tables, like [this one](/blog/images/rpetable.png). 
 

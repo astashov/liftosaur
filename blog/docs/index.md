@@ -46,21 +46,25 @@ Bench Press / 1x5, 1x3, 1x1, 5x5
 
 That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets of 5 reps.
 
-If you don't specify the weight, it'll use the weight calculated from
-<abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
-tables, like [this one](/blog/images/rpetable.png). By default it'll assume you want to do exercises til failure (@10 RPE), so e.g. if you write:
+If you specify neither the weight nor the
+<abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>,
+like here:
 
 {% plannercode %}
 Bench Press / 3x12
 {% endplannercode %}
 
-It'll check in the RPE table that for if you want to do 12 reps til failure (@10 RPE), you probably should use 65% of 1RM, so it'll set the weight to 65% of 1RM under the hood. If you don't want to go to full failure, you can specify desired RPE:
+then the weight field will be empty during the workout, and you'll have to enter the weight yourself to finish a set.
+
+But if you specify the RPE, the weight will be calculated from RPE tables, like [this one](/blog/images/rpetable.png). So, if you write:
 
 {% plannercode %}
 Bench Press / 3x12 @8
 {% endplannercode %}
 
-Then the weight would be lower - 60%. You can specify the weight explicitly, as a percentage of 1RM, like this:
+it'll check in the RPE table that for 12 reps at @8 RPE you probably should use 60% of 1RM, so it'll set the weight to 60% of 1RM under the hood. @10 RPE means going til failure - for 12 reps that'd be 65% of 1RM.
+
+You can specify the weight explicitly, as a percentage of 1RM, like this:
 
 {% plannercode %}
 Bench Press / 3x12 80%
