@@ -12,32 +12,58 @@ export interface ILiftoEditorFocusEntry {
 // never reaches back into the editors.
 class LiftoEditorFocusStore {
   private entry: ILiftoEditorFocusEntry | undefined;
-  private blurCurrent: (() => void) | undefined;
+  // Whoever the user is editing in, which is a wider set than the dock's entry: a freeform
+  // editor has no focus stack to show, but it does hold the system keyboard, and that has to
+  // be handed over when another editor takes the screen.
+  private occupant: { id: string; evict: () => void } | undefined;
   private readonly listeners = new Set<() => void>();
 
-  public claim(id: string, controller: ILiftoEditorController, blur: () => void): void {
-    if (this.entry != null && this.entry.id !== id) {
-      this.blurCurrent?.();
-    }
-    this.blurCurrent = blur;
+  public claim(id: string, controller: ILiftoEditorController, evict: () => void): void {
+    this.takeOver(id, evict);
     this.entry = { id, controller };
     this.emit();
   }
 
+  // Freeform occupies the screen without holding the dock — the entry has to go even though
+  // the same editor is still the one being edited.
+  public occupy(id: string, evict: () => void): void {
+    this.takeOver(id, evict);
+    if (this.entry?.id === id) {
+      this.entry = undefined;
+    }
+    this.emit();
+  }
+
   public release(id: string): void {
+    if (this.occupant?.id === id) {
+      this.occupant = undefined;
+    }
     if (this.entry?.id !== id) {
       return;
     }
     this.entry = undefined;
-    this.blurCurrent = undefined;
     this.emit();
   }
 
+  // The dock's own dismissal, so it closes the keypad too — unlike a handover, where the
+  // incoming editor owns whatever the keypad is showing.
   public blurFocused(): void {
-    this.blurCurrent?.();
+    const entry = this.entry;
+    this.occupant = undefined;
     this.entry = undefined;
-    this.blurCurrent = undefined;
+    entry?.controller.blur();
     this.emit();
+  }
+
+  // Eviction runs after the handover is recorded: it dispatches into the outgoing editor,
+  // which re-runs its own claim effect, and a store still pointing at it would take the
+  // registration back.
+  private takeOver(id: string, evict: () => void): void {
+    const previous = this.occupant;
+    this.occupant = { id, evict };
+    if (previous != null && previous.id !== id) {
+      previous.evict();
+    }
   }
 
   public readonly getEntry = (): ILiftoEditorFocusEntry | undefined => this.entry;
@@ -77,15 +103,18 @@ export function LiftoEditorFocusProvider(props: { children: ReactNode }): JSX.El
 // would then render from a mode and pill set that no longer exist.
 export function useLiftoEditorFocusClaim(id: string, controller: ILiftoEditorController): void {
   const store = useContext(LiftoEditorFocusContext);
-  const blurRef = useRef(controller.blur);
-  blurRef.current = controller.blur;
+  const evictRef = useRef(controller.evict);
+  evictRef.current = controller.evict;
   const hasFocus = controller.context != null;
+  const isFreeform = controller.mode === "freeform";
   useEffect(() => {
     if (store == null) {
       return;
     }
     if (hasFocus) {
-      store.claim(id, controller, () => blurRef.current());
+      store.claim(id, controller, () => evictRef.current());
+    } else if (isFreeform) {
+      store.occupy(id, () => evictRef.current());
     } else {
       store.release(id);
     }
