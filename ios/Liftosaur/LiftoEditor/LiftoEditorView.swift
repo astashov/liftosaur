@@ -21,11 +21,12 @@ import Runestone
   private var lastReportedContentHeight: CGFloat = -1
   private var structuredTapRecognizer: UITapGestureRecognizer?
   private let tapDelegateProxy = LiftoEditorTapDelegateProxy()
+  private var currentColors = LiftoEditorColors()
 
   public override init(frame: CGRect) {
     super.init(frame: frame)
     textView.editorDelegate = self
-    textView.theme = LiftoEditorTheme(fontSize: 16)
+    applyTheme()
     textView.setLanguageMode(ExternalRangesLanguageMode(store: rangesStore))
     textView.showLineNumbers = false
     // Runestone's 3pt default leaves the number touching the first character. The gutter's
@@ -127,7 +128,32 @@ import Runestone
       return
     }
     currentFontSize = size
-    textView.theme = LiftoEditorTheme(fontSize: CGFloat(size))
+    applyTheme()
+  }
+
+  @objc public func applyColorsJson(_ json: String) {
+    guard let data = json.data(using: .utf8),
+      let values = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    else {
+      return
+    }
+    currentColors = LiftoEditorColors(
+      text: LiftoEditorContentView.parseColor(values["text"] as? String) ?? currentColors.text,
+      selection: LiftoEditorContentView.parseColor(values["selection"] as? String) ?? currentColors.selection,
+      caret: LiftoEditorContentView.parseColor(values["caret"] as? String) ?? currentColors.caret,
+      handle: LiftoEditorContentView.parseColor(values["handle"] as? String) ?? currentColors.handle,
+      lineNumber: LiftoEditorContentView.parseColor(values["lineNumber"] as? String) ?? currentColors.lineNumber
+    )
+    applyTheme()
+  }
+
+  // The selection highlight and caret are the text input's, not the theme's, and the drag
+  // handles are UITextInteraction's, drawn with the view's tint.
+  private func applyTheme() {
+    textView.theme = LiftoEditorTheme(fontSize: CGFloat(currentFontSize), colors: currentColors)
+    textView.insertionPointColor = currentColors.caret
+    textView.selectionHighlightColor = currentColors.selection
+    textView.tintColor = currentColors.handle
   }
 
   @objc public func applyShowLineNumbers(_ show: Bool) {
@@ -263,29 +289,43 @@ import Runestone
   }
 }
 
-// The app's code font (same face FastText/styledText use); colors come from the external
-// styled ranges, so the theme only carries the base font and neutral colors.
+// The chrome the editor paints on its own. The app's theme is picked in JS (a setting, not
+// the system appearance), so the system's dynamic colors would be wrong whenever the two
+// disagree — these arrive from JS instead, and the defaults only cover the first frame.
+struct LiftoEditorColors {
+  var text: UIColor = .label
+  var selection: UIColor = .label.withAlphaComponent(0.2)
+  var caret: UIColor = .label
+  var handle: UIColor = .tintColor
+  var lineNumber: UIColor = .secondaryLabel
+}
+
+// The app's code font (same face FastText/styledText use); syntax colors come from the
+// external styled ranges, so the theme only carries the base font and the neutral colors.
 private final class LiftoEditorTheme: Runestone.Theme {
   let font: UIFont
-  let textColor: UIColor = .label
+  let textColor: UIColor
   // A tint rather than a solid: it has to read as a gutter against both the light and the
   // dark editor background, and the system fills are the only ones that follow both.
   let gutterBackgroundColor: UIColor = .quaternarySystemFill
   let gutterHairlineColor: UIColor = .clear
-  let lineNumberColor: UIColor = .secondaryLabel
+  let lineNumberColor: UIColor
   let lineNumberFont: UIFont
   let selectedLineBackgroundColor: UIColor = .clear
-  let selectedLinesLineNumberColor: UIColor = .secondaryLabel
+  let selectedLinesLineNumberColor: UIColor
   let selectedLinesGutterBackgroundColor: UIColor = .quaternarySystemFill
   let invisibleCharactersColor: UIColor = .tertiaryLabel
   let pageGuideHairlineColor: UIColor = .clear
   let pageGuideBackgroundColor: UIColor = .clear
   let markedTextBackgroundColor: UIColor = .systemFill
 
-  init(fontSize: CGFloat) {
+  init(fontSize: CGFloat, colors: LiftoEditorColors) {
     let font = UIFont(name: "Iosevka", size: fontSize) ?? .monospacedSystemFont(ofSize: fontSize, weight: .regular)
     self.font = font
     self.lineNumberFont = font
+    self.textColor = colors.text
+    self.lineNumberColor = colors.lineNumber
+    self.selectedLinesLineNumberColor = colors.lineNumber
   }
 
   func textColor(for highlightName: String) -> UIColor? {

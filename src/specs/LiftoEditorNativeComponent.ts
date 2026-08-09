@@ -43,6 +43,11 @@ export interface NativeProps extends ViewProps {
   // Numbering is per-editor, so it only means something where the document is a whole day —
   // that's also where eval errors quote a line to go find.
   showLineNumbers?: WithDefault<boolean, false>;
+  // JSON {text, selection, caret, handle, lineNumber} of hex colors. The chrome each platform's
+  // editor paints itself (unstyled text, selection, caret, handles, line numbers) comes from
+  // its own theme, not from the styled ranges, and neither native side can see the app's theme
+  // — it's Uniwind's, not the system's — so the palette has to be handed over.
+  colors?: string;
   onTextDelta?: DirectEventHandler<TextDeltaEvent>;
   onEditorSelectionChange?: DirectEventHandler<SelectionChangeEvent>;
   onEditorContentSizeChange?: DirectEventHandler<ContentSizeChangeEvent>;

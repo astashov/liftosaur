@@ -36,6 +36,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     }
   }
 
+  override fun setColors(view: LiftoEditorView, value: String?) {
+    view.applyColors(value ?: "")
+  }
+
   override fun setText(view: LiftoEditorView, text: String?) {
     view.applyText(text ?: "")
   }
