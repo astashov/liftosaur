@@ -59,8 +59,12 @@ export interface ILiftoEditorController {
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToStructured: () => void;
-  // Drops the focus stack when another editor on the same screen takes over.
+  // Drops the focus stack, closing the keypad with it — an explicit dismissal.
   blur: () => void;
+  // Hands the screen to another editor: same state change as blur (plus leaving freeform, so
+  // the native view resigns the system keyboard) but no effects. The incoming editor has
+  // already set the shared keypad for its own token, and closing it here would undo that.
+  evict: () => void;
 }
 
 // Fallback when the host doesn't provide an exercise (e.g. template exercises without an
@@ -307,5 +311,7 @@ export function useLiftoEditorController(
     removeFocused: () => dispatch(LiftoEditorSession_removeFocused(sessionRef.current)),
     switchToStructured: () => dispatch(LiftoEditorSession_switchToStructured(sessionRef.current)),
     blur: () => dispatch(LiftoEditorSession_blur(sessionRef.current)),
+    evict: () =>
+      commit(LiftoEditorSession_blur(LiftoEditorSession_switchToStructured(sessionRef.current).session).session),
   };
 }

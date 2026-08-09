@@ -16,7 +16,7 @@ import { Dialog_alert } from "../../utils/dialog";
 import { LiftoEditor } from "../primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
-import { useLiftoEditorBlurFocused, useLiftoEditorFocusClaim } from "../liftoEditorFocus";
+import { useLiftoEditorFocusClaim } from "../liftoEditorFocus";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
@@ -26,6 +26,8 @@ import { useSystemKeyboardHeight, useSystemKeyboardHeightFromScreenBottom } from
 // more: its caret drags a drop handle that hangs below the line, and clearing only the line
 // leaves the handle itself under the keyboard's suggestion strip.
 const caretRevealMargin = Platform.OS === "android" ? 32 : 16;
+// CustomKeyboardProvider's open animation, plus a frame for the taller content to lay out.
+const keypadOpenDuration = 300;
 
 function lineAt(text: string, index: number): number {
   let line = 1;
@@ -325,9 +327,16 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
   const focusEnd = focusedLevel?.end;
   const handleRef = controller.editorProps.handleRef;
   useEffect(() => {
-    if (focusStart != null && focusEnd != null) {
-      handleRef?.current?.requestCaretRect(focusStart, focusEnd);
+    if (focusStart == null || focusEnd == null) {
+      return;
     }
+    handleRef?.current?.requestCaretRect(focusStart, focusEnd);
+    // Asked again once the keypad has finished opening: the scroll spacer that makes room for
+    // it grows over that same animation, so a token near the end of the content has nowhere to
+    // scroll to yet and scrollTo clamps short of the keypad. By then the answer is usually
+    // "already visible", so this second pass is a no-op everywhere else.
+    const timer = setTimeout(() => handleRef?.current?.requestCaretRect(focusStart, focusEnd), keypadOpenDuration);
+    return () => clearTimeout(timer);
   }, [focusStart, focusEnd, keypadHeight, footerHeight, handleRef]);
 
   // Freeform has no focus stack — the caret is the native selection, so follow that instead.
@@ -340,12 +349,12 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
   // level stack empty, which brings the dock back in its "Tap a token to focus" state. The
   // mode still has to come back with it, or the editor stays editable and the next tap goes
   // straight to text entry with no way back to the structured UI.
-  const blurFocused = useLiftoEditorBlurFocused();
+  //
+  // evict rather than blur, and this editor's rather than the screen's: the keyboard also goes
+  // away when another editor takes over, and by then that editor holds the dock and has the
+  // keypad open on its own token — a blur here would close both out from under it.
   const exitFreeformRef = useRef<() => void>(() => undefined);
-  exitFreeformRef.current = () => {
-    controller.switchToStructured();
-    blurFocused();
-  };
+  exitFreeformRef.current = () => controller.evict();
   // Only after the keyboard has actually appeared: entering freeform flips this flag ~50ms
   // before the caret placement summons the IME (the controller waits for the native side to
   // commit `editable` first), and a hide event landing in that window — a stale one, or the

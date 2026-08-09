@@ -18,8 +18,12 @@ export interface ILiftoEditorController {
   pressPill: (pill: ILiftoEditorPill) => void;
   removeFocused: () => void;
   switchToStructured: () => void;
-  // Drops the focus stack when another editor on the same screen takes over.
+  // Drops the focus stack, closing the keypad with it — an explicit dismissal.
   blur: () => void;
+  // Hands the screen to another editor: same state change as blur (plus leaving freeform, so
+  // the native view resigns the system keyboard) but no effects. The incoming editor has
+  // already set the shared keypad for its own token, and closing it here would undo that.
+  evict: () => void;
 }
 
 export interface ILiftoEditorControllerActions {
