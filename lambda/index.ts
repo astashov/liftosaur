@@ -1003,11 +1003,16 @@ async function signInResponse(
   const cookieSecret = await di.secrets.getCookieSecret();
   const session = JWT.sign({ userId: user.id }, cookieSecret);
   const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith("liftosaur-native");
+  // The free-user key is response-only (never persisted in storage), so it must ride along on the sign-in
+  // response too. Without it the client shows no premium until some later sync re-injects it - and right
+  // after login there's nothing to sync, so that wouldn't happen until the next app start.
+  const keyResult = await new FreeUserDao(di).getKey(user.id);
   const resp: Record<string, unknown> = {
     email: user.email,
     user_id: user.id,
     storage: user.storage,
     is_new_user: isNewUser,
+    key: keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined,
   };
   if (isNativeClient) {
     resp.session = session;
