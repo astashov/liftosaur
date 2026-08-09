@@ -153,7 +153,7 @@ export type IRootStackParamList = {
   editUpdateScriptModal: { exerciseStateKey: string; programId: string };
   monthCalendarModal: undefined;
   accountModal: undefined;
-  emailAuthModal: undefined;
+  emailAuthModal: { navigateHomeOnSignIn?: boolean } | undefined;
   changePasswordModal: undefined;
   subscriptionInfoModal: { type: "platesCalculator" | "graphs" | "notifications" | "weekInsights" | "watch" | "mcp" };
   weekInsightsDetailsModal: { selectedFirstDayOfWeek: number };

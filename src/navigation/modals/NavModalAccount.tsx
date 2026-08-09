@@ -37,7 +37,7 @@ export function NavModalAccount(): JSX.Element {
           client={service.client}
           dispatch={dispatch}
           onSignIn={onSignIn}
-          onOpenEmailAuth={() => navigateToModal("emailAuthModal")}
+          onOpenEmailAuth={() => navigateToModal("emailAuthModal", { navigateHomeOnSignIn: true })}
         />
       </FormSheet>
     </ModalScreenContainer>
