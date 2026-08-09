@@ -5,6 +5,8 @@ interface IProps {
   onClose: () => void;
   shouldClose?: () => boolean | Promise<boolean>;
   fitContent?: boolean;
+  // Native-only: sits in the sheet's bottom safe-area band; the web sheet has neither.
+  safeAreaContent?: ReactNode;
 }
 
 export function TransparentModal(props: IProps): JSX.Element {

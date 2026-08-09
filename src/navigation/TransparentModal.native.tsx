@@ -20,6 +20,10 @@ interface IProps {
   // changes?" confirmation must happen here, while the sheet is still visible.
   shouldClose?: () => boolean | Promise<boolean>;
   fitContent?: boolean;
+  // Rendered inside the bottom safe-area band (normally empty padding). The band keeps
+  // at least the inset height so the content sits in it rather than pushing the sheet up;
+  // on devices without a bottom inset it grows to fit the content instead.
+  safeAreaContent?: ReactNode;
 }
 
 const SheetPanContext = createContext<PanResponderInstance | null>(null);
@@ -98,7 +102,7 @@ export function TransparentModal(props: IProps): JSX.Element {
           className="overflow-hidden bg-background-default"
           style={{
             ...(props.fitContent ? null : { height: sheetHeight + insets.bottom + keyboardHeight }),
-            paddingBottom: insets.bottom + keyboardHeight,
+            paddingBottom: props.safeAreaContent != null ? 0 : insets.bottom + keyboardHeight,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             transform: [{ translateY }],
@@ -113,6 +117,21 @@ export function TransparentModal(props: IProps): JSX.Element {
           ) : (
             props.children
           )}
+          {props.safeAreaContent != null ? (
+            Platform.OS === "android" ? (
+              // Android's gesture bar is drawn across the inset band itself (not hugging
+              // the bottom edge like the iOS home indicator), so the content must sit
+              // above the inset, not inside it — nudged a few pt in so the gap doesn't
+              // read as a full empty row.
+              <View style={{ paddingBottom: Math.max(0, insets.bottom - 8) + keyboardHeight }}>
+                {props.safeAreaContent}
+              </View>
+            ) : (
+              // Top-aligned, not centered: centering would push the content down into the
+              // home-indicator bar.
+              <View style={{ minHeight: insets.bottom + keyboardHeight, paddingTop: 2 }}>{props.safeAreaContent}</View>
+            )
+          ) : null}
         </Animated.View>
       </View>
     </SheetPanContext.Provider>

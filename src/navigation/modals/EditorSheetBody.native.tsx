@@ -534,6 +534,11 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   const keypadHeight = useCustomKeyboardHeight();
   const closeKeyboard = useCloseCustomKeyboard();
   const isFreeform = controller.mode === "freeform";
+  const onModeChangeRef = useRef(props.onModeChange);
+  onModeChangeRef.current = props.onModeChange;
+  useEffect(() => {
+    onModeChangeRef.current?.(isFreeform ? "freeform" : "structured");
+  }, [isFreeform]);
   const railRef = useRef<ScrollView>(null);
   const pillRailRef = useRef<ScrollView>(null);
   // Keyed on the level's start (not end) so typing into the focused token — which only

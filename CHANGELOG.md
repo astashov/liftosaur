@@ -14,6 +14,22 @@
 -->
 
 ---
+date: 2026-08-09
+title: Embrace Liftoscript, part 1: Redesign of the "Edit Program Exercise" screen
+---
+
+One of the main sources of confusion and frustration in Liftosaur are the "Program" and "Edit Program Exercise" screens. They provide the UI to edit the program, but the problem is that the UI maps pretty poorly to Liftoscript.
+And Liftoscript is still source of truth. Also, when you edit UI - you have little idea what Liftoscript it'd result to. Users get weird errors they have no idea how to resolve - because errors come from Liftoscript syntax, not UI.
+
+Historically, I tried to hide the complexity of Liftoscript, trying to lower the learning curve. But IMHO it doesn't work - I just need to be honest and upfront that knowing at least some Liftoscript basics is required to use Liftosaur effectively. So, I'm pivoting to the new approach - embracing Liftoscript!
+
+As a first step - now "Edit Program Exercise" is not a screen anymore, it's a bottom sheet, where you can edit Liftoscript. For that, I created a new native code editor from ground up. Typing code generally is not convenient on a phone, so it solves that by having 'structured' editing mode, where you can tap values, elements, and use the action pills to do actions with them. So, kinda a mix of UI and code. You can swipe between elements, and you can double-tap on text to switch to freeform editing. Each element also shows a hint what it means, so hopefully it helps to learn Liftoscript basics easier.
+
+For now, it's only "Edit Program Exercise" screen, but I will work on replacing all the editors in the app with this new native editor.
+
+I understand it's a quite controversial change, so please let me know your thoughts in Discord, r/liftosaur subreddit, or by email at **info@liftosaur.com**.
+
+---
 date: 2026-07-19
 title: Added Sleep & Nutrition tracking
 ---

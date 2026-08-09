@@ -36,6 +36,9 @@ export interface IEditorSheetBodyProps {
   // unsaved changes.
   onTextChange?: (text: string) => void;
   onEditReuse?: (targetName: string) => void;
+  // Lets the host adapt chrome outside the body (the safe-area gesture hint) to the
+  // structured/freeform switch; the web body never calls it.
+  onModeChange?: (mode: "structured" | "freeform") => void;
   reuseCandidates?: IEditorSheetReuseCandidates;
   validateText?: (text: string) => IEditorSheetLiveError | undefined;
   onDone: (text: string) => void;
