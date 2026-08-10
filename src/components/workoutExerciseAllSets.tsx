@@ -32,6 +32,7 @@ import { Exercise_getIsUnilateral } from "../models/exercise";
 import { memo, useCallback, useMemo } from "react";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { useTrackClick } from "../utils/clickTracking";
+import { useRem } from "../utils/useRem";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -84,7 +85,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
   const lbEntry = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex), [props.entryIndex]);
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
-  const remValue = props.settings.textSize ?? 16;
+  const remValue = useRem();
   const rpeLabel = useMemo(() => {
     const allSets = [...sets, ...warmupSets];
     let longest = "";

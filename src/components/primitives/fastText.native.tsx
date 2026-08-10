@@ -1,15 +1,7 @@
 import { JSX } from "react";
-import { ColorValue, PixelRatio, processColor } from "react-native";
+import { ColorValue, processColor } from "react-native";
 import FastTextNative from "../../specs/FastTextNativeComponent";
 import { IFastTextProps } from "../../utils/styledText";
-
-// The native FastText renderers draw text directly instead of using <Text>, so unlike RN's
-// <Text> (allowFontScaling defaults to true) they don't pick up the OS font-size setting.
-// Apply it here, the single choke point that feeds both the render and measure native paths,
-// so FastText scales with the system font size the same way the <Text> trees it replaced did.
-function scaleFontSize(size: number | undefined): number | undefined {
-  return size == null ? size : size * PixelRatio.getFontScale();
-}
 
 // Codegen auto-runs processColor on top-level ColorValue props (via the view config), but
 // NOT on nested struct/array fields, so fragment colors arrive at the native side as raw CSS
@@ -30,7 +22,7 @@ export function FastText(props: IFastTextProps): JSX.Element {
     color: processFragmentColor(f.color),
     backgroundColor: processFragmentColor(f.backgroundColor),
     fontWeight: f.fontWeight,
-    fontSize: scaleFontSize(f.fontSize),
+    fontSize: f.fontSize,
     fontStyle: f.fontStyle,
     textDecorationLine: f.textDecorationLine,
   }));
@@ -43,9 +35,9 @@ export function FastText(props: IFastTextProps): JSX.Element {
       fontWeight={props.fontWeight}
       fontStyle={props.fontStyle}
       fontFamily={props.fontFamily}
-      fontSize={scaleFontSize(props.fontSize)}
+      fontSize={props.fontSize}
       textPaddingHorizontal={props.paddingHorizontal}
-      textLineHeight={scaleFontSize(props.lineHeight)}
+      textLineHeight={props.lineHeight}
       numberOfLines={props.numberOfLines}
       textAlign={props.textAlign}
       textDecorationLine={props.textDecorationLine}

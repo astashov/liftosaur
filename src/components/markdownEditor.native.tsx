@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { TextInput } from "react-native";
+import { TextInput } from "./primitives/textInput";
 
 interface IProps {
   value: string;

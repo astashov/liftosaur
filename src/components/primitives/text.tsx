@@ -30,6 +30,15 @@ function resolveFontFamily(className: string | undefined): string {
   return "Poppins-Regular";
 }
 
+// RN's <Text> with none of the defaults Text injects below - for nested spans, which would
+// otherwise get text-base forced on them, and for trees that resolve their own font family.
+export function TextRaw(props: TextProps & { className?: string }): JSX.Element {
+  return <RNText allowFontScaling={false} {...props} />;
+}
+
+// The OS font scale is folded into the rem instead (see Settings_getTextSize), which moves
+// spacing and icons along with the type. Letting RN also scale fontSize here would apply it
+// twice, and only to the text, so it would overflow boxes that didn't grow.
 export function Text({
   style,
   className,
@@ -47,5 +56,13 @@ export function Text({
   const fontFamily = resolveFontFamily(effectiveClassName);
   const dataTestid = (props as { "data-testid"?: string })["data-testid"];
   const testID = props.testID || dataTestid;
-  return <RNText className={effectiveClassName} style={[{ fontFamily }, style]} {...props} testID={testID} />;
+  return (
+    <RNText
+      className={effectiveClassName}
+      style={[{ fontFamily }, style]}
+      allowFontScaling={false}
+      {...props}
+      testID={testID}
+    />
+  );
 }

@@ -47,7 +47,7 @@ import { exceptionIgnores } from "../utils/rollbar";
 // typeof-guarded: Metro/webpack define __DEV__, but this module also runs under node (tests).
 declare let __DEV__: boolean | undefined;
 import { Settings_applyTheme } from "../models/settings";
-import { TextSize_apply } from "../utils/textSize";
+import { useAppliedTextSize } from "../utils/textSize";
 import { AppContext } from "./appContext";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
@@ -134,9 +134,7 @@ export function AppView(props: IProps): JSX.Element | null {
     }
   }, []);
 
-  useEffect(() => {
-    TextSize_apply(state.storage.settings.textSize ?? 16);
-  }, [state.storage.settings.textSize]);
+  useAppliedTextSize(state.storage.settings);
 
   useLoopCatcher();
 

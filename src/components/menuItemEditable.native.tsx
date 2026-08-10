@@ -1,5 +1,6 @@
 import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
-import { View, Pressable, TextInput, Platform } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import { TextInput, ITextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { Switch } from "./primitives/switch";
 import { MenuItemWrapper } from "./menuItem";
@@ -37,7 +38,7 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<ITextInput>(null);
   const isTextInput = props.type === "text" || props.type === "number";
 
   return (
@@ -98,7 +99,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 export function MenuItemValue(
   props: {
     setPatternError: Dispatch<SetStateAction<boolean>>;
-    inputRef?: RefObject<TextInput | null>;
+    inputRef?: RefObject<ITextInput | null>;
     onInput?: (v: string) => void;
   } & IMenuItemEditableValueProps
 ): JSX.Element | null {
@@ -150,9 +151,9 @@ function NativeTextValue(props: {
   onInput?: (v: string) => void;
   keyboardType: "numeric" | "default";
   maxLength?: number;
-  inputRef?: RefObject<TextInput | null>;
+  inputRef?: RefObject<ITextInput | null>;
 }): JSX.Element {
-  const localRef = useRef<TextInput>(null);
+  const localRef = useRef<ITextInput>(null);
   const ref = props.inputRef ?? localRef;
   const currentValueRef = useRef(props.value ?? "");
   const isNumeric = props.keyboardType === "numeric";

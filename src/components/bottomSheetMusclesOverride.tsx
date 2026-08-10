@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { View, Pressable, ScrollView, TextInput } from "react-native";
+import { View, Pressable, ScrollView } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {

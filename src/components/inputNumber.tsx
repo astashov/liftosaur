@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from "react";
-import { View, Pressable, TextInput, Platform } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { MathUtils_clamp, MathUtils_normalizeNumStr } from "../utils/math";
 import { StringUtils_dashcase } from "../utils/string";

@@ -1,5 +1,6 @@
 import { JSX, Ref, forwardRef, memo, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { TextInput, Pressable, View, Platform } from "react-native";
+import { Pressable, View, Platform } from "react-native";
+import { TextInput, ITextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { IEither } from "../utils/types";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -54,7 +55,7 @@ export const Input = memo(
     const size = props.inputSize || "md";
     const labelSizeVal = labelSizeProp || "sm";
 
-    const inputRef = useRef<TextInput>(null);
+    const inputRef = useRef<ITextInput>(null);
     const currentValueRef = useRef(String(valueProp ?? props.defaultValue ?? ""));
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
     const [touched, setTouched] = useState(false);

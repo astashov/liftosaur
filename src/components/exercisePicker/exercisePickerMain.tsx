@@ -1,5 +1,6 @@
 import { JSX, Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Platform, TextInput } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import { TextInput } from "../primitives/textInput";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,

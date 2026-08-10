@@ -1,5 +1,6 @@
 import { JSX, useEffect, useMemo, useRef } from "react";
-import { TextInput, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
+import { TextInput, ITextInput } from "./primitives/textInput";
 import { debounce } from "../utils/throttler";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 
@@ -15,7 +16,7 @@ interface IProps {
 }
 
 export function TextareaAutogrow(props: IProps): JSX.Element {
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<ITextInput>(null);
   const currentValueRef = useRef<string>(String(props.value ?? ""));
 
   const debouncedOnChangeText = useMemo(() => {
@@ -47,7 +48,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
       maxLength={props.maxLength}
       multiline={true}
       textAlignVertical="top"
-      className={`text-text-primary ${props.className ?? ""}`}
+      className={`text-text-primary text-sm min-h-6 ${props.className ?? ""}`}
       testID={props.testID ?? props.id}
       style={styles.input}
       onChangeText={(text) => {
@@ -58,11 +59,10 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
   );
 }
 
+// Size lives in the className so it tracks the rem - a fontSize here would win over it.
 const styles = StyleSheet.create({
   input: {
     fontFamily: "Poppins",
-    fontSize: 14,
-    minHeight: 24,
     padding: 0,
   },
 });

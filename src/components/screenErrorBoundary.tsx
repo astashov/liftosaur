@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
+import { TextRaw as Text } from "./primitives/text";
 import RB from "rollbar";
 
 declare let Rollbar: RB | undefined;

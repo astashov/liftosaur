@@ -1,5 +1,5 @@
 import { JSX, useEffect, useState } from "react";
-import { TextInput } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IContentGrowingTextareaProps {

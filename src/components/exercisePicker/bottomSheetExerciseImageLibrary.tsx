@@ -1,5 +1,6 @@
 import { JSX, useEffect, useMemo, useState, useCallback } from "react";
-import { View, TextInput, Image } from "react-native";
+import { View, Image } from "react-native";
+import { TextInput } from "../primitives/textInput";
 import { LegendList } from "@legendapp/list";
 import { Text } from "../primitives/text";
 import { ISettings } from "../../types";

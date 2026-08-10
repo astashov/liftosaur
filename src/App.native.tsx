@@ -228,7 +228,7 @@ import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
 import { Persistence } from "./utils/persistence";
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
-import { TextSize_apply } from "./utils/textSize";
+import { TextSize_apply, TextSize_resolve, useAppliedTextSize } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { PromptHost } from "./components/promptHost";
@@ -660,6 +660,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
   }, [isNavReady, showCorruptedState]);
 
   useOnloadModals(state, dispatch, isNavReady);
+  useAppliedTextSize(state.storage.settings);
 
   useEffect(() => {
     if (!isNavReady || !currentScreenName) {
@@ -759,7 +760,7 @@ export function App(): React.JSX.Element {
       const url = new URL(`${__HOST__}/app/`);
       const state = await getInitialState(fetch, { localStorage, url });
       Settings_applyTheme(Settings_getTheme(state.storage.settings));
-      TextSize_apply(state.storage.settings.textSize ?? 16);
+      TextSize_apply(TextSize_resolve(state.storage.settings));
       if (state.storage.history.length > 0) {
         History_getHomeAggregates(state.storage.history, !!state.storage.settings.startWeekFromMonday);
         History_getGraphsAggregates(state.storage.history, state.storage.settings);

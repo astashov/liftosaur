@@ -1,5 +1,6 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Image } from "react-native";
+import { View, Pressable, Image } from "react-native";
+import { TextRaw as Text } from "../primitives/text";
 import { SvgUri } from "react-native-svg";
 import { Svg, Path, SvgXml } from "../primitives/svg";
 import { Tour_stepHelpFlag } from "./tourTypes";

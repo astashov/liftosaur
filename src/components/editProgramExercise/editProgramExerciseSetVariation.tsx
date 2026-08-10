@@ -17,6 +17,7 @@ import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgr
 import { UidFactory_generateUid } from "../../utils/generator";
 import { IconTrash } from "../icons/iconTrash";
 import { CollectionUtils_removeAt } from "../../utils/collection";
+import { useRem } from "../../utils/useRem";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_addSet,
@@ -44,7 +45,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasSetTimer = props.setVariation.sets.some((set) => set.setTimer != null);
   const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map(() => UidFactory_generateUid(4)));
   const currentIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(props.plannerExercise);
-  const remValue = props.settings.textSize ?? 16;
+  const remValue = useRem();
   const columnWidths = computeEditSetColumnWidths(remValue, { hasMinReps, hasWeight, hasRpe, hasSetTimer, hasTimer });
 
   return (

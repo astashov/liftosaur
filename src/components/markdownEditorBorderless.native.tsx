@@ -1,10 +1,11 @@
-import { JSX, useMemo, useCallback, useState } from "react";
+import { JSX, useMemo, useCallback, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import MarkdownTextInput from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
 import type { MarkdownStyle } from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
 import type { MarkdownRange } from "@expensify/react-native-live-markdown/src/commonTypes";
 import { debounce } from "../utils/throttler";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { useRemScale } from "../utils/useRem";
 
 interface IProps {
   value?: string;
@@ -126,12 +127,12 @@ function parseMarkdownWorklet(input: string): MarkdownRange[] {
   return ranges;
 }
 
-function buildMarkdownStyle(): MarkdownStyle {
+function buildMarkdownStyle(scale: number): MarkdownStyle {
   const text = Tailwind_semantic().text;
   return {
     syntax: { color: text.secondary },
     link: { color: text.link },
-    h1: { fontSize: 18 },
+    h1: { fontSize: 18 * scale },
     code: {
       color: text.error,
       backgroundColor: "transparent",
@@ -139,7 +140,7 @@ function buildMarkdownStyle(): MarkdownStyle {
       borderWidth: 0,
       borderRadius: 0,
       padding: 0,
-      fontSize: 14,
+      fontSize: 14 * scale,
       fontFamily: "Courier",
     },
     blockquote: {
@@ -157,8 +158,6 @@ const styles = StyleSheet.create({
   },
   input: {
     fontFamily: "Poppins",
-    fontSize: 14,
-    lineHeight: 20,
     padding: 0,
     margin: 0,
     textAlignVertical: "top" as const,
@@ -166,20 +165,33 @@ const styles = StyleSheet.create({
   },
 });
 
+const FONT_SIZE = 14;
 const CHARS_PER_LINE = 40;
 const LINE_HEIGHT = 20;
 const VERTICAL_PADDING = 0;
 const MIN_HEIGHT = 60;
 
-function estimateHeight(value: string, widthChars: number = CHARS_PER_LINE): number {
+// Bigger type fits fewer characters per line, so the character budget shrinks as the rest grows.
+function estimateHeight(value: string, scale: number): number {
+  const widthChars = Math.max(1, Math.round(CHARS_PER_LINE / scale));
   const lines = value.split("\n").reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / widthChars)), 0);
-  return Math.max(MIN_HEIGHT, lines * LINE_HEIGHT + VERTICAL_PADDING);
+  return Math.max(MIN_HEIGHT * scale, lines * LINE_HEIGHT * scale + VERTICAL_PADDING);
 }
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
+  const scale = useRemScale();
   const [text, setText] = useState(props.value ?? "");
-  const initialEstimatedHeight = useMemo(() => estimateHeight(props.value ?? ""), []);
-  const [minHeight, setMinHeight] = useState(initialEstimatedHeight);
+  const [measuredHeight, setMeasuredHeight] = useState(0);
+  const prevScale = useRef(scale);
+  // The measured height only ever ratchets up, so it has to be dropped when the text size changes
+  // or the editor would stay at the height it reached at the larger size.
+  if (prevScale.current !== scale) {
+    prevScale.current = scale;
+    setMeasuredHeight(0);
+  }
+  // Floor it on the estimate for the *current* text rather than only the initial value -
+  // onContentSizeChange reports the laid-out height, which can't exceed the height we gave it.
+  const minHeight = Math.max(estimateHeight(text, scale), measuredHeight);
 
   const debouncedOnChange = useMemo(() => {
     if (props.onChange && props.debounceMs) {
@@ -198,16 +210,17 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
 
   const handleContentSizeChange = useCallback((e: { nativeEvent: { contentSize: { height: number } } }) => {
     const measured = e.nativeEvent.contentSize.height;
-    setMinHeight((prev) => (measured > prev ? measured : prev));
+    setMeasuredHeight((prev) => (measured > prev ? measured : prev));
   }, []);
 
   const semanticText = Tailwind_semantic().text;
-  const markdownStyle = useMemo(() => buildMarkdownStyle(), [semanticText.primary]);
+  const markdownStyle = useMemo(() => buildMarkdownStyle(scale), [semanticText.primary, scale]);
 
   return (
     <View style={styles.wrapper}>
       <MarkdownTextInput
         multiline
+        allowFontScaling={false}
         scrollEnabled={false}
         value={text}
         placeholder={props.placeholder}
@@ -216,7 +229,10 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
         onContentSizeChange={handleContentSizeChange}
         parser={parseMarkdownWorklet}
         markdownStyle={markdownStyle}
-        style={[styles.input, { minHeight, color: semanticText.primary }]}
+        style={[
+          styles.input,
+          { minHeight, color: semanticText.primary, fontSize: FONT_SIZE * scale, lineHeight: LINE_HEIGHT * scale },
+        ]}
       />
     </View>
   );

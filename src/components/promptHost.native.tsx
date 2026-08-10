@@ -1,5 +1,6 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import { Modal, TextInput, View } from "react-native";
+import { Modal, View } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Pressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";

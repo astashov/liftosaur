@@ -442,6 +442,26 @@ export function Settings_getTheme(settings: ISettings): "dark" | "light" {
       : "light";
 }
 
+export const TEXT_SIZE_MIN = 12;
+export const TEXT_SIZE_MAX = 20;
+export const TEXT_SIZE_STEP = 2;
+const TEXT_SIZE_BASE = 16;
+
+// An unset textSize follows the OS font scale, the same way an unset theme follows dark mode.
+// The OS scale is deliberately not applied on top of an explicit value - it is folded into the
+// rem here so that spacing and icons move with the type instead of the text alone growing.
+export function Settings_getTextSize(settings: ISettings, osFontScale: number): number {
+  if (settings.textSize != null) {
+    return clampTextSize(settings.textSize);
+  }
+  const scaled = TEXT_SIZE_BASE * osFontScale;
+  return clampTextSize(Math.round(scaled / TEXT_SIZE_STEP) * TEXT_SIZE_STEP);
+}
+
+function clampTextSize(size: number): number {
+  return Math.max(TEXT_SIZE_MIN, Math.min(TEXT_SIZE_MAX, size));
+}
+
 export function Settings_applyTheme(theme?: "dark" | "light"): void {
   const resolved = theme ?? (typeof window !== "undefined" && window.lftSystemDarkMode ? "dark" : "light");
   Theme_apply(resolved);

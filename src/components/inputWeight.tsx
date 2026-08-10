@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from "react";
-import { View, Pressable, TextInput, Platform } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";

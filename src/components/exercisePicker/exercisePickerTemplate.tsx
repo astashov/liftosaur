@@ -1,5 +1,6 @@
 import { JSX, memo, useState } from "react";
-import { View, TextInput } from "react-native";
+import { View } from "react-native";
+import { TextInput } from "../primitives/textInput";
 import { Text } from "../primitives/text";
 import { IExercisePickerState } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";

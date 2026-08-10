@@ -1,5 +1,6 @@
 import { JSX, ReactNode, useRef, useState } from "react";
-import { View, Pressable, Image, TextInput, ScrollView, Platform } from "react-native";
+import { View, Pressable, Image, ScrollView, Platform } from "react-native";
+import { TextInput } from "../primitives/textInput";
 import { Text } from "../primitives/text";
 import { Button } from "../button";
 import { LinkButton } from "../linkButton";

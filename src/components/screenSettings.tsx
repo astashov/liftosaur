@@ -39,8 +39,17 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import { INavCommon } from "../models/state";
 import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat } from "../models/stats";
 import { Weight_print } from "../models/weight";
-import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
+import {
+  Settings_getTheme,
+  Settings_applyTheme,
+  Settings_getTextSize,
+  TEXT_SIZE_MIN,
+  TEXT_SIZE_MAX,
+  TEXT_SIZE_STEP,
+} from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
+import { useOsFontScale } from "../utils/fontScale";
+import { LinkButton } from "./linkButton";
 import { Features_isEnabled } from "../utils/features";
 import { Slider } from "./primitives/slider";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
@@ -70,6 +79,7 @@ function openExternal(url: string): void {
 function ScreenSettingsInner(props: IProps): JSX.Element {
   usePerfRenderCount("ScreenSettings");
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const osFontScale = useOsFontScale();
   // This screen reads settings via `untrack`, so it doesn't re-render when `theme` changes.
   // Track the toggle locally so the switch reflects the tap instead of snapping back.
   const [theme, setTheme] = useState<"dark" | "light">(Settings_getTheme(props.settings));
@@ -410,26 +420,49 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
       <GroupHeader name="Appearance" topPadding={true} />
       <MenuItemWrapper name="text-size">
-        <View className="flex-row items-center py-2">
-          <View className="flex-row items-baseline mr-2">
-            <Text className="text-xs">A</Text>
-            <Text className="text-lg">A</Text>
+        <View className="py-2">
+          <View className="flex-row items-center">
+            <View className="flex-row items-baseline mr-2">
+              <Text className="text-xs">A</Text>
+              <Text className="text-lg">A</Text>
+            </View>
+            <View className="flex-row flex-1">
+              <Slider
+                value={Settings_getTextSize(props.settings, osFontScale)}
+                min={TEXT_SIZE_MIN}
+                max={TEXT_SIZE_MAX}
+                step={TEXT_SIZE_STEP}
+                onChange={(value) => {
+                  TextSize_apply(value);
+                  props.dispatch({
+                    type: "UpdateSettings",
+                    lensRecording: lb<ISettings>().p("textSize").record(value),
+                    desc: "Change text size",
+                  });
+                }}
+              />
+            </View>
           </View>
-          <View className="flex-row flex-1">
-            <Slider
-              value={props.settings.textSize ?? 16}
-              min={12}
-              max={20}
-              step={2}
-              onChange={(value) => {
-                TextSize_apply(value);
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>().p("textSize").record(value),
-                  desc: "Change text size",
-                });
-              }}
-            />
+          <View className="flex-row items-center justify-between mt-1">
+            <Text className="text-xs text-text-secondary">
+              {props.settings.textSize == null ? "Matching your device text size" : "Set in the app"}
+            </Text>
+            {props.settings.textSize != null && (
+              <LinkButton
+                name="text-size-reset"
+                className="text-xs font-normal"
+                onClick={() => {
+                  TextSize_apply(Settings_getTextSize({ ...props.settings, textSize: undefined }, osFontScale));
+                  props.dispatch({
+                    type: "UpdateSettings",
+                    lensRecording: lb<ISettings>().p("textSize").record(undefined),
+                    desc: "Follow device text size",
+                  });
+                }}
+              >
+                Use device size
+              </LinkButton>
+            )}
           </View>
         </View>
       </MenuItemWrapper>

@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { View, TextInput } from "react-native";
+import { View } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { Tailwind_semantic } from "../utils/tailwindConfig";

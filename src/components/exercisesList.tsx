@@ -1,5 +1,6 @@
 import { JSX, memo, useMemo, useState } from "react";
-import { View, TextInput } from "react-native";
+import { View } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Text } from "./primitives/text";
 import { Thunk_pushExerciseStatsScreen } from "../ducks/thunks";

@@ -1,5 +1,6 @@
 import { JSX, useContext, useState } from "react";
-import { View, Pressable, Image, TextInput, Platform } from "react-native";
+import { View, Pressable, Image, Platform } from "react-native";
+import { TextInput } from "../primitives/textInput";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } from "../../types";

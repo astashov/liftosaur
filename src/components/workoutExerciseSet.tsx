@@ -121,7 +121,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   const borderColor = WorkoutExerciseUtils_getBorderColor100([props.set], false);
   const hasEdit = props.type === "workout";
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
-  const remValue = props.settings.textSize ?? 16;
+  const remValue = useRem();
   const labelW = isUnilateral ? remValue : 0;
   const repsInputWidth = (props.columnWidths.reps - labelW) / remValue;
   const weightInputWidth = props.columnWidths.weight / remValue;

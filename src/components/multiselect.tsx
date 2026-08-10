@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { View, Pressable, TextInput, ScrollView } from "react-native";
+import { View, Pressable, ScrollView } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { Tailwind_semantic } from "../utils/tailwindConfig";

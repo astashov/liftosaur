@@ -1,4 +1,5 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { TextRaw as Text } from "../primitives/text";
 import { ITourConfig } from "./tourTypes";
 import { IPlannerProgram } from "../../types";
 import { IconDayTextMode } from "../icons/iconDayTextMode";

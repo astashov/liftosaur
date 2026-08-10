@@ -1,5 +1,6 @@
 import { JSX, memo as reactMemo, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { View, Pressable, TextInput, Image, Platform } from "react-native";
+import { View, Pressable, Image, Platform } from "react-native";
+import { TextInput } from "./primitives/textInput";
 import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import { useScrollProgressiveList } from "../utils/useScrollProgressiveList";
 import { Text } from "./primitives/text";
