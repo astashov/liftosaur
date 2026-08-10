@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -9,7 +10,7 @@ interface IProps {
 export function IconBell(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={20} height={24} viewBox="0 0 20 24" fill="none">
+    <IconSvg width={20} height={24} viewBox="0 0 20 24" fill="none">
       <Path
         d="M10.7159 22.1765H10.3422C8.69105 22.1765 7.35254 20.838 7.35254 19.1869C7.35254 19.0837 7.43621 19 7.53939 19H13.5187C13.6219 19 13.7055 19.0837 13.7055 19.1869C13.7055 20.838 12.367 22.1765 10.7159 22.1765Z"
         stroke={color}
@@ -21,6 +22,6 @@ export function IconBell(props: IProps): JSX.Element {
         strokeWidth="2"
         strokeLinejoin="round"
       />
-    </Svg>
+    </IconSvg>
   );
 }

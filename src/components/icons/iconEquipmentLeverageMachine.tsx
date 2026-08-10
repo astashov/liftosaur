@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path, Rect, Line } from "../primitives/svg";
+import { Path, Rect, Line } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconEquipmentLeverageMachineProps {
@@ -12,7 +13,7 @@ export function IconEquipmentLeverageMachine(props: IIconEquipmentLeverageMachin
   const size = props.size ?? 24;
   const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
+    <IconSvg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
       <Rect x="7.75" y="5.75" width="7.5" height="11.5" strokeWidth="1.5" />
       <Rect width="8" height="3" rx="1" transform="matrix(1 0 0 -1 7.5 20)" strokeWidth="1.5" />
       <Line
@@ -41,6 +42,6 @@ export function IconEquipmentLeverageMachine(props: IIconEquipmentLeverageMachin
         strokeWidth="1.5"
       />
       <Path d="M19 2L19 12" strokeWidth="1.5" strokeMiterlimit="10" />
-    </Svg>
+    </IconSvg>
   );
 }

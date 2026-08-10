@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -11,7 +12,7 @@ export function IconCog2(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   const size = props.size ?? 21;
   return (
-    <Svg width={size} height={size} viewBox="0 0 21 21" fill="none">
+    <IconSvg width={size} height={size} viewBox="0 0 21 21" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -20,6 +21,6 @@ export function IconCog2(props: IProps): JSX.Element {
         stroke={color}
         strokeWidth={0.3}
       />
-    </Svg>
+    </IconSvg>
   );
 }

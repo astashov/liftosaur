@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
@@ -21,7 +22,7 @@ export function IconDoc2Unselected(props: IInnerProps): JSX.Element {
   const size = props.size ?? 24;
   const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} stroke={color} height={size} viewBox="0 0 23 23" fill="none">
+    <IconSvg width={size} stroke={color} height={size} viewBox="0 0 23 23" fill="none">
       <Path d="M19 7L15 3H12H5V12V21H12H19V14V7Z" strokeWidth="1.5" strokeLinejoin="round" />
       <Path
         d="M14 3V4C14 5.88562 14 6.82843 14.5858 7.41421C15.1716 8 16.1144 8 18 8H19"
@@ -30,7 +31,7 @@ export function IconDoc2Unselected(props: IInnerProps): JSX.Element {
       />
       <Path d="M9 12L15 12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M9 16L13 16" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
+    </IconSvg>
   );
 }
 
@@ -39,7 +40,7 @@ function IconDoc2Selected(props: IInnerProps): JSX.Element {
   const color = props.color ?? Tailwind_semantic().icon.purple;
   const bgColor = props.bgColor ?? Tailwind_semantic().background.default;
   return (
-    <Svg width={size} stroke={color} height={size} viewBox="0 0 23 23" fill="none">
+    <IconSvg width={size} stroke={color} height={size} viewBox="0 0 23 23" fill="none">
       <Path
         d="M19 7L15 3H12H5V12V21H12H19V14V7Z"
         fill={color}
@@ -50,6 +51,6 @@ function IconDoc2Selected(props: IInnerProps): JSX.Element {
       <Path d="M14 4V3L19 8H18C16.1144 8 15.1716 8 14.5858 7.41421C14 6.82843 14 5.88562 14 4Z" fill={bgColor} />
       <Path d="M9 12L15 12" stroke={bgColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <Path d="M9 16L13 16" stroke={bgColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
+    </IconSvg>
   );
 }

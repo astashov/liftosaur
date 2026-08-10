@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path, G, Defs, ClipPath, Rect } from "../primitives/svg";
+import { Path, G, Defs, ClipPath, Rect } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 
 interface IProps {
   width?: number;
@@ -8,7 +9,7 @@ interface IProps {
 
 export function IconDinoSunglasses(props: IProps): JSX.Element {
   return (
-    <Svg width={props.width ?? 93} height={props.height ?? 125} viewBox="0 0 93 125" fill="none">
+    <IconSvg width={props.width ?? 93} height={props.height ?? 125} viewBox="0 0 93 125" fill="none">
       <G clipPath="url(#clip0_3477_1842)">
         <Path
           d="M19.079 15.1035C16.6279 14.7037 16.0394 14.4729 13.4229 15.1035C9.83193 15.9691 9.67568 17.2806 9.07214 20.7427C9.517 20.4584 14.3422 18.4249 15.1632 18.14C16.7619 17.5853 19.1108 17.1597 20.8193 16.8387L19.079 15.1035Z"
@@ -270,6 +271,6 @@ export function IconDinoSunglasses(props: IProps): JSX.Element {
           <Rect width="93" height="125" fill="white" />
         </ClipPath>
       </Defs>
-    </Svg>
+    </IconSvg>
   );
 }

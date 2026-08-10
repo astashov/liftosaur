@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -15,7 +16,7 @@ export function IconDumbbell(props: IProps): JSX.Element {
   const height = props.height || 21;
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <Svg
+    <IconSvg
       style={props.style}
       className={`inline-block ${props.className ?? ""}`}
       width={width}
@@ -40,6 +41,6 @@ export function IconDumbbell(props: IProps): JSX.Element {
         d="M26.8199 6.16169C26.8199 4.88719 25.9041 3.854 24.7745 3.854C23.6448 3.854 22.729 4.88719 22.729 6.16169L22.729 15.3924C22.729 16.667 23.6448 17.7001 24.7745 17.7001C25.9041 17.7001 26.8199 16.667 26.8199 15.3925L26.8199 6.16169Z"
         stroke={color}
       />
-    </Svg>
+    </IconSvg>
   );
 }

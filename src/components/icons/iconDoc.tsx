@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -15,7 +16,7 @@ export function IconDoc(props: IProps): JSX.Element {
   const width = props.width || 17;
   const height = props.height || 22;
   return (
-    <Svg
+    <IconSvg
       style={props.style}
       className={`inline-block ${props.className ?? ""}`}
       width={width}
@@ -53,6 +54,6 @@ export function IconDoc(props: IProps): JSX.Element {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </Svg>
+    </IconSvg>
   );
 }

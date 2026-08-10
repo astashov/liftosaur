@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -12,7 +13,7 @@ export function IconKettlebellSmall(props: IProps): JSX.Element {
   const size = props.size ?? 14;
   const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} height={size} className={props.className} viewBox="0 0 14 14" fill="none">
+    <IconSvg width={size} height={size} className={props.className} viewBox="0 0 14 14" fill="none">
       <Path
         d="M4.96875 7.14282L4.34705 3.82711C4.23166 3.2117 4.70379 2.64282 5.32993 2.64282H9.67007C10.2962 2.64282 10.7683 3.2117 10.6529 3.82711L10.0312 7.14282"
         stroke={color}
@@ -23,6 +24,6 @@ export function IconKettlebellSmall(props: IProps): JSX.Element {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </Svg>
+    </IconSvg>
   );
 }

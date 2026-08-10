@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -12,7 +13,7 @@ interface IProps {
 export function IconMuscles2(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <Svg
+    <IconSvg
       style={props.style}
       className="inline-block"
       width={props.size || 20}
@@ -31,6 +32,6 @@ export function IconMuscles2(props: IProps): JSX.Element {
           fill={color}
         />
       )}
-    </Svg>
+    </IconSvg>
   );
 }

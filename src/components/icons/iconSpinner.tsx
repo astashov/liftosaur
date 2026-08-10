@@ -1,6 +1,7 @@
 import { JSX, useEffect, useRef } from "react";
 import { Animated, Easing, Platform } from "react-native";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg, IconSvg_useScale } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -11,6 +12,7 @@ interface IProps {
 
 export function IconSpinner(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
+  const scale = IconSvg_useScale();
   const spinValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -32,8 +34,14 @@ export function IconSpinner(props: IProps): JSX.Element {
   });
 
   return (
-    <Animated.View style={{ width: props.width, height: props.height, transform: [{ rotate }] }}>
-      <Svg viewBox="0 0 512 512" width={props.width} height={props.height}>
+    <Animated.View
+      style={{
+        width: Math.round(props.width * scale),
+        height: Math.round(props.height * scale),
+        transform: [{ rotate }],
+      }}
+    >
+      <IconSvg viewBox="0 0 512 512" width={props.width} height={props.height}>
         <Path
           fill={color}
           d="M256,150.6c-9,0-15.1-6-15.1-15.1V15.1C240.9,6,247,0,256,0c9,0,15.1,6,15.1,15.1v120.5C271.1,144.6,265,150.6,256,150.6z"
@@ -82,7 +90,7 @@ export function IconSpinner(props: IProps): JSX.Element {
           fill={color}
           d="M463,119.8c-2.4,0-4.7,0.7-6.8,2.2l-103.9,60.2c-6,4.5-9,13.6-4.5,19.6c3,4.5,7.5,7.5,12,7.5c3,0,4.5,0,7.5-3 l103.9-60.2c6-4.5,9-13.6,4.5-19.6C472.8,122.5,467.8,119.8,463,119.8"
         />
-      </Svg>
+      </IconSvg>
     </Animated.View>
   );
 }

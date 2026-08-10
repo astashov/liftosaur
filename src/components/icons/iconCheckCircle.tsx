@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { View } from "react-native";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg, IconSvg_useScale } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -16,9 +17,17 @@ export function IconCheckCircle(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.purple;
   const checkColor = props.checkColor || Tailwind_semantic().background.default;
   const size = props.size || 20;
+  const scale = IconSvg_useScale();
   if (props.isChecked) {
     return (
-      <Svg style={props.style} className={props.className} width={size} height={size} viewBox="0 0 20 20" fill="none">
+      <IconSvg
+        style={props.style}
+        className={props.className}
+        width={size}
+        height={size}
+        viewBox="0 0 20 20"
+        fill="none"
+      >
         <Path
           d="M0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10Z"
           fill={color}
@@ -30,12 +39,19 @@ export function IconCheckCircle(props: IProps): JSX.Element {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-      </Svg>
+      </IconSvg>
     );
   } else {
+    const scaledSize = Math.round(size * scale);
     return (
       <View
-        style={{ ...(props.style as object), width: size, height: size, borderWidth: 2, borderRadius: size / 2 }}
+        style={{
+          ...(props.style as object),
+          width: scaledSize,
+          height: scaledSize,
+          borderWidth: 2 * scale,
+          borderRadius: scaledSize / 2,
+        }}
         className={`${props.className ?? ""} border-bluev2`}
       />
     );

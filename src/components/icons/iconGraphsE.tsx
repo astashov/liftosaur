@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path, G, Defs, ClipPath, Rect } from "../primitives/svg";
+import { Path, G, Defs, ClipPath, Rect } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
@@ -16,7 +17,7 @@ export function IconGraphsE(props: IIconGraphsEProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   const id = UidFactory_generateUid(8);
   return (
-    <Svg className={props.className} width={width} height={height} viewBox="0 0 20 27" fill="none">
+    <IconSvg className={props.className} width={width} height={height} viewBox="0 0 20 27" fill="none">
       <Path
         d="M9.56288 1.64587V3.3518H12.0819V4.9376H9.56288V6.7877H12.4119V8.43357H7.68188V0H12.4119V1.64587H9.56288Z"
         fill={color}
@@ -41,6 +42,6 @@ export function IconGraphsE(props: IIconGraphsEProps): JSX.Element {
           <Rect width="20" height="21.843" fill="white" transform="translate(0 5.15698)" />
         </ClipPath>
       </Defs>
-    </Svg>
+    </IconSvg>
   );
 }

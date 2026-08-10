@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconWProps {
@@ -11,7 +12,7 @@ interface IIconWProps {
 export function IconW(props: IIconWProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={props.width || 22} height={props.height || 30} viewBox="0 0 22 30" fill="none">
+    <IconSvg width={props.width || 22} height={props.height || 30} viewBox="0 0 22 30" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -30,6 +31,6 @@ export function IconW(props: IIconWProps): JSX.Element {
         d="M18.392 14.172L15.83 24H12.932L11.364 17.532L9.74 24H6.842L4.35 14.172H6.912L8.326 21.326L10.076 14.172H12.708L14.388 21.326L15.816 14.172H18.392Z"
         fill={color}
       />
-    </Svg>
+    </IconSvg>
   );
 }

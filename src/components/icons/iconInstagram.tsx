@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Defs, G, Path, LinearGradient, Stop } from "../primitives/svg";
+import { Defs, G, Path, LinearGradient, Stop } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 
 interface IProps {
   size?: number;
@@ -10,7 +11,7 @@ export function IconInstagram(props: IProps): JSX.Element {
   const size = props.size ?? 40;
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 256 256">
+    <IconSvg width={size} height={size} viewBox="0 0 256 256">
       <Defs>
         <LinearGradient
           id="lftIgGradOuter"
@@ -65,6 +66,6 @@ export function IconInstagram(props: IProps): JSX.Element {
           fill="url(#lftIgGradDot)"
         />
       </G>
-    </Svg>
+    </IconSvg>
   );
 }

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -13,7 +14,7 @@ export function IconSpeaker(props: IProps): JSX.Element {
   const size = props.size || 24;
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48">
+    <IconSvg width={size} height={size} viewBox="0 0 48 48">
       <Path
         d="M39.8854 10.3893C39.2443 9.82081 38.2659 9.8821 37.7 10.5262C37.1341 11.1703 37.1952 12.1533 37.8363 12.7218C40.9461 15.4794 42.9037 19.5091 42.9037 24C42.9037 28.4909 40.9461 32.5206 37.8363 35.2782C37.1952 35.8467 37.1341 36.8297 37.7 37.4738C38.2659 38.1179 39.2443 38.1792 39.8854 37.6107C43.633 34.2876 46.0003 29.4206 46.0003 24C46.0003 18.5794 43.633 13.7124 39.8854 10.3893Z"
         fill={color}
@@ -28,6 +29,6 @@ export function IconSpeaker(props: IProps): JSX.Element {
         d="M2 17.4509C2 16.3199 2.89543 15.403 4 15.403H12.6291C12.7507 15.403 12.8682 15.3576 12.9595 15.2753L22.6785 6.51473C23.9704 5.35024 26 6.28953 26 8.05191V39.9481C26 41.7105 23.9704 42.6498 22.6785 41.4853L12.9595 32.7247C12.8682 32.6424 12.7507 32.597 12.6291 32.597H4C2.89543 32.597 2 31.6801 2 30.5491V17.4509Z"
         fill={color}
       />
-    </Svg>
+    </IconSvg>
   );
 }

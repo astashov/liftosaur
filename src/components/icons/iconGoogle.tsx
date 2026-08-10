@@ -1,9 +1,10 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 
 export function IconGoogle(): JSX.Element {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+    <IconSvg width={24} height={24} viewBox="0 0 24 24" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -28,6 +29,6 @@ export function IconGoogle(): JSX.Element {
         d="M12 5.07386C13.6884 5.07386 15.2043 5.65409 16.3961 6.79364L19.6945 3.49523C17.7029 1.63955 15.0997 0.5 12 0.5C7.50451 0.5 3.61542 3.07705 1.72314 6.83545L5.56519 9.815C6.46951 7.09682 9.00474 5.07386 12 5.07386Z"
         fill="#EA4335"
       />
-    </Svg>
+    </IconSvg>
   );
 }

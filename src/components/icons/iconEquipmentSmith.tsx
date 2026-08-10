@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconEquipmentSmithProps {
@@ -12,7 +13,7 @@ export function IconEquipmentSmith(props: IIconEquipmentSmithProps): JSX.Element
   const size = props.size ?? 24;
   const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
+    <IconSvg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
       <Path d="M6 5L18 5" strokeWidth="1.5" strokeMiterlimit="10" />
       <Path d="M5.98145 2L5.98144 25" strokeWidth="1.5" strokeMiterlimit="10" />
       <Path d="M17.9814 2L17.9814 25" strokeWidth="1.5" strokeMiterlimit="10" />
@@ -41,6 +42,6 @@ export function IconEquipmentSmith(props: IIconEquipmentSmithProps): JSX.Element
       <Path d="M4.37988 12.8733L19.6288 12.8733" strokeWidth="1.5" strokeMiterlimit="10" />
       <Path d="M-0.371582 12.8972L1.42983 12.8972" strokeWidth="1.5" strokeMiterlimit="10" />
       <Path d="M22.5698 12.8972L24.3712 12.8972" strokeWidth="1.5" strokeMiterlimit="10" />
-    </Svg>
+    </IconSvg>
   );
 }

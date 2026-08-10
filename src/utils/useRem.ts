@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 
 const BASE_REM = 16;
 const listeners = new Set<() => void>();
+let currentRem: number | undefined = undefined;
 
 export function useRem(): number {
   return useSyncExternalStore(remSubscribe, remGet, remServerGet);
@@ -28,17 +29,23 @@ export function Rem_set(size: number): void {
       root.style.setProperty(k, v);
     }
   }
+  currentRem = size;
   for (const l of listeners) {
     l();
   }
 }
 
+// getSnapshot runs on every render of every subscriber (and there's one per icon),
+// so it must not call getComputedStyle - that forces a style recalc each time.
 function remGet(): number {
-  if (typeof document === "undefined") {
-    return BASE_REM;
+  if (currentRem == null) {
+    if (typeof document === "undefined") {
+      return BASE_REM;
+    }
+    const fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    currentRem = isNaN(fs) ? BASE_REM : fs;
   }
-  const fs = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  return isNaN(fs) ? BASE_REM : fs;
+  return currentRem;
 }
 
 function remServerGet(): number {

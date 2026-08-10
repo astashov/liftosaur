@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconEquipmentEzBarProps {
@@ -12,7 +13,7 @@ export function IconEquipmentEzBar(props: IIconEquipmentEzBarProps): JSX.Element
   const size = props.size ?? 24;
   const color = props.color ?? Tailwind_semantic().icon.neutral;
   return (
-    <Svg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
+    <IconSvg width={size} height={size} className={props.className} viewBox="0 0 24 24" fill="none" stroke={color}>
       <Path
         d="M8 11.9556H12.1312C12.2608 11.9556 12.3854 12.0059 12.4787 12.0961L15.6527 15.1643C15.8464 15.3516 16.1537 15.3517 16.3475 15.1646L19.5223 12.1001C19.6155 12.0102 19.7399 11.9599 19.8693 11.9599L29.8889 11.9556"
         strokeWidth="1.5"
@@ -29,6 +30,6 @@ export function IconEquipmentEzBar(props: IIconEquipmentEzBarProps): JSX.Element
         strokeMiterlimit="10"
       />
       <Path d="M-2 12.053L1.98113 12.053" strokeWidth="2" strokeMiterlimit="10" />
-    </Svg>
+    </IconSvg>
   );
 }

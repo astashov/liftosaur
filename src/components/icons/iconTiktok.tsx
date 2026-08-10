@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, G, Path } from "../primitives/svg";
+import { G, Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 
 interface IProps {
   width?: number;
@@ -11,7 +12,7 @@ export function IconTiktok(props: IProps): JSX.Element {
   const { width, height } = props;
 
   return (
-    <Svg
+    <IconSvg
       width={width || 42}
       height={height || 42}
       viewBox="-0.32296740998066475 -3.1283528999801873 42.68446958125966 42.128352899980186"
@@ -38,6 +39,6 @@ export function IconTiktok(props: IProps): JSX.Element {
           fill="#000"
         />
       </G>
-    </Svg>
+    </IconSvg>
   );
 }

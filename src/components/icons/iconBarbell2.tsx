@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { Svg, Path } from "../primitives/svg";
+import { Path } from "../primitives/svg";
+import { IconSvg } from "./iconSvg";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
@@ -21,7 +22,7 @@ export function IconBarbell2Unselected(props: IInnerProps): JSX.Element {
   const height = width / 2.5;
   const color = props.color ?? Tailwind_colors().white;
   return (
-    <Svg width={width} height={height} viewBox="0 0 40 17" stroke={color} strokeWidth="1.5" fill="none">
+    <IconSvg width={width} height={height} viewBox="0 0 40 17" stroke={color} strokeWidth="1.5" fill="none">
       <Path d="M34.812 8.5H38.5661" strokeMiterlimit="10" />
       <Path d="M13.238 8.5H26.8286" strokeMiterlimit="10" />
       <Path d="M1.43384 8.5H5.52702" strokeMiterlimit="10" />
@@ -41,7 +42,7 @@ export function IconBarbell2Unselected(props: IInnerProps): JSX.Element {
         d="M35.0265 5.54129V11.4587C35.0265 12.1719 34.4219 12.75 33.6761 12.75H30.582V4.25H33.6761C34.4219 4.25 35.0265 4.82814 35.0265 5.54129Z"
         strokeMiterlimit="10"
       />
-    </Svg>
+    </IconSvg>
   );
 }
 
@@ -50,7 +51,7 @@ export function IconBarbell2Selected(props: IInnerProps): JSX.Element {
   const height = width / 2.5;
   const color = props.color ?? Tailwind_colors().white;
   return (
-    <Svg width={width} height={height} viewBox="0 0 40 17" fill="none" stroke={color} strokeWidth="1.5">
+    <IconSvg width={width} height={height} viewBox="0 0 40 17" fill="none" stroke={color} strokeWidth="1.5">
       <Path d="M34.812 8.5H38.5661" strokeMiterlimit="10" />
       <Path d="M13.238 8.5H28.4761" strokeMiterlimit="10" />
       <Path d="M1.43384 8.5H5.52702" strokeMiterlimit="10" />
@@ -74,6 +75,6 @@ export function IconBarbell2Selected(props: IInnerProps): JSX.Element {
         fill="white"
         strokeMiterlimit="10"
       />
-    </Svg>
+    </IconSvg>
   );
 }
