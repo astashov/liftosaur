@@ -12,6 +12,7 @@ import {
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
 import { ImageCache_initialUri, ImageCache_markMissing, ImageCache_download } from "../utils/imageCache";
+import { useRemScale } from "../utils/useRem";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -42,6 +43,7 @@ function areExerciseImagePropsEqual(prev: IProps, next: IProps): boolean {
 
 export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Element | null {
   const { size } = props;
+  const remScale = useRemScale();
   const exercise = Exercise_get(props.exerciseType, props.settings?.exercises || {});
   const exerciseType = {
     id: props.exerciseType.id,
@@ -90,7 +92,7 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
   };
 
   if (size === "small") {
-    const w = props.width || 32;
+    const w = Math.round((props.width || 32) * remScale);
     const imgStyle = { width: w, height: Math.round(w * 1.5) };
     return (
       <>
@@ -112,13 +114,16 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
               className={`items-start justify-center overflow-hidden bg-background-image ${props.className ?? ""} ${props.customClassName ?? ""}`}
               style={imgStyle}
             >
-              <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
+              <Text
+                className="text-xs text-text-secondarysubtle"
+                style={{ fontSize: 11 * remScale, lineHeight: 13 * remScale }}
+              >
                 {Exercise_nameWithEquipment(exercise, props.settings)}
               </Text>
             </View>
           ) : (
             <View className={`items-center justify-center ${props.className ?? ""}`} style={imgStyle}>
-              <IconDefaultExercise size={props.width || 32} />
+              <IconDefaultExercise size={w} />
             </View>
           ))}
       </>

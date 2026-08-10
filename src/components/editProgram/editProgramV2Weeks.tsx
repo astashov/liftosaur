@@ -22,7 +22,6 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { LinkButton } from "../linkButton";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
-import { useRem } from "../../utils/useRem";
 
 export interface IPlannerContentWeeksProps {
   state: IPlannerState;
@@ -78,7 +77,6 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const { evaluatedWeeks } = PlannerProgram_evaluate(plannerProgram, props.settings);
-  const rem = useRem();
 
   return (
     <View>
@@ -321,7 +319,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                                 key={`${exerciseType.id}-${exerciseType.equipment}`}
                                                 settings={props.settings}
                                                 exerciseType={exerciseType}
-                                                width={rem * 1.5}
+                                                width={24}
                                                 size="small"
                                                 className="w-6 mr-1"
                                               />

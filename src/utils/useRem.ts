@@ -8,6 +8,10 @@ export function useRem(): number {
   return useSyncExternalStore(remSubscribe, remGet, remServerGet);
 }
 
+export function useRemScale(): number {
+  return useRem() / BASE_REM;
+}
+
 export function Rem_set(size: number): void {
   if (typeof document !== "undefined") {
     const root = document.documentElement;
@@ -15,6 +19,7 @@ export function Rem_set(size: number): void {
     const scale = size / BASE_REM;
     const vars: Record<string, string> = {
       "--spacing": `${4 * scale}px`,
+      "--text-2xs": `${10 * scale}px`,
       "--text-xs": `${12 * scale}px`,
       "--text-sm": `${14 * scale}px`,
       "--text-base": `${16 * scale}px`,

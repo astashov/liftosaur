@@ -10,6 +10,7 @@ const THEMES = ["light", "dark"] as const;
 function scaledVars(scale: number): Record<string, number> {
   return {
     "--spacing": 4 * scale,
+    "--text-2xs": 10 * scale,
     "--text-xs": 12 * scale,
     "--text-sm": 14 * scale,
     "--text-base": 16 * scale,
@@ -28,6 +29,10 @@ export function useRem(): number {
     () => currentRem,
     () => currentRem
   );
+}
+
+export function useRemScale(): number {
+  return useRem() / BASE_REM;
 }
 
 export function Rem_set(size: number): void {

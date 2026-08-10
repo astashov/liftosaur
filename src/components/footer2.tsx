@@ -90,9 +90,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           >
             <CreateButton isActive={currentTab === "workout"} />
           </Pressable>
-          <Text
-            className={`text-[0.625rem] pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}
-          >
+          <Text className={`text-2xs pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}>
             Workout
           </Text>
         </View>

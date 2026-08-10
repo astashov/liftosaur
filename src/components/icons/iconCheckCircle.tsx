@@ -1,7 +1,8 @@
 import { JSX } from "react";
 import { View } from "react-native";
 import { Path } from "../primitives/svg";
-import { IconSvg, IconSvg_useScale } from "./iconSvg";
+import { IconSvg } from "./iconSvg";
+import { useRemScale } from "../../utils/useRem";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -17,7 +18,7 @@ export function IconCheckCircle(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.purple;
   const checkColor = props.checkColor || Tailwind_semantic().background.default;
   const size = props.size || 20;
-  const scale = IconSvg_useScale();
+  const scale = useRemScale();
   if (props.isChecked) {
     return (
       <IconSvg

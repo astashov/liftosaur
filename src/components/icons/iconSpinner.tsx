@@ -1,7 +1,8 @@
 import { JSX, useEffect, useRef } from "react";
 import { Animated, Easing, Platform } from "react-native";
 import { Path } from "../primitives/svg";
-import { IconSvg, IconSvg_useScale } from "./iconSvg";
+import { IconSvg } from "./iconSvg";
+import { useRemScale } from "../../utils/useRem";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -12,7 +13,7 @@ interface IProps {
 
 export function IconSpinner(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
-  const scale = IconSvg_useScale();
+  const scale = useRemScale();
   const spinValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
