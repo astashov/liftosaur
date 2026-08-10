@@ -12,6 +12,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
+import { Tailwind_isDark } from "../utils/tailwindConfig";
+
+// Matches the radius iOS gives formSheets, so both kinds of sheet read the same.
+const SHEET_CORNER_RADIUS = 24;
 
 interface IProps {
   children: ReactNode;
@@ -48,11 +52,14 @@ export function TransparentModal(props: IProps): JSX.Element {
   const sheetHeight = Math.round(screenHeight * 0.85);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+  // Dimming does nothing over a black background, so dark mode lifts the covered content
+  // instead of darkening it - the sheet stays the darker of the two surfaces.
+  const isDark = Tailwind_isDark();
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: true }),
-      Animated.timing(overlayOpacity, { toValue: 0.5, duration: 200, useNativeDriver: true }),
+      Animated.timing(overlayOpacity, { toValue: isDark ? 0.1 : 0.5, duration: 200, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -95,7 +102,10 @@ export function TransparentModal(props: IProps): JSX.Element {
   return (
     <SheetPanContext.Provider value={panResponder}>
       <View className="justify-end flex-1">
-        <Animated.View className="absolute inset-0 bg-black" style={{ opacity: overlayOpacity }}>
+        <Animated.View
+          className="absolute inset-0"
+          style={{ backgroundColor: isDark ? "white" : "black", opacity: overlayOpacity }}
+        >
           <Pressable className="absolute inset-0" onPress={handleClose} />
         </Animated.View>
         <Animated.View
@@ -103,8 +113,8 @@ export function TransparentModal(props: IProps): JSX.Element {
           style={{
             ...(props.fitContent ? null : { height: sheetHeight + insets.bottom + keyboardHeight }),
             paddingBottom: props.safeAreaContent != null ? 0 : insets.bottom + keyboardHeight,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
+            borderTopLeftRadius: SHEET_CORNER_RADIUS,
+            borderTopRightRadius: SHEET_CORNER_RADIUS,
             transform: [{ translateY }],
           }}
         >

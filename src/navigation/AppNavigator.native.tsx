@@ -1,6 +1,7 @@
 import { createContext, JSX, useContext } from "react";
 import { Platform } from "react-native";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { SheetBackdropLift, SheetBackdropPresence } from "./SheetBackdropContext";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type {
@@ -141,6 +142,35 @@ function renderScreenWithErrorBoundary(args: {
     <ScreenErrorBoundary screenName={args.route.name} navigation={args.navigation}>
       {args.children}
     </ScreenErrorBoundary>
+  );
+}
+
+function renderFormSheetScreen(args: {
+  route: { name: string };
+  navigation: { canGoBack?: () => boolean; goBack?: () => void };
+  children: JSX.Element;
+}): JSX.Element {
+  return (
+    <>
+      {renderScreenWithErrorBoundary(args)}
+      <SheetBackdropPresence />
+    </>
+  );
+}
+
+// The lift has to live inside whichever screen a sheet is presented over: Android draws its sheet
+// and scrim in this same hierarchy, so an overlay any higher up would cover the sheet itself.
+// react-navigation leaves the screen below the focused one unfrozen, so this keeps animating.
+function renderPresentingScreen(args: {
+  route: { name: string };
+  navigation: { canGoBack?: () => boolean; goBack?: () => void };
+  children: JSX.Element;
+}): JSX.Element {
+  return (
+    <>
+      {renderScreenWithErrorBoundary(args)}
+      <SheetBackdropLift />
+    </>
   );
 }
 
@@ -355,13 +385,15 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         screenLayout={renderScreenWithErrorBoundary}
         initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
       >
-        <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
-        <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
-        <RootStack.Screen
-          name="subscription"
-          component={NavScreenSubscription}
-          options={{ headerShown: true, header: NavHeader }}
-        />
+        <RootStack.Group screenLayout={renderPresentingScreen}>
+          <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
+          <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
+          <RootStack.Screen
+            name="subscription"
+            component={NavScreenSubscription}
+            options={{ headerShown: true, header: NavHeader }}
+          />
+        </RootStack.Group>
         <RootStack.Group
           screenOptions={{
             presentation: "transparentModal",
@@ -381,6 +413,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="editorSheetExercisePickerModal" component={NavModalEditorSheetExercisePicker} />
         </RootStack.Group>
         <RootStack.Group
+          screenLayout={renderFormSheetScreen}
           screenOptions={{
             presentation: "formSheet",
             headerShown: false,

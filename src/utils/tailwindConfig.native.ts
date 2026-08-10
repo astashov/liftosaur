@@ -13,3 +13,7 @@ export function Tailwind_semantic(): ISemanticColors["light"] {
   const theme = Uniwind.currentTheme === "dark" ? "dark" : "light";
   return semanticColors[theme];
 }
+
+export function Tailwind_isDark(): boolean {
+  return Uniwind.currentTheme === "dark";
+}

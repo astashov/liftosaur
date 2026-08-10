@@ -219,6 +219,7 @@ import { ModalStateProvider } from "./navigation/ModalStateContext";
 import { ClickTrackingContext } from "./utils/clickTracking";
 import { ActiveSheetHeightProvider } from "./navigation/ActiveSheetHeightContext";
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
+import { SheetBackdropProvider } from "./navigation/SheetBackdropContext";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
 import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanup";
@@ -692,49 +693,51 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
           <ClickTrackingContext.Provider value={dispatch}>
             <ModalStateProvider>
               <ActiveSheetHeightProvider>
-                <CustomKeyboardProvider>
-                  <SystemBars style="auto" />
-                  <NavigationContainer
-                    ref={navigationRef}
-                    theme={transparentNavTheme}
-                    onStateChange={() => {
-                      const route = navigationRef.getCurrentRoute();
-                      setCurrentScreenName(route?.name as IScreen | undefined);
-                      PerfNavTracker_handleStateChange(route?.name);
-                      if (route?.key !== lastRouteKeyRef.current) {
-                        PerfFrameSampler_flush(lastScreenNameRef.current);
-                        PerfScorecard_onScreenChange(route?.name);
-                        lastRouteKeyRef.current = route?.key;
-                        lastScreenNameRef.current = route?.name;
-                      }
-                    }}
-                    onReady={() => {
-                      const route = navigationRef.getCurrentRoute();
-                      setCurrentScreenName(route?.name as IScreen | undefined);
-                      setIsNavReady(true);
-                      PerfNavTracker_handleStateChange(route?.name);
-                      if (route?.key !== lastRouteKeyRef.current) {
-                        PerfFrameSampler_flush(lastScreenNameRef.current);
-                        PerfScorecard_onScreenChange(route?.name);
-                        lastRouteKeyRef.current = route?.key;
-                        lastScreenNameRef.current = route?.name;
-                      }
-                    }}
-                  >
-                    <AppNavigator initialScreen={initialScreen} />
-                  </NavigationContainer>
-                  {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-                    <RestTimer
-                      progress={progress}
-                      dispatch={dispatch}
-                      settings={state.storage.settings}
-                      subscription={state.storage.subscription}
-                    />
-                  )}
-                  <ActionSheetHost />
-                  <PromptHost />
-                  <Toast toast={state.toast} dispatch={dispatch} />
-                </CustomKeyboardProvider>
+                <SheetBackdropProvider>
+                  <CustomKeyboardProvider>
+                    <SystemBars style="auto" />
+                    <NavigationContainer
+                      ref={navigationRef}
+                      theme={transparentNavTheme}
+                      onStateChange={() => {
+                        const route = navigationRef.getCurrentRoute();
+                        setCurrentScreenName(route?.name as IScreen | undefined);
+                        PerfNavTracker_handleStateChange(route?.name);
+                        if (route?.key !== lastRouteKeyRef.current) {
+                          PerfFrameSampler_flush(lastScreenNameRef.current);
+                          PerfScorecard_onScreenChange(route?.name);
+                          lastRouteKeyRef.current = route?.key;
+                          lastScreenNameRef.current = route?.name;
+                        }
+                      }}
+                      onReady={() => {
+                        const route = navigationRef.getCurrentRoute();
+                        setCurrentScreenName(route?.name as IScreen | undefined);
+                        setIsNavReady(true);
+                        PerfNavTracker_handleStateChange(route?.name);
+                        if (route?.key !== lastRouteKeyRef.current) {
+                          PerfFrameSampler_flush(lastScreenNameRef.current);
+                          PerfScorecard_onScreenChange(route?.name);
+                          lastRouteKeyRef.current = route?.key;
+                          lastScreenNameRef.current = route?.name;
+                        }
+                      }}
+                    >
+                      <AppNavigator initialScreen={initialScreen} />
+                    </NavigationContainer>
+                    {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+                      <RestTimer
+                        progress={progress}
+                        dispatch={dispatch}
+                        settings={state.storage.settings}
+                        subscription={state.storage.subscription}
+                      />
+                    )}
+                    <ActionSheetHost />
+                    <PromptHost />
+                    <Toast toast={state.toast} dispatch={dispatch} />
+                  </CustomKeyboardProvider>
+                </SheetBackdropProvider>
               </ActiveSheetHeightProvider>
             </ModalStateProvider>
           </ClickTrackingContext.Provider>

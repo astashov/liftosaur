@@ -48,6 +48,10 @@ export function Tailwind_semantic(): ISemanticVars {
   return semanticColors[theme] as unknown as ISemanticVars;
 }
 
+export function Tailwind_isDark(): boolean {
+  return Tailwind_semantic().background.default === baseColors.black;
+}
+
 export function Tailwind_semanticConcrete(): ISemanticVars {
   return semanticColors.light as unknown as ISemanticVars;
 }
