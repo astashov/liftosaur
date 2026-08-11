@@ -162,7 +162,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_history",
     description:
       'Retrieve workout history records in Liftohistory text format. Example record:\n\n```\n2026-02-28T10:45:30Z / program: "5/3/1" / dayName: "Push Day" / week: 1 / dayInWeek: 5 / duration: 1235s / exercises: {\n  Bench Press, Barbell / 3x8 185lb @7, 1x6 185lb @9 / warmup: 1x10 95lb / target: 3x8-12 185lb @8 90s\n}\n```\n\nUse startDate/endDate (ISO dates or unix timestamps) to filter by date range. Use limit/cursor for pagination (max 200 per page).',
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get workout history", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -176,7 +176,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "get_history_record",
     description: "Get a single workout history record by ID. Returns the record in Liftohistory text format.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get workout record", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -189,7 +189,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "create_history_record",
     description:
       "Create a new workout history record. The text must be a single workout record in Liftohistory format. Call get_liftohistory_reference first if you are unsure about the format.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Create workout record", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -202,7 +202,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_history_record",
     description:
       "Update an existing workout history record. The text must be a single workout record in Liftohistory format.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update workout record", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -215,7 +215,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "delete_history_record",
     description: "Delete a workout history record by ID.",
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: { title: "Delete workout record", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -229,7 +229,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "list_programs",
     description: "List all user's programs. Returns id, name, and whether each is the currently active program.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List programs", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {},
@@ -239,7 +239,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_program",
     description:
       'Get a program\'s full source in Liftoscript format. Use id="current" to get the currently active program. Liftoscript is a custom DSL for weightlifting programs — call get_liftoscript_reference for the language guide.',
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get program", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -255,7 +255,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "create_program",
     description:
       "Create a new weightlifting program from Liftoscript source code.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate the program before saving.\n\nWhen designing a program from scratch (not transcribing a published one), also call get_program_design_guide first for volume, intensity, and progression targets.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Create program", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -269,7 +269,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_program",
     description:
       "Update an existing program's Liftoscript source code. Use id=\"current\" to update the active program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate before saving.\n\nWhen redesigning a program's structure (volume, splits, progressions) rather than making a targeted edit, also call get_program_design_guide for volume, intensity, and progression targets.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update program", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -286,7 +286,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "delete_program",
     description: "Delete a program by ID. Cannot delete the currently active program.",
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: { title: "Delete program", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -301,7 +301,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "run_playground",
     description:
       "Simulate a workout to validate program logic and test progressions. Returns the workout in Liftohistory format. Optionally pass commands to simulate user actions:\n\n- complete_set(exercise, set) — mark a set done (1-indexed)\n- change_weight(exercise, set, weight) — e.g. change_weight(1, 1, 185lb)\n- change_reps(exercise, set, reps)\n- change_rpe(exercise, set, rpe)\n- change_set_time(exercise, set, seconds) — for timed (isometric hold) sets; complete_set already records the held time as the programmed duration, use this to override it\n- set_state_variable(exercise, name, value)\n- finish_workout() — runs all progression scripts, returns updatedProgramText\n\nUse this to verify a program works correctly before saving with create_program or update_program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE writing programText. If you get parse errors, call get_liftoscript_reference and try again.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Simulate workout", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -321,7 +321,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_liftoscript_reference",
     description:
       "Get the Liftoscript language reference. Liftoscript is a custom DSL for defining weightlifting programs in Liftosaur — it is NOT a standard format and you cannot guess the syntax.\n\nYou MUST call this BEFORE creating or editing any program. The reference covers: exercise syntax, sets/reps/weight notation, progressions (lp, dp, custom), templates, multi-week programs, state variables, supersets, warmups, and common mistakes to avoid.\n\nAfter reading this, also call get_liftoscript_examples for complete program examples.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: {
+      title: "Get Liftoscript reference",
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {},
@@ -331,7 +336,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_liftoscript_examples",
     description:
       "Get complete Liftoscript program examples. Call this after get_liftoscript_reference to see full working programs demonstrating various features (linear progression, 5/3/1, GZCL, PPL, etc.).",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: {
+      title: "Get Liftoscript examples",
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {},
@@ -341,7 +351,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_program_design_guide",
     description:
       'Get the evidence-based program design guide: weekly volume targets per muscle group, intensity and rep ranges, progression schemes, splits by days per week, deloads, and calisthenics — mapped to Liftoscript constructs and get_program_stats semantics.\n\nCall this BEFORE designing a program from scratch (e.g. "make me a 3-day hypertrophy program") so the program hits effective volume and progression targets. Do NOT use it when transcribing a published program (5/3/1, GZCLP, etc.) — transcribe those faithfully.',
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: {
+      title: "Get program design guide",
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {},
@@ -351,7 +366,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_liftohistory_reference",
     description:
       "Get the Liftohistory format reference. Liftohistory is a human-readable text format for workout history records used by Liftosaur. Call this if you need to create or edit history records and are unsure about the format.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: {
+      title: "Get Liftohistory reference",
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {},
@@ -360,7 +380,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "list_builtin_programs",
     description: "List all built-in Liftosaur programs with their id and name.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List built-in programs", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {},
@@ -370,7 +390,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_builtin_program",
     description:
       "Get a built-in program's full markdown file — includes description and Liftoscript source code. Use this to see how real programs are written.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get built-in program", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -383,7 +403,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_exercises",
     description:
       "List all built-in exercise names available in Liftosaur. Use this to find the correct exercise name and equipment variant (e.g. 'Standing Calf Raise' instead of 'Calf Raise', or 'Bicep Curl, Barbell' instead of 'Barbell Curl').",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List built-in exercises", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {},
@@ -395,7 +415,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_custom_exercises",
     description:
       "List the user's custom exercises. Returns id, name, target muscles, synergist muscles, and types for each. Use limit/cursor for pagination (max 200 per page).",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List custom exercises", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -407,7 +427,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "get_custom_exercise",
     description: "Get a single custom exercise by ID.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get custom exercise", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -420,7 +440,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "create_custom_exercise",
     description:
       "Create a custom exercise, or update an existing one with the same name. If a custom exercise with the same name (case-insensitive) already exists, it will be updated with the provided fields and the existing ID is preserved — this keeps workout history linked correctly.\n\nOnly the name is required. Use this when a program references an exercise that doesn't exist in the built-in exercise list (from list_exercises). You should determine appropriate values for targetMuscles, synergistMuscles, and types based on the exercise name.\n\nAvailable muscles: Adductor Brevis, Adductor Longus, Adductor Magnus, Biceps Brachii, Brachialis, Brachioradialis, Deltoid Anterior, Deltoid Lateral, Deltoid Posterior, Erector Spinae, Gastrocnemius, Gluteus Maximus, Gluteus Medius, Hamstrings, Iliopsoas, Infraspinatus, Latissimus Dorsi, Levator Scapulae, Obliques, Pectineous, Pectoralis Major Clavicular Head, Pectoralis Major Sternal Head, Quadriceps, Rectus Abdominis, Sartorius, Serratus Anterior, Soleus, Splenius, Sternocleidomastoid, Tensor Fasciae Latae, Teres Major, Teres Minor, Tibialis Anterior, Trapezius Lower Fibers, Trapezius Middle Fibers, Trapezius Upper Fibers, Triceps Brachii, Wrist Extensors, Wrist Flexors.\n\nAvailable types: core, pull, push, legs, upper, lower.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Create custom exercise", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -450,7 +470,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_custom_exercise",
     description:
       "Update an existing custom exercise. Only provided fields are changed; omitted fields keep their current values.\n\nSee create_custom_exercise for available muscles and types.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update custom exercise", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -479,7 +499,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "delete_custom_exercise",
     description: "Delete a custom exercise by ID.",
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: { title: "Delete custom exercise", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -492,7 +512,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_program_stats",
     description:
       "Analyze a Liftoscript program and return stats: approximate workout duration per day, total weekly sets, strength vs hypertrophy breakdown, and weekly volume per muscle group with exercise contributions. Useful for reviewing program balance before creating or updating.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Analyze program stats", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -507,14 +527,14 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_gyms",
     description:
       "List the user's gyms. Equipment (bars, plates, etc.) is configured per gym, so you need a gym's id before reading or editing its equipment. Returns id, name, whether it's the current gym, and equipment count. Most users have a single gym.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List gyms", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "create_gym",
     description:
       "Create a new gym. The new gym starts with a copy of the current gym's equipment, which you can then edit. Use a separate gym per physical location (e.g. 'Home', 'Office').",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Create gym", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -526,7 +546,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "update_gym",
     description: "Rename a gym and/or make it the current (active) gym.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update gym", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -540,7 +560,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "delete_gym",
     description: "Delete a gym. Cannot delete the last remaining gym.",
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: { title: "Delete gym", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -555,7 +575,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_equipment",
     description:
       "List all of a gym's equipment, including soft-deleted ones (each carries an isDeleted flag). Equipment configuration (bar weight, available plates, fixed weights) drives how Liftosaur rounds prescribed weights during a workout. Built-in equipment keys: barbell, cable, dumbbell, smith, band, kettlebell, bodyweight, leverageMachine, medicineball, ezbar, trapbar. Custom equipment has keys like 'equipment-xxxxxxxx'. Call list_gyms first to get the gymId.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List equipment", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -568,7 +588,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "get_equipment",
     description:
       "Get a single equipment's full configuration (bar weights, plates, fixed weights, multiplier, unit) within a gym.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get equipment", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -582,7 +602,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_equipment",
     description:
       'Update a gym\'s equipment. Only provided fields change; omitted fields keep their current values. Weights are strings like "45lb" or "20kg". Out-of-range values are clamped. Works for built-in and custom equipment. To soft-delete or restore equipment, set the isDeleted field (true removes it from workout pickers — the config is kept — false restores it).',
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update equipment", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -597,7 +617,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "create_custom_equipment",
     description:
       "Create a new custom equipment in a gym (beyond the 11 built-ins). Starts from sensible defaults; pass the same fields as update_equipment to configure bar/plates/etc. Returns the generated equipment id.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: {
+      title: "Create custom equipment",
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {
@@ -613,14 +638,14 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_exercise_data",
     description:
       "List all per-exercise settings the user has customized (1 rep max, weight rounding, per-gym equipment overrides, notes, muscle overrides, unilateral flag). Each entry is keyed by an exercise key: a built-in exercise id joined with its equipment by '_' (e.g. 'squat_barbell', 'benchPress_barbell'), or a custom exercise id. Exercises without any customization don't appear here — that's expected; their values fall back to defaults. Use this to discover the exact keys already in use before writing with set_exercise_data.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List exercise settings", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "get_exercise_data",
     description:
       "Get the customized settings for a single exercise key (e.g. 'squat_barbell', 'benchPress_barbell'). Returns 404 if the exercise has no customizations stored. Use list_exercises for valid built-in exercise ids and list_custom_exercises for custom ones.",
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get exercise settings", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -637,7 +662,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "set_exercise_data",
     description:
       "Set (upsert) per-exercise settings for an exercise key like 'squat_barbell' or 'benchPress_barbell'. Use this to set a user's 1 rep max (rm1), weight rounding, per-gym equipment overrides, notes, muscle overrides, or the unilateral flag. Only provided fields change; omitted fields keep their current values; pass null for a field to clear it (revert to default). The key's exercise must exist (built-in id from list_exercises, joined with its equipment by '_', or a custom exercise id). Prefer the equipment-qualified key that matches how the user trains — a bare built-in id only matches the no-equipment variant and won't affect normal barbell/dumbbell entries.",
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Set exercise settings", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -655,7 +680,12 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "delete_exercise_data",
     description:
       "Delete all stored customizations for an exercise key, reverting the exercise (1RM, rounding, equipment override, notes, muscles, unilateral) entirely to defaults. To clear just one field, use set_exercise_data with that field set to null instead.",
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: {
+      title: "Delete exercise settings",
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: false,
+    },
     inputSchema: {
       type: "object",
       properties: {
@@ -670,13 +700,13 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "list_measurements",
     description:
       'Overview of the user\'s tracked body measurements and daily health metrics. Each measurement is keyed by name and falls in one of four categories: weight (`weight` = bodyweight, in kg/lb), percentage (`bodyfat`, in %), length (a body part, in cm/in), or health (`sleep` in minutes per night, `calories` in kcal/day, `protein` in g/day — read-only daily aggregates imported from Apple Health / Health Connect, timestamped at local midnight of the day they belong to; sleep is bucketed to the wake day). Returns, per key that has data, the total `count` of recorded values and the `latest` one (with its unix epoch ms `timestamp`, an ISO 8601 `date`, and a unit-suffixed `value` like "180lb" or "432min"). Keys with no recorded values are omitted. This does NOT return the full series — a key can have thousands of values; page through them with get_measurement.',
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "List measurements", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "get_measurement",
     description: `Get the recorded history for a single measurement key, newest-first, paginated. ${MEASUREMENT_KEYS_DESC} Returns up to 'limit' values plus 'hasMore' and 'nextCursor'; pass 'nextCursor' back as 'cursor' to fetch the next (older) page. An empty list means nothing has been recorded for that key yet.`,
-    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Get measurement history", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -690,7 +720,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "add_measurement",
     description: `Record a new measurement value. ${MEASUREMENT_WRITE_KEYS_DESC} timestamp defaults to now; pass a unix epoch ms or ISO 8601 date to backfill a past entry. Fails with a conflict if an entry already exists at that exact timestamp — use update_measurement instead.`,
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Add measurement", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -707,7 +737,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "update_measurement",
     description: `Change the reading of an existing measurement value, identified by its key and timestamp (from list/get). ${MEASUREMENT_WRITE_KEYS_DESC} The timestamp is the entry's identity and can't be changed here — to re-date an entry, delete_measurement it and add_measurement it at the new time.`,
-    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update measurement", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -724,7 +754,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "delete_measurement",
     description: `Delete a single recorded measurement value, identified by its key and timestamp (from list/get). ${MEASUREMENT_KEYS_DESC} For the health keys, whose records are imported from Apple Health / Health Connect, deleting hides the record instead of removing it: it disappears from all reads and stays hidden across re-imports, and can be unhidden from the app's Sleep & Nutrition screen.`,
-    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    annotations: { title: "Delete measurement", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
