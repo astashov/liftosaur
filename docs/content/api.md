@@ -703,11 +703,12 @@ Clears all stored customizations for the exercise key, reverting it entirely to 
 
 ### List Measurements
 
-Body measurements (bodyweight, body parts, and bodyfat) are recorded as time series. Each measurement is addressed by a _key_ that falls in one of three categories, and every value is a number with an **explicit unit suffix**:
+Body measurements (bodyweight, body parts, bodyfat) and daily health metrics (sleep, calories, protein) are recorded as time series. Each measurement is addressed by a _key_ that falls in one of four categories, and every value is a number with an **explicit unit suffix**:
 
 - **weight** — `weight` (bodyweight), e.g. `"180lb"` / `"82kg"`.
 - **percentage** — `bodyfat`, e.g. `"18%"`.
 - **length** — a body part, e.g. `"37cm"` / `"14.75in"`: `neck`, `shoulders`, `bicepLeft`, `bicepRight`, `forearmLeft`, `forearmRight`, `chest`, `waist`, `hips`, `thighLeft`, `thighRight`, `calfLeft`, `calfRight`.
+- **health** — daily totals imported from Apple Health / Health Connect: `sleep` (`"423min"`), `calories` (`"2450kcal"`), `protein` (`"180g"`). These are **read-only** — see Add Measurement below.
 
 ```
 GET /api/v1/measurements
@@ -771,6 +772,8 @@ Content-Type: application/json
 - `timestamp` (optional) — unix epoch ms or an ISO 8601 date string. Defaults to now.
 
 Returns the created value (`201`). Fails with `409` if a value already exists at that exact timestamp for the key — use Update Measurement instead.
+
+The **health** keys (`sleep`, `calories`, `protein`) are imported automatically from Apple Health / Health Connect and can't be added or edited through the API — Add and Update return `400` for them. Delete works, but hides the record rather than removing it (a true delete would be re-created by the next import); hidden records are excluded from every API read, and can be unhidden from the app's Sleep & Nutrition screen.
 
 ### Update Measurement
 

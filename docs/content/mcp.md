@@ -267,11 +267,11 @@ These are the tools the AI assistant can call on your behalf:
 
 | Tool | What it does |
 |------|-------------|
-| `list_measurements` | Overview of tracked body measurements (bodyweight, body parts, bodyfat): count + latest value per key |
-| `get_measurement` | Get the recorded history for one key (e.g. `weight`, `chest`, `bodyfat`), newest-first, paginated |
-| `add_measurement` | Record a new value with a unit suffix (e.g. `180lb`, `37cm`, `18%`); timestamp defaults to now |
+| `list_measurements` | Overview of tracked measurements — body (bodyweight, body parts, bodyfat) and daily health metrics (sleep, calories, protein): count + latest value per key |
+| `get_measurement` | Get the recorded history for one key (e.g. `weight`, `chest`, `bodyfat`, `sleep`, `calories`), newest-first, paginated |
+| `add_measurement` | Record a new value with a unit suffix (e.g. `180lb`, `37cm`, `18%`); timestamp defaults to now. Health keys are read-only |
 | `update_measurement` | Change the reading at a given timestamp (the timestamp itself is fixed — re-date via delete + add) |
-| `delete_measurement` | Delete a single recorded value |
+| `delete_measurement` | Delete a single recorded value (imported health records are hidden rather than deleted) |
 
 ### Testing and Analysis
 
