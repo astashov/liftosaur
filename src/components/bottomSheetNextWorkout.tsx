@@ -62,7 +62,10 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
           dispatch={props.dispatch}
         />
       )}
-      <View className="flex-row justify-between pt-6 bg-background-default" style={{ paddingBottom: insets.bottom }}>
+      <View
+        className="flex-row flex-wrap justify-around pt-4 gap-x-3 gap-y-2 bg-background-default"
+        style={{ paddingBottom: insets.bottom }}
+      >
         <LinkButton
           name="change-next-day"
           data-testid="change-next-day"
