@@ -3,6 +3,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
 import {
   Program_evaluate,
@@ -254,7 +255,7 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
   const plannerExerciseRef = useRef(plannerExercise);
   plannerExerciseRef.current = plannerExercise;
 
-  const onClose = useCallback((): void => {
+  const clearExercisePicker = useCallback((): void => {
     if (isEditProgram) {
       const base = buildPlannerDispatch(
         dispatch,
@@ -290,8 +291,12 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
         "Close exercise picker"
       );
     }
+  }, [dispatch, isEditProgram, exerciseStateKey, programId]);
+  useClearOnModalRemove(clearExercisePicker);
+
+  const onClose = useCallback((): void => {
     navigation.goBack();
-  }, [dispatch, isEditProgram, exerciseStateKey, programId, navigation]);
+  }, [navigation]);
 
   const onChoose = useCallback(
     (selectedExercises: IExercisePickerSelectedExercise[]) => {
