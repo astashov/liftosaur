@@ -18,7 +18,7 @@ export function NavModalChangePassword(): JSX.Element {
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <FormSheet>
-        <View className="px-4 pb-4">
+        <View className="px-gutter pb-4">
           <Text className="mb-2 text-lg font-bold text-center">Change Password</Text>
           <ChangePasswordForm service={service} onDone={() => onClose()} />
         </View>

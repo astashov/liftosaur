@@ -40,7 +40,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
 
   return (
     <View className="flex flex-col flex-1 h-screen bg-background-default">
-      <View className="flex-1 px-4 pt-16 pb-4">
+      <View className="flex-1 px-gutter pt-16 pb-4">
         <StorySlider
           slides={[
             <FirstSlide />,

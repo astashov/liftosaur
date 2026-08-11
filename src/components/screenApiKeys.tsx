@@ -83,7 +83,7 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "API Keys" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       {!isLoggedIn ? (
         <View className="py-8">
           <Text className="mb-4 text-center text-text-secondary">

@@ -19,7 +19,7 @@ interface ISectionProps {
 function Section(props: ISectionProps): JSX.Element {
   return (
     <>
-      <View className="px-4">
+      <View className="px-gutter">
         <Text className="pt-4 pb-2 text-lg font-bold">{props.title}</Text>
         {props.description}
       </View>

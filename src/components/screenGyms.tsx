@@ -31,7 +31,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Gyms" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       {gyms.map((gym) => {
         return (
           <MenuItem

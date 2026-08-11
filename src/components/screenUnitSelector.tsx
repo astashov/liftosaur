@@ -23,7 +23,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
 
   return (
     <View className="flex flex-col flex-1 bg-background-default">
-      <View className="flex-1 px-4 pt-16 pb-4">
+      <View className="flex-1 px-gutter pt-16 pb-4">
         <View className="w-full h-full border border-border-cardyellow rounded-2xl bg-background-cardyellow">
           <View className="items-center p-4">
             <Image

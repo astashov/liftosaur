@@ -274,7 +274,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               setEditorScroll((prev) => (prev.content === height ? prev : { ...prev, content: height }))
             }
           >
-            <View className="px-4 py-3">
+            <View className="px-gutter py-3">
               <LiftoEditor
                 {...controller.editorProps}
                 // Room for Android's cursor drop handle under the last line (~24dp, not

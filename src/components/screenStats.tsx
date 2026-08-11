@@ -227,7 +227,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <Text className="py-2 text-sm text-text-secondary">
         All fields are optional, input only the fields you want this time. Empty fields won't be added.
       </Text>

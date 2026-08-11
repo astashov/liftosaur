@@ -18,7 +18,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Apple Health" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <MenuItemEditable
         name="Sync Workouts"
         type="boolean"

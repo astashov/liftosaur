@@ -124,7 +124,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
       <SheetDragHandle>
         <View className="flex-row items-center pt-0 pb-4 mt-2">
           <Pressable
-            className="px-4 py-2"
+            className="px-gutter py-2"
             hitSlop={12}
             data-testid="muscle-overrides-close"
             testID="muscle-overrides-close"
@@ -133,7 +133,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
             <IconClose2 size={22} />
           </Pressable>
           <View className="flex-1" />
-          <View className="px-4">
+          <View className="px-gutter">
             <Button
               kind="purple"
               buttonSize="md"
@@ -174,7 +174,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
         keyboardDismissMode="interactive"
         automaticallyAdjustKeyboardInsets
       >
-        <View className="px-4">
+        <View className="px-gutter">
           <MusclesOverrideList
             musclesAndMultipliers={musclesAndMultipliers}
             setMusclesAndMultipliers={setMusclesAndMultipliers}

@@ -19,7 +19,7 @@ export function ScreenRecentImports(props: IProps): JSX.Element {
   const importSessions = [...(props.importSessions ?? [])].reverse();
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       {importSessions.length === 0 ? (
         <Text className="py-8 text-center text-text-secondary">No recent imports</Text>
       ) : (

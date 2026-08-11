@@ -438,7 +438,7 @@ interface IWeekTabBarProps {
 const WeekTabBar = memo(function WeekTabBar(props: IWeekTabBarProps): JSX.Element {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="bg-background-default">
-      <View className="flex-row gap-2 px-4 py-2">
+      <View className="flex-row gap-2 px-gutter py-2">
         {props.labels.map((label, index) => {
           const isSelected = props.activeIndex === index;
           const isInvalid = props.invalidIndices?.[index] ?? false;
@@ -509,7 +509,7 @@ const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHea
   const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
   const duration = TimeUtils_formatHOrMin(time);
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <View className="flex-row items-center gap-2">
         <View className="flex-1">
           <ContentGrowingTextarea

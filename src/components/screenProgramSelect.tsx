@@ -72,7 +72,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       className="flex flex-col flex-1 bg-background-default"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
     >
-      <View className="flex-1 px-4 pt-8 pb-4">
+      <View className="flex-1 px-gutter pt-8 pb-4">
         <View className="items-center p-4">
           <Image
             source={{ uri: ImagePreloader_uri("/images/dinoprogramselect.png") }}

@@ -26,7 +26,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
   const programValues = useMemo(() => programs.map((p): [string, string] => [p.id, p.name]), [programs]);
   const topHeader = useMemo(
     () => (
-      <View className="px-4" pointerEvents="box-none">
+      <View className="px-gutter" pointerEvents="box-none">
         <MenuItemEditable
           type="select"
           name="Program"

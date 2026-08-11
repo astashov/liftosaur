@@ -19,7 +19,7 @@ export function ScreenExercises(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Exercises", navHelpKey: "exercises" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <ExercisesList
         isLoggedIn={!!props.navCommon.userId}
         dispatch={props.dispatch}

@@ -122,7 +122,7 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
         estimatedItemSize={300}
         style={{ flex: 1 }}
         renderItem={({ item }) => (
-          <View className="px-4 mb-6" pointerEvents="none">
+          <View className="px-gutter mb-6" pointerEvents="none">
             <HistoryRecordView
               historyRecord={item}
               showTitle={true}
@@ -133,7 +133,7 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
           </View>
         )}
         ListHeaderComponent={
-          <View className="px-4 pb-4">
+          <View className="px-gutter pb-4">
             <Text className="text-base font-semibold">
               Import {importSummary.workoutCount} {StringUtils_pluralize("workout", importSummary.workoutCount)}
             </Text>

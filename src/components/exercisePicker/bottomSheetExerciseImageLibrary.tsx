@@ -141,7 +141,7 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
 
   const header = (
     <SheetDragHandle>
-      <View collapsable={false} className="px-4 pb-2">
+      <View collapsable={false} className="px-gutter pb-2">
         <Text className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise Image</Text>
         <View className="flex-row items-center gap-2 p-2 rounded-lg bg-background-neutral">
           <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />

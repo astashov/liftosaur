@@ -16,7 +16,7 @@ export function BottomSheetMuscleGroupMusclePicker(props: IExercisePickerCustomE
   const muscles = Muscle_getMusclesFromScreenMuscle(props.muscleGroup, props.settings);
   return (
     <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={false} zIndex={60}>
-      <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
+      <div className="flex flex-col h-full px-gutter py-2" style={{ marginTop: "-0.5rem" }}>
         <h3 className="pt-2 pb-3 text-base font-semibold text-center">Choose Muscles</h3>
         <div className="flex-1 overflow-y-auto">
           <div className="pb-4">

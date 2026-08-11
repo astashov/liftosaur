@@ -104,7 +104,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
   return (
     <>
-      <View className="px-4 pb-6">
+      <View className="px-gutter pb-6">
         <View className="flex-row items-center justify-center pb-2">
           {Platform.OS === "web" ? (
             <SvgUri uri={HostConfig_resolveUrl(ImagePreloader_dynohappy)} width={170} height={150} />
@@ -112,7 +112,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <SvgXml xml={BundledImages_svgXml(ImagePreloader_dynohappy) ?? ""} width={170} height={150} />
           )}
         </View>
-        <View className="items-center px-4 pb-2">
+        <View className="items-center px-gutter pb-2">
           <Text className="text-sm text-text-secondary">{record.programName}</Text>
           <Text className="text-base">{record.dayName}</Text>
         </View>
@@ -177,7 +177,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           </View>
         </View>
 
-        <View className="px-4 py-4 mt-4">
+        <View className="px-gutter py-4 mt-4">
           <PersonalRecords prs={allPrs} historyRecords={[record]} settings={props.settings} />
         </View>
 
@@ -240,7 +240,7 @@ interface IMobileShareProps {
 function MobileShare(props: IMobileShareProps): JSX.Element {
   const historyRecordId = props.record.id;
   return (
-    <View className="px-4 py-4">
+    <View className="px-gutter py-4">
       <GroupHeader name="Share it!" />
       <View className="flex-row justify-between gap-4">
         <View className="items-center">
@@ -325,7 +325,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
   const userId = props.userId;
 
   return (
-    <View className="px-4 py-4">
+    <View className="px-gutter py-4">
       <GroupHeader name="Share it!" />
       <View className="flex-row justify-between gap-4">
         <View className="items-center">

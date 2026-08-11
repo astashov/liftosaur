@@ -52,7 +52,7 @@ export function ScreenSleepNutrition(props: IProps): JSX.Element {
 
   if (keysWithData.length === 0) {
     return (
-      <View className="px-4">
+      <View className="px-gutter">
         <Text className="py-16 text-center text-text-secondary">
           No sleep or nutrition data yet. Enable syncing in your Apple Health or Google Health settings, and it will
           appear here as it's imported.
@@ -98,7 +98,7 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
 
   if (all.length === 0) {
     return (
-      <View className="px-4">
+      <View className="px-gutter">
         <Text className="py-12 text-center text-text-secondary">No {Stats_name(statsKey)} data yet</Text>
       </View>
     );
@@ -116,7 +116,7 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
   );
 
   return (
-    <View className="px-4 pb-8">
+    <View className="px-gutter pb-8">
       <View className="relative">
         {graphPoints.length > 2 && (
           <>

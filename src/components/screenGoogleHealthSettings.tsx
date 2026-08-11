@@ -18,7 +18,7 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Google Health Connect" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <MenuItemEditable
         name="Sync Workouts"
         type="boolean"

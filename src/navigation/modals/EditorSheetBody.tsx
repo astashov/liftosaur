@@ -59,7 +59,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   };
 
   return (
-    <View testID="editor-sheet" className="px-4 pb-4">
+    <View testID="editor-sheet" className="px-gutter pb-4">
       {/* pr-10 clears the sheet container's absolutely-positioned close button. */}
       <View className="flex-row items-center gap-2 pb-2 pr-10">
         <View className="flex-1">

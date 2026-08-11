@@ -202,7 +202,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     return (
       <NavScreenContent>
         <SubscriptionHero />
-        <View className="flex-1 items-center justify-center px-4" style={{ paddingBottom: insets.bottom + 16 }}>
+        <View className="flex-1 items-center justify-center px-gutter" style={{ paddingBottom: insets.bottom + 16 }}>
           <IconSpinner width={24} height={24} />
           <Text className="mt-3 text-sm text-text-secondary">Checking your subscription…</Text>
         </View>
@@ -218,7 +218,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   return (
     <NavScreenContent>
       <SubscriptionHero />
-      <View className="flex-1 px-4" style={{ paddingBottom: insets.bottom + 16 }}>
+      <View className="flex-1 px-gutter" style={{ paddingBottom: insets.bottom + 16 }}>
         {isPitch || isUnclaimed ? <PitchHeader /> : <StatusHeader plan={plan} />}
         <FeatureList isIos={isIos} />
         <View>

@@ -31,7 +31,7 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
   };
 
   const header = (
-    <View className="flex-row items-center px-4 pt-4 pb-3">
+    <View className="flex-row items-center px-gutter pt-4 pb-3">
       <Text className="flex-1 text-base font-semibold text-center">Choose Muscles</Text>
       <View className="absolute right-4">
         <Button

@@ -58,7 +58,7 @@ export function NavModalEditMuscleGroups(): JSX.Element {
   }
 
   const content = (
-    <View className="px-4 py-2">
+    <View className="px-gutter py-2">
       <MuscleGroupsContent
         onCreate={(name) => {
           onNewSettings(

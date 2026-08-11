@@ -133,7 +133,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
   });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <GroupHeader name="Current Account" />
       <MenuItem
         isBorderless={true}

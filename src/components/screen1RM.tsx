@@ -51,14 +51,14 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
         keyboardShouldPersistTaps="never"
         keyboardDismissMode="interactive"
       >
-        <View className="px-4 pb-2">
+        <View className="px-gutter pb-2">
           <Text className="text-sm">
             The selected program uses <Text className="text-sm font-bold">1RM</Text> -{" "}
             <Text className="text-sm font-bold">1 Rep Max</Text> weights - it calculates set weights based on what
             weight you can do for 1 rep max.
           </Text>
         </View>
-        <View className="px-4 pb-2">
+        <View className="px-gutter pb-2">
           <Text className="text-sm">
             Enter your <Text className="text-sm font-bold">1 Rep Max</Text> for the following exercises. If you don't
             know it, but you know <Text className="text-sm font-bold">N rep max</Text> (for example, you remember you
@@ -66,7 +66,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
             <Text className="text-sm font-bold">1 Rep Max calculator in the keyboard</Text>.
           </Text>
         </View>
-        <View className="px-4 pb-4">
+        <View className="px-gutter pb-4">
           <Text className="text-sm font-bold text-text-secondary">
             You can skip it - and do it later during your first workout!
           </Text>

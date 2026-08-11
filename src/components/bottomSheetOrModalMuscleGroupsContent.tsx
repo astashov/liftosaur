@@ -19,7 +19,7 @@ interface IBottomSheetOrModalMuscleGroupsContentProps {
 export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModalMuscleGroupsContentProps): JSX.Element {
   return (
     <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={false} zIndex={50}>
-      <div className="px-4 py-2">
+      <div className="px-gutter py-2">
         <MuscleGroupsContent
           useInlineModals={true}
           onCreate={(name) => {

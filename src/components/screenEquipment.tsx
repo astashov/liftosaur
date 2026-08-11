@@ -93,7 +93,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
 
   if (props.settings.gyms.length > 1) {
     children.push(
-      <View key="gym-name" className="px-4 pb-2">
+      <View key="gym-name" className="px-gutter pb-2">
         <MenuItemEditable
           type="text"
           name="Gym Name"

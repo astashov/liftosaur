@@ -23,7 +23,7 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Muscle Groups" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <MuscleGroupsContent
         onCreate={(name) => {
           updateSettings(

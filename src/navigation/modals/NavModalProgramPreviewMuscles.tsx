@@ -68,7 +68,7 @@ export function NavModalProgramPreviewMuscles(): JSX.Element {
       <FormSheet
         noPadding
         scrollEnabled={!isLocked}
-        header={<Text className="px-4 pt-4 pb-2 text-xl font-bold text-center">{title}</Text>}
+        header={<Text className="px-gutter pt-4 pb-2 text-xl font-bold text-center">{title}</Text>}
       >
         <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
         {isLocked && <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} />}

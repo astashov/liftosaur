@@ -92,7 +92,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Me", navHelpKey: "settings" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <MenuItem
         shouldShowRightArrow={true}
         name="Program"

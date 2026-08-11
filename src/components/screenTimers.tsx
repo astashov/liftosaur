@@ -35,7 +35,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Rest Timers", navHelpKey: "timers" });
 
   return (
-    <View className="px-4">
+    <View className="px-gutter">
       <GroupHeader name="Rest Timers between sets" />
       <MenuItemEditable
         name="Warmup"
