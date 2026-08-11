@@ -14,6 +14,18 @@
 -->
 
 ---
+date: 2026-08-10
+title: Text size now scales the whole app, and follows your device setting
+---
+
+When you had the Aa (for font-size) slider moved to the right, and also increased font-size in your device settings,
+it used to multiply the values, completely breaking the app layout (because the font size became huuuge).
+
+Fixed that, now the font size slider is the only thing that controls the app's text size. It also uses the device's font size as the starting point, so if you have a larger system font, the app will start out larger too.
+
+Also the icons, exercise thumbnails, etc also scale with the text now. Everything scales together!
+
+---
 date: 2026-08-09
 title: Embrace Liftoscript, part 1: Redesign of the "Edit Program Exercise" screen
 ---
