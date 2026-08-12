@@ -14,6 +14,32 @@
 -->
 
 ---
+date: 2026-08-12
+title: Improvements in exercise swapping during workout
+---
+
+When you swap an exercise during a workout, it now remembers the last exercises you swapped, and offers them in a "Recent" section at the top of the exercise picker. That should make doing repeated swaps faster.
+
+Also, it used to keep the same weight when you swap to an adhoc exercise. Which only makes sense if you used 1RM percentage weights. But for absolute weights it almost never makes sense.
+
+So, now it'll try to adjust the weight. It'll try to find the latest weights you did for the same reps in history, and use that weight. If it couldn't - it'll try to find the closest and infer from it. If it couldn't - it'll infer the weights from 1RM.
+
+And for warmups - it'll check if you have specific warmup config in your current program for that exercise, and will use that if it's there. Otherwise - just fallback to the default warmups.
+
+---
+date: 2026-08-11
+title: Swapping an exercise now adjusts the weights to match
+---
+
+When you swapped an exercise mid-workout, only the exercise changed - the weights stayed exactly as they were. That's fine if your program uses percentages of 1RM, but if it uses absolute weights, you'd swap Leg Press for a Lateral Raise and end up staring at a 500lb lateral raise.
+
+Now the weights come along with the swap. For each set, the app looks at your history for the exercise you're swapping **to**, finds the set closest in reps to what you're about to do, and converts that weight to your target reps and RPE. If the reps and RPE match, you just get the weight you actually lifted last time. Sets with different reps each get their own weight, so a 12/10/8 pyramid comes back as a pyramid.
+
+If you've never done the new exercise before, it falls back to your 1RM for it, or the exercise's default starting weight if you haven't set one - which is what percentage-based sets have always done on a swap. Either way, correcting it once is enough: your correction becomes history, so the next swap picks it up.
+
+Warmups get rebuilt for the new exercise too - from the warmups your program defines for it if it has any, and from that exercise's defaults otherwise.
+
+---
 date: 2026-08-10
 title: Text size now scales the whole app, and follows your device setting
 ---
