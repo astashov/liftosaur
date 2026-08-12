@@ -1652,6 +1652,11 @@ export function Progress_applyProgramExercise(
           isAmrap: programSet.isAmrap,
           logRpe: programSet.logRpe,
           label: programSet.label,
+          timer: programSet.timer,
+          setTimer: programSet.setTimer,
+          isOverflowSetTimer: programSet.isOverflowSetTimer,
+          auto: programSet.auto,
+          askWeight: programSet.askWeight,
         });
       }
     }
@@ -1695,6 +1700,11 @@ export function Progress_applyProgramExercise(
         logRpe: set.logRpe,
         isAmrap: set.isAmrap,
         label: set.label,
+        timer: set.timer,
+        setTimer: set.setTimer,
+        isOverflowSetTimer: set.isOverflowSetTimer,
+        auto: set.auto,
+        askWeight: set.askWeight,
       };
     });
     const firstWeight = newSets[0]?.weight;
