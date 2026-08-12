@@ -4,6 +4,7 @@ import { Directions, Gesture, GestureDetector } from "react-native-gesture-handl
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useModal } from "../ModalStateContext";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
+import { CollectionUtils_compact } from "../../utils/collection";
 import type { IExercisePickerSelectedExercise } from "../../types";
 import type { ILiftoEditorReuseSelection } from "../../components/primitives/liftoEditorActions";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
@@ -58,12 +59,44 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   });
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
+    // Follows the text, so plates and units track an exercise swapped mid-session instead of
+    // the one the sheet opened on; falls back to the snapshot when the name doesn't resolve.
+    exerciseTypeFor: (fullName) => props.exerciseFor?.(fullName)?.exerciseType,
     actions: {
       // The sheet edits one exercise, so its picker data and reuse candidates are
       // precomputed by the host and knowing where the focused exercise starts adds nothing.
-      pickExercise: (_current, _exerciseStart, onSelect) => {
+      pickExercise: (_current, exerciseFullName, onSelect) => {
         pickerSelectRef.current = onSelect;
-        openExercisePicker(props.pickerData ?? {});
+        // Which exercise is preselected comes from the text, not from props.pickerData:
+        // reopening the picker after a swap must show what the blurb says now, and neither
+        // that nor the exercise the program still has here counts as "already used" — both
+        // are this one slot.
+        const openPicker = (): void => {
+          const base = props.pickerData ?? {};
+          const identity = props.exerciseFor?.(exerciseFullName);
+          openExercisePicker({
+            ...base,
+            ...(identity ?? {}),
+            excludeUsedExerciseTypes: CollectionUtils_compact([
+              ...(base.excludeUsedExerciseTypes ?? []),
+              identity?.exerciseType,
+            ]),
+          });
+        };
+        // Asked before the picker, while the user is still thinking about the exercise —
+        // by the time they've picked one, "and where should this apply?" reads as a detour.
+        const beforeChange = props.onBeforeChangeExercise;
+        if (beforeChange == null) {
+          openPicker();
+          return;
+        }
+        beforeChange().then((proceed) => {
+          if (proceed) {
+            openPicker();
+          } else {
+            pickerSelectRef.current = undefined;
+          }
+        });
       },
       promptRename: (current, onSubmit) => {
         renameSubmitRef.current = onSubmit;
@@ -156,6 +189,15 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     requestAnimationFrame(() => railRef.current?.scrollTo({ x: Math.max(0, x - 24), animated: false }));
   };
 
+  // Freeform can rename the exercise into a different one by typing, which is the same
+  // program-level change the pill makes — so Apply is where that gets noticed.
+  const applyFreeform = async (): Promise<void> => {
+    if (props.onBeforeApply != null && !(await props.onBeforeApply(controller.text))) {
+      return;
+    }
+    controller.switchToStructured();
+  };
+
   const selectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
     if (instance.isSelected) {
       return;
@@ -246,7 +288,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             kind="purple"
             buttonSize="sm"
             className="text-xs"
-            onPress={isFreeform ? controller.switchToStructured : () => props.onDone(controller.text)}
+            onPress={isFreeform ? applyFreeform : () => props.onDone(controller.text)}
           >
             {isFreeform ? "Apply" : "Save"}
           </Button>

@@ -11,13 +11,28 @@ import {
   Program_getProgramExercise,
 } from "../../models/program";
 import { ILiftoEditorReuseCandidates, LiftoEditorReuse_candidates } from "../../components/liftoEditorReuse";
-import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
-import type { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
+import { LiftoEditorBrain_exerciseFullName, LiftoEditorParseCache } from "../../components/primitives/liftoEditorBrain";
+import {
+  IProgramExerciseIdentity,
+  IProgramExerciseParsedName,
+  IProgramExerciseSwap,
+  ProgramExerciseSwap_detect,
+  ProgramExerciseSwap_identity,
+  ProgramExerciseSwap_workoutRemap,
+  IProgramExerciseSwapScope,
+} from "../../models/programExerciseSwap";
+import {
+  Progress_getCurrentProgress,
+  Progress_lbProgress,
+  Progress_remapProgramExerciseId,
+} from "../../models/progress";
+import { EditProgramUiHelpers_getChangedKeys } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramExerciseText_apply, ProgramExerciseText_findDeclaration } from "../../models/programExerciseText";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
-import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
-import type { IDayData, IPlannerProgram, IProgram, ISettings } from "../../types";
+import { Dialog_alert, Dialog_choice, Dialog_confirm } from "../../utils/dialog";
+import type { IDayData, IProgram } from "../../types";
 import type { IRootStackParamList } from "../types";
 import { Platform, View } from "react-native";
 import { Text } from "../../components/primitives/text";
@@ -36,59 +51,6 @@ Bench Press, Barbell / 3x8-10 @8 60s / 80% / warmup: 2x5 45%, 1x3 60%
 Deadlift[1-3] / 1x5 / 150kg+ / update: custom() {~ weights += 2.5kg ~}
 `;
 
-// Where the exercise's source text physically lives: repeat instances carry the
-// declaration's text/line but their own dayData, so anchor edits to the non-repeat
-// declaration that repeats into the opened week.
-function findDeclaration(
-  evaluatedProgram: IEvaluatedProgram,
-  programExercise: IPlannerProgramExercise
-): IPlannerProgramExercise {
-  if (!programExercise.isRepeat) {
-    return programExercise;
-  }
-  return (
-    Program_getAllProgramExercises(evaluatedProgram).find(
-      (e) => e.key === programExercise.key && !e.isRepeat && e.repeating.includes(programExercise.dayData.week)
-    ) ?? programExercise
-  );
-}
-
-// Identical exercise lines commonly appear in several weeks (repeated weeks written out),
-// so the replacement must target the declaration's exact day and line, not the first
-// occurrence anywhere in the planner.
-function replaceExerciseTextInPlanner(
-  planner: IPlannerProgram,
-  declaration: IPlannerProgramExercise,
-  oldText: string,
-  newText: string
-): { planner: IPlannerProgram; dayTextOffset: number } | undefined {
-  const weekIndex = declaration.dayData.week - 1;
-  const dayIndex = declaration.dayData.dayInWeek - 1;
-  const day = planner.weeks[weekIndex]?.days[dayIndex];
-  if (day == null) {
-    return undefined;
-  }
-  const lineStart = day.exerciseText
-    .split("\n")
-    .slice(0, declaration.line - 1)
-    .reduce((sum, l) => sum + l.length + 1, 0);
-  const at = day.exerciseText.indexOf(oldText, lineStart);
-  if (at === -1) {
-    return undefined;
-  }
-  const newExerciseText = day.exerciseText.slice(0, at) + newText + day.exerciseText.slice(at + oldText.length);
-  const newWeeks = planner.weeks.map((w, wi) =>
-    wi === weekIndex
-      ? { ...w, days: w.days.map((d, di) => (di === dayIndex ? { ...d, exerciseText: newExerciseText } : d)) }
-      : w
-  );
-  return { planner: { ...planner, weeks: newWeeks }, dayTextOffset: at };
-}
-
-function cleanErrorMessage(message: string): string {
-  return message.replace(/\s*\(\d+:\d+\)$/, "");
-}
-
 // In a single-week program the week name is the same on every chip, so only day names carry
 // information there.
 function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData: IDayData): string {
@@ -106,59 +68,6 @@ function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData:
 function resolveProgram(state: IState, programId: string, isFromWorkout: boolean): IProgram | undefined {
   const draft = !isFromWorkout ? state.editProgramStates[programId]?.current.program : undefined;
   return draft ?? Program_getProgram(state, programId);
-}
-
-// The evaluator can throw outright on drafts it never sees from saved programs (e.g. a
-// reuse pointing at a week that doesn't exist) — and live validation feeds it every
-// keystroke, so a throw must become an error result, not a crash.
-function evaluateSplicedPlanner(
-  replaced: { planner: IPlannerProgram; dayTextOffset: number },
-  declaration: IPlannerProgramExercise,
-  trimmed: string,
-  settings: ISettings
-): IEditorSheetLiveError | undefined {
-  try {
-    const { evaluatedWeeks } = PlannerProgram_evaluate(replaced.planner, settings);
-    return findEvalError(evaluatedWeeks, {
-      weekIndex: declaration.dayData.week - 1,
-      dayIndex: declaration.dayData.dayInWeek - 1,
-      from: replaced.dayTextOffset,
-      to: replaced.dayTextOffset + trimmed.length,
-    });
-  } catch (e) {
-    return { message: e instanceof Error ? e.message : String(e) };
-  }
-}
-
-// Errors inside the edited exercise come back with blurb-local from/to (so the sheet can
-// tint the line); errors elsewhere (e.g. the edit broke a `...reuse` on another day) are
-// message-only, prefixed with where they are.
-function findEvalError(
-  evaluatedWeeks: IPlannerEvalResult[][],
-  edited: { weekIndex: number; dayIndex: number; from: number; to: number }
-): IEditorSheetLiveError | undefined {
-  let firstOutside: IEditorSheetLiveError | undefined;
-  for (let wi = 0; wi < evaluatedWeeks.length; wi += 1) {
-    for (let di = 0; di < evaluatedWeeks[wi].length; di += 1) {
-      const result = evaluatedWeeks[wi][di];
-      if (!result.success) {
-        const error = result.error;
-        const isInEdited =
-          wi === edited.weekIndex && di === edited.dayIndex && error.from >= edited.from && error.to <= edited.to;
-        if (isInEdited) {
-          return {
-            message: cleanErrorMessage(error.message),
-            from: error.from - edited.from,
-            to: error.to - edited.from,
-          };
-        }
-        firstOutside = firstOutside ?? {
-          message: `Week ${wi + 1}, Day ${di + 1}: ${cleanErrorMessage(error.message)}`,
-        };
-      }
-    }
-  }
-  return firstOutside;
 }
 
 export function NavModalEditorSheet(): JSX.Element {
@@ -192,7 +101,7 @@ export function NavModalEditorSheet(): JSX.Element {
       evaluatedProgram,
       programExercise,
       instances,
-      initialDayData: findDeclaration(evaluatedProgram, programExercise).dayData,
+      initialDayData: ProgramExerciseText_findDeclaration(evaluatedProgram, programExercise).dayData,
     };
   });
   const [selectedDayData, setSelectedDayData] = useState(snapshot?.initialDayData ?? params?.dayData);
@@ -239,7 +148,74 @@ export function NavModalEditorSheet(): JSX.Element {
     );
   };
 
-  const onDone = (newText: string): void => {
+  // One cache for the sheet's own parses; the editor below keeps its own.
+  const parseCacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
+  const parseName = (text: string): IProgramExerciseParsedName | undefined => {
+    const cache = parseCacheRef.current ?? new LiftoEditorParseCache();
+    parseCacheRef.current = cache;
+    return LiftoEditorBrain_exerciseFullName(cache, text);
+  };
+  const detectSwap = (text: string, declaration: IPlannerProgramExercise): IProgramExerciseSwap | undefined => {
+    const parsed = parseName(text);
+    return parsed != null ? ProgramExerciseSwap_detect(parsed, declaration, state.storage.settings) : undefined;
+  };
+
+  // A bare full name is parsed too rather than picked apart by hand — it is the same grammar,
+  // and the cache makes the extra parse a lookup.
+  const exerciseFor = (fullName: string | undefined): IProgramExerciseIdentity | undefined => {
+    const parsed = fullName != null ? parseName(fullName) : undefined;
+    return parsed != null ? ProgramExerciseSwap_identity(parsed, state.storage.settings) : undefined;
+  };
+
+  // Asked when the exercise changes — before the picker, or on Apply — rather than at save,
+  // where the user has long moved on. Kept here because the body remounts.
+  const swapScopeRef = useRef<IProgramExerciseSwapScope | undefined>(undefined);
+  const requestSwapScope = async (isLadder: boolean): Promise<IProgramExerciseSwapScope | undefined> => {
+    const declarations = snapshot?.instances.length ?? 1;
+    // With a single declaration "this day" and "everywhere" are the same edit, and scoping to
+    // a day would break a declaration that repeats into other weeks. A ladder change always
+    // reaches every instance too — the rungs are the exercise's identity — so asking there
+    // would be asking a question whose answer is then ignored.
+    if (isLadder || declarations < 2) {
+      return "all";
+    }
+    if (swapScopeRef.current != null) {
+      return swapScopeRef.current;
+    }
+    const choice = await Dialog_choice(
+      "Change exercise",
+      `This exercise is set up separately on ${declarations} days of this program.`,
+      ["Change only this day", "Change across whole program"]
+    );
+    if (choice == null) {
+      return undefined;
+    }
+    swapScopeRef.current = choice === 0 ? "one" : "all";
+    return swapScopeRef.current;
+  };
+
+  // The pill knows a swap is coming before the picker opens; freeform only knows once the
+  // text is applied, so there the question is asked on Apply.
+  const onBeforeChangeExercise = async (): Promise<boolean> => {
+    // The picked exercise isn't known yet, but an exercise that is already a ladder can only
+    // be changed as one, so that is enough to know the question doesn't apply.
+    const isLadder = (currentExercise?.exerciseVariations?.length ?? 0) > 1;
+    return (await requestSwapScope(isLadder)) != null;
+  };
+
+  const onBeforeApply = async (text: string): Promise<boolean> => {
+    if (currentExercise == null || snapshot == null) {
+      return true;
+    }
+    const declaration = ProgramExerciseText_findDeclaration(snapshot.evaluatedProgram, currentExercise);
+    const swap = detectSwap(text.trim(), declaration);
+    if (swap == null) {
+      return true;
+    }
+    return (await requestSwapScope(swap.isLadder)) != null;
+  };
+
+  const onDone = async (newText: string): Promise<void> => {
     const trimmed = newText.trim();
     if (params == null || snapshot == null || currentExercise == null || trimmed === currentExercise.text) {
       onClose();
@@ -260,22 +236,41 @@ export function NavModalEditorSheet(): JSX.Element {
     }
     const evaluatedProgram = Program_evaluate(program, state.storage.settings);
     const programExercise = Program_getProgramExercise(currentExercise.dayData.day, evaluatedProgram, params.key);
-    const declaration = programExercise != null ? findDeclaration(evaluatedProgram, programExercise) : undefined;
-    const replaced =
-      declaration != null
-        ? replaceExerciseTextInPlanner(program.planner, declaration, declaration.text, trimmed)
-        : undefined;
-    if (declaration == null || replaced == null) {
+    const declaration =
+      programExercise != null ? ProgramExerciseText_findDeclaration(evaluatedProgram, programExercise) : undefined;
+    if (declaration == null) {
       Dialog_alert("Couldn't find this exercise in the program anymore, so the changes weren't saved.");
       onClose();
       return;
     }
-    const evalError = evaluateSplicedPlanner(replaced, declaration, trimmed, state.storage.settings);
-    if (evalError != null) {
-      Dialog_alert(evalError.message);
+    const swap = detectSwap(trimmed, declaration);
+    // Reachable when the name was changed on a surface with no Apply step (the web body), or
+    // when the sheet was opened again on a text that already carries the change.
+    const scope = swap != null ? await requestSwapScope(swap.isLadder) : "all";
+    if (scope == null) {
       return;
     }
-    const updatedProgram = { ...program, planner: replaced.planner };
+    const applied = ProgramExerciseText_apply(
+      program.planner,
+      declaration,
+      trimmed,
+      swap,
+      scope,
+      state.storage.settings
+    );
+    if ("error" in applied) {
+      Dialog_alert(applied.error.message);
+      return;
+    }
+    const updatedProgram = { ...program, planner: applied.planner };
+    const newKey =
+      swap != null
+        ? EditProgramUiHelpers_getChangedKeys(program.planner, applied.planner, state.storage.settings)[declaration.key]
+        : undefined;
+    const updatedExercises =
+      swap != null && newKey != null
+        ? Program_getAllProgramExercises(Program_evaluate(updatedProgram, state.storage.settings))
+        : [];
     const hasEditorDraft = state.editProgramStates[updatedProgram.id] != null;
     if (!isFromWorkout && hasEditorDraft) {
       // From the program editor the edit stays a draft — the editor's own Save commits
@@ -298,7 +293,40 @@ export function NavModalEditorSheet(): JSX.Element {
           lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)
         );
       }
+      const remap = ProgramExerciseSwap_workoutRemap(
+        Progress_getCurrentProgress(state),
+        updatedProgram.id,
+        Program_getAllProgramExercises(evaluatedProgram),
+        updatedExercises,
+        declaration.key,
+        newKey
+      );
+      if (remap != null) {
+        // Logged sets are the user's own data, so converting them is theirs to decide.
+        const shouldRemap =
+          !remap.needsConfirmation ||
+          (await Dialog_confirm(
+            `You've already logged sets for ${declaration.name} in this workout. Switch them to ${
+              swap?.newFullName ?? "the new exercise"
+            } too?`
+          ));
+        if (shouldRemap) {
+          lensUpdates.push(
+            Progress_lbProgress(0).recordModify((p) => Progress_remapProgramExerciseId(p, remap.oldKey, remap.newKey))
+          );
+        }
+      }
       updateState(dispatch, lensUpdates, "Save program changes");
+    }
+    // Last, so it doesn't compete with the swap confirmation for the screen: a de-conflicting
+    // label appearing out of nowhere is otherwise unexplainable.
+    if (swap != null && newKey != null && newKey !== swap.newKey) {
+      const label = updatedExercises.find((e) => e.key === newKey)?.label;
+      if (label != null) {
+        Dialog_alert(
+          `This program already has a ${swap.newFullName} somewhere else, so this one is labelled "${label}" to keep the two apart.`
+        );
+      }
     }
     onClose();
   };
@@ -317,12 +345,23 @@ export function NavModalEditorSheet(): JSX.Element {
     if (program?.planner == null) {
       return undefined;
     }
-    const declaration = findDeclaration(snapshot.evaluatedProgram, currentExercise);
-    const replaced = replaceExerciseTextInPlanner(program.planner, declaration, declaration.text, trimmed);
-    if (replaced == null) {
+    const declaration = ProgramExerciseText_findDeclaration(snapshot.evaluatedProgram, currentExercise);
+    // Validated the same way it will be saved, including the swap — otherwise a changed
+    // exercise name reports every `...reuse` aimed at the old one as broken, which the save
+    // then goes on to rewrite.
+    const swap = detectSwap(trimmed, declaration);
+    const applied = ProgramExerciseText_apply(
+      program.planner,
+      declaration,
+      trimmed,
+      swap,
+      swapScopeRef.current ?? "all",
+      state.storage.settings
+    );
+    if (!("error" in applied) || applied.notFound) {
       return undefined;
     }
-    const error = evaluateSplicedPlanner(replaced, declaration, trimmed, state.storage.settings);
+    const error = applied.error;
     if (error?.from != null && error.to != null) {
       // The splice uses the trimmed text while the editor shows the untrimmed draft.
       const leading = newText.length - newText.trimStart().length;
@@ -387,6 +426,10 @@ export function NavModalEditorSheet(): JSX.Element {
           templateName: currentExercise.exerciseType == null ? currentExercise.name : undefined,
           evaluatedProgram: snapshot.evaluatedProgram,
           dayData,
+          // This declaration's own slot doesn't conflict with itself, and the program still
+          // holds whatever it had when the sheet opened — so without this, swapping away from
+          // an exercise makes it impossible to swap back to.
+          excludeUsedExerciseTypes: currentExercise.exerciseType != null ? [currentExercise.exerciseType] : undefined,
         }
       : undefined;
 
@@ -425,9 +468,12 @@ export function NavModalEditorSheet(): JSX.Element {
             onModeChange={setEditorMode}
             exerciseFullNames={exerciseFullNames}
             pickerData={pickerData}
+            exerciseFor={exerciseFor}
             onEditReuse={onEditReuse}
             reuseCandidates={reuseCandidates}
             validateText={validateText}
+            onBeforeChangeExercise={onBeforeChangeExercise}
+            onBeforeApply={onBeforeApply}
             onDone={onDone}
           />
         </CustomKeyboardProvider>

@@ -1,12 +1,11 @@
 import type { IDayData } from "../../types";
 import type { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
 import type { ILiftoEditorReuseCandidates } from "../../components/liftoEditorReuse";
+import type { IProgramExerciseIdentity } from "../../models/programExerciseSwap";
+import type { IProgramExerciseTextError } from "../../models/programExerciseText";
 
-export interface IEditorSheetLiveError {
-  message: string;
-  from?: number;
-  to?: number;
-}
+// The banner/line-tint renders exactly what the save pipeline produces, so the two can't drift.
+export type IEditorSheetLiveError = IProgramExerciseTextError;
 
 export interface IEditorSheetInstanceOption {
   dayData: Required<IDayData>;
@@ -23,6 +22,11 @@ export interface IEditorSheetBodyProps {
   // gets exercise names through its own picker instead.
   exerciseFullNames: string[];
   pickerData?: IEditorSheetExercisePickerModalData;
+  // Resolves the exercise the text currently names. `pickerData` is snapshotted when the
+  // sheet opens, so after a swap it describes the exercise that *was* there — anything the
+  // user can act on again (picking another exercise, plate math on the keypad) has to ask
+  // this instead.
+  exerciseFor?: (fullName: string | undefined) => IProgramExerciseIdentity | undefined;
   // Keeps the host informed of the current draft so closing the sheet can warn about
   // unsaved changes.
   onTextChange?: (text: string) => void;
@@ -32,5 +36,10 @@ export interface IEditorSheetBodyProps {
   onModeChange?: (mode: "structured" | "freeform") => void;
   reuseCandidates?: ILiftoEditorReuseCandidates;
   validateText?: (text: string) => IEditorSheetLiveError | undefined;
+  // Changing which exercise this is affects the program beyond this blurb, so the host gets
+  // to ask how far it should reach before the change is made. Both resolve to false when the
+  // user backs out, which cancels the change. The host asks again at save if neither ran.
+  onBeforeChangeExercise?: () => Promise<boolean>;
+  onBeforeApply?: (text: string) => Promise<boolean>;
   onDone: (text: string) => void;
 }

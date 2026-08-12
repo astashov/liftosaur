@@ -1566,6 +1566,31 @@ export function Progress_changeExercise(
   );
 }
 
+// Swapping a program exercise re-keys it, and entries point at the program by key — without
+// this the ongoing workout silently stops following the exercise it came from. Entries the
+// user already swapped by hand (`changed`) keep their own exercise either way, so they're
+// left alone. Once the ids line up the usual ApplyProgramChangesToProgress pass swaps the
+// exercise and regenerates its sets.
+export function Progress_remapProgramExerciseId(
+  progress: IHistoryRecord,
+  oldKey: string,
+  newKey: string
+): IHistoryRecord {
+  const entries = progress.entries.map((entry) =>
+    entry.programExerciseId === oldKey && !entry.changed ? { ...entry, programExerciseId: newKey } : entry
+  );
+  return { ...progress, entries };
+}
+
+export function Progress_hasCompletedSetsForProgramExerciseId(progress: IHistoryRecord, key: string): boolean {
+  return progress.entries.some(
+    (entry) =>
+      entry.programExerciseId === key &&
+      !entry.changed &&
+      (entry.sets.some((set) => set.isCompleted) || entry.warmupSets.some((set) => set.isCompleted))
+  );
+}
+
 export function Progress_changeEquipment(
   dispatch: IDispatch,
   progressId: number,

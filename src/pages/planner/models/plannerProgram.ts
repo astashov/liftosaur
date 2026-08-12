@@ -91,6 +91,16 @@ export function PlannerProgram_replaceWeight(
   return newEvalutedProgram;
 }
 
+// Evaluation throws PlannerSyntaxError rather than returning it, and its prototype chain
+// doesn't survive the ES5 downlevel — `instanceof Error` is false for it, so a caught planner
+// error has to be read structurally or it stringifies to "[object Object]".
+export function PlannerProgram_thrownErrorMessage(error: unknown): string {
+  if (typeof error === "object" && error != null && typeof (error as { message?: unknown }).message === "string") {
+    return (error as { message: string }).message;
+  }
+  return String(error);
+}
+
 export function PlannerProgram_replaceExercise(
   planner: IPlannerProgram,
   key: string,

@@ -7,7 +7,7 @@ import { ExercisePickerContent } from "../../components/exercisePicker/bottomShe
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
 import { Program_getExerciseTypesForWeekDay } from "../../models/program";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
-import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
+import { Exercise_eq, Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import type { ICustomExercise, IExercisePickerSelectedExercise, IExercisePickerState } from "../../types";
 import type { IExercisePickerSettings } from "../../components/exercisePicker/exercisePickerSettings";
 import type { ILensDispatch } from "../../utils/useLensReducer";
@@ -45,13 +45,14 @@ export function NavModalEditorSheetExercisePicker(): JSX.Element {
   }, []);
 
   const evaluatedProgram = data?.evaluatedProgram;
-  const usedExerciseTypes = useMemo(
-    () =>
+  const excludeUsedExerciseTypes = data?.excludeUsedExerciseTypes;
+  const usedExerciseTypes = useMemo(() => {
+    const used =
       evaluatedProgram != null && data?.dayData != null
         ? Program_getExerciseTypesForWeekDay(evaluatedProgram, data.dayData.week, data.dayData.dayInWeek)
-        : [],
-    [evaluatedProgram, data?.dayData]
-  );
+        : [];
+    return used.filter((et) => !(excludeUsedExerciseTypes ?? []).some((excluded) => Exercise_eq(et, excluded)));
+  }, [evaluatedProgram, data?.dayData, excludeUsedExerciseTypes]);
 
   const onClose = useCallback((): void => {
     Modal_clear(modalDispatch, "editorSheetExercisePickerModal");

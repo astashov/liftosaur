@@ -56,6 +56,10 @@ export interface IEditorSheetExercisePickerModalData {
   // that matters is the unsaved draft, and only the opener knows which one that is.
   evaluatedProgram?: IEvaluatedProgram;
   dayData?: Required<IDayData>;
+  // Exercises on that day that must not count as "already used", because they *are* the slot
+  // being edited — the one the program still has there and the one the unsaved text now names.
+  // Without this the picker disables the exercise you are replacing, so a swap can't be undone.
+  excludeUsedExerciseTypes?: IExerciseType[];
 }
 
 export interface IModalDataMap {

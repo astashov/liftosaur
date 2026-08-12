@@ -539,6 +539,85 @@ export function LiftoEditorBrain_scriptReuseBody(
   return { start: body.from, end: body.to };
 }
 
+export interface ILiftoEditorExerciseVariationSpan {
+  // The name as written — label, name and equipment, without the `!` current marker.
+  text: string;
+  start: number;
+  end: number;
+  isCurrent: boolean;
+}
+
+export interface ILiftoEditorExerciseName {
+  fullName: string;
+  start: number;
+  end: number;
+  usedNone: boolean;
+  variations: ILiftoEditorExerciseVariationSpan[];
+}
+
+function trimmedSpan<K extends string>(
+  text: string,
+  from: number,
+  to: number,
+  key: K
+): { [P in K]: string } & { start: number; end: number } {
+  const raw = text.slice(from, to);
+  const trimmed = raw.trim();
+  const start = from + (raw.length - raw.trimStart().length);
+  return { [key]: trimmed, start, end: start + trimmed.length } as { [P in K]: string } & {
+    start: number;
+    end: number;
+  };
+}
+
+// The rungs of a ladder, straight off the grammar. Splitting the full name on "|" and peeling
+// a leading "!" gets the same answer for well-formed text and quietly disagrees for anything
+// else, so the separator and the current marker are read as nodes, never as characters.
+function readVariations(text: string, variations: SyntaxNode): ILiftoEditorExerciseVariationSpan[] {
+  return variations.getChildren(PlannerNodeName.ExerciseVariation).map((variation) => {
+    const name = variation.getChild(PlannerNodeName.ExerciseName);
+    return {
+      ...trimmedSpan(text, name?.from ?? variation.from, name?.to ?? variation.to, "text"),
+      isCurrent: variation.getChild(PlannerNodeName.CurrentVariation) != null,
+    };
+  });
+}
+
+// The exercise's planner fullName (every `|` variation, no properties) and where it sits in
+// the text — the identity of the thing being edited, independent of where the focus is. The
+// span is the trimmed name, so replacing it can't eat the separator that follows. `usedNone`
+// mirrors the evaluator's own `used: none` check rather than matching on the raw text, which
+// would also fire inside a description.
+export function LiftoEditorBrain_exerciseFullName(
+  cache: LiftoEditorParseCache,
+  text: string
+): ILiftoEditorExerciseName | undefined {
+  const tree = cache.parse(text);
+  let variations: Omit<ILiftoEditorExerciseName, "usedNone"> | undefined;
+  let usedNone = false;
+  tree.iterate({
+    enter: (node) => {
+      if (variations == null && node.name === PlannerNodeName.ExerciseVariations) {
+        variations = {
+          ...trimmedSpan(text, node.from, node.to, "fullName"),
+          variations: readVariations(text, node.node),
+        };
+        return false;
+      }
+      if (!usedNone && node.name === PlannerNodeName.ExerciseProperty) {
+        const property = node.node;
+        const name = property.getChild(PlannerNodeName.ExercisePropertyName);
+        if (name != null && nodeText(text, name).trim() === "used") {
+          usedNone = property.getChild(PlannerNodeName.None) != null;
+        }
+        return false;
+      }
+      return true;
+    },
+  });
+  return variations != null ? { ...variations, usedNone } : undefined;
+}
+
 export function LiftoEditorBrain_contextAt(
   cache: LiftoEditorParseCache,
   text: string,

@@ -10,6 +10,17 @@ export async function Dialog_confirm(message: string): Promise<boolean> {
   });
 }
 
+// A pick between named branches, with dismissal ("Cancel") as a distinct answer — unlike
+// Dialog_confirm, where declining and dismissing are the same thing.
+export async function Dialog_choice(title: string, message: string, options: string[]): Promise<number | undefined> {
+  return new Promise((resolve) => {
+    Alert.alert(title, message, [
+      ...options.map((option, index) => ({ text: option, onPress: () => resolve(index) })),
+      { text: "Cancel", style: "cancel" as const, onPress: () => resolve(undefined) },
+    ]);
+  });
+}
+
 export async function Dialog_prompt(message: string): Promise<string | undefined> {
   // Alert.prompt is iOS-only; on Android we render a custom prompt via PromptHost.
   if (Platform.OS === "android") {
