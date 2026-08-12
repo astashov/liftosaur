@@ -270,6 +270,31 @@ describe("LiftoEditorSession", () => {
       expect(switched.session.active?.numeric.kind).to.equal("percentage");
     });
 
+    it("switches a function argument between weight and percentage, keeping the increment", () => {
+      const settings = buildSettings(200);
+      const text = "Squat / 3x8 / progress: lp(5lb)";
+      const result = tapAt(text, "5lb");
+      // `lp(5%)` adds 5%, so the 5 is the same number in either unit — converting it through
+      // the 1RM would turn a 5lb step into a 2.5% one.
+      const percent = LiftoEditorSession_setUnit(result.session, "%", settings, exerciseType);
+      expect(percent.session.active?.buffer).to.equal("5");
+      expect(percent.session.active?.suffix).to.equal("%");
+      expect(LiftoEditorTestUtils_applyEdits(text, percent.effects.edits ?? [])).to.equal(
+        "Squat / 3x8 / progress: lp(5%)"
+      );
+    });
+
+    it("switches a weight inside a script body", () => {
+      const settings = buildSettings(200);
+      const text = "Squat / 3x8 / progress: custom() {~ weights += 5lb ~}";
+      const result = tapAt(text, "5lb");
+      const percent = LiftoEditorSession_setUnit(result.session, "%", settings, exerciseType);
+      expect(percent.session.active?.buffer).to.equal("5");
+      expect(LiftoEditorTestUtils_applyEdits(text, percent.effects.edits ?? [])).to.equal(
+        "Squat / 3x8 / progress: custom() {~ weights += 5% ~}"
+      );
+    });
+
     it("switches a warmup percentage to a weight without going through the 1RM", () => {
       const settings = buildSettings(200);
       const text = "Squat / 3x8 / warmup: 2x5 45%";

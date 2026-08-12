@@ -320,12 +320,13 @@ export function LiftoEditorSession_setUnit(
   }
   const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
   const rm1 = Exercise_onerm(exerciseType, settings);
-  // Nothing to convert through when the exercise has no 1RM (a custom exercise nobody has
-  // entered one for), or in a warmup, where the percentage is of the first work set's weight
-  // rather than the 1RM. The unit still switches — the number just stays as typed, the same
-  // as kg <-> lb does everywhere — because a unit button that silently does nothing reads as
-  // a broken editor.
-  const convertsThroughRm1 = rm1.value > 0 && !LiftoEditorSession_isInWarmup(session);
+  // Only a real lifted load has a percentage of the 1RM that means the same thing. A warmup
+  // percentage is of the first work set's weight; a function argument or a script number is
+  // an increment (`lp(5%)` adds 5%, it doesn't set 5% of the 1RM); and an exercise nobody has
+  // entered a 1RM for has no basis at all. In all three the unit still switches and the
+  // number stays as typed, the same as kg <-> lb does everywhere — a unit button that
+  // silently does nothing reads as a broken editor.
+  const convertsThroughRm1 = rm1.value > 0 && !active.numeric.inFunctionArgs && !LiftoEditorSession_isInWarmup(session);
   let buffer = active.buffer;
   let kind = active.numeric.kind;
   // kg <-> lb keeps the raw value (matching the workout weight input); % conversions go

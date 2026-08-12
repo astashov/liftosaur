@@ -197,10 +197,12 @@ export function useLiftoEditorController(
         );
       }
     }
-    // A percentage is interchangeable with a weight wherever the token is a real load —
-    // including a warmup, where both forms are valid and only the basis differs.
+    // The grammar takes a percentage anywhere it takes a weight — set weights, warmups,
+    // function arguments like lp(5%), state vars, script bodies — so every one of them can
+    // switch between the three. What differs is only whether the 1RM can convert the number
+    // along with the unit, which setUnit decides.
     const enableUnits: (IUnit | IPercentageUnit)[] | undefined =
-      isPercentage || isWeight ? (isLoad ? ["kg", "lb", "%"] : ["kg", "lb"]) : undefined;
+      isPercentage || isWeight ? ["kg", "lb", "%"] : undefined;
     openKeyboard({
       id: "liftoEditorNumber",
       isNegative: active.buffer.startsWith("-"),
