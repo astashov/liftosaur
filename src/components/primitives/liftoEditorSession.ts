@@ -199,7 +199,11 @@ export function LiftoEditorSession_tap(
   if (focused != null && index >= focused.start && index <= focused.end && session.active != null) {
     // Keypad open: the slow re-tap shouldn't reset the typed buffer. Otherwise fall
     // through so a re-tap on a numeric token whose keypad was closed reopens it.
-    return { session: tapped, effects: {} };
+    // Still reported as "open" even though it already is: the keypad host dismisses itself
+    // on any tap that didn't (re)open it, so staying silent here would close the keypad
+    // under the finger — and the layout shift that follows is what makes the second tap of
+    // a double tap miss, leaving no way to reach freeform from a focused number.
+    return { session: tapped, effects: { keypad: "open" } };
   }
   const numericToken = tokens.find((t) => t.numeric != null && index >= t.start && index <= t.end);
   if (numericToken != null) {

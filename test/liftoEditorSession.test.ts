@@ -101,14 +101,27 @@ describe("LiftoEditorSession", () => {
       expect(second.session.active?.buffer).to.equal("8");
     });
 
-    it("keeps the typed buffer on a slow re-tap while the keypad is open", () => {
+    it("keeps the typed buffer and the keypad on a slow re-tap", () => {
       const text = "Squat / 3x8 100kg";
       const first = tapAt(text, "100kg");
       const typed = LiftoEditorSession_keypadInput(first.session, "9");
       const index = LiftoEditorTestUtils_pos(text, "100kg");
       const retap = LiftoEditorSession_tap(typed.session, index, 5000);
       expect(retap.session.active?.buffer).to.equal("9");
-      expect(retap.effects).to.deep.equal({});
+      // The keypad host dismisses itself on any tap that didn't (re)open it, so a re-tap on
+      // the focused number has to claim it — otherwise the first tap of a double tap closes
+      // the keypad and the layout shift makes the second one miss.
+      expect(retap.effects).to.deep.equal({ keypad: "open" });
+    });
+
+    it("reaches freeform by double tapping the number the keypad is open on", () => {
+      const text = "Squat / 3x8 100kg";
+      const index = LiftoEditorTestUtils_pos(text, "100kg");
+      const opened = LiftoEditorSession_tap(LiftoEditorSession_create(text), index, 1000);
+      const first = LiftoEditorSession_tap(opened.session, index, 5000);
+      const second = LiftoEditorSession_tap(first.session, index, 5200);
+      expect(second.session.mode).to.equal("freeform");
+      expect(second.effects.keypad).to.equal("close");
     });
   });
 
