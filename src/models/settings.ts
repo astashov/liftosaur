@@ -379,6 +379,36 @@ export function Settings_toggleStarredExercise(dispatch: IDispatch, key: string)
   );
 }
 
+export const settingsRecentExercisesLimit = 5;
+
+// Keys are never deleted from this map, only overwritten. VersionTracker's nested-object path bumps
+// versions per key present in the new object (versionTrackerUpdateVersions.ts:427), so a removed key
+// never gets its version bumped and the next merge resurrects it. Writing `[]` would sync; deleting
+// would not.
+export function Settings_withRecentSwap(
+  recentExercises: ISettings["recentExercises"],
+  from: IExerciseType,
+  to: IExerciseType
+): Partial<Record<string, string[]>> {
+  const fromKey = Exercise_toKey(from);
+  const toKey = Exercise_toKey(to);
+  const previous = recentExercises?.[fromKey] ?? [];
+  return {
+    ...recentExercises,
+    [fromKey]: [toKey, ...previous.filter((key) => key !== toKey)].slice(0, settingsRecentExercisesLimit),
+  };
+}
+
+export function Settings_addRecentSwap(dispatch: IDispatch, from: IExerciseType, to: IExerciseType): void {
+  updateSettings(
+    dispatch,
+    lb<ISettings>()
+      .p("recentExercises")
+      .recordModify((recentExercises) => Settings_withRecentSwap(recentExercises, from, to)),
+    `Record recent swap from ${Exercise_toKey(from)} to ${Exercise_toKey(to)}`
+  );
+}
+
 export function Settings_changePickerSettings(dispatch: IDispatch, settings: IExercisePickerSettings): void {
   updateSettings(
     dispatch,

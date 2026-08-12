@@ -20,7 +20,11 @@ import {
   Program_nextHistoryEntry,
   Program_getDayData,
 } from "../../models/program";
-import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
+import {
+  Settings_toggleStarredExercise,
+  Settings_changePickerSettings,
+  Settings_addRecentSwap,
+} from "../../models/settings";
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { updateState, updateProgress } from "../../models/state";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
@@ -104,6 +108,10 @@ export function NavModalExercisePicker(): JSX.Element {
           if (currentPickerState.entryIndex == null) {
             Progress_addExercise(dispatch, exercise.exerciseType, currentProgress.entries.length);
           } else {
+            const previousExercise = currentProgress.entries[currentPickerState.entryIndex]?.exercise;
+            if (previousExercise != null) {
+              Settings_addRecentSwap(dispatch, previousExercise, exercise.exerciseType);
+            }
             Progress_changeExercise(
               dispatch,
               currentSettings,

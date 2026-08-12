@@ -1611,6 +1611,7 @@ export interface ISettings {
   startWeekFromMonday?: boolean;
   textSize?: number;
   starredExercises?: Record<string, boolean | undefined>;
+  recentExercises?: Partial<Record<string, string[]>>;
   theme?: "dark" | "light";
   currentBodyweight?: IWeight;
   affiliateEnabled?: boolean;
@@ -1661,6 +1662,7 @@ const _VSettings = v.object({
   startWeekFromMonday: v.optional(v.boolean()),
   textSize: v.optional(v.number()),
   starredExercises: v.optional(v.record(VExerciseId, v.optional(v.boolean()))),
+  recentExercises: v.optional(v.record(VExerciseId, v.optional(v.array(VExerciseId)))),
   theme: v.optional(v.union([v.literal("dark"), v.literal("light")])),
   currentBodyweight: v.optional(VWeight),
   affiliateEnabled: v.optional(v.boolean()),

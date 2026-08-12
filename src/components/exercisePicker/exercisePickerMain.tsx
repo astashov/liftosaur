@@ -37,10 +37,13 @@ import {
   Exercise_filterAndRankByQuery,
   Exercise_filterAndRankCustomByQuery,
   Exercise_matchesQuery,
+  Exercise_fromKey,
+  Exercise_find,
   IExercise,
 } from "../../models/exercise";
 import {
   ExercisePickerUtils_getProgramExercisefullName,
+  ExercisePickerUtils_getAllFilters,
   ExercisePickerUtils_getAllFilterNames,
   ExercisePickerUtils_filterCustomExercises,
   ExercisePickerUtils_sortCustomExercises,
@@ -99,6 +102,7 @@ type IListItem =
   | { kind: "weekTabs" }
   | { kind: "searchFilter" }
   | { kind: "stickyChrome"; showTabs: boolean; sub: "search" | "program" | null; showWeeks: boolean }
+  | { kind: "recentHeader" }
   | { kind: "customHeader" }
   | { kind: "customExercise"; raw: ICustomExercise; exercise: IExercise; key: string }
   | { kind: "builtinHeader" }
@@ -106,6 +110,8 @@ type IListItem =
   | { kind: "programGroup"; group: IProgramGroup }
   | { kind: "programEmpty"; message: string }
   | { kind: "templateForm" };
+
+type IRecentListItem = Extract<IListItem, { kind: "customExercise" | "builtinExercise" }>;
 
 interface ITabDef {
   label: string;
@@ -163,6 +169,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     }
   }, [weeks.length, currentWeekIndex]);
 
+  const [isRecentCollapsed, setIsRecentCollapsed] = useState(false);
   const [isCustomCollapsed, setIsCustomCollapsed] = useState(false);
   const [isBuiltinCollapsed, setIsBuiltinCollapsed] = useState(false);
 
@@ -214,6 +221,36 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       exercise: Exercise_get({ id: raw.id }, settings.exercises),
     }));
   }, [settings, search, useRankOrdering, filters, sort, exerciseType]);
+
+  // Only when swapping, and only unnarrowed: with a query the ranked results are the answer, and with a
+  // filter on, recents that ignore it would contradict the narrowing the user just asked for.
+  const recentExercises = useMemo(() => {
+    const isNarrowed = !!search || ExercisePickerUtils_getAllFilters(filters).length > 0 || !!filters.isStarred;
+    if (mode !== "workout" || exerciseType == null || isNarrowed) {
+      return [];
+    }
+    const keys = settings.recentExercises?.[Exercise_toKey(exerciseType)] ?? [];
+    // Emitted as the same list items the sections below use, so a recent custom exercise still renders
+    // through CustomExerciseRow and keeps its edit affordance.
+    return CollectionUtils_compact(
+      keys.map((key): IRecentListItem | undefined => {
+        const type = Exercise_fromKey(key);
+        const raw = settings.exercises[type.id];
+        if (raw?.isDeleted) {
+          return undefined;
+        }
+        const exercise = Exercise_find(type, settings.exercises);
+        if (exercise == null) {
+          return undefined;
+        }
+        return raw != null
+          ? { kind: "customExercise", raw, exercise, key }
+          : { kind: "builtinExercise", exercise, key };
+      })
+    );
+  }, [mode, exerciseType, search, filters, settings]);
+
+  const recentKeys = useMemo(() => new Set(recentExercises.map((r) => r.key)), [recentExercises]);
 
   const currentWeek: IEvaluatedProgramWeek | undefined = weeks[currentWeekIndex] ?? weeks[0];
   const programGroups = useMemo<IProgramGroup[]>(() => {
@@ -424,16 +461,33 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     } else if (isTemplateTab) {
       result.push({ kind: "templateForm" });
     } else if (isAdhocTab) {
+      if (recentExercises.length > 0) {
+        result.push({ kind: "recentHeader" });
+        if (!isRecentCollapsed) {
+          result.push(...recentExercises);
+        }
+      }
+      // Whatever Recent actually shows is dropped from the lists below, so every exercise stays exactly
+      // one row. Two rows would both light up when selected, and `getByTestId` is strict, so a duplicated
+      // `menu-item-*` would break the Playwright swap specs. Collapsed, Recent shows nothing and excludes
+      // nothing — otherwise folding the section away would remove those exercises from the picker
+      // entirely, since Recent is a second home for them rather than their only one.
+      const shownRecentKeys = isRecentCollapsed ? new Set<string>() : recentKeys;
       result.push({ kind: "customHeader" });
       if (!isCustomCollapsed) {
         for (const c of customExercises) {
-          result.push({ kind: "customExercise", raw: c.raw, exercise: c.exercise, key: c.key });
+          if (!shownRecentKeys.has(c.key)) {
+            result.push({ kind: "customExercise", raw: c.raw, exercise: c.exercise, key: c.key });
+          }
         }
       }
       result.push({ kind: "builtinHeader" });
       if (!isBuiltinCollapsed) {
         for (const e of builtinExercises) {
-          result.push({ kind: "builtinExercise", exercise: e, key: Exercise_toKey(e) });
+          const key = Exercise_toKey(e);
+          if (!shownRecentKeys.has(key)) {
+            result.push({ kind: "builtinExercise", exercise: e, key });
+          }
         }
       }
     }
@@ -449,6 +503,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     programGroups,
     customExercises,
     builtinExercises,
+    recentExercises,
+    recentKeys,
+    isRecentCollapsed,
     isCustomCollapsed,
     isBuiltinCollapsed,
   ]);
@@ -484,6 +541,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         return "searchFilter";
       case "stickyChrome":
         return "stickyChrome";
+      case "recentHeader":
+        return "recentHeader";
       case "customHeader":
         return "customHeader";
       case "customExercise":
@@ -522,6 +581,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         const subHeight = item.sub === "search" ? 92 : item.sub === "program" ? 48 + (item.showWeeks ? 48 : 0) : 0;
         return tabsHeight + subHeight || 44;
       }
+      case "recentHeader":
       case "customHeader":
       case "builtinHeader":
         return 44;
@@ -715,6 +775,18 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               )}
             </Animated.View>
           );
+        case "recentHeader":
+          return (
+            <View className="py-2">
+              <GroupHeader
+                isExpanded={!isRecentCollapsed}
+                onToggle={() => setIsRecentCollapsed((v) => !v)}
+                leftExpandIcon={true}
+                name="Recent"
+                headerClassName="mx-4"
+              />
+            </View>
+          );
         case "customHeader":
           return (
             <View className="py-2">
@@ -860,6 +932,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       onLabelLayout,
       onCurrentExLayout,
       onTabsLayout,
+      isRecentCollapsed,
       isCustomCollapsed,
       isBuiltinCollapsed,
     ]
