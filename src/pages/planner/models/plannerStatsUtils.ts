@@ -11,13 +11,19 @@ import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise_sets } from "./plannerProgramExercise";
 import { Weight_build } from "../../../models/weight";
 import { Muscle_getAvailableMuscleGroups } from "../../../models/muscle";
+import { ProgramSet_approxRestTimer, ProgramSet_approxSetTimeMs } from "../../../models/programSet";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
-export function PlannerStatsUtils_dayApproxTimeMs(exercises: IPlannerProgramExercise[], restTimer: number): number {
+export function PlannerStatsUtils_dayApproxTimeMs(
+  exercises: IPlannerProgramExercise[],
+  restTimer: number,
+  supersetTimer?: number
+): number {
   return exercises
     .filter((e) => !e.notused)
     .reduce((acc, e) => {
+      const exerciseSupersetTimer = e.superset != null ? supersetTimer : undefined;
       return (
         acc +
         PlannerProgramExercise_sets(e).reduce((acc2, set) => {
@@ -25,13 +31,8 @@ export function PlannerStatsUtils_dayApproxTimeMs(exercises: IPlannerProgramExer
           if (!repRange) {
             return acc2;
           }
-          const reps = repRange.maxrep ?? 0;
-          const secondsPerRep = 7;
-          const prepareTime = 20;
-          const timeToRep = (prepareTime + reps * secondsPerRep) * 1000;
-          const timeToRest = (set.timer ?? restTimer ?? 0) * 1000;
-          const totalTime = timeToRep + timeToRest;
-          return acc2 + repRange.numberOfSets * totalTime;
+          const timer = ProgramSet_approxRestTimer(set, restTimer ?? 0, exerciseSupersetTimer);
+          return acc2 + repRange.numberOfSets * ProgramSet_approxSetTimeMs(repRange.maxrep ?? 0, timer);
         }, 0)
       );
     }, 0);

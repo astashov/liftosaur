@@ -85,7 +85,7 @@ export function ProgramExercise_groupWarmupsSets(
 export function ProgramExercise_approxTimeMs(programExercise: IPlannerProgramExercise, settings: ISettings): number {
   return (
     PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets.reduce(
-      (memo, set) => memo + ProgramSet_approxTimeMs(set, settings),
+      (memo, set) => memo + ProgramSet_approxTimeMs(set, settings, programExercise.superset != null),
       0
     ) || 0
   );

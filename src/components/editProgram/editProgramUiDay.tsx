@@ -254,7 +254,11 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
 ): JSX.Element {
   const { evaluatedDay } = props;
   const duration = TimeUtils_formatHOrMin(
-    PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.success ? evaluatedDay.data : [], props.settings.timers.workout || 0)
+    PlannerStatsUtils_dayApproxTimeMs(
+      evaluatedDay.success ? evaluatedDay.data : [],
+      props.settings.timers.workout || 0,
+      props.settings.timers.superset
+    )
   );
   const { weekIndex, dayIndex } = props;
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");

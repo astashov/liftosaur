@@ -40,7 +40,11 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
   let approxDayTime: string | undefined;
   if (evaluatedDay.success) {
     approxDayTime = TimeUtils_formatHHMM(
-      PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout || 0)
+      PlannerStatsUtils_dayApproxTimeMs(
+        evaluatedDay.data,
+        props.settings.timers.workout || 0,
+        props.settings.timers.superset
+      )
     );
   }
   return (

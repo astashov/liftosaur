@@ -26,14 +26,30 @@ export function ProgramSet_group(sets: IProgramSet[]): IProgramSet[][] {
   );
 }
 
-export function ProgramSet_approxTimeMs(set: IPlannerProgramExerciseEvaluatedSet, settings: ISettings): number {
-  const reps = set.maxrep;
+export function ProgramSet_approxSetTimeMs(reps: number | undefined, restTimer: number): number {
   const secondsPerRep = 7;
   const prepareTime = 20;
   const timeToRep = (prepareTime + (reps ?? 0) * secondsPerRep) * 1000;
-  const timeToRest = (settings.timers.workout || 0) * 1000;
-  const totalTime = timeToRep + timeToRest;
-  return totalTime;
+  const timeToRest = restTimer * 1000;
+  return timeToRep + timeToRest;
+}
+
+export function ProgramSet_approxRestTimer(
+  set: Pick<IPlannerProgramExerciseEvaluatedSet, "timer">,
+  restTimer: number,
+  supersetTimer?: number
+): number {
+  return set.timer ?? supersetTimer ?? restTimer;
+}
+
+export function ProgramSet_approxTimeMs(
+  set: IPlannerProgramExerciseEvaluatedSet,
+  settings: ISettings,
+  isSuperset?: boolean
+): number {
+  const supersetTimer = isSuperset ? (settings.timers.superset ?? undefined) : undefined;
+  const restTimer = ProgramSet_approxRestTimer(set, settings.timers.workout || 0, supersetTimer);
+  return ProgramSet_approxSetTimeMs(set.maxrep, restTimer);
 }
 
 export function ProgramSet_isEligibleForInferredWeight(set: IPlannerProgramExerciseEvaluatedSet): boolean {

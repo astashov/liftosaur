@@ -516,7 +516,7 @@ export function ApiV1_programStats(user: ILimitedUserDao, programText: string): 
   for (let dayIndex = 0; dayIndex < week1.days.length; dayIndex++) {
     const day = week1.days[dayIndex];
     const exercises = day.exercises.filter((e: IPlannerProgramExercise) => !e.notused);
-    const timeMs = PlannerStatsUtils_dayApproxTimeMs(exercises, defaultRestTimer);
+    const timeMs = PlannerStatsUtils_dayApproxTimeMs(exercises, defaultRestTimer, settings.timers.superset);
     const totalSets = exercises.reduce((acc: number, e: IPlannerProgramExercise) => {
       return acc + PlannerProgramExercise_sets(e).reduce((a: number, s) => a + (s.repRange?.numberOfSets ?? 0), 0);
     }, 0);

@@ -51,7 +51,11 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
       }
     }
     approxDayTime = TimeUtils_formatHHMM(
-      PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
+      PlannerStatsUtils_dayApproxTimeMs(
+        evaluatedDay.data,
+        props.settings.timers.workout ?? 180,
+        props.settings.timers.superset
+      )
     );
   }
   const showProgramDescription = day.description != null;
