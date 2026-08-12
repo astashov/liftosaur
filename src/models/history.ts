@@ -520,6 +520,34 @@ export function History_buildPrevExerciseData(
   return result;
 }
 
+// Same "last started entry for this exercise" question History_buildPrevExerciseData answers, but for
+// a single exercise the user just picked, so it doesn't pay for a map over every exercise they've ever
+// done. `excludeRecordId` skips the record being edited — when you edit a past workout, `progress` is
+// itself a history record, and without this it would seed its own weights from itself.
+export function History_findLastEntryForExerciseType(
+  history: IHistoryRecord[],
+  exerciseType: IExerciseType,
+  excludeRecordId?: number
+): IHistoryEntry | undefined {
+  let result: IHistoryEntry | undefined;
+  let resultTime: number | undefined;
+  for (const hr of history) {
+    if (hr.id === excludeRecordId) {
+      continue;
+    }
+    const time = hr.endTime ?? hr.startTime;
+    if (resultTime != null && time <= resultTime) {
+      continue;
+    }
+    const entry = hr.entries.find((e) => Exercise_eq(e.exercise, exerciseType) && Reps_isStarted(e.sets));
+    if (entry != null) {
+      result = entry;
+      resultTime = time;
+    }
+  }
+  return result;
+}
+
 export function History_collectWeightPersonalRecord(
   exerciseType: IExerciseType,
   unit: IUnit

@@ -66,6 +66,8 @@ export function NavModalExercisePicker(): JSX.Element {
   settingsRef.current = state.storage.settings;
   const statsRef = useRef(state.storage.stats);
   statsRef.current = state.storage.stats;
+  const historyRef = useRef(state.storage.history);
+  historyRef.current = state.storage.history;
   const programRef = useRef(program);
   programRef.current = program;
   const evaluatedCurrentProgramRef = useRef(evaluatedCurrentProgram);
@@ -105,6 +107,8 @@ export function NavModalExercisePicker(): JSX.Element {
             Progress_changeExercise(
               dispatch,
               currentSettings,
+              historyRef.current,
+              currentEvaluatedProgram,
               currentProgress.id,
               exercise.exerciseType,
               currentPickerState.entryIndex,

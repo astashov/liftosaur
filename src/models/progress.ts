@@ -4,6 +4,7 @@ import {
   Exercise_getIsUnilateral,
   Exercise_getWarmupSets,
   Exercise_toKey,
+  Exercise_eq,
 } from "./exercise";
 import { Reps_findNextEntryAndSet, Reps_isEmptyOrFinished, Reps_isCompleted, Reps_isEmpty } from "./set";
 import {
@@ -11,6 +12,8 @@ import {
   Weight_buildAny,
   Weight_eq,
   Weight_lt,
+  Weight_gt,
+  Weight_multiply,
   Weight_increment,
   Weight_isPct,
   Weight_buildPct,
@@ -41,6 +44,7 @@ import {
   Program_getProgramDay,
   Program_getProgramDayUsedExercises,
   Program_getProgramExerciseForKeyAndDay,
+  Program_getAllProgramExercisesWithType,
   Program_createEmptyProgram,
   Program_evaluate,
   Program_runAllFinishDayScripts,
@@ -63,6 +67,7 @@ import {
   IStats,
   IProgram,
   IStorage,
+  IProgramExerciseWarmupSet,
 } from "../types";
 import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
 import { SendMessage_print } from "../utils/sendMessage";
@@ -73,6 +78,7 @@ import {
   History_createCustomEntry,
   History_resumeWorkout,
   History_finishProgramDay,
+  History_findLastEntryForExerciseType,
 } from "./history";
 import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
@@ -1516,22 +1522,120 @@ export function Progress_isEligibleForInferredWeight(set: ISet): boolean {
   return set.originalWeight == null && set.reps != null && set.rpe != null;
 }
 
+// Which past set to read the new exercise off. Closest reps rather than the heaviest set: the e1RM
+// round trip below only cancels its own error near the rep range it was estimated from, and an e1RM
+// extrapolated from a 15-rep accessory is meaningless far away from 15. Warmups are not considered —
+// they would drag the estimate down.
+function findSwapSourceSet(prevEntry: IHistoryEntry | undefined, targetReps: number): ISet | undefined {
+  let best: ISet | undefined;
+  let bestDistance = Infinity;
+  let bestOnerm: IWeight | undefined;
+  for (const set of prevEntry?.sets ?? []) {
+    const reps = set.completedReps ?? set.reps;
+    const weight = set.completedWeight ?? set.weight;
+    if (!set.isCompleted || reps == null || reps <= 0 || weight == null || weight.value <= 0) {
+      continue;
+    }
+    const distance = Math.abs(reps - targetReps);
+    const onerm = Weight_getOneRepMax(weight, reps, set.completedRpe ?? set.rpe);
+    if (distance < bestDistance || (distance === bestDistance && (bestOnerm == null || Weight_gt(onerm, bestOnerm)))) {
+      best = set;
+      bestDistance = distance;
+      bestOnerm = onerm;
+    }
+  }
+  return best;
+}
+
+// What the new exercise should weigh for this set's target, when the program's own number is an
+// absolute weight and so means nothing on a different lift — 500lb of leg press is not 500lb of
+// lateral raise. Answered through an e1RM, which is unreliable as an absolute number for high-rep
+// accessories but fine as an intermediate, because the error cancels on the way back out: a source
+// set at the same reps and RPE returns exactly its own weight, with no special case for it.
+function swapDerivedWeight(
+  set: ISet,
+  exerciseType: IExerciseType,
+  settings: ISettings,
+  prevEntry: IHistoryEntry | undefined
+): IWeight {
+  const targetReps = set.reps ?? 1;
+  const targetRpe = set.rpe ?? 10;
+  const source = findSwapSourceSet(prevEntry, targetReps);
+  const sourceWeight = source?.completedWeight ?? source?.weight;
+  const sourceReps = source?.completedReps ?? source?.reps;
+  if (sourceWeight == null || sourceReps == null) {
+    // No history for this exercise, so fall back to its 1RM — explicit if the user set one, the
+    // exercise DB's starting weight otherwise. That is already what a percentage-based set does on
+    // a swap, so the no-history case behaves the same for both kinds of program.
+    return Weight_evaluateWeight(Weight_rpePct(targetReps, targetRpe), exerciseType, settings);
+  }
+  // Defaulting the source RPE to the *target's* rather than to 10 is what makes the two multipliers
+  // cancel for the many programs that carry no RPE at all, so equal reps hand back the same weight.
+  const sourceRpe = source?.completedRpe ?? source?.rpe ?? targetRpe;
+  const ratio = Weight_rpeMultiplier(targetReps, targetRpe) / Weight_rpeMultiplier(sourceReps, sourceRpe);
+  return Weight_multiply(sourceWeight, ratio);
+}
+
+// A swapped-in exercise the program already knows about brings its own authored ramp with it, even
+// when the definition lives on a day the user isn't doing today. The first authored definition wins:
+// the same exercise carrying different warmups on different days is rare, and `warmup: none` is
+// authored too, so it is honored as an answer rather than skipped over as a missing one.
+export function Progress_programWarmupsForExerciseType(
+  evaluatedProgram: IEvaluatedProgram | undefined,
+  exerciseType: IExerciseType,
+  settings: ISettings
+): IProgramExerciseWarmupSet[] | undefined {
+  for (const programExercise of evaluatedProgram ? Program_getAllProgramExercisesWithType(evaluatedProgram) : []) {
+    if (Exercise_eq(programExercise.exerciseType, exerciseType)) {
+      const warmups = PlannerProgramExercise_programWarmups(programExercise, settings);
+      if (warmups != null) {
+        return warmups;
+      }
+    }
+  }
+  return undefined;
+}
+
 export function Progress_updateSetWeights(
   entry: IHistoryEntry,
   exerciseType: IExerciseType,
-  settings: ISettings
+  settings: ISettings,
+  prevEntry?: IHistoryEntry,
+  programWarmups?: IProgramExerciseWarmupSet[]
 ): IHistoryEntry {
+  const unit = Equipment_getUnitForExerciseType(settings, exerciseType) ?? settings.units;
   const newSets = entry.sets.map((set) => {
-    if ((Progress_isEligibleForInferredWeight(set) || Weight_isPct(set.originalWeight)) && !set.isCompleted) {
+    if (set.isCompleted) {
+      return set;
+    }
+    if (Progress_isEligibleForInferredWeight(set) || Weight_isPct(set.originalWeight)) {
       const originalWeight = set.originalWeight ?? Weight_rpePct(set.reps ?? 1, set.rpe ?? 10);
       const evaluatedWeight = Weight_evaluateWeight(originalWeight, exerciseType, settings);
-      const unit = Equipment_getUnitForExerciseType(settings, exerciseType) ?? settings.units;
       const weight = Weight_roundConvertTo(evaluatedWeight, settings, unit, exerciseType);
       return { ...set, weight };
     }
+    if (set.originalWeight != null) {
+      const weight = Weight_roundConvertTo(
+        swapDerivedWeight(set, exerciseType, settings, prevEntry),
+        settings,
+        unit,
+        exerciseType
+      );
+      // Both fields take the loadable number. The target here is one the app invented, not a program
+      // value being approximated, so leaving them different would light up the rounding strikethrough
+      // — and its "adjusted to match what you can load" explanation — for a weight nothing rounded.
+      return { ...set, weight, originalWeight: weight };
+    }
     return set;
   });
-  return { ...entry, sets: newSets };
+  // The old exercise's ramp is meaningless on the new one, so it is rebuilt: from whatever the
+  // program authors for the new exercise if it defines it anywhere, and from that exercise's own
+  // default scheme otherwise — which correctly leaves an accessory with no warmups at all.
+  const hasCompletedWarmup = entry.warmupSets.some((set) => set.isCompleted);
+  const warmupSets = hasCompletedWarmup
+    ? entry.warmupSets
+    : Exercise_getWarmupSets(exerciseType, newSets[0]?.weight, settings, programWarmups);
+  return { ...entry, sets: newSets, warmupSets };
 }
 
 export function Progress_doesUse1RM(entry: IHistoryEntry): boolean {
@@ -1541,11 +1645,18 @@ export function Progress_doesUse1RM(entry: IHistoryEntry): boolean {
 export function Progress_changeExercise(
   dispatch: IDispatch,
   settings: ISettings,
+  history: IHistoryRecord[],
+  evaluatedProgram: IEvaluatedProgram | undefined,
   progressId: number,
   exerciseType: IExerciseType,
   entryIndex: number,
   shouldKeepProgramExerciseId: boolean
 ): void {
+  // `progressId` is the record's own id — 0 for the ongoing workout (Program_nextHistoryRecord),
+  // the real id when a past workout is being edited — which is exactly what has to be excluded from
+  // the history lookup, so no caller has to remember to pass it.
+  const prevEntry = History_findLastEntryForExerciseType(history, exerciseType, progressId);
+  const programWarmups = Progress_programWarmupsForExerciseType(evaluatedProgram, exerciseType, settings);
   updateState(
     dispatch,
     [
@@ -1553,7 +1664,7 @@ export function Progress_changeExercise(
         .p("entries")
         .i(entryIndex)
         .recordModify((entry) => {
-          entry = Progress_updateSetWeights(entry, exerciseType, settings);
+          entry = Progress_updateSetWeights(entry, exerciseType, settings, prevEntry, programWarmups);
           return {
             ...entry,
             exercise: exerciseType,
