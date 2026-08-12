@@ -65,6 +65,7 @@ export const LiftoEditorActions_pillDefs = {
   makeRepRange: { label: "Make rep range", category: "sets" },
   makeFixedReps: { label: "Make fixed reps", category: "sets" },
   addWarmupSetGroup: { label: "Add another warmup set group", category: "sets", template: ", 1x5 50%" },
+  addWarmupWeight: { label: "Add weight", category: "weight", template: " 50%" },
   addWarmups: { label: "Add warmups", category: "sets" },
   removeWarmups: { label: "Remove warmups", category: "sets" },
   overrideSets: { label: "Override sets", category: "sets", template: " / 3x8" },
@@ -331,6 +332,31 @@ function warmupSetsPills(text: string, warmupSets: SyntaxNode): ILiftoEditorPill
       text: "none",
     },
   ];
+}
+
+// A warmup group without a weight evaluates to a warmup set with no load at all, so this is
+// the one thing a half-written group always needs. It lands as a percentage — the usual way
+// to write a warmup — and the keypad's unit switch turns it into an absolute load.
+function warmupSetGroupPills(text: string, warmupSet: SyntaxNode): ILiftoEditorPill[] {
+  const hasWeight =
+    warmupSet.getChild(PlannerNodeName.Weight) != null || warmupSet.getChild(PlannerNodeName.Percentage) != null;
+  if (hasWeight) {
+    return [];
+  }
+  return [insertPill(defs.addWarmupWeight, trimmedEnd(text, warmupSet))];
+}
+
+// Warmup groups deliberately aren't breadcrumb levels, so their actions ride on the "Warmup
+// sets" rail — which makes it the one rail whose contents depend on where the caret is.
+export function LiftoEditorActions_warmupSetsPillsAt(
+  text: string,
+  warmupSets: SyntaxNode,
+  index: number
+): ILiftoEditorPill[] {
+  const group = warmupSets
+    .getChildren(PlannerNodeName.WarmupExerciseSet)
+    .find((set) => index >= set.from && index <= set.to);
+  return [...(group != null ? warmupSetGroupPills(text, group) : []), ...warmupSetsPills(text, warmupSets)];
 }
 
 const progressionDefaults: Record<string, string> = {

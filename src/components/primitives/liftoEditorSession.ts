@@ -293,6 +293,12 @@ export function LiftoEditorSession_keypadInput(session: ILiftoEditorSession, key
   return bufferResult(session, { ...active, buffer, fresh: false });
 }
 
+// Warmup percentages resolve against the first work set's weight rather than the 1RM, so
+// anything that reads a percentage as a load has to know it's looking at a warmup.
+export function LiftoEditorSession_isInWarmup(session: ILiftoEditorSession): boolean {
+  return session.context?.levels.some((l) => l.nodeName === PlannerNodeName.WarmupExerciseSets) ?? false;
+}
+
 export function LiftoEditorSession_setUnit(
   session: ILiftoEditorSession,
   unit: IUnit | IPercentageUnit,
@@ -310,20 +316,27 @@ export function LiftoEditorSession_setUnit(
   }
   const value = parseFloat(active.buffer === "" || active.buffer === "-" ? "0" : active.buffer);
   const rm1 = Exercise_onerm(exerciseType, settings);
+  // Nothing to convert through when the exercise has no 1RM (a custom exercise nobody has
+  // entered one for), or in a warmup, where the percentage is of the first work set's weight
+  // rather than the 1RM. The unit still switches — the number just stays as typed, the same
+  // as kg <-> lb does everywhere — because a unit button that silently does nothing reads as
+  // a broken editor.
+  const convertsThroughRm1 = rm1.value > 0 && !LiftoEditorSession_isInWarmup(session);
   let buffer = active.buffer;
   let kind = active.numeric.kind;
   // kg <-> lb keeps the raw value (matching the workout weight input); % conversions go
   // through the exercise's 1RM so the token keeps referring to the same lifted load.
   if (unit === "%") {
-    if (rm1.value <= 0) {
-      return { session, effects: {} };
+    if (convertsThroughRm1) {
+      const weight = Weight_convertTo(Weight_build(value, currentUnit as IUnit), rm1.unit);
+      buffer = `${MathUtils_roundFloat((weight.value / rm1.value) * 100, 2)}`;
     }
-    const weight = Weight_convertTo(Weight_build(value, currentUnit as IUnit), rm1.unit);
-    buffer = `${MathUtils_roundFloat((weight.value / rm1.value) * 100, 2)}`;
     kind = "percentage";
   } else if (currentUnit === "%") {
-    const weight = Weight_round(Weight_build((rm1.value * value) / 100, rm1.unit), settings, unit, exerciseType);
-    buffer = `${Weight_convertTo(weight, unit).value}`;
+    if (convertsThroughRm1) {
+      const weight = Weight_round(Weight_build((rm1.value * value) / 100, rm1.unit), settings, unit, exerciseType);
+      buffer = `${Weight_convertTo(weight, unit).value}`;
+    }
     kind = "weight";
   }
   return bufferResult(session, {

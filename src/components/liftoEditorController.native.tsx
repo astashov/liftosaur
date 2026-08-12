@@ -21,6 +21,7 @@ import {
   LiftoEditorSession_deactivate,
   LiftoEditorSession_focusedExerciseFullName,
   LiftoEditorSession_highlight,
+  LiftoEditorSession_isInWarmup,
   LiftoEditorSession_keypadInput,
   LiftoEditorSession_pills,
   LiftoEditorSession_removeFocused,
@@ -176,14 +177,14 @@ export function useLiftoEditorController(
           : undefined;
     const isWeight = active.numeric.kind === "weight" && (suffixUnit === "kg" || suffixUnit === "lb");
     const isPercentage = active.numeric.kind === "percentage" && suffixUnit === "%";
-    // Warmup percentages resolve against the first work set, not the 1RM, so neither the
-    // 1RM-based unit conversion nor the resolved-weight readout applies there.
-    const inWarmup = sess.context?.levels.some((l) => l.nodeName === "WarmupExerciseSets") ?? false;
-    const canUseRm1 = !active.numeric.inFunctionArgs && !inWarmup;
+    // Function-arg and script weights are increments, not lifted loads.
+    const isLoad = !active.numeric.inFunctionArgs;
+    // Warmup percentages resolve against the first work set, not the 1RM, so a percentage
+    // can't be turned into a weight here — but an absolute warmup weight still is one.
+    const canUseRm1 = isLoad && !LiftoEditorSession_isInWarmup(sess);
     const value = parseFloat(active.buffer);
-    // Function-arg and script weights are increments, not lifted loads — no plates readout.
     let evaluatedWeight: IWeight | undefined;
-    if (isWeight && canUseRm1 && Number.isFinite(value)) {
+    if (isWeight && isLoad && Number.isFinite(value)) {
       evaluatedWeight = Weight_build(value, suffixUnit as IUnit);
     } else if (isPercentage && canUseRm1 && Number.isFinite(value)) {
       const rm1 = Exercise_onerm(exerciseType, settings);
@@ -196,13 +197,10 @@ export function useLiftoEditorController(
         );
       }
     }
-    const enableUnits: (IUnit | IPercentageUnit)[] | undefined = isWeight
-      ? canUseRm1
-        ? ["kg", "lb", "%"]
-        : ["kg", "lb"]
-      : isPercentage && canUseRm1
-        ? ["kg", "lb", "%"]
-        : undefined;
+    // A percentage is interchangeable with a weight wherever the token is a real load —
+    // including a warmup, where both forms are valid and only the basis differs.
+    const enableUnits: (IUnit | IPercentageUnit)[] | undefined =
+      isPercentage || isWeight ? (isLoad ? ["kg", "lb", "%"] : ["kg", "lb"]) : undefined;
     openKeyboard({
       id: "liftoEditorNumber",
       isNegative: active.buffer.startsWith("-"),

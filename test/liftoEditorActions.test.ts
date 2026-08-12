@@ -123,6 +123,33 @@ describe("LiftoEditorActions", () => {
         "Squat / 3x8 / warmup: 2x5 45%, 1x3 60%"
       );
     });
+
+    it("offers a weight to a warmup group that has none", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill("Squat / 3x8 / warmup: 2x5, 1x3 60%", "2x5", "Warmup sets", "Add weight")
+      ).to.equal("Squat / 3x8 / warmup: 2x5 50%, 1x3 60%");
+    });
+
+    it("offers the weight of whichever warmup group the caret is in", () => {
+      const text = "Squat / 3x8 / warmup: 2x5 45%, 1x3";
+      expect(LiftoEditorTestUtils_pillLabels(text, "2x5", "Warmup sets")).to.not.include("Add weight");
+      expect(LiftoEditorTestUtils_pressPill(text, "1x3", "Warmup sets", "Add weight")).to.equal(
+        "Squat / 3x8 / warmup: 2x5 45%, 1x3 50%"
+      );
+    });
+
+    it("offers no weight to a warmup group that already has one", () => {
+      for (const needle of ["2x5", "45%"]) {
+        expect(LiftoEditorTestUtils_pillLabels("Squat / 3x8 / warmup: 2x5 45%", needle, "Warmup sets")).to.deep.equal([
+          "Add another warmup set group",
+          "Remove warmups",
+        ]);
+      }
+      expect(LiftoEditorTestUtils_pillLabels("Squat / 3x8 / warmup: 2x5 135lb", "135lb", "Warmup sets")).to.deep.equal([
+        "Add another warmup set group",
+        "Remove warmups",
+      ]);
+    });
   });
 
   describe("progression pills", () => {

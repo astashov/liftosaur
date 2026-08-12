@@ -237,6 +237,48 @@ describe("LiftoEditorSession", () => {
       expect(weight.session.active?.numeric.kind).to.equal("weight");
     });
 
+    it("still switches units when the exercise has no 1RM to convert through", () => {
+      // A custom exercise nobody has entered a 1RM for: there is no basis for the conversion,
+      // but the unit button still has to do something.
+      const custom: IExerciseType = { id: "qvkxpalv" };
+      const settings = Settings_build();
+      settings.exercises[custom.id] = {
+        vtype: "custom_exercise",
+        id: custom.id,
+        name: "Hack Squat",
+        types: [],
+        meta: { targetMuscles: [], synergistMuscles: [], bodyParts: [], sortedEquipment: [] },
+        isDeleted: false,
+      };
+      const result = tapAt("Hack Squat / 5x3 / 110lb", "110lb");
+      const switched = LiftoEditorSession_setUnit(result.session, "%", settings, custom);
+      expect(switched.session.active?.buffer).to.equal("110");
+      expect(switched.session.active?.suffix).to.equal("%");
+      expect(switched.session.active?.numeric.kind).to.equal("percentage");
+    });
+
+    it("switches a warmup percentage to a weight without going through the 1RM", () => {
+      const settings = buildSettings(200);
+      const text = "Squat / 3x8 / warmup: 2x5 45%";
+      const result = tapAt(text, "45%");
+      const switched = LiftoEditorSession_setUnit(result.session, "lb", settings, exerciseType);
+      expect(switched.session.active?.buffer).to.equal("45");
+      expect(switched.session.active?.suffix).to.equal("lb");
+      expect(switched.session.active?.numeric.kind).to.equal("weight");
+      expect(LiftoEditorTestUtils_applyEdits(text, switched.effects.edits ?? [])).to.equal(
+        "Squat / 3x8 / warmup: 2x5 45lb"
+      );
+    });
+
+    it("switches a warmup weight back to a percentage even with no 1RM set", () => {
+      const text = "Squat / 3x8 / warmup: 2x5 45lb";
+      const result = tapAt(text, "45lb");
+      const switched = LiftoEditorSession_setUnit(result.session, "%", buildSettings(), exerciseType);
+      expect(switched.session.active?.buffer).to.equal("45");
+      expect(switched.session.active?.suffix).to.equal("%");
+      expect(switched.session.active?.numeric.kind).to.equal("percentage");
+    });
+
     it("keeps the + of a plus-weight outside the edited token", () => {
       // The numeric token is the Weight node; the trailing + is a sibling Plus node and
       // survives the unit switch untouched.

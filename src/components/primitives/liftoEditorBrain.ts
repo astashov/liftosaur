@@ -11,6 +11,7 @@ import {
   LiftoEditorActions_labelRenamePill,
   LiftoEditorActions_pillsForNode,
   LiftoEditorActions_setVariationSections,
+  LiftoEditorActions_warmupSetsPillsAt,
 } from "./liftoEditorActions";
 
 function nodeText(text: string, node: SyntaxNode): string {
@@ -722,6 +723,14 @@ export function LiftoEditorBrain_contextAt(
           pills: LiftoEditorActions_pillsForNode(text, node),
         });
       }
+    } else if (name === PlannerNodeName.WarmupExerciseSets) {
+      levels.unshift({
+        label: breadcrumbLabels[name] ?? "Warmup sets",
+        nodeName: name,
+        start: node.from,
+        end: node.to,
+        pills: LiftoEditorActions_warmupSetsPillsAt(text, node, index),
+      });
     } else if (name === PlannerNodeName.FunctionExpression) {
       const functionName = node.getChild(PlannerNodeName.FunctionName);
       if (functionName != null) {
