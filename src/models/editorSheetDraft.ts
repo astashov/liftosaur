@@ -1,0 +1,82 @@
+import {
+  IProgramExerciseSharedEdit,
+  IProgramExerciseSharedSection,
+  ProgramExerciseText_compose,
+  ProgramExerciseText_split,
+} from "./programExerciseText";
+
+// What the editor sheet will save, kept apart from whatever text the editor happens to be
+// mounted with. The two used to be the same value, which stopped being true once showing the
+// shared sections started remounting the editor with recomposed text: that text is derived from
+// a possibly-dirty draft, so measuring "has anything changed" against it always said no.
+//
+// The draft carries its own baselines — `originalLocalText` and `baseline` are both captured
+// when the sheet opens and never move. Nothing that answers "did this change?" takes them as an
+// argument, so no caller can supply a different one and get a different answer.
+export interface IEditorSheetDraft {
+  originalLocalText: string;
+  localText: string;
+  // The shared sections as they were when the sheet opened.
+  baseline: IProgramExerciseSharedSection[];
+  // Only properties whose text actually differs from `baseline`. An untouched property is
+  // absent, so it can never be written back over a value someone else changed meanwhile.
+  sharedEdits: Record<string, string>;
+}
+
+export function EditorSheetDraft_create(
+  originalLocalText: string,
+  baseline: IProgramExerciseSharedSection[]
+): IEditorSheetDraft {
+  return { originalLocalText, localText: originalLocalText, baseline, sharedEdits: {} };
+}
+
+// Folds the editor's current document in. Shared sections that aren't in the text are hidden,
+// not deleted, so they keep whatever the draft already recorded. A section edited back to its
+// baseline drops out again, which is what lets the sheet go clean.
+export function EditorSheetDraft_fromEditor(draft: IEditorSheetDraft, text: string): IEditorSheetDraft {
+  const split = ProgramExerciseText_split(text, draft.baseline);
+  const sharedEdits = { ...draft.sharedEdits };
+  for (const edit of split.sharedEdits) {
+    const original = draft.baseline.find((section) => section.property === edit.property);
+    if (original != null && edit.text === original.text) {
+      delete sharedEdits[edit.property];
+    } else {
+      sharedEdits[edit.property] = edit.text;
+    }
+  }
+  return { ...draft, localText: split.localText, sharedEdits };
+}
+
+export function EditorSheetDraft_isDirty(draft: IEditorSheetDraft): boolean {
+  return draft.localText.trim() !== draft.originalLocalText.trim() || Object.keys(draft.sharedEdits).length > 0;
+}
+
+// Everything the sheet will write, in one place — validation and save both go through this, so
+// there is no second expression of "what will be saved" to drift out of step with the first.
+//
+// `shared` decides only *where* each edit goes, never *whether* there is one: the save path
+// passes a freshly resolved set so edits land on the lines that declare the property now.
+export function EditorSheetDraft_pendingChange(
+  draft: IEditorSheetDraft,
+  shared: IProgramExerciseSharedSection[]
+): { localText: string; sharedEdits: IProgramExerciseSharedEdit[] } {
+  const sharedEdits: IProgramExerciseSharedEdit[] = [];
+  for (const section of shared) {
+    const edited = draft.sharedEdits[section.property];
+    if (edited != null) {
+      sharedEdits.push({ property: section.property, owners: section.owners, text: edited });
+    }
+  }
+  return { localText: draft.localText, sharedEdits };
+}
+
+// The text a fresh editor mount should start from, which is the draft rendered for the current
+// visibility — never a baseline for anything.
+export function EditorSheetDraft_mountText(draft: IEditorSheetDraft, isSharedVisible: boolean): string {
+  return isSharedVisible
+    ? ProgramExerciseText_compose(
+        draft.localText,
+        draft.baseline.map((section) => ({ text: draft.sharedEdits[section.property] ?? section.text }))
+      )
+    : draft.localText.trimEnd();
+}

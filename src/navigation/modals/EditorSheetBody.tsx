@@ -3,12 +3,11 @@ import { LayoutChangeEvent, Pressable, ScrollView, View } from "react-native";
 import { useAppState } from "../StateContext";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
-import { Dialog_confirm } from "../../utils/dialog";
 import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import type { IEditorSheetBodyProps, IEditorSheetInstanceOption } from "./editorSheetTypes";
+import { IEditorSheetBodyProps, IEditorSheetInstanceOption } from "./editorSheetTypes";
 
 // Web body: a plain CodeMirror editor — no pills, hints or breadcrumbs. With a physical
 // keyboard the structured touch UI adds nothing, and CodeMirror brings autocomplete and
@@ -46,16 +45,12 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     requestAnimationFrame(() => railRef.current?.scrollTo({ x: Math.max(0, x - 24), animated: false }));
   };
 
-  const selectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
-    if (instance.isSelected) {
-      return;
+  // Whether switching would discard anything is the sheet's call, same as on native — this body
+  // only knows the text it currently has.
+  const selectInstance = (instance: IEditorSheetInstanceOption): void => {
+    if (!instance.isSelected) {
+      props.onSelectInstance(instance);
     }
-    if (text.trim() !== props.initialText.trim()) {
-      if (!(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
-        return;
-      }
-    }
-    props.onSelectInstance(instance);
   };
 
   return (

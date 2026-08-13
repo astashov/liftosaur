@@ -9,6 +9,35 @@ import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/li
 // The banner/line-tint renders exactly what the save pipeline produces, so the two can't drift.
 export type IEditorSheetLiveError = IProgramExerciseTextError;
 
+export interface IEditorSheetSharedProperty {
+  property: string;
+  // The section's source, so the body can splice it in when the user asks to see it.
+  text: string;
+  ownerLabel: string;
+  ownerDayData: Required<IDayData>;
+}
+
+export interface IEditorSheetSharedLabel {
+  properties: string[];
+  ownerLabel: string;
+  ownerDayData: Required<IDayData>;
+}
+
+// One line per declaring day rather than per property: several properties usually come from
+// the same line, and "progress, update defined at W1 · D1" is the whole story in one row.
+export function EditorSheetTypes_sharedLabels(shared: IEditorSheetSharedProperty[]): IEditorSheetSharedLabel[] {
+  const byOwner = new Map<string, IEditorSheetSharedLabel>();
+  for (const item of shared) {
+    const existing = byOwner.get(item.ownerLabel);
+    byOwner.set(item.ownerLabel, {
+      properties: [...(existing?.properties ?? []), item.property],
+      ownerLabel: item.ownerLabel,
+      ownerDayData: item.ownerDayData,
+    });
+  }
+  return Array.from(byOwner.values());
+}
+
 export interface IEditorSheetInstanceOption {
   dayData: Required<IDayData>;
   label: string;
@@ -20,6 +49,20 @@ export interface IEditorSheetBodyProps {
   headerLabel: string;
   instances: IEditorSheetInstanceOption[];
   onSelectInstance: (instance: IEditorSheetInstanceOption) => void;
+  // Sections of `initialText` that are declared on another day's line and govern the whole
+  // program. The native body fades them and captions where each is from; the host routes edits
+  // back. The web body ignores these — it has no way to reveal or edit them, and naming a
+  // property the user can't act on is worse than saying nothing.
+  sharedProperties?: IEditorSheetSharedProperty[];
+  // Whether the shared sections are currently in `initialText`. Owned by the host, which
+  // remounts this body with the recomposed text when it flips — splicing a multi-section
+  // suffix into the live document trips a Runestone line-fragment assertion.
+  isSharedVisible?: boolean;
+  onToggleShared?: () => void;
+  // Reported when the body drops the sections out of the text itself (entering freeform) rather
+  // than through the toggle — the host records it without remounting, which would bounce the
+  // user straight back out of freeform.
+  onSharedHidden?: (localText: string) => void;
   // Autocomplete source for the web CodeMirror body; the native structured editor
   // gets exercise names through its own picker instead.
   exerciseFullNames: string[];

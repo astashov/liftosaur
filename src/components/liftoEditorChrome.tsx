@@ -94,7 +94,13 @@ export function LiftoEditorCrumbs(props: { controller: ILiftoEditorController })
   );
 }
 
-export function LiftoEditorPillRail(props: { controller: ILiftoEditorController; className?: string }): JSX.Element {
+export function LiftoEditorPillRail(props: {
+  controller: ILiftoEditorController;
+  className?: string;
+  // Hosts that own something the focused text can't be the authority on — the editor sheet
+  // forbids removing a section that another day declares.
+  canRemove?: boolean;
+}): JSX.Element {
   const { controller } = props;
   const iconScale = useRem() / 16;
   const pillRailRef = useRef<ScrollView>(null);
@@ -129,7 +135,7 @@ export function LiftoEditorPillRail(props: { controller: ILiftoEditorController;
       {/* Same w-10 centered column as the hint bar's dismiss and the dock's close, so the three
           right-edge affordances share a vertical axis despite differing icon widths. */}
       <View className="flex-row items-center border-l border-border-neutral">
-        {(controller.context?.levels ?? []).length > 0 ? (
+        {(props.canRemove ?? true) && (controller.context?.levels ?? []).length > 0 ? (
           <Pressable
             className="items-center w-10 py-2"
             // Left slop stays small so it doesn't swallow taps meant for the last pill.

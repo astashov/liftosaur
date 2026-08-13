@@ -3,16 +3,16 @@ import { LayoutChangeEvent, Platform, Pressable, ScrollView, useWindowDimensions
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useModal } from "../ModalStateContext";
-import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
+import { Dialog_alert } from "../../utils/dialog";
 import { CollectionUtils_compact } from "../../utils/collection";
-import type { IExercisePickerSelectedExercise } from "../../types";
 import {
   ILiftoEditorReuseSelection,
   LiftoEditorActions_renamePrompt,
 } from "../../components/primitives/liftoEditorActions";
+import type { IDayData, IExercisePickerSelectedExercise } from "../../types";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
-import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoEditorBrain";
+import { ILiftoEditorStyledRange, LiftoEditorBrain_fadedRanges } from "../../components/primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../../components/liftoEditorController";
 import { LiftoEditorHints_forContext } from "../../components/primitives/liftoEditorHints";
 import {
@@ -28,7 +28,16 @@ import { IconHelp } from "../../components/icons/iconHelp";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
-import type { IEditorSheetBodyProps, IEditorSheetInstanceOption, IEditorSheetLiveError } from "./editorSheetTypes";
+import { ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
+import {
+  EditorSheetTypes_sharedLabels,
+  IEditorSheetBodyProps,
+  IEditorSheetInstanceOption,
+  IEditorSheetLiveError,
+} from "./editorSheetTypes";
+
+// Legible as a secondary layer without dropping out of the line.
+const SHARED_SECTION_ALPHA = "73";
 
 export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   // useModal registers its result callback once, but the controller hands a fresh
@@ -68,8 +77,26 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
       onApply(args);
     }
   });
+  const sharedPropertyNames = (props.sharedProperties ?? []).map((s) => s.property);
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
+    // Adding a property another day already declares would either duplicate the declaration or,
+    // once saved, silently rewrite that other day. `progress: none` survives because the
+    // evaluator never registers it as shared — it's a genuine per-day override.
+    mapPills: (pills) =>
+      CollectionUtils_compact(
+        pills.map((pill) => {
+          // Add-pills carry their whole section including the separator (" / progress: lp(5lb)").
+          const section = pill.text.trim().replace(/^\/\s*/, "");
+          const property = sharedPropertyNames.find((name) => section.startsWith(`${name}:`));
+          if (property == null) {
+            return pill;
+          }
+          return property === "progress"
+            ? { ...pill, label: "Add progress: none", text: " / progress: none" }
+            : undefined;
+        })
+      ),
     // Follows the text, so plates and units track an exercise swapped mid-session instead of
     // the one the sheet opened on; falls back to the snapshot when the name doesn't resolve.
     exerciseTypeFor: (fullName) => props.exerciseFor?.(fullName)?.exerciseType,
@@ -166,6 +193,37 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     const timer = setTimeout(() => setLiveError(validateTextRef.current?.(liveErrorText)), 300);
     return () => clearTimeout(timer);
   }, [liveErrorText]);
+  // Faded rather than tinted: both editor background slots are already affordances (gray is
+  // the focused level, purple the active token), so a wash here reads as selection.
+  //
+  // Recomputed from the live text rather than tracked as an edit-shifted range: the sections
+  // move as the user types either side of them, and re-finding them by property name is what
+  // the save path does too.
+  const sharedProperties = props.sharedProperties ?? [];
+  // Owned by the host: toggling remounts this body with the recomposed text, because splicing
+  // a multi-section suffix into the live document trips a Runestone line-fragment assertion.
+  const showShared = props.isSharedVisible ?? false;
+  const sharedRanges =
+    showShared && controller.mode !== "freeform" && sharedProperties.length > 0
+      ? ProgramExerciseText_sharedRanges(
+          controller.text,
+          sharedProperties.map((s) => s.property)
+        )
+      : [];
+  const parseCache = controller.editorProps.parseCache;
+  const sharedStyledRanges: ILiftoEditorStyledRange[] =
+    sharedRanges.length > 0 && parseCache != null
+      ? LiftoEditorBrain_fadedRanges(
+          parseCache,
+          controller.text,
+          sharedRanges,
+          Tailwind_semantic().text.primary,
+          SHARED_SECTION_ALPHA
+        )
+      : [];
+  const activeLevel = controller.context?.levels[controller.activeLevelIndex];
+  const isFocusInsideShared =
+    activeLevel != null && sharedRanges.some((r) => activeLevel.start >= r.start && activeLevel.end <= r.end);
   // Clamp against the current text: between debounce ticks the error range can be stale.
   const errorStyledRanges: ILiftoEditorStyledRange[] = [];
   if (liveError?.from != null && liveError.to != null && liveError.from < controller.text.length) {
@@ -189,6 +247,31 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   useEffect(() => {
     onModeChangeRef.current?.(isFreeform ? "freeform" : "structured");
   }, [isFreeform]);
+  // Freeform retypes the line as raw text, so the sections belonging to another day come out
+  // first. Deleted in place rather than through the toggle: that remounts, which would land the
+  // user back in structured mode. Deletions are safe where the toggle's insertion is not — the
+  // Runestone assertion is about fragments a large insertion hasn't laid out yet.
+  const hideSharedRef = useRef<() => void>(() => undefined);
+  hideSharedRef.current = () => {
+    const ranges = ProgramExerciseText_sharedRanges(
+      controller.text,
+      sharedProperties.map((s) => s.property)
+    ).sort((a, b) => b.start - a.start);
+    if (ranges.length === 0) {
+      return;
+    }
+    let localText = controller.text;
+    for (const range of ranges) {
+      controller.editorProps.handleRef?.current?.replaceRange(range.start, range.end, "");
+      localText = localText.slice(0, range.start) + localText.slice(range.end);
+    }
+    props.onSharedHidden?.(localText.trimEnd());
+  };
+  useEffect(() => {
+    if (isFreeform) {
+      hideSharedRef.current();
+    }
+  }, [isFreeform]);
   const railRef = useRef<ScrollView>(null);
   // Only on the initial layout: the body remounts on instance switch, and reacting to later
   // re-layouts would yank the rail away from wherever the user scrolled it.
@@ -211,19 +294,29 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     controller.switchToStructured();
   };
 
-  const selectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
+  // Whether switching would discard anything is the sheet's call — this body only knows the
+  // text it happens to have mounted, and the shared-sections toggle recomposes that from a
+  // possibly-dirty draft.
+  const selectInstance = (instance: IEditorSheetInstanceOption): void => {
     if (instance.isSelected) {
       return;
     }
-    if (controller.text.trim() !== props.initialText.trim()) {
-      if (!(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
-        return;
-      }
-    }
     // The keypad host lives outside this component; switching remounts the body and would
-    // otherwise leave an orphaned keypad open.
+    // otherwise leave an orphaned keypad open. Closed before asking, so a declined switch
+    // leaves it closed rather than orphaned.
     closeKeyboard();
     props.onSelectInstance(instance);
+  };
+
+  // The declaring day is always one of the instances, so the caption's link is the same switch
+  // the chips make — discard guard included.
+  const selectInstanceAt = (dayData: Required<IDayData>): void => {
+    const instance = props.instances.find(
+      (i) => i.dayData.week === dayData.week && i.dayData.dayInWeek === dayData.dayInWeek
+    );
+    if (instance != null) {
+      selectInstance(instance);
+    }
   };
 
   // When the whole text fits, lock the editor's vertical scroll so token-hopping swipes
@@ -307,7 +400,13 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           </Button>
         </View>
         {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
-          <LiftoEditorPillRail controller={controller} className="border-b border-border-neutral" />
+          <LiftoEditorPillRail
+            controller={controller}
+            className="border-b border-border-neutral"
+            // Removing one here would remove it from every week; the declaring day is where that
+            // belongs, and the caption links straight to it.
+            canRemove={!isFocusInsideShared}
+          />
         ) : null}
         {liveError != null ? (
           <View className="px-3 py-2 border-b bg-background-lighterror border-border-neutral">
@@ -335,8 +434,43 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
                 // Room for Android's cursor drop handle under the last line (~24dp, not
                 // rem-scaled — the handle is a fixed-size system graphic).
                 bottomPadding={isFreeform ? 24 : 0}
-                extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+                // Shared fade goes first so the focus and error highlights, which are later
+                // inputs, win the flatten where they overlap it.
+                extraStyledRanges={[
+                  ...sharedStyledRanges,
+                  ...(controller.editorProps.extraStyledRanges ?? []),
+                  ...errorStyledRanges,
+                ]}
               />
+              {/* Same register as the sheet's gesture hint below it: a centered aside about the
+                  text rather than chrome pointing into it. */}
+              {sharedProperties.length > 0 ? (
+                <View testID="editor-sheet-shared-caption" className="pt-2">
+                  {EditorSheetTypes_sharedLabels(sharedProperties).map((label) => (
+                    <Text key={label.ownerLabel} className="text-xs text-center text-text-secondary">
+                      {`${label.properties.join(", ")} defined at `}
+                      <Text
+                        className="text-xs underline text-text-link"
+                        testID={`editor-sheet-shared-owner-${label.ownerDayData.week}-${label.ownerDayData.dayInWeek}`}
+                        onPress={() => selectInstanceAt(label.ownerDayData)}
+                      >
+                        {label.ownerLabel}
+                      </Text>
+                    </Text>
+                  ))}
+                  {/* Freeform is raw text editing — restructuring the document under the user
+                      mid-edit isn't something to offer there, and the fade is off too. */}
+                  {!isFreeform ? (
+                    <Text
+                      className="text-xs underline text-center text-text-link"
+                      testID="editor-sheet-shared-toggle"
+                      onPress={() => props.onToggleShared?.()}
+                    >
+                      {showShared ? "Hide here" : "Show here"}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : null}
             </View>
           </ScrollView>
         </GestureDetector>

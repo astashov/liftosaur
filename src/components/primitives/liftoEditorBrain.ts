@@ -348,6 +348,44 @@ export function LiftoEditorBrain_dayDataAt(text: string, index: number): Require
   return { week: Math.max(1, weeks), dayInWeek: Math.max(1, daysInWeek), day: Math.max(1, days) };
 }
 
+// Ghosts a span: every token keeps its own syntax color, just at reduced opacity, so the run
+// still reads as Liftoscript while sitting visibly behind the local text.
+//
+// Alpha on the glyphs rather than a blend toward the page color: a blend would have to know
+// what is behind the text, which differs between themes and isn't necessarily the default
+// background anyway. Both native sides parse #RRGGBBAA (LiftoEditorView.swift parseColor,
+// LiftoEditorView.kt parseHexColor), so the composite happens against whatever is actually
+// there and light/dark both come out right without a second palette.
+//
+// Emitted default-first then per-token, matching flattenRanges' later-wins rule; only `color`
+// is set, so bold/italic from the underlying styles survive.
+export function LiftoEditorBrain_fadedRanges(
+  cache: LiftoEditorParseCache,
+  text: string,
+  spans: { start: number; end: number }[],
+  defaultColor: string,
+  alpha: string
+): ILiftoEditorStyledRange[] {
+  if (spans.length === 0) {
+    return [];
+  }
+  const fade = (color: string): string => `${color}${alpha}`;
+  const result: ILiftoEditorStyledRange[] = spans.map((span) => ({ ...span, color: fade(defaultColor) }));
+  for (const range of LiftoEditorBrain_computeStyledRanges(cache, text)) {
+    if (range.color == null) {
+      continue;
+    }
+    for (const span of spans) {
+      const start = Math.max(range.start, span.start);
+      const end = Math.min(range.end, span.end);
+      if (start < end) {
+        result.push({ start, end, color: fade(range.color) });
+      }
+    }
+  }
+  return result;
+}
+
 // Flattens possibly-overlapping styled ranges into sorted non-overlapping segments with
 // merged properties (later input ranges win per property). The native sides assume exactly
 // this. Sweep-line rather than filtering all ranges per segment — the naive version was

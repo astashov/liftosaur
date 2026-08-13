@@ -531,6 +531,16 @@ export function PlannerEvaluator_fillDescriptionReuses(
   }
 }
 
+// The properties fillSingleProperties copies onto every instance below — i.e. the ones a single
+// day's declaration governs the whole exercise with. Anything reasoning about "this property is
+// program-wide" must read this list rather than restate it; a hand-kept copy elsewhere drifted
+// the moment this function changed.
+//
+// `id` is deliberately absent. It is checked for consistency across days (see the conflict check
+// on metadata.properties.id above) but its value is never propagated, so a declaration without
+// `id:` really does evaluate with no tags.
+export const PlannerEvaluator_hoistedProperties = ["warmup", "progress", "update", "used"] as const;
+
 export function PlannerEvaluator_fillSingleProperties(
   exercise: IPlannerProgramExercise,
   metadata: IPlannerEvalMetadata

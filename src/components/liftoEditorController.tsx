@@ -55,6 +55,7 @@ export interface ILiftoEditorControllerOptions {
   exerciseType?: IExerciseType;
   exerciseTypeFor?: (exerciseFullName: string) => IExerciseType | undefined;
   actions?: ILiftoEditorControllerActions;
+  mapPills?: (pills: ILiftoEditorPill[]) => ILiftoEditorPill[];
 }
 
 // Native-only (drives the native LiftoEditor + custom keyboard); web keeps CodeMirror.

@@ -109,6 +109,9 @@ export interface ILiftoEditorControllerOptions {
   exerciseType?: IExerciseType;
   exerciseTypeFor?: (exerciseFullName: string) => IExerciseType | undefined;
   actions?: ILiftoEditorControllerActions;
+  // Last say over the rail for hosts that know something the text doesn't — the editor sheet
+  // uses it to drop "Add progress" where another day already declares it.
+  mapPills?: (pills: ILiftoEditorPill[]) => ILiftoEditorPill[];
 }
 
 function selectionToName(selected: IExercisePickerSelectedExercise, settings: ISettings): string {
@@ -308,7 +311,7 @@ export function useLiftoEditorController(
     text: session.text,
     context: session.context,
     activeLevelIndex: LiftoEditorSession_activeLevelIndex(session),
-    pills: LiftoEditorSession_pills(session),
+    pills: options?.mapPills?.(LiftoEditorSession_pills(session)) ?? LiftoEditorSession_pills(session),
     editorProps: {
       initialText,
       autoHeight: true,

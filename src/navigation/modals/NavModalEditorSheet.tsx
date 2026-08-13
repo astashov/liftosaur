@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
@@ -32,7 +32,20 @@ import {
   Progress_remapProgramExerciseId,
 } from "../../models/progress";
 import { EditProgramUiHelpers_getChangedKeys } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
-import { ProgramExerciseText_apply, ProgramExerciseText_findDeclaration } from "../../models/programExerciseText";
+import {
+  EditorSheetDraft_create,
+  EditorSheetDraft_fromEditor,
+  EditorSheetDraft_isDirty,
+  EditorSheetDraft_mountText,
+  EditorSheetDraft_pendingChange,
+} from "../../models/editorSheetDraft";
+import {
+  IProgramExerciseSharedSection,
+  ProgramExerciseText_apply,
+  ProgramExerciseText_findDeclaration,
+  ProgramExerciseText_sharedSections,
+  ProgramExerciseText_split,
+} from "../../models/programExerciseText";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
@@ -46,7 +59,7 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
 import { EditorSheetBody } from "./EditorSheetBody";
-import type { IEditorSheetInstanceOption, IEditorSheetLiveError } from "./editorSheetTypes";
+import type { IEditorSheetInstanceOption, IEditorSheetLiveError, IEditorSheetSharedProperty } from "./editorSheetTypes";
 
 const sampleText = `# Week 1
 ## Day 1
@@ -65,6 +78,19 @@ function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData:
     return `Week ${dayData.week ?? 1} · Day ${dayData.dayInWeek ?? 1}`;
   }
   return evaluatedProgram != null && evaluatedProgram.weeks.length === 1 ? day.name : `${week.name} · ${day.name}`;
+}
+
+// The sheet shows these sections, but they're written on another day's line and govern every
+// week — without saying so, editing one looks like a change to just this day. Abbreviated
+// rather than instanceLabel's form: the caption is a one-line aside and the instance chips
+// already spell out custom week/day names.
+function sharedProperties(shared: IProgramExerciseSharedSection[]): IEditorSheetSharedProperty[] {
+  return shared.map((s) => ({
+    property: s.property,
+    text: s.text,
+    ownerLabel: `W${s.owners[0].dayData.week} · D${s.owners[0].dayData.dayInWeek}`,
+    ownerDayData: s.owners[0].dayData,
+  }));
 }
 
 // From the program editor the source of truth is the unsaved draft in editProgramStates,
@@ -111,19 +137,81 @@ export function NavModalEditorSheet(): JSX.Element {
   });
   const [selectedDayData, setSelectedDayData] = useState(snapshot?.initialDayData ?? params?.dayData);
   const [editorMode, setEditorMode] = useState<"structured" | "freeform">("structured");
+  const [isSharedVisible, setIsSharedVisible] = useState(false);
+  // Set by the shared-sections toggle; the body remounts on it and takes it as its initialText.
+  const [bodyText, setBodyText] = useState<string | undefined>(undefined);
+  // Only the explicit toggle remounts. Freeform hides the sections in place, and remounting
+  // there would drop the user back into structured mode mid-edit.
+  const [remountKey, setRemountKey] = useState(0);
   const currentExercise =
     snapshot != null && selectedDayData != null
       ? (snapshot.instances.find(
           (e) => e.dayData.week === selectedDayData.week && e.dayData.dayInWeek === selectedDayData.dayInWeek
         ) ?? snapshot.programExercise)
       : undefined;
+  const currentDeclaration =
+    snapshot != null && currentExercise != null
+      ? ProgramExerciseText_findDeclaration(snapshot.evaluatedProgram, currentExercise)
+      : undefined;
+  // Parses every sibling declaration of this exercise, so it's kept off re-renders that don't
+  // change which instance is selected.
+  const sharedSections = useMemo(
+    () =>
+      snapshot != null && currentDeclaration != null
+        ? ProgramExerciseText_sharedSections(snapshot.evaluatedProgram, currentDeclaration)
+        : [],
+    [snapshot, currentDeclaration]
+  );
 
-  // Draft state for the close guard: undefined until the body reports an edit, reset on
-  // instance switch (the body runs its own discard confirmation there).
-  const draftTextRef = useRef<string | undefined>(undefined);
+  // The sheet owns what is pending; the body owns only the editor session it currently has
+  // mounted. In a ref rather than state because it changes on every keystroke and nothing in
+  // this render depends on it.
+  const draftRef = useRef(EditorSheetDraft_create(currentDeclaration?.text ?? "", sharedSections));
+  const onDraftText = (text: string): void => {
+    draftRef.current = EditorSheetDraft_fromEditor(draftRef.current, text);
+  };
   // Set once a close is approved (or changes are saved), so the beforeRemove guard doesn't
   // re-prompt on the navigation pop that follows.
   const allowCloseRef = useRef(false);
+
+  // Remount rather than edit-in-place: the body's editor asserts inside Runestone when a
+  // multi-section suffix is spliced into a live document. Only the mounting text is recomputed —
+  // the draft is the record of what changed and is left alone, so toggling can neither lose an
+  // edit nor reset the dirty state.
+  const onToggleShared = (): void => {
+    const isVisible = !isSharedVisible;
+    const draft = draftRef.current;
+    setIsSharedVisible(isVisible);
+    setBodyText(EditorSheetDraft_mountText(draft, isVisible));
+    setRemountKey((key) => key + 1);
+  };
+
+  // Freeform drops the sections out of the text itself; what the user did to them is already in
+  // the draft, so only visibility changes here.
+  const onSharedHidden = (localText: string): void => {
+    setIsSharedVisible(false);
+    setBodyText(localText);
+  };
+
+  // The body asks; the sheet answers, because only the sheet knows what is pending — the body's
+  // mounted text is recomposed by the shared-sections toggle and stops tracking "changed".
+  const onSelectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
+    if (isDirty() && !(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
+      return;
+    }
+    const next = snapshot?.instances.find(
+      (e) => e.dayData.week === instance.dayData.week && e.dayData.dayInWeek === instance.dayData.dayInWeek
+    );
+    // Resolved here rather than read from the memo: that still describes the instance being
+    // left, and the draft's baseline has to be the one it will be compared against.
+    const nextShared =
+      snapshot != null && next != null ? ProgramExerciseText_sharedSections(snapshot.evaluatedProgram, next) : [];
+    draftRef.current = EditorSheetDraft_create(next?.text ?? "", nextShared);
+    setBodyText(undefined);
+    setIsSharedVisible(false);
+    setRemountKey((key) => key + 1);
+    setSelectedDayData(instance.dayData);
+  };
 
   const onClose = (): void => {
     allowCloseRef.current = true;
@@ -209,11 +297,11 @@ export function NavModalEditorSheet(): JSX.Element {
   };
 
   const onBeforeApply = async (text: string): Promise<boolean> => {
-    if (currentExercise == null || snapshot == null) {
+    if (currentDeclaration == null) {
       return true;
     }
-    const declaration = ProgramExerciseText_findDeclaration(snapshot.evaluatedProgram, currentExercise);
-    const swap = detectSwap(text.trim(), declaration);
+    const { localText } = ProgramExerciseText_split(text.trim(), sharedSections);
+    const swap = detectSwap(localText.trim(), currentDeclaration);
     if (swap == null) {
       return true;
     }
@@ -221,13 +309,9 @@ export function NavModalEditorSheet(): JSX.Element {
   };
 
   const onDone = async (newText: string): Promise<void> => {
-    const trimmed = newText.trim();
-    if (params == null || snapshot == null || currentExercise == null || trimmed === currentExercise.text) {
+    onDraftText(newText);
+    if (params == null || snapshot == null || currentExercise == null || !isDirty()) {
       onClose();
-      return;
-    }
-    if (trimmed === "") {
-      Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
       return;
     }
     // Re-resolve from the current state, not the open-time snapshot: a stacked reuse sheet
@@ -248,7 +332,16 @@ export function NavModalEditorSheet(): JSX.Element {
       onClose();
       return;
     }
-    const swap = detectSwap(trimmed, declaration);
+    // Shared sections are re-resolved against this evaluation too — the stacked sheet may have
+    // moved which day declares one, and writing to the snapshot's owner would miss it.
+    const freshShared = ProgramExerciseText_sharedSections(evaluatedProgram, declaration);
+    const pending = EditorSheetDraft_pendingChange(draftRef.current, freshShared);
+    const localText = pending.localText.trim();
+    if (localText === "") {
+      Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
+      return;
+    }
+    const swap = detectSwap(localText, declaration);
     // Reachable when the name was changed on a surface with no Apply step (the web body), or
     // when the sheet was opened again on a text that already carries the change.
     const scope = swap != null ? await requestSwapScope(swap.isLadder) : "all";
@@ -258,7 +351,8 @@ export function NavModalEditorSheet(): JSX.Element {
     const applied = ProgramExerciseText_apply(
       program.planner,
       declaration,
-      trimmed,
+      localText,
+      pending.sharedEdits,
       swap,
       scope,
       state.storage.settings
@@ -343,22 +437,33 @@ export function NavModalEditorSheet(): JSX.Element {
   // re-resolves and re-validates from scratch.
   const validateText = (newText: string): IEditorSheetLiveError | undefined => {
     const trimmed = newText.trim();
-    if (params == null || snapshot == null || currentExercise == null || trimmed === "") {
+    if (params == null || currentDeclaration == null || trimmed === "") {
       return undefined;
     }
     const program = resolveProgram(state, params.programId, isFromWorkout);
     if (program?.planner == null) {
       return undefined;
     }
-    const declaration = ProgramExerciseText_findDeclaration(snapshot.evaluatedProgram, currentExercise);
+    // Through the same call the save uses, on a draft folded up to the live text: a shared
+    // property edited and then hidden is still going to be written, so validation has to see it
+    // even though it is no longer in the text on screen.
+    const pending = EditorSheetDraft_pendingChange(
+      EditorSheetDraft_fromEditor(draftRef.current, trimmed),
+      sharedSections
+    );
+    const localText = pending.localText.trim();
+    if (localText === "") {
+      return undefined;
+    }
     // Validated the same way it will be saved, including the swap — otherwise a changed
     // exercise name reports every `...reuse` aimed at the old one as broken, which the save
     // then goes on to rewrite.
-    const swap = detectSwap(trimmed, declaration);
+    const swap = detectSwap(localText, currentDeclaration);
     const applied = ProgramExerciseText_apply(
       program.planner,
-      declaration,
-      trimmed,
+      currentDeclaration,
+      localText,
+      pending.sharedEdits,
       swap,
       swapScopeRef.current ?? "all",
       state.storage.settings
@@ -375,8 +480,13 @@ export function NavModalEditorSheet(): JSX.Element {
     return error;
   };
 
-  const initialText = currentExercise?.text ?? sampleText;
-  const isDirty = (): boolean => draftTextRef.current != null && draftTextRef.current.trim() !== initialText.trim();
+  // The local line only: shared sections are noise most of the time, so the body splices them
+  // in on request rather than the sheet opening with them.
+  // bodyText is whatever the shared-sections toggle last composed; without it, the plain local
+  // line. Either way it is exactly what the body is mounted with, so it doubles as the baseline
+  // the close guard compares the draft against.
+  const initialText = bodyText ?? currentDeclaration?.text ?? sampleText;
+  const isDirty = (): boolean => EditorSheetDraft_isDirty(draftRef.current);
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 
@@ -468,16 +578,17 @@ export function NavModalEditorSheet(): JSX.Element {
         <CustomKeyboardProvider applySafeAreaBottom={false} fitContent={true} noShadow={true}>
           <EditorSheetBody
             // Remount on instance switch: the controller reads initialText only once.
-            key={dayData != null ? `${dayData.week}-${dayData.dayInWeek}` : "default"}
+            key={`${dayData?.week ?? 0}-${dayData?.dayInWeek ?? 0}-${remountKey}`}
             initialText={initialText}
             headerLabel={headerLabel}
             instances={instances}
-            onSelectInstance={(instance) => {
-              draftTextRef.current = undefined;
-              setSelectedDayData(instance.dayData);
-            }}
+            sharedProperties={sharedProperties(sharedSections)}
+            isSharedVisible={isSharedVisible}
+            onToggleShared={onToggleShared}
+            onSharedHidden={onSharedHidden}
+            onSelectInstance={onSelectInstance}
             onTextChange={(text) => {
-              draftTextRef.current = text;
+              onDraftText(text);
             }}
             onModeChange={setEditorMode}
             exerciseFullNames={exerciseFullNames}
