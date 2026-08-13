@@ -34,7 +34,9 @@ export class MockFetch {
     const headers = { Cookie: `session=${session}`, ...options?.headers };
     const url = UrlUtils_build(typeof urlStr === "string" ? urlStr : (urlStr as Request).url);
     if (url.pathname.startsWith("/programdata/")) {
-      const filePath = path.join(__dirname, "../../dist", url.pathname);
+      // Read what `build:programs` generates, not what webpack copies it to — otherwise the
+      // suite needs a full bundle first, which a fresh worktree has never run.
+      const filePath = path.join(__dirname, "../..", url.pathname);
       if (!this.hasConnection) {
         throw new NoRetryError("Network Error");
       }
