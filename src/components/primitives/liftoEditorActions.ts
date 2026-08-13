@@ -1,6 +1,8 @@
 import { SyntaxNode } from "@lezer/common";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { ITextEdit } from "./liftoEditorBrain";
+import { LiftoEditorStateVars_sanitizeName } from "./liftoEditorStateVars";
+import type { ITextInputModalData } from "../../navigation/ModalStateContext";
 
 // What the user can DO at each syntax node: the pill registry (label + category + static
 // templates) and the per-node builders that decide which pills apply and where they splice.
@@ -23,11 +25,44 @@ export interface ILiftoEditorPill {
   // Additional disjoint spans applied together with the primary edit, in original-text
   // coordinates ("Make current" inserts a marker here and removes one elsewhere).
   extraEdits?: ITextEdit[];
-  action?: "changeExercise" | "rename" | "editReuse" | "reuseSets" | "reuseProgressScript" | "reuseUpdateScript";
+  // Which token a rename action edits — they sanitize the typed value differently.
+  renameKind?: "label" | "stateVar";
+  action?:
+    | "changeExercise"
+    | "rename"
+    | "editReuse"
+    | "reuseSets"
+    | "reuseProgressScript"
+    | "reuseUpdateScript"
+    | "editStateVars";
+  // For editStateVars: everything the sheet needs that only the text knows.
+  stateVars?: ILiftoEditorStateVarsTarget;
   // For reuse* actions: how the picked `...Target[w:d]` lands in this pill's range —
   // "{target}" gets substituted (" / {target}" appends a section, "{ {target} }" swaps a
   // script body, bare "{target}" swaps just the reuse target).
   reuseTemplate?: string;
+}
+
+export interface ILiftoEditorStateVarEntry {
+  name: string;
+  // The value as the text spells it ("5lb", "80%", "-2.5"); the sheet converts it.
+  value: string;
+  userPrompted: boolean;
+}
+
+// The state-var picture the text paints, which is the one the sheet has to believe: the
+// evaluation behind it can be a few keystrokes old.
+export interface ILiftoEditorStateVarsTarget {
+  entries: ILiftoEditorStateVarEntry[];
+  // The argument list holds something that isn't a `name: value` pair. Rewriting the list
+  // would drop it, so the sheet reads it out but refuses to save.
+  hasUnparsed: boolean;
+  // A body spelled out in the text, or the exercise a reused body names. Both properties
+  // matter: progress declares the state, and update's script can use it too.
+  progressScript?: string;
+  progressReuse?: string;
+  updateScript?: string;
+  updateReuse?: string;
 }
 
 // What the reuse picker hands back: the sets variant carries week/day when the target is
@@ -94,8 +129,13 @@ function replacePill(def: IPillDef, node: SyntaxNode, text: string): ILiftoEdito
   return { label: def.label, category: def.category, start: node.from, end: node.to, text };
 }
 
-function renamePill(current: string, start: number, end: number): ILiftoEditorPill {
-  return { label: "Rename…", category: "neutral", start, end, text: current, action: "rename" };
+function renamePill(
+  current: string,
+  start: number,
+  end: number,
+  kind: "label" | "stateVar" = "label"
+): ILiftoEditorPill {
+  return { label: "Rename…", category: "neutral", start, end, text: current, action: "rename", renameKind: kind };
 }
 
 function nodeText(text: string, node: SyntaxNode): string {
@@ -395,6 +435,132 @@ function enclosingPropertyName(text: string, node: SyntaxNode): string | undefin
   return undefined;
 }
 
+// The grammar skips spaces and tabs, so `custom (x: 1)` is the same call as `custom(x: 1)`.
+function skipSpace(text: string, index: number): number {
+  let i = index;
+  while (i < text.length && (text[i] === " " || text[i] === "\t")) {
+    i += 1;
+  }
+  return i;
+}
+
+// The argument list's span, parens included — an empty list still has to come back as
+// `custom()`, so they're part of the range rather than something the sheet re-emits. The
+// parens aren't nodes of their own, so they're found between the surrounding ones: after
+// the name, and after the last argument but before the body.
+function argListRange(text: string, fn: SyntaxNode, nameNode: SyntaxNode): { start: number; end: number } | undefined {
+  const open = skipSpace(text, nameNode.to);
+  if (text[open] !== "(") {
+    return { start: nameNode.to, end: nameNode.to };
+  }
+  const args = fn.getChildren(PlannerNodeName.FunctionArgument);
+  const body = fn.getChild(PlannerNodeName.Liftoscript) ?? fn.getChild(PlannerNodeName.ReuseLiftoscript);
+  const limit = body != null ? body.from : fn.to;
+  const close = text.indexOf(")", args.length > 0 ? args[args.length - 1].to : open + 1);
+  // An unclosed list — the match, if any, belongs to something else entirely.
+  return close === -1 || close >= limit ? undefined : { start: open, end: close + 1 };
+}
+
+function stateVarEntries(
+  text: string,
+  fn: SyntaxNode,
+  range: { start: number; end: number }
+): { entries: ILiftoEditorStateVarEntry[]; hasUnparsed: boolean } {
+  const entries: ILiftoEditorStateVarEntry[] = [];
+  const args = fn.getChildren(PlannerNodeName.FunctionArgument);
+  let hasUnparsed = false;
+  for (const arg of args) {
+    const keyValue = arg.getChild(PlannerNodeName.KeyValue);
+    const keyword = keyValue?.getChild(PlannerNodeName.Keyword);
+    const value =
+      keyValue?.getChild(PlannerNodeName.Number) ??
+      keyValue?.getChild(PlannerNodeName.Weight) ??
+      keyValue?.getChild(PlannerNodeName.Percentage);
+    // `broken` and `bad: nope` both parse as a KeyValue with no value node.
+    if (keyValue == null || keyword == null || value == null) {
+      hasUnparsed = true;
+      continue;
+    }
+    entries.push({
+      name: nodeText(text, keyword),
+      value: nodeText(text, value),
+      userPrompted: keyValue.getChild(PlannerNodeName.Plus) != null,
+    });
+  }
+  // Anything between the parens that no argument covers would be dropped by a rewrite —
+  // `custom(x: 1: 2)` parses one argument and leaves `: 2` stranded.
+  if (range.end > range.start) {
+    let stray = "";
+    let at = range.start + 1;
+    for (const arg of args) {
+      stray += text.slice(at, arg.from);
+      at = arg.to;
+    }
+    stray += text.slice(at, range.end - 1);
+    hasUnparsed = hasUnparsed || stray.replace(/,/g, "").trim() !== "";
+  }
+  return { entries, hasUnparsed };
+}
+
+// A property's body as the text spells it: the script itself, or the exercise a reused body
+// names.
+function propertyScript(
+  text: string,
+  exercise: SyntaxNode | null,
+  property: string
+): { script?: string; reuse?: string } {
+  const fn = exercise != null ? propertyFunction(text, exercise, property) : undefined;
+  const own = fn?.getChild(PlannerNodeName.Liftoscript);
+  if (own != null) {
+    return { script: nodeText(text, own) };
+  }
+  const reuse = fn
+    ?.getChild(PlannerNodeName.ReuseLiftoscript)
+    ?.getChild(PlannerNodeName.ReuseSection)
+    ?.getChild(PlannerNodeName.ExerciseName);
+  return { reuse: reuse != null ? nodeText(text, reuse).trim() : undefined };
+}
+
+function propertyFunction(text: string, exercise: SyntaxNode, property: string): SyntaxNode | undefined {
+  for (const section of exercise.getChildren(PlannerNodeName.ExerciseSection)) {
+    const node = section.getChild(PlannerNodeName.ExerciseProperty);
+    const nameNode = node?.getChild(PlannerNodeName.ExercisePropertyName);
+    if (node != null && nameNode != null && nodeText(text, nameNode) === property) {
+      return node.getChild(PlannerNodeName.FunctionExpression) ?? undefined;
+    }
+  }
+  return undefined;
+}
+
+export function LiftoEditorActions_stateVarsPill(text: string, fn: SyntaxNode): ILiftoEditorPill | undefined {
+  const nameNode = fn.getChild(PlannerNodeName.FunctionName);
+  if (nameNode == null || nodeText(text, nameNode) !== "custom" || enclosingPropertyName(text, fn) === "update") {
+    return undefined;
+  }
+  const range = argListRange(text, fn, nameNode);
+  if (range == null) {
+    return undefined;
+  }
+  const exercise = LiftoEditorActions_enclosingExercise(fn);
+  const progress = propertyScript(text, exercise, "progress");
+  const update = propertyScript(text, exercise, "update");
+  return {
+    label: "State vars…",
+    category: "logic",
+    action: "editStateVars",
+    start: range.start,
+    end: range.end,
+    text: range.end > range.start ? text.slice(range.start + 1, range.end - 1) : "",
+    stateVars: {
+      ...stateVarEntries(text, fn, range),
+      progressScript: progress.script,
+      progressReuse: progress.reuse,
+      updateScript: update.script,
+      updateReuse: update.reuse,
+    },
+  };
+}
+
 // State vars live in custom()'s argument list; lp()/sum()/dp() have fixed signatures.
 // Only progress custom() declares them — update custom() reads the same exercise's state,
 // so offering "Add state var" there would splice an invalid declaration.
@@ -405,6 +571,10 @@ function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
   }
   const pills: ILiftoEditorPill[] = [];
   const args = fn.getChildren(PlannerNodeName.FunctionArgument);
+  const stateVars = LiftoEditorActions_stateVarsPill(text, fn);
+  if (stateVars != null) {
+    pills.push(stateVars);
+  }
   if (enclosingPropertyName(text, fn) !== "update") {
     if (args.length > 0) {
       pills.push(insertPill(defs.addStateVar, args[args.length - 1].to, ", myvar: 0"));
@@ -432,6 +602,20 @@ function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
     });
   }
   return pills;
+}
+
+// Both surfaces prompt for a rename the same way — and a state variable is neither a label
+// nor capped at a label's 8 characters.
+export function LiftoEditorActions_renamePrompt(current: string, kind: "label" | "stateVar"): ITextInputModalData {
+  const isStateVar = kind === "stateVar";
+  return {
+    title: isStateVar ? "Rename state variable" : "Rename label",
+    inputLabel: isStateVar ? "Name" : "Label",
+    placeholder: current,
+    submitLabel: "Rename",
+    dataCyPrefix: isStateVar ? "rename-state-var" : "rename-label",
+    maxLength: isStateVar ? undefined : 8,
+  };
 }
 
 export function LiftoEditorActions_reuseTargetText(selection: ILiftoEditorReuseSelection): string {
@@ -614,9 +798,19 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
 
 function keyValuePills(text: string, node: SyntaxNode): ILiftoEditorPill[] {
   const pills: ILiftoEditorPill[] = [];
+  // Focusing one state var is the likeliest moment to want the whole list — the sheet is
+  // where the reused ones and their defaults are visible at all.
+  let fn: SyntaxNode | null = node.parent;
+  while (fn != null && fn.name !== PlannerNodeName.FunctionExpression) {
+    fn = fn.parent;
+  }
+  const stateVars = fn != null ? LiftoEditorActions_stateVarsPill(text, fn) : undefined;
+  if (stateVars != null) {
+    pills.push(stateVars);
+  }
   const keyword = node.getChild(PlannerNodeName.Keyword);
   if (keyword != null) {
-    pills.push(renamePill(nodeText(text, keyword), keyword.from, keyword.to));
+    pills.push(renamePill(nodeText(text, keyword), keyword.from, keyword.to, "stateVar"));
   }
   const numberNode = node.getChild(PlannerNodeName.Number);
   if (numberNode != null) {
@@ -653,10 +847,17 @@ export function LiftoEditorActions_swapExerciseEdit(target: ITextEdit, pickedNam
   return { start: target.start, end: target.end, text };
 }
 
-// Strip characters that would break out of the label token (parens close a set label,
-// ":" ends an exercise label, "/" starts a new section); undefined when nothing is left.
-export function LiftoEditorActions_renameEdit(target: ITextEdit, newLabel: string): ITextEdit | undefined {
-  const sanitized = newLabel.trim().replace(/[():/]/g, "");
+// Strip characters that would break out of the token: for a label, the ones that end it
+// (parens close a set label, ":" ends an exercise label, "/" starts a new section); for a
+// state variable, everything the two grammars' keyword rules don't allow. Undefined when
+// nothing usable is left.
+export function LiftoEditorActions_renameEdit(
+  target: ITextEdit,
+  newLabel: string,
+  kind: "label" | "stateVar" = "label"
+): ITextEdit | undefined {
+  const sanitized =
+    kind === "stateVar" ? LiftoEditorStateVars_sanitizeName(newLabel.trim()) : newLabel.trim().replace(/[():/]/g, "");
   if (sanitized === "") {
     return undefined;
   }

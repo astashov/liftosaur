@@ -117,6 +117,8 @@ import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
+import { NavModalStateVars } from "./modals/NavModalStateVars";
+import { NavModalCreateStateVar } from "./modals/NavModalCreateStateVar";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
@@ -408,6 +410,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
           <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
+          <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
+          <RootStack.Screen name="createStateVarModal" component={NavModalCreateStateVar} />
           <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
           <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
           <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />

@@ -6,7 +6,10 @@ import { useModal } from "../ModalStateContext";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { CollectionUtils_compact } from "../../utils/collection";
 import type { IExercisePickerSelectedExercise } from "../../types";
-import type { ILiftoEditorReuseSelection } from "../../components/primitives/liftoEditorActions";
+import {
+  ILiftoEditorReuseSelection,
+  LiftoEditorActions_renamePrompt,
+} from "../../components/primitives/liftoEditorActions";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../../components/primitives/liftoEditorBrain";
@@ -57,6 +60,14 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
       pending.onSelect(selection);
     }
   });
+  const stateVarsApplyRef = useRef<((args: string) => void) | undefined>(undefined);
+  const openStateVars = useModal("stateVarsModal", (args) => {
+    const onApply = stateVarsApplyRef.current;
+    stateVarsApplyRef.current = undefined;
+    if (args != null && onApply != null) {
+      onApply(args);
+    }
+  });
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
     // Follows the text, so plates and units track an exercise swapped mid-session instead of
@@ -98,16 +109,9 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           }
         });
       },
-      promptRename: (current, onSubmit) => {
+      promptRename: (current, kind, onSubmit) => {
         renameSubmitRef.current = onSubmit;
-        openRename({
-          title: "Rename label",
-          inputLabel: "Label",
-          placeholder: current,
-          submitLabel: "Rename",
-          dataCyPrefix: "rename-label",
-          maxLength: 8,
-        });
+        openRename(LiftoEditorActions_renamePrompt(current, kind));
       },
       editReuse: (targetName) => props.onEditReuse?.(targetName),
       pickReuse: (kind, _exerciseStart, onSelect) => {
@@ -134,6 +138,15 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             kind === "sets"
               ? "You can only reuse sets of exercises that don't reuse other exercises"
               : "You can only reuse scripts that don't reuse other scripts",
+        });
+      },
+      editStateVars: (target, exerciseFullName, onApply) => {
+        stateVarsApplyRef.current = onApply;
+        openStateVars({
+          ...(props.stateVarsFor?.(target) ?? {}),
+          entries: target.entries,
+          hasUnparsed: target.hasUnparsed,
+          exerciseType: props.exerciseFor?.(exerciseFullName)?.exerciseType ?? props.pickerData?.exerciseType,
         });
       },
     },

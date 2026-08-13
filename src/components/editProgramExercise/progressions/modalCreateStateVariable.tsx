@@ -5,14 +5,18 @@ import { Modal } from "../../modal";
 import { IPercentageUnit, IUnit } from "../../../types";
 import { Button } from "../../button";
 import { InputSelect } from "../../inputSelect";
+import { Input } from "../../input";
 import { MenuItemEditable } from "../../menuItemEditable";
+import { LiftoEditorStateVars_nameError } from "../../primitives/liftoEditorStateVars";
 
 interface IModalCreateStateVariableProps {
+  // The names already declared, so a duplicate is caught before it silently shadows one.
+  existingNames?: string[];
   onClose: () => void;
   onCreate: (name: string, type: IStateVariableType, isUserPrompted: boolean) => void;
 }
 
-type IStateVariableType = "number" | IUnit | IPercentageUnit;
+export type IStateVariableType = "number" | IUnit | IPercentageUnit;
 
 export function ModalCreateStateVariableContent(props: IModalCreateStateVariableProps): JSX.Element {
   const [name, setName] = useState<string>("");
@@ -26,7 +30,7 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
     ["%", "Percentage"],
   ];
   const [isUserPrompted, setIsUserPrompted] = useState<boolean>(false);
-  const nameIsValid = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
+  const nameError = LiftoEditorStateVars_nameError(name, props.existingNames);
 
   return (
     <View className="items-center pb-4 bg-background-default">
@@ -35,21 +39,22 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
         via <Text className="text-xs font-bold">state.yourVariable</Text> in the script.
       </Text>
       <View className="w-full">
-        <MenuItemEditable
-          name="Variable name"
-          type="text"
-          value={name}
-          onChange={(v) => {
-            setName(v ?? "");
-            setShowNameError(false);
+        <Input
+          label="Variable name"
+          identifier="create-state-variable-name"
+          // Scripts reference the name verbatim ('state.increment'), so an autocapitalized
+          // first letter is a typo the user can't see. On input, not on blur: Create can be
+          // tapped without ever blurring the field.
+          autoCapitalize="none"
+          autoCorrect={false}
+          changeType="oninput"
+          changeHandler={(r) => {
+            if (r.success) {
+              setName(r.data.trim());
+            }
           }}
         />
-        {showNameError && !nameIsValid && (
-          <Text className="text-xs text-text-error">
-            Variable names must start with a letter or underscore, and can only contain letters, numbers, and
-            underscores.
-          </Text>
-        )}
+        {showNameError && nameError != null && <Text className="text-xs text-text-error">{nameError}</Text>}
       </View>
       <View className="w-full pt-2">
         <InputSelect
@@ -89,12 +94,13 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
           kind="purple"
           name="modal-create-state-variable-submit"
           onClick={() => {
+            if (nameError != null) {
+              setShowNameError(true);
+            }
             if (!type) {
               setShowTypeError(true);
-              return;
             }
-            if (!nameIsValid) {
-              setShowNameError(true);
+            if (nameError != null || !type) {
               return;
             }
             props.onCreate(name, type, isUserPrompted);

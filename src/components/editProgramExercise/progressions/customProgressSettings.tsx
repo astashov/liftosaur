@@ -61,7 +61,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
               <View key={key} className="p-2 border-b border-border-cardpurple">
                 <View className="flex-row items-center gap-4">
                   <View className="flex-1">
-                    <Text className="leading-none">{key}</Text>
+                    <Text>{key}</Text>
                     {metadata?.userPrompted && <Text className="text-xs text-text-secondary">User prompted</Text>}
                     {isReused && <Text className="text-xs text-text-secondary">Reused</Text>}
                   </View>

@@ -1,5 +1,9 @@
 import { ILiftoEditorContext } from "./primitives/liftoEditorBrain";
-import { ILiftoEditorPill, ILiftoEditorReuseSelection } from "./primitives/liftoEditorActions";
+import {
+  ILiftoEditorPill,
+  ILiftoEditorReuseSelection,
+  ILiftoEditorStateVarsTarget,
+} from "./primitives/liftoEditorActions";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { IExercisePickerSelectedExercise, IExerciseType } from "../types";
 
@@ -32,12 +36,17 @@ export interface ILiftoEditorControllerActions {
     exerciseFullName: string | undefined,
     onSelect: (selected: IExercisePickerSelectedExercise) => void
   ) => void;
-  promptRename?: (current: string, onSubmit: (value: string) => void) => void;
+  promptRename?: (current: string, kind: "label" | "stateVar", onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
   pickReuse?: (
     kind: "sets" | "progress" | "update",
     exerciseFullName: string | undefined,
     onSelect: (selection: ILiftoEditorReuseSelection) => void
+  ) => void;
+  editStateVars?: (
+    target: ILiftoEditorStateVarsTarget,
+    exerciseFullName: string | undefined,
+    onApply: (newArgs: string) => void
   ) => void;
 }
 

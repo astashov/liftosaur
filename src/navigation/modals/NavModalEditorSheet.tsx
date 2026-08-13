@@ -11,6 +11,11 @@ import {
   Program_getProgramExercise,
 } from "../../models/program";
 import { ILiftoEditorReuseCandidates, LiftoEditorReuse_candidates } from "../../components/liftoEditorReuse";
+import {
+  ILiftoEditorStateVarsContext,
+  LiftoEditorStateVars_contextFor,
+} from "../../components/primitives/liftoEditorStateVars";
+import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/liftoEditorActions";
 import { LiftoEditorBrain_exerciseFullName, LiftoEditorParseCache } from "../../components/primitives/liftoEditorBrain";
 import {
   IProgramExerciseIdentity,
@@ -418,6 +423,15 @@ export function NavModalEditorSheet(): JSX.Element {
     snapshot != null && params != null && currentExercise != null && dayData != null
       ? LiftoEditorReuse_candidates(params.key, !!currentExercise.notused, snapshot.evaluatedProgram, dayData)
       : undefined;
+  // Resolved per press against the program the sheet opened on: the reuse target comes from
+  // the live text, so it can name an exercise this declaration didn't reuse when it opened.
+  const stateVarsFor = (target: ILiftoEditorStateVarsTarget): ILiftoEditorStateVarsContext =>
+    LiftoEditorStateVars_contextFor(
+      target,
+      currentExercise,
+      snapshot != null ? Program_getAllProgramExercises(snapshot.evaluatedProgram) : [],
+      state.storage.settings
+    );
   const pickerData: IEditorSheetExercisePickerModalData | undefined =
     snapshot != null && params != null && currentExercise != null && dayData != null
       ? {
@@ -471,6 +485,7 @@ export function NavModalEditorSheet(): JSX.Element {
             exerciseFor={exerciseFor}
             onEditReuse={onEditReuse}
             reuseCandidates={reuseCandidates}
+            stateVarsFor={stateVarsFor}
             validateText={validateText}
             onBeforeChangeExercise={onBeforeChangeExercise}
             onBeforeApply={onBeforeApply}

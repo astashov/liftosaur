@@ -1,7 +1,18 @@
 import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef, useCallback } from "react";
-import type { IMuscle, IExerciseKind, IExerciseType, IExercisePickerSelectedExercise, IDayData } from "../types";
+import type {
+  IMuscle,
+  IExerciseKind,
+  IExerciseType,
+  IExercisePickerSelectedExercise,
+  IDayData,
+  IProgramState,
+  IProgramStateMetadata,
+} from "../types";
 import type { IEvaluatedProgram } from "../models/program";
 import { getNavigationRef } from "./navUtils";
+import { UidFactory_generateUid } from "../utils/generator";
+import type { IStateVariableType } from "../components/editProgramExercise/progressions/modalCreateStateVariable";
+import type { ILiftoEditorStateVarEntry } from "../components/primitives/liftoEditorActions";
 
 export interface IInputSelectModalData {
   name?: string;
@@ -62,8 +73,29 @@ export interface IEditorSheetExercisePickerModalData {
   excludeUsedExerciseTypes?: IExerciseType[];
 }
 
+export interface IStateVarsModalData {
+  // What custom()'s parens hold, as the syntax tree read it; the result is the same list,
+  // rewritten.
+  entries: ILiftoEditorStateVarEntry[];
+  hasUnparsed: boolean;
+  defaults?: IProgramState;
+  defaultsMetadata?: IProgramStateMetadata;
+  sourceName?: string;
+  progressScript?: string;
+  updateScript?: string;
+  exerciseType?: IExerciseType;
+}
+
+export interface ICreateStateVarModalResult {
+  name: string;
+  type: IStateVariableType;
+  isUserPrompted: boolean;
+}
+
 export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
+  stateVarsModal: IStateVarsModalData;
+  createStateVarModal: { existingNames?: string[] };
   editorSheetExercisePickerModal: IEditorSheetExercisePickerModalData;
   textInputModal: ITextInputModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
@@ -77,6 +109,8 @@ export interface IModalDataMap {
 
 export interface IModalResultMap {
   inputSelectModal: string;
+  stateVarsModal: string;
+  createStateVarModal: ICreateStateVarModalResult;
   editorSheetExercisePickerModal: IExercisePickerSelectedExercise;
   textInputModal: string;
   repMaxCalculatorModal: number;
@@ -91,10 +125,14 @@ export interface IModalResultMap {
 export interface IModalState {
   modals: Partial<IModalDataMap>;
   results: Partial<IModalResultMap>;
+  // Who opened each modal last. Several components can hold a useModal hook for the same
+  // key (one per mounted day editor), and a result is delivered to the one that asked for
+  // it — a canceled opener would otherwise stay armed and take the next opener's result.
+  owners: Partial<Record<keyof IModalDataMap, string>>;
 }
 
 type IModalAction =
-  | { type: "open"; key: string; data: unknown }
+  | { type: "open"; key: string; data: unknown; owner?: string }
   | { type: "clear"; key: string }
   | { type: "setResult"; key: string; value: unknown }
   | { type: "clearResult"; key: string };
@@ -102,7 +140,11 @@ type IModalAction =
 function modalReducer(state: IModalState, action: IModalAction): IModalState {
   switch (action.type) {
     case "open":
-      return { ...state, modals: { ...state.modals, [action.key]: action.data } };
+      return {
+        ...state,
+        modals: { ...state.modals, [action.key]: action.data },
+        owners: { ...state.owners, [action.key]: action.owner },
+      };
     case "clear": {
       const { [action.key]: _, ...rest } = state.modals as Record<string, unknown>;
       return { ...state, modals: rest as Partial<IModalDataMap> };
@@ -118,7 +160,7 @@ function modalReducer(state: IModalState, action: IModalAction): IModalState {
   }
 }
 
-const initialModalState: IModalState = { modals: {}, results: {} };
+const initialModalState: IModalState = { modals: {}, results: {}, owners: {} };
 
 export type IModalDispatch = (action: IModalAction) => void;
 
@@ -156,9 +198,10 @@ export function useModalData<K extends keyof IModalDataMap>(key: K): IModalDataM
 export function Modal_open<K extends keyof IModalDataMap>(
   dispatch: IModalDispatch,
   key: K,
-  data: IModalDataMap[K]
+  data: IModalDataMap[K],
+  owner?: string
 ): void {
-  dispatch({ type: "open", key, data });
+  dispatch({ type: "open", key, data, owner });
 }
 
 export function Modal_setResult<K extends keyof IModalResultMap>(
@@ -200,19 +243,27 @@ export function useModal<K extends keyof IModalDataMap & keyof IModalResultMap>(
   const callbackRef = useRef(callback);
   callbackRef.current = callback;
   const isOpenRef = useRef(false);
+  const idRef = useRef<string | undefined>(undefined);
+  if (idRef.current == null) {
+    idRef.current = UidFactory_generateUid(8);
+  }
+  // Closing without a result leaves this hook armed — nothing tells it the modal went away.
+  // Ownership is what retires it: the next opener takes the key, and only the owner is
+  // allowed to consume a result.
+  const isOwner = state.owners[key] === idRef.current;
 
   useEffect(() => {
-    if (result != null && isOpenRef.current) {
+    if (result != null && isOpenRef.current && isOwner) {
       isOpenRef.current = false;
       dispatch({ type: "clearResult", key });
       callbackRef.current(result as IModalResultMap[K]);
     }
-  }, [result, dispatch, key]);
+  }, [result, dispatch, key, isOwner]);
 
   return useCallback(
     (data: IModalDataMap[K]) => {
       isOpenRef.current = true;
-      Modal_open(dispatch, key, data);
+      Modal_open(dispatch, key, data, idRef.current);
       getNavigationRef().then(({ navigationRef: ref }) => ref.navigate(key as never));
     },
     [dispatch, key]

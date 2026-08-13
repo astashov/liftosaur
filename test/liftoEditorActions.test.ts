@@ -1,16 +1,22 @@
 import "mocha";
 import { expect } from "chai";
 import {
+  ILiftoEditorStateVarsTarget,
   LiftoEditorActions_renameEdit,
   LiftoEditorActions_reuseTargetText,
   LiftoEditorActions_swapExerciseEdit,
 } from "../src/components/primitives/liftoEditorActions";
 import {
+  LiftoEditorTestUtils_applyPill,
   LiftoEditorTestUtils_contextAt,
   LiftoEditorTestUtils_pillLabels,
   LiftoEditorTestUtils_pills,
   LiftoEditorTestUtils_pressPill,
 } from "./utils/liftoEditorTestUtils";
+
+function stateVarsTarget(text: string): ILiftoEditorStateVarsTarget | undefined {
+  return LiftoEditorTestUtils_pills(text, "custom", "custom()").find((p) => p.label === "State vars…")?.stateVars;
+}
 
 describe("LiftoEditorActions", () => {
   describe("set group pills", () => {
@@ -257,6 +263,95 @@ describe("LiftoEditorActions", () => {
       expect(
         LiftoEditorTestUtils_pressPill("Squat / 3x8 / progress: custom(inc: 2.5lb) {~ ~}", "inc", "inc", "Make number")
       ).to.equal("Squat / 3x8 / progress: custom(inc: 2.5) {~ ~}");
+    });
+
+    it("hands the whole argument list to the state vars sheet, parens included", () => {
+      const text = "Squat / 3x8 / progress: custom(rating: 1, inc: 2.5lb) {~ ~}";
+      for (const [needle, level] of [
+        ["custom", "custom()"],
+        ["custom", "Progress"],
+        ["rating", "rating"],
+      ] as [string, string][]) {
+        const pill = LiftoEditorTestUtils_pills(text, needle, level).find((p) => p.label === "State vars…");
+        expect(pill?.action, `${level} rail`).to.equal("editStateVars");
+        expect(pill?.text).to.equal("rating: 1, inc: 2.5lb");
+        expect(text.slice(pill?.start, pill?.end)).to.equal("(rating: 1, inc: 2.5lb)");
+      }
+    });
+
+    it("reads the variables off the syntax tree", () => {
+      const target = stateVarsTarget("Squat / 3x8 / progress: custom(rating: 1, inc+: 2.5lb, pct: 80%) {~ ~}");
+      expect(target?.entries).to.eql([
+        { name: "rating", value: "1", userPrompted: false },
+        { name: "inc", value: "2.5lb", userPrompted: true },
+        { name: "pct", value: "80%", userPrompted: false },
+      ]);
+      expect(target?.hasUnparsed).to.equal(false);
+    });
+
+    it("finds the argument list however it is spaced", () => {
+      for (const text of [
+        "Squat / 3x8 / progress: custom(x: 1) {~ ~}",
+        "Squat / 3x8 / progress: custom (x: 1) {~ ~}",
+        "Squat / 3x8 / progress: custom\t (x: 1) {~ ~}",
+      ]) {
+        const pill = LiftoEditorTestUtils_pills(text, "custom", "custom()").find((p) => p.label === "State vars…");
+        expect(text.slice(pill?.start, pill?.end), text).to.equal("(x: 1)");
+        expect(
+          pill?.stateVars?.entries.map((e) => e.name),
+          text
+        ).to.eql(["x"]);
+      }
+    });
+
+    it("flags an argument list it can't rewrite instead of dropping what it can't read", () => {
+      for (const text of [
+        "Squat / 3x8 / progress: custom(broken, ok: 1) {~ ~}",
+        "Squat / 3x8 / progress: custom(bad: nope) {~ ~}",
+        "Squat / 3x8 / progress: custom(x: 1: 2) {~ ~}",
+      ]) {
+        expect(stateVarsTarget(text)?.hasUnparsed, text).to.equal(true);
+      }
+    });
+
+    it("carries the progress and update bodies along, spelled out or reused", () => {
+      const own = stateVarsTarget(
+        "Squat / 3x8 / progress: custom(x: 1) {~ weights += 5lb ~} / update: custom() {~ state.x += 1 ~}"
+      );
+      expect(own?.progressScript).to.equal("{~ weights += 5lb ~}");
+      expect(own?.updateScript).to.equal("{~ state.x += 1 ~}");
+      expect(own?.progressReuse).to.equal(undefined);
+      // The names the bodies reuse right now — the sheet resolves against those, not against
+      // whatever the last evaluation recorded.
+      const reused = stateVarsTarget(
+        "Squat / 3x8 / progress: custom(x: 1) { ...Bench Press } / update: custom() { ...Deadlift }"
+      );
+      expect(reused?.progressScript).to.equal(undefined);
+      expect(reused?.progressReuse).to.equal("Bench Press");
+      expect(reused?.updateReuse).to.equal("Deadlift");
+    });
+
+    it("targets the empty parens when custom() declares nothing", () => {
+      const text = "Squat / 3x8 / progress: custom() { ...Bench Press }";
+      const pill = LiftoEditorTestUtils_pills(text, "custom", "custom()").find((p) => p.label === "State vars…");
+      expect(pill?.text).to.equal("");
+      expect(text.slice(pill?.start, pill?.end)).to.equal("()");
+      expect(pill?.stateVars?.progressReuse).to.equal("Bench Press");
+    });
+
+    it("inserts a fresh argument list when custom() has no parens at all", () => {
+      const text = "Squat / 3x8 / progress: custom {~ ~}";
+      const pill = LiftoEditorTestUtils_pills(text, "custom", "custom()").find((p) => p.label === "State vars…");
+      expect(pill?.start).to.equal(pill?.end);
+      expect(LiftoEditorTestUtils_applyPill(text, { ...pill!, text: "(x: 1)" })).to.equal(
+        "Squat / 3x8 / progress: custom(x: 1) {~ ~}"
+      );
+    });
+
+    it("offers no state vars sheet on update custom()", () => {
+      expect(
+        LiftoEditorTestUtils_pillLabels("Squat / 3x8 / update: custom() {~ ~}", "custom", "custom()")
+      ).to.not.include("State vars…");
     });
   });
 
@@ -551,6 +646,13 @@ describe("LiftoEditorActions", () => {
       expect(LiftoEditorActions_swapExerciseEdit({ start: 0, end: 5, text: "Squat" }, "Bench Press").text).to.equal(
         "Bench Press"
       );
+    });
+
+    it("renaming a state variable keeps only what its keyword rule allows", () => {
+      const target = { start: 0, end: 3, text: "old" };
+      expect(LiftoEditorActions_renameEdit(target, "my var 2", "stateVar")?.text).to.equal("myvar2");
+      expect(LiftoEditorActions_renameEdit(target, "2fast", "stateVar")?.text).to.equal("fast");
+      expect(LiftoEditorActions_renameEdit(target, "!!", "stateVar")).to.equal(undefined);
     });
 
     it("renaming strips characters that would break out of the token", () => {

@@ -7,10 +7,11 @@ import { Text } from "../primitives/text";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, IExercisePickerSelectedExercise, IExerciseType, ISettings } from "../../types";
-import { IEvaluatedProgram } from "../../models/program";
+import { IEvaluatedProgram, Program_getAllProgramExercises } from "../../models/program";
 import { LiftoEditorReuse_candidates } from "../liftoEditorReuse";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
-import type { ILiftoEditorReuseSelection } from "../primitives/liftoEditorActions";
+import { ILiftoEditorReuseSelection, LiftoEditorActions_renamePrompt } from "../primitives/liftoEditorActions";
+import { LiftoEditorStateVars_contextFor } from "../primitives/liftoEditorStateVars";
 import { useModal } from "../../navigation/ModalStateContext";
 import { Dialog_alert } from "../../utils/dialog";
 import { LiftoEditor } from "../primitives/liftoEditor";
@@ -193,6 +194,14 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
       pending.onSelect(selection);
     }
   });
+  const stateVarsApplyRef = useRef<((args: string) => void) | undefined>(undefined);
+  const openStateVars = useModal("stateVarsModal", (args) => {
+    const onApply = stateVarsApplyRef.current;
+    stateVarsApplyRef.current = undefined;
+    if (args != null && onApply != null) {
+      onApply(args);
+    }
+  });
 
   // Where the focus sits, for the actions to ask which day they're in. Kept in a ref because
   // the pills fire from the dock, a render after focus moved.
@@ -231,16 +240,9 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
           dayData: contextAtRef.current(focusOffsetRef.current).dayData,
         });
       },
-      promptRename: (current, onSubmit) => {
+      promptRename: (current, kind, onSubmit) => {
         renameSubmitRef.current = onSubmit;
-        openRename({
-          title: "Rename label",
-          inputLabel: "Label",
-          placeholder: current,
-          submitLabel: "Rename",
-          dataCyPrefix: "rename-label",
-          maxLength: 8,
-        });
+        openRename(LiftoEditorActions_renamePrompt(current, kind));
       },
       pickReuse: (kind, exerciseFullName, onSelect) => {
         const exercise = focusedExercise(exerciseFullName);
@@ -274,6 +276,21 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
             kind === "sets"
               ? "You can only reuse sets of exercises that don't reuse other exercises"
               : "You can only reuse scripts that don't reuse other scripts",
+        });
+      },
+      editStateVars: (target, exerciseFullName, onApply) => {
+        stateVarsApplyRef.current = onApply;
+        openStateVars({
+          // A reuse target names an exercise anywhere in the program, not just this day's.
+          ...LiftoEditorStateVars_contextFor(
+            target,
+            focusedExercise(exerciseFullName),
+            Program_getAllProgramExercises(evaluatedProgramRef.current),
+            settingsRef.current
+          ),
+          entries: target.entries,
+          hasUnparsed: target.hasUnparsed,
+          exerciseType: exerciseFullName != null ? props.exerciseTypeFor(exerciseFullName) : undefined,
         });
       },
     },

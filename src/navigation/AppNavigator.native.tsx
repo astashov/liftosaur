@@ -80,6 +80,8 @@ import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
+import { NavModalStateVars } from "./modals/NavModalStateVars";
+import { NavModalCreateStateVar } from "./modals/NavModalCreateStateVar";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
 import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMuscles";
 import { NavModalAmrap } from "./modals/NavModalAmrap";
@@ -434,6 +436,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
+          <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
+          <RootStack.Screen name="createStateVarModal" component={NavModalCreateStateVar} />
           <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
           <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
           <RootStack.Screen

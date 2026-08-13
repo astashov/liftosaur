@@ -3,6 +3,8 @@ import type { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
 import type { ILiftoEditorReuseCandidates } from "../../components/liftoEditorReuse";
 import type { IProgramExerciseIdentity } from "../../models/programExerciseSwap";
 import type { IProgramExerciseTextError } from "../../models/programExerciseText";
+import type { ILiftoEditorStateVarsContext } from "../../components/primitives/liftoEditorStateVars";
+import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/liftoEditorActions";
 
 // The banner/line-tint renders exactly what the save pipeline produces, so the two can't drift.
 export type IEditorSheetLiveError = IProgramExerciseTextError;
@@ -35,6 +37,10 @@ export interface IEditorSheetBodyProps {
   // structured/freeform switch; the web body never calls it.
   onModeChange?: (mode: "structured" | "freeform") => void;
   reuseCandidates?: ILiftoEditorReuseCandidates;
+  // Where the state vars of a reused progress come from. Asked per press rather than
+  // snapshotted: which exercise the progress reuses is part of the text being edited, so
+  // only the live pill knows it, and the host is what can resolve it in the program.
+  stateVarsFor?: (target: ILiftoEditorStateVarsTarget) => ILiftoEditorStateVarsContext;
   validateText?: (text: string) => IEditorSheetLiveError | undefined;
   // Changing which exercise this is affects the program beyond this blurb, so the host gets
   // to ask how far it should reach before the change is made. Both resolve to false when the

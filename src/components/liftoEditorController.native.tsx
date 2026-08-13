@@ -4,6 +4,7 @@ import { ILiftoEditorContext, ILiftoEditorHandle, ITextEdit } from "./primitives
 import {
   ILiftoEditorPill,
   ILiftoEditorReuseSelection,
+  ILiftoEditorStateVarsTarget,
   LiftoEditorActions_renameEdit,
   LiftoEditorActions_reuseTargetText,
   LiftoEditorActions_swapExerciseEdit,
@@ -84,12 +85,19 @@ export interface ILiftoEditorControllerActions {
     exerciseFullName: string | undefined,
     onSelect: (selected: IExercisePickerSelectedExercise) => void
   ) => void;
-  promptRename?: (current: string, onSubmit: (value: string) => void) => void;
+  promptRename?: (current: string, kind: "label" | "stateVar", onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
   pickReuse?: (
     kind: "sets" | "progress" | "update",
     exerciseFullName: string | undefined,
     onSelect: (selection: ILiftoEditorReuseSelection) => void
+  ) => void;
+  // Everything the text says about this custom()'s state; the sheet hands back the rewritten
+  // argument list, which the controller puts back inside the parens.
+  editStateVars?: (
+    target: ILiftoEditorStateVarsTarget,
+    exerciseFullName: string | undefined,
+    onApply: (newArgs: string) => void
   ) => void;
 }
 
@@ -246,14 +254,23 @@ export function useLiftoEditorController(
         dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, ...edit }));
       });
     } else if (pill.action === "rename") {
-      actions?.promptRename?.(pill.text, (value) => {
-        const edit = LiftoEditorActions_renameEdit(target, value);
+      actions?.promptRename?.(pill.text, pill.renameKind ?? "label", (value) => {
+        const edit = LiftoEditorActions_renameEdit(target, value, pill.renameKind);
         if (edit != null) {
           dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, ...edit }));
         }
       });
     } else if (pill.action === "editReuse") {
       actions?.editReuse?.(pill.text);
+    } else if (pill.action === "editStateVars") {
+      // No plain-pill fallback: the pill's range covers the parens while its text doesn't,
+      // so applying it as-is would strip them.
+      if (pill.stateVars == null) {
+        return;
+      }
+      actions?.editStateVars?.(pill.stateVars, exerciseFullName, (newArgs) => {
+        dispatch(LiftoEditorSession_applyPill(sessionRef.current, { ...pill, text: `(${newArgs})` }));
+      });
     } else if (
       (pill.action === "reuseSets" || pill.action === "reuseProgressScript" || pill.action === "reuseUpdateScript") &&
       actions?.pickReuse != null

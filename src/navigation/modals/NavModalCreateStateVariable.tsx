@@ -11,6 +11,8 @@ import { lb } from "lens-shmens";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { EditProgramUiHelpers_changeFirstInstance } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { Weight_buildAny } from "../../models/weight";
+import { ObjectUtils_keys } from "../../utils/object";
+import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalCreateStateVariable(): JSX.Element {
@@ -73,6 +75,7 @@ export function NavModalCreateStateVariable(): JSX.Element {
     <ModalScreenContainer onClose={onClose}>
       <FormSheet header="Add New State Variable">
         <ModalCreateStateVariableContent
+          existingNames={ObjectUtils_keys(PlannerProgramExercise_getState(plannerExercise))}
           onClose={onClose}
           onCreate={(name, type, isUserPrompted) => {
             plannerDispatch!(
