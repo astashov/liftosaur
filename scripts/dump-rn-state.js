@@ -8,12 +8,21 @@
 //   node scripts/dump-rn-state.js --eval "Object.keys(globalThis.state)"
 //   node scripts/dump-rn-state.js --raw storage.currentProgramId   # print scalar unquoted
 //
-// Env: METRO_HOST (default localhost), METRO_PORT (default 8081), METRO_TARGET (index, default 0)
+// Env: METRO_HOST (default localhost), METRO_PORT (default: this checkout's localdomain.js
+// metroPort), METRO_TARGET (index, default 0)
 //
 // Requires Node >= 22 for the global WebSocket. No npm dependencies.
 
+function localMetroPort() {
+  try {
+    return String(require("../localdomain").metroPort || 8081);
+  } catch (e) {
+    return "8081";
+  }
+}
+
 const HOST = process.env.METRO_HOST || "localhost";
-const PORT = process.env.METRO_PORT || "8081";
+const PORT = process.env.METRO_PORT || localMetroPort();
 const TARGET_INDEX = parseInt(process.env.METRO_TARGET || "0", 10);
 
 function parseArgs(argv) {

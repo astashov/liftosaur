@@ -75,11 +75,48 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 
   override func bundleURL() -> URL? {
 #if DEBUG
-    RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    guard let hostPort = MetroLocation.hostPort() else {
+      return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+    }
+    // jsLocation drives the dev menu, the inspector and Metro-initiated reloads.
+    RCTBundleURLProvider.sharedSettings().jsLocation = hostPort
+    // The instance method silently falls back to guessing localhost:8081 when the packager isn't up
+    // yet, which in a worktree means loading another checkout's JS. The class method has no fallback.
+    return RCTBundleURLProvider.jsBundleURL(
+      forBundleRoot: "index",
+      packagerHost: hostPort,
+      enableDev: RCTBundleURLProvider.sharedSettings().enableDev,
+      enableMinification: RCTBundleURLProvider.sharedSettings().enableMinification,
+      inlineSourceMap: RCTBundleURLProvider.sharedSettings().inlineSourceMap
+    )
 #elseif DISABLE_OTA
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #else
-    LftUpdaterPath.effectiveBundleURL()
+    return LftUpdaterPath.effectiveBundleURL()
 #endif
   }
 }
+
+#if DEBUG
+// React-Core is a prebuilt xcframework, so RCT_METRO_PORT is fixed at 8081 inside it and every
+// worktree would attach to the base repo's Metro. ios/scripts/write-metro-port.sh writes the real
+// port into the app bundle at build time.
+private enum MetroLocation {
+  static func hostPort() -> String? {
+    guard let port = bundledString(resource: "metro-port") else { return nil }
+#if targetEnvironment(simulator)
+    return "localhost:\(port)"
+#else
+    guard let ip = bundledString(resource: "ip") else { return nil }
+    return "\(ip):\(port)"
+#endif
+  }
+
+  private static func bundledString(resource: String) -> String? {
+    guard let url = Bundle.main.url(forResource: resource, withExtension: "txt"),
+          let contents = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+    let trimmed = contents.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+  }
+}
+#endif

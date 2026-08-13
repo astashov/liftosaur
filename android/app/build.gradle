@@ -89,6 +89,24 @@ repositories {
 
 def disableOta = (System.getenv("DISABLE_OTA") ?: "").toBoolean()
 
+// AndroidInfoHelpers reads the dev server port from R.integer.react_native_dev_server_port, which
+// defaults to 8081 inside the react-android library. Worktrees run their own Metro, so override it
+// from the same localdomain.js that everything else in the worktree is keyed off.
+def metroPort = {
+    def fromEnv = System.getenv("RCT_METRO_PORT")
+    if (fromEnv) {
+        return fromEnv as Integer
+    }
+    def localdomain = rootProject.file("../localdomain.js")
+    if (localdomain.exists()) {
+        def match = localdomain.text =~ /metroPort:\s*(\d+)/
+        if (match) {
+            return match[0][1] as Integer
+        }
+    }
+    return 8081
+}()
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -139,6 +157,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            resValue "integer", "react_native_dev_server_port", metroPort.toString()
         }
         release {
             signingConfig keystoreProperties['storeFile'] ? signingConfigs.release : signingConfigs.debug

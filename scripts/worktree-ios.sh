@@ -32,5 +32,7 @@ fi
 echo "==> booting '$SIM_NAME'"
 xcrun simctl boot "$SIM_NAME" 2>/dev/null || true
 
+# The app pins itself to this port at launch: ios/scripts/write-metro-port.sh bakes localdomain.js's
+# metroPort into the app bundle, and AppDelegate reads it (see MetroLocation there for why).
 echo "==> run-ios (metro on $METROPORT)"
 RCT_METRO_PORT="$METROPORT" IOS_SIM="$SIM_NAME" npm run ios
