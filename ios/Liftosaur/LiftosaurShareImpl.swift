@@ -22,7 +22,7 @@ import TikTokOpenShareSDK
   }
 
   private func defaultBackgroundImage() -> UIImage? {
-    return UIImage(named: "workoutsharebg") ?? UIImage(named: "background")
+    return UIImage(named: "workoutsharebg")
   }
 
   @objc func shareToIGStory(workoutImagePath: String, backgroundImagePath: String?, completion: @escaping (String?) -> Void) {
