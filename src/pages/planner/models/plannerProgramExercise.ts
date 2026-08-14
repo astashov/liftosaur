@@ -500,14 +500,26 @@ export function PlannerProgramExercise_isReusingSetsProgress(exercise: IPlannerP
   );
 }
 
-export function PlannerProgramExercise_getState(exercise: IPlannerProgramExercise): IProgramState {
+// `visited` only matters while a program is being evaluated: PlannerEvaluator_checkReuseLoops
+// rejects reuse loops, but it can't run until every reuse is wired, and the evaluator calls this
+// before then. Without the guard a loop is an unbounded recursion that kills the whole process
+// instead of failing that one program.
+export function PlannerProgramExercise_getState(
+  exercise: IPlannerProgramExercise,
+  visited?: Set<IPlannerProgramExercise>
+): IProgramState {
   if (exercise.progress?.state && !exercise.progress.reuse) {
     return exercise.progress.state;
   } else {
+    const seen = visited ?? new Set<IPlannerProgramExercise>();
+    if (seen.has(exercise)) {
+      return {};
+    }
+    seen.add(exercise);
     const originalState = exercise.progress?.reuse?.exercise
-      ? PlannerProgramExercise_getState(exercise.progress.reuse.exercise)
+      ? PlannerProgramExercise_getState(exercise.progress.reuse.exercise, seen)
       : exercise.reuse?.exercise
-        ? PlannerProgramExercise_getState(exercise.reuse.exercise)
+        ? PlannerProgramExercise_getState(exercise.reuse.exercise, seen)
         : {};
 
     return { ...originalState, ...exercise.progress?.state };
@@ -536,14 +548,22 @@ export function PlannerProgramExercise_getOnlyChangedState(exercise: IPlannerPro
   ) as IProgramState;
 }
 
-export function PlannerProgramExercise_getStateMetadata(exercise: IPlannerProgramExercise): IProgramStateMetadata {
+export function PlannerProgramExercise_getStateMetadata(
+  exercise: IPlannerProgramExercise,
+  visited?: Set<IPlannerProgramExercise>
+): IProgramStateMetadata {
   if (exercise.progress?.stateMetadata && !exercise.progress.reuse) {
     return exercise.progress.stateMetadata;
   } else {
+    const seen = visited ?? new Set<IPlannerProgramExercise>();
+    if (seen.has(exercise)) {
+      return {};
+    }
+    seen.add(exercise);
     const originalState = exercise.progress?.reuse?.exercise
-      ? PlannerProgramExercise_getStateMetadata(exercise.progress.reuse.exercise)
+      ? PlannerProgramExercise_getStateMetadata(exercise.progress.reuse.exercise, seen)
       : exercise.reuse?.exercise
-        ? PlannerProgramExercise_getStateMetadata(exercise.reuse.exercise)
+        ? PlannerProgramExercise_getStateMetadata(exercise.reuse.exercise, seen)
         : {};
 
     return { ...originalState, ...exercise.progress?.stateMetadata };

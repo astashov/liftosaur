@@ -4,6 +4,7 @@ import memoize from "micro-memoize";
 import {
   IPlannerEvalFullResult,
   IPlannerEvalResult,
+  IPlannerSyntaxPointer,
   PlannerExerciseEvaluator,
   PlannerSyntaxError,
 } from "./plannerExerciseEvaluator";
@@ -361,6 +362,23 @@ export function PlannerEvaluator_fillRepeats(
   }
 }
 
+// A reuse resolving back to the very instance that declares it makes exercise.reuse.exercise (or
+// progress/update/descriptions .reuse.exercise) a self-loop, and PlannerProgramExercise_getState
+// walks those pointers with no visited set - so every later read of the program died with
+// "Maximum call stack size exceeded" instead of showing an error. Checked before the pointer is
+// wired, so the loop never forms. Compared by identity, not by key: reusing the same exercise from
+// an earlier week (`Squat / ...Squat[1:1]`) resolves to a different instance and is legitimate.
+function PlannerEvaluator_checkSelfReuse(
+  exercise: IPlannerProgramExercise,
+  originalExercise: IPlannerProgramExercise | undefined,
+  message: string,
+  point: IPlannerSyntaxPointer
+): void {
+  if (originalExercise === exercise) {
+    throw PlannerSyntaxError.fromPoint(exercise.fullName, message, point);
+  }
+}
+
 export function PlannerEvaluator_fillSetReuses(
   exercise: IPlannerProgramExercise,
   evaluatedWeeks: IPlannerEvalResult[][],
@@ -394,6 +412,12 @@ export function PlannerEvaluator_fillSetReuses(
         exercise.points.reuseSetPoint
       );
     }
+    PlannerEvaluator_checkSelfReuse(
+      exercise,
+      originalExercise.exercise,
+      `Exercise cannot reuse itself`,
+      exercise.points.reuseSetPoint
+    );
     if (originalExercise.exercise.reuse?.fullName != null) {
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
@@ -510,6 +534,17 @@ export function PlannerEvaluator_fillDescriptions(
   }
 }
 
+// Whether a description is itself borrowed, asked in a way that doesn't depend on whether the
+// exercise holding it has been wired yet: before wiring it is still the literal `...name`
+// directive, after wiring it carries the reuse it came from. Reading both is what makes the check
+// below independent of the order days happen to be evaluated in.
+function PlannerEvaluator_isDescriptionReuse(descriptions: IProgramExerciseDescriptions): boolean {
+  return (
+    descriptions.reuse != null ||
+    (descriptions.values.length === 1 && !!descriptions.values[0].value?.startsWith("..."))
+  );
+}
+
 export function PlannerEvaluator_fillDescriptionReuses(
   exercise: IPlannerProgramExercise,
   weekIndex: number,
@@ -525,6 +560,25 @@ export function PlannerEvaluator_fillDescriptionReuses(
     const result = PlannerEvaluator_findReusedDescriptions(reusingName, weekIndex, byExerciseWeekDay, settings);
     if (result != null) {
       const { descriptions, exercise: originalExercise } = result;
+      PlannerEvaluator_checkSelfReuse(
+        exercise,
+        originalExercise,
+        `Exercise cannot reuse its own description`,
+        exercise.points.fullName
+      );
+      // Unlike sets or progress, this copies whatever the target holds at the moment it is wired
+      // rather than following a pointer, so a target that is itself borrowing hands over either
+      // the raw `...name` directive - which then reads as the description, shown to the user as
+      // literal text - or whatever it had been handed in turn, depending on the order the days
+      // were evaluated in. Requiring the target to write its own description settles both, and
+      // takes description loops with it: every exercise around such a loop is borrowing.
+      if (PlannerEvaluator_isDescriptionReuse(descriptions)) {
+        throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
+          `Original exercise cannot reuse another description - reuse the one that writes it instead`,
+          exercise.points.fullName
+        );
+      }
       exercise.descriptions = {
         values: [...ObjectUtils_clone(descriptions.values)],
         reuse: { fullName: originalExercise.fullName, exercise: originalExercise, source: "specific" },
@@ -587,6 +641,11 @@ export function PlannerEvaluator_fillProgressReuses(
       const originalProgress = originalProperty?.property;
       if (!originalProgress || !dayData) {
         throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point);
+      }
+      // fillSingleProperties hands every instance the same progress object, so identity here means
+      // the exercise reuses its own progress - see PlannerEvaluator_checkSelfReuse.
+      if (originalProgress === progress) {
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own progress`, point);
       }
       if (originalProgress.reuse?.fullName != null) {
         // originalProgress.reuse.exercise may not be resolved yet (resolution goes in document
@@ -701,6 +760,10 @@ export function PlannerEvaluator_fillUpdateReuses(
       if (!originalUpdate || !dayData) {
         throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point);
       }
+      // Same shared-object reasoning as the progress check above.
+      if (originalUpdate === update) {
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own update`, point);
+      }
       if (originalUpdate.reuse?.fullName != null) {
         // Same as the progress check above: reuse.exercise may not be resolved yet.
         const originalReuseKey = PlannerKey_fromFullName(originalUpdate.reuse.fullName, settings.exercises);
@@ -752,6 +815,42 @@ export function PlannerEvaluator_fillUpdateReuses(
       }
       update.reuse.exercise = originalExercise;
     }
+  }
+}
+
+// Only the progress edge needs a graph walk, and it is worth saying why the other three don't,
+// since the answer isn't "the reuse graph is acyclic" — it isn't, and deliberately so (see below).
+// What has to hold is that the resolvers terminate and every reuse resolves to something concrete,
+// which each edge secures its own way:
+//
+//   sets         can't chain at all ("Original exercise cannot reuse another exercise's sets")
+//   descriptions can't chain either, so no loop can form - PlannerEvaluator_fillDescriptionReuses
+//   update       chains, and a loop resolves no script, which checkReusesResolve rejects
+//   progress     chains, and a loop still resolves a script - hence the walk below
+//
+// A self reuse is caught where it is wired, but two exercises reusing each other's progress close
+// the same loop only once both are wired - and PlannerProgramExercise_getState walks exactly these
+// pointers, so the loop is an infinite recursion on every later read of the program.
+//
+// The walk mirrors those getters, stop condition included: an exercise declaring its own progress
+// ends the chain, which is why A's progress reusing B while B reuses A's sets is fine. That shape
+// does leave a cycle in the object graph; evaluated programs are allowed to be cyclic, and
+// ObjectUtils_clone carries a visited set for exactly that reason.
+//
+// Runs after every reuse is wired, since a loop isn't visible until the last pointer is in place.
+export function PlannerEvaluator_checkReuseLoops(exercise: IPlannerProgramExercise): void {
+  const seen = new Set<IPlannerProgramExercise>();
+  let current: IPlannerProgramExercise | undefined = exercise;
+  while (current != null && !(current.progress != null && current.progress.reuse == null)) {
+    if (seen.has(current)) {
+      throw PlannerSyntaxError.fromPoint(
+        exercise.fullName,
+        `This exercise ends up reusing itself through other exercises`,
+        exercise.points.progressPoint || exercise.points.reuseSetPoint || exercise.points.fullName
+      );
+    }
+    seen.add(current);
+    current = current.progress?.reuse?.exercise ?? current.reuse?.exercise;
   }
 }
 
@@ -811,6 +910,7 @@ export function PlannerEvaluator_postProcess(
   // Its own pass: reuses are wired in document order, so an exercise's chain is only complete
   // once every exercise has been through the pass above.
   PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, _dayInWeekIndex, _dayIndex, _index, exercise) => {
+    PlannerEvaluator_checkReuseLoops(exercise);
     PlannerEvaluator_checkReusesResolve(exercise);
   });
   for (const week of evaluatedWeeks) {

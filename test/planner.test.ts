@@ -1116,6 +1116,185 @@ Squat / ...t3
     });
   });
 
+  // A reuse resolving back to the exercise that declares it used to wire a self-loop that
+  // PlannerProgramExercise_getState walked forever - reading such a program (e.g. GET
+  // /user/programs) died with "Maximum call stack size exceeded" instead of showing an error.
+  describe("reuses that loop back", () => {
+    function errorsFor(programText: string): string[] {
+      const planner: IPlannerProgram = {
+        vtype: "planner",
+        name: "MyProgram",
+        weeks: PlannerProgram_evaluateText(programText),
+      };
+      const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
+      return evaluatedWeeks.flat().flatMap((day) => (day.success ? [] : [day.error.message]));
+    }
+
+    it("rejects an exercise reusing its own sets", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+Squat / ...Squat / 3x8 100lb
+`)
+      ).to.eql(["Squat: Exercise cannot reuse itself (1:8)"]);
+    });
+
+    it("rejects an exercise reusing its own progress", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+Squat / 3x8 100lb / progress: custom() { ...Squat }
+`)
+      ).to.eql(["Squat: Exercise cannot reuse its own progress (1:20)"]);
+    });
+
+    it("rejects an exercise reusing its own update", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+Squat / 3x8 100lb / update: custom() { ...Squat }
+`)
+      ).to.eql(["Squat: Exercise cannot reuse its own update (1:20)"]);
+    });
+
+    it("rejects an exercise reusing its own description", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// ...Squat
+Squat / 3x8 100lb
+`)
+      ).to.eql(["Squat: Exercise cannot reuse its own description (2:0)"]);
+    });
+
+    // A description reuse copies what the target holds when it is wired, rather than following a
+    // pointer, so a target that is itself borrowing hands over the raw `...name` directive — which
+    // the reader then sees as the description. Loops are the case where that always happens.
+    it("rejects two exercises reusing each other's description", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// ...t2
+t1 / used: none / 1x5 100lb
+
+// ...t1
+t2 / used: none / 1x5 100lb
+`)
+      ).to.eql(["t1: Original exercise cannot reuse another description - reuse the one that writes it instead (2:0)"]);
+    });
+
+    it("rejects a three-exercise description loop", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// ...t2
+t1 / used: none / 1x5 100lb
+
+// ...t3
+t2 / used: none / 1x5 100lb
+
+// ...t1
+t3 / used: none / 1x5 100lb
+`)
+      ).to.eql(["t1: Original exercise cannot reuse another description - reuse the one that writes it instead (2:0)"]);
+    });
+
+    // Both ends report: a bare `...name` resolves against the first day of the week that has the
+    // exercise, so each of the two finds the other whichever day it sits on.
+    it("rejects a description loop that closes across days", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// ...t2
+t1 / used: none / 1x5 100lb
+## Day 2
+// ...t1
+t2 / used: none / 1x5 100lb
+`)
+      ).to.eql([
+        "t1: Original exercise cannot reuse another description - reuse the one that writes it instead (2:0)",
+        "t2: Original exercise cannot reuse another description - reuse the one that writes it instead (2:0)",
+      ]);
+    });
+
+    // Not a loop, but the same copied-directive problem: which text t3 ends up with depended on
+    // the order the days were evaluated in.
+    it("rejects reusing a description that is itself reused", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// real description
+t1 / used: none / 1x5 100lb
+
+// ...t1
+t2 / used: none / 1x5 100lb
+
+// ...t2
+t3 / used: none / 1x5 100lb
+`)
+      ).to.eql(["t3: Original exercise cannot reuse another description - reuse the one that writes it instead (8:0)"]);
+    });
+
+    it("keeps reusing a description that the target writes itself", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+// real description
+t1 / used: none / 1x5 100lb
+
+// ...t1
+t2 / used: none / 1x5 100lb
+`)
+      ).to.eql([]);
+    });
+
+    // The 'used: none' exemption let a template's progress reuse itself, and the exercises reusing
+    // that template inherited the loop.
+    it("rejects a 'used: none' template reusing its own progress", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+tpl / used: none / 1x5 100lb / progress: custom(foo: 5lb) { ...tpl }
+Squat / ...tpl
+`)
+      ).to.eql(["tpl: Exercise cannot reuse its own progress (1:31)"]);
+    });
+
+    it("rejects two templates reusing each other's progress", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / progress: custom(foo: 5lb) { ...t2 }
+t2 / used: none / 1x5 100lb / progress: custom(foo: 5lb) { ...t1 }
+Squat / ...t1
+`)
+      ).to.eql(["t1: This exercise ends up reusing itself through other exercises (1:30)"]);
+    });
+
+    it("allows reusing the same exercise from an earlier week", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+Squat / 3x8 100lb
+
+# Week 2
+## Day 1
+Squat / ...Squat[1:1]
+`)
+      ).to.eql([]);
+    });
+
+    it("allows reusing a template that only shares its name", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+tmp: Squat / used: none / 1x5 100lb / progress: custom() {~ weights += 5lb ~}
+Squat / ...tmp: Squat
+`)
+      ).to.eql([]);
+    });
+  });
+
   it("doesn't show an error if original exercise progress reuses another exercise but overrides progress", () => {
     const programText = `# Week 1
 ## Day 1

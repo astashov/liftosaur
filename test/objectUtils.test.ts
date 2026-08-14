@@ -259,7 +259,7 @@ describe("ObjectUtils_clone", () => {
             days: [
               {
                 name: "Day 1",
-                exerciseText: `// ...Bench Press
+                exerciseText: `// hello
 Bench Press / 1x5 100lb`,
               },
             ],
@@ -268,6 +268,10 @@ Bench Press / 1x5 100lb`,
       } as IPlannerProgram;
       const settings = Settings_build();
       const evaluated = Program_forceEvaluate({ ...Program_create("Temp"), planner }, settings);
+      // The evaluator rejects reuses that loop back, but stored edit state predating that check
+      // still holds these back-references, and they must survive a clone.
+      const exercise = evaluated.weeks[0].days[0].exercises[0];
+      exercise.descriptions.reuse = { fullName: exercise.fullName, exercise, source: "specific" };
       expect(() => JSON.stringify(evaluated)).to.throw();
       const clone = ObjectUtils_clone(evaluated);
       expect(clone.weeks[0].days[0].exercises[0].fullName).to.equal("Bench Press");
