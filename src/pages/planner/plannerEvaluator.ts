@@ -27,6 +27,8 @@ import {
   PlannerProgramExercise_evaluateSetVariations,
   PlannerProgramExercise_getExercise,
   PlannerProgramExercise_getState,
+  PlannerProgramExercise_getProgressScript,
+  PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_buildDpRangeScript,
 } from "./models/plannerProgramExercise";
 
@@ -753,6 +755,29 @@ export function PlannerEvaluator_fillUpdateReuses(
   }
 }
 
+// How far a reused script can be passed along, asked of the thing that does the passing rather
+// than restated as a shape here. The progression and update runners resolve through these same
+// getters, so a chain they can't follow is a program that saves cleanly, shows a progression, and
+// then silently never runs it. Stated once: deepening the getters relaxes this along with them.
+//
+// Runs after every reuse is wired, since resolution reads other exercises.
+export function PlannerEvaluator_checkReusesResolve(exercise: IPlannerProgramExercise): void {
+  if (exercise.progress?.type === "custom" && PlannerProgramExercise_getProgressScript(exercise) == null) {
+    throw PlannerSyntaxError.fromPoint(
+      exercise.fullName,
+      `Couldn't find the progress script this reuses - reuse the exercise that defines it instead`,
+      exercise.points.progressPoint || exercise.points.fullName
+    );
+  }
+  if (exercise.update != null && PlannerProgramExercise_getUpdateScript(exercise) == null) {
+    throw PlannerSyntaxError.fromPoint(
+      exercise.fullName,
+      `Couldn't find the update script this reuses - reuse the exercise that defines it instead`,
+      exercise.points.updatePoint || exercise.points.fullName
+    );
+  }
+}
+
 export function PlannerEvaluator_postProcess(
   evaluatedWeeks: IPlannerEvalResult[][],
   settings: ISettings,
@@ -782,6 +807,12 @@ export function PlannerEvaluator_postProcess(
       });
     }
   );
+
+  // Its own pass: reuses are wired in document order, so an exercise's chain is only complete
+  // once every exercise has been through the pass above.
+  PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, _dayInWeekIndex, _dayIndex, _index, exercise) => {
+    PlannerEvaluator_checkReusesResolve(exercise);
+  });
   for (const week of evaluatedWeeks) {
     for (const day of week) {
       if (day.success) {

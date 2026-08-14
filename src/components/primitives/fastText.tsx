@@ -51,7 +51,7 @@ export function FastText(props: IFastTextProps): JSX.Element {
     paddingRight: props.paddingHorizontal,
     lineHeight: props.lineHeight != null ? `${props.lineHeight}px` : undefined,
     // whitespace preserved + no soft-wrap; the parent scroll container provides overflow.
-    ...(props.noWrap ? { whiteSpace: "pre" } : undefined),
+    ...(props.noWrap ? { whiteSpace: "pre" } : props.preserveWhitespace ? { whiteSpace: "pre-wrap" } : undefined),
     // textAlign only takes effect on a block-level box (an inline span shrinks to content).
     ...(props.textAlign != null ? { display: "block", textAlign: props.textAlign } : undefined),
     ...numberOfLinesCss(props.numberOfLines),

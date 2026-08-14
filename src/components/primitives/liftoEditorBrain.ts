@@ -657,6 +657,23 @@ export function LiftoEditorBrain_exerciseFullName(
   return variations != null ? { ...variations, usedNone } : undefined;
 }
 
+// Whether anything on this line stands in for text written elsewhere. One node covers both
+// forms — `/ ...Squat` for sets and `{ ...Squat }` inside a progress/update script — because the
+// grammar builds them from the same ReuseSection.
+export function LiftoEditorBrain_hasReuse(cache: LiftoEditorParseCache, text: string): boolean {
+  const tree = cache.parse(text);
+  let found = false;
+  tree.iterate({
+    enter: (node) => {
+      if (node.name === PlannerNodeName.ReuseSection) {
+        found = true;
+      }
+      return !found;
+    },
+  });
+  return found;
+}
+
 export function LiftoEditorBrain_contextAt(
   cache: LiftoEditorParseCache,
   text: string,

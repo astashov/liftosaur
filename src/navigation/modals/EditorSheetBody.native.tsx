@@ -12,7 +12,11 @@ import {
 import type { IDayData, IExercisePickerSelectedExercise } from "../../types";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
-import { ILiftoEditorStyledRange, LiftoEditorBrain_fadedRanges } from "../../components/primitives/liftoEditorBrain";
+import {
+  ILiftoEditorStyledRange,
+  LiftoEditorBrain_fadedRanges,
+  LiftoEditorBrain_hasReuse,
+} from "../../components/primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../../components/liftoEditorController";
 import { LiftoEditorHints_forContext } from "../../components/primitives/liftoEditorHints";
 import {
@@ -29,11 +33,13 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
+import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import {
   EditorSheetTypes_sharedLabels,
   IEditorSheetBodyProps,
   IEditorSheetInstanceOption,
   IEditorSheetLiveError,
+  IEditorSheetPreview,
 } from "./editorSheetTypes";
 
 // Legible as a secondary layer without dropping out of the line.
@@ -180,19 +186,56 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   });
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
   const [liveError, setLiveError] = useState<IEditorSheetLiveError | undefined>(undefined);
-  const validateTextRef = useRef(props.validateText);
-  validateTextRef.current = props.validateText;
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [preview, setPreview] = useState<IEditorSheetPreview | undefined>(undefined);
+  const analyzeTextRef = useRef(props.analyzeText);
+  analyzeTextRef.current = props.analyzeText;
   const onTextChangeRef = useRef(props.onTextChange);
   onTextChangeRef.current = props.onTextChange;
   const liveErrorText = controller.text;
   useEffect(() => {
     onTextChangeRef.current?.(liveErrorText);
   }, [liveErrorText]);
-  // Debounced: validation evaluates the whole program, too heavy per keystroke.
+  // The banner's error and the open panel's contents come out of one pass over the draft, so a
+  // keystroke splices and evaluates the program once rather than once per question asked of it.
+  // What that pass last covered is remembered, so opening the panel — which resolves straight
+  // away, rather than leaving an empty box up for a third of a second — doesn't then repeat
+  // itself when the debounce fires.
+  //
+  // The program is half of what a pass reads, so the host's revision is part of what identifies
+  // one: an exercise this one resolves through can be edited and saved by a sheet stacked on top,
+  // and neither this text nor the panel's own state moves when that happens.
+  const analysisKey = (text: string, withPreview: boolean): string =>
+    `${props.analysisRevision ?? 0}:${withPreview}:${text}`;
+  const analyzedRef = useRef<string | undefined>(undefined);
+  const analyze = (text: string, withPreview: boolean): void => {
+    analyzedRef.current = analysisKey(text, withPreview);
+    const analysis = analyzeTextRef.current?.(text, { withPreview }) ?? {};
+    setLiveError(analysis.error);
+    if (withPreview) {
+      setPreview(analysis.preview);
+    }
+  };
+  // Debounced: it evaluates the whole program, too heavy per keystroke.
+  const pendingAnalysisKey = analysisKey(liveErrorText, isPreviewing);
   useEffect(() => {
-    const timer = setTimeout(() => setLiveError(validateTextRef.current?.(liveErrorText)), 300);
+    if (analyzedRef.current === pendingAnalysisKey) {
+      return;
+    }
+    const timer = setTimeout(() => analyze(liveErrorText, isPreviewing), 300);
     return () => clearTimeout(timer);
-  }, [liveErrorText]);
+  }, [pendingAnalysisKey]);
+  const togglePreview = (): void => {
+    const next = !isPreviewing;
+    setIsPreviewing(next);
+    if (next) {
+      analyze(controller.text, true);
+    } else {
+      // Closing asks nothing new — the banner already reflects this text.
+      analyzedRef.current = analysisKey(controller.text, false);
+      setPreview(undefined);
+    }
+  };
   // Faded rather than tinted: both editor background slots are already affordances (gray is
   // the focused level, purple the active token), so a wash here reads as selection.
   //
@@ -221,6 +264,18 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           SHARED_SECTION_ALPHA
         )
       : [];
+  // Only offered where there is something to fill in. Read from the live text rather than the
+  // exercise the sheet opened on, so removing the last reuse takes the affordance with it, and
+  // adding one brings it back.
+  const hasReuse =
+    props.analyzeText != null && parseCache != null && LiftoEditorBrain_hasReuse(parseCache, controller.text);
+  // The panel's subject is gone, and with the icon gone there'd be nothing left to close it.
+  useEffect(() => {
+    if (!hasReuse) {
+      setIsPreviewing(false);
+      setPreview(undefined);
+    }
+  }, [hasReuse]);
   const activeLevel = controller.context?.levels[controller.activeLevelIndex];
   const isFocusInsideShared =
     activeLevel != null && sharedRanges.some((r) => activeLevel.start >= r.start && activeLevel.end <= r.end);
@@ -399,13 +454,18 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             {isFreeform ? "Apply" : "Save"}
           </Button>
         </View>
-        {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
+        {/* On a line that reuses something, rendered before anything is focused too, unlike the
+            other hosts: filling the reuse in lives in this rail, and "what does ...t3 even mean"
+            is a question the sheet gets asked on the way in, before the first token is tapped. */}
+        {!isFreeform && (hasReuse || (controller.context?.levels ?? []).length > 0) ? (
           <LiftoEditorPillRail
             controller={controller}
             className="border-b border-border-neutral"
             // Removing one here would remove it from every week; the declaring day is where that
             // belongs, and the caption links straight to it.
             canRemove={!isFocusInsideShared}
+            onPreview={hasReuse ? togglePreview : undefined}
+            isPreviewing={isPreviewing}
           />
         ) : null}
         {liveError != null ? (
@@ -442,6 +502,22 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
                   ...errorStyledRanges,
                 ]}
               />
+              {/* Below the text rather than in place of it: the point is the comparison — the
+                  line as written above, what it resolves to here. */}
+              {isPreviewing ? (
+                <View testID="editor-sheet-preview" className="p-2 mt-3 rounded-lg bg-background-subtle">
+                  <Text className="pb-1 text-xs font-bold text-text-secondary">With reuses filled in:</Text>
+                  {preview != null && "text" in preview ? (
+                    // Wrapped, not side-scrolled: this panel sits inside the editor's own
+                    // scroller, and the horizontal swipe over it hops tokens.
+                    <PlannerCodeBlock script={preview.text} className="text-xs" wrap={true} />
+                  ) : (
+                    <Text className="text-xs text-text-secondary">
+                      {preview?.error || "Can't resolve this exercise right now."}
+                    </Text>
+                  )}
+                </View>
+              ) : null}
               {/* Same register as the sheet's gesture hint below it: a centered aside about the
                   text rather than chrome pointing into it. */}
               {sharedProperties.length > 0 ? (

@@ -38,6 +38,17 @@ export function EditorSheetTypes_sharedLabels(shared: IEditorSheetSharedProperty
   return Array.from(byOwner.values());
 }
 
+// The exercise with its reuses resolved and the properties declared elsewhere folded in, or why
+// it couldn't be resolved. Read-only — it is an answer to "what does this line mean", not
+// another way to write one.
+export type IEditorSheetPreview = { text: string } | { error: string };
+
+export interface IEditorSheetAnalysis {
+  error?: IEditorSheetLiveError;
+  // Only when asked for: resolving the exercise costs a pass the banner doesn't need.
+  preview?: IEditorSheetPreview;
+}
+
 export interface IEditorSheetInstanceOption {
   dayData: Required<IDayData>;
   label: string;
@@ -84,7 +95,14 @@ export interface IEditorSheetBodyProps {
   // snapshotted: which exercise the progress reuses is part of the text being edited, so
   // only the live pill knows it, and the host is what can resolve it in the program.
   stateVarsFor?: (target: ILiftoEditorStateVarsTarget) => ILiftoEditorStateVarsContext;
-  validateText?: (text: string) => IEditorSheetLiveError | undefined;
+  // One pass over the draft answering both questions a body asks about it: the banner's error
+  // and, when the resolved panel is open, what the exercise fills in to. Both come out of the
+  // same splice, so the two can't disagree and the program isn't spliced twice per keystroke.
+  analyzeText?: (text: string, options: { withPreview: boolean }) => IEditorSheetAnalysis;
+  // Changes when the program a pass would read has moved under the sheet — a stacked sheet
+  // saving this exercise's reuse target — so a body knows its last answers are stale even though
+  // the text it holds hasn't changed.
+  analysisRevision?: number;
   // Changing which exercise this is affects the program beyond this blurb, so the host gets
   // to ask how far it should reach before the change is made. Both resolve to false when the
   // user backs out, which cancels the change. The host asks again at save if neither ran.

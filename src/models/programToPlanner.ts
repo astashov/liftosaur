@@ -28,9 +28,12 @@ import {
 import {
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_getOnlyChangedState,
+  PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_getState,
   PlannerProgramExercise_getStateMetadata,
+  PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_sets,
+  PlannerProgramExercise_warmups,
 } from "../pages/planner/models/plannerProgramExercise";
 import {
   IPlannerProgramExercise,
@@ -613,7 +616,7 @@ export class ProgramToPlanner {
                 }
 
                 if (!addedIdMap[key] && (evalExercise.tags || []).length > 0) {
-                  plannerExercise += this.getId(evalExercise);
+                  plannerExercise += ` / ${this.idToStr(evalExercise)}`;
                   addedIdMap[key] = true;
                 }
 
@@ -704,6 +707,67 @@ export class ProgramToPlanner {
     return newPlanner;
   }
 
+  // The exercise as the evaluator sees it, printed back as Liftoscript: every `...reuse`
+  // resolved into the values it stands for, and every property that governs the exercise on the
+  // line even when it's declared on another week. Read-only — it is what the sheet shows when
+  // asked what a line means, never what gets saved, which is why it can ignore both the reuse
+  // the author wrote and the once-per-exercise placement rules convertToPlanner keeps to.
+  public materializeExercise(exercise: IPlannerProgramExercise): string {
+    const parts: string[] = [this.getExerciseName(exercise)];
+    if (exercise.notused) {
+      parts.push("used: none");
+    }
+    // From evaluatedSetVariations rather than setVariations: an exercise that only reuses sets
+    // has none of its own, and those resolved sets are the whole point of the view.
+    //
+    // An empty variation is skipped rather than printed: a template that carries only properties
+    // (`tmpl / used: none / progress: ...`) has one, and the set printer's empty-list fallback
+    // would invent a `0x1 0lb` for it.
+    const variations = exercise.evaluatedSetVariations;
+    const globals = this.getGlobals(exercise);
+    for (let i = 0; i < variations.length; i += 1) {
+      if (variations[i].sets.length > 0) {
+        parts.push(this.variationToString(variations[i], globals, i, exercise));
+      }
+    }
+    const globalsStr: string[] = [];
+    if (globals.weight != null) {
+      globalsStr.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
+    } else if (globals.askWeight) {
+      globalsStr.push("?+");
+    }
+    if (globals.rpe != null) {
+      globalsStr.push(`@${n(globals.rpe)}${globals.logRpe ? "+" : ""}`);
+    }
+    if (globals.setTimer != null) {
+      globalsStr.push(this.setTimerGlobalToStr(globals));
+    } else if (globals.timer != null) {
+      globalsStr.push(`${n(globals.timer)}s`);
+    }
+    if (globalsStr.length > 0) {
+      parts.push(globalsStr.join(" "));
+    }
+    const warmupSets = this.warmupSetsToStr(PlannerProgramExercise_warmups(exercise));
+    if (warmupSets != null) {
+      parts.push(`warmup: ${warmupSets}`);
+    }
+    if ((exercise.tags || []).length > 0) {
+      parts.push(this.idToStr(exercise));
+    }
+    if (exercise.superset?.name) {
+      parts.push(`superset: ${exercise.superset.name}`);
+    }
+    const update = ProgramToPlanner.getUpdate(exercise, this.settings, false, true);
+    if (update) {
+      parts.push(update);
+    }
+    const progress = ProgramToPlanner.getProgress(exercise, this.settings, false, true);
+    if (progress) {
+      parts.push(progress);
+    }
+    return parts.join(" / ");
+  }
+
   private getExerciseName(programExercise: IPlannerProgramExercise): string {
     const variations = programExercise.exerciseVariations;
     if (variations != null && variations.length > 1) {
@@ -757,10 +821,25 @@ export class ProgramToPlanner {
     return str;
   }
 
-  public static getUpdate(programExercise: IPlannerProgramExercise, settings: ISettings, hideScript?: boolean): string {
-    const update = programExercise.update;
+  public static getUpdate(
+    programExercise: IPlannerProgramExercise,
+    settings: ISettings,
+    hideScript?: boolean,
+    resolveReuse?: boolean
+  ): string {
+    const update = programExercise.update ?? (resolveReuse ? programExercise.reuse?.exercise?.update : undefined);
     if (!update) {
       return "";
+    }
+    // Only as far as the app itself resolves: past a couple of hops the runtime can't find the
+    // script either (progress.ts's update runner reads the same getter and does nothing without
+    // one), so printing the chain out here would promise behaviour that never runs. Falls through
+    // to naming the reuse instead — which is what the exercise really has.
+    if (resolveReuse) {
+      const script = PlannerProgramExercise_getUpdateScript(programExercise);
+      if (script != null) {
+        return `update: custom() ${hideScript ? "{~ ... ~}" : script}`;
+      }
     }
     if (update.reuse) {
       if (update.reuse.exercise?.exerciseType) {
@@ -768,23 +847,24 @@ export class ProgramToPlanner {
         const fullName = Exercise_fullName(exercise, settings, update.reuse.exercise.label);
         return `update: custom() { ...${fullName} }`;
       } else {
-        return ` / update: custom() { ...${update.reuse.exercise?.fullName || update.reuse.fullName} }`;
+        return `update: custom() { ...${update.reuse.exercise?.fullName || update.reuse.fullName} }`;
       }
     } else {
       return `update: custom() ${hideScript ? "{~ ... ~}" : update.script}`;
     }
   }
 
-  private getId(programExercise: IPlannerProgramExercise): string {
-    return ` / id: tags(${(programExercise.tags || []).join(", ")})`;
+  private idToStr(programExercise: IPlannerProgramExercise): string {
+    return `id: tags(${(programExercise.tags || []).join(", ")})`;
   }
 
   public static getProgress(
     programExercise: IPlannerProgramExercise,
     settings: ISettings,
-    hideScript?: boolean
+    hideScript?: boolean,
+    resolveReuse?: boolean
   ): string {
-    const progress = programExercise.progress;
+    const progress = programExercise.progress ?? (resolveReuse ? programExercise.reuse?.exercise?.progress : undefined);
     if (!progress) {
       return "";
     }
@@ -792,8 +872,10 @@ export class ProgramToPlanner {
     const state = PlannerProgramExercise_getState(programExercise);
     const stateMetadata = PlannerProgramExercise_getStateMetadata(programExercise);
     if (progress.type === "custom") {
-      const onlyChangedState = PlannerProgramExercise_getOnlyChangedState(programExercise);
-      progressStr += `(${ObjectUtils_entries(onlyChangedState)
+      // Resolved, every variable is spelled out: the ones inherited from the reuse target are
+      // exactly the ones the reader can't see from here.
+      const argsState = resolveReuse ? state : PlannerProgramExercise_getOnlyChangedState(programExercise);
+      progressStr += `(${ObjectUtils_entries(argsState)
         .map(([k, v]) => {
           return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight_print(v)}`;
         })
@@ -836,7 +918,10 @@ export class ProgramToPlanner {
       progressStr += `(${args.join(", ")})`;
     }
     if (progress.type === "custom") {
-      if (progress.reuse) {
+      const resolvedScript = resolveReuse ? PlannerProgramExercise_getProgressScript(programExercise) : undefined;
+      if (resolvedScript != null) {
+        progressStr += hideScript ? ` {~ ... ~}` : ` ${resolvedScript}`;
+      } else if (progress.reuse) {
         if (progress.reuse.exercise?.exerciseType) {
           const exercise = Exercise_get(progress.reuse.exercise.exerciseType, settings.exercises);
           const fullName = Exercise_fullName(exercise, settings, progress.reuse.exercise.label);
@@ -968,7 +1053,10 @@ export class ProgramToPlanner {
   }
 
   private getWarmupSets(programExercise: IPlannerProgramExercise): string | undefined {
-    const warmupSets = programExercise.warmupSets;
+    return this.warmupSetsToStr(programExercise.warmupSets);
+  }
+
+  private warmupSetsToStr(warmupSets: IPlannerProgramExerciseWarmupSet[] | undefined): string | undefined {
     if (warmupSets) {
       const groups = this.groupWarmupsSets(warmupSets);
       const strs: string[] = [];

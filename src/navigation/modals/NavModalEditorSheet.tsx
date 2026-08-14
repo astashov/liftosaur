@@ -1,5 +1,5 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
+import { StackActions, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
 import { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
@@ -47,10 +47,11 @@ import {
   ProgramExerciseText_split,
 } from "../../models/programExerciseText";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
+import { ProgramExercisePreview_materialize } from "../../models/programExercisePreview";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert, Dialog_choice, Dialog_confirm } from "../../utils/dialog";
-import type { IDayData, IProgram } from "../../types";
+import type { IDayData, IPlannerProgram, IProgram } from "../../types";
 import type { IRootStackParamList } from "../types";
 import { Platform, View } from "react-native";
 import { Text } from "../../components/primitives/text";
@@ -59,7 +60,12 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
 import { EditorSheetBody } from "./EditorSheetBody";
-import type { IEditorSheetInstanceOption, IEditorSheetLiveError, IEditorSheetSharedProperty } from "./editorSheetTypes";
+import type {
+  IEditorSheetAnalysis,
+  IEditorSheetInstanceOption,
+  IEditorSheetLiveError,
+  IEditorSheetSharedProperty,
+} from "./editorSheetTypes";
 
 const sampleText = `# Week 1
 ## Day 1
@@ -212,6 +218,20 @@ export function NavModalEditorSheet(): JSX.Element {
     setRemountKey((key) => key + 1);
     setSelectedDayData(instance.dayData);
   };
+
+  // Bumped whenever this sheet comes back to the front. A sheet stacked on top edits the very
+  // exercise this one reads through — its reuse target — and saves it, so the answers worked out
+  // before that are stale on the way back, while nothing about this sheet's own draft has moved
+  // to prompt a fresh look.
+  const isFocused = useIsFocused();
+  const [analysisRevision, setAnalysisRevision] = useState(0);
+  const wasFocusedRef = useRef(isFocused);
+  useEffect(() => {
+    if (isFocused && !wasFocusedRef.current) {
+      setAnalysisRevision((revision) => revision + 1);
+    }
+    wasFocusedRef.current = isFocused;
+  }, [isFocused]);
 
   const onClose = (): void => {
     allowCloseRef.current = true;
@@ -430,12 +450,22 @@ export function NavModalEditorSheet(): JSX.Element {
     onClose();
   };
 
-  // Live validation for the banner/line-tint: splices the draft text into the *current*
-  // program and evaluates. The declaration is resolved from the open-time snapshot (one
-  // full evaluation per call instead of two); if a stacked reuse sheet changed this very
-  // exercise the splice lookup misses and validation just goes quiet — save still
-  // re-resolves and re-validates from scratch.
-  const validateText = (newText: string): IEditorSheetLiveError | undefined => {
+  // Splices the draft text into the *current* program and evaluates. The declaration is
+  // resolved from the open-time snapshot (one full evaluation per call instead of two); if a
+  // stacked reuse sheet changed this very exercise the splice lookup misses and the callers
+  // just go quiet — save still re-resolves and re-validates from scratch.
+  //
+  // The banner and the resolved preview are both questions about the program the save would
+  // write, so neither builds its own version of it.
+  const applyDraft = (
+    newText: string
+  ):
+    | {
+        program: IProgram & { planner: IPlannerProgram };
+        swap: IProgramExerciseSwap | undefined;
+        applied: ReturnType<typeof ProgramExerciseText_apply>;
+      }
+    | undefined => {
     const trimmed = newText.trim();
     if (params == null || currentDeclaration == null || trimmed === "") {
       return undefined;
@@ -455,29 +485,70 @@ export function NavModalEditorSheet(): JSX.Element {
     if (localText === "") {
       return undefined;
     }
-    // Validated the same way it will be saved, including the swap — otherwise a changed
+    // Applied the same way it will be saved, including the swap — otherwise a changed
     // exercise name reports every `...reuse` aimed at the old one as broken, which the save
     // then goes on to rewrite.
     const swap = detectSwap(localText, currentDeclaration);
-    const applied = ProgramExerciseText_apply(
-      program.planner,
-      currentDeclaration,
-      localText,
-      pending.sharedEdits,
+    return {
+      program: { ...program, planner: program.planner },
       swap,
-      swapScopeRef.current ?? "all",
+      applied: ProgramExerciseText_apply(
+        program.planner,
+        currentDeclaration,
+        localText,
+        pending.sharedEdits,
+        swap,
+        swapScopeRef.current ?? "all",
+        state.storage.settings
+      ),
+    };
+  };
+
+  // The splice uses the trimmed text while the editor shows the untrimmed draft.
+  const rebaseError = (error: IEditorSheetLiveError, newText: string): IEditorSheetLiveError => {
+    if (error.from == null || error.to == null) {
+      return error;
+    }
+    const leading = newText.length - newText.trimStart().length;
+    return { ...error, from: error.from + leading, to: error.to + leading };
+  };
+
+  // Everything a body asks about the draft, from one splice: the banner's error, and — when the
+  // resolved panel is open — what the line actually fills in to, the reuse target's sets and the
+  // progression declared three weeks away that the reader would otherwise have to combine by hand.
+  const analyzeText = (newText: string, options: { withPreview: boolean }): IEditorSheetAnalysis => {
+    const result = applyDraft(newText);
+    if (result == null || currentDeclaration == null) {
+      return { preview: options.withPreview ? { error: "There's nothing to resolve here yet." } : undefined };
+    }
+    const applied = result.applied;
+    if ("error" in applied) {
+      return {
+        // notFound means the sheet lost track of the exercise, not that the user typed something
+        // wrong — the banner stays quiet and the save re-resolves from scratch.
+        error: applied.notFound ? undefined : rebaseError(applied.error, newText),
+        preview: options.withPreview ? { error: applied.error.message } : undefined,
+      };
+    }
+    if (!options.withPreview) {
+      return {};
+    }
+    // A swap rewrites the exercise's key, so the preview has to look for what the exercise
+    // became — same lookup the save does before it remaps logged sets.
+    const newKey =
+      result.swap != null
+        ? EditProgramUiHelpers_getChangedKeys(result.program.planner, applied.planner, state.storage.settings)[
+            currentDeclaration.key
+          ]
+        : undefined;
+    const text = ProgramExercisePreview_materialize(
+      result.program,
+      applied.planner,
+      currentDeclaration.dayData,
+      newKey ?? currentDeclaration.key,
       state.storage.settings
     );
-    if (!("error" in applied) || applied.notFound) {
-      return undefined;
-    }
-    const error = applied.error;
-    if (error?.from != null && error.to != null) {
-      // The splice uses the trimmed text while the editor shows the untrimmed draft.
-      const leading = newText.length - newText.trimStart().length;
-      return { ...error, from: error.from + leading, to: error.to + leading };
-    }
-    return error;
+    return { preview: text != null ? { text } : { error: "Couldn't resolve this exercise." } };
   };
 
   // The local line only: shared sections are noise most of the time, so the body splices them
@@ -597,7 +668,8 @@ export function NavModalEditorSheet(): JSX.Element {
             onEditReuse={onEditReuse}
             reuseCandidates={reuseCandidates}
             stateVarsFor={stateVarsFor}
-            validateText={validateText}
+            analyzeText={analyzeText}
+            analysisRevision={analysisRevision}
             onBeforeChangeExercise={onBeforeChangeExercise}
             onBeforeApply={onBeforeApply}
             onDone={onDone}

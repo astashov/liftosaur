@@ -16,6 +16,9 @@ const MONO_FONT_FAMILY = Platform.select({
 interface IPlannerCodeBlockProps {
   script: string;
   className?: string;
+  // Readers who can't scroll sideways to the rest of the line (a panel inside another
+  // scroller) take the ragged wrap over the missing half. Newlines and indentation survive it.
+  wrap?: boolean;
 }
 
 function colorForClass(clazz: string | null): string | undefined {
@@ -78,7 +81,8 @@ export function PlannerCodeBlock(props: IPlannerCodeBlockProps): JSX.Element {
         fontFamily={MONO_FONT_FAMILY}
         fontSize={fontSize}
         color={Tailwind_semantic().text.primary}
-        noWrap={true}
+        noWrap={!props.wrap}
+        preserveWhitespace={props.wrap}
       />
     </View>
   );

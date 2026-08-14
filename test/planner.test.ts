@@ -1036,6 +1036,86 @@ Bench Press[4-5] / ...tmp: Squat
 `);
   });
 
+  // The script getters walk a fixed couple of hops, and the progression/update runners read those
+  // same getters — so a chain past them resolves to no script at all and silently never runs.
+  // 'used: none' templates were exempt from the "cannot reuse another progress" check with nothing
+  // bounding the exemption, which is how such a chain could be written and saved.
+  describe("reuse chains deeper than the app resolves", () => {
+    function errorsFor(programText: string): string[] {
+      const planner: IPlannerProgram = {
+        vtype: "planner",
+        name: "MyProgram",
+        weeks: PlannerProgram_evaluateText(programText),
+      };
+      const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
+      return evaluatedWeeks.flat().flatMap((day) => (day.success ? [] : [day.error.message]));
+    }
+
+    it("allows a progress reused through one template that reuses another", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / progress: custom() {~ weights += 10lb ~}
+t2 / used: none / 1x5 100lb / progress: custom() { ...t1 }
+Squat / 1x5 100lb / progress: custom() { ...t2 }
+`)
+      ).to.eql([]);
+    });
+
+    it("rejects a third progress hop", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / progress: custom() {~ weights += 10lb ~}
+t2 / used: none / 1x5 100lb / progress: custom() { ...t1 }
+t3 / used: none / 1x5 100lb / progress: custom() { ...t2 }
+Squat / 1x5 100lb / progress: custom() { ...t3 }
+`)
+      ).to.eql([
+        "Squat: Couldn't find the progress script this reuses - reuse the exercise that defines it instead (4:20)",
+      ]);
+    });
+
+    it("allows sets reuse of a template whose progress reuses another exercise", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / progress: custom() {~ weights += 10lb ~}
+t2 / used: none / 1x5 100lb / progress: custom() { ...t1 }
+Squat / ...t2
+`)
+      ).to.eql([]);
+    });
+
+    it("rejects sets reuse of a template whose progress reuses a progress that reuses again", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / progress: custom() {~ weights += 10lb ~}
+t2 / used: none / 1x5 100lb / progress: custom() { ...t1 }
+t3 / used: none / 1x5 100lb / progress: custom() { ...t2 }
+Squat / ...t3
+`)
+      ).to.eql([
+        "Squat: Couldn't find the progress script this reuses - reuse the exercise that defines it instead (4:0)",
+      ]);
+    });
+
+    it("rejects the same shape for update", () => {
+      expect(
+        errorsFor(`# Week 1
+## Day 1
+t1 / used: none / 1x5 100lb / update: custom() {~ weights = 5lb ~}
+t2 / used: none / 1x5 100lb / update: custom() { ...t1 }
+t3 / used: none / 1x5 100lb / update: custom() { ...t2 }
+Squat / ...t3
+`)
+      ).to.eql([
+        "Squat: Couldn't find the update script this reuses - reuse the exercise that defines it instead (4:0)",
+      ]);
+    });
+  });
+
   it("doesn't show an error if original exercise progress reuses another exercise but overrides progress", () => {
     const programText = `# Week 1
 ## Day 1

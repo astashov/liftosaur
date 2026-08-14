@@ -16,13 +16,16 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   const { state } = useAppState();
   const [text, setText] = useState(props.initialText);
   const [liveError, setLiveError] = useState<{ message: string; from?: number; to?: number } | undefined>(undefined);
-  const validateTextRef = useRef(props.validateText);
-  validateTextRef.current = props.validateText;
-  // Debounced: validation evaluates the whole program, too heavy per keystroke.
+  const analyzeTextRef = useRef(props.analyzeText);
+  analyzeTextRef.current = props.analyzeText;
+  // Debounced: validation evaluates the whole program, too heavy per keystroke. No preview asked
+  // for — this body has no panel to put one in. Re-runs on the host's revision too: a stacked
+  // sheet can save an exercise this one reads through, which the banner has no other way to hear
+  // about.
   useEffect(() => {
-    const timer = setTimeout(() => setLiveError(validateTextRef.current?.(text)), 300);
+    const timer = setTimeout(() => setLiveError(analyzeTextRef.current?.(text, { withPreview: false })?.error), 300);
     return () => clearTimeout(timer);
-  }, [text]);
+  }, [text, props.analysisRevision]);
   // Memoized so PlannerEditorView's [error] effect doesn't relint on every render.
   const error = useMemo(
     () =>
