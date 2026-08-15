@@ -157,6 +157,14 @@ export interface IWatchCompleteSetResult {
   amrapModal?: IWatchAmrapModal;
 }
 
+// Crown edits that haven't reached storage yet, sent along with the completion that would otherwise race
+// them. An absent field means "keep whatever storage has" — see WatchSetLogValues on the Swift side.
+export interface IWatchSetLogValues {
+  reps?: number;
+  repsLeft?: number;
+  weight?: number;
+}
+
 export interface IWatchSet {
   index: number;
   reps?: number;
@@ -733,7 +741,21 @@ class LiftosaurWatch {
     });
   }
 
-  public static completeSet(storageJson: string, deviceId: string, entryIndex: number, globalSetIndex: number): string {
+  public static completeSet(
+    storageJson: string,
+    deviceId: string,
+    entryIndex: number,
+    globalSetIndex: number,
+    logValuesJson?: string
+  ): string {
+    let logValues: IWatchSetLogValues | undefined;
+    if (logValuesJson) {
+      try {
+        logValues = JSON.parse(logValuesJson) as IWatchSetLogValues;
+      } catch (e) {
+        // A malformed payload must not block logging the set — fall back to the stored values.
+      }
+    }
     return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
       let progress = storage.progress?.[0];
       if (!progress) {
@@ -742,7 +764,7 @@ class LiftosaurWatch {
       if (progress.amrapModal) {
         progress = { ...progress, amrapModal: undefined };
       }
-      const entry = progress.entries[entryIndex];
+      let entry = progress.entries[entryIndex];
       if (!entry) {
         return { success: false, error: "Entry not found" };
       }
@@ -752,6 +774,31 @@ class LiftosaurWatch {
       const isWarmup = globalSetIndex < warmupSetsCount;
       const mode: IProgressMode = isWarmup ? "warmup" : "workout";
       const setIndex = isWarmup ? globalSetIndex : globalSetIndex - warmupSetsCount;
+
+      // Crown edits on the watch are debounced, so a value dialed in right before the tap may not have
+      // been written yet. Those values ride along with the completion and are applied here, in the same
+      // mutation — otherwise the update script below runs against the target reps/weight (i.e. the top of
+      // a rep range) rather than what was actually done.
+      const setsKey = isWarmup ? "warmupSets" : "sets";
+      const uncommittedSet = entry[setsKey]?.[setIndex];
+      const { reps, repsLeft, weight } = logValues || {};
+      if (uncommittedSet != null && (reps != null || repsLeft != null || weight != null)) {
+        const unit =
+          uncommittedSet.completedWeight?.unit ??
+          uncommittedSet.weight?.unit ??
+          Equipment_getUnitOrDefaultForExerciseType(storage.settings, entry.exercise);
+        const newSets = [...entry[setsKey]];
+        newSets[setIndex] = {
+          ...uncommittedSet,
+          completedReps: reps ?? uncommittedSet.completedReps,
+          completedRepsLeft: repsLeft ?? uncommittedSet.completedRepsLeft,
+          completedWeight: weight != null ? { value: weight, unit } : uncommittedSet.completedWeight,
+        };
+        const newEntries = [...progress.entries];
+        entry = { ...entry, [setsKey]: newSets };
+        newEntries[entryIndex] = entry;
+        progress = { ...progress, entries: newEntries };
+      }
 
       const evaluatedProgram = getEvaluatedProgram(storage);
       const programExercise = evaluatedProgram

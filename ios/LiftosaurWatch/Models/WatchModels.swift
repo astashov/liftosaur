@@ -119,6 +119,24 @@ struct WatchValidWeights: Codable {
     let currentIndex: Int
 }
 
+// Values the user dialed in on a set whose debounced write hasn't reached storage yet. They travel with
+// the completion so it doesn't race that write. Only edited fields are set — nil means "leave whatever
+// storage already has", which is what keeps an untouched AMRAP set opening its modal instead of logging 0.
+struct WatchSetLogValues: Codable {
+    var reps: Int?
+    var repsLeft: Int?
+    var weight: Double?
+
+    var isEmpty: Bool {
+        reps == nil && repsLeft == nil && weight == nil
+    }
+
+    func toJson() -> String? {
+        guard !isEmpty, let data = try? JSONEncoder().encode(self) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+}
+
 struct WatchUserPromptedStateVar: Codable {
     let name: String
     let value: Double

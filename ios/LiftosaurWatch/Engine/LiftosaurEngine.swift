@@ -194,8 +194,9 @@ class LiftosaurEngine {
         await callMutation("discardWorkout", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
     }
 
-    func completeSet(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int) async -> Result<String, EngineError> {
-        await callMutation("completeSet", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)"])
+    func completeSet(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, values: WatchSetLogValues) async -> Result<String, EngineError> {
+        let valuesArg = values.toJson().map { str($0) } ?? "undefined"
+        return await callMutation("completeSet", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", valuesArg])
     }
 
     func updateCompletedSetTimer(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, seconds: Int) async -> Result<String, EngineError> {

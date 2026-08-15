@@ -224,8 +224,8 @@ struct ContentView: View {
                                     startTime: workoutManager.workoutStartTime,
                                     heartRate: workoutManager.heartRate,
                                     isCompletingSet: workoutManager.isCompletingSet,
-                                    onComplete: { entryIndex, setIndex, reps, weight in
-                                        await workoutManager.completeSet(entryIndex: entryIndex, setIndex: setIndex)
+                                    onComplete: { entryIndex, setIndex, values in
+                                        await workoutManager.completeSet(entryIndex: entryIndex, setIndex: setIndex, values: values)
                                     },
                                     onGetNextEntryAndSetIndex: { entryIndex, setIndex in
                                         await workoutManager.getNextEntryAndSetIndex(entryIndex: entryIndex, setIndex: setIndex)

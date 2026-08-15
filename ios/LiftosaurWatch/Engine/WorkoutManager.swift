@@ -435,11 +435,11 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         _ = await engine.finishWorkoutContinue(storageJson: storageJson)
     }
 
-    func completeSet(entryIndex: Int, setIndex: Int) async {
+    func completeSet(entryIndex: Int, setIndex: Int, values: WatchSetLogValues = WatchSetLogValues()) async {
         isCompletingSet = true
         let result = await withStorageMutation(
             operation: { engine, storageJson, deviceId in
-                await engine.completeSet(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex)
+                await engine.completeSet(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex, values: values)
             },
             operationName: "complete set"
         )
