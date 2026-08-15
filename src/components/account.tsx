@@ -19,6 +19,8 @@ import { Thunk_googleSignIn, Thunk_appleSignIn, Thunk_emailAuth, Thunk_forgotPas
 import { IEmailAuthResult } from "../ducks/thunks";
 import { track } from "../utils/posthog";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { AppleAuth_init, AppleAuth_signIn } from "../utils/appleAuth";
+import { Dialog_alert } from "../utils/dialog";
 
 interface IAccountProps {
   account?: IAccount;
@@ -31,8 +33,6 @@ interface IAccountProps {
   // module never imports react-navigation
   onOpenEmailAuth?: () => void;
 }
-
-declare let __HOST__: string;
 
 const isWeb = Platform.OS === "web";
 
@@ -285,14 +285,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
     if (!isWeb) {
       return;
     }
-    if (typeof window !== "undefined" && window.AppleID?.auth) {
-      window.AppleID.auth.init({
-        clientId: "com.liftosaur.www.signinapple",
-        scope: "email",
-        redirectURI: `${__HOST__}/appleauthcallback.html`,
-        usePopup: true,
-      });
-    }
+    AppleAuth_init();
   }, []);
 
   return (
@@ -369,20 +362,25 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 );
                 return;
               }
-              if (typeof window === "undefined" || !window.AppleID?.auth) {
+              const appleResult = await AppleAuth_signIn();
+              if (appleResult.type !== "success") {
+                if (appleResult.type === "error") {
+                  Dialog_alert(appleResult.error);
+                }
                 setIsLoading(false);
                 return;
               }
-              const response = await window.AppleID.auth.signIn();
-              const { id_token, code } = response.authorization;
-              if (id_token != null && code != null) {
-                const userId = UidFactory_generateUid(8);
-                const result = await props.service.appleSignIn(code, id_token, userId);
+              const userId = UidFactory_generateUid(8);
+              try {
+                const result = await props.service.appleSignIn(appleResult.code, appleResult.id_token, userId);
                 if (result.email && typeof window !== "undefined") {
                   window.location.reload();
                 } else {
                   setIsLoading(false);
                 }
+              } catch (e) {
+                Dialog_alert("Couldn't sign in with Apple. Please try again.");
+                setIsLoading(false);
               }
             }}
           >
