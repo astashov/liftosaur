@@ -1,5 +1,6 @@
 declare let __BUNDLE_VERSION_WATCH_IOS__: number;
 declare let __BUNDLE_VERSION_WATCH_ANDROID__: number;
+declare let __COMMIT_HASH__: string;
 
 // These markers are used by native apps to detect watch bundle version changes
 const BUNDLE_VERSION_WATCH_IOS = __BUNDLE_VERSION_WATCH_IOS__;
@@ -8,6 +9,10 @@ const BUNDLE_VERSION_WATCH_ANDROID = __BUNDLE_VERSION_WATCH_ANDROID__;
 void BUNDLE_VERSION_WATCH_IOS;
 // eslint-disable-next-line no-void
 void BUNDLE_VERSION_WATCH_ANDROID;
+
+// Runs at eval time, so it reports which bundle the engine actually loaded — the embedded one or
+// whichever update is active. The only way to tell them apart from a device log.
+console.log(`watch bundle commit ${__COMMIT_HASH__}`);
 
 import {
   Program_evaluate,
