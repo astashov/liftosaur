@@ -2,7 +2,11 @@
 set -euo pipefail
 
 SRC="$SRCROOT/../dist/watch-bundle.js"
-DEST_DIR="$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+# TARGET_BUILD_DIR, not BUILT_PRODUCTS_DIR: an archive sets DEPLOYMENT_LOCATION=YES, which moves
+# the real product under DSTROOT and leaves BUILT_PRODUCTS_DIR holding symlinks. Writing through
+# those resolves outside the script sandbox's allowed output and fails with "Operation not
+# permitted" — during archive only, so normal builds never surface it.
+DEST_DIR="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
 DEST="$DEST_DIR/watch-bundle.js"
 
 if [ ! -f "$SRC" ]; then
