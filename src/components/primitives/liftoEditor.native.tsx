@@ -69,11 +69,14 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
 }
 
 // Same picks as the web editor's dark chrome in editorWebview.css, expressed semantically so
-// light mode comes out of the same call. The background stays the host view's and the gutter
-// keeps its theme-independent tint, so neither has a color here.
+// light mode comes out of the same call. The editor view itself stays transparent and the
+// gutter keeps its theme-independent tint, so neither has a color here.
 // `selection` is the one translucent token: iOS draws the selection with UIKit's own
 // UITextSelectionView, which Runestone re-adds ABOVE the text, so an opaque color hides the
 // selected glyphs (Android's sora paints it behind them and wouldn't care).
+// `background` is what the editor sits on, not what it paints: Android's selection magnifier
+// snapshots the editor on its own (white) canvas, so it needs to be told the ground color.
+// Every host puts the editor on background.default. iOS ignores it.
 function editorColors(): string {
   return JSON.stringify({
     text: Tailwind_semantic().text.primary,
@@ -81,6 +84,7 @@ function editorColors(): string {
     caret: Tailwind_semantic().text.primary,
     handle: Tailwind_semantic().icon.purple,
     lineNumber: Tailwind_semantic().text.secondary,
+    background: Tailwind_semantic().background.default,
   });
 }
 

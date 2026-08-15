@@ -1,5 +1,6 @@
 package com.liftosaur.www.twa.liftoeditor
 
+import android.graphics.Canvas
 import android.graphics.Color
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.UIManagerHelper
@@ -40,6 +41,7 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   // edits with the same rule the JS mirror (and iOS's ExternalRangesStore) uses, so
   // patchStyledRanges windows line up. Sorted by start, non-overlapping.
   private val styledRanges = ArrayList<StyledRange>()
+  private var softwareCanvasBackground = Color.TRANSPARENT
 
   init {
     // CodeEditor defaults to EditorColorScheme.getDefault(), a process-wide singleton. Two
@@ -106,6 +108,19 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     }
   }
 
+  // sora's selection magnifier renders the editor into a software Bitmap: its PixelCopy path
+  // needs getContext() to be an Activity, and a react view's context never is. That copy starts
+  // fully transparent, and the magnifier's popup layout has a hardcoded white background, so
+  // with the host-owned (transparent) WHOLE_BACKGROUND the magnified code lands on white in
+  // dark mode. The on-screen canvas is hardware-accelerated, so painting only the software one
+  // leaves the background where it belongs — on the host view.
+  override fun draw(canvas: Canvas) {
+    if (!canvas.isHardwareAccelerated && softwareCanvasBackground != Color.TRANSPARENT) {
+      canvas.drawColor(softwareCanvasBackground)
+    }
+    super.draw(canvas)
+  }
+
   override fun onSizeChanged(w: Int, h: Int, oldWidth: Int, oldHeight: Int) {
     super.onSizeChanged(w, h, oldWidth, oldHeight)
     post { emitContentSize() }
@@ -153,6 +168,7 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     applyColor(colors, "handle", EditorColorScheme.SELECTION_HANDLE)
     applyColor(colors, "lineNumber", EditorColorScheme.LINE_NUMBER)
     applyColor(colors, "lineNumber", EditorColorScheme.LINE_NUMBER_CURRENT)
+    softwareCanvasBackground = parseHexColor(colors.optString("background")) ?: Color.TRANSPARENT
   }
 
   private fun applyColor(colors: JSONObject, key: String, colorId: Int) {
