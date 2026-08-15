@@ -3,12 +3,14 @@ import { hydrateRoot } from "react-dom/client";
 import RB from "rollbar";
 import { RollbarUtils_config } from "./rollbar";
 import { IPageWrapperProps } from "../components/pageWrapper";
+import { PageTheme_restore } from "./pageTheme";
 
 declare let Rollbar: RB;
 declare let __ENV__: string;
 
 export function HydrateUtils_hydratePage<T>(cb: (pageWrapperProps: IPageWrapperProps, data: T) => JSX.Element): void {
   Rollbar.configure(RollbarUtils_config());
+  PageTheme_restore();
 
   const escapedRawData = document.querySelector("#data")?.innerHTML || "{}";
   const escapedPageWrapperProps = document.querySelector("#pagewrapper")?.innerHTML || "{}";

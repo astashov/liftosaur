@@ -15,6 +15,7 @@ import { IconGooglePlay } from "./icons/iconGooglePlay";
 import { IconSpinner } from "./icons/iconSpinner";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { track } from "../utils/posthog";
+import { ThemeToggle } from "./themeToggle";
 
 export function TopNavMenu(props: {
   client: Window["fetch"];
@@ -48,9 +49,10 @@ export function TopNavMenu(props: {
             <div className={`text-xl font-bold ${props.isWhite ? "text-text-alwayswhite" : ""}`}>Liftosaur</div>
           </div>
           {props.mobileRight}
-          <div>
+          <div className="flex flex-row items-center gap-2">
+            <ThemeToggle isWhite={props.isWhite} />
             <button
-              className="p-2 align-middle bg-background-default rounded-lg nm-navbar-hamburger"
+              className="p-2 align-middle bg-background-default rounded-lg nm-navbar-hamburger leading-none"
               onClick={() => setIsMenuOpen(true)}
             >
               <IconHamburger />
@@ -76,9 +78,12 @@ export function TopNavMenu(props: {
                   </div>
                   <div className="text-xl font-bold">Liftosaur</div>
                 </div>
-                <button className="p-2" onClick={() => setIsMenuOpen(false)}>
-                  <IconClose size={20} color={Tailwind_semantic().text.primary} />
-                </button>
+                <div className="flex items-center">
+                  <ThemeToggle />
+                  <button className="p-2" onClick={() => setIsMenuOpen(false)}>
+                    <IconClose size={20} color={Tailwind_semantic().text.primary} />
+                  </button>
+                </div>
               </div>
               <div className="flex flex-col gap-4 mb-6">
                 {getMenuItems(isLoggedIn).map(([text, link]) => (
@@ -261,6 +266,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
                 Sign In
               </button>
             )}
+            <ThemeToggle isWhite={props.isWhite} />
           </div>
         </div>
       </div>
