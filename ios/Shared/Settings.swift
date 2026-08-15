@@ -1,9 +1,9 @@
 import Foundation
 
 #if DEBUG
-// let baseUrl = URL(string: "liftosaur://www.liftosaur.com")!
-let baseUrl = URL(string: "liftosaur://local.liftosaur.com:8080")!
-// let baseUrl = URL(string: "liftosaur://stage.liftosaur.com")!
+// let baseUrl = URL(string: "https://www.liftosaur.com")!
+let baseUrl = URL(string: "https://local.liftosaur.com:8080")!
+// let baseUrl = URL(string: "https://stage.liftosaur.com")!
 
 // let baseApiUrl = URL(string: "https://api3.liftosaur.com")!
 let baseApiUrl = URL(string: "https://local-api.liftosaur.com:3000")!
@@ -13,7 +13,7 @@ let baseApiUrl = URL(string: "https://local-api.liftosaur.com:3000")!
 let baseImageUrl = URL(string: "https://local.liftosaur.com:8080")!
 // let baseImageUrl = URL(string: "https://stage.liftosaur.com")!
 #else
-let baseUrl = URL(string: "liftosaur://www.liftosaur.com")!
+let baseUrl = URL(string: "https://www.liftosaur.com")!
 let baseApiUrl = URL(string: "https://api3.liftosaur.com")!
 let baseImageUrl = URL(string: "https://www.liftosaur.com")!
 #endif
@@ -26,3 +26,28 @@ let rollbarEnvironment = "ios"
 #endif
 
 let iosAppVersion = 13
+
+// Lives here rather than in each target's Info.plist so the phone and the watch can never end
+// up verifying manifests against different certificates.
+let lftUpdatesSigningCertificate = """
+-----BEGIN CERTIFICATE-----
+MIIDUTCCAjmgAwIBAgIUHLl2tunW/kUgZ2/XE72t+3fZoV0wDQYJKoZIhvcNAQEL
+BQAwJDEiMCAGA1UEAwwZTGlmdG9zYXVyIFVwZGF0ZXMgU2lnbmluZzAeFw0yNjA1
+MTMyMTAxMjJaFw0zNjA1MTAyMTAxMjJaMCQxIjAgBgNVBAMMGUxpZnRvc2F1ciBV
+cGRhdGVzIFNpZ25pbmcwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDB
+VeJA/LN6p8TAlRNUHTJj3M0P92ScnpW0nlCDyGPntC3PDO52DfiT4nOKPXtDwZEy
+99PI4lUl5aEATV9pVqwbrGS+aRbVToF8GFnBfODnGSkgDFfQzuY2MRuovvpGAWp1
+mE094/z8QGIqY3f7rBYeoSJiLLS2WeUUquAilwYnaDtUcsg8zSognDO5LcenFalk
+WRMAilEAVY79lsoy4YJi+6x9gnXXNHr90zNx21+OJxBWiGYp1zUn5Fo9n+Whwwds
+V+oQWcMiKyLZ5Y6/v24v1a1MAzJa4+V2+VKp51cj3isjoEXOH7lWkS85MrWrERVl
+T74HV10TyMSYiGAvxAe7AgMBAAGjezB5MB0GA1UdDgQWBBTij6TcRuDfnUrU2lJK
+E1qY7NdcxDAfBgNVHSMEGDAWgBTij6TcRuDfnUrU2lJKE1qY7NdcxDAPBgNVHRMB
+Af8EBTADAQH/MA4GA1UdDwEB/wQEAwIHgDAWBgNVHSUBAf8EDDAKBggrBgEFBQcD
+AzANBgkqhkiG9w0BAQsFAAOCAQEAQ/jAH5lhx0U0amJ7kBCJ/Oxj/AIROQQqjlij
+SFxSLk6ISBJ3O4GdHvyRGlVBGVKAXa90gOlZZ86yPG1+xkScKx8rSCCuOtYqqbRr
+U1Ay7iCzHBl0bCsG4csean5bnoeEorWLnkjNs6iXqky3kFsfjCpJFQwaJ1RrLL3E
+BiDw26hvNggLnwpjAGwi9OMXa1Qo4CoMK7Dz9rNYcpy7FHN9X3sXNNjFhDOylU0a
+sgxkvn64/GZy9Y8o1A5+qUWZ6N9rFU/Fw30Yhpo0g4DMXqdBBb+CPQf9OmriQXDt
+pIUWwHOqm45uFmSi7fzX5KbgOugdAFb1uhz+uaxATSs93rnAHQ==
+-----END CERTIFICATE-----
+"""

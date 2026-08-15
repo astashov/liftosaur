@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 
-export type IExpoPlatform = "ios" | "android";
+export type IExpoPlatform = "ios" | "android" | "watchos";
 
 export interface IExpoManifestRequestHeaders {
   protocolVersion: number;
@@ -63,7 +63,7 @@ export function ExpoUpdatesProtocol_parseRequestHeaders(
   if (!protocolHeader) {
     return { error: "missing expo-protocol-version" };
   }
-  if (platform !== "ios" && platform !== "android") {
+  if (platform !== "ios" && platform !== "android" && platform !== "watchos") {
     return { error: "invalid expo-platform" };
   }
   if (!runtimeVersion) {

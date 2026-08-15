@@ -34,13 +34,20 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     static let shared = WorkoutManager()
 
     @Published var currentWorkout: WatchWorkout? { didSet { updateComplication() } }
-    @Published var activeWorkout: WatchWorkout? { didSet { updateComplication() } }
+    @Published var activeWorkout: WatchWorkout? {
+        didSet {
+            updateComplication()
+            if oldValue != nil && activeWorkout == nil {
+                runPendingEngineReloadIfNeeded()
+            }
+        }
+    }
     @Published var setsCompletedDuringSync: CompletedSetInfo? = nil
     @Published var workoutStartTime: Date?
-    @Published var isLoading = false
-    @Published var isStartingWorkout = false
-    @Published var isFinishingWorkout = false
-    @Published var isCompletingSet = false
+    @Published var isLoading = false { didSet { if !isLoading { runPendingEngineReloadIfNeeded() } } }
+    @Published var isStartingWorkout = false { didSet { if !isStartingWorkout { runPendingEngineReloadIfNeeded() } } }
+    @Published var isFinishingWorkout = false { didSet { if !isFinishingWorkout { runPendingEngineReloadIfNeeded() } } }
+    @Published var isCompletingSet = false { didSet { if !isCompletingSet { runPendingEngineReloadIfNeeded() } } }
     @Published var error: String?
     @Published var isPaused = false
     @Published var workoutTime: TimeInterval = 0
@@ -48,6 +55,8 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published var setTimerModal: WatchSetTimerModal?
     @Published var heartRate: Double?
     @Published var hasSubscription: Bool = true  // Default to true to avoid flash of premium screen
+    private var pendingEngineReload = false
+    private var loadedBundleId: String?
     private var workoutIntervals: [[Double?]] = []  // [[startMs, endMs or nil]]
     private var heartRateCancellable: AnyCancellable?
 
@@ -78,6 +87,50 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         }
     }
 
+    /// Re-initializing tears the QuickJS context down and re-evaluates the bundle, so it must not
+    /// happen underneath a workout that is mid-flight — nor underneath another initialize(), which
+    /// would put two QJSRuntimes and two copies of the bundle in memory at once.
+    var canSafelyReloadEngine: Bool {
+        !isLoading && activeWorkout == nil && !isStartingWorkout && !isFinishingWorkout && !isCompletingSet
+    }
+
+    /// Whether the running context was built from a bundle that is no longer the active one. Both
+    /// OTA checks can coalesce onto a single fetch and each see needsUpdate, so reload requests have
+    /// to be idempotent rather than merely serialized: the second one has nothing left to do.
+    private var engineIsStale: Bool {
+        LftUpdaterPath.watch.activeUpdateId() != loadedBundleId
+    }
+
+    /// Called once a new bundle has become active. Reloads now if nothing is in flight, otherwise
+    /// remembers to do it — without that, the next workout would start against the previous QuickJS
+    /// context even though the new bundle is already active on disk.
+    func requestEngineReload() async {
+        guard engineIsStale else {
+            Logger.workout.info(" engine already runs the active bundle, nothing to reload")
+            return
+        }
+        guard canSafelyReloadEngine else {
+            pendingEngineReload = true
+            Logger.workout.info(" watch bundle updated, deferring engine reload")
+            return
+        }
+        Logger.workout.info(" watch bundle updated, reinitializing engine")
+        await initialize()
+    }
+
+    /// Drains a deferred reload. Called whenever a workout ends or one of the transient flags
+    /// clears, so a deferral can't strand when the operation it waited on fails instead of
+    /// completing (a failed startWorkout never produces a workout transition).
+    private func runPendingEngineReloadIfNeeded() {
+        guard pendingEngineReload, canSafelyReloadEngine else { return }
+        pendingEngineReload = false
+        guard engineIsStale else { return }
+        Logger.workout.info(" running deferred engine reload")
+        Task { @MainActor [weak self] in
+            await self?.initialize()
+        }
+    }
+
     func initialize() async {
         WatchCrashReporter.shared.resetBreadcrumbs()
         WatchCrashReporter.shared.writeBreadcrumb("init_start")
@@ -87,11 +140,6 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         error = nil
         engine = nil
 
-        WatchCrashReporter.shared.writeBreadcrumb("checking_bundle")
-        if !WatchCacheManager.shared.hasBundleAvailable() {
-            Logger.workout.info(" no local bundle, fetching from network")
-            _ = await WatchCacheManager.shared.fetchAndCacheBundle()
-        }
         WatchCrashReporter.shared.reportMemory("before_engine")
 
         WatchCrashReporter.shared.writeBreadcrumb("creating_engine")
@@ -100,13 +148,10 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
         if engine == nil {
             WatchCrashReporter.shared.writeBreadcrumb("engine_failed_retrying")
-            Logger.workout.info(" engine init failed, clearing cache and re-fetching bundle")
+            Logger.workout.info(" engine init failed, falling back to the embedded bundle")
             WatchCacheManager.shared.clearCache()
-            let result = await WatchCacheManager.shared.fetchAndCacheBundle()
-            if result.success {
-                engine = LiftosaurEngine()
-                WatchCrashReporter.shared.reportMemory("after_engine_retry")
-            }
+            engine = LiftosaurEngine()
+            WatchCrashReporter.shared.reportMemory("after_engine_retry")
         }
 
         if engine == nil {
@@ -115,6 +160,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             isLoading = false
             return
         }
+        loadedBundleId = LftUpdaterPath.watch.activeUpdateId()
 
         WatchCrashReporter.shared.writeBreadcrumb("processing_pending_storage")
         await WatchSyncManager.shared.processPendingIncomingStorage()
@@ -136,13 +182,9 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         // Background tasks (non-blocking):
         Task { @MainActor [weak self] in
 
-            // Fetch bundle update for next launch (if we have a local bundle already)
-            if WatchCacheManager.shared.hasBundleAvailable() {
-                let result = await WatchCacheManager.shared.fetchAndCacheBundle()
-                if result.needsUpdate {
-                    Logger.workout.info(" watch bundle updated, silently reinitializing engine")
-                    await self?.initialize()
-                }
+            let result = await WatchCacheManager.shared.fetchAndCacheBundle()
+            if result.needsUpdate {
+                await self?.requestEngineReload()
             }
 
             // Sync with server if authenticated

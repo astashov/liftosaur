@@ -78,6 +78,7 @@ const lftMarkerPlugin = {
 };
 
 const watchConfig = {
+  name: "watch",
   entry: "./src/watch/index.ts",
   target: "node",
   output: {
@@ -443,6 +444,12 @@ const mainConfig = {
         secure: false,
       },
       "/mcp": {
+        target: localapi,
+        secure: false,
+      },
+      // OTA clients build their manifest URL from the web host, not the API host, so the manifest
+      // endpoint has to be reachable on this port for local update testing to work at all.
+      "/api/updates/manifest": {
         target: localapi,
         secure: false,
       },

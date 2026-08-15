@@ -150,6 +150,8 @@
 		EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0041000000000000000041 /* RCTLftUpdater.mm */; };
 		EE0044000000000000000044 /* LftUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0043000000000000000043 /* LftUpdater.swift */; };
 		EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
+		EE0048000000000000000048 /* LftUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0043000000000000000043 /* LftUpdater.swift */; };
+		EE0049000000000000000049 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -351,8 +353,8 @@
 		EE0020000000000000000020 /* codesigning.pem */ = {isa = PBXFileReference; lastKnownFileType = text; name = codesigning.pem; path = Liftosaur/certs/codesigning.pem; sourceTree = "<group>"; };
 		EE0040000000000000000040 /* RCTLftUpdater.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLftUpdater.h; path = Liftosaur/LftUpdater/RCTLftUpdater.h; sourceTree = "<group>"; };
 		EE0041000000000000000041 /* RCTLftUpdater.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLftUpdater.mm; path = Liftosaur/LftUpdater/RCTLftUpdater.mm; sourceTree = "<group>"; };
-		EE0043000000000000000043 /* LftUpdater.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdater.swift; path = Liftosaur/LftUpdater/LftUpdater.swift; sourceTree = "<group>"; };
-		EE0045000000000000000045 /* LftUpdaterPath.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdaterPath.swift; path = Liftosaur/LftUpdater/LftUpdaterPath.swift; sourceTree = "<group>"; };
+		EE0043000000000000000043 /* LftUpdater.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdater.swift; path = Shared/LftUpdater/LftUpdater.swift; sourceTree = "<group>"; };
+		EE0045000000000000000045 /* LftUpdaterPath.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdaterPath.swift; path = Shared/LftUpdater/LftUpdaterPath.swift; sourceTree = "<group>"; };
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F34F70BF6900DDCBEC890E05 /* RCTLiftosaurImageResizer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurImageResizer.h; path = Liftosaur/RCTLiftosaurImageResizer.h; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -719,6 +721,7 @@
 				3AACC5B82FB351CF001C68AA /* Sources */,
 				3AACC5B92FB351CF001C68AA /* Frameworks */,
 				3AACC5BA2FB351CF001C68AA /* Resources */,
+				EE0050000000000000000050 /* Embed watch bundle */,
 				C0FF1C00000000000000D004 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -932,6 +935,23 @@
 			shellPath = /bin/sh;
 			shellScript = "\"$SRCROOT/scripts/write-metro-port.sh\"\n";
 		};
+		EE0050000000000000000050 /* Embed watch bundle */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/../dist/watch-bundle.js",
+				"$(SRCROOT)/scripts/embed-watch-bundle.sh",
+			);
+			name = "Embed watch bundle";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/watch-bundle.js",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/embed-watch-bundle.sh\"\n";
+		};
 		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1032,6 +1052,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				C0FF1C00000000000000C010 /* ComplicationStore.swift in Sources */,
+				EE0048000000000000000048 /* LftUpdater.swift in Sources */,
+				EE0049000000000000000049 /* LftUpdaterPath.swift in Sources */,
 				3AACC5F22FB3526B001C68AA /* LiftosaurWatchApp.swift in Sources */,
 				3AACC5F32FB3526B001C68AA /* WatchModels.swift in Sources */,
 				3AACC5F42FB3526B001C68AA /* WatchLayout.swift in Sources */,
@@ -1297,7 +1319,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 113;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
@@ -1350,7 +1372,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 113;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp;
@@ -1607,7 +1629,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 113;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp.complications;
@@ -1653,7 +1675,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 113;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp.complications;
 				PRODUCT_NAME = "$(TARGET_NAME)";

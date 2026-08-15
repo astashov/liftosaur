@@ -29,8 +29,12 @@ function BuildMetadata_keyFromPath(p: string): string {
   return path.basename(p, path.extname(p));
 }
 
+type IBuildPlatform = "ios" | "android" | "watchos";
+
+const BUILD_PLATFORMS: IBuildPlatform[] = ["ios", "android", "watchos"];
+
 export function BuildMetadata_build(args: {
-  platform: "ios" | "android";
+  platform: IBuildPlatform;
   runtimeVersion: string;
   updateId: string;
   createdAt: string;
@@ -72,12 +76,12 @@ if (require.main === module) {
       process.exit(1);
     }
   }
-  if (flags.platform !== "ios" && flags.platform !== "android") {
-    console.error(`platform must be ios or android, got ${flags.platform}`);
+  if (!BUILD_PLATFORMS.includes(flags.platform as IBuildPlatform)) {
+    console.error(`platform must be one of ${BUILD_PLATFORMS.join(", ")}, got ${flags.platform}`);
     process.exit(1);
   }
   const metadata = BuildMetadata_build({
-    platform: flags.platform as "ios" | "android",
+    platform: flags.platform as IBuildPlatform,
     runtimeVersion: flags.runtimeVersion,
     updateId: flags.updateId,
     createdAt: flags.createdAt,

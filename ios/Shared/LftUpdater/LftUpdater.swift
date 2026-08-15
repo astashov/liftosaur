@@ -2,22 +2,33 @@ import Foundation
 import CryptoKit
 import OSLog
 
-@objc class LftUpdater: NSObject {
-  @objc static let shared = LftUpdater()
+struct LftUpdaterOutcome {
+  let success: Bool
+  let didUpdate: Bool
+  let updateId: String?
+}
 
-  private static let fallbackManifestURL = "https://www.liftosaur.com/api/updates/manifest"
+@objc class LftUpdater: NSObject {
+  @objc static let shared = LftUpdater(paths: LftUpdaterPath.phone)
+  static let watch = LftUpdater(paths: LftUpdaterPath.watch)
+
   private static let channel = "production"
 
-  private static var manifestURL: String {
-    (Bundle.main.infoDictionary?["LftUpdatesManifestURL"] as? String) ?? fallbackManifestURL
+  private let paths: LftUpdaterPath
+
+  init(paths: LftUpdaterPath) {
+    self.paths = paths
+    super.init()
   }
+
+  private var manifestURL: String { paths.config.manifestURL }
 
   @objc func checkAndDownload(completion: @escaping (String) -> Void) {
 #if DISABLE_OTA
     Logger.ota.info("OTA disabled at build time; checkAndDownload is a no-op")
     completion("{\"status\":\"no-update\"}")
 #else
-    Logger.ota.info("checkAndDownload called (active=\(LftUpdaterPath.activeUpdateId() ?? "<none>"))")
+    Logger.ota.info("checkAndDownload called (active=\(paths.activeUpdateId() ?? "<none>"))")
     Task {
       do {
         let dict = try await self.performCheckAndDownload()
@@ -34,6 +45,28 @@ import OSLog
 #endif
   }
 
+  /// Async entry point used by the watch app, which drives OTA directly from Swift instead of
+  /// through the JS bridge.
+  func checkAndDownload() async -> LftUpdaterOutcome {
+#if DISABLE_OTA
+    Logger.ota.info("OTA disabled at build time; checkAndDownload is a no-op")
+    return LftUpdaterOutcome(success: true, didUpdate: false, updateId: nil)
+#else
+    do {
+      let dict = try await performCheckAndDownload()
+      let status = dict["status"] as? String
+      return LftUpdaterOutcome(
+        success: true,
+        didUpdate: status == "updated",
+        updateId: dict["updateId"] as? String
+      )
+    } catch {
+      Logger.ota.error("checkAndDownload threw: \(error.localizedDescription)")
+      return LftUpdaterOutcome(success: false, didUpdate: false, updateId: nil)
+    }
+#endif
+  }
+
   @objc func markLaunchSuccessful() {
     let d = UserDefaults.standard
     let hadCount = d.integer(forKey: "LftUpdater.crashCount")
@@ -43,12 +76,12 @@ import OSLog
   }
 
   @objc func activeBundleId() -> String? {
-    return LftUpdaterPath.activeUpdateId()
+    return paths.activeUpdateId()
   }
 
   @objc func revertToEmbedded() {
-    Logger.ota.warning("revertToEmbedded called (was active=\(LftUpdaterPath.activeUpdateId() ?? "<none>"))")
-    LftUpdaterPath.revertToEmbedded()
+    Logger.ota.warning("revertToEmbedded called (was active=\(paths.activeUpdateId() ?? "<none>"))")
+    paths.revertToEmbedded()
   }
 
   private struct Manifest: Decodable {
@@ -72,12 +105,14 @@ import OSLog
   }
 
   private func performCheckAndDownload() async throws -> [String: Any] {
-    let runtimeVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
-    Logger.ota.info("fetching manifest: url=\(Self.manifestURL) platform=ios rv=\(runtimeVersion) channel=\(Self.channel)")
-    var req = URLRequest(url: URL(string: Self.manifestURL)!)
+    let runtimeVersion = LftUpdaterPath.runtimeVersion()
+    let platform = paths.config.platform
+    Logger.ota.info(
+      "fetching manifest: url=\(manifestURL) platform=\(platform) rv=\(runtimeVersion) channel=\(Self.channel)")
+    var req = URLRequest(url: URL(string: manifestURL)!)
     req.httpMethod = "GET"
     req.setValue("1", forHTTPHeaderField: "expo-protocol-version")
-    req.setValue("ios", forHTTPHeaderField: "expo-platform")
+    req.setValue(platform, forHTTPHeaderField: "expo-platform")
     req.setValue(runtimeVersion, forHTTPHeaderField: "expo-runtime-version")
     req.setValue(Self.channel, forHTTPHeaderField: "expo-channel-name")
     req.setValue("true", forHTTPHeaderField: "expo-expect-signature")
@@ -106,32 +141,32 @@ import OSLog
       let directive = try JSONDecoder().decode(Directive.self, from: first.body)
       Logger.ota.info("directive: \(directive.type)")
       if directive.type == "rollBackToEmbedded" {
-        LftUpdaterPath.revertToEmbedded()
+        paths.revertToEmbedded()
       }
       return ["status": "no-update"]
     }
 
     let manifest = try JSONDecoder().decode(Manifest.self, from: first.body)
     Logger.ota.info("manifest decoded: id=\(manifest.id) rv=\(manifest.runtimeVersion) launchAsset.url=\(manifest.launchAsset.url) hash=\(manifest.launchAsset.hash)")
-    if manifest.id == LftUpdaterPath.activeUpdateId() {
+    if manifest.id == paths.activeUpdateId() && paths.activeRuntimeVersion() == runtimeVersion {
       Logger.ota.info("manifest id matches active bundle; skipping download")
       return ["status": "no-update"]
     }
 
     Logger.ota.info("downloading bundle: \(manifest.launchAsset.url)")
-    let bundleData = try await Self.downloadAndVerify(
-      urlString: manifest.launchAsset.url,
-      expectedHashBase64Url: manifest.launchAsset.hash
-    )
-    Logger.ota.info("bundle downloaded: bytes=\(bundleData.count) hash ok")
     let tmpDir = FileManager.default.temporaryDirectory
       .appendingPathComponent("ota-staging-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
-    let tmpBundle = tmpDir.appendingPathComponent("main.jsbundle")
-    try bundleData.write(to: tmpBundle, options: .atomic)
+    defer { try? FileManager.default.removeItem(at: tmpDir) }
+    let tmpBundle = tmpDir.appendingPathComponent(paths.config.bundleFileName)
+    try await Self.downloadAndVerify(
+      urlString: manifest.launchAsset.url,
+      expectedHashBase64Url: manifest.launchAsset.hash,
+      destination: tmpBundle
+    )
+    Logger.ota.info("bundle downloaded: hash ok")
 
-    try LftUpdaterPath.setActive(updateId: manifest.id, bundleFile: tmpBundle)
-    try? FileManager.default.removeItem(at: tmpDir)
+    try paths.setActive(updateId: manifest.id, runtimeVersion: runtimeVersion, bundleFile: tmpBundle)
     Logger.ota.info("active bundle swapped to id=\(manifest.id)")
     return ["status": "updated", "updateId": manifest.id]
   }
@@ -213,8 +248,7 @@ import OSLog
     guard let signature = Data(base64Encoded: signatureBase64) else {
       throw NSError(domain: "LftUpdater", code: 11, userInfo: [NSLocalizedDescriptionKey: "bad sig base64"])
     }
-    let pem = Bundle.main.infoDictionary?["LftUpdatesSigningCertificate"] as? String ?? ""
-    let stripped = pem
+    let stripped = lftUpdatesSigningCertificate
       .replacingOccurrences(of: "-----BEGIN CERTIFICATE-----", with: "")
       .replacingOccurrences(of: "-----END CERTIFICATE-----", with: "")
       .replacingOccurrences(of: "\n", with: "")
@@ -238,19 +272,42 @@ import OSLog
     }
   }
 
-  private static func downloadAndVerify(urlString: String, expectedHashBase64Url: String) async throws -> Data {
+  /// Streams the bundle to `destination` and hashes it in fixed-size chunks. Buffering the whole
+  /// bundle as `Data` — as this used to — is what pushed the watch app into jetsam during cold
+  /// launch on Apple Watch SE.
+  private static func downloadAndVerify(
+    urlString: String,
+    expectedHashBase64Url: String,
+    destination: URL
+  ) async throws {
     guard let url = URL(string: urlString) else {
       throw NSError(domain: "LftUpdater", code: 20, userInfo: [NSLocalizedDescriptionKey: "bad bundle URL"])
     }
-    let (data, response) = try await URLSession.shared.data(from: url)
+    let (tempURL, response) = try await URLSession.shared.download(from: url)
+    defer { try? FileManager.default.removeItem(at: tempURL) }
     guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
       throw NSError(domain: "LftUpdater", code: 21, userInfo: [NSLocalizedDescriptionKey: "bundle download failed"])
     }
-    let hash = Data(SHA256.hash(data: data)).base64URLEncodedString()
+
+    let hash = try sha256Base64Url(fileAt: tempURL)
     if hash != expectedHashBase64Url {
       throw NSError(domain: "LftUpdater", code: 22, userInfo: [NSLocalizedDescriptionKey: "bundle hash mismatch"])
     }
-    return data
+
+    try? FileManager.default.removeItem(at: destination)
+    try FileManager.default.moveItem(at: tempURL, to: destination)
+  }
+
+  private static func sha256Base64Url(fileAt url: URL) throws -> String {
+    let handle = try FileHandle(forReadingFrom: url)
+    defer { try? handle.close() }
+    var hasher = SHA256()
+    while true {
+      let chunk = try handle.read(upToCount: 64 * 1024) ?? Data()
+      if chunk.isEmpty { break }
+      hasher.update(data: chunk)
+    }
+    return Data(hasher.finalize()).base64URLEncodedString()
   }
 }
 

@@ -128,4 +128,65 @@ describe("Updates manifest handler", () => {
     );
     expect(stub.firstCall.args[0].bucket).to.equal(UpdatesDao_bucketName());
   });
+
+  it("serves watchos as its own platform namespace", async () => {
+    const stub = sinon.stub(di.s3, "getObject").resolves(undefined);
+    const resp = await Updates_handleManifest(buildEvent(validHeaders({ "expo-platform": "watchos" })), di);
+    expect(resp.statusCode).to.equal(200);
+    expect(stub.firstCall.args[0].key).to.equal(
+      UpdatesDao_pointerKey({ runtimeVersion: "abc123", platform: "watchos", channel: "production" })
+    );
+  });
+
+  it("returns a watchos manifest without colliding with the ios pointer", async () => {
+    const watchPointerKey = UpdatesDao_pointerKey({
+      runtimeVersion: "113",
+      platform: "watchos",
+      channel: "production",
+    });
+    const watchMetadataKey = UpdatesDao_metadataKey({
+      runtimeVersion: "113",
+      platform: "watchos",
+      updateId: "w1",
+    });
+    const iosPointerKey = UpdatesDao_pointerKey({
+      runtimeVersion: "113",
+      platform: "ios",
+      channel: "production",
+    });
+    sinon.stub(di.s3, "getObject").callsFake(async (args: { key: string }) => {
+      if (args.key === iosPointerKey) {
+        return Buffer.from(JSON.stringify({ updateId: "i1", createdAt: "2026-05-01T00:00:00Z" }));
+      }
+      if (args.key === watchPointerKey) {
+        return Buffer.from(JSON.stringify({ updateId: "w1", createdAt: "2026-05-01T00:00:00Z" }));
+      }
+      if (args.key === watchMetadataKey) {
+        return Buffer.from(
+          JSON.stringify({
+            id: "w1",
+            createdAt: "2026-05-01T00:00:00Z",
+            runtimeVersion: "113",
+            launchAsset: {
+              hash: "h",
+              key: "watch-bundle",
+              contentType: "application/javascript",
+              fileExtension: ".bundle",
+              url: "https://www.liftosaur.com/static/updates/113/watchos/w1/watch-bundle.js",
+            },
+            assets: [],
+            metadata: {},
+            extra: {},
+          })
+        );
+      }
+      return undefined;
+    });
+    const headers = validHeaders({ "expo-platform": "watchos", "expo-runtime-version": "113" });
+    const resp = await Updates_handleManifest(buildEvent(headers), di);
+    expect(resp.statusCode).to.equal(200);
+    expect(resp.body).to.include('name="manifest"');
+    expect(resp.body).to.include('"id":"w1"');
+    expect(resp.body).to.include("watch-bundle.js");
+  });
 });

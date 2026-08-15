@@ -31,11 +31,10 @@ class WorkoutConfigurationHandler: NSObject, WKApplicationDelegate {
 
         // Check if bundle needs refresh (>1 day since last fetch)
         if WatchCacheManager.shared.shouldFetchBundle {
-            Task {
+            Task { @MainActor in
                 let result = await WatchCacheManager.shared.fetchAndCacheBundle()
                 if result.needsUpdate {
-                    Logger.mirroring.info("Watch bundle updated, silently reinitializing engine")
-                    await WorkoutManager.shared.initialize()
+                    await WorkoutManager.shared.requestEngineReload()
                 }
             }
         }
