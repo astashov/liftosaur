@@ -30,6 +30,10 @@ interface ICaretRectEvent {
   bottom: number;
 }
 
+interface IRangeRectsEvent {
+  rects: string;
+}
+
 // The controller-driven surface: everything useLiftoEditorController produces as editorProps.
 // Host surfaces layer presentation concerns (style, selection callbacks) on top via
 // ILiftoEditorProps.
@@ -51,6 +55,9 @@ export interface ILiftoEditorBaseProps {
   onTap?: (index: number) => void;
   // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
   onCaretRect?: (rect: { top: number; bottom: number }) => void;
+  // Answer to handle.requestRangeRects, in the order the ranges were asked for. `left` is the
+  // start of the text column, past the gutter.
+  onRangeRects?: (rects: { top: number; bottom: number; left: number }[]) => void;
 }
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
@@ -88,8 +95,17 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   // (and never from the then-stale mirror) is what prevents a one-frame highlight flash.
   const predictedTextRef = useRef<string | undefined>(undefined);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
-  const { onTextChange, onSelectionChange, onTap, onCaretRect, autoHeight, handleRef, extraStyledRanges, parseCache } =
-    props;
+  const {
+    onTextChange,
+    onSelectionChange,
+    onTap,
+    onCaretRect,
+    onRangeRects,
+    autoHeight,
+    handleRef,
+    extraStyledRanges,
+    parseCache,
+  } = props;
   const extraStyledRangesRef = useRef(extraStyledRanges);
   extraStyledRangesRef.current = extraStyledRanges;
   const ownCacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
@@ -171,6 +187,11 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
           Commands.requestCaretRect(nativeRef.current, start, end);
         }
       },
+      requestRangeRects: (ranges) => {
+        if (nativeRef.current != null) {
+          Commands.requestRangeRects(nativeRef.current, JSON.stringify(ranges));
+        }
+      },
     };
     return () => {
       handleRef.current = undefined;
@@ -239,6 +260,16 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
         onCaretRect != null
           ? (event: NativeSyntheticEvent<ICaretRectEvent>) =>
               onCaretRect({ top: event.nativeEvent.top, bottom: event.nativeEvent.bottom })
+          : undefined
+      }
+      onEditorRangeRects={
+        onRangeRects != null
+          ? (event: NativeSyntheticEvent<IRangeRectsEvent>) => {
+              const rects = JSON.parse(event.nativeEvent.rects);
+              if (Array.isArray(rects)) {
+                onRangeRects(rects);
+              }
+            }
           : undefined
       }
     />

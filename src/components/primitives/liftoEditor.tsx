@@ -17,6 +17,7 @@ export interface ILiftoEditorBaseProps {
   onTap?: (index: number) => void;
   // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
   onCaretRect?: (rect: { top: number; bottom: number }) => void;
+  onRangeRects?: (rects: { top: number; bottom: number; left: number }[]) => void;
 }
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {

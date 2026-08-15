@@ -287,6 +287,8 @@ export interface ILiftoEditorHandle {
   getText: () => string;
   // Asks the native side for the range's vertical extent; answered via onCaretRect.
   requestCaretRect: (start: number, end: number) => void;
+  // The same question for many ranges at once; answered via onRangeRects, in order.
+  requestRangeRects: (ranges: { start: number; end: number }[]) => void;
 }
 
 const breadcrumbLabels: Partial<Record<PlannerNodeName, string>> = {
@@ -346,6 +348,138 @@ export function LiftoEditorBrain_dayDataAt(text: string, index: number): Require
     }
   }
   return { week: Math.max(1, weeks), dayInWeek: Math.max(1, daysInWeek), day: Math.max(1, days) };
+}
+
+export interface ILiftoEditorBlock {
+  // The whole movable extent, trailing linebreaks excluded.
+  start: number;
+  end: number;
+  // Where the exercise itself begins — the same offset the focus stack anchors an exercise
+  // level at, so a focused offset can be matched back to its block.
+  exerciseStart: number;
+  fullName: string;
+}
+
+function startOfLine(text: string, index: number): number {
+  let start = index;
+  while (start > 0 && text[start - 1] !== "\n") {
+    const ch = text[start - 1];
+    if (ch !== " " && ch !== "\t") {
+      return index;
+    }
+    start -= 1;
+  }
+  return start;
+}
+
+// The movable unit within a day: one exercise plus the `//` description lines above it, which
+// the evaluator hands to whatever exercise follows them (plannerExerciseEvaluator's
+// lastDescriptions), including the blank lines that separate one description group from the
+// next. Everything else between exercises — `///` comments, blank lines that merely space the
+// day out — belongs to the place rather than to the exercise, and stays where it is.
+export function LiftoEditorBrain_exerciseBlocks(cache: LiftoEditorParseCache, text: string): ILiftoEditorBlock[] {
+  const tree = cache.parse(text);
+  const children: SyntaxNode[] = [];
+  for (let node = tree.topNode.firstChild; node != null; node = node.nextSibling) {
+    children.push(node);
+  }
+  const blocks: ILiftoEditorBlock[] = [];
+  for (let i = 0; i < children.length; i += 1) {
+    const node = children[i];
+    if (node.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    let start = node.from;
+    let j = i - 1;
+    while (j >= 0) {
+      const previous = children[j];
+      if (previous.name === PlannerNodeName.LineComment) {
+        start = previous.from;
+        j -= 1;
+      } else if (previous.name === PlannerNodeName.EmptyExpression) {
+        let above = j;
+        while (above >= 0 && children[above].name === PlannerNodeName.EmptyExpression) {
+          above -= 1;
+        }
+        if (above >= 0 && children[above].name === PlannerNodeName.LineComment) {
+          j = above;
+        } else {
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+    blocks.push({
+      start: startOfLine(text, start),
+      end: LiftoEditorActions_endOfExerciseLine(text, node),
+      exerciseStart: node.from,
+      fullName: variations != null ? nodeText(text, variations).trim() : nodeText(text, node).trim().split("\n")[0],
+    });
+  }
+  return blocks;
+}
+
+export function LiftoEditorBrain_blockIndexAt(blocks: ILiftoEditorBlock[], index: number): number {
+  return blocks.findIndex((block) => index >= block.start && index <= block.end);
+}
+
+// Where a dragged block lands, from where its ghost currently sits: it has passed a block below
+// once its bottom edge clears that block's middle, and one above once its top edge does.
+//
+// Edge against middle, never middle against middle: a block only ever reaches the position of
+// one no shorter than itself that way, and since the ghost can travel no further than the ends
+// of the list, the tallest exercise of a day — the one with the custom() script — could never be
+// dropped either first or last. The edges also make the answer independent of the dragged
+// block's own height, so a two-line exercise and a twenty-line one cross at the same place.
+export function LiftoEditorBrain_dropIndex(
+  rects: { top: number; bottom: number }[],
+  fromIndex: number,
+  top: number,
+  height: number
+): number {
+  const bottom = top + height;
+  let target = fromIndex;
+  for (let i = 0; i < rects.length; i += 1) {
+    const middle = (rects[i].top + rects[i].bottom) / 2;
+    if (i > fromIndex && middle < bottom) {
+      target += 1;
+    } else if (i < fromIndex && middle > top) {
+      target -= 1;
+    }
+  }
+  return target;
+}
+
+// Moving a block re-slots only the blocks themselves: the text between two of them keeps its
+// position in the day rather than travelling with its neighbour, so a `///` note or a blank
+// line stays where the eye last saw it. One edit over the whole affected span, so the mirror
+// sees a single delta and the day reparses once.
+export function LiftoEditorBrain_reorderEdit(
+  cache: LiftoEditorParseCache,
+  text: string,
+  fromIndex: number,
+  toIndex: number
+): ITextEdit | undefined {
+  const blocks = LiftoEditorBrain_exerciseBlocks(cache, text);
+  const isInRange = (index: number): boolean => index >= 0 && index < blocks.length;
+  if (fromIndex === toIndex || !isInRange(fromIndex) || !isInRange(toIndex)) {
+    return undefined;
+  }
+  const order = blocks.map((_, index) => index);
+  order.splice(toIndex, 0, ...order.splice(fromIndex, 1));
+  const low = Math.min(fromIndex, toIndex);
+  const high = Math.max(fromIndex, toIndex);
+  const pieces: string[] = [];
+  for (let i = low; i <= high; i += 1) {
+    const block = blocks[order[i]];
+    pieces.push(text.slice(block.start, block.end));
+    if (i < high) {
+      pieces.push(text.slice(blocks[i].end, blocks[i + 1].start));
+    }
+  }
+  return { start: blocks[low].start, end: blocks[high].end, text: pieces.join("") };
 }
 
 // Ghosts a span: every token keeps its own syntax color, just at reduced opacity, so the run

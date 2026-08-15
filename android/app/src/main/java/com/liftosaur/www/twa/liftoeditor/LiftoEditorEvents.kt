@@ -63,6 +63,16 @@ class EditorCaretRectEvent(
     }
 }
 
+class EditorRangeRectsEvent(
+  surfaceId: Int,
+  viewId: Int,
+  private val rects: String,
+) : Event<EditorRangeRectsEvent>(surfaceId, viewId) {
+  override fun getEventName(): String = "topEditorRangeRects"
+
+  override fun getEventData(): WritableMap = Arguments.createMap().apply { putString("rects", rects) }
+}
+
 class EditorSelectionChangeEvent(
   surfaceId: Int,
   viewId: Int,

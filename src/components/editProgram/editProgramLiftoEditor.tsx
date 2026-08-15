@@ -18,6 +18,7 @@ import { LiftoEditor } from "../primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
 import { useLiftoEditorFocusClaim } from "../liftoEditorFocus";
+import { useLiftoEditorReorder } from "../liftoEditorReorder";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
@@ -358,6 +359,15 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
 
   // Freeform has no focus stack — the caret is the native selection, so follow that instead.
   const isFreeform = controller.mode === "freeform";
+  // Press and hold an exercise to move it within the day. Off in freeform, where a long press
+  // is the system's own text selection.
+  const reorder = useLiftoEditorReorder({
+    text: controller.text,
+    parseCache: controller.editorProps.parseCache,
+    handleRef: controller.editorProps.handleRef,
+    isEnabled: !isFreeform,
+    onBeforeReorder: () => controller.blur(),
+  });
   // Every way out of freeform ends with the keyboard going away — the dock is hidden there,
   // so it's scroll-to-dismiss on iOS and the back button on Android. Treat that as the exit
   // rather than giving each path its own handler.
@@ -475,17 +485,30 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
   // Same token-hopping swipes as the editor sheet (swipe right = next). Flings don't fire on
   // taps or on the screen's vertical scroll, so both pass through; freeform turns them off so
   // they don't fight native text selection.
-  const walkFling = Gesture.Race(
-    Gesture.Fling()
-      .direction(Directions.RIGHT)
-      .enabled(!isFreeform)
-      .runOnJS(true)
-      .onStart(() => controller.walkFocus(1)),
-    Gesture.Fling()
-      .direction(Directions.LEFT)
-      .enabled(!isFreeform)
-      .runOnJS(true)
-      .onStart(() => controller.walkFocus(-1))
+  //
+  // Memoized, and reading the walk through a ref: a drag re-renders this component as it runs
+  // (the drop target changes), and handing the detector a freshly built gesture tree mid-drag
+  // is how a drag loses its state halfway down the day.
+  const walkFocusRef = useRef(controller.walkFocus);
+  walkFocusRef.current = controller.walkFocus;
+  const reorderGesture = reorder.gesture;
+  const gesture = useMemo(
+    () =>
+      Gesture.Race(
+        // A press-and-hold beats the flings, since neither can activate without movement first.
+        reorderGesture,
+        Gesture.Fling()
+          .direction(Directions.RIGHT)
+          .enabled(!isFreeform)
+          .runOnJS(true)
+          .onStart(() => walkFocusRef.current(1)),
+        Gesture.Fling()
+          .direction(Directions.LEFT)
+          .enabled(!isFreeform)
+          .runOnJS(true)
+          .onStart(() => walkFocusRef.current(-1))
+      ),
+    [reorderGesture, isFreeform]
   );
 
   return (
@@ -494,7 +517,7 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
         className="p-2 border rounded-lg"
         style={{ borderColor: error != null ? Tailwind_semantic().text.error : Tailwind_semantic().border.neutral }}
       >
-        <GestureDetector gesture={walkFling}>
+        <GestureDetector gesture={gesture}>
           <View ref={editorBoxRef}>
             <LiftoEditor
               {...controller.editorProps}
@@ -502,8 +525,13 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
               // line was counted against, so its own numbering is what it refers to.
               showLineNumbers={true}
               bottomPadding={isFreeform ? 24 : 0}
-              extraStyledRanges={[...(controller.editorProps.extraStyledRanges ?? []), ...errorStyledRanges]}
+              extraStyledRanges={[
+                ...(controller.editorProps.extraStyledRanges ?? []),
+                ...errorStyledRanges,
+                ...reorder.styledRanges,
+              ]}
               onCaretRect={revealCaret}
+              onRangeRects={reorder.onRangeRects}
               onSelectionChange={(start, end) => {
                 lastSelectionRef.current = { start, end };
                 if (isFreeform) {
@@ -511,6 +539,7 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
                 }
               }}
             />
+            {reorder.overlay}
           </View>
         </GestureDetector>
       </View>

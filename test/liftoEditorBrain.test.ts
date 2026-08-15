@@ -7,7 +7,10 @@ import {
   LiftoEditorBrain_contextAt,
   LiftoEditorBrain_dayDataAt,
   LiftoEditorBrain_diffStyledRanges,
+  LiftoEditorBrain_dropIndex,
+  LiftoEditorBrain_exerciseBlocks,
   LiftoEditorBrain_flattenRanges,
+  LiftoEditorBrain_reorderEdit,
   LiftoEditorBrain_shiftStyledRanges,
   LiftoEditorBrain_stepToken,
   LiftoEditorBrain_tokens,
@@ -477,6 +480,159 @@ describe("LiftoEditorBrain", () => {
           LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), variant)
         );
       }
+    });
+  });
+
+  describe("exercise blocks", () => {
+    function blocksOf(text: string): { fullName: string; text: string }[] {
+      return LiftoEditorBrain_exerciseBlocks(new LiftoEditorParseCache(), text).map((block) => ({
+        fullName: block.fullName,
+        text: text.slice(block.start, block.end),
+      }));
+    }
+
+    function reorder(text: string, fromIndex: number, toIndex: number): string {
+      const edit = LiftoEditorBrain_reorderEdit(new LiftoEditorParseCache(), text, fromIndex, toIndex);
+      return edit == null ? text : text.slice(0, edit.start) + edit.text + text.slice(edit.end);
+    }
+
+    it("lists exercises in document order", () => {
+      expect(blocksOf("Squat / 3x8\nBench Press / 5x5\nDeadlift / 1x5").map((b) => b.fullName)).to.deep.equal([
+        "Squat",
+        "Bench Press",
+        "Deadlift",
+      ]);
+    });
+
+    it("takes the whole ladder as the block's name", () => {
+      expect(blocksOf("Squat | !Front Squat / 3x8").map((b) => b.fullName)).to.deep.equal(["Squat | !Front Squat"]);
+    });
+
+    it("includes the description comments the evaluator attaches to the exercise", () => {
+      const text = "// Go deep\nSquat / 3x8\nBench Press / 5x5";
+      expect(blocksOf(text)[0].text).to.equal("// Go deep\nSquat / 3x8");
+    });
+
+    it("keeps blank-line-separated description groups with their exercise", () => {
+      const text = "// Week 1 note\n\n// Week 2 note\nSquat / 3x8\nBench Press / 5x5";
+      expect(blocksOf(text)[0].text).to.equal("// Week 1 note\n\n// Week 2 note\nSquat / 3x8");
+    });
+
+    it("leaves standalone /// comments and spacing blank lines out of the block", () => {
+      const text = "/// A note about the day\n\nSquat / 3x8";
+      expect(blocksOf(text)[0].text).to.equal("Squat / 3x8");
+    });
+
+    it("does not take the previous exercise's trailing blank line", () => {
+      const text = "Squat / 3x8\n\nBench Press / 5x5";
+      expect(blocksOf(text)[1].text).to.equal("Bench Press / 5x5");
+    });
+
+    it("spans multi-line exercises", () => {
+      const text = "Squat / 3x8 / progress: custom() {~\n  weights += 5lb\n~}\nBench Press / 5x5";
+      expect(blocksOf(text)[0].text).to.equal("Squat / 3x8 / progress: custom() {~\n  weights += 5lb\n~}");
+    });
+
+    it("swaps two exercises", () => {
+      expect(reorder("Squat / 3x8\nBench Press / 5x5", 0, 1)).to.equal("Bench Press / 5x5\nSquat / 3x8");
+    });
+
+    it("moves the last exercise to the top without a trailing newline of its own", () => {
+      expect(reorder("Squat / 3x8\nBench Press / 5x5\nDeadlift / 1x5", 2, 0)).to.equal(
+        "Deadlift / 1x5\nSquat / 3x8\nBench Press / 5x5"
+      );
+    });
+
+    it("moves descriptions along with their exercise", () => {
+      expect(reorder("// Go deep\nSquat / 3x8\nBench Press / 5x5", 0, 1)).to.equal(
+        "Bench Press / 5x5\n// Go deep\nSquat / 3x8"
+      );
+    });
+
+    it("leaves the text between exercises in its slot", () => {
+      expect(reorder("Squat / 3x8\n\n/// Superset below\nBench Press / 5x5", 1, 0)).to.equal(
+        "Bench Press / 5x5\n\n/// Superset below\nSquat / 3x8"
+      );
+    });
+
+    it("only rewrites the span between the two positions", () => {
+      const text = "Squat / 3x8\nBench Press / 5x5\nDeadlift / 1x5\nRow / 3x10";
+      const edit = LiftoEditorBrain_reorderEdit(new LiftoEditorParseCache(), text, 1, 2);
+      expect(edit).to.deep.include({ start: text.indexOf("Bench"), end: text.indexOf("\nRow") });
+    });
+
+    it("moves a middle exercise down past several", () => {
+      expect(reorder("A / 3x8\nB / 3x8\nC / 3x8\nD / 3x8", 1, 3)).to.equal("A / 3x8\nC / 3x8\nD / 3x8\nB / 3x8");
+    });
+
+    it("returns nothing for a no-op or an out-of-range move", () => {
+      const cache = new LiftoEditorParseCache();
+      const text = "Squat / 3x8\nBench Press / 5x5";
+      expect(LiftoEditorBrain_reorderEdit(cache, text, 1, 1)).to.equal(undefined);
+      expect(LiftoEditorBrain_reorderEdit(cache, text, 0, 2)).to.equal(undefined);
+    });
+
+    describe("drop index", () => {
+      // Three one-line blocks and one ten-line block, laid out end to end.
+      const tallFirst = [
+        { top: 0, bottom: 200 },
+        { top: 200, bottom: 220 },
+        { top: 220, bottom: 240 },
+      ];
+      const tallLast = [
+        { top: 0, bottom: 20 },
+        { top: 20, bottom: 40 },
+        { top: 40, bottom: 240 },
+      ];
+
+      function dropAt(rects: { top: number; bottom: number }[], fromIndex: number, top: number): number {
+        const height = rects[fromIndex].bottom - rects[fromIndex].top;
+        return LiftoEditorBrain_dropIndex(rects, fromIndex, top, height);
+      }
+
+      it("stays put while the block has not moved", () => {
+        expect(dropAt(tallFirst, 0, 0)).to.equal(0);
+        expect(dropAt(tallFirst, 1, 200)).to.equal(1);
+        expect(dropAt(tallLast, 2, 40)).to.equal(2);
+      });
+
+      it("moves down once the bottom edge clears the next block's middle", () => {
+        expect(dropAt(tallLast, 0, 9)).to.equal(0);
+        expect(dropAt(tallLast, 0, 11)).to.equal(1);
+      });
+
+      it("moves up once the top edge clears the previous block's middle", () => {
+        expect(dropAt(tallLast, 1, 11)).to.equal(1);
+        expect(dropAt(tallLast, 1, 9)).to.equal(0);
+      });
+
+      // The ghost can travel no further than the ends of the list, so a rule comparing middles
+      // would leave a block taller than its neighbours unable to reach either end.
+      it("lets a block taller than the rest reach the last position", () => {
+        const height = tallFirst[0].bottom - tallFirst[0].top;
+        expect(LiftoEditorBrain_dropIndex(tallFirst, 0, 240 - height, height)).to.equal(2);
+      });
+
+      it("lets a block taller than the rest reach the first position", () => {
+        const height = tallLast[2].bottom - tallLast[2].top;
+        expect(LiftoEditorBrain_dropIndex(tallLast, 2, 0, height)).to.equal(0);
+      });
+
+      it("crosses at the same place whatever the dragged block's height", () => {
+        const rects = [
+          { top: 0, bottom: 20 },
+          { top: 20, bottom: 40 },
+          { top: 40, bottom: 60 },
+        ];
+        // Both start at the top and have their bottom edge just past block 1's middle.
+        expect(LiftoEditorBrain_dropIndex(rects, 0, 11, 20)).to.equal(1);
+        expect(LiftoEditorBrain_dropIndex(rects, 0, -49, 80)).to.equal(1);
+      });
+    });
+
+    it("survives a round trip back to the original order", () => {
+      const text = "// note\nSquat / 3x8\n\nBench Press / 5x5\nDeadlift / 1x5";
+      expect(reorder(reorder(text, 0, 2), 2, 0)).to.equal(text);
     });
   });
 });

@@ -64,6 +64,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.requestCaretRect(start, end)
   }
 
+  override fun requestRangeRects(view: LiftoEditorView, rangesJson: String?) {
+    view.requestRangeRects(rangesJson ?: "")
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
     mutableMapOf(
       "topTextDelta" to mapOf("registrationName" to "onTextDelta"),
@@ -71,6 +75,7 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
       "topEditorContentSizeChange" to mapOf("registrationName" to "onEditorContentSizeChange"),
       "topEditorTap" to mapOf("registrationName" to "onEditorTap"),
       "topEditorCaretRect" to mapOf("registrationName" to "onEditorCaretRect"),
+      "topEditorRangeRects" to mapOf("registrationName" to "onEditorRangeRects"),
     )
 
   companion object {

@@ -12,6 +12,7 @@ import Runestone
   @objc public var onContentSizeChange: ((Double, Double) -> Void)?
   @objc public var onTap: ((Int) -> Void)?
   @objc public var onCaretRect: ((Double, Double) -> Void)?
+  @objc public var onRangeRects: ((String) -> Void)?
 
   private let textView = TextView()
   private let rangesStore = ExternalRangesStore()
@@ -198,11 +199,40 @@ import Runestone
   // the text view's content space; the text view fills our bounds, so subtracting the content
   // offset lands it in this view's coordinates.
   @objc public func requestCaretRect(_ start: Int, end: Int) {
+    guard let rect = verticalExtent(start: start, end: end) else {
+      return
+    }
+    onCaretRect?(rect.top, rect.bottom)
+  }
+
+  // Answered in one event: the caller (a drag) needs every extent before it can act on any of
+  // them, and a per-range event would carry nothing to match it back to its request.
+  @objc public func requestRangeRects(_ json: String) {
+    guard let data = json.data(using: .utf8),
+      let items = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]]
+    else {
+      return
+    }
+    let rects: [[String: Double]] = items.map { item in
+      let extent = verticalExtent(start: item["start"] as? Int ?? 0, end: item["end"] as? Int ?? 0)
+      return ["top": extent?.top ?? 0, "bottom": extent?.bottom ?? 0, "left": extent?.left ?? 0]
+    }
+    guard let payload = try? JSONSerialization.data(withJSONObject: rects),
+      let string = String(data: payload, encoding: .utf8)
+    else {
+      return
+    }
+    onRangeRects?(string)
+  }
+
+  // `left` is where the text column begins — the caret's x at the range's first character,
+  // which for a range starting at a line start is the gutter's trailing edge.
+  private func verticalExtent(start: Int, end: Int) -> (top: Double, bottom: Double, left: Double)? {
     let length = textView.text.utf16.count
     let clampedStart = min(max(start, 0), length)
     let clampedEnd = min(max(end, clampedStart), length)
     guard let startPosition = textView.position(from: textView.beginningOfDocument, offset: clampedStart) else {
-      return
+      return nil
     }
     let startRect = textView.caretRect(for: startPosition)
     var bottom = startRect.maxY
@@ -210,7 +240,7 @@ import Runestone
       bottom = max(bottom, textView.caretRect(for: endPosition).maxY)
     }
     let offsetY = textView.contentOffset.y
-    onCaretRect?(Double(startRect.minY - offsetY), Double(bottom - offsetY))
+    return (Double(startRect.minY - offsetY), Double(bottom - offsetY), Double(startRect.minX))
   }
 
   @objc public func applyReplaceRange(_ start: Int, end: Int, text: String) {

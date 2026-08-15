@@ -35,6 +35,13 @@ interface EditorCaretRectEvent {
   bottom: Float;
 }
 
+// JSON [{top, bottom, left}], parallel to the ranges requestRangeRects was called with. One
+// event for the whole set: a drag needs every block's extent at once, and a per-range event
+// carries nothing to match responses back to their request.
+interface EditorRangeRectsEvent {
+  rects: string;
+}
+
 export interface NativeProps extends ViewProps {
   initialText?: string;
   fontSize?: Float;
@@ -53,6 +60,7 @@ export interface NativeProps extends ViewProps {
   onEditorContentSizeChange?: DirectEventHandler<ContentSizeChangeEvent>;
   onEditorTap?: DirectEventHandler<EditorTapEvent>;
   onEditorCaretRect?: DirectEventHandler<EditorCaretRectEvent>;
+  onEditorRangeRects?: DirectEventHandler<EditorRangeRectsEvent>;
 }
 
 interface NativeCommands {
@@ -77,6 +85,10 @@ interface NativeCommands {
   // Request/response: focus in structured mode is driven from JS (taps, pills, breadcrumbs),
   // so the native side has no selection to report a rect for on its own.
   requestCaretRect: (viewRef: React.ElementRef<HostComponent<NativeProps>>, start: Int32, end: Int32) => void;
+  // JSON array of {start, end}; answered as one onEditorRangeRects with the rects in the same
+  // order. Used to build the drag map for reordering, where every exercise's extent is needed
+  // before the finger moves.
+  requestRangeRects: (viewRef: React.ElementRef<HostComponent<NativeProps>>, rangesJson: string) => void;
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
@@ -87,6 +99,7 @@ export const Commands = codegenNativeCommands<NativeCommands>({
     "setSelection",
     "replaceRange",
     "requestCaretRect",
+    "requestRangeRects",
   ],
 });
 

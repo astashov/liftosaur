@@ -323,18 +323,52 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
   // pixels; with autoHeight the editor never scrolls internally, but subtract the offset
   // anyway so this stays correct if that changes.
   fun requestCaretRect(start: Int, end: Int) {
+    val extent = verticalExtent(start, end) ?: return
+    emit { surfaceId, viewId -> EditorCaretRectEvent(surfaceId, viewId, extent.top, extent.bottom) }
+  }
+
+  // Answered in one event: the caller (a drag) needs every extent before it can act on any of
+  // them, and a per-range event would carry nothing to match it back to its request.
+  fun requestRangeRects(json: String) {
+    val ranges = try {
+      JSONArray(json)
+    } catch (e: Exception) {
+      return
+    }
+    val rects = JSONArray()
+    for (i in 0 until ranges.length()) {
+      val item = ranges.optJSONObject(i)
+      val extent = if (item == null) null else verticalExtent(item.optInt("start", 0), item.optInt("end", 0))
+      rects.put(
+        JSONObject().apply {
+          put("top", (extent?.top ?: 0f).toDouble())
+          put("bottom", (extent?.bottom ?: 0f).toDouble())
+          put("left", (extent?.left ?: 0f).toDouble())
+        }
+      )
+    }
+    val payload = rects.toString()
+    emit { surfaceId, viewId -> EditorRangeRectsEvent(surfaceId, viewId, payload) }
+  }
+
+  // `left` is where the text column begins, i.e. past the line-number gutter and its margins.
+  private data class VerticalExtent(val top: Float, val bottom: Float, val left: Float)
+
+  private fun verticalExtent(start: Int, end: Int): VerticalExtent? {
     val layout = try {
       getLayout()
     } catch (e: Exception) {
-      return
+      return null
     }
     val length = text.length
     val row = layout.getRowIndexForPosition(start.coerceIn(0, length))
     val endRow = layout.getRowIndexForPosition(end.coerceIn(0, length))
     val d = resources.displayMetrics.density
-    val top = (getRowTop(row) - offsetY) / d
-    val bottom = (getRowBottom(maxOf(row, endRow)) - offsetY) / d
-    emit { surfaceId, viewId -> EditorCaretRectEvent(surfaceId, viewId, top, bottom) }
+    return VerticalExtent(
+      (getRowTop(row) - offsetY) / d,
+      (getRowBottom(maxOf(row, endRow)) - offsetY) / d,
+      (measureTextRegionOffset() - offsetX) / d
+    )
   }
 
   private fun handleContentChange(event: ContentChangeEvent) {
