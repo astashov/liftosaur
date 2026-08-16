@@ -13,7 +13,7 @@ import {
 import { IEvaluatedProgram } from "../../models/program";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
 import { LiftoEditorBrain_dayDataAt } from "../primitives/liftoEditorBrain";
-import { EditProgramLiftoEditor } from "./editProgramLiftoEditor";
+import { DayLiftoEditorInline } from "./dayLiftoEditorInline";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -62,7 +62,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
 
   return (
     <View className="px-4 pt-4">
-      <EditProgramLiftoEditor
+      <DayLiftoEditorInline
         focusId="full"
         text={fulltext}
         settings={props.settings}

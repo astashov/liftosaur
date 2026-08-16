@@ -6,14 +6,12 @@ import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { Text } from "../primitives/text";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
-import { IDayData, IExercisePickerSelectedExercise, IExerciseType, ISettings } from "../../types";
+import { IDayData, IExerciseType, ISettings } from "../../types";
 import { IEvaluatedProgram, Program_getAllProgramExercises } from "../../models/program";
 import { LiftoEditorReuse_candidates } from "../liftoEditorReuse";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
-import { ILiftoEditorReuseSelection, LiftoEditorActions_renamePrompt } from "../primitives/liftoEditorActions";
 import { LiftoEditorStateVars_contextFor } from "../primitives/liftoEditorStateVars";
-import { useModal } from "../../navigation/ModalStateContext";
-import { Dialog_alert } from "../../utils/dialog";
+import { useLiftoEditorModalActions } from "../liftoEditorModalActions";
 import { LiftoEditor } from "../primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
@@ -132,12 +130,12 @@ function StickyError(props: IStickyErrorProps): JSX.Element {
 }
 
 // The day an action is about, and that day's exercises as of the last evaluation.
-export interface IEditProgramLiftoEditorContext {
+export interface IDayLiftoEditorInlineContext {
   dayData: Required<IDayData>;
   exercises: IPlannerProgramExercise[];
 }
 
-interface IEditProgramLiftoEditorProps {
+interface IDayLiftoEditorInlineProps {
   // The document, from whoever owns it. Read once to seed the editor; after that a value that
   // isn't what this editor last committed is treated as an edit from elsewhere (undo/redo, a
   // change made on another surface) and applied as one.
@@ -152,7 +150,7 @@ interface IEditProgramLiftoEditorProps {
   // while focus is crossing into the exercise, before this component has re-rendered.
   exerciseTypeFor: (exerciseFullName: string) => IExerciseType | undefined;
   // A constant when the document is one day; in full-program mode the caret decides.
-  contextAt: (offset: number) => IEditProgramLiftoEditorContext;
+  contextAt: (offset: number) => IDayLiftoEditorInlineContext;
   onChange: (text: string) => void;
   onLineChange?: (line: number) => void;
 }
@@ -164,46 +162,7 @@ interface IEditProgramLiftoEditorProps {
 //
 // Native-only despite the file name: it's imported from the .native.tsx hosts, and LiftoEditor
 // itself throws on web.
-export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX.Element {
-  // useModal registers its result callback once, but the controller hands a fresh callback
-  // per invocation — these refs bridge the two. Several editors are mounted at once; useModal
-  // only delivers a result to the instance that opened the modal.
-  const pickerSelectRef = useRef<((selected: IExercisePickerSelectedExercise) => void) | undefined>(undefined);
-  const renameSubmitRef = useRef<((value: string) => void) | undefined>(undefined);
-  const reuseSelectRef = useRef<
-    { items: ILiftoEditorReuseSelection[]; onSelect: (selection: ILiftoEditorReuseSelection) => void } | undefined
-  >(undefined);
-  const openExercisePicker = useModal("editorSheetExercisePickerModal", (selected) => {
-    const onSelect = pickerSelectRef.current;
-    pickerSelectRef.current = undefined;
-    if (selected != null && onSelect != null) {
-      onSelect(selected);
-    }
-  });
-  const openRename = useModal("textInputModal", (value) => {
-    const onSubmit = renameSubmitRef.current;
-    renameSubmitRef.current = undefined;
-    if (value != null && onSubmit != null) {
-      onSubmit(value);
-    }
-  });
-  const openReuseSelect = useModal("inputSelectModal", (value) => {
-    const pending = reuseSelectRef.current;
-    reuseSelectRef.current = undefined;
-    const selection = value != null ? pending?.items.find((item) => item.fullName === value) : undefined;
-    if (pending != null && selection != null) {
-      pending.onSelect(selection);
-    }
-  });
-  const stateVarsApplyRef = useRef<((args: string) => void) | undefined>(undefined);
-  const openStateVars = useModal("stateVarsModal", (args) => {
-    const onApply = stateVarsApplyRef.current;
-    stateVarsApplyRef.current = undefined;
-    if (args != null && onApply != null) {
-      onApply(args);
-    }
-  });
-
+export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Element {
   // Where the focus sits, for the actions to ask which day they're in. Kept in a ref because
   // the pills fire from the dock, a render after focus moved.
   const focusOffsetRef = useRef(0);
@@ -226,75 +185,44 @@ export function EditProgramLiftoEditor(props: IEditProgramLiftoEditorProps): JSX
     return contextAtRef.current(focusOffsetRef.current).exercises.find((e) => e.key === key);
   };
 
+  const actions = useLiftoEditorModalActions({
+    reuseSelectName: "liftoeditor-inline-reuse",
+    pickerDataFor: (exerciseFullName) => {
+      const exercise = focusedExercise(exerciseFullName);
+      return {
+        exerciseType: exercise?.exerciseType,
+        label: exercise?.label,
+        templateName: exercise?.exerciseType == null ? exercise?.name : undefined,
+        evaluatedProgram: evaluatedProgramRef.current,
+        dayData: contextAtRef.current(focusOffsetRef.current).dayData,
+      };
+    },
+    reuseCandidatesFor: (exerciseFullName) => {
+      const exercise = focusedExercise(exerciseFullName);
+      return exercise == null
+        ? undefined
+        : LiftoEditorReuse_candidates(
+            exercise.key,
+            !!exercise.notused,
+            evaluatedProgramRef.current,
+            contextAtRef.current(focusOffsetRef.current).dayData
+          );
+    },
+    // A reuse target names an exercise anywhere in the program, not just this day's.
+    stateVarsContextFor: (target, exerciseFullName) =>
+      LiftoEditorStateVars_contextFor(
+        target,
+        focusedExercise(exerciseFullName),
+        Program_getAllProgramExercises(evaluatedProgramRef.current),
+        settingsRef.current
+      ),
+    stateVarsExerciseTypeFor: (exerciseFullName) =>
+      exerciseFullName != null ? props.exerciseTypeFor(exerciseFullName) : undefined,
+  });
   const controller = useLiftoEditorController(props.text, {
     surface: "inline",
     exerciseTypeFor: props.exerciseTypeFor,
-    actions: {
-      pickExercise: (_current, exerciseFullName, onSelect) => {
-        pickerSelectRef.current = onSelect;
-        const exercise = focusedExercise(exerciseFullName);
-        openExercisePicker({
-          exerciseType: exercise?.exerciseType,
-          label: exercise?.label,
-          templateName: exercise?.exerciseType == null ? exercise?.name : undefined,
-          evaluatedProgram: evaluatedProgramRef.current,
-          dayData: contextAtRef.current(focusOffsetRef.current).dayData,
-        });
-      },
-      promptRename: (current, kind, onSubmit) => {
-        renameSubmitRef.current = onSubmit;
-        openRename(LiftoEditorActions_renamePrompt(current, kind));
-      },
-      pickReuse: (kind, exerciseFullName, onSelect) => {
-        const exercise = focusedExercise(exerciseFullName);
-        if (exercise == null) {
-          Dialog_alert("Couldn't tell which exercise this is — try again once the program re-evaluates.");
-          return;
-        }
-        const candidates = LiftoEditorReuse_candidates(
-          exercise.key,
-          !!exercise.notused,
-          evaluatedProgramRef.current,
-          contextAtRef.current(focusOffsetRef.current).dayData
-        );
-        const items: ILiftoEditorReuseSelection[] =
-          kind === "sets"
-            ? candidates.sets
-            : (kind === "progress" ? candidates.progress : candidates.update).map((fullName) => ({ fullName }));
-        if (items.length === 0) {
-          Dialog_alert(
-            kind === "sets"
-              ? "There are no other exercises in this program to reuse sets from."
-              : "There are no other exercises with their own custom() script to reuse."
-          );
-          return;
-        }
-        reuseSelectRef.current = { items, onSelect };
-        openReuseSelect({
-          name: "editor-inline-reuse",
-          values: items.map((item) => [item.fullName, item.fullName]),
-          hint:
-            kind === "sets"
-              ? "You can only reuse sets of exercises that don't reuse other exercises"
-              : "You can only reuse scripts that don't reuse other scripts",
-        });
-      },
-      editStateVars: (target, exerciseFullName, onApply) => {
-        stateVarsApplyRef.current = onApply;
-        openStateVars({
-          // A reuse target names an exercise anywhere in the program, not just this day's.
-          ...LiftoEditorStateVars_contextFor(
-            target,
-            focusedExercise(exerciseFullName),
-            Program_getAllProgramExercises(evaluatedProgramRef.current),
-            settingsRef.current
-          ),
-          entries: target.entries,
-          hasUnparsed: target.hasUnparsed,
-          exerciseType: exerciseFullName != null ? props.exerciseTypeFor(exerciseFullName) : undefined,
-        });
-      },
-    },
+    actions,
   });
   useLiftoEditorFocusClaim(props.focusId, controller);
 

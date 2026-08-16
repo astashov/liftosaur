@@ -13,7 +13,7 @@ import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconWatch } from "../icons/iconWatch";
-import { EditProgramLiftoEditor } from "./editProgramLiftoEditor";
+import { DayLiftoEditorInline } from "./dayLiftoEditorInline";
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -46,7 +46,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
   const exercises = evaluatedDay.success ? evaluatedDay.data : [];
   return (
     <View className="flex-1 w-0 min-w-0">
-      <EditProgramLiftoEditor
+      <DayLiftoEditorInline
         // A day that gets replaced underneath us (clone, reorder, delete) is a different
         // document, not an edit of this one, so it remounts.
         key={plannerDay.id ?? `${weekIndex}-${dayIndex}`}

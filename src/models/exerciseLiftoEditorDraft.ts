@@ -13,7 +13,7 @@ import {
 // The draft carries its own baselines — `originalLocalText` and `baseline` are both captured
 // when the sheet opens and never move. Nothing that answers "did this change?" takes them as an
 // argument, so no caller can supply a different one and get a different answer.
-export interface IEditorSheetDraft {
+export interface IExerciseLiftoEditorDraft {
   originalLocalText: string;
   localText: string;
   // The shared sections as they were when the sheet opened.
@@ -23,17 +23,20 @@ export interface IEditorSheetDraft {
   sharedEdits: Record<string, string>;
 }
 
-export function EditorSheetDraft_create(
+export function ExerciseLiftoEditorDraft_create(
   originalLocalText: string,
   baseline: IProgramExerciseSharedSection[]
-): IEditorSheetDraft {
+): IExerciseLiftoEditorDraft {
   return { originalLocalText, localText: originalLocalText, baseline, sharedEdits: {} };
 }
 
 // Folds the editor's current document in. Shared sections that aren't in the text are hidden,
 // not deleted, so they keep whatever the draft already recorded. A section edited back to its
 // baseline drops out again, which is what lets the sheet go clean.
-export function EditorSheetDraft_fromEditor(draft: IEditorSheetDraft, text: string): IEditorSheetDraft {
+export function ExerciseLiftoEditorDraft_fromEditor(
+  draft: IExerciseLiftoEditorDraft,
+  text: string
+): IExerciseLiftoEditorDraft {
   const split = ProgramExerciseText_split(text, draft.baseline);
   const sharedEdits = { ...draft.sharedEdits };
   for (const edit of split.sharedEdits) {
@@ -47,7 +50,7 @@ export function EditorSheetDraft_fromEditor(draft: IEditorSheetDraft, text: stri
   return { ...draft, localText: split.localText, sharedEdits };
 }
 
-export function EditorSheetDraft_isDirty(draft: IEditorSheetDraft): boolean {
+export function ExerciseLiftoEditorDraft_isDirty(draft: IExerciseLiftoEditorDraft): boolean {
   return draft.localText.trim() !== draft.originalLocalText.trim() || Object.keys(draft.sharedEdits).length > 0;
 }
 
@@ -56,8 +59,8 @@ export function EditorSheetDraft_isDirty(draft: IEditorSheetDraft): boolean {
 //
 // `shared` decides only *where* each edit goes, never *whether* there is one: the save path
 // passes a freshly resolved set so edits land on the lines that declare the property now.
-export function EditorSheetDraft_pendingChange(
-  draft: IEditorSheetDraft,
+export function ExerciseLiftoEditorDraft_pendingChange(
+  draft: IExerciseLiftoEditorDraft,
   shared: IProgramExerciseSharedSection[]
 ): { localText: string; sharedEdits: IProgramExerciseSharedEdit[] } {
   const sharedEdits: IProgramExerciseSharedEdit[] = [];
@@ -72,7 +75,7 @@ export function EditorSheetDraft_pendingChange(
 
 // The text a fresh editor mount should start from, which is the draft rendered for the current
 // visibility — never a baseline for anything.
-export function EditorSheetDraft_mountText(draft: IEditorSheetDraft, isSharedVisible: boolean): string {
+export function ExerciseLiftoEditorDraft_mountText(draft: IExerciseLiftoEditorDraft, isSharedVisible: boolean): string {
   return isSharedVisible
     ? ProgramExerciseText_compose(
         draft.localText,

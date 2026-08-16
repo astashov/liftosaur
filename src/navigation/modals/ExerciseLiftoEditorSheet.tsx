@@ -7,12 +7,15 @@ import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { IEditorSheetBodyProps, IEditorSheetInstanceOption } from "./editorSheetTypes";
+import {
+  IExerciseLiftoEditorSheetProps,
+  IExerciseLiftoEditorSheetInstanceOption,
+} from "./exerciseLiftoEditorSheetTypes";
 
 // Web body: a plain CodeMirror editor — no pills, hints or breadcrumbs. With a physical
 // keyboard the structured touch UI adds nothing, and CodeMirror brings autocomplete and
 // inline syntax diagnostics of its own.
-export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
+export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps): JSX.Element {
   const { state } = useAppState();
   const [text, setText] = useState(props.initialText);
   const [liveError, setLiveError] = useState<{ message: string; from?: number; to?: number } | undefined>(undefined);
@@ -50,14 +53,14 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
 
   // Whether switching would discard anything is the sheet's call, same as on native — this body
   // only knows the text it currently has.
-  const selectInstance = (instance: IEditorSheetInstanceOption): void => {
+  const selectInstance = (instance: IExerciseLiftoEditorSheetInstanceOption): void => {
     if (!instance.isSelected) {
       props.onSelectInstance(instance);
     }
   };
 
   return (
-    <View testID="editor-sheet" className="px-gutter pb-4">
+    <View testID="exercise-liftoeditor" className="px-gutter pb-4">
       {/* pr-10 clears the sheet container's absolutely-positioned close button. */}
       <View className="flex-row items-center gap-2 pb-2 pr-10">
         <View className="flex-1">
@@ -66,7 +69,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               {props.instances.map((instance) => (
                 <Pressable
                   key={`${instance.dayData.week}-${instance.dayData.dayInWeek}`}
-                  testID={`editor-sheet-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
+                  testID={`exercise-liftoeditor-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                   onLayout={instance.isSelected ? scrollSelectedIntoView : undefined}
                   className={`px-2 py-0.5 rounded border ${
                     instance.isSelected
@@ -89,7 +92,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
           )}
         </View>
         <Button
-          name="editor-sheet-save"
+          name="exercise-liftoeditor-save"
           kind="purple"
           buttonSize="sm"
           className="text-xs"
@@ -99,7 +102,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
         </Button>
       </View>
       <PlannerEditorView
-        name="editor-sheet"
+        name="exercise-liftoeditor"
         redError={true}
         customExercises={state.storage.settings.exercises}
         exerciseFullNames={props.exerciseFullNames}

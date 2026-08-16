@@ -37,7 +37,7 @@ import {
 } from "./screens/NavScreenOnboarding";
 import { NavScreenProgress, NavScreenFinishDay, NavScreenSubscription } from "./screens/NavScreenWorkout";
 import { NavScreenGraphs } from "./screens/NavScreenGraphs";
-import { NavModalEditorSheet } from "./modals/NavModalEditorSheet";
+import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -104,7 +104,7 @@ import { NavModalPlates } from "./modals/NavModalPlates";
 import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
 import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
 import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
-import { NavModalEditorSheetExercisePicker } from "./modals/NavModalEditorSheetExercisePicker";
+import { NavModalLiftoEditorExercisePicker } from "./modals/NavModalLiftoEditorExercisePicker";
 import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
 import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
 import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
@@ -404,7 +404,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           }}
         >
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
-          <RootStack.Screen name="editorSheetModal" component={NavModalEditorSheet} />
+          <RootStack.Screen name="exerciseLiftoEditorModal" component={NavModalExerciseLiftoEditor} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
@@ -412,7 +412,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
-          <RootStack.Screen name="editorSheetExercisePickerModal" component={NavModalEditorSheetExercisePicker} />
+          <RootStack.Screen name="liftoEditorExercisePickerModal" component={NavModalLiftoEditorExercisePicker} />
         </RootStack.Group>
         <RootStack.Group
           screenLayout={renderFormSheetScreen}

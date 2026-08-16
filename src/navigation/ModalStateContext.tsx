@@ -59,7 +59,7 @@ export interface IExerciseCloneLibraryResult {
   types: IExerciseKind[];
 }
 
-export interface IEditorSheetExercisePickerModalData {
+export interface ILiftoEditorExercisePickerModalData {
   exerciseType?: IExerciseType;
   label?: string;
   templateName?: string;
@@ -96,7 +96,7 @@ export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
   stateVarsModal: IStateVarsModalData;
   createStateVarModal: { existingNames?: string[] };
-  editorSheetExercisePickerModal: IEditorSheetExercisePickerModalData;
+  liftoEditorExercisePickerModal: ILiftoEditorExercisePickerModalData;
   textInputModal: ITextInputModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
   exerciseTypesPickerModal: IExerciseTypesPickerModalData;
@@ -111,7 +111,7 @@ export interface IModalResultMap {
   inputSelectModal: string;
   stateVarsModal: string;
   createStateVarModal: ICreateStateVarModalResult;
-  editorSheetExercisePickerModal: IExercisePickerSelectedExercise;
+  liftoEditorExercisePickerModal: IExercisePickerSelectedExercise;
   textInputModal: string;
   repMaxCalculatorModal: number;
   exerciseTypesPickerModal: IExerciseKind[];

@@ -2,14 +2,9 @@ import { JSX, useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, Platform, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useModal } from "../ModalStateContext";
-import { Dialog_alert } from "../../utils/dialog";
 import { CollectionUtils_compact } from "../../utils/collection";
-import {
-  ILiftoEditorReuseSelection,
-  LiftoEditorActions_renamePrompt,
-} from "../../components/primitives/liftoEditorActions";
-import type { IDayData, IExercisePickerSelectedExercise } from "../../types";
+import type { IDayData } from "../../types";
+import { useLiftoEditorModalActions } from "../../components/liftoEditorModalActions";
 import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import {
@@ -35,53 +30,44 @@ import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import {
-  EditorSheetTypes_sharedLabels,
-  IEditorSheetBodyProps,
-  IEditorSheetInstanceOption,
-  IEditorSheetLiveError,
-  IEditorSheetPreview,
-} from "./editorSheetTypes";
+  ExerciseLiftoEditorSheetTypes_sharedLabels,
+  IExerciseLiftoEditorSheetProps,
+  IExerciseLiftoEditorSheetInstanceOption,
+  IExerciseLiftoEditorSheetLiveError,
+  IExerciseLiftoEditorSheetPreview,
+} from "./exerciseLiftoEditorSheetTypes";
 
 // Legible as a secondary layer without dropping out of the line.
 const SHARED_SECTION_ALPHA = "73";
 
-export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
-  // useModal registers its result callback once, but the controller hands a fresh
-  // callback per action invocation — these refs bridge the two.
-  const pickerSelectRef = useRef<((selected: IExercisePickerSelectedExercise) => void) | undefined>(undefined);
-  const renameSubmitRef = useRef<((value: string) => void) | undefined>(undefined);
-  const openExercisePicker = useModal("editorSheetExercisePickerModal", (selected) => {
-    const onSelect = pickerSelectRef.current;
-    pickerSelectRef.current = undefined;
-    if (selected != null && onSelect != null) {
-      onSelect(selected);
-    }
-  });
-  const openRename = useModal("textInputModal", (value) => {
-    const onSubmit = renameSubmitRef.current;
-    renameSubmitRef.current = undefined;
-    if (value != null && onSubmit != null) {
-      onSubmit(value);
-    }
-  });
-  const reuseSelectRef = useRef<
-    { items: ILiftoEditorReuseSelection[]; onSelect: (selection: ILiftoEditorReuseSelection) => void } | undefined
-  >(undefined);
-  const openReuseSelect = useModal("inputSelectModal", (value) => {
-    const pending = reuseSelectRef.current;
-    reuseSelectRef.current = undefined;
-    const selection = value != null ? pending?.items.find((item) => item.fullName === value) : undefined;
-    if (pending != null && selection != null) {
-      pending.onSelect(selection);
-    }
-  });
-  const stateVarsApplyRef = useRef<((args: string) => void) | undefined>(undefined);
-  const openStateVars = useModal("stateVarsModal", (args) => {
-    const onApply = stateVarsApplyRef.current;
-    stateVarsApplyRef.current = undefined;
-    if (args != null && onApply != null) {
-      onApply(args);
-    }
+export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps): JSX.Element {
+  const propsRef = useRef(props);
+  propsRef.current = props;
+  const actions = useLiftoEditorModalActions({
+    reuseSelectName: "exercise-liftoeditor-reuse",
+    // The sheet edits one exercise, so its picker data and reuse candidates are precomputed
+    // by the host. Which exercise is preselected still comes from the text, not from
+    // props.pickerData: reopening the picker after a swap must show what the blurb says now,
+    // and neither that nor the exercise the program still has here counts as "already used" —
+    // both are this one slot.
+    pickerDataFor: (exerciseFullName) => {
+      const base = propsRef.current.pickerData ?? {};
+      const identity = propsRef.current.exerciseFor?.(exerciseFullName);
+      return {
+        ...base,
+        ...(identity ?? {}),
+        excludeUsedExerciseTypes: CollectionUtils_compact([
+          ...(base.excludeUsedExerciseTypes ?? []),
+          identity?.exerciseType,
+        ]),
+      };
+    },
+    reuseCandidatesFor: () => propsRef.current.reuseCandidates ?? { sets: [], progress: [], update: [] },
+    stateVarsContextFor: (target) => propsRef.current.stateVarsFor?.(target) ?? {},
+    stateVarsExerciseTypeFor: (exerciseFullName) =>
+      propsRef.current.exerciseFor?.(exerciseFullName)?.exerciseType ?? propsRef.current.pickerData?.exerciseType,
+    onBeforeChangeExercise: props.onBeforeChangeExercise,
+    onEditReuse: props.onEditReuse,
   });
   const sharedPropertyNames = (props.sharedProperties ?? []).map((s) => s.property);
   const controller = useLiftoEditorController(props.initialText, {
@@ -106,88 +92,12 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
     // Follows the text, so plates and units track an exercise swapped mid-session instead of
     // the one the sheet opened on; falls back to the snapshot when the name doesn't resolve.
     exerciseTypeFor: (fullName) => props.exerciseFor?.(fullName)?.exerciseType,
-    actions: {
-      // The sheet edits one exercise, so its picker data and reuse candidates are
-      // precomputed by the host and knowing where the focused exercise starts adds nothing.
-      pickExercise: (_current, exerciseFullName, onSelect) => {
-        pickerSelectRef.current = onSelect;
-        // Which exercise is preselected comes from the text, not from props.pickerData:
-        // reopening the picker after a swap must show what the blurb says now, and neither
-        // that nor the exercise the program still has here counts as "already used" — both
-        // are this one slot.
-        const openPicker = (): void => {
-          const base = props.pickerData ?? {};
-          const identity = props.exerciseFor?.(exerciseFullName);
-          openExercisePicker({
-            ...base,
-            ...(identity ?? {}),
-            excludeUsedExerciseTypes: CollectionUtils_compact([
-              ...(base.excludeUsedExerciseTypes ?? []),
-              identity?.exerciseType,
-            ]),
-          });
-        };
-        // Asked before the picker, while the user is still thinking about the exercise —
-        // by the time they've picked one, "and where should this apply?" reads as a detour.
-        const beforeChange = props.onBeforeChangeExercise;
-        if (beforeChange == null) {
-          openPicker();
-          return;
-        }
-        beforeChange().then((proceed) => {
-          if (proceed) {
-            openPicker();
-          } else {
-            pickerSelectRef.current = undefined;
-          }
-        });
-      },
-      promptRename: (current, kind, onSubmit) => {
-        renameSubmitRef.current = onSubmit;
-        openRename(LiftoEditorActions_renamePrompt(current, kind));
-      },
-      editReuse: (targetName) => props.onEditReuse?.(targetName),
-      pickReuse: (kind, _exerciseStart, onSelect) => {
-        const candidates = props.reuseCandidates;
-        const items: ILiftoEditorReuseSelection[] =
-          kind === "sets"
-            ? (candidates?.sets ?? [])
-            : ((kind === "progress" ? candidates?.progress : candidates?.update) ?? []).map((fullName) => ({
-                fullName,
-              }));
-        if (items.length === 0) {
-          Dialog_alert(
-            kind === "sets"
-              ? "There are no other exercises in this program to reuse sets from."
-              : "There are no other exercises with their own custom() script to reuse."
-          );
-          return;
-        }
-        reuseSelectRef.current = { items, onSelect };
-        openReuseSelect({
-          name: "editor-sheet-reuse",
-          values: items.map((item) => [item.fullName, item.fullName]),
-          hint:
-            kind === "sets"
-              ? "You can only reuse sets of exercises that don't reuse other exercises"
-              : "You can only reuse scripts that don't reuse other scripts",
-        });
-      },
-      editStateVars: (target, exerciseFullName, onApply) => {
-        stateVarsApplyRef.current = onApply;
-        openStateVars({
-          ...(props.stateVarsFor?.(target) ?? {}),
-          entries: target.entries,
-          hasUnparsed: target.hasUnparsed,
-          exerciseType: props.exerciseFor?.(exerciseFullName)?.exerciseType ?? props.pickerData?.exerciseType,
-        });
-      },
-    },
+    actions,
   });
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
-  const [liveError, setLiveError] = useState<IEditorSheetLiveError | undefined>(undefined);
+  const [liveError, setLiveError] = useState<IExerciseLiftoEditorSheetLiveError | undefined>(undefined);
   const [isPreviewing, setIsPreviewing] = useState(false);
-  const [preview, setPreview] = useState<IEditorSheetPreview | undefined>(undefined);
+  const [preview, setPreview] = useState<IExerciseLiftoEditorSheetPreview | undefined>(undefined);
   const analyzeTextRef = useRef(props.analyzeText);
   analyzeTextRef.current = props.analyzeText;
   const onTextChangeRef = useRef(props.onTextChange);
@@ -352,7 +262,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
   // Whether switching would discard anything is the sheet's call — this body only knows the
   // text it happens to have mounted, and the shared-sections toggle recomposes that from a
   // possibly-dirty draft.
-  const selectInstance = (instance: IEditorSheetInstanceOption): void => {
+  const selectInstance = (instance: IExerciseLiftoEditorSheetInstanceOption): void => {
     if (instance.isSelected) {
       return;
     }
@@ -410,7 +320,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
                 {props.instances.map((instance) => (
                   <Pressable
                     key={`${instance.dayData.week}-${instance.dayData.dayInWeek}`}
-                    testID={`editor-sheet-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
+                    testID={`exercise-liftoeditor-instance-${instance.dayData.week}-${instance.dayData.dayInWeek}`}
                     onLayout={instance.isSelected ? scrollSelectedIntoView : undefined}
                     className={`px-2 py-0.5 rounded border ${
                       instance.isSelected
@@ -438,14 +348,14 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
             )}
           </View>
           {!isFreeform && hint != null && hintDismissed ? (
-            <Pressable testID="editor-sheet-show-hint" className="p-1" onPress={() => setHintDismissed(false)}>
+            <Pressable testID="exercise-liftoeditor-show-hint" className="p-1" onPress={() => setHintDismissed(false)}>
               <IconHelp size={20 * iconScale} color={Tailwind_semantic().icon.neutral} />
             </Pressable>
           ) : null}
           {/* Freeform "Apply" folds the text edits back into structured mode (the sheet stays
               open); structured "Save" commits to the program and closes. */}
           <Button
-            name="editor-sheet-save"
+            name="exercise-liftoeditor-save"
             kind="purple"
             buttonSize="sm"
             className="text-xs"
@@ -505,7 +415,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               {/* Below the text rather than in place of it: the point is the comparison — the
                   line as written above, what it resolves to here. */}
               {isPreviewing ? (
-                <View testID="editor-sheet-preview" className="p-2 mt-3 rounded-lg bg-background-subtle">
+                <View testID="exercise-liftoeditor-preview" className="p-2 mt-3 rounded-lg bg-background-subtle">
                   <Text className="pb-1 text-xs font-bold text-text-secondary">With reuses filled in:</Text>
                   {preview != null && "text" in preview ? (
                     // Wrapped, not side-scrolled: this panel sits inside the editor's own
@@ -521,13 +431,13 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
               {/* Same register as the sheet's gesture hint below it: a centered aside about the
                   text rather than chrome pointing into it. */}
               {sharedProperties.length > 0 ? (
-                <View testID="editor-sheet-shared-caption" className="pt-2">
-                  {EditorSheetTypes_sharedLabels(sharedProperties).map((label) => (
+                <View testID="exercise-liftoeditor-shared-caption" className="pt-2">
+                  {ExerciseLiftoEditorSheetTypes_sharedLabels(sharedProperties).map((label) => (
                     <Text key={label.ownerLabel} className="text-xs text-center text-text-secondary">
                       {`${label.properties.join(", ")} defined at `}
                       <Text
                         className="text-xs underline text-text-link"
-                        testID={`editor-sheet-shared-owner-${label.ownerDayData.week}-${label.ownerDayData.dayInWeek}`}
+                        testID={`exercise-liftoeditor-shared-owner-${label.ownerDayData.week}-${label.ownerDayData.dayInWeek}`}
                         onPress={() => selectInstanceAt(label.ownerDayData)}
                       >
                         {label.ownerLabel}
@@ -539,7 +449,7 @@ export function EditorSheetBody(props: IEditorSheetBodyProps): JSX.Element {
                   {!isFreeform ? (
                     <Text
                       className="text-xs underline text-center text-text-link"
-                      testID="editor-sheet-shared-toggle"
+                      testID="exercise-liftoeditor-shared-toggle"
                       onPress={() => props.onToggleShared?.()}
                     >
                       {showShared ? "Hide here" : "Show here"}

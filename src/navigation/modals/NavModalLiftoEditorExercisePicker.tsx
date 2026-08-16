@@ -15,10 +15,10 @@ import type { ILensDispatch } from "../../utils/useLensReducer";
 // Exercise picker for the Liftoscript editor sheet: unlike the edit-program picker it has
 // no planner edit state — the picker UI state is local, and the selection is handed back
 // to the sheet via the modal result channel (the sheet rewrites the name token itself).
-export function NavModalEditorSheetExercisePicker(): JSX.Element {
+export function NavModalLiftoEditorExercisePicker(): JSX.Element {
   const navigation = useNavigation();
   const modalDispatch = useModalDispatch();
-  const data = useModalData("editorSheetExercisePickerModal");
+  const data = useModalData("liftoEditorExercisePickerModal");
   const { state, dispatch } = useAppState();
   const settings = state.storage.settings;
 
@@ -55,7 +55,7 @@ export function NavModalEditorSheetExercisePicker(): JSX.Element {
   }, [evaluatedProgram, data?.dayData, excludeUsedExerciseTypes]);
 
   const onClose = useCallback((): void => {
-    Modal_clear(modalDispatch, "editorSheetExercisePickerModal");
+    Modal_clear(modalDispatch, "liftoEditorExercisePickerModal");
     navigation.goBack();
   }, [modalDispatch, navigation]);
 
@@ -63,7 +63,7 @@ export function NavModalEditorSheetExercisePicker(): JSX.Element {
     (selectedExercises: IExercisePickerSelectedExercise[]): void => {
       const selected = selectedExercises[0];
       if (selected != null) {
-        Modal_setResult(modalDispatch, "editorSheetExercisePickerModal", selected);
+        Modal_setResult(modalDispatch, "liftoEditorExercisePickerModal", selected);
       }
       onClose();
     },

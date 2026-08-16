@@ -2,7 +2,7 @@ import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { StackActions, useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
-import { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
+import { ILiftoEditorExercisePickerModalData } from "../ModalStateContext";
 import {
   IEvaluatedProgram,
   Program_evaluate,
@@ -33,12 +33,12 @@ import {
 } from "../../models/progress";
 import { EditProgramUiHelpers_getChangedKeys } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import {
-  EditorSheetDraft_create,
-  EditorSheetDraft_fromEditor,
-  EditorSheetDraft_isDirty,
-  EditorSheetDraft_mountText,
-  EditorSheetDraft_pendingChange,
-} from "../../models/editorSheetDraft";
+  ExerciseLiftoEditorDraft_create,
+  ExerciseLiftoEditorDraft_fromEditor,
+  ExerciseLiftoEditorDraft_isDirty,
+  ExerciseLiftoEditorDraft_mountText,
+  ExerciseLiftoEditorDraft_pendingChange,
+} from "../../models/exerciseLiftoEditorDraft";
 import {
   IProgramExerciseSharedSection,
   ProgramExerciseText_apply,
@@ -59,13 +59,13 @@ import { LiftoEditorHints_gestures } from "../../components/primitives/liftoEdit
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
-import { EditorSheetBody } from "./EditorSheetBody";
+import { ExerciseLiftoEditorSheet } from "./ExerciseLiftoEditorSheet";
 import type {
-  IEditorSheetAnalysis,
-  IEditorSheetInstanceOption,
-  IEditorSheetLiveError,
-  IEditorSheetSharedProperty,
-} from "./editorSheetTypes";
+  IExerciseLiftoEditorSheetAnalysis,
+  IExerciseLiftoEditorSheetInstanceOption,
+  IExerciseLiftoEditorSheetLiveError,
+  IExerciseLiftoEditorSheetSharedProperty,
+} from "./exerciseLiftoEditorSheetTypes";
 
 const sampleText = `# Week 1
 ## Day 1
@@ -90,7 +90,7 @@ function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData:
 // week — without saying so, editing one looks like a change to just this day. Abbreviated
 // rather than instanceLabel's form: the caption is a one-line aside and the instance chips
 // already spell out custom week/day names.
-function sharedProperties(shared: IProgramExerciseSharedSection[]): IEditorSheetSharedProperty[] {
+function sharedProperties(shared: IProgramExerciseSharedSection[]): IExerciseLiftoEditorSheetSharedProperty[] {
   return shared.map((s) => ({
     property: s.property,
     text: s.text,
@@ -107,9 +107,13 @@ function resolveProgram(state: IState, programId: string, isFromWorkout: boolean
   return draft ?? Program_getProgram(state, programId);
 }
 
-export function NavModalEditorSheet(): JSX.Element {
+export function NavModalExerciseLiftoEditor(): JSX.Element {
   const navigation = useNavigation();
-  const route = useRoute<{ key: string; name: "editorSheetModal"; params: IRootStackParamList["editorSheetModal"] }>();
+  const route = useRoute<{
+    key: string;
+    name: "exerciseLiftoEditorModal";
+    params: IRootStackParamList["exerciseLiftoEditorModal"];
+  }>();
   const params = route.params;
   const { state, dispatch } = useAppState();
   const isFromWorkout = params?.fromWorkout ?? true;
@@ -172,9 +176,9 @@ export function NavModalEditorSheet(): JSX.Element {
   // The sheet owns what is pending; the body owns only the editor session it currently has
   // mounted. In a ref rather than state because it changes on every keystroke and nothing in
   // this render depends on it.
-  const draftRef = useRef(EditorSheetDraft_create(currentDeclaration?.text ?? "", sharedSections));
+  const draftRef = useRef(ExerciseLiftoEditorDraft_create(currentDeclaration?.text ?? "", sharedSections));
   const onDraftText = (text: string): void => {
-    draftRef.current = EditorSheetDraft_fromEditor(draftRef.current, text);
+    draftRef.current = ExerciseLiftoEditorDraft_fromEditor(draftRef.current, text);
   };
   // Set once a close is approved (or changes are saved), so the beforeRemove guard doesn't
   // re-prompt on the navigation pop that follows.
@@ -188,7 +192,7 @@ export function NavModalEditorSheet(): JSX.Element {
     const isVisible = !isSharedVisible;
     const draft = draftRef.current;
     setIsSharedVisible(isVisible);
-    setBodyText(EditorSheetDraft_mountText(draft, isVisible));
+    setBodyText(ExerciseLiftoEditorDraft_mountText(draft, isVisible));
     setRemountKey((key) => key + 1);
   };
 
@@ -201,7 +205,7 @@ export function NavModalEditorSheet(): JSX.Element {
 
   // The body asks; the sheet answers, because only the sheet knows what is pending — the body's
   // mounted text is recomposed by the shared-sections toggle and stops tracking "changed".
-  const onSelectInstance = async (instance: IEditorSheetInstanceOption): Promise<void> => {
+  const onSelectInstance = async (instance: IExerciseLiftoEditorSheetInstanceOption): Promise<void> => {
     if (isDirty() && !(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
       return;
     }
@@ -212,7 +216,7 @@ export function NavModalEditorSheet(): JSX.Element {
     // left, and the draft's baseline has to be the one it will be compared against.
     const nextShared =
       snapshot != null && next != null ? ProgramExerciseText_sharedSections(snapshot.evaluatedProgram, next) : [];
-    draftRef.current = EditorSheetDraft_create(next?.text ?? "", nextShared);
+    draftRef.current = ExerciseLiftoEditorDraft_create(next?.text ?? "", nextShared);
     setBodyText(undefined);
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
@@ -252,7 +256,7 @@ export function NavModalEditorSheet(): JSX.Element {
       return;
     }
     navigation.dispatch(
-      StackActions.push("editorSheetModal", {
+      StackActions.push("exerciseLiftoEditorModal", {
         programId: params.programId,
         key: target.key,
         dayData: target.dayData,
@@ -355,7 +359,7 @@ export function NavModalEditorSheet(): JSX.Element {
     // Shared sections are re-resolved against this evaluation too — the stacked sheet may have
     // moved which day declares one, and writing to the snapshot's owner would miss it.
     const freshShared = ProgramExerciseText_sharedSections(evaluatedProgram, declaration);
-    const pending = EditorSheetDraft_pendingChange(draftRef.current, freshShared);
+    const pending = ExerciseLiftoEditorDraft_pendingChange(draftRef.current, freshShared);
     const localText = pending.localText.trim();
     if (localText === "") {
       Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
@@ -477,8 +481,8 @@ export function NavModalEditorSheet(): JSX.Element {
     // Through the same call the save uses, on a draft folded up to the live text: a shared
     // property edited and then hidden is still going to be written, so validation has to see it
     // even though it is no longer in the text on screen.
-    const pending = EditorSheetDraft_pendingChange(
-      EditorSheetDraft_fromEditor(draftRef.current, trimmed),
+    const pending = ExerciseLiftoEditorDraft_pendingChange(
+      ExerciseLiftoEditorDraft_fromEditor(draftRef.current, trimmed),
       sharedSections
     );
     const localText = pending.localText.trim();
@@ -505,7 +509,10 @@ export function NavModalEditorSheet(): JSX.Element {
   };
 
   // The splice uses the trimmed text while the editor shows the untrimmed draft.
-  const rebaseError = (error: IEditorSheetLiveError, newText: string): IEditorSheetLiveError => {
+  const rebaseError = (
+    error: IExerciseLiftoEditorSheetLiveError,
+    newText: string
+  ): IExerciseLiftoEditorSheetLiveError => {
     if (error.from == null || error.to == null) {
       return error;
     }
@@ -516,7 +523,7 @@ export function NavModalEditorSheet(): JSX.Element {
   // Everything a body asks about the draft, from one splice: the banner's error, and — when the
   // resolved panel is open — what the line actually fills in to, the reuse target's sets and the
   // progression declared three weeks away that the reader would otherwise have to combine by hand.
-  const analyzeText = (newText: string, options: { withPreview: boolean }): IEditorSheetAnalysis => {
+  const analyzeText = (newText: string, options: { withPreview: boolean }): IExerciseLiftoEditorSheetAnalysis => {
     const result = applyDraft(newText);
     if (result == null || currentDeclaration == null) {
       return { preview: options.withPreview ? { error: "There's nothing to resolve here yet." } : undefined };
@@ -557,7 +564,7 @@ export function NavModalEditorSheet(): JSX.Element {
   // line. Either way it is exactly what the body is mounted with, so it doubles as the baseline
   // the close guard compares the draft against.
   const initialText = bodyText ?? currentDeclaration?.text ?? sampleText;
-  const isDirty = (): boolean => EditorSheetDraft_isDirty(draftRef.current);
+  const isDirty = (): boolean => ExerciseLiftoEditorDraft_isDirty(draftRef.current);
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 
@@ -588,7 +595,7 @@ export function NavModalEditorSheet(): JSX.Element {
 
   const dayData = selectedDayData ?? params?.dayData;
   const headerLabel = dayData != null ? instanceLabel(snapshot?.evaluatedProgram, dayData) : "Week 1 · Day 1";
-  const instances: IEditorSheetInstanceOption[] = (snapshot?.instances ?? []).map((e) => ({
+  const instances: IExerciseLiftoEditorSheetInstanceOption[] = (snapshot?.instances ?? []).map((e) => ({
     dayData: e.dayData,
     label: instanceLabel(snapshot?.evaluatedProgram, e.dayData),
     isSelected:
@@ -613,7 +620,7 @@ export function NavModalEditorSheet(): JSX.Element {
       snapshot != null ? Program_getAllProgramExercises(snapshot.evaluatedProgram) : [],
       state.storage.settings
     );
-  const pickerData: IEditorSheetExercisePickerModalData | undefined =
+  const pickerData: ILiftoEditorExercisePickerModalData | undefined =
     snapshot != null && params != null && currentExercise != null && dayData != null
       ? {
           exerciseType: currentExercise.exerciseType,
@@ -647,7 +654,7 @@ export function NavModalEditorSheet(): JSX.Element {
         }
       >
         <CustomKeyboardProvider applySafeAreaBottom={false} fitContent={true} noShadow={true}>
-          <EditorSheetBody
+          <ExerciseLiftoEditorSheet
             // Remount on instance switch: the controller reads initialText only once.
             key={`${dayData?.week ?? 0}-${dayData?.dayInWeek ?? 0}-${remountKey}`}
             initialText={initialText}

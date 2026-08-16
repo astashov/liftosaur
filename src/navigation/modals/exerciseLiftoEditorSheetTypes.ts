@@ -1,5 +1,5 @@
 import type { IDayData } from "../../types";
-import type { IEditorSheetExercisePickerModalData } from "../ModalStateContext";
+import type { ILiftoEditorExercisePickerModalData } from "../ModalStateContext";
 import type { ILiftoEditorReuseCandidates } from "../../components/liftoEditorReuse";
 import type { IProgramExerciseIdentity } from "../../models/programExerciseSwap";
 import type { IProgramExerciseTextError } from "../../models/programExerciseText";
@@ -7,9 +7,9 @@ import type { ILiftoEditorStateVarsContext } from "../../components/primitives/l
 import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/liftoEditorActions";
 
 // The banner/line-tint renders exactly what the save pipeline produces, so the two can't drift.
-export type IEditorSheetLiveError = IProgramExerciseTextError;
+export type IExerciseLiftoEditorSheetLiveError = IProgramExerciseTextError;
 
-export interface IEditorSheetSharedProperty {
+export interface IExerciseLiftoEditorSheetSharedProperty {
   property: string;
   // The section's source, so the body can splice it in when the user asks to see it.
   text: string;
@@ -17,7 +17,7 @@ export interface IEditorSheetSharedProperty {
   ownerDayData: Required<IDayData>;
 }
 
-export interface IEditorSheetSharedLabel {
+export interface IExerciseLiftoEditorSheetSharedLabel {
   properties: string[];
   ownerLabel: string;
   ownerDayData: Required<IDayData>;
@@ -25,8 +25,10 @@ export interface IEditorSheetSharedLabel {
 
 // One line per declaring day rather than per property: several properties usually come from
 // the same line, and "progress, update defined at W1 · D1" is the whole story in one row.
-export function EditorSheetTypes_sharedLabels(shared: IEditorSheetSharedProperty[]): IEditorSheetSharedLabel[] {
-  const byOwner = new Map<string, IEditorSheetSharedLabel>();
+export function ExerciseLiftoEditorSheetTypes_sharedLabels(
+  shared: IExerciseLiftoEditorSheetSharedProperty[]
+): IExerciseLiftoEditorSheetSharedLabel[] {
+  const byOwner = new Map<string, IExerciseLiftoEditorSheetSharedLabel>();
   for (const item of shared) {
     const existing = byOwner.get(item.ownerLabel);
     byOwner.set(item.ownerLabel, {
@@ -41,30 +43,30 @@ export function EditorSheetTypes_sharedLabels(shared: IEditorSheetSharedProperty
 // The exercise with its reuses resolved and the properties declared elsewhere folded in, or why
 // it couldn't be resolved. Read-only — it is an answer to "what does this line mean", not
 // another way to write one.
-export type IEditorSheetPreview = { text: string } | { error: string };
+export type IExerciseLiftoEditorSheetPreview = { text: string } | { error: string };
 
-export interface IEditorSheetAnalysis {
-  error?: IEditorSheetLiveError;
+export interface IExerciseLiftoEditorSheetAnalysis {
+  error?: IExerciseLiftoEditorSheetLiveError;
   // Only when asked for: resolving the exercise costs a pass the banner doesn't need.
-  preview?: IEditorSheetPreview;
+  preview?: IExerciseLiftoEditorSheetPreview;
 }
 
-export interface IEditorSheetInstanceOption {
+export interface IExerciseLiftoEditorSheetInstanceOption {
   dayData: Required<IDayData>;
   label: string;
   isSelected: boolean;
 }
 
-export interface IEditorSheetBodyProps {
+export interface IExerciseLiftoEditorSheetProps {
   initialText: string;
   headerLabel: string;
-  instances: IEditorSheetInstanceOption[];
-  onSelectInstance: (instance: IEditorSheetInstanceOption) => void;
+  instances: IExerciseLiftoEditorSheetInstanceOption[];
+  onSelectInstance: (instance: IExerciseLiftoEditorSheetInstanceOption) => void;
   // Sections of `initialText` that are declared on another day's line and govern the whole
   // program. The native body fades them and captions where each is from; the host routes edits
   // back. The web body ignores these — it has no way to reveal or edit them, and naming a
   // property the user can't act on is worse than saying nothing.
-  sharedProperties?: IEditorSheetSharedProperty[];
+  sharedProperties?: IExerciseLiftoEditorSheetSharedProperty[];
   // Whether the shared sections are currently in `initialText`. Owned by the host, which
   // remounts this body with the recomposed text when it flips — splicing a multi-section
   // suffix into the live document trips a Runestone line-fragment assertion.
@@ -77,7 +79,7 @@ export interface IEditorSheetBodyProps {
   // Autocomplete source for the web CodeMirror body; the native structured editor
   // gets exercise names through its own picker instead.
   exerciseFullNames: string[];
-  pickerData?: IEditorSheetExercisePickerModalData;
+  pickerData?: ILiftoEditorExercisePickerModalData;
   // Resolves the exercise the text currently names. `pickerData` is snapshotted when the
   // sheet opens, so after a swap it describes the exercise that *was* there — anything the
   // user can act on again (picking another exercise, plate math on the keypad) has to ask
@@ -98,7 +100,7 @@ export interface IEditorSheetBodyProps {
   // One pass over the draft answering both questions a body asks about it: the banner's error
   // and, when the resolved panel is open, what the exercise fills in to. Both come out of the
   // same splice, so the two can't disagree and the program isn't spliced twice per keystroke.
-  analyzeText?: (text: string, options: { withPreview: boolean }) => IEditorSheetAnalysis;
+  analyzeText?: (text: string, options: { withPreview: boolean }) => IExerciseLiftoEditorSheetAnalysis;
   // Changes when the program a pass would read has moved under the sheet — a stacked sheet
   // saving this exercise's reuse target — so a body knows its last answers are stale even though
   // the text it holds hasn't changed.

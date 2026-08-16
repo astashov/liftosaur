@@ -88,8 +88,10 @@ export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
-  editorSheetModal: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean } | undefined;
-  editorSheetExercisePickerModal: undefined;
+  exerciseLiftoEditorModal:
+    | { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean }
+    | undefined;
+  liftoEditorExercisePickerModal: undefined;
   amrapModal: NonNullable<IHistoryRecord["amrapModal"]> &
     ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });
   exercisePickerModal: { progressId: number };
