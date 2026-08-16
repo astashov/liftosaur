@@ -11,7 +11,7 @@ import {
 } from "./primitives/liftoEditorActions";
 import {
   ILiftoEditorMode,
-  ILiftoEditorSurface,
+  ILiftoEditorScope,
   ILiftoEditorSession,
   ILiftoEditorSessionResult,
   LiftoEditorSession_activeLevelIndex,
@@ -44,7 +44,7 @@ import { Weight_build, Weight_round } from "../models/weight";
 import { Exercise_fullName, Exercise_get, Exercise_onerm } from "../models/exercise";
 import { IExercisePickerSelectedExercise, IExerciseType, IPercentageUnit, ISettings, IUnit, IWeight } from "../types";
 
-export type { ILiftoEditorMode, ILiftoEditorSurface };
+export type { ILiftoEditorMode, ILiftoEditorScope };
 
 export interface ILiftoEditorController {
   mode: ILiftoEditorMode;
@@ -102,7 +102,7 @@ export interface ILiftoEditorControllerActions {
 }
 
 export interface ILiftoEditorControllerOptions {
-  surface?: ILiftoEditorSurface;
+  scope?: ILiftoEditorScope;
   // Drives equipment-aware weight stepping and the plates readout. A sheet edits one
   // exercise, so it can pass a constant; inline the document holds the whole day, so
   // equipment has to be looked up per focused exercise.
@@ -131,7 +131,7 @@ export function useLiftoEditorController(
 ): ILiftoEditorController {
   const actions = options?.actions;
   const [session, setSession] = useState<ILiftoEditorSession>(() =>
-    LiftoEditorSession_create(initialText, options?.surface)
+    LiftoEditorSession_create(initialText, options?.scope)
   );
   // Resolved from the session it's about, never from the render's — dispatch opens the
   // keypad with the *next* session, and that transition is exactly when focus can cross

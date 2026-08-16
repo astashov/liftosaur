@@ -220,7 +220,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
       exerciseFullName != null ? props.exerciseTypeFor(exerciseFullName) : undefined,
   });
   const controller = useLiftoEditorController(props.text, {
-    surface: "inline",
+    scope: "day",
     exerciseTypeFor: props.exerciseTypeFor,
     actions,
   });

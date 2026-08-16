@@ -1288,6 +1288,26 @@ export function Thunk_pushToEditProgramExercise(
   };
 }
 
+// The workout screen's day-level edit, and the Program screen's eventually. Takes the absolute
+// day number the workout already carries rather than a dayData, so nothing here has to know how
+// weeks are laid out.
+export function Thunk_pushToEditProgramDay(day: number, workoutProgramId?: string): IThunk {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const isFromWorkout = workoutProgramId != null;
+    const editProgramIds = Object.keys(state.editProgramStates);
+    const programId = isFromWorkout ? workoutProgramId : (editProgramIds[0] ?? state.storage.currentProgramId);
+    const currentProgram = programId != null ? Program_getProgram(state, programId) : undefined;
+    if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
+      dispatch(Thunk_log("ls-program-edit-day-sheet"));
+      const { navigateToModal } = await getNavigationService();
+      navigateToModal("dayLiftoEditorModal", { programId, day, fromWorkout: isFromWorkout });
+    } else {
+      dispatch(Thunk_pushScreen("main"));
+    }
+  };
+}
+
 export function Thunk_pushScreen<T extends IScreen>(
   screen: T,
   params?: IScreenParams<T>,

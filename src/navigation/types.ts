@@ -91,6 +91,9 @@ export type IRootStackParamList = {
   exerciseLiftoEditorModal:
     | { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean }
     | undefined;
+  // The absolute day number, not week/dayInWeek — the same thing a workout carries, and the
+  // sheet resolves the planner indices from it so they can't go stale.
+  dayLiftoEditorModal: { programId: string; day: number; fromWorkout?: boolean } | undefined;
   liftoEditorExercisePickerModal: undefined;
   amrapModal: NonNullable<IHistoryRecord["amrapModal"]> &
     ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });

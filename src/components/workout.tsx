@@ -5,15 +5,15 @@ import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryEntry, IHistoryRecord, IProgram, IProgramState, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
-import { Thunk_postevent, Thunk_pushScreen, Thunk_finishProgramDay, Thunk_saveWorkoutToHealth } from "../ducks/thunks";
-import { IconMuscles2 } from "./icons/iconMuscles2";
 import {
-  IEvaluatedProgram,
-  IEvaluatedProgramDay,
-  Program_isEmpty,
-  Program_getDayData,
-  Program_editAction,
-} from "../models/program";
+  Thunk_postevent,
+  Thunk_pushScreen,
+  Thunk_pushToEditProgramDay,
+  Thunk_finishProgramDay,
+  Thunk_saveWorkoutToHealth,
+} from "../ducks/thunks";
+import { IconMuscles2 } from "./icons/iconMuscles2";
+import { IEvaluatedProgram, IEvaluatedProgramDay, Program_isEmpty } from "../models/program";
 import { lb } from "lens-shmens";
 import { ButtonIcon } from "./buttonIcon";
 import { IconEdit2 } from "./icons/iconEdit2";
@@ -479,10 +479,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
           {program && currentProgram && !Program_isEmpty(currentProgram) && (
             <ButtonIcon
               name="workout-edit-day"
-              onClick={() => {
-                const dayData = Program_getDayData(program, props.progress.day);
-                Program_editAction(props.dispatch, currentProgram, dayData, undefined, { tab: "program" });
-              }}
+              onClick={() => props.dispatch(Thunk_pushToEditProgramDay(props.progress.day, currentProgram.id))}
             >
               <IconEdit2 />
             </ButtonIcon>

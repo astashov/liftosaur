@@ -7,7 +7,6 @@ import {
   IEvaluatedProgram,
   Program_evaluate,
   Program_getAllProgramExercises,
-  Program_getProgram,
   Program_getProgramExercise,
 } from "../../models/program";
 import { ILiftoEditorReuseCandidates, LiftoEditorReuse_candidates } from "../../components/liftoEditorReuse";
@@ -59,6 +58,7 @@ import { LiftoEditorHints_gestures } from "../../components/primitives/liftoEdit
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { CustomKeyboardProvider } from "../CustomKeyboardContext";
+import { LiftoEditorSheetProgram_resolve } from "./liftoEditorSheetProgram";
 import { ExerciseLiftoEditorSheet } from "./ExerciseLiftoEditorSheet";
 import type {
   IExerciseLiftoEditorSheetAnalysis,
@@ -99,14 +99,6 @@ function sharedProperties(shared: IProgramExerciseSharedSection[]): IExerciseLif
   }));
 }
 
-// From the program editor the source of truth is the unsaved draft in editProgramStates,
-// not the last saved program — reading storage there would edit stale text and clobber
-// the user's other pending edits on save.
-function resolveProgram(state: IState, programId: string, isFromWorkout: boolean): IProgram | undefined {
-  const draft = !isFromWorkout ? state.editProgramStates[programId]?.current.program : undefined;
-  return draft ?? Program_getProgram(state, programId);
-}
-
 export function NavModalExerciseLiftoEditor(): JSX.Element {
   const navigation = useNavigation();
   const route = useRoute<{
@@ -124,7 +116,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     if (params == null) {
       return undefined;
     }
-    const program = resolveProgram(state, params.programId, isFromWorkout);
+    const program = LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout);
     if (program == null) {
       return undefined;
     }
@@ -341,7 +333,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // Re-resolve from the current state, not the open-time snapshot: a stacked reuse sheet
     // can save this same program while this sheet is up, and writing the snapshot's program
     // back would silently revert that save.
-    const program = resolveProgram(state, params.programId, isFromWorkout);
+    const program = LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout);
     if (program?.planner == null) {
       Dialog_alert("Couldn't find this program anymore, so the changes weren't saved.");
       onClose();
@@ -474,7 +466,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     if (params == null || currentDeclaration == null || trimmed === "") {
       return undefined;
     }
-    const program = resolveProgram(state, params.programId, isFromWorkout);
+    const program = LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout);
     if (program?.planner == null) {
       return undefined;
     }

@@ -514,23 +514,23 @@ describe("LiftoEditorSession", () => {
     });
   });
 
-  describe("surface", () => {
-    function pillsAt(text: string, needle: string, surface: "sheet" | "inline"): string[] {
-      const session = LiftoEditorSession_create(text, surface);
+  describe("scope", () => {
+    function pillsAt(text: string, needle: string, scope: "exercise" | "day"): string[] {
+      const session = LiftoEditorSession_create(text, scope);
       const tap = LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(text, needle), 1000);
       return LiftoEditorSession_pills(tap.session).map((pill) => pill.label);
     }
 
-    it("offers the reuse target's own editor only on a sheet", () => {
+    it("offers the reuse target's own editor only when the document is one exercise", () => {
       const text = "Squat / ...Bench Press";
-      expect(pillsAt(text, "Bench Press", "sheet")).to.include("Edit reused exercise…");
-      expect(pillsAt(text, "Bench Press", "inline")).to.not.include("Edit reused exercise…");
+      expect(pillsAt(text, "Bench Press", "exercise")).to.include("Edit reused exercise…");
+      expect(pillsAt(text, "Bench Press", "day")).to.not.include("Edit reused exercise…");
     });
 
     it("leaves every other pill alone", () => {
       const text = "Squat / ...Bench Press";
-      const sheet = pillsAt(text, "Bench Press", "sheet").filter((l) => l !== "Edit reused exercise…");
-      expect(pillsAt(text, "Bench Press", "inline")).to.deep.equal(sheet);
+      const exercise = pillsAt(text, "Bench Press", "exercise").filter((l) => l !== "Edit reused exercise…");
+      expect(pillsAt(text, "Bench Press", "day")).to.deep.equal(exercise);
     });
   });
 

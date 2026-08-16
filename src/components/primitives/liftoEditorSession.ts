@@ -42,14 +42,14 @@ export interface IActiveNumber {
   fresh: boolean;
 }
 
-// Where the editor is embedded. Not a capability flag — it's about what the document
-// contains: a sheet holds one exercise, an inline editor holds the whole day, so some
-// actions are meaningless there (see surfacePills).
-export type ILiftoEditorSurface = "sheet" | "inline";
+// How much of the program the document holds — one exercise's declaration, or a whole day.
+// Not about where the editor is embedded: a day is edited both inline on the Program screen
+// and in its own sheet, and both want the same actions (see scopePills).
+export type ILiftoEditorScope = "exercise" | "day";
 
 export interface ILiftoEditorSession {
   mode: ILiftoEditorMode;
-  surface: ILiftoEditorSurface;
+  scope: ILiftoEditorScope;
   text: string;
   // The parse cache this editing session owns. Shared by reference across derived sessions
   // (the spread copies it along) so every transition and the editor view hit the same trees,
@@ -82,10 +82,10 @@ export interface ILiftoEditorSessionResult {
   effects: ILiftoEditorSessionEffects;
 }
 
-export function LiftoEditorSession_create(text: string, surface: ILiftoEditorSurface = "sheet"): ILiftoEditorSession {
+export function LiftoEditorSession_create(text: string, scope: ILiftoEditorScope = "exercise"): ILiftoEditorSession {
   return {
     mode: "structured",
-    surface,
+    scope,
     text,
     cache: new LiftoEditorParseCache(),
     context: undefined,
@@ -618,8 +618,8 @@ export function LiftoEditorSession_focusedExerciseFullName(session: ILiftoEditor
 
 // "Edit reused exercise…" opens a second editor on the reuse target. Inline that's noise:
 // the whole day is already on screen, so the target is a few lines up in this very editor.
-function surfacePills(pills: ILiftoEditorPill[], surface: ILiftoEditorSurface): ILiftoEditorPill[] {
-  return surface === "inline" ? pills.filter((pill) => pill.action !== "editReuse") : pills;
+function scopePills(pills: ILiftoEditorPill[], scope: ILiftoEditorScope): ILiftoEditorPill[] {
+  return scope === "day" ? pills.filter((pill) => pill.action !== "editReuse") : pills;
 }
 
 export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEditorPill[] {
@@ -627,7 +627,7 @@ export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEd
   for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
     const level = levels[i];
     if (level != null && LiftoEditorActions_isPillBoundary(level.nodeName)) {
-      return surfacePills(level.pills, session.surface);
+      return scopePills(level.pills, session.scope);
     }
   }
   return [];

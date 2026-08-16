@@ -8,7 +8,7 @@ import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { IExercisePickerSelectedExercise, IExerciseType } from "../types";
 
 export type ILiftoEditorMode = "structured" | "freeform";
-export type ILiftoEditorSurface = "sheet" | "inline";
+export type ILiftoEditorScope = "exercise" | "day";
 
 export interface ILiftoEditorController {
   mode: ILiftoEditorMode;
@@ -51,7 +51,7 @@ export interface ILiftoEditorControllerActions {
 }
 
 export interface ILiftoEditorControllerOptions {
-  surface?: ILiftoEditorSurface;
+  scope?: ILiftoEditorScope;
   exerciseType?: IExerciseType;
   exerciseTypeFor?: (exerciseFullName: string) => IExerciseType | undefined;
   actions?: ILiftoEditorControllerActions;
