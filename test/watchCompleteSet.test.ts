@@ -12,6 +12,7 @@ import { IStorage, IHistoryRecord } from "../src/types";
 // it's loaded — hence require() here rather than a top-level import.
 (globalThis as any).__BUNDLE_VERSION_WATCH_IOS__ = 1;
 (globalThis as any).__BUNDLE_VERSION_WATCH_ANDROID__ = 1;
+(globalThis as any).__COMMIT_HASH__ = "test";
 require("../src/watch/index");
 const Liftosaur = (globalThis as any).Liftosaur;
 /* eslint-enable @typescript-eslint/no-explicit-any */
