@@ -48,6 +48,9 @@ import {
   Program_createEmptyProgram,
   Program_evaluate,
   Program_runAllFinishDayScripts,
+  Program_getDayExercisesInOrder,
+  Program_getDayData,
+  Program_nextHistoryEntry,
 } from "./program";
 import { IState, updateProgress, updateState } from "./state";
 import {
@@ -96,7 +99,7 @@ import {
 } from "../pages/planner/models/plannerProgramExercise";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
-import { Stats_getCurrentMovingAverageBodyweight } from "./stats";
+import { Stats_getCurrentMovingAverageBodyweight, Stats_getEmpty } from "./stats";
 import { IChangeAMRAPAction, ICompleteSetAction } from "../ducks/reducer";
 import {
   LiveActivityManager_updateProgressLiveActivity,
@@ -1693,12 +1696,77 @@ export function Progress_remapProgramExerciseId(
   return { ...progress, entries };
 }
 
+// Every entry index stored on the record is a position in `entries`, so inserting, dropping or re-sorting
+// invalidates all of them at once — a rest timer or an open AMRAP prompt would silently retarget a different
+// exercise. Anything whose entry is gone is cleared rather than left pointing at whoever moved into that slot.
+//
+// Matched by object identity, not by `entry.id`: ids are derived from the exercise
+// (`Progress_getEntryId`), so a program Squat and an ad-hoc Squat carry the same one, and a lookup would
+// hand a timer to the wrong entry. Callers therefore have to pass through the *same* entry objects for
+// everything that survived — which is what reconciling by filter/splice/sort already does.
+export function Progress_reindexEntries(progress: IHistoryRecord, newEntries: IHistoryEntry[]): IHistoryRecord {
+  const newIndexOf = new Map<IHistoryEntry, number>(newEntries.map((e, i) => [e, i]));
+  const remap = (index: number | undefined): number | undefined => {
+    const entry = index != null ? progress.entries[index] : undefined;
+    return entry != null ? newIndexOf.get(entry) : undefined;
+  };
+  // Only ever a position to render at, never a subject that can go missing, so it lands on a neighbor instead of
+  // being cleared — a workout with entries always has one selected.
+  const clamp = (index: number | undefined): number | undefined => {
+    if (index == null || newEntries.length === 0) {
+      return undefined;
+    }
+    return remap(index) ?? Math.max(0, Math.min(index, newEntries.length - 1));
+  };
+  const keepAt = <T extends { entryIndex: number }>(value: T | undefined): T | undefined => {
+    const entryIndex = value != null ? remap(value.entryIndex) : undefined;
+    return value != null && entryIndex != null ? { ...value, entryIndex } : undefined;
+  };
+  const ui = progress.ui;
+  const currentEntryIndex = clamp(progress.currentEntryIndex);
+  const pickerState = ui?.exercisePicker?.state;
+  return {
+    ...progress,
+    entries: newEntries.map((e, i) => (e.index === i ? e : { ...e, index: i })),
+    currentEntryIndex,
+    timerEntryIndex: remap(progress.timerEntryIndex),
+    setTimer: keepAt(progress.setTimer),
+    amrapModal: keepAt(progress.amrapModal),
+    ui:
+      ui == null
+        ? ui
+        : {
+            ...ui,
+            editModal: keepAt(ui.editModal),
+            editSetModal: keepAt(ui.editSetModal),
+            setTimerEditModal: keepAt(ui.setTimerEditModal),
+            roundingModal: keepAt(ui.roundingModal),
+            exerciseBottomSheet: keepAt(ui.exerciseBottomSheet),
+            entryIndexEditMode: remap(ui.entryIndexEditMode),
+            // The open swap picker writes straight into `entries[entryIndex]`, so a stale one retargets whoever
+            // moved into that slot. Nested a level deeper than the rest, hence not a `keepAt`.
+            exercisePicker:
+              pickerState?.entryIndex == null
+                ? ui.exercisePicker
+                : { ...ui.exercisePicker, state: { ...pickerState, entryIndex: remap(pickerState.entryIndex) } },
+            // The pager only scrolls when this flips — `currentEntryIndex` alone moves the highlight and leaves
+            // the shown exercise behind. Flipped only when the selected entry actually moved, so the user keeps
+            // looking at the exercise they were on.
+            forceUpdateEntryIndex:
+              currentEntryIndex !== progress.currentEntryIndex ? !ui.forceUpdateEntryIndex : ui.forceUpdateEntryIndex,
+          },
+  };
+}
+
+// Warmups count: they're work the user did and would have to redo. One definition, so the swap confirmation and
+// the reconciliation below can't disagree about whether an entry is worth protecting.
+export function Progress_hasCompletedWork(entry: IHistoryEntry): boolean {
+  return entry.sets.some((set) => set.isCompleted) || entry.warmupSets.some((set) => set.isCompleted);
+}
+
 export function Progress_hasCompletedSetsForProgramExerciseId(progress: IHistoryRecord, key: string): boolean {
   return progress.entries.some(
-    (entry) =>
-      entry.programExerciseId === key &&
-      !entry.changed &&
-      (entry.sets.some((set) => set.isCompleted) || entry.warmupSets.some((set) => set.isCompleted))
+    (entry) => entry.programExerciseId === key && !entry.changed && Progress_hasCompletedWork(entry)
   );
 }
 
@@ -1839,18 +1907,109 @@ export function Progress_getEntryId(exerciseType: IExerciseType, label?: string)
   return CollectionUtils_compact([label, Exercise_toKey(exerciseType)]).join("_");
 }
 
+export interface IApplyProgramDayOptions {
+  // Restricts the pass to these exercises. Callers that pass it mean "just re-apply these" (equipment, exercise
+  // data), so they never get structural work.
+  programExerciseIds?: string[];
+  // The day's keys in canonical order *before* the program changed, from `Program_getDayExerciseKeys`. Structure
+  // is reconciled against this rather than against the entries alone: whether an exercise the day contains but
+  // the workout lacks was never added or was removed by the user is only answerable by diffing the two programs.
+  // Absent (fresh boot, restore, non-program change) means no structural work.
+  oldDayKeys?: string[];
+  // Only read when inserting — a newly added exercise runs its update script the same way a freshly started
+  // workout would, and that reads bodyweight.
+  stats?: IStats;
+}
+
+// The entry list is the program day minus the user's overrides, recomputed from scratch each time. Every step is
+// a function of (entries, oldDayKeys, newDayKeys), so applying the same program change twice is a no-op — the
+// listener can fire more than once for one logical edit, and a second pass must not insert a second copy.
+function reconcileStructure(
+  progress: IHistoryRecord,
+  program: IEvaluatedProgram,
+  day: number,
+  settings: ISettings,
+  oldDayKeys: string[],
+  stats: IStats
+): IHistoryEntry[] {
+  const dayExercises = Program_getDayExercisesInOrder(program, day);
+  const newDayKeys = dayExercises.map((e) => e.key);
+
+  // An exercise the day has but the workout doesn't is either one the user removed or one that was just added,
+  // and only the diff can tell them apart. Removals therefore need nothing recorded on the record.
+  const kept = progress.entries.filter(
+    (entry) =>
+      entry.programExerciseId == null ||
+      entry.changed ||
+      newDayKeys.indexOf(entry.programExerciseId) !== -1 ||
+      Progress_hasCompletedWork(entry)
+  );
+
+  const entries = [...kept];
+  const dayData = Program_getDayData(program, day);
+  for (const exercise of dayExercises) {
+    if (oldDayKeys.indexOf(exercise.key) !== -1) {
+      continue;
+    }
+    if (entries.some((e) => e.programExerciseId === exercise.key)) {
+      continue;
+    }
+    // Placed after whatever its program predecessor turned into, walking back past exercises the workout doesn't
+    // have: an added line asserts a position relative to its neighbors, not a re-sort of the whole day.
+    let at = 0;
+    for (let i = newDayKeys.indexOf(exercise.key) - 1; i >= 0; i -= 1) {
+      const predecessor = entries.findIndex((e) => e.programExerciseId === newDayKeys[i]);
+      if (predecessor !== -1) {
+        at = predecessor + 1;
+        break;
+      }
+    }
+    entries.splice(at, 0, Program_nextHistoryEntry(program, dayData, at, exercise, stats, settings));
+  }
+
+  const commonBefore = oldDayKeys.filter((key) => newDayKeys.indexOf(key) !== -1);
+  const commonAfter = newDayKeys.filter((key) => oldDayKeys.indexOf(key) !== -1);
+  const isReordered =
+    commonBefore.length !== commonAfter.length || commonBefore.some((key, i) => key !== commonAfter[i]);
+  if (!isReordered) {
+    return entries;
+  }
+  // Adhoc entries and orphans kept for their logged sets have no position of their own, so they take their
+  // predecessor's and ride along with it — someone who added an accessory right after Squat meant it to be there.
+  // Entries ahead of the first program exercise stay at the front.
+  let inherited = -1;
+  const sortKeys = entries.map((entry) => {
+    const own = entry.programExerciseId != null ? newDayKeys.indexOf(entry.programExerciseId) : -1;
+    if (own !== -1) {
+      inherited = own;
+    }
+    return own !== -1 ? own : inherited;
+  });
+  return entries
+    .map((entry, index) => ({ entry, index, sortKey: sortKeys[index] }))
+    .sort((a, b) => (a.sortKey !== b.sortKey ? a.sortKey - b.sortKey : a.index - b.index))
+    .map((e) => e.entry);
+}
+
 export function Progress_applyProgramDay(
   progress: IHistoryRecord,
   program: IEvaluatedProgram,
   day: number,
   settings: ISettings,
-  programExerciseIds?: string[]
+  options?: IApplyProgramDayOptions
 ): IHistoryRecord {
+  const programExerciseIds = options?.programExerciseIds;
   const programDay = Program_getProgramDay(program, day);
   if (!programDay) {
     return progress;
   }
-  const newEntries = progress.entries.map((entry, index) => {
+  // A caller that named exercises means "just re-apply these" and never gets structural work.
+  const structural =
+    programExerciseIds == null && options?.oldDayKeys != null
+      ? reconcileStructure(progress, program, day, settings, options.oldDayKeys, options.stats ?? Stats_getEmpty())
+      : undefined;
+  const reindexed = structural != null ? Progress_reindexEntries(progress, structural) : progress;
+  const newEntries = reindexed.entries.map((entry, index) => {
     if (entry.programExerciseId == null) {
       return entry;
     }
@@ -1864,7 +2023,7 @@ export function Progress_applyProgramDay(
     return Progress_applyProgramExercise(entry, index, programExercise, settings, false);
   });
 
-  return { ...progress, entries: newEntries };
+  return { ...reindexed, entries: newEntries };
 }
 
 export function Progress_changeAmrapAction(

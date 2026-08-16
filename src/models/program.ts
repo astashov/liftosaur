@@ -373,6 +373,22 @@ export function Program_nextHistoryRecord(
   return Program_nextHistoryRecordFromEvaluated(program, settings, stats, dayIndex);
 }
 
+// The canonical order of a day's exercises. `order` is not a position — it defaults to 0 and only carries a
+// value when the text disambiguates with `Squat[order]`, so this is document order with those markers floated
+// into place. Everything that needs a day's order goes through here rather than sorting for itself: a workout
+// reconciled mid-session has to end up in the same order as one freshly started from the same program.
+export function Program_getDayExercisesInOrder(
+  program: IEvaluatedProgram,
+  day: number
+): IPlannerProgramExerciseWithType[] {
+  const programDay = Program_getProgramDay(program, day);
+  return CollectionUtils_sortBy(programDay ? Program_getProgramDayUsedExercises(programDay) : [], "order");
+}
+
+export function Program_getDayExerciseKeys(program: IEvaluatedProgram, day: number): string[] {
+  return Program_getDayExercisesInOrder(program, day).map((e) => e.key);
+}
+
 export function Program_nextHistoryRecordFromEvaluated(
   program: IEvaluatedProgram,
   settings: ISettings,
@@ -385,9 +401,7 @@ export function Program_nextHistoryRecordFromEvaluated(
 
   const fullDayName = Program_getDayName(program, day);
   const now = Date.now();
-  const programDay = Program_getProgramDay(program, day);
-  const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
-  const sortedDayExercises = CollectionUtils_sortBy(dayExercises, "order");
+  const sortedDayExercises = Program_getDayExercisesInOrder(program, day);
   const entries = sortedDayExercises.map((exercise, i) => {
     return Program_nextHistoryEntry(program, dayData, i, exercise, stats, settings);
   });

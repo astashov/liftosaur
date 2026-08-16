@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reducer } from "react";
-import { Program_getProgram, Program_nextHistoryRecord, Program_evaluate } from "../models/program";
+import {
+  Program_getProgram,
+  Program_nextHistoryRecord,
+  Program_evaluate,
+  Program_getDayExerciseKeys,
+} from "../models/program";
 import { Dialog_alert } from "../utils/dialog";
 import {
   Progress_getProgress,
@@ -339,6 +344,9 @@ export type IStopTimer = {
 export type IApplyProgramChangesToProgress = {
   type: "ApplyProgramChangesToProgress";
   programExerciseIds?: string[];
+  // Set only where the program itself changed, which is the only place that can know what the day looked like
+  // before. Without it the pass is value-only — see `Progress_applyProgramDay`.
+  oldDayKeys?: string[];
 };
 
 export type IUpdateProgressAction = {
@@ -417,12 +425,25 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      const progress = Progress_getProgress(newState);
+      // The ongoing workout, not whichever record is on screen — `ApplyProgramChangesToProgress` only ever
+      // touches that one, and a past workout open for editing has its own program and day. Reading the viewed
+      // record here would diff the wrong day and hand those keys to the live workout.
+      const progress = Progress_getCurrentProgress(newState);
       if (progress != null) {
         const oldProgram = Program_getProgram(oldState, progress.programId);
         const newProgram = Program_getProgram(newState, progress.programId);
         if (oldProgram != null && newProgram != null && !ObjectUtils_isEqual(oldProgram, newProgram)) {
-          dispatch({ type: "ApplyProgramChangesToProgress" });
+          // Exercises can only be added, removed or reordered by the planner moving, and evaluating the old
+          // program to find out what the day held isn't free — so only pay for it when the planner differs.
+          // Evaluated with the *new* settings, so the keys are comparable to the ones the handler derives.
+          const isPlannerSame =
+            oldProgram.planner != null && newProgram.planner != null
+              ? ObjectUtils_isEqual(oldProgram.planner, newProgram.planner)
+              : oldProgram.planner === newProgram.planner;
+          const oldDayKeys = isPlannerSame
+            ? undefined
+            : Program_getDayExerciseKeys(Program_evaluate(oldProgram, newState.storage.settings), progress.day);
+          dispatch({ type: "ApplyProgramChangesToProgress", oldDayKeys });
         }
       }
     },
@@ -835,13 +856,11 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = Progress_getCurrentProgress(state);
     if (progress != null) {
       const program = Program_evaluate(Program_getProgram(state, progress.programId)!, state.storage.settings);
-      let newProgress = Progress_applyProgramDay(
-        progress,
-        program,
-        progress.day,
-        state.storage.settings,
-        action.programExerciseIds
-      );
+      let newProgress = Progress_applyProgramDay(progress, program, progress.day, state.storage.settings, {
+        programExerciseIds: action.programExerciseIds,
+        oldDayKeys: action.oldDayKeys,
+        stats: state.storage.stats,
+      });
       newProgress = Progress_runInitialUpdateScripts(
         newProgress,
         action.programExerciseIds,
