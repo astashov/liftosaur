@@ -8,10 +8,23 @@
   Use bullet lists (- ...) only when you want bullets to render as actual bullets.
 
   Custom inline directives:
-    ::icon-discord::, ::icon-doc::, ::icon-swap::, ::icon-help::
+    ::icon-discord::, ::icon-doc::, ::icon-swap::, ::icon-help::, ::icon-edit2::, ::icon-preview::
     [label](internal:/path)        — internal app/website link
     ```liftoscript ... ```          — Liftoscript code block with syntax highlighting
 -->
+
+---
+date: 2026-08-17
+title: Some Liftoeditor improvements
+---
+
+1. If you tap ::icon-edit2:: icon on the workout screen, it now opens the liftoeditor in a bottomsheet with the current program day, that you can edit.
+
+2. You can reorder exercises in the editor by long-press and dragging them.
+
+3. On the "Edit Program Exercise" sheet, there's ::icon-preview:: icon that shows the preview of the exercise with all the reuses filled in.
+
+4. On the "Edit Program Exercise" it also will tell you if the progress is defined on some other week/day, and you jump there, or show it right for this week/day, editable.
 
 ---
 date: 2026-08-12

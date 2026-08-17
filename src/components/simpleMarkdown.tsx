@@ -9,11 +9,13 @@ import { IconDiscord } from "./icons/iconDiscord";
 import { IconDoc } from "./icons/iconDoc";
 import { IconSwap } from "./icons/iconSwap";
 import { IconHelp } from "./icons/iconHelp";
+import { IconEdit2 } from "./icons/iconEdit2";
+import { IconPreview } from "./icons/iconPreview";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 
 const md = new MarkdownIt({ html: false, linkify: true });
 
-const ICON_RE = /::icon-(discord|doc|swap|help)::/g;
+const ICON_RE = /::icon-(discord|doc|swap|help|edit2|preview)::/g;
 
 interface IProps {
   value: string;
@@ -231,6 +233,10 @@ function renderIcon(name: string, key: string): JSX.Element {
       return <IconSwap key={key} size={size} className={className} />;
     case "help":
       return <IconHelp key={key} size={size} className={className} />;
+    case "edit2":
+      return <IconEdit2 key={key} size={size} className={className} />;
+    case "preview":
+      return <IconPreview key={key} size={size} className={className} />;
     default:
       return <Text key={key}>{`::icon-${name}::`}</Text>;
   }
