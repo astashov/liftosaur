@@ -73,6 +73,7 @@ function onProfile(
 }
 
 const TAB_LABELS = ["Preview", "Edit", "Playground"] as const;
+const EDIT_TAB_INDEX = TAB_LABELS.indexOf("Edit");
 const EMPTY_EVAL: ReturnType<typeof PlannerProgram_evaluate> = { evaluatedWeeks: [], exerciseFullNames: [] };
 const TAB_LABELS_RO: readonly string[] = TAB_LABELS;
 const PLAYGROUND_TABS_PROPS = {
@@ -210,8 +211,33 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   );
   useNavOptions(navOptions);
 
-  const tabIndex = plannerState.ui.tabIndex ?? 0;
+  // Preview and Playground both render the evaluated program, so a program that failed to
+  // evaluate shows up there as a week of empty days with no hint of why. Pin the screen to
+  // Edit, the only tab that surfaces the syntax errors.
+  const hasEvalErrors = evaluatedProgram.errors.length > 0;
+  const tabIndex = hasEvalErrors ? EDIT_TAB_INDEX : (plannerState.ui.tabIndex ?? 0);
   const activeTabLabel = TAB_LABELS[tabIndex] ?? "Preview";
+
+  // Also write the redirect through, so fixing the program leaves the user in the editor
+  // instead of yanking them back to Preview - the text they're typing passes through valid
+  // states on the way to the one they mean.
+  useEffect(() => {
+    if (!hasEvalErrors) {
+      return;
+    }
+    const recordings = [];
+    if ((ui.tabIndex ?? 0) !== EDIT_TAB_INDEX) {
+      recordings.push(lb<IPlannerState>().p("ui").p("tabIndex").record(EDIT_TAB_INDEX));
+    }
+    // Reorder is the one edit mode with nowhere to render an error, and the navbar already
+    // refuses to enter it while the program is broken.
+    if (ui.mode === "reorder") {
+      recordings.push(lb<IPlannerState>().p("ui").p("mode").record("ui"));
+    }
+    if (recordings.length > 0) {
+      plannerDispatch(recordings, "Fall through to editing an invalid program");
+    }
+  }, [hasEvalErrors, ui.tabIndex, ui.mode, plannerDispatch]);
 
   const plannerEval = useTimedMemo(
     "editProgram.plannerEval",
@@ -415,7 +441,12 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
               onChangeName={onChangeName}
             />
           </PerfProfiler>
-          <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
+          <OuterTabBar
+            labels={TAB_LABELS_RO}
+            activeIndex={tabIndex}
+            pinnedIndex={hasEvalErrors ? EDIT_TAB_INDEX : undefined}
+            onChange={onChangeTab}
+          />
           <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
             {perTabStickyHeader}
           </PerfProfiler>
@@ -469,6 +500,9 @@ const WeekTabBar = memo(function WeekTabBar(props: IWeekTabBarProps): JSX.Elemen
 interface IOuterTabBarProps {
   labels: readonly string[];
   activeIndex: number;
+  // Set while the program can't be evaluated: this tab is flagged as the one holding the
+  // errors, and the rest - which would render an empty program - are dimmed and inert.
+  pinnedIndex?: number;
   onChange: (index: number) => void;
 }
 
@@ -478,6 +512,8 @@ const OuterTabBar = memo(function OuterTabBar(props: IOuterTabBarProps): JSX.Ele
     <View className="flex-row justify-between pt-4 px-4 bg-background-default border-b border-border-neutral">
       {props.labels.map((label, index) => {
         const isSelected = props.activeIndex === index;
+        const isPinned = props.pinnedIndex === index;
+        const isDisabled = props.pinnedIndex != null && !isPinned;
         const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
         return (
           <Pressable
@@ -485,10 +521,20 @@ const OuterTabBar = memo(function OuterTabBar(props: IOuterTabBarProps): JSX.Ele
             className="px-2 pb-1"
             data-testid={nameClass}
             testID={nameClass}
-            style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
-            onPress={() => props.onChange(index)}
+            style={{
+              opacity: isDisabled ? 0.4 : 1,
+              ...(isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : {}),
+            }}
+            onPress={() => {
+              if (!isDisabled) {
+                props.onChange(index);
+              }
+            }}
           >
-            <Text className={`text-base ${isSelected ? "text-text-purple" : ""}`}>{label}</Text>
+            <Text className={`text-base ${isSelected ? "text-text-purple" : ""}`}>
+              {isPinned ? "⚠️ " : ""}
+              {label}
+            </Text>
           </Pressable>
         );
       })}
