@@ -270,7 +270,8 @@ export interface IPlannerUi {
   focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
   tabIndex?: number;
-  mode?: "reorder" | "ui" | "perday" | "full";
+  mode?: "grid" | "reorder" | "ui" | "perday" | "full";
+  gridDensity?: 0 | 1 | 2;
 }
 
 export interface IPlannerExerciseUiEditSetBottomSheet {

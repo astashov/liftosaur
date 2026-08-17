@@ -22,7 +22,7 @@ import { StringUtils_dashcase, StringUtils_pluralize } from "../../utils/string"
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
-import { EditProgram_setName } from "../../models/editProgram";
+import { EditProgram_setName, EditProgram_tabLabels } from "../../models/editProgram";
 import { EditProgramNavbar, EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
 import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
@@ -72,7 +72,7 @@ function onProfile(
   });
 }
 
-const TAB_LABELS = ["Preview", "Edit", "Playground"] as const;
+const TAB_LABELS = EditProgram_tabLabels;
 const EDIT_TAB_INDEX = TAB_LABELS.indexOf("Edit");
 const EMPTY_EVAL: ReturnType<typeof PlannerProgram_evaluate> = { evaluatedWeeks: [], exerciseFullNames: [] };
 const TAB_LABELS_RO: readonly string[] = TAB_LABELS;
@@ -229,9 +229,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     if ((ui.tabIndex ?? 0) !== EDIT_TAB_INDEX) {
       recordings.push(lb<IPlannerState>().p("ui").p("tabIndex").record(EDIT_TAB_INDEX));
     }
-    // Reorder is the one edit mode with nowhere to render an error, and the navbar already
-    // refuses to enter it while the program is broken.
-    if (ui.mode === "reorder") {
+    // Reorder and grid are the edit modes with nowhere to render an error, and the navbar already
+    // refuses to enter them while the program is broken.
+    if (ui.mode === "reorder" || ui.mode === "grid") {
       recordings.push(lb<IPlannerState>().p("ui").p("mode").record("ui"));
     }
     if (recordings.length > 0) {

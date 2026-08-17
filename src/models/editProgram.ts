@@ -91,6 +91,9 @@ export function EditProgram_setNextDay(dispatch: IDispatch, programId: string, n
   );
 }
 
+export const EditProgram_tabLabels = ["Preview", "Edit", "Playground"] as const;
+export const EditProgram_editTabIndex = EditProgram_tabLabels.indexOf("Edit");
+
 export function EditProgram_initPlannerState(
   id: string,
   program: IProgram,
@@ -103,7 +106,10 @@ export function EditProgram_initPlannerState(
     ui: {
       weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
       focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
-      mode: "ui",
+      // Entering the program with no particular day in mind lands on the grid; a focused day means
+      // the caller wants that day, so it keeps the day-oriented editor.
+      tabIndex: focusedDay ? undefined : EditProgram_editTabIndex,
+      mode: focusedDay ? "ui" : "grid",
       exerciseUi: { edit: new Set(), collapsed: new Set() },
       dayUi: { collapsed: new Set() },
       weekUi: { collapsed: new Set() },

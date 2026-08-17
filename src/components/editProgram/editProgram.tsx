@@ -17,6 +17,8 @@ import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
+import { EditProgramGrid } from "./editProgramGrid";
+import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
@@ -70,7 +72,14 @@ export const EditProgramView = memo(function EditProgramView(
           plannerDispatch={plannerDispatch}
         />
       )}
-      {ui.mode === "reorder" ? (
+      {ui.mode === "grid" ? (
+        <EditProgramGrid
+          evaluatedProgram={props.evaluatedProgram}
+          settings={props.settings}
+          density={ui.gridDensity ?? 1}
+          plannerDispatch={props.plannerDispatch}
+        />
+      ) : ui.mode === "reorder" ? (
         <EditProgramV2Weeks state={props.state} settings={props.settings} plannerDispatch={props.plannerDispatch} />
       ) : ui.mode === "full" ? (
         <EditProgramV2Full
@@ -248,6 +257,18 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           </Pressable>
         </View>
         <View className="flex-row items-center" onLayout={onGroupLayout(1)}>
+          <EditProgramModeSwitchButton
+            padding={padding}
+            isSelected={props.state.ui.mode === "grid"}
+            disabled={!isValid}
+            name="editor-v2-grid-program"
+            onClick={() => {
+              props.dispatch(Thunk_log("ls-program-mode-grid"));
+              props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("grid")], "Switch to grid mode");
+            }}
+          >
+            {(color) => <IconCalendarSmall color={color} size={20} />}
+          </EditProgramModeSwitchButton>
           <EditProgramModeSwitchButton
             padding={padding}
             isSelected={props.state.ui.mode === "reorder"}
