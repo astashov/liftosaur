@@ -27,6 +27,12 @@ function Service_nativeClientHeaders(): Record<string, string> {
   return {};
 }
 
+export interface IServiceError {
+  status?: number;
+  message: string;
+  body?: string;
+}
+
 export interface IProgramDetail {
   fullDescription: string;
   faq?: string;
@@ -444,16 +450,24 @@ export class Service {
     return undefined;
   }
 
-  public async getProgramRevisions(programId: string): Promise<IEither<string[], string>> {
-    const result = await this.client(`${__API_HOST__}/api/programrevisions/${programId}`, {
-      method: "GET",
-      credentials: "include",
-    });
-    if (result.ok) {
-      const json = await result.json();
-      return { success: true, data: json.data };
-    } else {
-      return { success: false, error: "error" };
+  public async getProgramRevisions(programId: string): Promise<IEither<string[], IServiceError>> {
+    try {
+      const result = await this.client(`${__API_HOST__}/api/programrevisions/${programId}`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (result.ok) {
+        const json = await result.json();
+        return { success: true, data: json.data };
+      } else {
+        const body = await result.text().catch(() => "");
+        return {
+          success: false,
+          error: { status: result.status, message: `http_error`, body: body.slice(0, 500) },
+        };
+      }
+    } catch (e) {
+      return { success: false, error: { message: e instanceof Error ? e.message : String(e) } };
     }
   }
 

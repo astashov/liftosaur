@@ -1601,7 +1601,20 @@ export function Thunk_fetchRevisions(programId: string, cb: () => void): IThunk 
         "Set loaded Revisions"
       );
     } else {
-      Dialog_alert("Couldn't fetch program revisions");
+      const error = programRevisions.error;
+      const state = getState();
+      const context = {
+        programId,
+        status: error.status ?? 0,
+        message: error.message,
+        body: error.body ?? "",
+        isLoggedIn: state.user?.id ? "yes" : "no",
+      };
+      lg("ls-program-revisions-fetch-error", context, env.service, state.user?.id || state.storage.tempUserId);
+      Rollbar.error("Couldn't fetch program revisions", { ...context, userId: state.user?.id });
+      Dialog_alert(
+        `Couldn't fetch program revisions${error.status != null ? ` (${error.status})` : `: ${error.message}`}`
+      );
     }
     cb();
   };

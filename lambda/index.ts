@@ -2992,11 +2992,32 @@ const getProgramRevisionsHandler: RouteHandler<
   const { event, di } = payload;
   const currentUserId = await getCurrentUserId(event, di);
   if (currentUserId == null) {
+    const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
+    di.log.log(
+      "Program revisions - not authorized:",
+      `programid=${params.programid}`,
+      `cookienames=${Object.keys(cookies).join(",")}`,
+      `hasauthheader=${!!(event.headers.Authorization || event.headers.authorization)}`,
+      `ua=${getUserAgent(event)}`,
+      `xclient=${event.headers["x-client"] || event.headers["X-Client"] || ""}`
+    );
+    rollbar.error("Program revisions - not authorized", {
+      programid: params.programid,
+      cookienames: Object.keys(cookies).join(","),
+      hasauthheader: !!(event.headers.Authorization || event.headers.authorization),
+      ua: getUserAgent(event),
+      xclient: event.headers["x-client"] || event.headers["X-Client"] || "",
+    });
     return ResponseUtils_json(401, event, { error: "not_authorized" });
   }
   const userDao = new UserDao(di);
-  const programRevisions = await userDao.listProgramRevisions(currentUserId, params.programid);
-  return ResponseUtils_json(200, event, { data: programRevisions });
+  try {
+    const programRevisions = await userDao.listProgramRevisions(currentUserId, params.programid);
+    return ResponseUtils_json(200, event, { data: programRevisions });
+  } catch (e) {
+    di.log.log("Program revisions - failed to list:", `userid=${currentUserId}`, `programid=${params.programid}`, e);
+    throw e;
+  }
 };
 
 const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision");
