@@ -60,7 +60,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const evaluatedProgram = Program_evaluateCachedPlanner(plannerState.current.program, props.settings);
   let plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
     props.dayData.dayInWeek - 1
-  ].exercises.find((e) => e.key === props.exerciseKey);
+  ]?.exercises.find((e) => e.key === props.exerciseKey);
 
   if (!plannerExercise) {
     plannerExercise = Program_getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
