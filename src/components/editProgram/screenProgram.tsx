@@ -41,6 +41,8 @@ import { programTourConfig } from "../tour/programTourConfig";
 import { NavScreenContent } from "../../navigation/NavScreenContent";
 import { LiftoEditorFocusProvider } from "../liftoEditorFocus";
 import { LiftoEditorDock } from "../liftoEditorDock";
+import { GridSelectionProvider } from "./gridSelectionContext";
+import { GridActionDock } from "./gridActionDock";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useTimedMemo } from "../../utils/useTimedMemo";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
@@ -418,40 +420,43 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   }
 
   const showEditorDock = activeTabLabel === "Edit" && (ui.mode === "perday" || ui.mode === "full");
+  const showGridDock = activeTabLabel === "Edit" && ui.mode === "grid";
 
   return (
     <PerfProfiler id="ScreenProgram.shell" onRender={onProfile}>
       <LiftoEditorFocusProvider>
-        <NavScreenContent
-          stickyHeaderIndices={STICKY_INDICES}
-          footer={showEditorDock ? <LiftoEditorDock /> : undefined}
-          // Freeform editing hides the dock, so dragging is how the keyboard goes away on
-          // iOS; Android also has the back button.
-          keyboardDismissMode={showEditorDock ? (Platform.OS === "ios" ? "interactive" : "on-drag") : undefined}
-          // Freeform raises the system keyboard over a day editor that can sit at the very
-          // bottom of the list, and the reveal can only scroll as far as the content allows.
-          avoidSystemKeyboard={showEditorDock}
-        >
-          <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
-            <EditProgramHeader
-              evaluatedProgram={evaluatedProgram}
-              settings={props.settings}
-              onChangeProgram={onChangeProgram}
-              onChangeDay={onChangeDay}
-              onChangeName={onChangeName}
+        <GridSelectionProvider>
+          <NavScreenContent
+            stickyHeaderIndices={STICKY_INDICES}
+            footer={showEditorDock ? <LiftoEditorDock /> : showGridDock ? <GridActionDock /> : undefined}
+            // Freeform editing hides the dock, so dragging is how the keyboard goes away on
+            // iOS; Android also has the back button.
+            keyboardDismissMode={showEditorDock ? (Platform.OS === "ios" ? "interactive" : "on-drag") : undefined}
+            // Freeform raises the system keyboard over a day editor that can sit at the very
+            // bottom of the list, and the reveal can only scroll as far as the content allows.
+            avoidSystemKeyboard={showEditorDock}
+          >
+            <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
+              <EditProgramHeader
+                evaluatedProgram={evaluatedProgram}
+                settings={props.settings}
+                onChangeProgram={onChangeProgram}
+                onChangeDay={onChangeDay}
+                onChangeName={onChangeName}
+              />
+            </PerfProfiler>
+            <OuterTabBar
+              labels={TAB_LABELS_RO}
+              activeIndex={tabIndex}
+              pinnedIndex={hasEvalErrors ? EDIT_TAB_INDEX : undefined}
+              onChange={onChangeTab}
             />
-          </PerfProfiler>
-          <OuterTabBar
-            labels={TAB_LABELS_RO}
-            activeIndex={tabIndex}
-            pinnedIndex={hasEvalErrors ? EDIT_TAB_INDEX : undefined}
-            onChange={onChangeTab}
-          />
-          <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
-            {perTabStickyHeader}
-          </PerfProfiler>
-          {tabContent}
-        </NavScreenContent>
+            <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
+              {perTabStickyHeader}
+            </PerfProfiler>
+            {tabContent}
+          </NavScreenContent>
+        </GridSelectionProvider>
       </LiftoEditorFocusProvider>
     </PerfProfiler>
   );

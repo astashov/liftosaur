@@ -271,7 +271,7 @@ export interface IPlannerUi {
   showSettingsModal?: boolean;
   tabIndex?: number;
   mode?: "grid" | "reorder" | "ui" | "perday" | "full";
-  gridDensity?: 0 | 1 | 2;
+  gridScale?: number;
 }
 
 export interface IPlannerExerciseUiEditSetBottomSheet {

@@ -76,7 +76,9 @@ export const EditProgramView = memo(function EditProgramView(
         <EditProgramGrid
           evaluatedProgram={props.evaluatedProgram}
           settings={props.settings}
-          density={ui.gridDensity ?? 1}
+          programId={props.programId}
+          dispatch={props.dispatch}
+          scale={ui.gridScale}
           plannerDispatch={props.plannerDispatch}
         />
       ) : ui.mode === "reorder" ? (

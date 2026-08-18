@@ -1,5 +1,5 @@
 import { IEvaluatedProgram } from "../../../models/program";
-import { ISettings } from "../../../types";
+import { IDayData, ISettings } from "../../../types";
 import { IPlannerProgramExercise } from "./types";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariation,
@@ -35,6 +35,8 @@ export interface IProgramGridPlacement {
   fullName: string;
   shortName: string;
   label?: string;
+  // The day this run is authored in — what every action on the placement needs to address it.
+  dayData: Required<IDayData>;
   rowIndex: number;
   laneIndex: number;
   colStart: number;
@@ -214,6 +216,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           fullName: exercise.fullName,
           shortName: exercise.shortName,
           label: exercise.label,
+          dayData: exercise.dayData,
           rowIndex,
           laneIndex,
           colStart: weekIndex,
@@ -293,4 +296,47 @@ export function ProgramGrid_errorAt(
   weekIndex: number
 ): IProgramGridError | undefined {
   return grid.errors.find((e) => e.rowIndex === rowIndex && e.weekIndex === weekIndex);
+}
+
+export interface IProgramGridSelection {
+  selectedIds: Set<string>;
+  placements: IProgramGridPlacement[];
+  // Other runs of the same exercise — the per-week cells of an undulating definition, or the far
+  // side of a run that an override split in two.
+  sameExerciseIds: Set<string>;
+  // Reuse partners in both directions: selecting a reuser lights its source, selecting a source (or
+  // template) lights every exercise that reuses it.
+  linkedIds: Set<string>;
+}
+
+export function ProgramGrid_select(grid: IProgramGrid, placementIds: string[]): IProgramGridSelection | undefined {
+  const selectedIds = new Set(placementIds);
+  const placements = grid.placements.filter((p) => selectedIds.has(p.id));
+  if (placements.length === 0) {
+    return undefined;
+  }
+  const sameExerciseIds = new Set<string>();
+  const linkedIds = new Set<string>();
+  for (const placement of grid.placements) {
+    if (selectedIds.has(placement.id)) {
+      continue;
+    }
+    if (placements.some((s) => s.fullName === placement.fullName)) {
+      sameExerciseIds.add(placement.id);
+    } else if (placements.some((s) => s.reuseOf === placement.fullName || s.fullName === placement.reuseOf)) {
+      linkedIds.add(placement.id);
+    }
+  }
+  return { selectedIds, placements, sameExerciseIds, linkedIds };
+}
+
+export function ProgramGrid_isRelated(selection: IProgramGridSelection | undefined, placementId: string): boolean {
+  if (selection == null) {
+    return true;
+  }
+  return (
+    selection.selectedIds.has(placementId) ||
+    selection.sameExerciseIds.has(placementId) ||
+    selection.linkedIds.has(placementId)
+  );
 }

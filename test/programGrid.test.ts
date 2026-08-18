@@ -3,6 +3,8 @@ import { expect } from "chai";
 import {
   ProgramGrid_build,
   ProgramGrid_schemeToString,
+  ProgramGrid_select,
+  ProgramGrid_isRelated,
   IProgramGrid,
   IProgramGridPlacement,
 } from "../src/pages/planner/models/programGrid";
@@ -195,6 +197,47 @@ Squat / 1x1 140lb
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-0]", "Squat@r0[1-2]", "Squat@r0[3-3]"]);
     expect(grid.placements.map((p) => p.isOverride)).to.deep.equal([false, false, false]);
     expect(grid.placements[1].repeatSpan).to.deep.equal([1, 2]);
+  });
+
+  it("lights up the source when a reuser is selected, and every reuser when the source is", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl[1-2] / used: none / 3x5 100lb
+Squat[1-2] / ...tmpl
+Bench Press[1-2] / ...tmpl
+Bicep Curl[1-2] / 3x12 20lb
+
+# Week 2
+## Day 1
+`);
+    const tmpl = grid.placements.find((p) => p.fullName === "tmpl")!;
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    const curl = grid.placements.find((p) => p.fullName === "Bicep Curl")!;
+
+    const fromReuser = ProgramGrid_select(grid, [squat.id])!;
+    expect(Array.from(fromReuser.linkedIds)).to.deep.equal([tmpl.id]);
+
+    const fromSource = ProgramGrid_select(grid, [tmpl.id])!;
+    expect(Array.from(fromSource.linkedIds).sort()).to.deep.equal([squat.id, bench.id].sort());
+
+    expect(ProgramGrid_isRelated(fromSource, curl.id)).to.equal(false);
+    expect(ProgramGrid_isRelated(undefined, curl.id)).to.equal(true);
+  });
+
+  it("relates the separate runs of one exercise to each other", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 5x5 100lb
+
+# Week 2
+## Day 1
+Squat / 3x3 120lb
+`);
+    const [first, second] = grid.placements;
+    const selection = ProgramGrid_select(grid, [first.id])!;
+    expect(Array.from(selection.sameExerciseIds)).to.deep.equal([second.id]);
+    expect(selection.linkedIds.size).to.equal(0);
   });
 
   it("keeps two exercises in stable lanes across weeks regardless of authored order", () => {

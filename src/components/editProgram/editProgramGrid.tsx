@@ -1,5 +1,5 @@
-import { JSX, memo, useCallback, useMemo } from "react";
-import { View, ScrollView } from "react-native";
+import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { View, ScrollView, LayoutChangeEvent, useWindowDimensions } from "react-native";
 import { lb } from "lens-shmens";
 import { Text } from "../primitives/text";
 import { Pressable } from "../primitives/pressable";
@@ -9,22 +9,46 @@ import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useRem } from "../../utils/useRem";
 import { StringUtils_pluralize } from "../../utils/string";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
+import { useGridPinch } from "./gridPinch";
 import {
   IProgramGrid,
   IProgramGridDensity,
   IProgramGridPlacement,
+  IProgramGridSelection,
   IProgramGridTokenKind,
   ProgramGrid_build,
   ProgramGrid_cellScheme,
   ProgramGrid_errorAt,
+  ProgramGrid_isRelated,
+  ProgramGrid_select,
 } from "../../pages/planner/models/programGrid";
 import { FastText } from "../primitives/fastText";
 import { StyledText, StyledText_remToPx } from "../../utils/styledText";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { IDispatch } from "../../ducks/types";
+import { Thunk_pushToEditProgramExercise } from "../../ducks/thunks";
+import { Program_getProgramExerciseForKeyAndShortDayData } from "../../models/program";
+import { EditProgramUiHelpers_deleteCurrentInstance } from "./editProgramUi/editProgramUiHelpers";
+import { pickerStateFromPlannerExercise } from "./editProgramUtils";
+import { Dialog_alert } from "../../utils/dialog";
+import { useGridSelectionPublish } from "./gridSelectionContext";
+import { IconPlus2 } from "../icons/iconPlus2";
 
-const COLUMN_WIDTH_BY_DENSITY: Record<IProgramGridDensity, number> = { 0: 6, 1: 9.5, 2: 14 };
-const DENSITY_LABELS: Record<IProgramGridDensity, string> = { 0: "S", 1: "M", 2: "L" };
-const LANE_HEIGHT_BY_DENSITY: Record<IProgramGridDensity, number> = { 0: 2, 1: 3.25, 2: 3.25 };
+// Column width at scale 1, in rem; pinch multiplies it. Below SCHEME_MIN_WIDTH a column is too
+// narrow to say anything useful with numbers, so cells shed their scheme and show names only --
+// zoomed all the way out is therefore the whole-program structure view, not a separate mode.
+const BASE_COLUMN_WIDTH = 9.5;
+const SCHEME_MIN_WIDTH = 7.5;
+const LANE_HEIGHT_WITH_SCHEME = 3.25;
+const LANE_HEIGHT_NAME_ONLY = 2;
+// Up to this many weeks, columns divide the available width instead of scrolling.
+const WEEKS_THAT_FIT = 2;
+const SCALE_PRESETS: { label: string; scale: number }[] = [
+  { label: "S", scale: 0.6 },
+  { label: "M", scale: 1 },
+  { label: "L", scale: 1.5 },
+];
 // Grid gutters, in rem. A day box is inset from its column by DAY_BOX_INSET (so neighbouring boxes
 // are separated by twice that), and a strip is inset by CELL_INSET — the difference between them is
 // the breathing room *inside* the box, and BOTTOM_GAP keeps the same room under the last strip.
@@ -32,33 +56,196 @@ const DAY_BOX_INSET = 0.1875;
 const CELL_INSET_X = 0.4375;
 const CELL_INSET_Y = 0.1875;
 const BOTTOM_GAP = 0.25;
+const ADD_ROW_HEIGHT = 1.5;
 
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
-  density: IProgramGridDensity;
+  programId: string;
+  dispatch: IDispatch;
+  // Undefined until the user pinches or picks a preset, which is what lets a short program fit the
+  // screen by default without freezing that choice the moment they zoom.
+  scale?: number;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
 export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgramGridProps): JSX.Element {
+  usePerfRenderCount("EditProgramGrid");
   const rem = useRem();
-  const { evaluatedProgram, settings, density } = props;
+  const { evaluatedProgram, settings } = props;
   const grid = useMemo(() => ProgramGrid_build(evaluatedProgram, settings), [evaluatedProgram, settings]);
-  const columnWidth = COLUMN_WIDTH_BY_DENSITY[density] * rem;
+  const windowWidth = useWindowDimensions().width;
+  const [containerWidth, setContainerWidth] = useState(windowWidth);
+  const onLayout = useCallback((e: LayoutChangeEvent) => setContainerWidth(e.nativeEvent.layout.width), []);
+  // A one- or two-week program has no reason to leave half the screen empty, so it fills the width
+  // until the user says otherwise; three or more weeks start at the readable base width and scroll.
+  const autoColumnWidth =
+    grid.columns.length > 0 && grid.columns.length <= WEEKS_THAT_FIT
+      ? containerWidth / grid.columns.length
+      : BASE_COLUMN_WIDTH * rem;
+  const columnWidth = props.scale != null ? BASE_COLUMN_WIDTH * props.scale * rem : autoColumnWidth;
+  const scale = columnWidth / (BASE_COLUMN_WIDTH * rem);
   const totalWidth = columnWidth * grid.columns.length;
+  const density: IProgramGridDensity = columnWidth >= SCHEME_MIN_WIDTH * rem ? 2 : 0;
+  const laneHeight = (density === 0 ? LANE_HEIGHT_NAME_ONLY : LANE_HEIGHT_WITH_SCHEME) * rem;
 
-  const onChangeDensity = useCallback(
-    (newDensity: IProgramGridDensity) => {
-      props.plannerDispatch(
-        lb<IPlannerState>().p("ui").p("gridDensity").record(newDensity),
-        `Change grid density to ${newDensity}`
-      );
+  const plannerDispatch = props.plannerDispatch;
+  const onChangeScale = useCallback(
+    (newScale: number) => {
+      plannerDispatch(lb<IPlannerState>().p("ui").p("gridScale").record(newScale), `Change grid scale to ${newScale}`);
     },
-    [props]
+    [plannerDispatch]
+  );
+  const { Wrap } = useGridPinch({ scale, onScaleChange: onChangeScale });
+
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const selection = useMemo(() => ProgramGrid_select(grid, selectedIds), [grid, selectedIds]);
+  // Tapping is a toggle, so multi-select needs no mode to enter or leave: tap to add, tap again to
+  // drop, tap the background to clear.
+  const onSelect = useCallback((placementId: string) => {
+    setSelectedIds((current) =>
+      current.indexOf(placementId) !== -1 ? current.filter((id) => id !== placementId) : [...current, placementId]
+    );
+  }, []);
+  const onClearSelection = useCallback(() => setSelectedIds([]), []);
+
+  const dispatch = props.dispatch;
+  const programId = props.programId;
+  const onEditPlacement = useCallback(
+    (placement: IProgramGridPlacement) => {
+      dispatch(Thunk_pushToEditProgramExercise(placement.key, placement.dayData, programId));
+    },
+    [dispatch, programId]
   );
 
+  const onDuplicatePlacement = useCallback(
+    (placement: IProgramGridPlacement) => {
+      const exercise = Program_getProgramExerciseForKeyAndShortDayData(
+        evaluatedProgram,
+        placement.dayData,
+        placement.key
+      );
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("ui")
+          .p("exercisePicker")
+          .record({
+            state: pickerStateFromPlannerExercise(settings, exercise),
+            dayData: placement.dayData,
+            exerciseKey: placement.key,
+            change: "duplicate",
+          }),
+        "Open duplicate exercise modal"
+      );
+    },
+    [plannerDispatch, evaluatedProgram, settings]
+  );
+
+  const onDeletePlacements = useCallback(
+    (placements: IProgramGridPlacement[]) => {
+      // Deleting an exercise that others reuse orphans them, and materializing the reusers is the
+      // v2 work. Until then this refuses rather than quietly breaking the program.
+      const sources = placements.filter((p) => p.isReuseSource);
+      if (sources.length > 0) {
+        Dialog_alert(
+          `${sources.map((p) => p.fullName).join(", ")} ${sources.length === 1 ? "is" : "are"} reused by other exercises. Change those to stop reusing it first.`
+        );
+        return;
+      }
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .recordModify((planner) => {
+            return placements.reduce(
+              (acc, placement) =>
+                EditProgramUiHelpers_deleteCurrentInstance(
+                  acc,
+                  placement.dayData,
+                  placement.fullName,
+                  settings,
+                  false,
+                  true
+                ),
+              planner
+            );
+          }),
+        `Delete ${placements.length} exercise(s) from grid`
+      );
+      setSelectedIds([]);
+    },
+    [plannerDispatch, settings]
+  );
+
+  const onAddExercise = useCallback(
+    (weekIndex: number, rowIndex: number) => {
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("ui")
+          .p("exercisePicker")
+          .record({
+            dayData: { week: weekIndex + 1, dayInWeek: rowIndex + 1 },
+            change: "all",
+            state: pickerStateFromPlannerExercise(settings),
+          }),
+        "Open add exercise picker"
+      );
+    },
+    [plannerDispatch, settings]
+  );
+
+  const onAddDay = useCallback(
+    (weekIndex: number) => {
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .p("weeks")
+          .i(weekIndex)
+          .p("days")
+          .recordModify((days) => [...days, { name: `Day ${days.length + 1}`, exerciseText: "" }]),
+        "Add new day"
+      );
+    },
+    [plannerDispatch]
+  );
+
+  const onAddWeek = useCallback(() => {
+    plannerDispatch(
+      lb<IPlannerState>()
+        .p("current")
+        .p("program")
+        .pi("planner")
+        .p("weeks")
+        .recordModify((weeks) => [...weeks, { name: `Week ${weeks.length + 1}`, days: [] }]),
+      "Add new week"
+    );
+  }, [plannerDispatch]);
+
+  const publishSelection = useGridSelectionPublish();
+  const payload = useMemo(
+    () =>
+      selection != null
+        ? {
+            placements: selection.placements,
+            onEdit: onEditPlacement,
+            onDuplicate: onDuplicatePlacement,
+            onDelete: onDeletePlacements,
+            onClear: onClearSelection,
+          }
+        : undefined,
+    [selection, onEditPlacement, onDuplicatePlacement, onDeletePlacements, onClearSelection]
+  );
+  useEffect(() => {
+    publishSelection(payload);
+  }, [payload, publishSelection]);
+  // Leaving the grid (mode switch, tab change) must take the dock with it.
+  useEffect(() => () => publishSelection(undefined), [publishSelection]);
+
   return (
-    <View className="pb-4">
+    <View className="pb-4" onLayout={onLayout}>
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-xs text-text-secondary">
           {grid.counts.weeks} {StringUtils_pluralize("week", grid.counts.weeks)} · {grid.counts.exercises}{" "}
@@ -68,37 +255,98 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
             : ""}
         </Text>
         <View className="flex-row items-center">
-          {([0, 1, 2] as IProgramGridDensity[]).map((d) => (
+          {SCALE_PRESETS.map((preset, i) => (
             <Pressable
-              key={d}
-              className={`px-2 py-1 ml-1 rounded nm-grid-density-${d}`}
-              testID={`grid-density-${d}`}
-              onPress={() => onChangeDensity(d)}
+              key={preset.label}
+              className={`px-2 py-1 ml-1 rounded nm-grid-density-${i}`}
+              testID={`grid-density-${i}`}
+              onPress={() => onChangeScale(preset.scale)}
             >
-              <Text className={`text-xs ${d === density ? "font-bold text-text-link" : "text-text-secondary"}`}>
-                {DENSITY_LABELS[d]}
+              <Text
+                className={`text-xs ${
+                  Math.abs(scale - preset.scale) < 0.01 ? "font-bold text-text-link" : "text-text-secondary"
+                }`}
+              >
+                {preset.label}
               </Text>
             </Pressable>
           ))}
         </View>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-        <View style={{ width: totalWidth }}>
-          <WeekHeaderRow grid={grid} columnWidth={columnWidth} />
-          {grid.rows.map((row) => (
-            <GridRow
-              key={row.rowIndex}
-              grid={grid}
-              rowIndex={row.rowIndex}
-              columnWidth={columnWidth}
-              laneHeight={LANE_HEIGHT_BY_DENSITY[density] * rem}
-              density={density}
-            />
-          ))}
-        </View>
-      </ScrollView>
+      <Wrap>
+        <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+          {/* RN presses don't bubble, so a tap that lands on a cell selects it and a tap that
+              lands anywhere else falls through to here and clears. */}
+          <Pressable className="flex-row" onPress={onClearSelection}>
+            <View style={{ width: totalWidth }}>
+              <WeekHeaderRow grid={grid} columnWidth={columnWidth} />
+              {grid.rows.map((row) => (
+                <GridRow
+                  key={row.rowIndex}
+                  grid={grid}
+                  rowIndex={row.rowIndex}
+                  columnWidth={columnWidth}
+                  laneHeight={laneHeight}
+                  density={density}
+                  selection={selection}
+                  onSelect={onSelect}
+                  onAddExercise={onAddExercise}
+                />
+              ))}
+              <View className="flex-row">
+                {grid.columns.map((column) => (
+                  <View
+                    key={column.weekIndex}
+                    style={{ width: columnWidth, padding: DAY_BOX_INSET * rem }}
+                    className="justify-center"
+                  >
+                    <AddButton
+                      label="Day"
+                      testID={`grid-add-day-${column.weekIndex}`}
+                      onPress={() => onAddDay(column.weekIndex)}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View style={{ width: columnWidth, padding: DAY_BOX_INSET * rem }}>
+              <AddButton label="Week" testID="grid-add-week" onPress={onAddWeek} />
+            </View>
+          </Pressable>
+        </ScrollView>
+      </Wrap>
       <Text className="px-4 pt-2 text-xs text-text-secondary">Weeks and days never reorder</Text>
     </View>
+  );
+});
+
+interface IAddButtonProps {
+  label: string;
+  testID: string;
+  onPress: () => void;
+}
+
+const AddButton = memo(function AddButton(props: IAddButtonProps): JSX.Element {
+  return (
+    <Pressable
+      className={`flex-row items-center justify-center px-1 py-1 border rounded nm-${props.testID}`}
+      // A filled placeholder rather than an outline: against the warm day box an unfilled button
+      // reads as part of the box, and "+ Exercise" in particular went unnoticed. The pale purple is
+      // the exercise strip's own colour, drained — an empty slot waiting for one.
+      style={{
+        borderStyle: "dashed",
+        borderColor: Tailwind_semantic().border.cardpurple,
+        backgroundColor: Tailwind_semantic().background.cardpurple,
+      }}
+      testID={props.testID}
+      accessibilityLabel={`Add ${props.label}`}
+      onPress={props.onPress}
+    >
+      <IconPlus2 size={10} color={Tailwind_semantic().text.link} />
+      <Text className="ml-1 text-xs font-semibold text-text-link" numberOfLines={1}>
+        {props.label}
+      </Text>
+    </Pressable>
   );
 });
 
@@ -125,6 +373,9 @@ interface IGridRowProps {
   columnWidth: number;
   laneHeight: number;
   density: IProgramGridDensity;
+  selection?: IProgramGridSelection;
+  onSelect: (placementId: string) => void;
+  onAddExercise: (weekIndex: number, rowIndex: number) => void;
 }
 
 const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
@@ -138,7 +389,8 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
   const labelHeight = 1.5 * rem;
   // The row is taller than its content by the box's own padding, so the last strip clears the
   // bottom edge by the same gap it keeps from the sides.
-  const rowHeight = labelHeight + lanes * props.laneHeight + BOTTOM_GAP * rem;
+  const addHeight = ADD_ROW_HEIGHT * rem;
+  const rowHeight = labelHeight + lanes * props.laneHeight + addHeight + BOTTOM_GAP * rem;
 
   return (
     <View style={{ height: rowHeight }} className="mb-1">
@@ -188,8 +440,29 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
           columnWidth={props.columnWidth}
           laneHeight={props.laneHeight}
           density={props.density}
+          selection={props.selection}
+          onSelect={props.onSelect}
         />
       ))}
+      {/* One per week rather than one per row: adding an exercise targets a specific week's day,
+          and a ragged week that lacks this day gets no button at all. */}
+      <View className="flex-row" style={{ height: addHeight }}>
+        {grid.columns.map((column) => (
+          <View
+            key={column.weekIndex}
+            style={{ width: props.columnWidth, paddingHorizontal: CELL_INSET_X * rem }}
+            className="justify-center"
+          >
+            {row.weekIndexes.indexOf(column.weekIndex) !== -1 && (
+              <AddButton
+                label="Exercise"
+                testID={`grid-add-exercise-${column.weekIndex}-${rowIndex}`}
+                onPress={() => props.onAddExercise(column.weekIndex, rowIndex)}
+              />
+            )}
+          </View>
+        ))}
+      </View>
     </View>
   );
 });
@@ -201,6 +474,8 @@ interface ILaneRowProps {
   columnWidth: number;
   laneHeight: number;
   density: IProgramGridDensity;
+  selection?: IProgramGridSelection;
+  onSelect: (placementId: string) => void;
 }
 
 const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
@@ -232,6 +507,8 @@ const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
             width={props.columnWidth * segment.span}
             height={props.laneHeight}
             density={props.density}
+            selection={props.selection}
+            onSelect={props.onSelect}
           />
         ) : (
           <View key={i} style={{ width: props.columnWidth * segment.span, height: props.laneHeight }} />
@@ -246,12 +523,17 @@ interface IGridCellProps {
   width: number;
   height: number;
   density: IProgramGridDensity;
+  selection?: IProgramGridSelection;
+  onSelect: (placementId: string) => void;
 }
 
 const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
   const rem = useRem();
-  const { placement } = props;
+  const { placement, selection } = props;
   const scheme = ProgramGrid_cellScheme(placement, props.density);
+  const isSelected = selection?.selectedIds.has(placement.id) ?? false;
+  const isLinked = selection?.linkedIds.has(placement.id) ?? false;
+  const isRelated = ProgramGrid_isRelated(selection, placement.id);
   // Saturated enough to hold their own against the warm day box behind them — the paler purple and
   // grey went muddy on yellow. Resolved values rather than `bg-*` classes so a utility that the
   // scanner never emitted can't silently fall back to transparent; these still follow the theme.
@@ -287,19 +569,24 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
   }, [scheme]);
 
   return (
-    <View
+    <Pressable
       style={{
         width: props.width,
         height: props.height,
         paddingHorizontal: CELL_INSET_X * rem,
         paddingVertical: CELL_INSET_Y * rem,
+        // Unrelated strips recede rather than disappear — the shape of the program stays readable
+        // while the reuse relationship is what stands out.
+        opacity: isRelated ? 1 : 0.3,
       }}
+      testID={`grid-cell-${placement.fullName}-${placement.colStart}`}
+      onPress={() => props.onSelect(placement.id)}
     >
       <View
         className="flex-1 overflow-hidden rounded"
         style={{
-          borderColor,
-          borderWidth: placement.isOverride ? 2 : 1,
+          borderColor: isSelected || isLinked ? Tailwind_semantic().icon.purple : borderColor,
+          borderWidth: isSelected ? 2 : placement.isOverride ? 2 : 1,
           borderStyle: placement.isTemplate ? "dashed" : "solid",
         }}
       >
@@ -336,6 +623,6 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 });
