@@ -1,6 +1,11 @@
 import "mocha";
 import { expect } from "chai";
-import { ProgramGrid_build, IProgramGrid, IProgramGridPlacement } from "../src/pages/planner/models/programGrid";
+import {
+  ProgramGrid_build,
+  ProgramGrid_schemeToString,
+  IProgramGrid,
+  IProgramGridPlacement,
+} from "../src/pages/planner/models/programGrid";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { Program_evaluate, Program_create } from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
@@ -34,7 +39,7 @@ Squat[1-3] / 3x5 100lb
 `);
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-2]"]);
     expect(grid.placements[0].runKind).to.equal("repeat");
-    expect(grid.placements[0].scheme).to.equal("3x 5 100lb");
+    expect(ProgramGrid_schemeToString(grid.placements[0].scheme)).to.equal("3x5 100lb");
   });
 
   it("collapses identical consecutive weeks and breaks the run where the definition differs", () => {
@@ -155,8 +160,8 @@ Squat / 3x3 60lb
 `);
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-1]", "Squat@r0[2-2]", "Squat@r0[3-3]"]);
     expect(grid.placements.map((p) => p.isOverride)).to.deep.equal([false, true, false]);
-    expect(grid.placements[1].scheme).to.equal("3x 3 60lb");
-    expect(grid.placements[2].scheme).to.equal("3x 5 100lb");
+    expect(ProgramGrid_schemeToString(grid.placements[1].scheme)).to.equal("3x3 60lb");
+    expect(ProgramGrid_schemeToString(grid.placements[2].scheme)).to.equal("3x5 100lb");
   });
 
   it("does not call undulation an override — there is no repeat to punch into", () => {

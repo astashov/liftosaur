@@ -8,6 +8,15 @@ import {
 
 export type IProgramGridRunKind = "single" | "repeat" | "identical";
 
+// Mirrors the editor's node→style mapping (liftoEditorBrain.ts:105-113) so a strip reads like the
+// Liftoscript it stands for. The view owns the actual colors.
+export type IProgramGridTokenKind = "setPart" | "weight" | "rpe" | "timer" | "auto" | "separator";
+
+export interface IProgramGridSchemeToken {
+  text: string;
+  kind: IProgramGridTokenKind;
+}
+
 export interface IProgramGridColumn {
   weekIndex: number;
   name: string;
@@ -37,8 +46,7 @@ export interface IProgramGridPlacement {
   isReuseSource: boolean;
   reuseOf?: string;
   isOverride: boolean;
-  scheme: string;
-  shortScheme: string;
+  scheme: IProgramGridSchemeToken[];
 }
 
 export interface IProgramGridError {
@@ -66,21 +74,38 @@ function laneId(exercise: IPlannerProgramExercise, ordinal: number): string {
   return `${exercise.key}#${ordinal}`;
 }
 
-function displaySetsToString(exercise: IPlannerProgramExercise, settings: ISettings): string {
+function displaySetsToTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[][] {
   const variation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
   const groups = PlannerProgramExercise_evaluatedSetsToDisplaySets(variation?.sets ?? [], settings);
-  return groups
-    .map((group) => {
-      const first = group[0];
-      if (first == null) {
-        return "";
-      }
-      const weight = first.dimWeight || first.weight == null ? "" : ` ${first.weight}${first.unit ?? ""}`;
-      const rpe = first.rpe != null ? ` @${first.rpe}` : "";
-      return `${group.length}x ${first.reps}${weight}${rpe}`;
-    })
-    .filter((s) => s !== "")
-    .join(", ");
+  return groups.reduce<IProgramGridSchemeToken[][]>((acc, group) => {
+    const first = group[0];
+    if (first == null) {
+      return acc;
+    }
+    const tokens: IProgramGridSchemeToken[] = [{ text: `${group.length}x${first.reps}`, kind: "setPart" }];
+    if (!first.dimWeight && first.weight != null) {
+      tokens.push({ text: " ", kind: "separator" });
+      tokens.push({ text: `${first.weight}${first.unit ?? ""}`, kind: "weight" });
+    }
+    if (first.rpe != null) {
+      tokens.push({ text: " ", kind: "separator" });
+      tokens.push({ text: `@${first.rpe}`, kind: "rpe" });
+    }
+    const timer = first.setTimer ?? first.timer;
+    if (timer != null) {
+      tokens.push({ text: " ", kind: "separator" });
+      tokens.push({ text: `${timer}s`, kind: "timer" });
+    }
+    if (first.auto) {
+      tokens.push({ text: " ", kind: "separator" });
+      tokens.push({ text: "auto", kind: "auto" });
+    }
+    return [...acc, tokens];
+  }, []);
+}
+
+export function ProgramGrid_schemeToString(tokens: IProgramGridSchemeToken[]): string {
+  return tokens.map((t) => t.text).join("");
 }
 
 function buildLanes(program: IEvaluatedProgram, rowIndex: number): string[] {
@@ -177,8 +202,12 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           }
           continue;
         }
-        const scheme = displaySetsToString(exercise, settings);
-        const schemeParts = scheme.split(", ");
+        const schemeGroups = displaySetsToTokens(exercise, settings);
+        const separator: IProgramGridSchemeToken = { text: ", ", kind: "separator" };
+        const scheme = schemeGroups.reduce<IProgramGridSchemeToken[]>(
+          (acc, group, i) => (i === 0 ? group : [...acc, separator, ...group]),
+          []
+        );
         const placement: IProgramGridPlacement = {
           id: `${rowIndex}:${lane}:${weekIndex}`,
           key: exercise.key,
@@ -200,7 +229,6 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           reuseOf: exercise.reuse?.fullName,
           isOverride: false,
           scheme,
-          shortScheme: schemeParts.length > 1 ? `${schemeParts[0]}, …` : (schemeParts[0] ?? ""),
         };
         lanePlacements.push(placement);
         open = { placement, definingText: exercise.text };
@@ -242,11 +270,13 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
   };
 }
 
-export function ProgramGrid_cellText(placement: IProgramGridPlacement, density: IProgramGridDensity): string {
-  if (density === 0) {
-    return "";
-  }
-  return density === 1 ? placement.shortScheme : placement.scheme;
+// Density decides whether the scheme shows at all, never how much of it — the full text is handed
+// to the view so it ellipsizes only when it genuinely doesn't fit the column.
+export function ProgramGrid_cellScheme(
+  placement: IProgramGridPlacement,
+  density: IProgramGridDensity
+): IProgramGridSchemeToken[] {
+  return density === 0 ? [] : placement.scheme;
 }
 
 export function ProgramGrid_placementsAt(
