@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, LayoutChangeEvent, useWindowDimensions } from "react-native";
 import { lb } from "lens-shmens";
 import { Text } from "../primitives/text";
@@ -34,6 +34,8 @@ import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { Dialog_alert } from "../../utils/dialog";
 import { useGridSelectionPublish } from "./gridSelectionContext";
 import { IconPlus2 } from "../icons/iconPlus2";
+import { GridResizeHandle } from "./gridResizeHandle";
+import { ProgramGridTransforms_setRepeatRange } from "../../pages/planner/models/programGridTransforms";
 
 // Column width at scale 1, in rem; pinch multiplies it. Below SCHEME_MIN_WIDTH a column is too
 // narrow to say anything useful with numbers, so cells shed their scheme and show names only --
@@ -57,6 +59,7 @@ const CELL_INSET_X = 0.4375;
 const CELL_INSET_Y = 0.1875;
 const BOTTOM_GAP = 0.25;
 const ADD_ROW_HEIGHT = 1.5;
+const RESIZE_HANDLE_WIDTH = 1;
 
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -212,6 +215,22 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     [plannerDispatch]
   );
 
+  const onSetRepeatRange = useCallback(
+    (placement: IProgramGridPlacement, toWeekIndex: number) => {
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .recordModify((planner) =>
+            ProgramGridTransforms_setRepeatRange(planner, placement.dayData, placement.fullName, toWeekIndex + 1)
+          ),
+        `Repeat ${placement.fullName} through week ${toWeekIndex + 1}`
+      );
+    },
+    [plannerDispatch]
+  );
+
   const onAddWeek = useCallback(() => {
     plannerDispatch(
       lb<IPlannerState>()
@@ -291,6 +310,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                   selection={selection}
                   onSelect={onSelect}
                   onAddExercise={onAddExercise}
+                  onSetRepeatRange={onSetRepeatRange}
                 />
               ))}
               <View className="flex-row">
@@ -376,6 +396,7 @@ interface IGridRowProps {
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   onAddExercise: (weekIndex: number, rowIndex: number) => void;
+  onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
 }
 
 const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
@@ -442,6 +463,7 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
           density={props.density}
           selection={props.selection}
           onSelect={props.onSelect}
+          onSetRepeatRange={props.onSetRepeatRange}
         />
       ))}
       {/* One per week rather than one per row: adding an exercise targets a specific week's day,
@@ -467,6 +489,12 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
   );
 });
 
+// A run can never end before it starts, nor past the last week. The row being ragged doesn't
+// constrain it — a repeat simply stops at the last week that has this day.
+function clampWeek(grid: IProgramGrid, placement: IProgramGridPlacement, deltaWeeks: number): number {
+  return Math.max(placement.colStart, Math.min(grid.columns.length - 1, placement.colEnd + deltaWeeks));
+}
+
 interface ILaneRowProps {
   grid: IProgramGrid;
   rowIndex: number;
@@ -476,10 +504,13 @@ interface ILaneRowProps {
   density: IProgramGridDensity;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
+  onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
 }
 
 const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
   const { grid, rowIndex, laneIndex } = props;
+  // Held here rather than at the top so a drag only re-renders its own lane.
+  const [resize, setResize] = useState<{ id: string; deltaWeeks: number } | undefined>(undefined);
   const segments = useMemo(() => {
     const placements = grid.placements.filter((p) => p.rowIndex === rowIndex && p.laneIndex === laneIndex);
     const result: { placement?: IProgramGridPlacement; span: number }[] = [];
@@ -497,6 +528,30 @@ const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
     return result;
   }, [grid.placements, grid.columns.length, rowIndex, laneIndex]);
 
+  // Only the lane's last run can be dragged: extending a run that has another after it would have
+  // to move that one's start too, which is a different (v2) operation.
+  const lastPlacementId = useMemo(() => {
+    const withPlacement = segments.filter((s) => s.placement != null);
+    return withPlacement[withPlacement.length - 1]?.placement?.id;
+  }, [segments]);
+
+  // The pending drag is mirrored in a ref so the commit can read it from an event handler. Doing it
+  // inside the setState updater instead would dispatch during render, which React rejects — and the
+  // ref also makes the end/finalize pair idempotent, since the first one clears it.
+  const resizeRef = useRef(resize);
+  resizeRef.current = resize;
+  const onResizeEnd = useCallback(() => {
+    const current = resizeRef.current;
+    resizeRef.current = undefined;
+    if (current != null && current.deltaWeeks !== 0) {
+      const placement = grid.placements.find((p) => p.id === current.id);
+      if (placement != null) {
+        props.onSetRepeatRange(placement, clampWeek(grid, placement, current.deltaWeeks));
+      }
+    }
+    setResize(undefined);
+  }, [grid, props]);
+
   return (
     <View className="flex-row">
       {segments.map((segment, i) =>
@@ -504,11 +559,24 @@ const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
           <GridCell
             key={i}
             placement={segment.placement}
-            width={props.columnWidth * segment.span}
+            width={
+              props.columnWidth *
+              (resize?.id === segment.placement.id
+                ? clampWeek(grid, segment.placement, resize.deltaWeeks) - segment.placement.colStart + 1
+                : segment.span)
+            }
             height={props.laneHeight}
             density={props.density}
             selection={props.selection}
             onSelect={props.onSelect}
+            columnWidth={props.columnWidth}
+            isResizing={resize?.id === segment.placement.id}
+            onResize={
+              segment.placement.id === lastPlacementId
+                ? (deltaWeeks) => setResize({ id: segment.placement!.id, deltaWeeks })
+                : undefined
+            }
+            onResizeEnd={onResizeEnd}
           />
         ) : (
           <View key={i} style={{ width: props.columnWidth * segment.span, height: props.laneHeight }} />
@@ -525,6 +593,11 @@ interface IGridCellProps {
   density: IProgramGridDensity;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
+  columnWidth: number;
+  isResizing: boolean;
+  // Absent when this run isn't the lane's last, which is the only one whose end can move.
+  onResize?: (deltaWeeks: number) => void;
+  onResizeEnd: () => void;
 }
 
 const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
@@ -534,6 +607,15 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
   const isSelected = selection?.selectedIds.has(placement.id) ?? false;
   const isLinked = selection?.linkedIds.has(placement.id) ?? false;
   const isRelated = ProgramGrid_isRelated(selection, placement.id);
+  const didResizeRef = useRef(false);
+  const onResize = props.onResize;
+  const onResizeStart = useCallback(
+    (deltaWeeks: number) => {
+      didResizeRef.current = true;
+      onResize?.(deltaWeeks);
+    },
+    [onResize]
+  );
   // Saturated enough to hold their own against the warm day box behind them — the paler purple and
   // grey went muddy on yellow. Resolved values rather than `bg-*` classes so a utility that the
   // scanner never emitted can't silently fall back to transparent; these still follow the theme.
@@ -580,13 +662,21 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
         opacity: isRelated ? 1 : 0.3,
       }}
       testID={`grid-cell-${placement.fullName}-${placement.colStart}`}
-      onPress={() => props.onSelect(placement.id)}
+      // The handle sits inside this Pressable, so letting go after a drag would otherwise read as a
+      // tap and select the strip you were only resizing.
+      onPress={() => {
+        if (didResizeRef.current) {
+          didResizeRef.current = false;
+          return;
+        }
+        props.onSelect(placement.id);
+      }}
     >
       <View
         className="flex-1 overflow-hidden rounded"
         style={{
-          borderColor: isSelected || isLinked ? Tailwind_semantic().icon.purple : borderColor,
-          borderWidth: isSelected ? 2 : placement.isOverride ? 2 : 1,
+          borderColor: isSelected || isLinked || props.isResizing ? Tailwind_semantic().icon.purple : borderColor,
+          borderWidth: isSelected || props.isResizing ? 2 : placement.isOverride ? 2 : 1,
           borderStyle: placement.isTemplate ? "dashed" : "solid",
         }}
       >
@@ -622,6 +712,14 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
             )
           )}
         </View>
+        {props.onResize != null && (
+          <GridResizeHandle
+            width={RESIZE_HANDLE_WIDTH * rem}
+            columnWidth={props.columnWidth}
+            onResize={onResizeStart}
+            onResizeEnd={props.onResizeEnd}
+          />
+        )}
       </View>
     </Pressable>
   );

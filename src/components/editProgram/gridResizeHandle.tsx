@@ -1,0 +1,54 @@
+import { JSX, memo, useCallback, useRef } from "react";
+import { View, GestureResponderEvent } from "react-native";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
+
+interface IGridResizeHandleProps {
+  width: number;
+  // Whole weeks the drag currently spans, positive to the right. Reported live so the strip can
+  // show the extent it would commit to, and once more on release to commit it.
+  onResize: (deltaWeeks: number) => void;
+  onResizeEnd: () => void;
+  columnWidth: number;
+}
+
+// react-native-gesture-handler is stubbed to no-ops on web (utils/rnStubs/gestureHandler.js), so
+// this uses the responder system, which react-native-web implements in full.
+export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResizeHandleProps): JSX.Element {
+  const { columnWidth, onResize, onResizeEnd } = props;
+  const startXRef = useRef(0);
+
+  const onGrant = useCallback((e: GestureResponderEvent) => {
+    startXRef.current = e.nativeEvent.pageX;
+  }, []);
+
+  const onMove = useCallback(
+    (e: GestureResponderEvent) => {
+      onResize(Math.round((e.nativeEvent.pageX - startXRef.current) / columnWidth));
+    },
+    [columnWidth, onResize]
+  );
+
+  return (
+    <View
+      className="absolute top-0 bottom-0 right-0 items-center justify-center"
+      style={{ width: props.width, cursor: "col-resize" } as object}
+      testID="grid-resize-handle"
+      accessibilityLabel="Drag to change how many weeks this repeats for"
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={onGrant}
+      onResponderMove={onMove}
+      onResponderRelease={onResizeEnd}
+      onResponderTerminate={onResizeEnd}
+    >
+      <View
+        style={{
+          width: 3,
+          height: "45%",
+          borderRadius: 2,
+          backgroundColor: Tailwind_semantic().icon.purple,
+        }}
+      />
+    </View>
+  );
+});
