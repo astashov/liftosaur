@@ -21,6 +21,7 @@ import {
   ProgramGrid_cellScheme,
   ProgramGrid_errorAt,
   ProgramGrid_isRelated,
+  ProgramGrid_placementsAt,
   ProgramGrid_select,
 } from "../../pages/planner/models/programGrid";
 import { FastText } from "../primitives/fastText";
@@ -34,6 +35,8 @@ import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { Dialog_alert } from "../../utils/dialog";
 import { useGridSelectionPublish } from "./gridSelectionContext";
 import { IconPlus2 } from "../icons/iconPlus2";
+import { IconArrowDown2 } from "../icons/iconArrowDown2";
+import { IconArrowRight } from "../icons/iconArrowRight";
 import { GridResizeHandle } from "./gridResizeHandle";
 import { ProgramGridTransforms_setRepeatRange } from "../../pages/planner/models/programGridTransforms";
 
@@ -59,6 +62,7 @@ const CELL_INSET_X = 0.4375;
 const CELL_INSET_Y = 0.1875;
 const BOTTOM_GAP = 0.25;
 const ADD_ROW_HEIGHT = 1.5;
+const DAY_LABEL_HEIGHT = 2;
 const RESIZE_HANDLE_WIDTH = 1;
 
 interface IEditProgramGridProps {
@@ -111,6 +115,25 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     );
   }, []);
   const onClearSelection = useCallback(() => setSelectedIds([]), []);
+
+  // Selecting a day means selecting what is in it, so the dock's exercise actions apply to the
+  // whole day without needing a second kind of selection.
+  const onSelectDay = useCallback(
+    (weekIndex: number, rowIndex: number) => {
+      const ids = ProgramGrid_placementsAt(grid, rowIndex, weekIndex).map((p) => p.id);
+      setSelectedIds((current) =>
+        ids.length === current.length && ids.every((id) => current.indexOf(id) !== -1) ? [] : ids
+      );
+    },
+    [grid]
+  );
+
+  const [collapsedRows, setCollapsedRows] = useState<number[]>([]);
+  const onToggleCollapsed = useCallback((rowIndex: number) => {
+    setCollapsedRows((current) =>
+      current.indexOf(rowIndex) !== -1 ? current.filter((r) => r !== rowIndex) : [...current, rowIndex]
+    );
+  }, []);
 
   const dispatch = props.dispatch;
   const programId = props.programId;
@@ -311,6 +334,9 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                   onSelect={onSelect}
                   onAddExercise={onAddExercise}
                   onSetRepeatRange={onSetRepeatRange}
+                  onSelectDay={onSelectDay}
+                  onToggleCollapsed={onToggleCollapsed}
+                  isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
                 />
               ))}
               <View className="flex-row">
@@ -397,6 +423,9 @@ interface IGridRowProps {
   onSelect: (placementId: string) => void;
   onAddExercise: (weekIndex: number, rowIndex: number) => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
+  onSelectDay: (weekIndex: number, rowIndex: number) => void;
+  onToggleCollapsed: (rowIndex: number) => void;
+  isCollapsed: boolean;
 }
 
 const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
@@ -407,11 +436,14 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
     const laneIndexes = grid.placements.filter((p) => p.rowIndex === rowIndex).map((p) => p.laneIndex);
     return laneIndexes.length > 0 ? Math.max(...laneIndexes) + 1 : 0;
   }, [grid.placements, rowIndex]);
-  const labelHeight = 1.5 * rem;
+  const labelHeight = DAY_LABEL_HEIGHT * rem;
   // The row is taller than its content by the box's own padding, so the last strip clears the
   // bottom edge by the same gap it keeps from the sides.
   const addHeight = ADD_ROW_HEIGHT * rem;
-  const rowHeight = labelHeight + lanes * props.laneHeight + addHeight + BOTTOM_GAP * rem;
+  const isCollapsed = props.isCollapsed;
+  const rowHeight = isCollapsed
+    ? labelHeight + BOTTOM_GAP * rem
+    : labelHeight + lanes * props.laneHeight + addHeight + BOTTOM_GAP * rem;
 
   return (
     <View style={{ height: rowHeight }} className="mb-1">
@@ -439,52 +471,85 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
         {grid.columns.map((column) => {
           const name = row.namePerWeek[column.weekIndex];
           const error = ProgramGrid_errorAt(grid, rowIndex, column.weekIndex);
+          const exists = row.weekIndexes.indexOf(column.weekIndex) !== -1;
           return (
-            <View key={column.weekIndex} className="justify-center px-[0.5rem]" style={{ width: props.columnWidth }}>
-              <Text
-                className={`text-xs ${error != null ? "font-bold text-text-error" : "text-text-secondary"}`}
-                numberOfLines={1}
-              >
-                {error != null ? "⚠ " : ""}
-                {name ?? ""}
-              </Text>
+            <View
+              key={column.weekIndex}
+              className="flex-row items-center px-[0.375rem]"
+              style={{ width: props.columnWidth }}
+            >
+              {exists && (
+                <>
+                  {/* Collapsing is a property of the row, not of one week's day — the columns have
+                      to keep the same height to stay a grid — so every week's chevron toggles the
+                      whole row, and whichever one you have scrolled to is the one you can reach. */}
+                  <Pressable
+                    className="py-1 pr-1 nm-grid-toggle-day"
+                    testID={`grid-toggle-day-${rowIndex}`}
+                    accessibilityLabel={isCollapsed ? "Expand day" : "Collapse day"}
+                    onPress={() => props.onToggleCollapsed(rowIndex)}
+                  >
+                    {isCollapsed ? (
+                      <IconArrowRight width={8} height={11} color={Tailwind_semantic().icon.neutral} />
+                    ) : (
+                      <IconArrowDown2 width={11} height={8} color={Tailwind_semantic().icon.neutral} />
+                    )}
+                  </Pressable>
+                  <Pressable
+                    className="flex-1 py-1 nm-grid-select-day"
+                    testID={`grid-select-day-${column.weekIndex}-${rowIndex}`}
+                    onPress={() => props.onSelectDay(column.weekIndex, rowIndex)}
+                  >
+                    <Text
+                      className={`text-sm font-semibold ${error != null ? "text-text-error" : "text-text-primary"}`}
+                      numberOfLines={1}
+                    >
+                      {error != null ? "⚠ " : ""}
+                      {name ?? ""}
+                    </Text>
+                  </Pressable>
+                </>
+              )}
             </View>
           );
         })}
       </View>
-      {Array.from({ length: lanes }, (_, laneIndex) => (
-        <LaneRow
-          key={laneIndex}
-          grid={grid}
-          rowIndex={rowIndex}
-          laneIndex={laneIndex}
-          columnWidth={props.columnWidth}
-          laneHeight={props.laneHeight}
-          density={props.density}
-          selection={props.selection}
-          onSelect={props.onSelect}
-          onSetRepeatRange={props.onSetRepeatRange}
-        />
-      ))}
+      {!isCollapsed &&
+        Array.from({ length: lanes }, (_, laneIndex) => (
+          <LaneRow
+            key={laneIndex}
+            grid={grid}
+            rowIndex={rowIndex}
+            laneIndex={laneIndex}
+            columnWidth={props.columnWidth}
+            laneHeight={props.laneHeight}
+            density={props.density}
+            selection={props.selection}
+            onSelect={props.onSelect}
+            onSetRepeatRange={props.onSetRepeatRange}
+          />
+        ))}
       {/* One per week rather than one per row: adding an exercise targets a specific week's day,
           and a ragged week that lacks this day gets no button at all. */}
-      <View className="flex-row" style={{ height: addHeight }}>
-        {grid.columns.map((column) => (
-          <View
-            key={column.weekIndex}
-            style={{ width: props.columnWidth, paddingHorizontal: CELL_INSET_X * rem }}
-            className="justify-center"
-          >
-            {row.weekIndexes.indexOf(column.weekIndex) !== -1 && (
-              <AddButton
-                label="Exercise"
-                testID={`grid-add-exercise-${column.weekIndex}-${rowIndex}`}
-                onPress={() => props.onAddExercise(column.weekIndex, rowIndex)}
-              />
-            )}
-          </View>
-        ))}
-      </View>
+      {!isCollapsed && (
+        <View className="flex-row" style={{ height: addHeight }}>
+          {grid.columns.map((column) => (
+            <View
+              key={column.weekIndex}
+              style={{ width: props.columnWidth, paddingHorizontal: CELL_INSET_X * rem }}
+              className="justify-center"
+            >
+              {row.weekIndexes.indexOf(column.weekIndex) !== -1 && (
+                <AddButton
+                  label="Exercise"
+                  testID={`grid-add-exercise-${column.weekIndex}-${rowIndex}`}
+                  onPress={() => props.onAddExercise(column.weekIndex, rowIndex)}
+                />
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 });
