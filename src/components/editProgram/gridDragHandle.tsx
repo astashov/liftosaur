@@ -9,6 +9,8 @@ export interface IGridDragHandleProps {
   onDragEnd: (commit: boolean) => void;
   // Handled here rather than by a nested Pressable, so tap and drag come from one place.
   onTap?: () => void;
+  // Days and exercises stack down the grid, weeks run across it. Same gesture, different axis.
+  axis?: "y" | "x";
 }
 
 const LONG_PRESS_MS = 200;
@@ -18,8 +20,8 @@ const SLOP = 8;
 // react-native-gesture-handler is stubbed to no-ops on web (utils/rnStubs/gestureHandler.js), so the
 // long-press-then-drag is built from the responder system, which react-native-web implements.
 export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandleProps): JSX.Element {
-  const { onDragStart, onDragMove, onDragEnd, onTap } = props;
-  const startYRef = useRef(0);
+  const { onDragStart, onDragMove, onDragEnd, onTap, axis } = props;
+  const startRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const isDraggingRef = useRef(false);
 
@@ -32,7 +34,7 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
 
   const onGrant = useCallback(
     (e: GestureResponderEvent) => {
-      startYRef.current = e.nativeEvent.pageY;
+      startRef.current = axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY;
       isDraggingRef.current = false;
       cancelTimer();
       timerRef.current = setTimeout(() => {
@@ -40,21 +42,21 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
         onDragStart();
       }, LONG_PRESS_MS);
     },
-    [cancelTimer, onDragStart]
+    [cancelTimer, onDragStart, axis]
   );
 
   const onMove = useCallback(
     (e: GestureResponderEvent) => {
-      const dy = e.nativeEvent.pageY - startYRef.current;
+      const delta = (axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY) - startRef.current;
       if (!isDraggingRef.current) {
-        if (Math.abs(dy) > SLOP) {
+        if (Math.abs(delta) > SLOP) {
           cancelTimer();
         }
         return;
       }
-      onDragMove(dy);
+      onDragMove(delta);
     },
-    [cancelTimer, onDragMove]
+    [cancelTimer, onDragMove, axis]
   );
 
   const onRelease = useCallback(

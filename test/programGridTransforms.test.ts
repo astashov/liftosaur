@@ -7,6 +7,9 @@ import {
   ProgramGridTransforms_moveDayRow,
   ProgramGridTransforms_reorderExercisesInDay,
   ProgramGridTransforms_moveExerciseToDay,
+  ProgramGridTransforms_moveWeek,
+  ProgramGridTransforms_deleteWeek,
+  ProgramGridTransforms_duplicateWeek,
 } from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
@@ -478,6 +481,173 @@ Bench Press / 5x5 55lb
         Settings_build()
       );
       expect(result.ok).to.equal(false);
+    });
+  });
+
+  describe("week operations", () => {
+    // Squat is authored once and repeats over weeks 1-2 only, so any permutation that pulls those
+    // two apart has nowhere to put it.
+    const THREE_WEEKS = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+Bench Press / 5x5 50lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 55lb
+
+## Day 2
+Deadlift / ...Deadlift[1:2]
+
+# Week 3
+## Day 1
+Bench Press / 5x5 60lb
+
+## Day 2
+Deadlift / 1x5 220lb
+`;
+
+    function weekSpans(planner: IPlannerProgram, name: string): string[] {
+      return spans(planner, name);
+    }
+
+    it("rewrites the repeat range when a week moves under it", () => {
+      // [W1, W2, W3] -> [W3, W1, W2]: Squat still belongs to old weeks 1 and 2, now sitting 2nd
+      // and 3rd, so its range has to become 2-3.
+      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks[1].days[0].exerciseText.trim().split("\n")[0]).to.equal("Squat[2-3] / 3x5 100lb");
+      expect(weekSpans(result.planner, "Squat")).to.deep.equal(["[1-2]"]);
+    });
+
+    it("renumbers a week qualifier that pointed at the moved week", () => {
+      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      // `...Deadlift[1:2]` lived in week 2 and pointed at week 1, which is now week 2.
+      expect(result.planner.weeks[2].days[1].exerciseText.trim()).to.equal("Deadlift / ...Deadlift[2:2]");
+    });
+
+    it("refuses a move that would scatter a repeat across non-adjacent weeks", () => {
+      // [W1, W2, W3] -> [W1, W3, W2] leaves Squat in weeks 1 and 3, which no repeat can say.
+      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 1, 2, Settings_build());
+      expect(result.ok).to.equal(false);
+      if (result.ok) {
+        return;
+      }
+      expect(result.reason).to.contain("Squat");
+    });
+
+    it("keeps every week's name with the week that moved, out of order or not", () => {
+      const text = THREE_WEEKS.replace("# Week 3", "# Deload");
+      const result = ProgramGridTransforms_moveWeek(plannerOf(text), 2, 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks.map((w) => w.name)).to.deep.equal(["Deload", "Week 1", "Week 2"]);
+    });
+
+    it("moves a definition out of a deleted week so the rest of its run survives", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1-3] / 3x5 100lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 50lb
+
+# Week 3
+## Day 1
+Bench Press / 5x5 60lb
+`;
+      const result = ProgramGridTransforms_deleteWeek(plannerOf(text), 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks).to.have.length(2);
+      // Squat was defined only in week 1 and repeated through week 3; it keeps the two weeks left.
+      expect(result.planner.weeks[0].days[0].exerciseText).to.contain("Squat[1-2] / 3x5 100lb");
+      expect(weekSpans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+    });
+
+    it("refuses to delete a week that another week reuses by number", () => {
+      const result = ProgramGridTransforms_deleteWeek(plannerOf(THREE_WEEKS), 0, Settings_build());
+      expect(result.ok).to.equal(false);
+    });
+
+    it("refuses to delete the only week", () => {
+      const result = ProgramGridTransforms_deleteWeek(
+        plannerOf("# Week 1\n## Day 1\nSquat / 3x5 100lb\n"),
+        0,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(false);
+    });
+
+    it("duplicates a week as a standalone copy, without its repeat", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 50lb
+`;
+      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks).to.have.length(3);
+      expect(result.planner.weeks[2].name).to.equal("Week 3");
+      expect(result.planner.weeks[2].days[0].exerciseText.trim()).to.equal("Squat / 3x5 100lb");
+    });
+
+    it("names the copy something no other week is called", () => {
+      // Nothing resolves a week by name, but tab bars key React elements off it, so two weeks
+      // called "Week 2" lose one of them.
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+# Week 3
+## Day 1
+Bench Press / 5x5 50lb
+`;
+      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks.map((w) => w.name)).to.deep.equal(["Week 1", "Week 3", "Week 4"]);
+    });
+
+    it("refuses to duplicate a week whose content comes from a repeat elsewhere", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 50lb
+`;
+      // Week 2 shows Squat, but holds no text for it.
+      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 1, Settings_build());
+      expect(result.ok).to.equal(false);
+      if (result.ok) {
+        return;
+      }
+      expect(result.reason).to.contain("Squat");
     });
   });
 

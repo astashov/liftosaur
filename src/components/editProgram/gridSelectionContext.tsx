@@ -8,7 +8,8 @@ import { IProgramGridPlacement } from "../../pages/planner/models/programGrid";
 // (and do so across every week), while exercise actions edit content. Same dock, different verbs.
 export type IGridSelectionTarget =
   | { kind: "exercises"; placements: IProgramGridPlacement[] }
-  | { kind: "day"; rowIndex: number; name: string; placements: IProgramGridPlacement[] };
+  | { kind: "day"; rowIndex: number; name: string; placements: IProgramGridPlacement[] }
+  | { kind: "week"; weekIndex: number; name: string; dayCount: number; exerciseCount: number };
 
 export interface IGridSelectionPayload {
   target: IGridSelectionTarget;
@@ -17,6 +18,8 @@ export interface IGridSelectionPayload {
   onDelete: (placements: IProgramGridPlacement[]) => void;
   onDuplicateDay: (rowIndex: number) => void;
   onDeleteDay: (rowIndex: number) => void;
+  onDuplicateWeek: (weekIndex: number) => void;
+  onDeleteWeek: (weekIndex: number) => void;
   onClear: () => void;
 }
 

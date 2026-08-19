@@ -14,10 +14,12 @@ export interface IGridDragHandleProps {
   // When the tap belongs to the same target as the drag, it has to be handled here too: a Pressable
   // nested under the detector claims the touch before the long press can promote it to a drag.
   onTap?: () => void;
+  // Days and exercises stack down the grid, weeks run across it. Same gesture, different axis.
+  axis?: "y" | "x";
 }
 
 export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandleProps): JSX.Element {
-  const { onDragStart, onDragMove, onDragEnd, onTap } = props;
+  const { onDragStart, onDragMove, onDragEnd, onTap, axis } = props;
   const gesture = useMemo(() => {
     const pan = Gesture.Pan()
       .activateAfterLongPress(200)
@@ -28,7 +30,7 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
         runOnJS(onDragStart)();
       })
       .onUpdate((e) => {
-        runOnJS(onDragMove)(e.translationY);
+        runOnJS(onDragMove)(axis === "x" ? e.translationX : e.translationY);
       })
       .onEnd(() => {
         runOnJS(onDragEnd)(true);
@@ -48,7 +50,7 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
     // failed — which is what a quick release is. Racing them lets the tap cancel the pan a few
     // pixels into the drag, which killed the gesture outright.
     return Gesture.Exclusive(pan, tap);
-  }, [onDragStart, onDragMove, onDragEnd, onTap]);
+  }, [onDragStart, onDragMove, onDragEnd, onTap, axis]);
 
   return (
     <GestureDetector gesture={gesture}>

@@ -26,14 +26,17 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   // Editing and duplicating both address one exercise; deleting is the only thing that reads
   // naturally over a set, so it is the one action that stays on with several selected.
   const single = target.kind === "exercises" && target.placements.length === 1 ? target.placements[0] : undefined;
-  const label = target.kind === "day" ? target.name : target.placements.map((p) => p.fullName).join(", ");
+  const label =
+    target.kind === "day" || target.kind === "week" ? target.name : target.placements.map((p) => p.fullName).join(", ");
   // Distinct exercises, not placements: a placement is one *run* of an exercise, so an undulating
   // day would otherwise report a count several times its actual size.
   const exerciseCount = target.kind === "day" ? new Set(target.placements.map((p) => p.fullName)).size : 0;
   const caption =
     target.kind === "day"
       ? `${exerciseCount === 0 ? "empty" : `${exerciseCount} ${StringUtils_pluralize("exercise", exerciseCount)}`} · in every week`
-      : undefined;
+      : target.kind === "week"
+        ? `${target.dayCount} ${StringUtils_pluralize("day", target.dayCount)} · ${target.exerciseCount} ${StringUtils_pluralize("exercise", target.exerciseCount)}`
+        : undefined;
 
   return (
     <View className="flex-row items-center gap-1 px-3 py-2 border-t bg-background-default border-background-subtle">
@@ -62,11 +65,13 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       )}
       <DockButton
         name="grid-action-duplicate"
-        label={target.kind === "day" ? "Duplicate day" : "Duplicate"}
+        label={target.kind === "day" ? "Duplicate day" : target.kind === "week" ? "Duplicate week" : "Duplicate"}
         disabled={target.kind === "exercises" && single == null}
         onPress={() => {
           if (target.kind === "day") {
             props.onDuplicateDay(target.rowIndex);
+          } else if (target.kind === "week") {
+            props.onDuplicateWeek(target.weekIndex);
           } else if (single != null) {
             props.onDuplicate(single);
           }
@@ -76,10 +81,12 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       </DockButton>
       <DockButton
         name="grid-action-delete"
-        label={target.kind === "day" ? "Delete day" : "Delete"}
+        label={target.kind === "day" ? "Delete day" : target.kind === "week" ? "Delete week" : "Delete"}
         onPress={() => {
           if (target.kind === "day") {
             props.onDeleteDay(target.rowIndex);
+          } else if (target.kind === "week") {
+            props.onDeleteWeek(target.weekIndex);
           } else {
             props.onDelete(target.placements);
           }

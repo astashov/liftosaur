@@ -14,6 +14,7 @@ import Animated, { useAnimatedStyle, useSharedValue, SharedValue } from "react-n
 import { useGridPinch } from "./gridPinch";
 import {
   IProgramGrid,
+  IProgramGridColumn,
   IProgramGridDensity,
   IProgramGridPlacement,
   IProgramGridSelection,
@@ -47,6 +48,10 @@ import {
   ProgramGridTransforms_moveDayRow,
   ProgramGridTransforms_reorderExercisesInDay,
   ProgramGridTransforms_moveExerciseToDay,
+  ProgramGridTransforms_moveWeek,
+  ProgramGridTransforms_deleteWeek,
+  ProgramGridTransforms_duplicateWeek,
+  ProgramGridTransforms_uniqueWeekName,
 } from "../../pages/planner/models/programGridTransforms";
 
 // Column width at scale 1, in rem; pinch multiplies it. Below SCHEME_MIN_WIDTH a column is too
@@ -228,6 +233,122 @@ const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostProps): J
   );
 });
 
+// The same idea one axis over: a week is a column, so its ghost is a column — the days stacked at
+// the tops the geometry already knows, each showing what that week prescribes. Mounted per week and
+// animated on opacity and translateX only, for the reasons above.
+interface IGridWeekGhostProps {
+  weekIndex: number;
+  name: string;
+  numberOfDays: number;
+  columnWidth: number;
+  height: number;
+  rows: IGridGeometryRow[];
+  dayNames: (string | undefined)[];
+  // Per row, per lane, what this week holds there — blank where the run doesn't reach this column.
+  laneNames: string[][];
+  labelHeight: number;
+  laneHeight: number;
+  draggedWeek: SharedValue<number>;
+  ghostX: SharedValue<number>;
+}
+
+const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostProps): JSX.Element {
+  const rem = useRem();
+  const { weekIndex, draggedWeek, ghostX, laneHeight, labelHeight } = props;
+  const style = useAnimatedStyle(() => ({
+    opacity: draggedWeek.value === weekIndex ? 0.9 : 0,
+    transform: [{ translateX: ghostX.value }],
+  }));
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        style,
+        {
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: props.columnWidth,
+          height: props.height,
+          pointerEvents: "none" as const,
+          shadowColor: "#000",
+          shadowOffset: { width: 4, height: 0 },
+          shadowOpacity: 0.25,
+          shadowRadius: 8,
+          elevation: 8,
+        },
+      ]}
+    >
+      {/* The name rides above the ghost's top edge rather than inside it, so the day boxes below
+          stay lined up with the rows they came from — `bottom: 100%` puts it exactly where the
+          week header it was lifted from sits. */}
+      <View
+        className="absolute px-2 py-2 rounded"
+        style={{
+          bottom: "100%",
+          left: DAY_BOX_INSET * rem,
+          right: DAY_BOX_INSET * rem,
+          borderWidth: 2,
+          borderColor: Tailwind_semantic().icon.purple,
+          backgroundColor: Tailwind_semantic().background.cardyellow,
+        }}
+      >
+        <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
+          {props.name}
+        </Text>
+        <Text className="text-xs text-text-secondary" numberOfLines={1}>
+          {props.numberOfDays} days
+        </Text>
+      </View>
+      {props.rows.map((row, rowIndex) => (
+        <View
+          key={rowIndex}
+          className="absolute overflow-hidden rounded"
+          style={{
+            top: row.top,
+            left: DAY_BOX_INSET * rem,
+            right: DAY_BOX_INSET * rem,
+            height: row.height,
+            borderWidth: 2,
+            borderColor: Tailwind_semantic().icon.purple,
+            backgroundColor: Tailwind_semantic().background.cardyellow,
+          }}
+        >
+          <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
+            <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
+              {props.dayNames[rowIndex] ?? ""}
+            </Text>
+          </View>
+          {(props.laneNames[rowIndex] ?? []).map((laneName, laneIndex) =>
+            laneName === "" ? null : (
+              <View
+                key={laneIndex}
+                className="absolute rounded"
+                style={{
+                  top: labelHeight + laneIndex * laneHeight + CELL_INSET_Y * rem,
+                  left: CELL_INSET_X * rem,
+                  right: CELL_INSET_X * rem,
+                  height: laneHeight - 2 * CELL_INSET_Y * rem,
+                  justifyContent: "center",
+                  paddingHorizontal: 0.5 * rem,
+                  borderWidth: 1,
+                  borderColor: Tailwind_semantic().text.purple,
+                  backgroundColor: Tailwind_semantic().background.cardpurpleselected,
+                }}
+              >
+                <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+                  {laneName}
+                </Text>
+              </View>
+            )
+          )}
+        </View>
+      ))}
+    </Animated.View>
+  );
+});
+
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
@@ -275,11 +396,13 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedDayRow, setSelectedDayRow] = useState<number | undefined>(undefined);
+  const [selectedWeek, setSelectedWeek] = useState<number | undefined>(undefined);
   const selection = useMemo(() => ProgramGrid_select(grid, selectedIds), [grid, selectedIds]);
   // Tapping is a toggle, so multi-select needs no mode to enter or leave: tap to add, tap again to
   // drop, tap the background to clear.
   const onSelect = useCallback((placementId: string) => {
     setSelectedDayRow(undefined);
+    setSelectedWeek(undefined);
     setSelectedIds((current) =>
       current.indexOf(placementId) !== -1 ? current.filter((id) => id !== placementId) : [...current, placementId]
     );
@@ -287,6 +410,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const onClearSelection = useCallback(() => {
     setSelectedIds([]);
     setSelectedDayRow(undefined);
+    setSelectedWeek(undefined);
   }, []);
 
   // A day is selected as a row, across every week — its operations restructure the program, and
@@ -294,7 +418,16 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // repeats and `...main[2]` end up meaning different days in different weeks.
   const onSelectDay = useCallback((rowIndex: number) => {
     setSelectedIds([]);
+    setSelectedWeek(undefined);
     setSelectedDayRow((current) => (current === rowIndex ? undefined : rowIndex));
+  }, []);
+
+  // A week is the other whole-program axis: selecting one is selecting the column, and its actions
+  // restructure the program the same way a day row's do.
+  const onSelectWeek = useCallback((weekIndex: number) => {
+    setSelectedIds([]);
+    setSelectedDayRow(undefined);
+    setSelectedWeek((current) => (current === weekIndex ? undefined : weekIndex));
   }, []);
 
   // Every structural edit runs the same way: ask the transform first so a refusal can be shown,
@@ -366,6 +499,26 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     [grid, collapsedRows, laneHeight, rem]
   );
   geometryRef.current = geometry;
+  const rowsHeight = geometry.reduce((acc, row) => acc + row.outerHeight, 0);
+  // What each week holds, by row and lane — the week ghost's contents. A run spanning several weeks
+  // appears in each of the columns it covers, because it is what that week prescribes there.
+  const weekLaneNames = useMemo(() => {
+    return grid.columns.map((column) =>
+      geometry.map((row, rowIndex) => {
+        const names = Array.from({ length: row.lanes }, () => "");
+        for (const placement of grid.placements) {
+          if (
+            placement.rowIndex === rowIndex &&
+            placement.colStart <= column.weekIndex &&
+            placement.colEnd >= column.weekIndex
+          ) {
+            names[placement.laneIndex] = placement.fullName;
+          }
+        }
+        return names;
+      })
+    );
+  }, [grid.columns, grid.placements, geometry]);
 
   // An exercise drag is owned up here rather than by its row, because it can end in a different
   // row than it started in: only the grid knows where the other rows are, and only shared values
@@ -377,6 +530,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // The gap, in the target row's current lanes: gap N sits above lane N, and gap `lanes` sits below
   // the last one. -1 hides it.
   const dropLaneGap = useSharedValue(-1);
+  // Weeks run across the grid rather than down it, so they get their own pair: which column is
+  // lifted, and which gap between columns it would drop into.
+  const draggedWeek = useSharedValue(-1);
+  const dropWeekGap = useSharedValue(-1);
+  const ghostX = useSharedValue(0);
   const laneDragRef = useRef<{ fromRow: number; fromLane: number; toRow: number; gap: number } | undefined>(undefined);
 
   const onLaneDragStart = useCallback(
@@ -606,7 +764,13 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
         .p("program")
         .pi("planner")
         .p("weeks")
-        .recordModify((weeks) => [...weeks, { name: `Week ${weeks.length + 1}`, days: [] }]),
+        .recordModify((weeks) => [
+          ...weeks,
+          {
+            name: ProgramGridTransforms_uniqueWeekName({ ...plannerRef.current, weeks }, `Week ${weeks.length + 1}`),
+            days: [],
+          },
+        ]),
       "Add new week"
     );
   }, [plannerDispatch]);
@@ -633,20 +797,67 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     [applyTransform, settings]
   );
 
+  const onDuplicateWeek = useCallback(
+    (weekIndex: number) => {
+      applyTransform(
+        (planner) => ProgramGridTransforms_duplicateWeek(planner, weekIndex, settings),
+        `Duplicate week ${weekIndex + 1}`
+      );
+      setSelectedWeek(undefined);
+    },
+    [applyTransform, settings]
+  );
+
+  const onDeleteWeek = useCallback(
+    (weekIndex: number) => {
+      applyTransform(
+        (planner) => ProgramGridTransforms_deleteWeek(planner, weekIndex, settings),
+        `Delete week ${weekIndex + 1}`
+      );
+      setSelectedWeek(undefined);
+    },
+    [applyTransform, settings]
+  );
+
+  const onMoveWeek = useCallback(
+    (from: number, to: number) => {
+      applyTransform(
+        (planner) => ProgramGridTransforms_moveWeek(planner, from, to, settings),
+        `Move week ${from + 1} to position ${to + 1}`
+      );
+    },
+    [applyTransform, settings]
+  );
+
   const publishSelection = useGridSelectionPublish();
   const dayRow = selectedDayRow != null ? grid.rows[selectedDayRow] : undefined;
+  const weekColumn = selectedWeek != null ? grid.columns[selectedWeek] : undefined;
   const payload = useMemo(() => {
     const target: IGridSelectionTarget | undefined =
-      selectedDayRow != null && dayRow != null
+      selectedWeek != null && weekColumn != null
         ? {
-            kind: "day",
-            rowIndex: selectedDayRow,
-            name: dayRow.namePerWeek.find((n) => n != null) ?? `Day ${selectedDayRow + 1}`,
-            placements: grid.placements.filter((p) => p.rowIndex === selectedDayRow),
+            kind: "week",
+            weekIndex: selectedWeek,
+            name: weekColumn.name,
+            dayCount: weekColumn.numberOfDays,
+            // Distinct exercises across the week's days, counting a run that spans several weeks
+            // once — it is one exercise in this week like any other.
+            exerciseCount: new Set(
+              grid.placements
+                .filter((p) => p.colStart <= selectedWeek && p.colEnd >= selectedWeek)
+                .map((p) => `${p.rowIndex}:${p.fullName}`)
+            ).size,
           }
-        : selection != null
-          ? { kind: "exercises", placements: selection.placements }
-          : undefined;
+        : selectedDayRow != null && dayRow != null
+          ? {
+              kind: "day",
+              rowIndex: selectedDayRow,
+              name: dayRow.namePerWeek.find((n) => n != null) ?? `Day ${selectedDayRow + 1}`,
+              placements: grid.placements.filter((p) => p.rowIndex === selectedDayRow),
+            }
+          : selection != null
+            ? { kind: "exercises", placements: selection.placements }
+            : undefined;
     return target != null
       ? {
           target,
@@ -655,6 +866,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           onDelete: onDeletePlacements,
           onDuplicateDay,
           onDeleteDay,
+          onDuplicateWeek,
+          onDeleteWeek,
           onClear: onClearSelection,
         }
       : undefined;
@@ -663,11 +876,15 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     selection,
     selectedDayRow,
     dayRow,
+    selectedWeek,
+    weekColumn,
     onEditPlacement,
     onDuplicatePlacement,
     onDeletePlacements,
     onDuplicateDay,
     onDeleteDay,
+    onDuplicateWeek,
+    onDeleteWeek,
     onClearSelection,
   ]);
   useEffect(() => {
@@ -714,7 +931,16 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
               tapping a selected thing again. */}
           <View className="flex-row">
             <View style={{ width: totalWidth }}>
-              <WeekHeaderRow grid={grid} columnWidth={columnWidth} />
+              <WeekHeaderRow
+                grid={grid}
+                columnWidth={columnWidth}
+                selectedWeek={selectedWeek}
+                onSelectWeek={onSelectWeek}
+                onMoveWeek={onMoveWeek}
+                draggedWeek={draggedWeek}
+                dropWeekGap={dropWeekGap}
+                ghostX={ghostX}
+              />
               {/* The rows and the ghosts share one coordinate space — the geometry's — and it
                   starts here, below the week header. zIndex keeps a ghost dragged past the last row
                   above the "+ Day" strip that follows. */}
@@ -769,6 +995,24 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       draggedLaneRow={draggedLaneRow}
                       draggedLane={draggedLane}
                       ghostY={ghostY}
+                    />
+                  ))}
+                {Platform.OS !== "web" &&
+                  grid.columns.map((column) => (
+                    <GridWeekGhost
+                      key={column.weekIndex}
+                      weekIndex={column.weekIndex}
+                      name={column.name}
+                      numberOfDays={column.numberOfDays}
+                      columnWidth={columnWidth}
+                      height={rowsHeight}
+                      rows={geometry}
+                      dayNames={grid.rows.map((row) => row.namePerWeek[column.weekIndex])}
+                      laneNames={weekLaneNames[column.weekIndex]}
+                      labelHeight={DAY_LABEL_HEIGHT * rem}
+                      laneHeight={laneHeight}
+                      draggedWeek={draggedWeek}
+                      ghostX={ghostX}
                     />
                   ))}
               </View>
@@ -829,11 +1073,119 @@ const AddButton = memo(function AddButton(props: IAddButtonProps): JSX.Element {
   );
 });
 
-const WeekHeaderRow = memo(function WeekHeaderRow(props: { grid: IProgramGrid; columnWidth: number }): JSX.Element {
+interface IWeekHeaderRowProps {
+  grid: IProgramGrid;
+  columnWidth: number;
+  selectedWeek?: number;
+  onSelectWeek: (weekIndex: number) => void;
+  onMoveWeek: (from: number, to: number) => void;
+  draggedWeek: SharedValue<number>;
+  dropWeekGap: SharedValue<number>;
+  ghostX: SharedValue<number>;
+}
+
+const WeekHeaderRow = memo(function WeekHeaderRow(props: IWeekHeaderRowProps): JSX.Element {
+  const { grid, columnWidth, onMoveWeek, draggedWeek, dropWeekGap, ghostX } = props;
+  // Same rules as the other two drags: the target lives in a ref, the feedback in shared values,
+  // and nothing above the gesture re-renders while it is live.
+  const weekDragToRef = useRef<number | undefined>(undefined);
+
+  const onWeekDragStart = useCallback(
+    (weekIndex: number) => {
+      weekDragToRef.current = weekIndex;
+      draggedWeek.value = weekIndex;
+      dropWeekGap.value = -1;
+      ghostX.value = weekIndex * columnWidth;
+    },
+    [draggedWeek, dropWeekGap, ghostX, columnWidth]
+  );
+
+  const onWeekDragMove = useCallback(
+    (weekIndex: number, translationX: number) => {
+      ghostX.value = weekIndex * columnWidth + translationX;
+      // Every column is the same width, so unlike the day rows this is one division.
+      const to = Math.max(0, Math.min(grid.columns.length - 1, weekIndex + Math.round(translationX / columnWidth)));
+      weekDragToRef.current = to;
+      dropWeekGap.value = to === weekIndex ? -1 : to > weekIndex ? to + 1 : to;
+    },
+    [grid.columns.length, columnWidth, dropWeekGap, ghostX]
+  );
+
+  const onWeekDragEnd = useCallback(
+    (weekIndex: number, commit: boolean) => {
+      const to = weekDragToRef.current;
+      weekDragToRef.current = undefined;
+      draggedWeek.value = -1;
+      dropWeekGap.value = -1;
+      if (commit && to != null && to !== weekIndex) {
+        onMoveWeek(weekIndex, to);
+      }
+    },
+    [onMoveWeek, draggedWeek, dropWeekGap]
+  );
+
   return (
     <View className="flex-row border-b border-border-neutral">
-      {props.grid.columns.map((column) => (
-        <View key={column.weekIndex} className="px-2 py-2" style={{ width: props.columnWidth }}>
+      {grid.columns.map((column) => (
+        <WeekHeaderCell
+          key={column.weekIndex}
+          column={column}
+          columnWidth={columnWidth}
+          isSelected={props.selectedWeek === column.weekIndex}
+          isDimmed={props.selectedWeek != null && props.selectedWeek !== column.weekIndex}
+          isLast={column.weekIndex === grid.columns.length - 1}
+          onSelectWeek={props.onSelectWeek}
+          onWeekDragStart={onWeekDragStart}
+          onWeekDragMove={onWeekDragMove}
+          onWeekDragEnd={onWeekDragEnd}
+          draggedWeek={draggedWeek}
+          dropWeekGap={dropWeekGap}
+        />
+      ))}
+    </View>
+  );
+});
+
+interface IWeekHeaderCellProps {
+  column: IProgramGridColumn;
+  columnWidth: number;
+  isSelected: boolean;
+  isDimmed: boolean;
+  isLast: boolean;
+  onSelectWeek: (weekIndex: number) => void;
+  onWeekDragStart: (weekIndex: number) => void;
+  onWeekDragMove: (weekIndex: number, translationX: number) => void;
+  onWeekDragEnd: (weekIndex: number, commit: boolean) => void;
+  draggedWeek: SharedValue<number>;
+  dropWeekGap: SharedValue<number>;
+}
+
+const WeekHeaderCell = memo(function WeekHeaderCell(props: IWeekHeaderCellProps): JSX.Element {
+  const { column, onWeekDragStart, onWeekDragMove, onWeekDragEnd, onSelectWeek, draggedWeek, dropWeekGap } = props;
+  const weekIndex = column.weekIndex;
+  const onTap = useCallback(() => onSelectWeek(weekIndex), [onSelectWeek, weekIndex]);
+  const onDragStart = useCallback(() => onWeekDragStart(weekIndex), [onWeekDragStart, weekIndex]);
+  const onDragMove = useCallback((dx: number) => onWeekDragMove(weekIndex, dx), [onWeekDragMove, weekIndex]);
+  const onDragEnd = useCallback((commit: boolean) => onWeekDragEnd(weekIndex, commit), [onWeekDragEnd, weekIndex]);
+
+  const liftStyle = useAnimatedStyle(() => ({ opacity: draggedWeek.value === weekIndex ? 0.25 : 0 }));
+  // Each column owns the gap on its left; the last one owns the gap past its right edge too.
+  const dropLeftStyle = useAnimatedStyle(() => ({ opacity: dropWeekGap.value === weekIndex ? 1 : 0 }));
+  const dropRightStyle = useAnimatedStyle(() => ({
+    opacity: props.isLast && dropWeekGap.value === weekIndex + 1 ? 1 : 0,
+  }));
+
+  return (
+    <View style={{ width: props.columnWidth, opacity: props.isDimmed ? 0.35 : 1 }}>
+      <GridDragHandle axis="x" onTap={onTap} onDragStart={onDragStart} onDragMove={onDragMove} onDragEnd={onDragEnd}>
+        <View
+          className="px-2 py-2 rounded nm-grid-select-week"
+          testID={`grid-select-week-${weekIndex}`}
+          style={{
+            borderWidth: props.isSelected ? 2 : 0,
+            borderColor: Tailwind_semantic().icon.purple,
+          }}
+        >
           <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
             {column.name}
           </Text>
@@ -841,7 +1193,51 @@ const WeekHeaderRow = memo(function WeekHeaderRow(props: { grid: IProgramGrid; c
             {column.numberOfDays} days
           </Text>
         </View>
-      ))}
+      </GridDragHandle>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          liftStyle,
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          dropLeftStyle,
+          {
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: -2,
+            width: 3,
+            borderRadius: 2,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          dropRightStyle,
+          {
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            right: -2,
+            width: 3,
+            borderRadius: 2,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
     </View>
   );
 });

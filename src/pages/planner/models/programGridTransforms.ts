@@ -1,6 +1,7 @@
 import { SyntaxNode } from "@lezer/common";
 import { IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
+import { StringUtils_nextName } from "../../../utils/string";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerProgram_evaluate } from "./plannerProgram";
@@ -87,6 +88,305 @@ function dayReferences(text: string): IDayReference[] {
         result.push({ node: dayNode, day, hasWeek: parts.length > 1 });
       }
     }
+  }
+  return result;
+}
+
+interface IWeekReference {
+  node: SyntaxNode;
+  week: number;
+}
+
+// Only the qualifiers that name a week: `...main[1:2]` does, `...main[2]` doesn't — the latter
+// means "day 2 of whatever week I'm in", which survives any renumbering of the weeks.
+function weekReferences(text: string): IWeekReference[] {
+  const tree = plannerExerciseParser.parse(text);
+  const result: IWeekReference[] = [];
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    for (const section of node.getChildren(PlannerNodeName.ExerciseSection)) {
+      const reuse = section.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
+      const weekDay = reuse?.getChild(PlannerNodeName.WeekDay);
+      const parts = weekDay?.getChildren(PlannerNodeName.WeekOrDay) ?? [];
+      if (parts.length < 2) {
+        continue;
+      }
+      const week = parseInt(text.slice(parts[0].from, parts[0].to), 10);
+      if (!isNaN(week)) {
+        result.push({ node: parts[0], week });
+      }
+    }
+  }
+  return result;
+}
+
+interface IRepeatToken {
+  fullName: string;
+  node: SyntaxNode;
+  order?: number;
+  // 1-based and inclusive, straight off the `[from-to]` in the text.
+  range?: [number, number];
+}
+
+function exerciseRepeats(text: string): IRepeatToken[] {
+  const tree = plannerExerciseParser.parse(text);
+  const result: IRepeatToken[] = [];
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+    const repeat = node.getChild(PlannerNodeName.Repeat);
+    if (variations == null || repeat == null) {
+      continue;
+    }
+    const rangeNode = repeat.getChild(PlannerNodeName.RepRange);
+    const reps = rangeNode != null ? children(rangeNode).filter((c) => c.type.name === PlannerNodeName.Rep) : [];
+    result.push({
+      fullName: text.slice(variations.from, variations.to).trim(),
+      node: repeat,
+      order: orderOf(repeat, text),
+      range:
+        reps.length === 2
+          ? [parseInt(text.slice(reps[0].from, reps[0].to), 10), parseInt(text.slice(reps[1].from, reps[1].to), 10)]
+          : undefined,
+    });
+  }
+  return result;
+}
+
+function repeatToken(order: number | undefined, range: [number, number] | undefined): string {
+  const parts: string[] = [];
+  if (order != null && order !== 0) {
+    parts.push(`${order}`);
+  }
+  if (range != null && range[1] > range[0]) {
+    parts.push(`${range[0]}-${range[1]}`);
+  }
+  return parts.length > 0 ? `[${parts.join(",")}]` : "";
+}
+
+// Rewrites every week number in one day's text to where that week is going. `newForOld` maps a
+// 0-based week index to its new one, or to undefined for a week being removed.
+//
+// A repeat is the hard part: it names one *contiguous* range of weeks and the grammar has no way to
+// say anything else (`getRepeat` stops at the first range, and the printer breaks a run at its first
+// gap). So a permutation that scatters the weeks an exercise repeats over cannot be written down at
+// all, and this refuses rather than writing a range that means something else.
+function rewriteWeekNumbersInDay(text: string, newForOld: Map<number, number | undefined>): IDayRewrite {
+  const edits: { from: number; to: number; text: string }[] = [];
+  for (const repeat of exerciseRepeats(text)) {
+    if (repeat.range == null) {
+      continue;
+    }
+    const moved: number[] = [];
+    for (let week = repeat.range[0]; week <= repeat.range[1]; week += 1) {
+      const next = newForOld.get(week - 1);
+      if (next != null) {
+        moved.push(next);
+      }
+    }
+    moved.sort((a, b) => a - b);
+    if (moved.length === 0) {
+      continue;
+    }
+    if (moved[moved.length - 1] - moved[0] !== moved.length - 1) {
+      return {
+        ok: false,
+        reason: `${repeat.fullName} repeats over weeks that would no longer be next to each other. A repeat can only cover a run of weeks in a row.`,
+      };
+    }
+    edits.push({
+      from: repeat.node.from,
+      to: repeat.node.to,
+      text: repeatToken(repeat.order, [moved[0] + 1, moved[moved.length - 1] + 1]),
+    });
+  }
+  for (const reference of weekReferences(text)) {
+    const next = newForOld.get(reference.week - 1);
+    if (next == null) {
+      return { ok: false, reason: `Something reuses week ${reference.week}, which is being removed.` };
+    }
+    edits.push({ from: reference.node.from, to: reference.node.to, text: `${next + 1}` });
+  }
+  // Back to front so earlier edits don't move later offsets.
+  let result = text;
+  for (const edit of edits.sort((a, b) => b.from - a.from)) {
+    result = `${result.slice(0, edit.from)}${edit.text}${result.slice(edit.to)}`;
+  }
+  return { ok: true, text: result };
+}
+
+type IDayRewrite = { ok: true; text: string } | { ok: false; reason: string };
+
+// Permutes the weeks and rewrites everything that addressed them by number. `oldOrder[newIndex]` is
+// the week that ends up there; a week left out of it is being deleted.
+function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: ISettings): IProgramGridTransformResult {
+  const newForOld = new Map<number, number | undefined>();
+  planner.weeks.forEach((_week, oldIndex) => newForOld.set(oldIndex, undefined));
+  oldOrder.forEach((oldIndex, newIndex) => newForOld.set(oldIndex, newIndex));
+
+  const result = ObjectUtils_clone(planner);
+  for (const oldIndex of oldOrder) {
+    for (const day of result.weeks[oldIndex]?.days ?? []) {
+      const rewritten = rewriteWeekNumbersInDay(day.exerciseText, newForOld);
+      if (!rewritten.ok) {
+        return { ok: false, reason: rewritten.reason };
+      }
+      day.exerciseText = rewritten.text;
+    }
+  }
+  // A name belongs to its week and travels with it, even when that leaves them out of order. The
+  // name is what tells you the week moved at all — renumbering them back to 1, 2, 3 makes a
+  // successful reorder look like nothing happened, since only the contents appear to shift.
+  result.weeks = oldOrder.map((oldIndex) => result.weeks[oldIndex]).filter((week) => week != null);
+  return refuseIfWorse(planner, result, settings);
+}
+
+// Moves a week. Unlike a day row, this is not a renumbering that always works: every repeat is a
+// range of week numbers, so moving a week can scatter the weeks an exercise repeats over into
+// something the language cannot express, and then this refuses.
+export function ProgramGridTransforms_moveWeek(
+  planner: IPlannerProgram,
+  fromIndex: number,
+  toIndex: number,
+  settings: ISettings
+): IProgramGridTransformResult {
+  const count = planner.weeks.length;
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= count || toIndex >= count) {
+    return { ok: true, planner };
+  }
+  const oldOrder = Array.from({ length: count }, (_, i) => i);
+  oldOrder.splice(toIndex, 0, ...oldOrder.splice(fromIndex, 1));
+  return reorderWeeks(planner, oldOrder, settings);
+}
+
+// Deletes a week. An exercise whose definition lives in this week but whose run carries on past it
+// would take the rest of the run with it, so its line moves to the first week of the run that
+// survives — the range says where an exercise appears, not the week its text happens to sit in, so
+// relocating the line changes nothing about the program.
+export function ProgramGridTransforms_deleteWeek(
+  planner: IPlannerProgram,
+  weekIndex: number,
+  settings: ISettings
+): IProgramGridTransformResult {
+  if (planner.weeks.length <= 1) {
+    return { ok: false, reason: "A program needs at least one week." };
+  }
+  const relocated = ObjectUtils_clone(planner);
+  const doomed = relocated.weeks[weekIndex];
+  if (doomed == null) {
+    return { ok: true, planner };
+  }
+  doomed.days.forEach((day, dayIndex) => {
+    const { blocks } = exerciseBlocks(day.exerciseText);
+    const repeats = exerciseRepeats(day.exerciseText);
+    for (const block of blocks) {
+      const repeat = repeats.find((r) => r.fullName === block.fullName);
+      const range = repeat?.range;
+      const nextWeek =
+        range != null
+          ? Array.from({ length: range[1] - range[0] + 1 }, (_, i) => range[0] - 1 + i).find(
+              (week) => week !== weekIndex && relocated.weeks[week]?.days[dayIndex] != null
+            )
+          : undefined;
+      if (nextWeek == null) {
+        continue;
+      }
+      const target = relocated.weeks[nextWeek].days[dayIndex];
+      const to = exerciseBlocks(target.exerciseText);
+      // Only if that week doesn't already say something about this exercise — if it does, that
+      // definition is an override and it is the one that should stay.
+      if (to.blocks.some((b) => b.fullName === block.fullName)) {
+        continue;
+      }
+      target.exerciseText = joinBlocks([...to.blocks, block], to.trailing, target.exerciseText);
+    }
+    // Emptied rather than left to be dropped with the week, so that the intermediate program the
+    // checks below evaluate never holds the same exercise twice.
+    day.exerciseText = "";
+  });
+
+  const oldOrder = planner.weeks.map((_week, i) => i).filter((i) => i !== weekIndex);
+  const reordered = reorderWeeks(relocated, oldOrder, settings);
+  if (!reordered.ok) {
+    return reordered;
+  }
+  // Compared against the program as it was, not against the relocation step, so a move that broke
+  // something is still caught.
+  return refuseIfWorse(planner, reordered.planner, settings);
+}
+
+// Appends a copy of a week. Appending is what keeps it safe: no existing week moves, so no repeat
+// range and no `[week:day]` has to be rewritten.
+//
+// Only a week that says everything it does can be copied. Most of a repeating program's weeks hold
+// no text at all — their content is materialized from a repeat authored earlier — and copying their
+// text would produce an empty week that looks like the one you asked for. Writing out what the
+// evaluator resolved instead is the materialize operation, which the grid doesn't have yet, so this
+// says so rather than silently making an empty week.
+export function ProgramGridTransforms_duplicateWeek(
+  planner: IPlannerProgram,
+  weekIndex: number,
+  settings: ISettings
+): IProgramGridTransformResult {
+  const week = planner.weeks[weekIndex];
+  if (week == null) {
+    return { ok: true, planner };
+  }
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  const evaluated = evaluatedWeeks[weekIndex] ?? [];
+  const inherited = new Set<string>();
+  evaluated.forEach((day, dayIndex) => {
+    if (!day.success) {
+      return;
+    }
+    const authored = exerciseBlocks(week.days[dayIndex]?.exerciseText ?? "").blocks.map((b) => b.fullName);
+    for (const exercise of day.data) {
+      if (authored.indexOf(exercise.fullName) === -1) {
+        inherited.add(exercise.fullName);
+      }
+    }
+  });
+  if (inherited.size > 0) {
+    return {
+      ok: false,
+      reason: `${Array.from(inherited).slice(0, 3).join(", ")} appear${inherited.size === 1 ? "s" : ""} in this week by repeating from an earlier one, so there is no text here to copy. Duplicate the week that defines them instead.`,
+    };
+  }
+
+  const result = ObjectUtils_clone(planner);
+  result.weeks.push({
+    name: uniqueWeekName(planner, `Week ${result.weeks.length + 1}`),
+    // The copy stands on its own: a repeat carried over would claim the weeks the original already
+    // covers and say nothing about the new one.
+    days: week.days.map((day) => ({ name: day.name, exerciseText: stripRepeats(day.exerciseText) })),
+  });
+  return refuseIfWorse(planner, result, settings);
+}
+
+// Nothing in the language addresses a week by name — reuse and repeats are all numbers — so a
+// duplicate name evaluates fine. It still has to be avoided: several tab bars key their React
+// elements and testIDs off the name, and "Week 3" twice makes one of them disappear.
+export function ProgramGridTransforms_uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
+  return uniqueWeekName(planner, preferred);
+}
+
+function uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
+  const taken = new Set(planner.weeks.map((week) => week.name));
+  let name = preferred;
+  while (taken.has(name)) {
+    name = StringUtils_nextName(name);
+  }
+  return name;
+}
+
+function stripRepeats(text: string): string {
+  let result = text;
+  for (const repeat of exerciseRepeats(text).slice().reverse()) {
+    result = `${result.slice(0, repeat.node.from)}${repeatToken(repeat.order, undefined)}${result.slice(repeat.node.to)}`;
   }
   return result;
 }
