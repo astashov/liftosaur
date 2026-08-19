@@ -193,6 +193,191 @@ export function ProgramGridTransforms_duplicateDayRow(
   return refuseIfWorse(planner, result, settings);
 }
 
+// A comment or description line belongs to the exercise it precedes, so reordering moves the block
+// rather than the bare line — otherwise an exercise's notes stay behind with whatever takes its
+// place.
+interface IExerciseBlock {
+  fullName: string;
+  text: string;
+}
+
+// Split on the parser's node ranges, not on lines: an exercise's `{~ ... ~}` script spans several
+// lines, and cutting between them turns a progress block into loose statements the next exercise
+// inherits.
+function exerciseBlocks(text: string): { blocks: IExerciseBlock[]; trailing: string } {
+  const tree = plannerExerciseParser.parse(text);
+  const blocks: IExerciseBlock[] = [];
+  let cursor = 0;
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+    if (variations == null) {
+      continue;
+    }
+    // Whatever sits between the last exercise and this one — comments, blank lines — leads it.
+    // The final block carries no trailing newline, so normalize: moved to the front it would
+    // otherwise run into the line that follows it.
+    const body = text.slice(cursor, node.to);
+    blocks.push({
+      fullName: text.slice(variations.from, variations.to).trim(),
+      text: body.endsWith("\n") ? body : `${body}\n`,
+    });
+    cursor = node.to;
+  }
+  return { blocks, trailing: text.slice(cursor) };
+}
+
+function reorderDayText(text: string, order: string[]): string {
+  const { blocks, trailing } = exerciseBlocks(text);
+  // Only the blocks named in `order` move, and they move within the slots they already occupy, so
+  // anything the grid doesn't know about stays exactly where the author put it.
+  const movableSlots = blocks.reduce<number[]>(
+    (acc, block, index) => (order.indexOf(block.fullName) !== -1 ? [...acc, index] : acc),
+    []
+  );
+  const reordered = movableSlots
+    .map((slot) => blocks[slot])
+    .sort((a, b) => order.indexOf(a.fullName) - order.indexOf(b.fullName));
+  const result = blocks.slice();
+  movableSlots.forEach((slot, i) => {
+    result[slot] = reordered[i];
+  });
+  return joinBlocks(result, trailing, text);
+}
+
+function joinBlocks(blocks: IExerciseBlock[], trailing: string, originalText: string): string {
+  const joined = `${blocks.map((b) => b.text).join("")}${trailing}`;
+  return originalText.endsWith("\n") ? joined : joined.replace(/\n$/, "");
+}
+
+// Reorders exercises within a day. This is content order — no slot identity moves — so it is safe
+// in a way none of the other structural edits are. Applied to every week's copy of the day so the
+// grid's lanes, which are shared across weeks, keep meaning one thing.
+export function ProgramGridTransforms_reorderExercisesInDay(
+  planner: IPlannerProgram,
+  rowIndex: number,
+  order: string[],
+  settings: ISettings
+): IProgramGridTransformResult {
+  const result = ObjectUtils_clone(planner);
+  for (const week of result.weeks) {
+    const day = week.days[rowIndex];
+    if (day != null) {
+      day.exerciseText = reorderDayText(day.exerciseText, order);
+    }
+  }
+  return refuseIfWorse(planner, result, settings);
+}
+
+// Moves one exercise from one day row to another, in every week that authors it there. A repeated
+// exercise is authored once — the later weeks hold no text for it — so moving that one line carries
+// the whole run with it, and it now repeats on the new day. A week that overrides the exercise with
+// its own definition moves that copy too, which is what keeps the lane whole.
+//
+// `beforeFullName` anchors the insert by name rather than by index: the target day can hold a
+// different number of exercises in each week (a ragged week, an override), and an index would land
+// in a different place in each of them.
+export function ProgramGridTransforms_moveExerciseToDay(
+  planner: IPlannerProgram,
+  fromRowIndex: number,
+  fullName: string,
+  toRowIndex: number,
+  beforeFullName: string | undefined,
+  settings: ISettings
+): IProgramGridTransformResult {
+  if (fromRowIndex === toRowIndex) {
+    return { ok: true, planner };
+  }
+  // A ragged program can have the day in one week and not the other. Moving then would delete the
+  // exercise from the week that has no destination for it, so refuse the whole thing rather than
+  // silently losing a week's worth of work.
+  const missing = planner.weeks.filter(
+    (week) =>
+      week.days[toRowIndex] == null &&
+      week.days[fromRowIndex] != null &&
+      exerciseBlocks(week.days[fromRowIndex].exerciseText).blocks.some((b) => b.fullName === fullName)
+  );
+  if (missing.length > 0) {
+    return { ok: false, reason: `${missing.map((w) => w.name).join(", ")} has no day to move ${fullName} into.` };
+  }
+
+  const result = ObjectUtils_clone(planner);
+  let moved = false;
+  for (const week of result.weeks) {
+    const fromDay = week.days[fromRowIndex];
+    const toDay = week.days[toRowIndex];
+    if (fromDay == null || toDay == null) {
+      continue;
+    }
+    const from = exerciseBlocks(fromDay.exerciseText);
+    const block = from.blocks.find((b) => b.fullName === fullName);
+    if (block == null) {
+      continue;
+    }
+    fromDay.exerciseText = joinBlocks(
+      from.blocks.filter((b) => b !== block),
+      from.trailing,
+      fromDay.exerciseText
+    );
+    const to = exerciseBlocks(toDay.exerciseText);
+    const anchor = beforeFullName != null ? to.blocks.findIndex((b) => b.fullName === beforeFullName) : -1;
+    const blocks = to.blocks.slice();
+    blocks.splice(anchor === -1 ? blocks.length : anchor, 0, block);
+    toDay.exerciseText = joinBlocks(blocks, to.trailing, toDay.exerciseText);
+    moved = true;
+  }
+  if (!moved) {
+    return { ok: false, reason: `Couldn't find ${fullName} in that day.` };
+  }
+  // The destination day may already declare the same exercise, or something may reuse this one by
+  // its old `[week:day]` address — both surface as evaluation errors rather than as anything this
+  // could check for directly.
+  return refuseIfWorse(planner, result, settings);
+}
+
+// Moves a whole day row. Every week is permuted identically, which is what keeps this a renumber
+// rather than a desync: after it, day slot N means the same thing in every week, and the qualifiers
+// that named the old positions are rewritten to the new ones.
+export function ProgramGridTransforms_moveDayRow(
+  planner: IPlannerProgram,
+  fromIndex: number,
+  toIndex: number,
+  settings: ISettings
+): IProgramGridTransformResult {
+  const rows = planner.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= rows || toIndex >= rows) {
+    return { ok: true, planner };
+  }
+  const oldOrder = Array.from({ length: rows }, (_, i) => i);
+  oldOrder.splice(toIndex, 0, ...oldOrder.splice(fromIndex, 1));
+  // oldOrder[newIndex] = the row that now sits there, so this inverts it into old day → new day.
+  const newDayForOld = new Map<number, number>();
+  oldOrder.forEach((oldIndex, newIndex) => newDayForOld.set(oldIndex + 1, newIndex + 1));
+
+  const result = ObjectUtils_clone(planner);
+  for (const week of result.weeks) {
+    week.days = oldOrder.map((oldIndex) => week.days[oldIndex]).filter((day) => day != null);
+    for (const day of week.days) {
+      day.exerciseText = remapDayReferences(day.exerciseText, newDayForOld);
+    }
+  }
+  return refuseIfWorse(planner, result, settings);
+}
+
+function remapDayReferences(text: string, newDayForOld: Map<number, number>): string {
+  const references = dayReferences(text);
+  let result = text;
+  for (const reference of references.slice().reverse()) {
+    const next = newDayForOld.get(reference.day);
+    if (next != null && next !== reference.day) {
+      result = `${result.slice(0, reference.node.from)}${next}${result.slice(reference.node.to)}`;
+    }
+  }
+  return result;
+}
+
 // Changes how many weeks an exercise repeats for, by rewriting the `[from-to]` token on the line
 // that declares it and nothing else. The later weeks hold no text for a repeated exercise — the
 // evaluator synthesizes them from the range — so this is the whole edit: no other line moves, and a

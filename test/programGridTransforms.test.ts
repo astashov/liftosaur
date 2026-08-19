@@ -4,6 +4,9 @@ import {
   ProgramGridTransforms_setRepeatRange,
   ProgramGridTransforms_deleteDayRow,
   ProgramGridTransforms_duplicateDayRow,
+  ProgramGridTransforms_moveDayRow,
+  ProgramGridTransforms_reorderExercisesInDay,
+  ProgramGridTransforms_moveExerciseToDay,
 } from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
@@ -234,6 +237,247 @@ Bench Press / 5x5 50lb
       expect(result.planner.weeks[0].days[2].exerciseText.trim()).to.equal("Bench Press / 5x5 50lb");
       // The repeat on day 1 is untouched, which is the point of appending.
       expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+    });
+  });
+
+  describe("moveDayRow", () => {
+    const THREE_DAYS = `# Week 1
+## Day A
+Squat / 3x5 100lb
+
+## Day B
+main / used: none / 3x5 100lb
+
+## Day C
+Bench Press / ...main[2]
+
+# Week 2
+## Day A
+Squat / 3x5 105lb
+
+## Day B
+main / used: none / 3x5 110lb
+
+## Day C
+Bench Press / ...main[2]
+`;
+
+    it("permutes every week identically and rewrites the qualifiers", () => {
+      // Day C moves to the front, so what was day 2 is now day 3.
+      const result = ProgramGridTransforms_moveDayRow(plannerOf(THREE_DAYS), 2, 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      for (const week of result.planner.weeks) {
+        expect(week.days.map((d) => d.name)).to.deep.equal(["Day C", "Day A", "Day B"]);
+      }
+      expect(result.planner.weeks[0].days[0].exerciseText.trim()).to.equal("Bench Press / ...main[3]");
+      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+    });
+
+    it("is a no-op when nothing moves", () => {
+      const planner = plannerOf(THREE_DAYS);
+      const result = ProgramGridTransforms_moveDayRow(planner, 1, 1, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (result.ok) {
+        expect(result.planner).to.equal(planner);
+      }
+    });
+  });
+
+  describe("reorderExercisesInDay", () => {
+    it("reorders in every week and carries each exercise's comments with it", () => {
+      const text = `# Week 1
+## Day 1
+// squat notes
+Squat[1-2] / 3x5 100lb
+Bench Press / 5x5 50lb
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 55lb
+Deadlift / 1x5 210lb
+`;
+      const result = ProgramGridTransforms_reorderExercisesInDay(
+        plannerOf(text),
+        0,
+        ["Deadlift", "Squat", "Bench Press"],
+        Settings_build()
+      );
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+        "Deadlift / 1x5 200lb",
+        "// squat notes",
+        "Squat[1-2] / 3x5 100lb",
+        "Bench Press / 5x5 50lb",
+      ]);
+      // Week 2 only holds two of them, and follows the same order.
+      expect(result.planner.weeks[1].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+        "Deadlift / 1x5 210lb",
+        "Bench Press / 5x5 55lb",
+      ]);
+      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+    });
+  });
+
+  describe("moveExerciseToDay", () => {
+    const TWO_DAYS = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+Bench Press / 5x5 50lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 55lb
+
+## Day 2
+Deadlift / 1x5 210lb
+`;
+
+    function linesOf(planner: IPlannerProgram, weekIndex: number, dayIndex: number): string[] {
+      return planner.weeks[weekIndex].days[dayIndex].exerciseText.trim().split("\n");
+    }
+
+    it("moves an exercise into another day in every week that authors it", () => {
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(TWO_DAYS),
+        0,
+        "Bench Press",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(linesOf(result.planner, 0, 0)).to.deep.equal(["Squat[1-2] / 3x5 100lb"]);
+      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Bench Press / 5x5 50lb"]);
+      // Week 2 authors its own copy, and that one moves too, leaving the day empty.
+      expect(linesOf(result.planner, 1, 0)).to.deep.equal([""]);
+      expect(linesOf(result.planner, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb", "Bench Press / 5x5 55lb"]);
+    });
+
+    it("inserts before the exercise it was dropped above", () => {
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(TWO_DAYS),
+        0,
+        "Bench Press",
+        1,
+        "Deadlift",
+        Settings_build()
+      );
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Bench Press / 5x5 50lb", "Deadlift / 1x5 200lb"]);
+    });
+
+    it("carries the repeat with the line, so the run lands on the new day", () => {
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(TWO_DAYS),
+        0,
+        "Squat",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Squat[1-2] / 3x5 100lb"]);
+      // Week 2 holds no text for a repeated exercise, so nothing there had to move.
+      expect(linesOf(result.planner, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb"]);
+      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+    });
+
+    it("refuses when the destination day already has that exercise", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Squat / 3x5 200lb
+`;
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(text),
+        0,
+        "Squat",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(false);
+    });
+
+    it("refuses when a week that authors the exercise has no destination day", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 55lb
+`;
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(text),
+        0,
+        "Bench Press",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(false);
+      if (result.ok) {
+        return;
+      }
+      expect(result.reason).to.contain("Bench Press");
+    });
+
+    it("refuses when something reuses the exercise by its old day", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+## Day 3
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat / ...Squat[1:1]
+
+## Day 2
+Deadlift / 1x5 210lb
+
+## Day 3
+Bench Press / 5x5 55lb
+`;
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(text),
+        0,
+        "Squat",
+        2,
+        undefined,
+        Settings_build()
+      );
+      expect(result.ok).to.equal(false);
     });
   });
 

@@ -9,6 +9,10 @@ interface IGridResizeHandleProps {
   onResize: (deltaWeeks: number) => void;
   onResizeEnd: () => void;
   columnWidth: number;
+  // Placed by the lane rather than hugging a cell — see the native variant.
+  left: number;
+  top: number;
+  height: number;
 }
 
 // react-native-gesture-handler is stubbed to no-ops on web (utils/rnStubs/gestureHandler.js), so
@@ -30,8 +34,10 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
 
   return (
     <View
-      className="absolute top-0 bottom-0 right-0 items-center justify-center"
-      style={{ width: props.width, cursor: "col-resize" } as object}
+      className="absolute items-center justify-center"
+      style={
+        { width: props.width, left: props.left, top: props.top, height: props.height, cursor: "col-resize" } as object
+      }
       testID="grid-resize-handle"
       accessibilityLabel="Drag to change how many weeks this repeats for"
       onStartShouldSetResponder={() => true}

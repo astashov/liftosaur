@@ -11,6 +11,11 @@ interface IGridResizeHandleProps {
   onResize: (deltaWeeks: number) => void;
   onResizeEnd: () => void;
   columnWidth: number;
+  // Placed by the lane rather than hugging a cell: it lives outside the lane's drag detector, so
+  // that a touch landing on it can't be taken by the exercise drag's long press.
+  left: number;
+  top: number;
+  height: number;
 }
 
 export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResizeHandleProps): JSX.Element {
@@ -36,8 +41,8 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
   return (
     <GestureDetector gesture={gesture}>
       <View
-        className="absolute top-0 bottom-0 right-0 items-center justify-center"
-        style={{ width: props.width }}
+        className="absolute items-center justify-center"
+        style={{ width: props.width, left: props.left, top: props.top, height: props.height }}
         testID="grid-resize-handle"
         accessibilityLabel="Drag to change how many weeks this repeats for"
       >

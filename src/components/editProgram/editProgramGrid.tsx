@@ -1,15 +1,16 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, ScrollView, LayoutChangeEvent, useWindowDimensions } from "react-native";
+import { View, ScrollView, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
 import { lb } from "lens-shmens";
 import { Text } from "../primitives/text";
 import { Pressable } from "../primitives/pressable";
 import { IEvaluatedProgram } from "../../models/program";
-import { ISettings } from "../../types";
+import { IPlannerProgram, ISettings } from "../../types";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useRem } from "../../utils/useRem";
 import { StringUtils_pluralize } from "../../utils/string";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
+import Animated, { useAnimatedStyle, useSharedValue, SharedValue } from "react-native-reanimated";
 import { useGridPinch } from "./gridPinch";
 import {
   IProgramGrid,
@@ -37,10 +38,15 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { GridResizeHandle } from "./gridResizeHandle";
+import { GridDragHandle } from "./gridDragHandle";
 import {
+  IProgramGridTransformResult,
   ProgramGridTransforms_setRepeatRange,
   ProgramGridTransforms_deleteDayRow,
   ProgramGridTransforms_duplicateDayRow,
+  ProgramGridTransforms_moveDayRow,
+  ProgramGridTransforms_reorderExercisesInDay,
+  ProgramGridTransforms_moveExerciseToDay,
 } from "../../pages/planner/models/programGridTransforms";
 
 // Column width at scale 1, in rem; pinch multiplies it. Below SCHEME_MIN_WIDTH a column is too
@@ -67,6 +73,160 @@ const BOTTOM_GAP = 0.25;
 const ADD_ROW_HEIGHT = 1.5;
 const DAY_LABEL_HEIGHT = 2;
 const RESIZE_HANDLE_WIDTH = 1;
+const MARGIN_BETWEEN_ROWS = 0.25;
+
+// Where every row and lane sits, derived from the model rather than measured: a drag has to resolve
+// a finger position to a day and a slot in *another* row, and measuring that means a layout event
+// per row, which is a re-render per row — the thing that cancels the pan mid-drag.
+interface IGridGeometryRow {
+  top: number;
+  height: number;
+  outerHeight: number;
+  // Top of lane 0, i.e. under the day label.
+  contentTop: number;
+  lanes: number;
+  laneNames: string[];
+  isCollapsed: boolean;
+}
+
+function buildGridGeometry(
+  grid: IProgramGrid,
+  collapsedRows: number[],
+  laneHeight: number,
+  rem: number
+): IGridGeometryRow[] {
+  const labelHeight = DAY_LABEL_HEIGHT * rem;
+  const addHeight = ADD_ROW_HEIGHT * rem;
+  let top = 0;
+  return grid.rows.map((row) => {
+    const isCollapsed = collapsedRows.indexOf(row.rowIndex) !== -1;
+    const laneNames: string[] = [];
+    for (const placement of grid.placements) {
+      if (placement.rowIndex === row.rowIndex) {
+        laneNames[placement.laneIndex] = placement.fullName;
+      }
+    }
+    const lanes = laneNames.length;
+    // The row is taller than its content by the box's own padding, so the last strip clears the
+    // bottom edge by the same gap it keeps from the sides.
+    const height = isCollapsed
+      ? labelHeight + BOTTOM_GAP * rem
+      : labelHeight + lanes * laneHeight + addHeight + BOTTOM_GAP * rem;
+    const result: IGridGeometryRow = {
+      top,
+      height,
+      outerHeight: height + MARGIN_BETWEEN_ROWS * rem,
+      contentTop: top + labelHeight,
+      lanes,
+      laneNames: Array.from({ length: lanes }, (_, i) => laneNames[i] ?? ""),
+      isCollapsed,
+    };
+    top += result.outerHeight;
+    return result;
+  });
+}
+
+// What is being dragged, floating over the grid: one per row for the day drag and one for the
+// exercise drag, both mounted for the whole life of the grid. Building a ghost when the drag starts
+// would mean a render while the pan is live, which is what cancels the pan.
+//
+// Only `opacity` and `transform` are ever animated. Animating `top`/`height`/`zIndex` instead —
+// which is what the first version did — makes Fabric commit a new shadow tree and reorder subviews
+// on every frame of the drag, right under the finger, and the pan dies exactly as it did before.
+// So every ghost has a static size and sits at the top of the rows, and the drag moves it.
+interface IGridDragGhostProps {
+  rowIndex: number;
+  name: string;
+  laneNames: string[];
+  width: number;
+  labelHeight: number;
+  laneHeight: number;
+  // Which row is being dragged as a day, and which as an exercise — the same values that dim the
+  // source, so a ghost needs nothing of its own to know it is the one on the move.
+  draggedRow: SharedValue<number>;
+  draggedLaneRow: SharedValue<number>;
+  draggedLane: SharedValue<number>;
+  ghostY: SharedValue<number>;
+}
+
+const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostProps): JSX.Element {
+  const rem = useRem();
+  const { rowIndex, draggedRow, draggedLaneRow, draggedLane, ghostY, laneHeight, labelHeight } = props;
+  const dayStyle = useAnimatedStyle(() => ({
+    opacity: draggedRow.value === rowIndex ? 0.9 : 0,
+    transform: [{ translateY: ghostY.value }],
+  }));
+  const laneStyle = useAnimatedStyle(() => ({
+    opacity: draggedLaneRow.value === rowIndex ? 0.9 : 0,
+    transform: [{ translateY: ghostY.value }],
+  }));
+  // The band shows one lane of the same list, scrolled to it — cheaper than a ghost per exercise,
+  // and it can't drift out of step with the day ghost.
+  const laneContentStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -Math.max(0, draggedLane.value) * laneHeight }],
+  }));
+
+  const laneStrips = props.laneNames.map((laneName, laneIndex) => (
+    <View
+      key={laneIndex}
+      style={{ height: laneHeight, paddingHorizontal: CELL_INSET_X * rem, paddingVertical: CELL_INSET_Y * rem }}
+    >
+      <View
+        className="justify-center flex-1 px-2 rounded"
+        style={{
+          borderWidth: 1,
+          borderColor: Tailwind_semantic().text.purple,
+          backgroundColor: Tailwind_semantic().background.cardpurpleselected,
+        }}
+      >
+        <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+          {laneName}
+        </Text>
+      </View>
+    </View>
+  ));
+  // The shadow lives on the outer view of each pair: clipping the lane band to one strip would clip
+  // its shadow away with the rest.
+  const lift = {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    width: props.width,
+    // Also as a style, not only as the prop: a ghost sits over the very day names whose long press
+    // starts the drag, and it must never be what the finger lands on.
+    pointerEvents: "none" as const,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 8,
+  };
+  const card = {
+    borderWidth: 2,
+    borderColor: Tailwind_semantic().icon.purple,
+    backgroundColor: Tailwind_semantic().background.cardyellow,
+  };
+
+  return (
+    <>
+      <Animated.View pointerEvents="none" style={[dayStyle, lift]}>
+        <View className="overflow-hidden rounded" style={card}>
+          <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
+            <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
+              {props.name}
+            </Text>
+          </View>
+          {laneStrips}
+        </View>
+      </Animated.View>
+      <Animated.View pointerEvents="none" style={[laneStyle, lift]}>
+        <View className="overflow-hidden rounded" style={[card, { height: laneHeight }]}>
+          <Animated.View style={laneContentStyle}>{laneStrips}</Animated.View>
+        </View>
+      </Animated.View>
+    </>
+  );
+});
 
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -137,12 +297,188 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     setSelectedDayRow((current) => (current === rowIndex ? undefined : rowIndex));
   }, []);
 
+  // Every structural edit runs the same way: ask the transform first so a refusal can be shown,
+  // then dispatch. Doing the check inside the lens modifier instead would leave a refusal with
+  // nowhere to go, and the edit would look like it simply did nothing.
+  const applyTransform = useCallback(
+    (transform: (planner: IPlannerProgram) => IProgramGridTransformResult, description: string) => {
+      const check = transform(plannerRef.current);
+      if (!check.ok) {
+        Dialog_alert(check.reason);
+        return;
+      }
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .recordModify((planner) => {
+            const result = transform(planner);
+            return result.ok ? result.planner : planner;
+          }),
+        description
+      );
+    },
+    [plannerDispatch]
+  );
+
+  // Filled from the geometry memo below — read only from drag handlers, which run long after the
+  // render that wrote it. A ref rather than a value so a handler can see the current layout without
+  // being rebuilt when it changes, since rebuilding a gesture's callbacks mid-drag drops the drag.
+  const geometryRef = useRef<IGridGeometryRow[]>([]);
+  const laneHeightRef = useRef(laneHeight);
+  laneHeightRef.current = laneHeight;
+  const labelHeightRef = useRef(DAY_LABEL_HEIGHT * rem);
+  labelHeightRef.current = DAY_LABEL_HEIGHT * rem;
+  // Every drag in the grid follows the same two rules: what it will do is written synchronously to
+  // a ref as the finger moves, and what it looks like rides on shared values. No state changes
+  // until the finger lifts — re-rendering the tree under the finger is what makes gesture-handler
+  // cancel the pan, and reading the target from state would read a commit React hadn't flushed.
+  const draggedRow = useSharedValue(-1);
+  // The *gap* the dragged row will land in, counted in the rows' current positions: gap N sits
+  // above row N, and gap rowCount is below the last one. Not the destination index — moving row 0
+  // to index 1 leaves it after row 1, so the line belongs below row 1, not above it. -1 hides it.
+  const dropBoundary = useSharedValue(-1);
+  // Where the floating copy of whatever is being dragged currently sits, in the rows' own
+  // coordinates. Which ghost shows is decided by the same values that dim the source.
+  const ghostY = useSharedValue(0);
+
+  // Committing a day move is all the parent does — a day only ever lands among the rows it can
+  // already see, so the row itself can track the drag.
+  const onMoveDayRow = useCallback(
+    (from: number, to: number) => {
+      applyTransform(
+        (planner) => ProgramGridTransforms_moveDayRow(planner, from, to, settings),
+        `Move day ${from + 1} to position ${to + 1}`
+      );
+    },
+    [applyTransform, settings]
+  );
+
   const [collapsedRows, setCollapsedRows] = useState<number[]>([]);
   const onToggleCollapsed = useCallback((rowIndex: number) => {
     setCollapsedRows((current) =>
       current.indexOf(rowIndex) !== -1 ? current.filter((r) => r !== rowIndex) : [...current, rowIndex]
     );
   }, []);
+  const geometry = useMemo(
+    () => buildGridGeometry(grid, collapsedRows, laneHeight, rem),
+    [grid, collapsedRows, laneHeight, rem]
+  );
+  geometryRef.current = geometry;
+
+  // An exercise drag is owned up here rather than by its row, because it can end in a different
+  // row than it started in: only the grid knows where the other rows are, and only shared values
+  // can show the drop line in one row while the finger is being tracked by another's gesture.
+  // Nothing here calls setState — the whole drag is refs and shared values until the finger lifts.
+  const draggedLaneRow = useSharedValue(-1);
+  const draggedLane = useSharedValue(-1);
+  const dropLaneRow = useSharedValue(-1);
+  // The gap, in the target row's current lanes: gap N sits above lane N, and gap `lanes` sits below
+  // the last one. -1 hides it.
+  const dropLaneGap = useSharedValue(-1);
+  const laneDragRef = useRef<{ fromRow: number; fromLane: number; toRow: number; gap: number } | undefined>(undefined);
+
+  const onLaneDragStart = useCallback(
+    (rowIndex: number, laneIndex: number) => {
+      laneDragRef.current = { fromRow: rowIndex, fromLane: laneIndex, toRow: rowIndex, gap: laneIndex };
+      draggedLaneRow.value = rowIndex;
+      draggedLane.value = laneIndex;
+      dropLaneRow.value = -1;
+      dropLaneGap.value = -1;
+      const source = geometryRef.current[rowIndex];
+      if (source != null) {
+        ghostY.value = source.contentTop + laneIndex * laneHeightRef.current;
+      }
+    },
+    [draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap, ghostY]
+  );
+
+  const onLaneDragMove = useCallback(
+    (rowIndex: number, laneIndex: number, translationY: number) => {
+      const drag = laneDragRef.current;
+      const geo = geometryRef.current;
+      const source = geo[rowIndex];
+      if (drag == null || source == null) {
+        return;
+      }
+      const height = laneHeightRef.current;
+      // The strip's own centre is what chases the finger, so the drop follows what you see rather
+      // than where you happened to grab it.
+      const y = source.contentTop + (laneIndex + 0.5) * height + translationY;
+      ghostY.value = y - height / 2;
+      let toRow = 0;
+      for (let i = 0; i < geo.length; i += 1) {
+        if (y >= geo[i].top) {
+          toRow = i;
+        }
+      }
+      const target = geo[toRow];
+      // A collapsed row shows no lanes to aim between, so anything dropped on it goes to the end.
+      const gap = target.isCollapsed
+        ? target.lanes
+        : Math.max(0, Math.min(target.lanes, Math.round((y - target.contentTop) / height)));
+      laneDragRef.current = { ...drag, toRow, gap };
+      // Within its own row, the gap just above the strip and the one just below it are both where
+      // it already is, so neither gets a line.
+      const isNoop = toRow === drag.fromRow && (gap === drag.fromLane || gap === drag.fromLane + 1);
+      dropLaneRow.value = isNoop ? -1 : toRow;
+      dropLaneGap.value = isNoop ? -1 : gap;
+    },
+    [dropLaneRow, dropLaneGap, ghostY]
+  );
+
+  const onLaneDragEnd = useCallback(
+    (commit: boolean) => {
+      const drag = laneDragRef.current;
+      laneDragRef.current = undefined;
+      draggedLaneRow.value = -1;
+      draggedLane.value = -1;
+      dropLaneRow.value = -1;
+      dropLaneGap.value = -1;
+      const geo = geometryRef.current;
+      const source = drag != null ? geo[drag.fromRow] : undefined;
+      const fullName = drag != null && source != null ? source.laneNames[drag.fromLane] : undefined;
+      if (!commit || drag == null || source == null || fullName == null || fullName === "") {
+        return;
+      }
+      if (drag.toRow === drag.fromRow) {
+        // The strip is lifted out before it lands, so a gap below its own position is one index
+        // further along than the slot it ends up in.
+        const to = drag.gap > drag.fromLane ? drag.gap - 1 : drag.gap;
+        if (to === drag.fromLane) {
+          return;
+        }
+        const order = source.laneNames.slice();
+        order.splice(to, 0, ...order.splice(drag.fromLane, 1));
+        applyTransform(
+          (planner) =>
+            ProgramGridTransforms_reorderExercisesInDay(
+              planner,
+              drag.fromRow,
+              order.filter((n) => n !== ""),
+              settings
+            ),
+          `Reorder exercises in day ${drag.fromRow + 1}`
+        );
+        return;
+      }
+      const before = geo[drag.toRow]?.laneNames[drag.gap];
+      applyTransform(
+        (planner) =>
+          ProgramGridTransforms_moveExerciseToDay(
+            planner,
+            drag.fromRow,
+            fullName,
+            drag.toRow,
+            before === "" ? undefined : before,
+            settings
+          ),
+        `Move ${fullName} to day ${drag.toRow + 1}`
+      );
+    },
+    [applyTransform, settings, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap]
+  );
 
   const dispatch = props.dispatch;
   const programId = props.programId;
@@ -277,43 +613,24 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
 
   const onDuplicateDay = useCallback(
     (rowIndex: number) => {
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("current")
-          .p("program")
-          .pi("planner")
-          .recordModify((planner) => {
-            const result = ProgramGridTransforms_duplicateDayRow(planner, rowIndex, settings);
-            return result.ok ? result.planner : planner;
-          }),
+      applyTransform(
+        (planner) => ProgramGridTransforms_duplicateDayRow(planner, rowIndex, settings),
         `Duplicate day ${rowIndex + 1} in every week`
       );
       setSelectedDayRow(undefined);
     },
-    [plannerDispatch, settings]
+    [applyTransform, settings]
   );
 
   const onDeleteDay = useCallback(
     (rowIndex: number) => {
-      const check = ProgramGridTransforms_deleteDayRow(plannerRef.current, rowIndex, settings);
-      if (!check.ok) {
-        Dialog_alert(check.reason);
-        return;
-      }
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("current")
-          .p("program")
-          .pi("planner")
-          .recordModify((planner) => {
-            const result = ProgramGridTransforms_deleteDayRow(planner, rowIndex, settings);
-            return result.ok ? result.planner : planner;
-          }),
+      applyTransform(
+        (planner) => ProgramGridTransforms_deleteDayRow(planner, rowIndex, settings),
         `Delete day ${rowIndex + 1} from every week`
       );
       setSelectedDayRow(undefined);
     },
-    [plannerDispatch, settings]
+    [applyTransform, settings]
   );
 
   const publishSelection = useGridSelectionPublish();
@@ -390,30 +707,71 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
       </View>
       <Wrap>
         <ScrollView horizontal showsHorizontalScrollIndicator={true}>
-          {/* RN presses don't bubble, so a tap that lands on a cell selects it and a tap that
-              lands anywhere else falls through to here and clears. */}
-          <Pressable className="flex-row" onPress={onClearSelection}>
+          {/* Deliberately not a Pressable for tap-to-clear. A day name is a gesture detector rather
+              than a Pressable, so it does not consume the touch from an ancestor Pressable: the tap
+              would select the day and the background would immediately clear it, and the same
+              ancestor competed with the long-press drag. Clearing lives on the dock's ✕ and on
+              tapping a selected thing again. */}
+          <View className="flex-row">
             <View style={{ width: totalWidth }}>
               <WeekHeaderRow grid={grid} columnWidth={columnWidth} />
-              {grid.rows.map((row) => (
-                <GridRow
-                  key={row.rowIndex}
-                  grid={grid}
-                  rowIndex={row.rowIndex}
-                  columnWidth={columnWidth}
-                  laneHeight={laneHeight}
-                  density={density}
-                  selection={selection}
-                  onSelect={onSelect}
-                  onAddExercise={onAddExercise}
-                  onSetRepeatRange={onSetRepeatRange}
-                  onSelectDay={onSelectDay}
-                  onToggleCollapsed={onToggleCollapsed}
-                  isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
-                  isDaySelected={selectedDayRow === row.rowIndex}
-                  isDayDimmed={selectedDayRow != null && selectedDayRow !== row.rowIndex}
-                />
-              ))}
+              {/* The rows and the ghosts share one coordinate space — the geometry's — and it
+                  starts here, below the week header. zIndex keeps a ghost dragged past the last row
+                  above the "+ Day" strip that follows. */}
+              <View style={{ zIndex: 1 }}>
+                {grid.rows.map((row) => (
+                  <GridRow
+                    key={row.rowIndex}
+                    grid={grid}
+                    rowIndex={row.rowIndex}
+                    columnWidth={columnWidth}
+                    laneHeight={laneHeight}
+                    density={density}
+                    selection={selection}
+                    onSelect={onSelect}
+                    onAddExercise={onAddExercise}
+                    onSetRepeatRange={onSetRepeatRange}
+                    onSelectDay={onSelectDay}
+                    onToggleCollapsed={onToggleCollapsed}
+                    isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
+                    isDaySelected={selectedDayRow === row.rowIndex}
+                    isDayDimmed={selectedDayRow != null && selectedDayRow !== row.rowIndex}
+                    geometryRef={geometryRef}
+                    lanes={geometry[row.rowIndex].lanes}
+                    rowHeight={geometry[row.rowIndex].height}
+                    onMoveDayRow={onMoveDayRow}
+                    onLaneDragStart={onLaneDragStart}
+                    onLaneDragMove={onLaneDragMove}
+                    onLaneDragEnd={onLaneDragEnd}
+                    draggedRow={draggedRow}
+                    dropBoundary={dropBoundary}
+                    draggedLaneRow={draggedLaneRow}
+                    draggedLane={draggedLane}
+                    dropLaneRow={dropLaneRow}
+                    dropLaneGap={dropLaneGap}
+                    ghostY={ghostY}
+                  />
+                ))}
+                {/* Last, so they paint over every row. Mounted with the grid rather than with the
+                    drag: see GridDragGhost. Reanimated is stubbed on web, where they would land in
+                    the flow with their positioning dropped, so web goes without. */}
+                {Platform.OS !== "web" &&
+                  grid.rows.map((row) => (
+                    <GridDragGhost
+                      key={row.rowIndex}
+                      rowIndex={row.rowIndex}
+                      name={row.namePerWeek.find((n) => n != null) ?? `Day ${row.rowIndex + 1}`}
+                      laneNames={geometry[row.rowIndex].isCollapsed ? [] : geometry[row.rowIndex].laneNames}
+                      width={totalWidth}
+                      labelHeight={DAY_LABEL_HEIGHT * rem}
+                      laneHeight={laneHeight}
+                      draggedRow={draggedRow}
+                      draggedLaneRow={draggedLaneRow}
+                      draggedLane={draggedLane}
+                      ghostY={ghostY}
+                    />
+                  ))}
+              </View>
               <View className="flex-row">
                 {grid.columns.map((column) => (
                   <View
@@ -433,7 +791,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
             <View style={{ width: columnWidth, padding: DAY_BOX_INSET * rem }}>
               <AddButton label="Week" testID="grid-add-week" onPress={onAddWeek} />
             </View>
-          </Pressable>
+          </View>
         </ScrollView>
       </Wrap>
       <Text className="px-4 pt-2 text-xs text-text-secondary">Weeks and days never reorder</Text>
@@ -503,29 +861,139 @@ interface IGridRowProps {
   isCollapsed: boolean;
   isDaySelected: boolean;
   isDayDimmed: boolean;
+  // A ref rather than a value: reading the other rows' geometry during a drag must not make this
+  // component depend on it, or every row would re-render whenever any of them changed.
+  geometryRef: { current: IGridGeometryRow[] };
+  lanes: number;
+  rowHeight: number;
+  onMoveDayRow: (from: number, to: number) => void;
+  onLaneDragStart: (rowIndex: number, laneIndex: number) => void;
+  onLaneDragMove: (rowIndex: number, laneIndex: number, translationY: number) => void;
+  onLaneDragEnd: (commit: boolean) => void;
+  draggedRow: SharedValue<number>;
+  dropBoundary: SharedValue<number>;
+  draggedLaneRow: SharedValue<number>;
+  draggedLane: SharedValue<number>;
+  dropLaneRow: SharedValue<number>;
+  dropLaneGap: SharedValue<number>;
+  ghostY: SharedValue<number>;
 }
 
 const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
   const rem = useRem();
-  const { grid, rowIndex } = props;
+  const { grid, rowIndex, lanes, rowHeight } = props;
   const row = grid.rows[rowIndex];
-  const lanes = useMemo(() => {
-    const laneIndexes = grid.placements.filter((p) => p.rowIndex === rowIndex).map((p) => p.laneIndex);
-    return laneIndexes.length > 0 ? Math.max(...laneIndexes) + 1 : 0;
-  }, [grid.placements, rowIndex]);
   const labelHeight = DAY_LABEL_HEIGHT * rem;
-  // The row is taller than its content by the box's own padding, so the last strip clears the
-  // bottom edge by the same gap it keeps from the sides.
   const addHeight = ADD_ROW_HEIGHT * rem;
   const isCollapsed = props.isCollapsed;
-  const rowHeight = isCollapsed
-    ? labelHeight + BOTTOM_GAP * rem
-    : labelHeight + lanes * props.laneHeight + addHeight + BOTTOM_GAP * rem;
+
+  // The whole day drag is owned here rather than by the grid: a state update in the parent
+  // re-renders every row, and gesture-handler cancels a pan whose subtree is rebuilt under the
+  // finger — measured at ~57ms after the drag started, one update in.
+  const { geometryRef, onMoveDayRow, draggedRow, dropBoundary } = props;
+  // No state changes at all until the finger lifts: any re-render of this subtree while the pan is
+  // live gets it cancelled by gesture-handler (measured — cancelled 57ms in, after one update). The
+  // ref carries the drop target, and the shared values carry the feedback.
+  const dayDragToRef = useRef<number | undefined>(undefined);
+
+  const onSelectDay = props.onSelectDay;
+  const onTapDay = useCallback(() => onSelectDay(rowIndex), [onSelectDay, rowIndex]);
+
+  const ghostY = props.ghostY;
+  const onDragStartDay = useCallback(() => {
+    dayDragToRef.current = rowIndex;
+    draggedRow.value = rowIndex;
+    dropBoundary.value = -1;
+    ghostY.value = geometryRef.current[rowIndex]?.top ?? 0;
+  }, [rowIndex, draggedRow, dropBoundary, geometryRef, ghostY]);
+
+  const onDragMoveDay = useCallback(
+    (translationY: number) => {
+      const heights = geometryRef.current;
+      ghostY.value = (heights[rowIndex]?.top ?? 0) + translationY;
+      let to = rowIndex;
+      let travelled = 0;
+      const step = translationY > 0 ? 1 : -1;
+      // Accumulate the neighbours' own heights, so rows of different sizes each need their own
+      // distance travelled before the drop target moves past them.
+      for (let i = rowIndex + step; i >= 0 && i < heights.length; i += step) {
+        travelled += (heights[i]?.outerHeight ?? 0) / 2 + (heights[i - step]?.outerHeight ?? 0) / 2;
+        if (Math.abs(translationY) < travelled) {
+          break;
+        }
+        to = i;
+      }
+      dayDragToRef.current = to;
+      // Dragging down, the row lands *after* its destination once it has been lifted out, so the
+      // gap is one further along than the index; dragging up, index and gap coincide.
+      dropBoundary.value = to === rowIndex ? -1 : to > rowIndex ? to + 1 : to;
+    },
+    [geometryRef, rowIndex, dropBoundary, ghostY]
+  );
+
+  const onDragEndDay = useCallback(
+    (commit: boolean) => {
+      const to = dayDragToRef.current;
+      dayDragToRef.current = undefined;
+      draggedRow.value = -1;
+      dropBoundary.value = -1;
+      if (commit && to != null && to !== rowIndex) {
+        onMoveDayRow(rowIndex, to);
+      }
+    },
+    [onMoveDayRow, rowIndex, draggedRow, dropBoundary]
+  );
+
+  // -1 means no drag, so an idle grid keeps whatever the selection styling asked for.
+  const rowOverlayStyle = useAnimatedStyle(() => {
+    const dragging = draggedRow.value;
+    if (dragging < 0) {
+      return { opacity: 0 };
+    }
+    return { opacity: dragging === rowIndex ? 0.18 : 0 };
+  });
+  // Each row owns the gap above it; the last row owns the one below it too, so a drop at the very
+  // end has somewhere to draw.
+  const dropLineStyle = useAnimatedStyle(() => {
+    return { opacity: dropBoundary.value === rowIndex ? 1 : 0 };
+  });
+  const isLastRow = rowIndex === grid.rows.length - 1;
+  const dropLineBottomStyle = useAnimatedStyle(() => {
+    return { opacity: isLastRow && dropBoundary.value === rowIndex + 1 ? 1 : 0 };
+  });
+
+  // An exercise can be dropped into any day, so both the strip being dragged and the line showing
+  // where it will land are drawn here, over the row, from shared values the grid writes. The lanes
+  // themselves stay out of it: giving them drag props would re-render the one under the finger.
+  const { draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap, laneHeight } = props;
+  const draggedLaneStyle = useAnimatedStyle(() => {
+    if (draggedLaneRow.value !== rowIndex) {
+      return { opacity: 0, top: 0, height: 0 };
+    }
+    return { opacity: 0.25, top: labelHeight + draggedLane.value * laneHeight, height: laneHeight };
+  });
+  const dropLaneStyle = useAnimatedStyle(() => {
+    if (dropLaneRow.value !== rowIndex) {
+      return { opacity: 0, top: 0 };
+    }
+    // A collapsed row hides its lanes, so the line sits right under the day name — the whole row is
+    // the target.
+    return {
+      opacity: 1,
+      top: isCollapsed ? labelHeight : labelHeight + dropLaneGap.value * laneHeight - 1.5,
+    };
+  });
 
   return (
     // Selecting a day tames the other rows rather than hiding them, so the program's shape stays
     // readable while it is clear which row an action is about to restructure.
-    <View style={{ height: rowHeight, opacity: props.isDayDimmed ? 0.35 : 1 }} className="mb-1">
+    <View
+      style={{
+        height: rowHeight,
+        opacity: props.isDayDimmed ? 0.35 : 1,
+        marginBottom: MARGIN_BETWEEN_ROWS * rem,
+      }}
+    >
       {/* The day boxes sit behind the strips, which are translucent enough to keep the box edges
           readable where a strip spans several weeks. Drawing them in front instead would put a
           line through the exercise names. */}
@@ -580,19 +1048,31 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
                       <IconArrowDown2 width={11} height={8} color={Tailwind_semantic().icon.neutral} />
                     )}
                   </Pressable>
-                  <Pressable
-                    className="flex-1 py-1 nm-grid-select-day"
-                    testID={`grid-select-day-${column.weekIndex}-${rowIndex}`}
-                    onPress={() => props.onSelectDay(rowIndex)}
-                  >
-                    <Text
-                      className={`text-sm font-semibold ${error != null ? "text-text-error" : "text-text-primary"}`}
-                      numberOfLines={1}
+                  {/* Tap selects the day, long press starts the drag — both on the name, since one
+                      gesture detector arbitrates them (Exclusive: the pan gets first refusal, and a
+                      quick release falls through to the tap). A nested Pressable would instead
+                      claim the touch before the long press could promote it. */}
+                  <View className="flex-1">
+                    <GridDragHandle
+                      onTap={onTapDay}
+                      onDragStart={onDragStartDay}
+                      onDragMove={onDragMoveDay}
+                      onDragEnd={onDragEndDay}
                     >
-                      {error != null ? "⚠ " : ""}
-                      {name ?? ""}
-                    </Text>
-                  </Pressable>
+                      <View
+                        className="py-1 nm-grid-select-day"
+                        testID={`grid-select-day-${column.weekIndex}-${rowIndex}`}
+                      >
+                        <Text
+                          className={`text-sm font-semibold ${error != null ? "text-text-error" : "text-text-primary"}`}
+                          numberOfLines={1}
+                        >
+                          {error != null ? "⚠ " : ""}
+                          {name ?? ""}
+                        </Text>
+                      </View>
+                    </GridDragHandle>
+                  </View>
                 </>
               )}
             </View>
@@ -612,6 +1092,10 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
             selection={props.selection}
             onSelect={props.onSelect}
             onSetRepeatRange={props.onSetRepeatRange}
+            laneCount={lanes}
+            onLaneDragStart={props.onLaneDragStart}
+            onLaneDragMove={props.onLaneDragMove}
+            onLaneDragEnd={props.onLaneDragEnd}
           />
         ))}
       {/* One per week rather than one per row: adding an exercise targets a specific week's day,
@@ -635,6 +1119,78 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
           ))}
         </View>
       )}
+      {/* Both are absolutely positioned so the web stub — which renders Animated.View as a fragment
+          — drops them without disturbing the layout. Last in the row so they paint on top. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          rowOverlayStyle,
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          dropLineStyle,
+          {
+            position: "absolute",
+            top: -2,
+            left: 0,
+            right: 0,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          dropLineBottomStyle,
+          {
+            position: "absolute",
+            bottom: -2,
+            left: 0,
+            right: 0,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          draggedLaneStyle,
+          {
+            position: "absolute",
+            left: 0,
+            right: 0,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          dropLaneStyle,
+          {
+            position: "absolute",
+            left: CELL_INSET_X * rem,
+            right: CELL_INSET_X * rem,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: Tailwind_semantic().icon.purple,
+          },
+        ]}
+      />
     </View>
   );
 });
@@ -655,10 +1211,24 @@ interface ILaneRowProps {
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
+  laneCount: number;
+  onLaneDragStart: (rowIndex: number, laneIndex: number) => void;
+  onLaneDragMove: (rowIndex: number, laneIndex: number, translationY: number) => void;
+  onLaneDragEnd: (commit: boolean) => void;
 }
 
 const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
-  const { grid, rowIndex, laneIndex } = props;
+  const rem = useRem();
+  const { grid, rowIndex, laneIndex, onLaneDragStart, onLaneDragMove } = props;
+  // Stable for the same reason the day handlers are: a rebuilt gesture drops the drag.
+  const onDragStartLane = useCallback(
+    () => onLaneDragStart(rowIndex, laneIndex),
+    [onLaneDragStart, rowIndex, laneIndex]
+  );
+  const onDragMoveLane = useCallback(
+    (dy: number) => onLaneDragMove(rowIndex, laneIndex, dy),
+    [onLaneDragMove, rowIndex, laneIndex]
+  );
   // Held here rather than at the top so a drag only re-renders its own lane.
   const [resize, setResize] = useState<{ id: string; deltaWeeks: number } | undefined>(undefined);
   const segments = useMemo(() => {
@@ -680,9 +1250,9 @@ const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
 
   // Only the lane's last run can be dragged: extending a run that has another after it would have
   // to move that one's start too, which is a different (v2) operation.
-  const lastPlacementId = useMemo(() => {
+  const lastPlacement = useMemo(() => {
     const withPlacement = segments.filter((s) => s.placement != null);
-    return withPlacement[withPlacement.length - 1]?.placement?.id;
+    return withPlacement[withPlacement.length - 1]?.placement;
   }, [segments]);
 
   // The pending drag is mirrored in a ref so the commit can read it from an event handler. Doing it
@@ -702,35 +1272,69 @@ const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
     setResize(undefined);
   }, [grid, props]);
 
+  const onResizeStart = useCallback(
+    (deltaWeeks: number) => {
+      if (lastPlacement != null) {
+        setResize({ id: lastPlacement.id, deltaWeeks });
+      }
+    },
+    [lastPlacement]
+  );
+
+  // Where the resize handle sits: the right edge of the last run's card, following the preview
+  // while a resize is in flight.
+  const resizeLeft =
+    lastPlacement == null
+      ? 0
+      : props.columnWidth *
+          (1 +
+            (resize?.id === lastPlacement.id
+              ? clampWeek(grid, lastPlacement, resize.deltaWeeks)
+              : lastPlacement.colEnd)) -
+        CELL_INSET_X * rem -
+        RESIZE_HANDLE_WIDTH * rem;
+
   return (
-    <View className="flex-row">
-      {segments.map((segment, i) =>
-        segment.placement != null ? (
-          <GridCell
-            key={i}
-            placement={segment.placement}
-            width={
-              props.columnWidth *
-              (resize?.id === segment.placement.id
-                ? clampWeek(grid, segment.placement, resize.deltaWeeks) - segment.placement.colStart + 1
-                : segment.span)
-            }
-            height={props.laneHeight}
-            density={props.density}
-            selection={props.selection}
-            onSelect={props.onSelect}
-            columnWidth={props.columnWidth}
-            isResizing={resize?.id === segment.placement.id}
-            onResize={
-              segment.placement.id === lastPlacementId
-                ? (deltaWeeks) => setResize({ id: segment.placement!.id, deltaWeeks })
-                : undefined
-            }
-            onResizeEnd={onResizeEnd}
-          />
-        ) : (
-          <View key={i} style={{ width: props.columnWidth * segment.span, height: props.laneHeight }} />
-        )
+    // The resize handle is deliberately a sibling of the drag detector rather than a child of a
+    // cell inside it. Nested, the two competed for the same touch: holding still on the handle for
+    // the long press started an exercise drag instead of a resize. Outside it, which gesture you
+    // get is decided by where the finger lands, which is the whole point of a handle.
+    <View>
+      <GridDragHandle onDragStart={onDragStartLane} onDragMove={onDragMoveLane} onDragEnd={props.onLaneDragEnd}>
+        <View className="flex-row">
+          {segments.map((segment, i) =>
+            segment.placement != null ? (
+              <GridCell
+                key={i}
+                placement={segment.placement}
+                width={
+                  props.columnWidth *
+                  (resize?.id === segment.placement.id
+                    ? clampWeek(grid, segment.placement, resize.deltaWeeks) - segment.placement.colStart + 1
+                    : segment.span)
+                }
+                height={props.laneHeight}
+                density={props.density}
+                selection={props.selection}
+                onSelect={props.onSelect}
+                isResizing={resize?.id === segment.placement.id}
+              />
+            ) : (
+              <View key={i} style={{ width: props.columnWidth * segment.span, height: props.laneHeight }} />
+            )
+          )}
+        </View>
+      </GridDragHandle>
+      {lastPlacement != null && (
+        <GridResizeHandle
+          width={RESIZE_HANDLE_WIDTH * rem}
+          columnWidth={props.columnWidth}
+          onResize={onResizeStart}
+          onResizeEnd={onResizeEnd}
+          left={resizeLeft}
+          top={CELL_INSET_Y * rem}
+          height={props.laneHeight - 2 * CELL_INSET_Y * rem}
+        />
       )}
     </View>
   );
@@ -743,11 +1347,7 @@ interface IGridCellProps {
   density: IProgramGridDensity;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
-  columnWidth: number;
   isResizing: boolean;
-  // Absent when this run isn't the lane's last, which is the only one whose end can move.
-  onResize?: (deltaWeeks: number) => void;
-  onResizeEnd: () => void;
 }
 
 const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
@@ -757,15 +1357,6 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
   const isSelected = selection?.selectedIds.has(placement.id) ?? false;
   const isLinked = selection?.linkedIds.has(placement.id) ?? false;
   const isRelated = ProgramGrid_isRelated(selection, placement.id);
-  const didResizeRef = useRef(false);
-  const onResize = props.onResize;
-  const onResizeStart = useCallback(
-    (deltaWeeks: number) => {
-      didResizeRef.current = true;
-      onResize?.(deltaWeeks);
-    },
-    [onResize]
-  );
   // Saturated enough to hold their own against the warm day box behind them — the paler purple and
   // grey went muddy on yellow. Resolved values rather than `bg-*` classes so a utility that the
   // scanner never emitted can't silently fall back to transparent; these still follow the theme.
@@ -812,15 +1403,7 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
         opacity: isRelated ? 1 : 0.3,
       }}
       testID={`grid-cell-${placement.fullName}-${placement.colStart}`}
-      // The handle sits inside this Pressable, so letting go after a drag would otherwise read as a
-      // tap and select the strip you were only resizing.
-      onPress={() => {
-        if (didResizeRef.current) {
-          didResizeRef.current = false;
-          return;
-        }
-        props.onSelect(placement.id);
-      }}
+      onPress={() => props.onSelect(placement.id)}
     >
       <View
         className="flex-1 overflow-hidden rounded"
@@ -862,14 +1445,6 @@ const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
             )
           )}
         </View>
-        {props.onResize != null && (
-          <GridResizeHandle
-            width={RESIZE_HANDLE_WIDTH * rem}
-            columnWidth={props.columnWidth}
-            onResize={onResizeStart}
-            onResizeEnd={props.onResizeEnd}
-          />
-        )}
       </View>
     </Pressable>
   );
