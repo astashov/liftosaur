@@ -4,11 +4,19 @@ import { IProgramGridPlacement } from "../../pages/planner/models/programGrid";
 // What the grid's current selection offers. The grid publishes it because that is where the program,
 // settings and dispatch live; the dock only renders it, from NavScreenContent's footer slot so it
 // sits above the tab bar instead of scrolling away with the row that was tapped.
+// A selected day is a day, not the bag of exercises inside it: its actions restructure the program
+// (and do so across every week), while exercise actions edit content. Same dock, different verbs.
+export type IGridSelectionTarget =
+  | { kind: "exercises"; placements: IProgramGridPlacement[] }
+  | { kind: "day"; rowIndex: number; name: string; placements: IProgramGridPlacement[] };
+
 export interface IGridSelectionPayload {
-  placements: IProgramGridPlacement[];
+  target: IGridSelectionTarget;
   onEdit: (placement: IProgramGridPlacement) => void;
   onDuplicate: (placement: IProgramGridPlacement) => void;
   onDelete: (placements: IProgramGridPlacement[]) => void;
+  onDuplicateDay: (rowIndex: number) => void;
+  onDeleteDay: (rowIndex: number) => void;
   onClear: () => void;
 }
 

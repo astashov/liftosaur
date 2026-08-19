@@ -21,7 +21,6 @@ import {
   ProgramGrid_cellScheme,
   ProgramGrid_errorAt,
   ProgramGrid_isRelated,
-  ProgramGrid_placementsAt,
   ProgramGrid_select,
 } from "../../pages/planner/models/programGrid";
 import { FastText } from "../primitives/fastText";
@@ -33,12 +32,16 @@ import { Program_getProgramExerciseForKeyAndShortDayData } from "../../models/pr
 import { EditProgramUiHelpers_deleteCurrentInstance } from "./editProgramUi/editProgramUiHelpers";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { Dialog_alert } from "../../utils/dialog";
-import { useGridSelectionPublish } from "./gridSelectionContext";
+import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionContext";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { GridResizeHandle } from "./gridResizeHandle";
-import { ProgramGridTransforms_setRepeatRange } from "../../pages/planner/models/programGridTransforms";
+import {
+  ProgramGridTransforms_setRepeatRange,
+  ProgramGridTransforms_deleteDayRow,
+  ProgramGridTransforms_duplicateDayRow,
+} from "../../pages/planner/models/programGridTransforms";
 
 // Column width at scale 1, in rem; pinch multiplies it. Below SCHEME_MIN_WIDTH a column is too
 // narrow to say anything useful with numbers, so cells shed their scheme and show names only --
@@ -96,6 +99,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const density: IProgramGridDensity = columnWidth >= SCHEME_MIN_WIDTH * rem ? 2 : 0;
   const laneHeight = (density === 0 ? LANE_HEIGHT_NAME_ONLY : LANE_HEIGHT_WITH_SCHEME) * rem;
 
+  // Read by the delete pre-flight, which has to answer "can this be done" before dispatching so it
+  // can explain itself rather than silently doing nothing inside a lens modifier.
+  const plannerRef = useRef(evaluatedProgram.planner);
+  plannerRef.current = evaluatedProgram.planner;
+
   const plannerDispatch = props.plannerDispatch;
   const onChangeScale = useCallback(
     (newScale: number) => {
@@ -106,27 +114,28 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const { Wrap } = useGridPinch({ scale, onScaleChange: onChangeScale });
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedDayRow, setSelectedDayRow] = useState<number | undefined>(undefined);
   const selection = useMemo(() => ProgramGrid_select(grid, selectedIds), [grid, selectedIds]);
   // Tapping is a toggle, so multi-select needs no mode to enter or leave: tap to add, tap again to
   // drop, tap the background to clear.
   const onSelect = useCallback((placementId: string) => {
+    setSelectedDayRow(undefined);
     setSelectedIds((current) =>
       current.indexOf(placementId) !== -1 ? current.filter((id) => id !== placementId) : [...current, placementId]
     );
   }, []);
-  const onClearSelection = useCallback(() => setSelectedIds([]), []);
+  const onClearSelection = useCallback(() => {
+    setSelectedIds([]);
+    setSelectedDayRow(undefined);
+  }, []);
 
-  // Selecting a day means selecting what is in it, so the dock's exercise actions apply to the
-  // whole day without needing a second kind of selection.
-  const onSelectDay = useCallback(
-    (weekIndex: number, rowIndex: number) => {
-      const ids = ProgramGrid_placementsAt(grid, rowIndex, weekIndex).map((p) => p.id);
-      setSelectedIds((current) =>
-        ids.length === current.length && ids.every((id) => current.indexOf(id) !== -1) ? [] : ids
-      );
-    },
-    [grid]
-  );
+  // A day is selected as a row, across every week — its operations restructure the program, and
+  // doing that in one week only would shift that week's slots while leaving the rest, which is how
+  // repeats and `...main[2]` end up meaning different days in different weeks.
+  const onSelectDay = useCallback((rowIndex: number) => {
+    setSelectedIds([]);
+    setSelectedDayRow((current) => (current === rowIndex ? undefined : rowIndex));
+  }, []);
 
   const [collapsedRows, setCollapsedRows] = useState<number[]>([]);
   const onToggleCollapsed = useCallback((rowIndex: number) => {
@@ -266,20 +275,84 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     );
   }, [plannerDispatch]);
 
-  const publishSelection = useGridSelectionPublish();
-  const payload = useMemo(
-    () =>
-      selection != null
-        ? {
-            placements: selection.placements,
-            onEdit: onEditPlacement,
-            onDuplicate: onDuplicatePlacement,
-            onDelete: onDeletePlacements,
-            onClear: onClearSelection,
-          }
-        : undefined,
-    [selection, onEditPlacement, onDuplicatePlacement, onDeletePlacements, onClearSelection]
+  const onDuplicateDay = useCallback(
+    (rowIndex: number) => {
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .recordModify((planner) => {
+            const result = ProgramGridTransforms_duplicateDayRow(planner, rowIndex, settings);
+            return result.ok ? result.planner : planner;
+          }),
+        `Duplicate day ${rowIndex + 1} in every week`
+      );
+      setSelectedDayRow(undefined);
+    },
+    [plannerDispatch, settings]
   );
+
+  const onDeleteDay = useCallback(
+    (rowIndex: number) => {
+      const check = ProgramGridTransforms_deleteDayRow(plannerRef.current, rowIndex, settings);
+      if (!check.ok) {
+        Dialog_alert(check.reason);
+        return;
+      }
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("current")
+          .p("program")
+          .pi("planner")
+          .recordModify((planner) => {
+            const result = ProgramGridTransforms_deleteDayRow(planner, rowIndex, settings);
+            return result.ok ? result.planner : planner;
+          }),
+        `Delete day ${rowIndex + 1} from every week`
+      );
+      setSelectedDayRow(undefined);
+    },
+    [plannerDispatch, settings]
+  );
+
+  const publishSelection = useGridSelectionPublish();
+  const dayRow = selectedDayRow != null ? grid.rows[selectedDayRow] : undefined;
+  const payload = useMemo(() => {
+    const target: IGridSelectionTarget | undefined =
+      selectedDayRow != null && dayRow != null
+        ? {
+            kind: "day",
+            rowIndex: selectedDayRow,
+            name: dayRow.namePerWeek.find((n) => n != null) ?? `Day ${selectedDayRow + 1}`,
+            placements: grid.placements.filter((p) => p.rowIndex === selectedDayRow),
+          }
+        : selection != null
+          ? { kind: "exercises", placements: selection.placements }
+          : undefined;
+    return target != null
+      ? {
+          target,
+          onEdit: onEditPlacement,
+          onDuplicate: onDuplicatePlacement,
+          onDelete: onDeletePlacements,
+          onDuplicateDay,
+          onDeleteDay,
+          onClear: onClearSelection,
+        }
+      : undefined;
+  }, [
+    grid.placements,
+    selection,
+    selectedDayRow,
+    dayRow,
+    onEditPlacement,
+    onDuplicatePlacement,
+    onDeletePlacements,
+    onDuplicateDay,
+    onDeleteDay,
+    onClearSelection,
+  ]);
   useEffect(() => {
     publishSelection(payload);
   }, [payload, publishSelection]);
@@ -337,6 +410,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                   onSelectDay={onSelectDay}
                   onToggleCollapsed={onToggleCollapsed}
                   isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
+                  isDaySelected={selectedDayRow === row.rowIndex}
+                  isDayDimmed={selectedDayRow != null && selectedDayRow !== row.rowIndex}
                 />
               ))}
               <View className="flex-row">
@@ -423,9 +498,11 @@ interface IGridRowProps {
   onSelect: (placementId: string) => void;
   onAddExercise: (weekIndex: number, rowIndex: number) => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
-  onSelectDay: (weekIndex: number, rowIndex: number) => void;
+  onSelectDay: (rowIndex: number) => void;
   onToggleCollapsed: (rowIndex: number) => void;
   isCollapsed: boolean;
+  isDaySelected: boolean;
+  isDayDimmed: boolean;
 }
 
 const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
@@ -446,7 +523,9 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
     : labelHeight + lanes * props.laneHeight + addHeight + BOTTOM_GAP * rem;
 
   return (
-    <View style={{ height: rowHeight }} className="mb-1">
+    // Selecting a day tames the other rows rather than hiding them, so the program's shape stays
+    // readable while it is clear which row an action is about to restructure.
+    <View style={{ height: rowHeight, opacity: props.isDayDimmed ? 0.35 : 1 }} className="mb-1">
       {/* The day boxes sit behind the strips, which are translucent enough to keep the box edges
           readable where a strip spans several weeks. Drawing them in front instead would put a
           line through the exercise names. */}
@@ -457,10 +536,16 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
           return (
             <View key={column.weekIndex} style={{ width: props.columnWidth, padding: DAY_BOX_INSET * rem }}>
               {exists && (
+                // The day box itself is what a day selection highlights — the exercises inside are
+                // not what is selected, so they keep their own borders.
                 <View
-                  className={`flex-1 border rounded border-border-prominent ${
-                    error != null ? "bg-background-lighterror" : "bg-background-cardyellow"
-                  }`}
+                  className={`flex-1 rounded ${error != null ? "bg-background-lighterror" : "bg-background-cardyellow"}`}
+                  style={{
+                    borderWidth: props.isDaySelected ? 2 : 1,
+                    borderColor: props.isDaySelected
+                      ? Tailwind_semantic().icon.purple
+                      : Tailwind_semantic().border.prominent,
+                  }}
                 />
               )}
             </View>
@@ -498,7 +583,7 @@ const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
                   <Pressable
                     className="flex-1 py-1 nm-grid-select-day"
                     testID={`grid-select-day-${column.weekIndex}-${rowIndex}`}
-                    onPress={() => props.onSelectDay(column.weekIndex, rowIndex)}
+                    onPress={() => props.onSelectDay(rowIndex)}
                   >
                     <Text
                       className={`text-sm font-semibold ${error != null ? "text-text-error" : "text-text-primary"}`}

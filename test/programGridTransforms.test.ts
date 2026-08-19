@@ -1,6 +1,10 @@
 import "mocha";
 import { expect } from "chai";
-import { ProgramGridTransforms_setRepeatRange } from "../src/pages/planner/models/programGridTransforms";
+import {
+  ProgramGridTransforms_setRepeatRange,
+  ProgramGridTransforms_deleteDayRow,
+  ProgramGridTransforms_duplicateDayRow,
+} from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
 import { Program_evaluate, Program_create } from "../src/models/program";
@@ -126,6 +130,111 @@ Squat / 5x3 200lb
     expect(dayTexts(next)[0]).to.equal("Squat[1-4] / 3x5 100lb");
     expect(dayTexts(next)[2]).to.equal("Squat / 5x3 200lb");
     expect(spans(next, "Squat")).to.deep.equal(["[0-1]", "[2-2]", "[3-3]"]);
+  });
+
+  describe("deleteDayRow", () => {
+    const THREE_DAYS = `# Week 1
+## Day 1
+main / used: none / 3x5 100lb
+
+## Day 2
+Squat[1-2] / 3x5 100lb
+
+## Day 3
+Bench Press / ...main[1]
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+main / used: none / 3x5 110lb
+
+## Day 2
+
+## Day 3
+Bench Press / ...main[1]
+Deadlift / 1x5 210lb
+`;
+
+    it("removes the day from every week, not just one", () => {
+      const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 1, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks.map((w) => w.days.length)).to.deep.equal([2, 2]);
+      expect(result.planner.weeks[0].days.map((d) => d.name)).to.deep.equal(["Day 1", "Day 3"]);
+      expect(spans(result.planner, "Squat")).to.deep.equal([]);
+      // Everything that survived still resolves — the reuse of day 1 is untouched. Both weeks say
+      // the same thing, so it reads as one run.
+      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+    });
+
+    it("refuses when another day reuses the one being deleted", () => {
+      const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 0, Settings_build());
+      expect(result.ok).to.equal(false);
+      if (result.ok) {
+        return;
+      }
+      // Day 1 is what the others reuse, so it refuses instead of orphaning them.
+      expect(result.reason).to.contain("reuses this day");
+    });
+
+    it("shifts a qualifier down when an earlier day is removed", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+main / used: none / 3x5 100lb
+
+## Day 3
+Bench Press / ...main[2]
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+main / used: none / 3x5 110lb
+
+## Day 3
+Bench Press / ...main[2]
+`;
+      const result = ProgramGridTransforms_deleteDayRow(plannerOf(text), 0, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks[0].days[1].exerciseText.trim()).to.equal("Bench Press / ...main[1]");
+      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+    });
+  });
+
+  describe("duplicateDayRow", () => {
+    it("appends a copy to every week without moving any existing slot", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+
+## Day 2
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+
+## Day 2
+Bench Press / 5x5 50lb
+`;
+      const result = ProgramGridTransforms_duplicateDayRow(plannerOf(text), 1, Settings_build());
+      expect(result.ok).to.equal(true);
+      if (!result.ok) {
+        return;
+      }
+      expect(result.planner.weeks.map((w) => w.days.length)).to.deep.equal([3, 3]);
+      expect(result.planner.weeks[0].days[2].exerciseText.trim()).to.equal("Bench Press / 5x5 50lb");
+      // The repeat on day 1 is untouched, which is the point of appending.
+      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+    });
   });
 
   it("leaves the program alone when the exercise isn't on that day", () => {
