@@ -1,6 +1,6 @@
 import { CollectionUtils_sort, CollectionUtils_compressArray } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType } from "../types";
+import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType, ISet } from "../types";
 import { n, MathUtils_roundTo005, MathUtils_round, MathUtils_roundFloat, MathUtils_roundTo000005 } from "../utils/math";
 import {
   Equipment_getUnitOrDefaultForExerciseType,
@@ -8,8 +8,18 @@ import {
   Equipment_smallestPlate,
 } from "./equipment";
 import { Exercise_get, Exercise_onerm, Exercise_defaultRounding } from "./exercise";
+import { PlateOptimizer_optimize } from "./plateOptimizer";
 
 const prebuiltWeights: Partial<Record<string, IWeight>> = {};
+const USE_OPTIMIZED_PLATE_CALCULATOR = true;
+// This is an optimizer eligibility guard, not a claimed physical sleeve limit. Larger stacks use the legacy answer.
+const MAX_OPTIMIZER_STACK_PLATES = 64;
+
+export interface IWeightPlatesResult {
+  plates: IPlate[];
+  platesWeight: IWeight;
+  totalWeight: IWeight;
+}
 
 export function Weight_display(weight: IWeight | IPercentage | number, withUnit: boolean = true): string {
   if (typeof weight === "number") {
@@ -292,6 +302,22 @@ export function Weight_formatOneSide(settings: ISettings, platesArr: IPlate[], e
   return CollectionUtils_compressArray(arr, 3).join("/");
 }
 
+export function Weight_formatOneSideOrdered(
+  settings: ISettings,
+  plates: IPlate[],
+  exerciseType: IExerciseType
+): string {
+  const multiplier = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)?.multiplier ?? 1;
+  const values: number[] = [];
+  for (const plate of plates) {
+    const count = Math.floor(plate.num / multiplier);
+    for (let index = 0; index < count; index += 1) {
+      values.push(plate.weight.value);
+    }
+  }
+  return CollectionUtils_compressArray(values, 3).join("/");
+}
+
 export function Weight_roundTo005(weight: IWeight): IWeight {
   return Weight_build(MathUtils_roundTo005(weight.value), weight.unit);
 }
@@ -305,7 +331,7 @@ export function Weight_calculatePlates(
   settings: ISettings,
   units: IUnit,
   exerciseType: IExerciseType
-): { plates: IPlate[]; platesWeight: IWeight; totalWeight: IWeight } {
+): IWeightPlatesResult {
   const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
   if (equipmentData == null) {
     const rounding = Exercise_defaultRounding(exerciseType, settings);
@@ -348,6 +374,167 @@ export function Weight_calculatePlates(
   );
   const thePlatesWeight = inverted ? Weight_invert(total) : total;
   return { plates, platesWeight: thePlatesWeight, totalWeight };
+}
+
+function Weight_toMilliUnits(value: number): number | undefined {
+  // One integer step is a millipound for lb equipment and a gram for kg equipment. Units are never mixed here.
+  const scaled = value * 1000;
+  const rounded = Math.round(scaled);
+  if (!Number.isSafeInteger(rounded) || Math.abs(scaled - rounded) > 0.0000001) {
+    return undefined;
+  }
+  return rounded;
+}
+
+function Weight_gcd(a: number, b: number): number {
+  let left = Math.abs(a);
+  let right = Math.abs(b);
+  while (right !== 0) {
+    const remainder = left % right;
+    left = right;
+    right = remainder;
+  }
+  return left;
+}
+
+/**
+ * Calculates the plate stacks for a complete exercise in warm-up/work-set order. The regular single-target
+ * calculator remains the source of truth for load rounding and also supplies the always-valid fallback stacks.
+ */
+export function Weight_calculatePlatesSequence(
+  allWeights: IWeight[],
+  settings: ISettings,
+  units: IUnit,
+  exerciseType: IExerciseType
+): IWeightPlatesResult[] {
+  const fallback = allWeights.map((weight) => Weight_calculatePlates(weight, settings, weight.unit, exerciseType));
+  if (!USE_OPTIMIZED_PLATE_CALCULATOR || fallback.length === 0) {
+    return fallback;
+  }
+
+  const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
+  const multiplier = equipmentData?.multiplier ?? 0;
+  if (
+    equipmentData == null ||
+    equipmentData.isFixed ||
+    !Number.isSafeInteger(multiplier) ||
+    multiplier <= 0 ||
+    allWeights.some((weight) => weight.unit !== units)
+  ) {
+    return fallback;
+  }
+
+  try {
+    const byMilliWeight = new Map<number, { weight: IWeight; maxCount: number }>();
+    for (const plate of equipmentData.plates) {
+      if (plate.weight.unit !== units || plate.num < multiplier) {
+        continue;
+      }
+      const milliWeight = Weight_toMilliUnits(plate.weight.value);
+      const maxCount = Math.floor(plate.num / multiplier);
+      if (milliWeight == null || milliWeight <= 0 || !Number.isSafeInteger(maxCount)) {
+        return fallback;
+      }
+      const existing = byMilliWeight.get(milliWeight);
+      if (existing == null) {
+        byMilliWeight.set(milliWeight, { weight: plate.weight, maxCount });
+      } else if (Number.isSafeInteger(existing.maxCount + maxCount)) {
+        existing.maxCount += maxCount;
+      } else {
+        return fallback;
+      }
+    }
+
+    const plateTypes = Array.from(byMilliWeight.entries())
+      .map(([milliWeight, plate]) => ({ milliWeight, ...plate }))
+      .sort((a, b) => b.milliWeight - a.milliWeight);
+    if (plateTypes.length === 0) {
+      return fallback;
+    }
+    const indexByMilliWeight = new Map(plateTypes.map((plate, index) => [plate.milliWeight, index]));
+    const initialStacks: number[][] = [];
+    const targets: number[] = [];
+    for (const result of fallback) {
+      const stack: number[] = [];
+      let target = 0;
+      for (const plate of result.plates) {
+        const milliWeight = Weight_toMilliUnits(plate.weight.value);
+        if (milliWeight == null || plate.num % multiplier !== 0) {
+          return fallback;
+        }
+        const plateIndex = indexByMilliWeight.get(milliWeight);
+        if (plateIndex == null) {
+          return fallback;
+        }
+        const count = plate.num / multiplier;
+        if (!Number.isSafeInteger(count) || stack.length + count > MAX_OPTIMIZER_STACK_PLATES) {
+          return fallback;
+        }
+        for (let index = 0; index < count; index += 1) {
+          if (!Number.isSafeInteger(target + milliWeight)) {
+            return fallback;
+          }
+          stack.push(plateIndex);
+          target += milliWeight;
+        }
+      }
+      initialStacks.push(stack);
+      targets.push(target);
+    }
+
+    let divisor = 0;
+    for (const value of [...plateTypes.map((plate) => plate.milliWeight), ...targets]) {
+      divisor = Weight_gcd(divisor, value);
+    }
+    if (divisor <= 0) {
+      return fallback;
+    }
+
+    const optimized = PlateOptimizer_optimize({
+      plateWeights: plateTypes.map((plate) => plate.milliWeight / divisor),
+      maxPlateCounts: plateTypes.map((plate) => plate.maxCount),
+      targets: targets.map((target) => target / divisor),
+      initialStacks,
+    });
+
+    return fallback.map((result, targetIndex) => {
+      const stack = optimized.stacks[targetIndex];
+      const plates: IPlate[] = [];
+      for (const plateIndex of stack) {
+        const plateType = plateTypes[plateIndex];
+        const previous = plates[plates.length - 1];
+        if (previous != null && Weight_eqeq(previous.weight, plateType.weight)) {
+          previous.num += multiplier;
+        } else {
+          plates.push({ weight: plateType.weight, num: multiplier });
+        }
+      }
+      return { ...result, plates };
+    });
+  } catch (_error) {
+    return fallback;
+  }
+}
+
+export function Weight_calculatePlatesForSets(
+  sets: ISet[],
+  settings: ISettings,
+  exerciseType: IExerciseType
+): Map<string, IWeightPlatesResult> {
+  const weightedSets = sets.flatMap((set) => {
+    const weight = set.completedWeight ?? set.weight;
+    return weight == null ? [] : [{ id: set.id, weight }];
+  });
+  const unit = weightedSets[0]?.weight.unit ?? settings.units;
+  const results = Weight_calculatePlatesSequence(
+    weightedSets.map((set) => set.weight),
+    settings,
+    unit,
+    exerciseType
+  );
+  return new Map<string, IWeightPlatesResult>(
+    weightedSets.map((set, index) => [set.id, results[index]] as [string, IWeightPlatesResult])
+  );
 }
 
 export function Weight_abs(weight: IWeight): IWeight {

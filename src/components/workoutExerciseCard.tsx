@@ -16,7 +16,7 @@ import { IconArrowRight } from "./icons/iconArrowRight";
 import { ActionSheet_show } from "../utils/actionSheet";
 import { LinkButton } from "./linkButton";
 import { ProgramExercise_doesUse1RM } from "../models/programExercise";
-import { Weight_print, Weight_build } from "../models/weight";
+import { Weight_print, Weight_build, Weight_calculatePlatesForSets } from "../models/weight";
 import { WorkoutPlatesCalculator } from "./workoutPlatesCalculator";
 import { Markdown } from "./markdown";
 import { CollectionUtils_removeAt } from "../utils/collection";
@@ -102,6 +102,10 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const nextSet = useMemo(
     () => [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0],
     [props.entry.warmupSets, props.entry.sets]
+  );
+  const plateResults = useMemo(
+    () => Weight_calculatePlatesForSets([...props.entry.warmupSets, ...props.entry.sets], settings, exerciseType),
+    [props.entry.warmupSets, props.entry.sets, settings, exerciseType]
   );
   const lbSets = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets"), [props.entryIndex]);
   const lbWarmupSets = useMemo(
@@ -494,6 +498,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
             <WorkoutPlatesCalculator
               entry={props.entry}
               weight={nextSet.completedWeight ?? nextSet.weight ?? Weight_build(0, props.settings.units)}
+              plateResult={plateResults.get(nextSet.id)}
               subscription={props.subscription}
               settings={props.settings}
               dispatch={props.dispatch}
@@ -521,6 +526,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           lbWarmupSets={lbWarmupSets}
           exerciseType={exerciseType}
           entry={props.entry}
+          plateResults={plateResults}
           settings={props.settings}
           dispatch={props.dispatch}
           subscription={props.subscription}
