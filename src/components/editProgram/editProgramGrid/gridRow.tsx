@@ -1,6 +1,6 @@
-import { JSX, memo, useCallback, useRef } from "react";
+import { JSX, memo, useCallback } from "react";
 import { View } from "react-native";
-import Animated, { useAnimatedStyle, SharedValue } from "react-native-reanimated";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
 import { useRem } from "../../../utils/useRem";
@@ -21,13 +21,10 @@ import {
   GRID_DAY_BOX_INSET,
   GRID_DAY_LABEL_HEIGHT,
   GRID_MARGIN_BETWEEN_ROWS,
-  IGridGeometryRow,
-  ProgramGridGeometry_dayDropAt,
-  ProgramGridGeometry_gapForMove,
 } from "../../../pages/planner/models/programGridGeometry";
 import { GridDragHandle } from "./gridDragHandle";
-import { IGridDragAutoScroll } from "./gridDragAutoScroll";
-import { useGridDragSession } from "./useGridDragSession";
+import { IGridDrags } from "./useGridDrags";
+import { useGridDayDrag } from "./useGridDayDrag";
 import { LaneRow } from "./gridLaneRow";
 import { AddButton } from "./gridAddButton";
 
@@ -46,23 +43,11 @@ export interface IGridRowProps {
   isCollapsed: boolean;
   isDaySelected: boolean;
   isDayDimmed: boolean;
-  // A ref rather than a value: reading the other rows' geometry during a drag must not make this
-  // component depend on it, or every row would re-render whenever any of them changed.
-  geometryRef: { current: IGridGeometryRow[] };
   lanes: number;
   rowHeight: number;
   onMoveDayRow: (from: number, to: number) => void;
-  onLaneDragStart: (rowIndex: number, laneIndex: number, absolute: number) => void;
-  onLaneDragMove: (rowIndex: number, laneIndex: number, translation: number, absolute: number) => void;
-  onLaneDragEnd: (commit: boolean) => void;
-  draggedRow: SharedValue<number>;
-  dropBoundary: SharedValue<number>;
-  draggedLaneRow: SharedValue<number>;
-  draggedLane: SharedValue<number>;
-  dropLaneRow: SharedValue<number>;
-  dropLaneGap: SharedValue<number>;
-  ghostY: SharedValue<number>;
-  autoScroll: IGridDragAutoScroll;
+  // The shared drag bus; see useGridDrags.
+  drags: IGridDrags;
 }
 
 export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
@@ -73,37 +58,12 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   const addHeight = GRID_ADD_ROW_HEIGHT * rem;
   const isCollapsed = props.isCollapsed;
 
-  const { geometryRef, onMoveDayRow, draggedRow, dropBoundary } = props;
+  const { drags, onMoveDayRow } = props;
+  const { draggedRow, dropBoundary, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap } = drags;
   const onSelectDay = props.onSelectDay;
   const onTapDay = useCallback(() => onSelectDay(rowIndex), [onSelectDay, rowIndex]);
 
-  const ghostY = props.ghostY;
-  // Everything that keeps a drag alive — refs over state, shared values for feedback, an idempotent
-  // end, the edge-scroll wiring — lives in useGridDragSession. This supplies only the two things
-  // that are specific to dragging a day: where it would land, and what to do about it.
-  // The ghost follows the finger, not the drop target, so it needs the raw translation that
-  // `resolve` was handed.
-  const dayDragTranslationRef = useRef(0);
-  const dayDrag = useGridDragSession<number>({
-    axis: "y",
-    autoScroll: props.autoScroll,
-    resolve: (translationY) => {
-      dayDragTranslationRef.current = translationY;
-      return ProgramGridGeometry_dayDropAt(geometryRef.current, rowIndex, translationY);
-    },
-    show: (to) => {
-      draggedRow.value = to == null ? -1 : rowIndex;
-      dropBoundary.value = to == null ? -1 : ProgramGridGeometry_gapForMove(rowIndex, to);
-      if (to != null) {
-        ghostY.value = (geometryRef.current[rowIndex]?.top ?? 0) + dayDragTranslationRef.current;
-      }
-    },
-    commit: (to) => {
-      if (to !== rowIndex) {
-        onMoveDayRow(rowIndex, to);
-      }
-    },
-  });
+  const dayDrag = useGridDayDrag({ rowIndex, drags, onMoveDayRow });
 
   // -1 means no drag, so an idle grid keeps whatever the selection styling asked for.
   const rowOverlayStyle = useAnimatedStyle(() => {
@@ -126,7 +86,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   // An exercise can be dropped into any day, so both the strip being dragged and the line showing
   // where it will land are drawn here, over the row, from shared values the grid writes. The lanes
   // themselves stay out of it: giving them drag props would re-render the one under the finger.
-  const { draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap, laneHeight } = props;
+  const laneHeight = props.laneHeight;
   const draggedLaneStyle = useAnimatedStyle(() => {
     if (draggedLaneRow.value !== rowIndex) {
       return { opacity: 0, top: 0, height: 0 };
@@ -254,9 +214,9 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             onSelect={props.onSelect}
             onSetRepeatRange={props.onSetRepeatRange}
             laneCount={lanes}
-            onLaneDragStart={props.onLaneDragStart}
-            onLaneDragMove={props.onLaneDragMove}
-            onLaneDragEnd={props.onLaneDragEnd}
+            onLaneDragStart={drags.lane.onLaneDragStart}
+            onLaneDragMove={drags.lane.onLaneDragMove}
+            onLaneDragEnd={drags.lane.onLaneDragEnd}
           />
         ))}
       {/* One per week rather than one per row: adding an exercise targets a specific week's day,

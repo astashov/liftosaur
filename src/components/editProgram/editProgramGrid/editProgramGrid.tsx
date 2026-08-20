@@ -1,15 +1,6 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Platform,
-  useWindowDimensions,
-} from "react-native";
+import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { View, ScrollView, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
 import { lb } from "lens-shmens";
-import { useSharedValue } from "react-native-reanimated";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
 import { IEvaluatedProgram } from "../../../models/program";
@@ -28,7 +19,6 @@ import {
 import {
   GRID_DAY_BOX_INSET,
   GRID_DAY_LABEL_HEIGHT,
-  IGridGeometryRow,
   ProgramGridGeometry_build,
   ProgramGridGeometry_metrics,
   ProgramGridGeometry_totalHeight,
@@ -36,11 +26,10 @@ import {
 } from "../../../pages/planner/models/programGridGeometry";
 import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionContext";
 import { useGridPinch } from "./gridPinch";
-import { useGridDragAutoScroll } from "./gridDragAutoScroll";
 import { useGridActions } from "./useGridActions";
 import { useGridNavigation } from "./useGridNavigation";
 import { useGridSelectionState } from "./useGridSelectionState";
-import { useGridLaneDrag } from "./useGridLaneDrag";
+import { useGridDrags } from "./useGridDrags";
 import { WeekHeaderRow } from "./gridWeekHeaderRow";
 import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
@@ -92,27 +81,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   );
   const { Wrap } = useGridPinch({ scale, onScaleChange: onChangeScale });
 
-  // The grid scrolls sideways inside its own ScrollView and downwards inside the screen's, so a
-  // drag that runs off an edge has two different scrollers to ask, depending on its axis.
-  const horizontalScrollRef = useRef<ScrollView | null>(null);
-  const horizontalViewportRef = useRef<View | null>(null);
-  const horizontalOffsetRef = useRef(0);
-  const onHorizontalScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    horizontalOffsetRef.current = e.nativeEvent.contentOffset.x;
-  }, []);
-  // The "+ Week" button sits past the last column, so the content is one column wider than the grid.
-  const contentWidthRef = useRef(totalWidth + columnWidth);
-  contentWidthRef.current = totalWidth + columnWidth;
-  const containerWidthRef = useRef(containerWidth);
-  containerWidthRef.current = containerWidth;
-  const maxHorizontalScroll = useCallback(() => Math.max(0, contentWidthRef.current - containerWidthRef.current), []);
-  const autoScroll = useGridDragAutoScroll({
-    horizontalRef: horizontalScrollRef,
-    horizontalViewportRef,
-    horizontalOffsetRef,
-    maxHorizontalScroll,
-  });
-
   const { selectedDayRow, selectedWeek, selection, onSelect, onSelectDay, onSelectWeek, onClear } =
     useGridSelectionState(grid);
 
@@ -143,36 +111,22 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     );
   }, []);
 
-  // Read only from drag handlers, which run long after the render that wrote it — a ref rather than
-  // a value so a handler sees the current layout without being rebuilt when it changes, since
-  // rebuilding a gesture's callbacks mid-drag drops the drag.
-  const geometryRef = useRef<IGridGeometryRow[]>([]);
   const geometry = useMemo(
     () => ProgramGridGeometry_build(grid, collapsedRows, laneHeight, rem),
     [grid, collapsedRows, laneHeight, rem]
   );
-  geometryRef.current = geometry;
-  const laneHeightRef = useRef(laneHeight);
-  laneHeightRef.current = laneHeight;
   const rowsHeight = ProgramGridGeometry_totalHeight(geometry);
   const weekLaneNames = useMemo(() => ProgramGridGeometry_weekLaneNames(grid, geometry), [grid, geometry]);
 
-  // One ghost position per axis, shared by whichever drag is live — only one can be.
-  const ghostY = useSharedValue(0);
-  const ghostX = useSharedValue(0);
-  const draggedRow = useSharedValue(-1);
-  const dropBoundary = useSharedValue(-1);
-  const draggedWeek = useSharedValue(-1);
-  const dropWeekGap = useSharedValue(-1);
-
-  const gridRef = useRef(grid);
-  gridRef.current = grid;
-  const laneDrag = useGridLaneDrag({
-    gridRef,
-    geometryRef,
-    laneHeightRef,
-    ghostY,
-    autoScroll,
+  // Every drag's shared values, refs and edge-scrolling live together in one hook rather than in
+  // this component's state — see useGridDrags. What comes back is a bus the rows and columns read,
+  // plus the exercise drag, which is the one the grid owns because it can cross rows.
+  const drags = useGridDrags({
+    grid,
+    geometry,
+    laneHeight,
+    contentWidth: totalWidth + columnWidth,
+    containerWidth,
     onReorderExercisesInDay: actions.onReorderExercisesInDay,
     onMoveExerciseToDay: actions.onMoveExerciseToDay,
   });
@@ -242,7 +196,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   useEffect(() => () => publishSelection(undefined), [publishSelection]);
 
   return (
-    <View className="pb-4" onLayout={onLayout} ref={horizontalViewportRef}>
+    <View className="pb-4" onLayout={onLayout} ref={drags.horizontalViewportRef}>
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-xs text-text-secondary">
           {counts.weeks} {StringUtils_pluralize("week", counts.weeks)} · {counts.exercises}{" "}
@@ -272,8 +226,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={true}
-          ref={horizontalScrollRef}
-          onScroll={onHorizontalScroll}
+          ref={drags.horizontalScrollRef}
+          onScroll={drags.onHorizontalScroll}
           scrollEventThrottle={16}
         >
           {/* Deliberately not a Pressable for tap-to-clear. A day name is a gesture detector rather
@@ -289,10 +243,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                 selectedWeek={selectedWeek}
                 onSelectWeek={onSelectWeek}
                 onMoveWeek={actions.onMoveWeek}
-                draggedWeek={draggedWeek}
-                dropWeekGap={dropWeekGap}
-                ghostX={ghostX}
-                autoScroll={autoScroll}
+                drags={drags}
               />
               {/* The rows and the ghosts share one coordinate space — the geometry's — and it
                   starts here, below the week header. zIndex keeps a ghost dragged past the last row
@@ -315,21 +266,10 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
                     isDaySelected={selectedDayRow === row.rowIndex}
                     isDayDimmed={selectedDayRow != null && selectedDayRow !== row.rowIndex}
-                    geometryRef={geometryRef}
                     lanes={geometry[row.rowIndex].laneNames.length}
                     rowHeight={geometry[row.rowIndex].height}
                     onMoveDayRow={actions.onMoveDayRow}
-                    onLaneDragStart={laneDrag.onLaneDragStart}
-                    onLaneDragMove={laneDrag.onLaneDragMove}
-                    onLaneDragEnd={laneDrag.onLaneDragEnd}
-                    draggedRow={draggedRow}
-                    dropBoundary={dropBoundary}
-                    draggedLaneRow={laneDrag.draggedLaneRow}
-                    draggedLane={laneDrag.draggedLane}
-                    dropLaneRow={laneDrag.dropLaneRow}
-                    dropLaneGap={laneDrag.dropLaneGap}
-                    ghostY={ghostY}
-                    autoScroll={autoScroll}
+                    drags={drags}
                   />
                 ))}
                 {/* Last, so they paint over every row. Mounted with the grid rather than with the
@@ -345,10 +285,10 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       width={totalWidth}
                       labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
                       laneHeight={laneHeight}
-                      draggedRow={draggedRow}
-                      draggedLaneRow={laneDrag.draggedLaneRow}
-                      draggedLane={laneDrag.draggedLane}
-                      ghostY={ghostY}
+                      draggedRow={drags.draggedRow}
+                      draggedLaneRow={drags.draggedLaneRow}
+                      draggedLane={drags.draggedLane}
+                      ghostY={drags.ghostY}
                     />
                   ))}
                 {Platform.OS !== "web" &&
@@ -365,8 +305,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       laneNames={weekLaneNames[column.weekIndex]}
                       labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
                       laneHeight={laneHeight}
-                      draggedWeek={draggedWeek}
-                      ghostX={ghostX}
+                      draggedWeek={drags.draggedWeek}
+                      ghostX={drags.ghostX}
                     />
                   ))}
               </View>

@@ -1,16 +1,12 @@
 import { JSX, memo, useCallback } from "react";
 import { View } from "react-native";
-import Animated, { useAnimatedStyle, SharedValue } from "react-native-reanimated";
+import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Text } from "../../primitives/text";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { IProgramGrid, IProgramGridColumn, ProgramGrid_weekDayCount } from "../../../pages/planner/models/programGrid";
-import {
-  ProgramGridGeometry_gapForMove,
-  ProgramGridGeometry_weekDropAt,
-} from "../../../pages/planner/models/programGridGeometry";
 import { GridDragHandle } from "./gridDragHandle";
-import { IGridDragAutoScroll } from "./gridDragAutoScroll";
-import { useGridDragSession } from "./useGridDragSession";
+import { IGridDrags } from "./useGridDrags";
+import { useGridWeekDrag } from "./useGridWeekDrag";
 
 export interface IWeekHeaderRowProps {
   grid: IProgramGrid;
@@ -18,10 +14,7 @@ export interface IWeekHeaderRowProps {
   selectedWeek?: number;
   onSelectWeek: (weekIndex: number) => void;
   onMoveWeek: (from: number, to: number) => void;
-  draggedWeek: SharedValue<number>;
-  dropWeekGap: SharedValue<number>;
-  ghostX: SharedValue<number>;
-  autoScroll: IGridDragAutoScroll;
+  drags: IGridDrags;
 }
 
 export const WeekHeaderRow = memo(function WeekHeaderRow(props: IWeekHeaderRowProps): JSX.Element {
@@ -40,10 +33,7 @@ export const WeekHeaderRow = memo(function WeekHeaderRow(props: IWeekHeaderRowPr
           isLast={column.weekIndex === grid.columns.length - 1}
           onSelectWeek={props.onSelectWeek}
           onMoveWeek={props.onMoveWeek}
-          draggedWeek={props.draggedWeek}
-          dropWeekGap={props.dropWeekGap}
-          ghostX={props.ghostX}
-          autoScroll={props.autoScroll}
+          drags={props.drags}
         />
       ))}
     </View>
@@ -60,42 +50,21 @@ interface IWeekHeaderCellProps {
   isLast: boolean;
   onSelectWeek: (weekIndex: number) => void;
   onMoveWeek: (from: number, to: number) => void;
-  draggedWeek: SharedValue<number>;
-  dropWeekGap: SharedValue<number>;
-  ghostX: SharedValue<number>;
-  autoScroll: IGridDragAutoScroll;
-}
-
-// Where a week drag would land: which column, and where to draw the lifted one.
-interface IWeekDropTarget {
-  to: number;
-  x: number;
+  drags: IGridDrags;
 }
 
 const WeekHeaderCell = memo(function WeekHeaderCell(props: IWeekHeaderCellProps): JSX.Element {
-  const { column, onSelectWeek, onMoveWeek, draggedWeek, dropWeekGap, ghostX, columnWidth, weekCount } = props;
+  const { column, onSelectWeek, onMoveWeek, columnWidth, weekCount } = props;
+  const { draggedWeek, dropWeekGap } = props.drags;
   const weekIndex = column.weekIndex;
   const onTap = useCallback(() => onSelectWeek(weekIndex), [onSelectWeek, weekIndex]);
 
-  const drag = useGridDragSession<IWeekDropTarget>({
-    axis: "x",
-    autoScroll: props.autoScroll,
-    resolve: (translationX) => ({
-      to: ProgramGridGeometry_weekDropAt(weekCount, weekIndex, translationX, columnWidth),
-      x: weekIndex * columnWidth + translationX,
-    }),
-    show: (target) => {
-      draggedWeek.value = target == null ? -1 : weekIndex;
-      dropWeekGap.value = target == null ? -1 : ProgramGridGeometry_gapForMove(weekIndex, target.to);
-      if (target != null) {
-        ghostX.value = target.x;
-      }
-    },
-    commit: (target) => {
-      if (target.to !== weekIndex) {
-        onMoveWeek(weekIndex, target.to);
-      }
-    },
+  const drag = useGridWeekDrag({
+    weekIndex,
+    weekCount,
+    columnWidth,
+    drags: props.drags,
+    onMoveWeek,
   });
 
   const liftStyle = useAnimatedStyle(() => ({ opacity: draggedWeek.value === weekIndex ? 0.25 : 0 }));

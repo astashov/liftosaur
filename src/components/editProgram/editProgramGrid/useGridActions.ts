@@ -59,8 +59,18 @@ export function useGridActions(args: {
   const plannerRef = useRef(evaluatedProgram.planner);
   plannerRef.current = evaluatedProgram.planner;
 
+  // Whether the edit changes which rows and columns exist. A selection points at a row index or a
+  // week index, so anything that reshuffles those leaves it pointing at something else — and that
+  // is a property of the *command*, not something each callback should remember to clean up after
+  // itself. An edit added later inherits the rule by declaring its kind.
+  type IEditKind = "content" | "structural";
+
   const applyTransform = useCallback(
-    (transform: (planner: IPlannerProgram) => IProgramGridTransformResult, description: string) => {
+    (
+      transform: (planner: IPlannerProgram) => IProgramGridTransformResult,
+      description: string,
+      kind: IEditKind = "content"
+    ) => {
       const check = transform(plannerRef.current);
       if (!check.success) {
         Dialog_alert(check.error);
@@ -77,15 +87,19 @@ export function useGridActions(args: {
           }),
         description
       );
+      if (kind === "structural") {
+        onStructuralChange();
+      }
     },
-    [plannerDispatch]
+    [plannerDispatch, onStructuralChange]
   );
 
   const onMoveDayRow = useCallback(
     (from: number, to: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_moveDayRow(planner, from, to, settings),
-        `Move day ${from + 1} to position ${to + 1}`
+        `Move day ${from + 1} to position ${to + 1}`,
+        "structural"
       );
     },
     [applyTransform, settings]
@@ -99,18 +113,19 @@ export function useGridActions(args: {
       }));
       applyTransform(
         (planner) => ProgramGridTransforms_deleteExercises(planner, targets, settings),
-        `Delete ${placements.length} exercise(s) from grid`
+        `Delete ${placements.length} exercise(s) from grid`,
+        "structural"
       );
-      onStructuralChange();
     },
-    [applyTransform, grid, settings, onStructuralChange]
+    [applyTransform, grid, settings]
   );
 
   const onAddDay = useCallback(
     (weekIndex: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_addDay(planner, weekIndex, settings),
-        `Add a day to week ${weekIndex + 1}`
+        `Add a day to week ${weekIndex + 1}`,
+        "structural"
       );
     },
     [applyTransform, settings]
@@ -133,27 +148,27 @@ export function useGridActions(args: {
   );
 
   const onAddWeek = useCallback(() => {
-    applyTransform((planner) => ProgramGridTransforms_addWeek(planner, settings), "Add new week");
+    applyTransform((planner) => ProgramGridTransforms_addWeek(planner, settings), "Add new week", "structural");
   }, [applyTransform, settings]);
 
   const onDuplicateDay = useCallback(
     (rowIndex: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_duplicateDayRow(planner, rowIndex, settings),
-        `Duplicate day ${rowIndex + 1} in every week`
+        `Duplicate day ${rowIndex + 1} in every week`,
+        "structural"
       );
-      onStructuralChange();
     },
-    [applyTransform, settings, onStructuralChange]
+    [applyTransform, settings]
   );
 
   const onDeleteDay = useCallback(
     (rowIndex: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_deleteDayRow(planner, rowIndex, settings),
-        `Delete day ${rowIndex + 1} from every week`
+        `Delete day ${rowIndex + 1} from every week`,
+        "structural"
       );
-      onStructuralChange();
     },
     [applyTransform, settings]
   );
@@ -162,9 +177,9 @@ export function useGridActions(args: {
     (weekIndex: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_duplicateWeek(planner, weekIndex, settings),
-        `Duplicate week ${weekIndex + 1}`
+        `Duplicate week ${weekIndex + 1}`,
+        "structural"
       );
-      onStructuralChange();
     },
     [applyTransform, settings]
   );
@@ -173,9 +188,9 @@ export function useGridActions(args: {
     (weekIndex: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_deleteWeek(planner, weekIndex, settings),
-        `Delete week ${weekIndex + 1}`
+        `Delete week ${weekIndex + 1}`,
+        "structural"
       );
-      onStructuralChange();
     },
     [applyTransform, settings]
   );
@@ -184,7 +199,8 @@ export function useGridActions(args: {
     (from: number, to: number) => {
       applyTransform(
         (planner) => ProgramGridTransforms_moveWeek(planner, from, to, settings),
-        `Move week ${from + 1} to position ${to + 1}`
+        `Move week ${from + 1} to position ${to + 1}`,
+        "structural"
       );
     },
     [applyTransform, settings]
