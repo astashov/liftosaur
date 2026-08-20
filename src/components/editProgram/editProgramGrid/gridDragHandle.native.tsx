@@ -6,8 +6,10 @@ import { runOnJS } from "react-native-reanimated";
 export interface IGridDragHandleProps {
   children: ReactNode;
   // Long press first, so a plain tap still selects and the grid still scrolls under the finger.
-  onDragStart: () => void;
-  onDragMove: (translationY: number) => void;
+  // The absolute position of the finger comes along with both, because edge-scrolling has to know
+  // where on the screen the finger is, which a translation alone can't say.
+  onDragStart: (absolute: number) => void;
+  onDragMove: (translation: number, absolute: number) => void;
   // `commit` is false when the gesture was cancelled rather than released — the drop must not be
   // applied then. onEnd and onFinalize both fire on a normal release, so this has to be idempotent.
   onDragEnd: (commit: boolean) => void;
@@ -26,11 +28,11 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
       // The finger leaves a small handle almost immediately once the drag is under way; without
       // this the gesture is cancelled the moment it does.
       .shouldCancelWhenOutside(false)
-      .onStart(() => {
-        runOnJS(onDragStart)();
+      .onStart((e) => {
+        runOnJS(onDragStart)(axis === "x" ? e.absoluteX : e.absoluteY);
       })
       .onUpdate((e) => {
-        runOnJS(onDragMove)(axis === "x" ? e.translationX : e.translationY);
+        runOnJS(onDragMove)(axis === "x" ? e.translationX : e.translationY, axis === "x" ? e.absoluteX : e.absoluteY);
       })
       .onEnd(() => {
         runOnJS(onDragEnd)(true);

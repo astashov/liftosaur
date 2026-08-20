@@ -2,6 +2,9 @@ import "mocha";
 import { expect } from "chai";
 import {
   ProgramGrid_build,
+  ProgramGrid_counts,
+  ProgramGrid_hasDay,
+  ProgramGrid_weekDayCount,
   ProgramGrid_schemeToString,
   ProgramGrid_select,
   ProgramGrid_isRelated,
@@ -40,7 +43,7 @@ Squat[1-3] / 3x5 100lb
 ## Day 1
 `);
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-2]"]);
-    expect(grid.placements[0].runKind).to.equal("repeat");
+    expect(grid.placements[0].repeatSpan).to.deep.equal([0, 2]);
     expect(ProgramGrid_schemeToString(grid.placements[0].scheme)).to.equal("3x5 100lb");
   });
 
@@ -59,7 +62,8 @@ Bench Press / 5x5 60lb
 `);
     expect(spansFor(grid, "Bench Press")).to.deep.equal(["Bench Press@r0[0-0]", "Bench Press@r0[1-2]"]);
     const second = grid.placements[1];
-    expect(second.runKind).to.equal("identical");
+    // The run covers two weeks because they say the same thing, not because anything repeats.
+    expect(second.repeatSpan).to.equal(undefined);
     expect(second.isOverride).to.equal(false);
   });
 
@@ -92,9 +96,8 @@ Squat[1-2] / ...tmpl
     const squat = grid.placements.find((p) => p.fullName === "Squat")!;
     expect(tmpl.isTemplate).to.equal(true);
     expect(tmpl.isReuseSource).to.equal(true);
-    expect(squat.isReuser).to.equal(true);
     expect(squat.reuseOf).to.equal("tmpl");
-    expect(grid.counts).to.deep.equal({ weeks: 2, exercises: 1, templates: 1 });
+    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 2, exercises: 1, templates: 1 });
   });
 
   it("is ragged — a row only exists in the weeks that have that day", () => {
@@ -110,8 +113,11 @@ Deadlift / 1x5 200lb
 Squat / 3x5 100lb
 `);
     expect(grid.rows.length).to.equal(2);
-    expect(grid.rows[0].weekIndexes).to.deep.equal([0, 1]);
-    expect(grid.rows[1].weekIndexes).to.deep.equal([0]);
+    expect(grid.rows.map((row) => ProgramGrid_hasDay(row, 0))).to.deep.equal([true, true]);
+    // Week 2 is short, so row 1 has no day there — and therefore no box and no "+ Exercise".
+    expect(grid.rows.map((row) => ProgramGrid_hasDay(row, 1))).to.deep.equal([true, false]);
+    expect(ProgramGrid_weekDayCount(grid, 0)).to.equal(2);
+    expect(ProgramGrid_weekDayCount(grid, 1)).to.equal(1);
     expect(spansFor(grid, "Deadlift")).to.deep.equal(["Deadlift@r1[0-0]"]);
   });
 

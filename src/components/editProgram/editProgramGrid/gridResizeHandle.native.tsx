@@ -2,7 +2,7 @@ import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
-import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IGridResizeHandleProps {
   width: number;

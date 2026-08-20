@@ -3,8 +3,8 @@ import { View, GestureResponderEvent } from "react-native";
 
 export interface IGridDragHandleProps {
   children: ReactNode;
-  onDragStart: () => void;
-  onDragMove: (translationY: number) => void;
+  onDragStart: (absolute: number) => void;
+  onDragMove: (translation: number, absolute: number) => void;
   // False when the touch was terminated rather than released, in which case the drop is dropped.
   onDragEnd: (commit: boolean) => void;
   // Handled here rather than by a nested Pressable, so tap and drag come from one place.
@@ -37,9 +37,10 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
       startRef.current = axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY;
       isDraggingRef.current = false;
       cancelTimer();
+      const absolute = axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY;
       timerRef.current = setTimeout(() => {
         isDraggingRef.current = true;
-        onDragStart();
+        onDragStart(absolute);
       }, LONG_PRESS_MS);
     },
     [cancelTimer, onDragStart, axis]
@@ -54,7 +55,7 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
         }
         return;
       }
-      onDragMove(delta);
+      onDragMove(delta, axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY);
     },
     [cancelTimer, onDragMove, axis]
   );

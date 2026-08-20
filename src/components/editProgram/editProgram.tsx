@@ -17,7 +17,7 @@ import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
-import { EditProgramGrid } from "./editProgramGrid";
+import { EditProgramGrid } from "./editProgramGrid/editProgramGrid";
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";

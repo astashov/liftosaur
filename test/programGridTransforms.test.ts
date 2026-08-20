@@ -102,6 +102,27 @@ Bench Press / 5x5 50lb
     expect(spans(next, "Bench Press")).to.deep.equal(["[0-2]"]);
   });
 
+  it("finds the line when the repeat back-fills, so the run's first week holds no text", () => {
+    // `Squat[1-3]` is written in week 2 but shows from week 1, so the grid's strip starts at week 1
+    // — where there is nothing to rewrite. Trusting that coordinate silently did nothing.
+    const backfilled = `# Week 1
+## Day 1
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat[1-3] / 3x5 100lb
+Bench Press / 5x5 55lb
+
+# Week 3
+## Day 1
+Bench Press / 5x5 60lb
+`;
+    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
+    expect(next.weeks[1].days[0].exerciseText.trim().split("\n")[0]).to.equal("Squat[1-2] / 3x5 100lb");
+    expect(spans(next, "Squat")).to.deep.equal(["[0-1]"]);
+  });
+
   it("keeps a forced order when the range changes", () => {
     const ordered = `# Week 1
 ## Day 1
@@ -163,26 +184,26 @@ Deadlift / 1x5 210lb
 
     it("removes the day from every week, not just one", () => {
       const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 1, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks.map((w) => w.days.length)).to.deep.equal([2, 2]);
-      expect(result.planner.weeks[0].days.map((d) => d.name)).to.deep.equal(["Day 1", "Day 3"]);
-      expect(spans(result.planner, "Squat")).to.deep.equal([]);
+      expect(result.data.weeks.map((w) => w.days.length)).to.deep.equal([2, 2]);
+      expect(result.data.weeks[0].days.map((d) => d.name)).to.deep.equal(["Day 1", "Day 3"]);
+      expect(spans(result.data, "Squat")).to.deep.equal([]);
       // Everything that survived still resolves — the reuse of day 1 is untouched. Both weeks say
       // the same thing, so it reads as one run.
-      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+      expect(spans(result.data, "Bench Press")).to.deep.equal(["[0-1]"]);
     });
 
     it("refuses when another day reuses the one being deleted", () => {
       const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 0, Settings_build());
-      expect(result.ok).to.equal(false);
-      if (result.ok) {
+      expect(result.success).to.equal(false);
+      if (result.success) {
         return;
       }
       // Day 1 is what the others reuse, so it refuses instead of orphaning them.
-      expect(result.reason).to.contain("reuses this day");
+      expect(result.error).to.contain("reuses this day");
     });
 
     it("shifts a qualifier down when an earlier day is removed", () => {
@@ -207,12 +228,12 @@ main / used: none / 3x5 110lb
 Bench Press / ...main[2]
 `;
       const result = ProgramGridTransforms_deleteDayRow(plannerOf(text), 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks[0].days[1].exerciseText.trim()).to.equal("Bench Press / ...main[1]");
-      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+      expect(result.data.weeks[0].days[1].exerciseText.trim()).to.equal("Bench Press / ...main[1]");
+      expect(spans(result.data, "Bench Press")).to.deep.equal(["[0-1]"]);
     });
   });
 
@@ -232,14 +253,14 @@ Bench Press / 5x5 50lb
 Bench Press / 5x5 50lb
 `;
       const result = ProgramGridTransforms_duplicateDayRow(plannerOf(text), 1, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks.map((w) => w.days.length)).to.deep.equal([3, 3]);
-      expect(result.planner.weeks[0].days[2].exerciseText.trim()).to.equal("Bench Press / 5x5 50lb");
+      expect(result.data.weeks.map((w) => w.days.length)).to.deep.equal([3, 3]);
+      expect(result.data.weeks[0].days[2].exerciseText.trim()).to.equal("Bench Press / 5x5 50lb");
       // The repeat on day 1 is untouched, which is the point of appending.
-      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+      expect(spans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
   });
 
@@ -268,23 +289,23 @@ Bench Press / ...main[2]
     it("permutes every week identically and rewrites the qualifiers", () => {
       // Day C moves to the front, so what was day 2 is now day 3.
       const result = ProgramGridTransforms_moveDayRow(plannerOf(THREE_DAYS), 2, 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      for (const week of result.planner.weeks) {
+      for (const week of result.data.weeks) {
         expect(week.days.map((d) => d.name)).to.deep.equal(["Day C", "Day A", "Day B"]);
       }
-      expect(result.planner.weeks[0].days[0].exerciseText.trim()).to.equal("Bench Press / ...main[3]");
-      expect(spans(result.planner, "Bench Press")).to.deep.equal(["[0-1]"]);
+      expect(result.data.weeks[0].days[0].exerciseText.trim()).to.equal("Bench Press / ...main[3]");
+      expect(spans(result.data, "Bench Press")).to.deep.equal(["[0-1]"]);
     });
 
     it("is a no-op when nothing moves", () => {
       const planner = plannerOf(THREE_DAYS);
       const result = ProgramGridTransforms_moveDayRow(planner, 1, 1, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (result.ok) {
-        expect(result.planner).to.equal(planner);
+      expect(result.success).to.equal(true);
+      if (result.success) {
+        expect(result.data).to.equal(planner);
       }
     });
   });
@@ -309,22 +330,22 @@ Deadlift / 1x5 210lb
         ["Deadlift", "Squat", "Bench Press"],
         Settings_build()
       );
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+      expect(result.data.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
         "Deadlift / 1x5 200lb",
         "// squat notes",
         "Squat[1-2] / 3x5 100lb",
         "Bench Press / 5x5 50lb",
       ]);
       // Week 2 only holds two of them, and follows the same order.
-      expect(result.planner.weeks[1].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+      expect(result.data.weeks[1].days[0].exerciseText.trim().split("\n")).to.deep.equal([
         "Deadlift / 1x5 210lb",
         "Bench Press / 5x5 55lb",
       ]);
-      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+      expect(spans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
   });
 
@@ -358,15 +379,15 @@ Deadlift / 1x5 210lb
         undefined,
         Settings_build()
       );
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(linesOf(result.planner, 0, 0)).to.deep.equal(["Squat[1-2] / 3x5 100lb"]);
-      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Bench Press / 5x5 50lb"]);
+      expect(linesOf(result.data, 0, 0)).to.deep.equal(["Squat[1-2] / 3x5 100lb"]);
+      expect(linesOf(result.data, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Bench Press / 5x5 50lb"]);
       // Week 2 authors its own copy, and that one moves too, leaving the day empty.
-      expect(linesOf(result.planner, 1, 0)).to.deep.equal([""]);
-      expect(linesOf(result.planner, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb", "Bench Press / 5x5 55lb"]);
+      expect(linesOf(result.data, 1, 0)).to.deep.equal([""]);
+      expect(linesOf(result.data, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb", "Bench Press / 5x5 55lb"]);
     });
 
     it("inserts before the exercise it was dropped above", () => {
@@ -378,11 +399,11 @@ Deadlift / 1x5 210lb
         "Deadlift",
         Settings_build()
       );
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Bench Press / 5x5 50lb", "Deadlift / 1x5 200lb"]);
+      expect(linesOf(result.data, 0, 1)).to.deep.equal(["Bench Press / 5x5 50lb", "Deadlift / 1x5 200lb"]);
     });
 
     it("carries the repeat with the line, so the run lands on the new day", () => {
@@ -394,14 +415,14 @@ Deadlift / 1x5 210lb
         undefined,
         Settings_build()
       );
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(linesOf(result.planner, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Squat[1-2] / 3x5 100lb"]);
+      expect(linesOf(result.data, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Squat[1-2] / 3x5 100lb"]);
       // Week 2 holds no text for a repeated exercise, so nothing there had to move.
-      expect(linesOf(result.planner, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb"]);
-      expect(spans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+      expect(linesOf(result.data, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb"]);
+      expect(spans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
 
     it("refuses when the destination day already has that exercise", () => {
@@ -420,7 +441,7 @@ Squat / 3x5 200lb
         undefined,
         Settings_build()
       );
-      expect(result.ok).to.equal(false);
+      expect(result.success).to.equal(false);
     });
 
     it("refuses when a week that authors the exercise has no destination day", () => {
@@ -444,11 +465,11 @@ Bench Press / 5x5 55lb
         undefined,
         Settings_build()
       );
-      expect(result.ok).to.equal(false);
-      if (result.ok) {
+      expect(result.success).to.equal(false);
+      if (result.success) {
         return;
       }
-      expect(result.reason).to.contain("Bench Press");
+      expect(result.error).to.contain("Bench Press");
     });
 
     it("refuses when something reuses the exercise by its old day", () => {
@@ -480,7 +501,7 @@ Bench Press / 5x5 55lb
         undefined,
         Settings_build()
       );
-      expect(result.ok).to.equal(false);
+      expect(result.success).to.equal(false);
     });
   });
 
@@ -518,42 +539,42 @@ Deadlift / 1x5 220lb
       // [W1, W2, W3] -> [W3, W1, W2]: Squat still belongs to old weeks 1 and 2, now sitting 2nd
       // and 3rd, so its range has to become 2-3.
       const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks[1].days[0].exerciseText.trim().split("\n")[0]).to.equal("Squat[2-3] / 3x5 100lb");
-      expect(weekSpans(result.planner, "Squat")).to.deep.equal(["[1-2]"]);
+      expect(result.data.weeks[1].days[0].exerciseText.trim().split("\n")[0]).to.equal("Squat[2-3] / 3x5 100lb");
+      expect(weekSpans(result.data, "Squat")).to.deep.equal(["[1-2]"]);
     });
 
     it("renumbers a week qualifier that pointed at the moved week", () => {
       const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
       // `...Deadlift[1:2]` lived in week 2 and pointed at week 1, which is now week 2.
-      expect(result.planner.weeks[2].days[1].exerciseText.trim()).to.equal("Deadlift / ...Deadlift[2:2]");
+      expect(result.data.weeks[2].days[1].exerciseText.trim()).to.equal("Deadlift / ...Deadlift[2:2]");
     });
 
     it("refuses a move that would scatter a repeat across non-adjacent weeks", () => {
       // [W1, W2, W3] -> [W1, W3, W2] leaves Squat in weeks 1 and 3, which no repeat can say.
       const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 1, 2, Settings_build());
-      expect(result.ok).to.equal(false);
-      if (result.ok) {
+      expect(result.success).to.equal(false);
+      if (result.success) {
         return;
       }
-      expect(result.reason).to.contain("Squat");
+      expect(result.error).to.contain("Squat");
     });
 
     it("keeps every week's name with the week that moved, out of order or not", () => {
       const text = THREE_WEEKS.replace("# Week 3", "# Deload");
       const result = ProgramGridTransforms_moveWeek(plannerOf(text), 2, 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks.map((w) => w.name)).to.deep.equal(["Deload", "Week 1", "Week 2"]);
+      expect(result.data.weeks.map((w) => w.name)).to.deep.equal(["Deload", "Week 1", "Week 2"]);
     });
 
     it("moves a definition out of a deleted week so the rest of its run survives", () => {
@@ -570,19 +591,19 @@ Bench Press / 5x5 50lb
 Bench Press / 5x5 60lb
 `;
       const result = ProgramGridTransforms_deleteWeek(plannerOf(text), 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks).to.have.length(2);
+      expect(result.data.weeks).to.have.length(2);
       // Squat was defined only in week 1 and repeated through week 3; it keeps the two weeks left.
-      expect(result.planner.weeks[0].days[0].exerciseText).to.contain("Squat[1-2] / 3x5 100lb");
-      expect(weekSpans(result.planner, "Squat")).to.deep.equal(["[0-1]"]);
+      expect(result.data.weeks[0].days[0].exerciseText).to.contain("Squat[1-2] / 3x5 100lb");
+      expect(weekSpans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
 
     it("refuses to delete a week that another week reuses by number", () => {
       const result = ProgramGridTransforms_deleteWeek(plannerOf(THREE_WEEKS), 0, Settings_build());
-      expect(result.ok).to.equal(false);
+      expect(result.success).to.equal(false);
     });
 
     it("refuses to delete the only week", () => {
@@ -591,7 +612,7 @@ Bench Press / 5x5 60lb
         0,
         Settings_build()
       );
-      expect(result.ok).to.equal(false);
+      expect(result.success).to.equal(false);
     });
 
     it("duplicates a week as a standalone copy, without its repeat", () => {
@@ -604,13 +625,13 @@ Squat[1-2] / 3x5 100lb
 Bench Press / 5x5 50lb
 `;
       const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks).to.have.length(3);
-      expect(result.planner.weeks[2].name).to.equal("Week 3");
-      expect(result.planner.weeks[2].days[0].exerciseText.trim()).to.equal("Squat / 3x5 100lb");
+      expect(result.data.weeks).to.have.length(3);
+      expect(result.data.weeks[2].name).to.equal("Week 3");
+      expect(result.data.weeks[2].days[0].exerciseText.trim()).to.equal("Squat / 3x5 100lb");
     });
 
     it("names the copy something no other week is called", () => {
@@ -625,11 +646,11 @@ Squat / 3x5 100lb
 Bench Press / 5x5 50lb
 `;
       const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
-      expect(result.ok).to.equal(true);
-      if (!result.ok) {
+      expect(result.success).to.equal(true);
+      if (!result.success) {
         return;
       }
-      expect(result.planner.weeks.map((w) => w.name)).to.deep.equal(["Week 1", "Week 3", "Week 4"]);
+      expect(result.data.weeks.map((w) => w.name)).to.deep.equal(["Week 1", "Week 3", "Week 4"]);
     });
 
     it("refuses to duplicate a week whose content comes from a repeat elsewhere", () => {
@@ -643,11 +664,11 @@ Bench Press / 5x5 50lb
 `;
       // Week 2 shows Squat, but holds no text for it.
       const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 1, Settings_build());
-      expect(result.ok).to.equal(false);
-      if (result.ok) {
+      expect(result.success).to.equal(false);
+      if (result.success) {
         return;
       }
-      expect(result.reason).to.contain("Squat");
+      expect(result.error).to.contain("Squat");
     });
   });
 

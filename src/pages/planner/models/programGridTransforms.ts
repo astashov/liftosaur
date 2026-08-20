@@ -1,6 +1,7 @@
 import { SyntaxNode } from "@lezer/common";
 import { IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
+import { IEither } from "../../../utils/types";
 import { StringUtils_nextName } from "../../../utils/string";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
@@ -52,10 +53,9 @@ function findExerciseLine(text: string, fullName: string): IExerciseLine | undef
   return undefined;
 }
 
-export type IProgramGridTransformResult =
-  | { ok: true; planner: IPlannerProgram }
-  // Named so the UI can say which exercise stands in the way rather than just refusing.
-  | { ok: false; reason: string };
+// The failure side carries a sentence, not a code: the UI shows it verbatim, so a refusal can say
+// which exercise stands in the way rather than just refusing.
+export type IProgramGridTransformResult = IEither<IPlannerProgram, string>;
 
 interface IDayReference {
   node: SyntaxNode;
@@ -194,8 +194,8 @@ function rewriteWeekNumbersInDay(text: string, newForOld: Map<number, number | u
     }
     if (moved[moved.length - 1] - moved[0] !== moved.length - 1) {
       return {
-        ok: false,
-        reason: `${repeat.fullName} repeats over weeks that would no longer be next to each other. A repeat can only cover a run of weeks in a row.`,
+        success: false,
+        error: `${repeat.fullName} repeats over weeks that would no longer be next to each other. A repeat can only cover a run of weeks in a row.`,
       };
     }
     edits.push({
@@ -207,7 +207,7 @@ function rewriteWeekNumbersInDay(text: string, newForOld: Map<number, number | u
   for (const reference of weekReferences(text)) {
     const next = newForOld.get(reference.week - 1);
     if (next == null) {
-      return { ok: false, reason: `Something reuses week ${reference.week}, which is being removed.` };
+      return { success: false, error: `Something reuses week ${reference.week}, which is being removed.` };
     }
     edits.push({ from: reference.node.from, to: reference.node.to, text: `${next + 1}` });
   }
@@ -216,10 +216,10 @@ function rewriteWeekNumbersInDay(text: string, newForOld: Map<number, number | u
   for (const edit of edits.sort((a, b) => b.from - a.from)) {
     result = `${result.slice(0, edit.from)}${edit.text}${result.slice(edit.to)}`;
   }
-  return { ok: true, text: result };
+  return { success: true, data: result };
 }
 
-type IDayRewrite = { ok: true; text: string } | { ok: false; reason: string };
+type IDayRewrite = IEither<string, string>;
 
 // Permutes the weeks and rewrites everything that addressed them by number. `oldOrder[newIndex]` is
 // the week that ends up there; a week left out of it is being deleted.
@@ -232,10 +232,10 @@ function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: IS
   for (const oldIndex of oldOrder) {
     for (const day of result.weeks[oldIndex]?.days ?? []) {
       const rewritten = rewriteWeekNumbersInDay(day.exerciseText, newForOld);
-      if (!rewritten.ok) {
-        return { ok: false, reason: rewritten.reason };
+      if (!rewritten.success) {
+        return { success: false, error: rewritten.error };
       }
-      day.exerciseText = rewritten.text;
+      day.exerciseText = rewritten.data;
     }
   }
   // A name belongs to its week and travels with it, even when that leaves them out of order. The
@@ -256,7 +256,7 @@ export function ProgramGridTransforms_moveWeek(
 ): IProgramGridTransformResult {
   const count = planner.weeks.length;
   if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= count || toIndex >= count) {
-    return { ok: true, planner };
+    return { success: true, data: planner };
   }
   const oldOrder = Array.from({ length: count }, (_, i) => i);
   oldOrder.splice(toIndex, 0, ...oldOrder.splice(fromIndex, 1));
@@ -273,12 +273,12 @@ export function ProgramGridTransforms_deleteWeek(
   settings: ISettings
 ): IProgramGridTransformResult {
   if (planner.weeks.length <= 1) {
-    return { ok: false, reason: "A program needs at least one week." };
+    return { success: false, error: "A program needs at least one week." };
   }
   const relocated = ObjectUtils_clone(planner);
   const doomed = relocated.weeks[weekIndex];
   if (doomed == null) {
-    return { ok: true, planner };
+    return { success: true, data: planner };
   }
   doomed.days.forEach((day, dayIndex) => {
     const { blocks } = exerciseBlocks(day.exerciseText);
@@ -311,12 +311,12 @@ export function ProgramGridTransforms_deleteWeek(
 
   const oldOrder = planner.weeks.map((_week, i) => i).filter((i) => i !== weekIndex);
   const reordered = reorderWeeks(relocated, oldOrder, settings);
-  if (!reordered.ok) {
+  if (!reordered.success) {
     return reordered;
   }
   // Compared against the program as it was, not against the relocation step, so a move that broke
   // something is still caught.
-  return refuseIfWorse(planner, reordered.planner, settings);
+  return refuseIfWorse(planner, reordered.data, settings);
 }
 
 // Appends a copy of a week. Appending is what keeps it safe: no existing week moves, so no repeat
@@ -334,7 +334,7 @@ export function ProgramGridTransforms_duplicateWeek(
 ): IProgramGridTransformResult {
   const week = planner.weeks[weekIndex];
   if (week == null) {
-    return { ok: true, planner };
+    return { success: true, data: planner };
   }
   const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
   const evaluated = evaluatedWeeks[weekIndex] ?? [];
@@ -352,8 +352,8 @@ export function ProgramGridTransforms_duplicateWeek(
   });
   if (inherited.size > 0) {
     return {
-      ok: false,
-      reason: `${Array.from(inherited).slice(0, 3).join(", ")} appear${inherited.size === 1 ? "s" : ""} in this week by repeating from an earlier one, so there is no text here to copy. Duplicate the week that defines them instead.`,
+      success: false,
+      error: `${Array.from(inherited).slice(0, 3).join(", ")} appear${inherited.size === 1 ? "s" : ""} in this week by repeating from an earlier one, so there is no text here to copy. Duplicate the week that defines them instead.`,
     };
   }
 
@@ -427,8 +427,8 @@ export function ProgramGridTransforms_deleteDayRow(
   }
   if (blockers.size > 0) {
     return {
-      ok: false,
-      reason: `${Array.from(blockers).join(", ")} reuses this day. Change those to reuse another day first.`,
+      success: false,
+      error: `${Array.from(blockers).join(", ")} reuses this day. Change those to reuse another day first.`,
     };
   }
 
@@ -457,9 +457,9 @@ function refuseIfWorse(
   const errorsAfter = evaluationErrors(after, settings);
   const introduced = errorsAfter.filter((e) => errorsBefore.indexOf(e) === -1);
   if (introduced.length > 0) {
-    return { ok: false, reason: `That would break the program: ${introduced[0]}` };
+    return { success: false, error: `That would break the program: ${introduced[0]}` };
   }
-  return { ok: true, planner: after };
+  return { success: true, data: after };
 }
 
 function evaluationErrors(planner: IPlannerProgram, settings: ISettings): string[] {
@@ -588,7 +588,7 @@ export function ProgramGridTransforms_moveExerciseToDay(
   settings: ISettings
 ): IProgramGridTransformResult {
   if (fromRowIndex === toRowIndex) {
-    return { ok: true, planner };
+    return { success: true, data: planner };
   }
   // A ragged program can have the day in one week and not the other. Moving then would delete the
   // exercise from the week that has no destination for it, so refuse the whole thing rather than
@@ -600,7 +600,7 @@ export function ProgramGridTransforms_moveExerciseToDay(
       exerciseBlocks(week.days[fromRowIndex].exerciseText).blocks.some((b) => b.fullName === fullName)
   );
   if (missing.length > 0) {
-    return { ok: false, reason: `${missing.map((w) => w.name).join(", ")} has no day to move ${fullName} into.` };
+    return { success: false, error: `${missing.map((w) => w.name).join(", ")} has no day to move ${fullName} into.` };
   }
 
   const result = ObjectUtils_clone(planner);
@@ -629,7 +629,7 @@ export function ProgramGridTransforms_moveExerciseToDay(
     moved = true;
   }
   if (!moved) {
-    return { ok: false, reason: `Couldn't find ${fullName} in that day.` };
+    return { success: false, error: `Couldn't find ${fullName} in that day.` };
   }
   // The destination day may already declare the same exercise, or something may reuse this one by
   // its old `[week:day]` address — both surface as evaluation errors rather than as anything this
@@ -648,7 +648,7 @@ export function ProgramGridTransforms_moveDayRow(
 ): IProgramGridTransformResult {
   const rows = planner.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
   if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= rows || toIndex >= rows) {
-    return { ok: true, planner };
+    return { success: true, data: planner };
   }
   const oldOrder = Array.from({ length: rows }, (_, i) => i);
   oldOrder.splice(toIndex, 0, ...oldOrder.splice(fromIndex, 1));
@@ -678,20 +678,53 @@ function remapDayReferences(text: string, newDayForOld: Map<number, number>): st
   return result;
 }
 
+// Which week's copy of this day actually declares the exercise: the run's own week when it holds
+// the text, otherwise the week whose repeat claims that week. Returns a 0-based index.
+function findAuthoringWeek(
+  planner: IPlannerProgram,
+  runStart: { week: number; dayInWeek: number },
+  fullName: string
+): number | undefined {
+  const dayIndex = runStart.dayInWeek - 1;
+  const declares = (weekIndex: number): boolean => {
+    const text = planner.weeks[weekIndex]?.days[dayIndex]?.exerciseText;
+    return text != null && findExerciseLine(text, fullName) != null;
+  };
+  if (declares(runStart.week - 1)) {
+    return runStart.week - 1;
+  }
+  return planner.weeks.reduce<number | undefined>((found, _week, weekIndex) => {
+    if (found != null || !declares(weekIndex)) {
+      return found;
+    }
+    const repeat = exerciseRepeats(planner.weeks[weekIndex].days[dayIndex].exerciseText).find(
+      (r) => r.fullName === fullName
+    );
+    const range = repeat?.range;
+    return range != null && runStart.week >= range[0] && runStart.week <= range[1] ? weekIndex : found;
+  }, undefined);
+}
+
 // Changes how many weeks an exercise repeats for, by rewriting the `[from-to]` token on the line
 // that declares it and nothing else. The later weeks hold no text for a repeated exercise — the
 // evaluator synthesizes them from the range — so this is the whole edit: no other line moves, and a
 // week that has its own definition inside the new range stays put and reads as an override.
 //
-// `toWeek` equal to `fromWeek` drops the repeat entirely, leaving the exercise in its own week.
+// `toWeek` equal to `runStart.week` drops the repeat entirely, leaving the exercise in its own week.
+//
+// `runStart` is where the *run* begins, which is where the grid draws the strip — not necessarily
+// where the line is written. A repeat can back-fill: `Squat[1-3]` authored in week 2 shows from
+// week 1, and week 1 holds no text for it. So the line is searched for rather than assumed, or
+// dragging that strip's edge silently does nothing.
 export function ProgramGridTransforms_setRepeatRange(
   planner: IPlannerProgram,
-  dayData: { week: number; dayInWeek: number },
+  runStart: { week: number; dayInWeek: number },
   fullName: string,
   toWeek: number
 ): IPlannerProgram {
   const result = ObjectUtils_clone(planner);
-  const day = result.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
+  const authored = findAuthoringWeek(result, runStart, fullName);
+  const day = authored != null ? result.weeks[authored]?.days[runStart.dayInWeek - 1] : undefined;
   if (day == null) {
     return planner;
   }
@@ -705,8 +738,8 @@ export function ProgramGridTransforms_setRepeatRange(
   if (order != null && order !== 0) {
     parts.push(`${order}`);
   }
-  if (toWeek > dayData.week) {
-    parts.push(`${dayData.week}-${toWeek}`);
+  if (toWeek > runStart.week) {
+    parts.push(`${runStart.week}-${toWeek}`);
   }
   const token = parts.length > 0 ? `[${parts.join(",")}]` : "";
   const from = line.repeatNode?.from ?? line.variationsEnd;

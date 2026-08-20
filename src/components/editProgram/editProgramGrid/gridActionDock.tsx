@@ -1,14 +1,14 @@
 import { JSX, memo } from "react";
 import { View } from "react-native";
-import { Text } from "../primitives/text";
-import { Pressable } from "../primitives/pressable";
-import { IconEdit2 } from "../icons/iconEdit2";
-import { IconDuplicate2 } from "../icons/iconDuplicate2";
-import { IconTrash } from "../icons/iconTrash";
-import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
-import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Text } from "../../primitives/text";
+import { Pressable } from "../../primitives/pressable";
+import { IconEdit2 } from "../../icons/iconEdit2";
+import { IconDuplicate2 } from "../../icons/iconDuplicate2";
+import { IconTrash } from "../../icons/iconTrash";
+import { IconCloseCircleOutline } from "../../icons/iconCloseCircleOutline";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { useGridSelection } from "./gridSelectionContext";
-import { StringUtils_pluralize } from "../../utils/string";
+import { StringUtils_pluralize } from "../../../utils/string";
 
 // Rendered from NavScreenContent's footer slot, so it is anchored above the tab bar and the scroll
 // content is padded by its height — the selection stays reachable no matter where the tapped strip

@@ -1,6 +1,6 @@
 import { JSX, memo, useCallback, useRef } from "react";
 import { View, GestureResponderEvent } from "react-native";
-import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IGridResizeHandleProps {
   width: number;

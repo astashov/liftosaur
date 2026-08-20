@@ -6,10 +6,9 @@ import {
   PlannerProgramExercise_evaluatedSetsToDisplaySets,
 } from "./plannerProgramExercise";
 
-export type IProgramGridRunKind = "single" | "repeat" | "identical";
-
-// Mirrors the editor's node→style mapping (liftoEditorBrain.ts:105-113) so a strip reads like the
-// Liftoscript it stands for. The view owns the actual colors.
+// Mirrors the editor's node→style mapping (liftoEditorBrain.ts:102) so a strip reads like the
+// Liftoscript it stands for, in the same colors. The view owns the mapping to actual palette
+// entries; this only says which kind of token each run of text is.
 export type IProgramGridTokenKind = "setPart" | "weight" | "rpe" | "timer" | "auto" | "separator";
 
 export interface IProgramGridSchemeToken {
@@ -20,31 +19,27 @@ export interface IProgramGridSchemeToken {
 export interface IProgramGridColumn {
   weekIndex: number;
   name: string;
-  numberOfDays: number;
 }
 
 export interface IProgramGridRow {
   rowIndex: number;
+  // Undefined where the week has no day in this row — a ragged program. `ProgramGrid_hasDay` is the
+  // question every caller actually asks.
   namePerWeek: (string | undefined)[];
-  weekIndexes: number[];
 }
 
 export interface IProgramGridPlacement {
   id: string;
   key: string;
   fullName: string;
-  shortName: string;
-  label?: string;
-  // The day this run is authored in — what every action on the placement needs to address it.
-  dayData: Required<IDayData>;
   rowIndex: number;
   laneIndex: number;
   colStart: number;
   colEnd: number;
-  runKind: IProgramGridRunKind;
+  // The weeks a `[from-to]` claims, which is not the same as the weeks this run covers: a run stops
+  // where the text changes, a claim doesn't. Used to tell an override from independent authoring.
   repeatSpan?: [number, number];
   isTemplate: boolean;
-  isReuser: boolean;
   isReuseSource: boolean;
   reuseOf?: string;
   isOverride: boolean;
@@ -62,7 +57,6 @@ export interface IProgramGrid {
   rows: IProgramGridRow[];
   placements: IProgramGridPlacement[];
   errors: IProgramGridError[];
-  counts: { weeks: number; exercises: number; templates: number };
 }
 
 export type IProgramGridDensity = 0 | 1 | 2;
@@ -167,7 +161,6 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
   const columns: IProgramGridColumn[] = program.weeks.map((week, weekIndex) => ({
     weekIndex,
     name: week.name,
-    numberOfDays: week.days.length,
   }));
   const numberOfRows = program.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
   const rows: IProgramGridRow[] = [];
@@ -175,10 +168,6 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
     rows.push({
       rowIndex,
       namePerWeek: program.weeks.map((week) => week.days[rowIndex]?.name),
-      weekIndexes: program.weeks.reduce<number[]>(
-        (acc, week, weekIndex) => (week.days[rowIndex] != null ? [...acc, weekIndex] : acc),
-        []
-      ),
     });
   }
 
@@ -199,9 +188,6 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
         }
         if (open != null && exercise.text === open.definingText) {
           open.placement.colEnd = weekIndex;
-          if (!exercise.isRepeat) {
-            open.placement.runKind = "identical";
-          }
           continue;
         }
         const schemeGroups = displaySetsToTokens(exercise, settings);
@@ -214,20 +200,15 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           id: `${rowIndex}:${lane}:${weekIndex}`,
           key: exercise.key,
           fullName: exercise.fullName,
-          shortName: exercise.shortName,
-          label: exercise.label,
-          dayData: exercise.dayData,
           rowIndex,
           laneIndex,
           colStart: weekIndex,
           colEnd: weekIndex,
-          runKind: exercise.repeating.length > 1 ? "repeat" : "single",
           repeatSpan:
             exercise.repeating.length > 1
               ? [Math.min(...exercise.repeating) - 1, Math.max(...exercise.repeating) - 1]
               : undefined,
           isTemplate: !!exercise.notused,
-          isReuser: exercise.reuse?.fullName != null,
           isReuseSource: reuseSources.has(exercise.fullName),
           reuseOf: exercise.reuse?.fullName,
           isOverride: false,
@@ -254,23 +235,41 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
     message: error.error.message,
   }));
 
+  return { columns, rows, placements, errors };
+}
+
+// Everything below is derived from the grid rather than stored on it: a second copy of a fact is a
+// chance for the two to disagree after an edit.
+
+export function ProgramGrid_hasDay(row: IProgramGridRow, weekIndex: number): boolean {
+  return row.namePerWeek[weekIndex] !== undefined;
+}
+
+export function ProgramGrid_weekDayCount(grid: IProgramGrid, weekIndex: number): number {
+  return grid.rows.filter((row) => ProgramGrid_hasDay(row, weekIndex)).length;
+}
+
+// Where this run starts, as a day coordinate. NOT necessarily where the exercise is authored: a
+// repeat that back-fills (`Squat[1-3]` written in week 2) starts in week 1, which holds no text for
+// it. Anything that needs to *edit* the line has to find the authoring day itself.
+//
+// `day` is the program-wide day counter the rest of the app uses, so it has to count the days of
+// every preceding week — including the short ones in a ragged program.
+export function ProgramGrid_dayDataAt(grid: IProgramGrid, placement: IProgramGridPlacement): Required<IDayData> {
+  let day = placement.rowIndex + 1;
+  for (let weekIndex = 0; weekIndex < placement.colStart; weekIndex += 1) {
+    day += ProgramGrid_weekDayCount(grid, weekIndex);
+  }
+  return { week: placement.colStart + 1, dayInWeek: placement.rowIndex + 1, day };
+}
+
+export function ProgramGrid_counts(grid: IProgramGrid): { weeks: number; exercises: number; templates: number } {
   const exerciseKeys = new Set<string>();
   const templateKeys = new Set<string>();
-  for (const placement of placements) {
-    if (placement.isTemplate) {
-      templateKeys.add(placement.key);
-    } else {
-      exerciseKeys.add(placement.key);
-    }
+  for (const placement of grid.placements) {
+    (placement.isTemplate ? templateKeys : exerciseKeys).add(placement.key);
   }
-
-  return {
-    columns,
-    rows,
-    placements,
-    errors,
-    counts: { weeks: columns.length, exercises: exerciseKeys.size, templates: templateKeys.size },
-  };
+  return { weeks: grid.columns.length, exercises: exerciseKeys.size, templates: templateKeys.size };
 }
 
 // Density decides whether the scheme shows at all, never how much of it — the full text is handed

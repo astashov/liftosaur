@@ -1,5 +1,5 @@
 import { createContext, JSX, ReactNode, useCallback, useContext, useMemo, useState } from "react";
-import { IProgramGridPlacement } from "../../pages/planner/models/programGrid";
+import { IProgramGridPlacement } from "../../../pages/planner/models/programGrid";
 
 // What the grid's current selection offers. The grid publishes it because that is where the program,
 // settings and dispatch live; the dock only renders it, from NavScreenContent's footer slot so it
