@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { SharedValue, useSharedValue } from "react-native-reanimated";
 import {
   IGridGeometryRow,
@@ -28,15 +28,15 @@ export interface IGridLaneDrag {
 export function useGridLaneDrag(args: {
   // The model, for identity — which exercise is being dragged. Geometry answers *where* things are;
   // it must not be the thing that says *what* they are.
-  gridRef: RefObject<IProgramGrid>;
-  geometryRef: RefObject<IGridGeometryRow[]>;
-  laneHeightRef: RefObject<number>;
+  getGrid: () => IProgramGrid;
+  getGeometry: () => IGridGeometryRow[];
+  getLaneHeight: () => number;
   ghostY: SharedValue<number>;
   autoScroll: IGridDragAutoScroll;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
 }): IGridLaneDrag {
-  const { gridRef, geometryRef, laneHeightRef, ghostY, autoScroll } = args;
+  const { getGrid, getGeometry, getLaneHeight, ghostY, autoScroll } = args;
   const draggedLaneRow = useSharedValue(-1);
   const draggedLane = useSharedValue(-1);
   const dropLaneRow = useSharedValue(-1);
@@ -54,13 +54,7 @@ export function useGridLaneDrag(args: {
       const origin = originRef.current;
       return origin == null
         ? undefined
-        : ProgramGridGeometry_laneDropAt(
-            geometryRef.current,
-            origin.row,
-            origin.lane,
-            translationY,
-            laneHeightRef.current
-          );
+        : ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, origin.lane, translationY, getLaneHeight());
     },
     show: (drop) => {
       const origin = originRef.current;
@@ -76,7 +70,7 @@ export function useGridLaneDrag(args: {
     },
     commit: (drop) => {
       const origin = originRef.current;
-      const grid = gridRef.current;
+      const grid = getGrid();
       // Both the thing being moved and the thing it lands above are identities, so both come from
       // the model's lanes rather than from the geometry rows the drag was drawn against.
       const sourceLanes = origin != null ? ProgramGrid_laneNames(grid, origin.row) : [];
@@ -127,5 +121,11 @@ export function useGridLaneDrag(args: {
     [drag]
   );
 
-  return { onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap };
+  // Memoized because useGridDrags spreads this into the bus every row reads: a fresh object here
+  // makes `drags` fresh, which re-renders every GridRow — including while a pan is live, which is
+  // the one thing that reliably kills a drag.
+  return useMemo(
+    () => ({ onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap }),
+    [onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap]
+  );
 }

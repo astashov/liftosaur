@@ -29,9 +29,14 @@ export interface IGridDrags {
   ghostX: SharedValue<number>;
   ghostY: SharedValue<number>;
   // Current layout and model, for handlers that outlive the render that made them.
-  geometryRef: RefObject<IGridGeometryRow[]>;
-  laneHeightRef: RefObject<number>;
-  gridRef: RefObject<IProgramGrid>;
+  //
+  // Getters, not refs, and that is load-bearing: a gesture's worklet closure reaches everything on
+  // this object, and Reanimated freezes any plain object it serializes — a captured ref stops
+  // accepting writes *silently*, so every drag then computes against the layout as it was when the
+  // first gesture was built. A function is passed by reference and never frozen.
+  getGeometry: () => IGridGeometryRow[];
+  getLaneHeight: () => number;
+  getGrid: () => IProgramGrid;
   autoScroll: IGridDragAutoScroll;
   // The exercise drag is owned here rather than by a row, because it can end in a different row.
   lane: IGridLaneDrag;
@@ -84,10 +89,14 @@ export function useGridDrags(args: {
     maxHorizontalScroll,
   });
 
+  const getGeometry = useCallback(() => geometryRef.current, []);
+  const getLaneHeight = useCallback(() => laneHeightRef.current, []);
+  const getGrid = useCallback(() => gridRef.current, []);
+
   const lane = useGridLaneDrag({
-    gridRef,
-    geometryRef,
-    laneHeightRef,
+    getGrid,
+    getGeometry,
+    getLaneHeight,
     ghostY,
     autoScroll,
     onReorderExercisesInDay: args.onReorderExercisesInDay,
@@ -106,15 +115,28 @@ export function useGridDrags(args: {
       dropLaneGap: lane.dropLaneGap,
       ghostX,
       ghostY,
-      geometryRef,
-      laneHeightRef,
-      gridRef,
+      getGeometry,
+      getLaneHeight,
+      getGrid,
       autoScroll,
       lane,
       horizontalScrollRef,
       horizontalViewportRef,
       onHorizontalScroll,
     }),
-    [draggedRow, dropBoundary, draggedWeek, dropWeekGap, ghostX, ghostY, autoScroll, lane, onHorizontalScroll]
+    [
+      draggedRow,
+      dropBoundary,
+      draggedWeek,
+      dropWeekGap,
+      ghostX,
+      ghostY,
+      getGeometry,
+      getLaneHeight,
+      getGrid,
+      autoScroll,
+      lane,
+      onHorizontalScroll,
+    ]
   );
 }
