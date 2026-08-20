@@ -1,14 +1,10 @@
 import { useCallback, useRef } from "react";
 import { lb } from "lens-shmens";
-import { IEvaluatedProgram, Program_getProgramExerciseForKeyAndShortDayData } from "../../../models/program";
+import { IEvaluatedProgram } from "../../../models/program";
 import { IPlannerProgram, ISettings } from "../../../types";
 import { IPlannerState } from "../../../pages/planner/models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { IDispatch } from "../../../ducks/types";
-import { Thunk_pushToEditProgramExercise } from "../../../ducks/thunks";
 import { Dialog_alert } from "../../../utils/dialog";
-import { EditProgramUiHelpers_deleteCurrentInstance } from "../editProgramUi/editProgramUiHelpers";
-import { pickerStateFromPlannerExercise } from "../editProgramUtils";
 import { IProgramGrid, IProgramGridPlacement, ProgramGrid_dayDataAt } from "../../../pages/planner/models/programGrid";
 import {
   IProgramGridTransformResult,
@@ -21,17 +17,21 @@ import {
   ProgramGridTransforms_moveWeek,
   ProgramGridTransforms_reorderExercisesInDay,
   ProgramGridTransforms_setRepeatRange,
-  ProgramGridTransforms_uniqueWeekName,
+  ProgramGridTransforms_addDay,
+  ProgramGridTransforms_addWeek,
+  ProgramGridTransforms_deleteExercises,
 } from "../../../pages/planner/models/programGridTransforms";
 
-// Every edit the grid can make, in one place. They all share one shape: ask a pure transform first
-// so a refusal can be shown, then dispatch it through the lens — checking inside the modifier alone
-// would leave the refusal nowhere to go, and the edit would read as a silent no-op.
+// Every edit the grid can make, and *only* edits — navigation lives in useGridNavigation. They all
+// share one shape: ask a pure transform first so a refusal can be shown, then dispatch it through
+// the lens. Checking inside the modifier alone would leave the refusal nowhere to go and the edit
+// would read as a silent no-op.
+//
+// The rule this hook exists to keep true: the grid never edits the program itself. Every entry
+// below goes through applyTransform, so there is no path that writes program text without a
+// transform having agreed to it first.
 export interface IGridActions {
-  onEditPlacement: (placement: IProgramGridPlacement) => void;
-  onDuplicatePlacement: (placement: IProgramGridPlacement) => void;
   onDeletePlacements: (placements: IProgramGridPlacement[]) => void;
-  onAddExercise: (weekIndex: number, rowIndex: number) => void;
   onAddDay: (weekIndex: number) => void;
   onAddWeek: () => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
@@ -49,14 +49,12 @@ export function useGridActions(args: {
   grid: IProgramGrid;
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
-  programId: string;
-  dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   // Called after an edit that restructures rows or columns, so a selection pointing at the old
   // shape doesn't linger.
   onStructuralChange: () => void;
 }): IGridActions {
-  const { grid, evaluatedProgram, settings, programId, dispatch, plannerDispatch, onStructuralChange } = args;
+  const { grid, evaluatedProgram, settings, plannerDispatch, onStructuralChange } = args;
   // Read by the pre-flight, which has to answer "can this be done" before dispatching.
   const plannerRef = useRef(evaluatedProgram.planner);
   plannerRef.current = evaluatedProgram.planner;
@@ -93,142 +91,50 @@ export function useGridActions(args: {
     [applyTransform, settings]
   );
 
-  const onEditPlacement = useCallback(
-    (placement: IProgramGridPlacement) => {
-      dispatch(Thunk_pushToEditProgramExercise(placement.key, ProgramGrid_dayDataAt(grid, placement), programId));
-    },
-    [dispatch, programId]
-  );
-
-  const onDuplicatePlacement = useCallback(
-    (placement: IProgramGridPlacement) => {
-      const dayData = ProgramGrid_dayDataAt(grid, placement);
-      const exercise = Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, placement.key);
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("ui")
-          .p("exercisePicker")
-          .record({
-            state: pickerStateFromPlannerExercise(settings, exercise),
-            dayData,
-            exerciseKey: placement.key,
-            change: "duplicate",
-          }),
-        "Open duplicate exercise modal"
-      );
-    },
-    [plannerDispatch, evaluatedProgram, settings]
-  );
-
   const onDeletePlacements = useCallback(
     (placements: IProgramGridPlacement[]) => {
-      // Deleting an exercise that others reuse orphans them, and materializing the reusers is the
-      // v2 work. Until then this refuses rather than quietly breaking the program.
-      const sources = placements.filter((p) => p.isReuseSource);
-      if (sources.length > 0) {
-        Dialog_alert(
-          `${sources.map((p) => p.fullName).join(", ")} ${sources.length === 1 ? "is" : "are"} reused by other exercises. Change those to stop reusing it first.`
-        );
-        return;
-      }
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("current")
-          .p("program")
-          .pi("planner")
-          .recordModify((planner) => {
-            return placements.reduce(
-              (acc, placement) =>
-                EditProgramUiHelpers_deleteCurrentInstance(
-                  acc,
-                  ProgramGrid_dayDataAt(grid, placement),
-                  placement.fullName,
-                  settings,
-                  false,
-                  true
-                ),
-              planner
-            );
-          }),
+      const targets = placements.map((placement) => ({
+        ...ProgramGrid_dayDataAt(grid, placement),
+        fullName: placement.fullName,
+      }));
+      applyTransform(
+        (planner) => ProgramGridTransforms_deleteExercises(planner, targets, settings),
         `Delete ${placements.length} exercise(s) from grid`
       );
       onStructuralChange();
     },
-    [plannerDispatch, settings, onStructuralChange]
-  );
-
-  const onAddExercise = useCallback(
-    (weekIndex: number, rowIndex: number) => {
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("ui")
-          .p("exercisePicker")
-          .record({
-            dayData: { week: weekIndex + 1, dayInWeek: rowIndex + 1 },
-            change: "all",
-            state: pickerStateFromPlannerExercise(settings),
-          }),
-        "Open add exercise picker"
-      );
-    },
-    [plannerDispatch, settings, onStructuralChange]
+    [applyTransform, grid, settings, onStructuralChange]
   );
 
   const onAddDay = useCallback(
     (weekIndex: number) => {
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("current")
-          .p("program")
-          .pi("planner")
-          .p("weeks")
-          .i(weekIndex)
-          .p("days")
-          .recordModify((days) => [...days, { name: `Day ${days.length + 1}`, exerciseText: "" }]),
-        "Add new day"
+      applyTransform(
+        (planner) => ProgramGridTransforms_addDay(planner, weekIndex, settings),
+        `Add a day to week ${weekIndex + 1}`
       );
     },
-    [plannerDispatch]
+    [applyTransform, settings]
   );
 
   const onSetRepeatRange = useCallback(
     (placement: IProgramGridPlacement, toWeekIndex: number) => {
-      plannerDispatch(
-        lb<IPlannerState>()
-          .p("current")
-          .p("program")
-          .pi("planner")
-          .recordModify((planner) =>
-            ProgramGridTransforms_setRepeatRange(
-              planner,
-              ProgramGrid_dayDataAt(grid, placement),
-              placement.fullName,
-              toWeekIndex + 1
-            )
+      applyTransform(
+        (planner) =>
+          ProgramGridTransforms_setRepeatRange(
+            planner,
+            ProgramGrid_dayDataAt(grid, placement),
+            placement.fullName,
+            toWeekIndex + 1
           ),
         `Repeat ${placement.fullName} through week ${toWeekIndex + 1}`
       );
     },
-    [plannerDispatch]
+    [applyTransform, grid]
   );
 
   const onAddWeek = useCallback(() => {
-    plannerDispatch(
-      lb<IPlannerState>()
-        .p("current")
-        .p("program")
-        .pi("planner")
-        .p("weeks")
-        .recordModify((weeks) => [
-          ...weeks,
-          {
-            name: ProgramGridTransforms_uniqueWeekName({ ...plannerRef.current, weeks }, `Week ${weeks.length + 1}`),
-            days: [],
-          },
-        ]),
-      "Add new week"
-    );
-  }, [plannerDispatch]);
+    applyTransform((planner) => ProgramGridTransforms_addWeek(planner, settings), "Add new week");
+  }, [applyTransform, settings]);
 
   const onDuplicateDay = useCallback(
     (rowIndex: number) => {
@@ -305,10 +211,7 @@ export function useGridActions(args: {
   );
 
   return {
-    onEditPlacement,
-    onDuplicatePlacement,
     onDeletePlacements,
-    onAddExercise,
     onAddDay,
     onAddWeek,
     onSetRepeatRange,

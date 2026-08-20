@@ -245,6 +245,19 @@ export function ProgramGrid_hasDay(row: IProgramGridRow, weekIndex: number): boo
   return row.namePerWeek[weekIndex] !== undefined;
 }
 
+// Which exercise sits in each lane of a day row, by lane index. This is *identity*: it answers
+// "what am I dragging", so it comes from the placements rather than from the layout — geometry
+// happens to carry the same names for drawing ghosts, and a drag must not depend on that.
+export function ProgramGrid_laneNames(grid: IProgramGrid, rowIndex: number): string[] {
+  const names: string[] = [];
+  for (const placement of grid.placements) {
+    if (placement.rowIndex === rowIndex) {
+      names[placement.laneIndex] = placement.fullName;
+    }
+  }
+  return Array.from({ length: names.length }, (_, i) => names[i] ?? "");
+}
+
 export function ProgramGrid_weekDayCount(grid: IProgramGrid, weekIndex: number): number {
   return grid.rows.filter((row) => ProgramGrid_hasDay(row, weekIndex)).length;
 }

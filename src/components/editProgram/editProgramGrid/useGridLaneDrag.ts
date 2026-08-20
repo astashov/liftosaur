@@ -7,6 +7,7 @@ import {
   ProgramGridGeometry_isLaneDropNoop,
   ProgramGridGeometry_laneDropAt,
 } from "../../../pages/planner/models/programGridGeometry";
+import { IProgramGrid, ProgramGrid_laneNames } from "../../../pages/planner/models/programGrid";
 import { IGridDragAutoScroll } from "./gridDragAutoScroll";
 import { useGridDragSession } from "./useGridDragSession";
 
@@ -25,6 +26,9 @@ export interface IGridLaneDrag {
 // are. The shared values are read by every row, so the drop line can be drawn in one row while
 // another row's gesture is tracking the finger.
 export function useGridLaneDrag(args: {
+  // The model, for identity — which exercise is being dragged. Geometry answers *where* things are;
+  // it must not be the thing that says *what* they are.
+  gridRef: RefObject<IProgramGrid>;
   geometryRef: RefObject<IGridGeometryRow[]>;
   laneHeightRef: RefObject<number>;
   ghostY: SharedValue<number>;
@@ -32,7 +36,7 @@ export function useGridLaneDrag(args: {
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
 }): IGridLaneDrag {
-  const { geometryRef, laneHeightRef, ghostY, autoScroll } = args;
+  const { gridRef, geometryRef, laneHeightRef, ghostY, autoScroll } = args;
   const draggedLaneRow = useSharedValue(-1);
   const draggedLane = useSharedValue(-1);
   const dropLaneRow = useSharedValue(-1);
@@ -72,10 +76,12 @@ export function useGridLaneDrag(args: {
     },
     commit: (drop) => {
       const origin = originRef.current;
-      const rows = geometryRef.current;
-      const source = origin != null ? rows[origin.row] : undefined;
-      const fullName = origin != null && source != null ? source.laneNames[origin.lane] : undefined;
-      if (origin == null || source == null || fullName == null || fullName === "") {
+      const grid = gridRef.current;
+      // Both the thing being moved and the thing it lands above are identities, so both come from
+      // the model's lanes rather than from the geometry rows the drag was drawn against.
+      const sourceLanes = origin != null ? ProgramGrid_laneNames(grid, origin.row) : [];
+      const fullName = origin != null ? sourceLanes[origin.lane] : undefined;
+      if (origin == null || fullName == null || fullName === "") {
         return;
       }
       if (drop.toRow === origin.row) {
@@ -83,7 +89,7 @@ export function useGridLaneDrag(args: {
         if (to === origin.lane) {
           return;
         }
-        const order = source.laneNames.slice();
+        const order = sourceLanes.slice();
         order.splice(to, 0, ...order.splice(origin.lane, 1));
         argsRef.current.onReorderExercisesInDay(
           origin.row,
@@ -93,7 +99,7 @@ export function useGridLaneDrag(args: {
       }
       // Anchored by the name it was dropped above rather than by index: the target day can hold a
       // different number of exercises in each week.
-      const before = rows[drop.toRow]?.laneNames[drop.gap];
+      const before = ProgramGrid_laneNames(grid, drop.toRow)[drop.gap];
       argsRef.current.onMoveExerciseToDay(origin.row, fullName, drop.toRow, before === "" ? undefined : before);
     },
   });

@@ -38,6 +38,7 @@ import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionCo
 import { useGridPinch } from "./gridPinch";
 import { useGridDragAutoScroll } from "./gridDragAutoScroll";
 import { useGridActions } from "./useGridActions";
+import { useGridNavigation } from "./useGridNavigation";
 import { useGridSelectionState } from "./useGridSelectionState";
 import { useGridLaneDrag } from "./useGridLaneDrag";
 import { WeekHeaderRow } from "./gridWeekHeaderRow";
@@ -115,12 +116,22 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const { selectedDayRow, selectedWeek, selection, onSelect, onSelectDay, onSelectWeek, onClear } =
     useGridSelectionState(grid);
 
-  const actions = useGridActions({
+  // Two hooks on purpose: everything that changes the program goes through `actions`, and every one
+  // of those goes through a transform. `navigation` changes what is on screen and never touches the
+  // program text.
+  const navigation = useGridNavigation({
     grid,
     evaluatedProgram,
     settings,
     programId: props.programId,
     dispatch: props.dispatch,
+    plannerDispatch,
+  });
+
+  const actions = useGridActions({
+    grid,
+    evaluatedProgram,
+    settings,
     plannerDispatch,
     onStructuralChange: onClear,
   });
@@ -154,7 +165,10 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const draggedWeek = useSharedValue(-1);
   const dropWeekGap = useSharedValue(-1);
 
+  const gridRef = useRef(grid);
+  gridRef.current = grid;
   const laneDrag = useGridLaneDrag({
+    gridRef,
     geometryRef,
     laneHeightRef,
     ghostY,
@@ -195,8 +209,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     return target != null
       ? {
           target,
-          onEdit: actions.onEditPlacement,
-          onDuplicate: actions.onDuplicatePlacement,
+          onEdit: navigation.onEditPlacement,
+          onDuplicate: navigation.onDuplicatePlacement,
           onDelete: actions.onDeletePlacements,
           onDuplicateDay: actions.onDuplicateDay,
           onDeleteDay: actions.onDeleteDay,
@@ -212,8 +226,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     dayRow,
     selectedWeek,
     weekColumn,
-    actions.onEditPlacement,
-    actions.onDuplicatePlacement,
+    navigation.onEditPlacement,
+    navigation.onDuplicatePlacement,
     actions.onDeletePlacements,
     actions.onDuplicateDay,
     actions.onDeleteDay,
@@ -294,7 +308,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     density={density}
                     selection={selection}
                     onSelect={onSelect}
-                    onAddExercise={actions.onAddExercise}
+                    onAddExercise={navigation.onAddExercise}
                     onSetRepeatRange={actions.onSetRepeatRange}
                     onSelectDay={onSelectDay}
                     onToggleCollapsed={onToggleCollapsed}

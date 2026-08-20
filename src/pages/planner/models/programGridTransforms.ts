@@ -3,6 +3,8 @@ import { IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
 import { IEither } from "../../../utils/types";
 import { StringUtils_nextName } from "../../../utils/string";
+import { Program_create, Program_evaluateCachedPlanner } from "../../../models/program";
+import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerProgram_evaluate } from "./plannerProgram";
@@ -689,6 +691,101 @@ export function ProgramGridTransforms_moveExerciseToDay(
   return refuseIfWorse(planner, result, settings);
 }
 
+export interface IProgramGridExerciseTarget {
+  week: number;
+  dayInWeek: number;
+  fullName: string;
+}
+
+// Deletes exercises. Unlike every other transform here this one works on the *evaluated* program
+// and prints it back through ProgramToPlanner, rather than splicing text: removing an exercise has
+// to take its repeats with it, and the evaluated structure is where "this run, in these weeks"
+// already exists. It is the same mechanism the older per-exercise editor uses, minus that one's
+// dialog — a transform reports a refusal, it doesn't show one.
+export function ProgramGridTransforms_deleteExercises(
+  planner: IPlannerProgram,
+  targets: IProgramGridExerciseTarget[],
+  settings: ISettings
+): IProgramGridTransformResult {
+  // Deleting an exercise that others reuse orphans them, and materializing the reusers is separate
+  // work, so this refuses rather than quietly breaking the program.
+  const sources = reusedNames(planner, settings);
+  const blocked = targets.filter((t) => sources.has(t.fullName)).map((t) => t.fullName);
+  if (blocked.length > 0) {
+    const names = Array.from(new Set(blocked));
+    return {
+      success: false,
+      error: `${names.join(", ")} ${names.length === 1 ? "is" : "are"} reused by other exercises. Change those to stop reusing it first.`,
+    };
+  }
+
+  const evaluated = ObjectUtils_clone(Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings));
+  for (const target of targets) {
+    const day = evaluated.weeks[target.week - 1]?.days[target.dayInWeek - 1];
+    const exercise = day?.exercises.find((e) => e.fullName === target.fullName);
+    if (day == null || exercise == null) {
+      continue;
+    }
+    // The instance's own week plus every week it repeats into — deleting a strip deletes the run it
+    // draws, not just the cell under the finger.
+    const weeks = new Set<number>([target.week, ...exercise.repeating]);
+    for (const week of weeks) {
+      const exercises = evaluated.weeks[week - 1]?.days[target.dayInWeek - 1]?.exercises;
+      const index = exercises?.findIndex((e) => e.fullName === target.fullName) ?? -1;
+      if (exercises != null && index !== -1) {
+        exercises.splice(index, 1);
+      }
+    }
+  }
+  return refuseIfWorse(planner, new ProgramToPlanner(evaluated, settings).convertToPlanner(), settings);
+}
+
+// Every exercise name that something else reuses, anywhere in the program.
+function reusedNames(planner: IPlannerProgram, settings: ISettings): Set<string> {
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  const result = new Set<string>();
+  for (const week of evaluatedWeeks) {
+    for (const day of week) {
+      if (!day.success) {
+        continue;
+      }
+      for (const exercise of day.data) {
+        if (exercise.reuse?.fullName != null) {
+          result.add(exercise.reuse.fullName);
+        }
+      }
+    }
+  }
+  return result;
+}
+
+// Appends a day to one week. The grid offers this per column, so a program can deliberately have
+// weeks of different lengths; appending moves no existing slot, so nothing that points at one has
+// to be rewritten.
+export function ProgramGridTransforms_addDay(
+  planner: IPlannerProgram,
+  weekIndex: number,
+  settings: ISettings
+): IProgramGridTransformResult {
+  const result = ObjectUtils_clone(planner);
+  const week = result.weeks[weekIndex];
+  if (week == null) {
+    return { success: false, error: "That week is gone." };
+  }
+  week.days.push({ name: `Day ${week.days.length + 1}`, exerciseText: "" });
+  return refuseIfWorse(planner, result, settings);
+}
+
+// Appends an empty week, named so it collides with nothing.
+export function ProgramGridTransforms_addWeek(
+  planner: IPlannerProgram,
+  settings: ISettings
+): IProgramGridTransformResult {
+  const result = ObjectUtils_clone(planner);
+  result.weeks.push({ name: uniqueWeekName(planner, `Week ${result.weeks.length + 1}`), days: [] });
+  return refuseIfWorse(planner, result, settings);
+}
+
 // The weeks whose copy of this day prescribes the exercise, whether it is written there or arrives
 // by a repeat. Anything that asks "where does this appear" has to ask the evaluator: the text says
 // where it is *authored*, which is a different question.
@@ -785,17 +882,17 @@ export function ProgramGridTransforms_setRepeatRange(
   runStart: { week: number; dayInWeek: number },
   fullName: string,
   toWeek: number
-): IPlannerProgram {
+): IProgramGridTransformResult {
   const result = ObjectUtils_clone(planner);
   const authored = findAuthoringWeek(result, runStart, fullName);
   const day = authored != null ? result.weeks[authored]?.days[runStart.dayInWeek - 1] : undefined;
   if (authored == null || day == null) {
-    return planner;
+    return { success: false, error: `Couldn't find where ${fullName} is defined.` };
   }
   const text = day.exerciseText;
   const line = findExerciseLine(text, fullName);
   if (line == null) {
-    return planner;
+    return { success: false, error: `Couldn't find where ${fullName} is defined.` };
   }
   const order = line.repeatNode != null ? orderOf(line.repeatNode, text) : undefined;
   const parts: string[] = [];
@@ -822,13 +919,14 @@ export function ProgramGridTransforms_setRepeatRange(
     const destination = target != null ? exerciseBlocks(target.exerciseText) : undefined;
     // A destination that already declares the exercise is an override that owns that week; leaving
     // the line where it is beats writing the same exercise into one day twice.
-    if (
-      target == null ||
-      index === -1 ||
-      destination == null ||
-      destination.blocks.some((b) => b.fullName === fullName)
-    ) {
-      return planner;
+    if (target == null || index === -1) {
+      return { success: false, error: `Couldn't move ${fullName} back to week ${runStart.week}.` };
+    }
+    if (destination == null || destination.blocks.some((b) => b.fullName === fullName)) {
+      return {
+        success: false,
+        error: `Week ${runStart.week} already has its own ${fullName}, so this run can't shrink onto it.`,
+      };
     }
     const block = source.blocks[index];
     day.exerciseText = joinBlocks(
@@ -840,5 +938,5 @@ export function ProgramGridTransforms_setRepeatRange(
     blocks.splice(Math.min(index, blocks.length), 0, block);
     target.exerciseText = joinBlocks(blocks, destination.trailing, target.exerciseText);
   }
-  return result;
+  return { success: true, data: result };
 }

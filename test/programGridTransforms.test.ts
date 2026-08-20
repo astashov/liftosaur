@@ -17,6 +17,21 @@ import { Program_evaluate, Program_create } from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
 import { IPlannerProgram, IProgram } from "../src/types";
 
+// setRepeatRange returns an IEither like every other transform; these tests assert on the happy
+// path, so unwrap here and fail loudly if a case ever starts refusing.
+function repeatRange(
+  planner: IPlannerProgram,
+  runStart: { week: number; dayInWeek: number },
+  fullName: string,
+  toWeek: number
+): IPlannerProgram {
+  const result = ProgramGridTransforms_setRepeatRange(planner, runStart, fullName, toWeek);
+  if (!result.success) {
+    throw new Error(`setRepeatRange refused: ${result.error}`);
+  }
+  return result.data;
+}
+
 function plannerOf(text: string): IPlannerProgram {
   return { vtype: "planner", name: "P", weeks: PlannerProgram_evaluateText(text) };
 }
@@ -51,7 +66,7 @@ Bench Press / 5x5 50lb
 
 describe("ProgramGridTransforms", () => {
   it("extends a repeat by rewriting its range, touching no other line", () => {
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 4);
+    const next = repeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 4);
     expect(dayTexts(next)[0]).to.equal("Squat[1-4] / 3x5 100lb\nBench Press / 5x5 50lb");
     // The weeks it now covers hold no text of their own — the evaluator synthesizes them.
     expect(dayTexts(next).slice(1)).to.deep.equal([
@@ -63,24 +78,19 @@ describe("ProgramGridTransforms", () => {
   });
 
   it("shrinks a repeat", () => {
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 3);
+    const next = repeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 3);
     expect(dayTexts(next)[0]).to.equal("Squat[1-3] / 3x5 100lb\nBench Press / 5x5 50lb");
     expect(spans(next, "Squat")).to.deep.equal(["[0-2]"]);
   });
 
   it("drops the repeat entirely when shrunk to its own week", () => {
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 1);
+    const next = repeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 1);
     expect(dayTexts(next)[0]).to.equal("Squat / 3x5 100lb\nBench Press / 5x5 50lb");
     expect(spans(next, "Squat")).to.deep.equal(["[0-0]"]);
   });
 
   it("adds a repeat to an exercise that had none", () => {
-    const next = ProgramGridTransforms_setRepeatRange(
-      plannerOf(FOUR_WEEKS),
-      { week: 1, dayInWeek: 1 },
-      "Bench Press",
-      2
-    );
+    const next = repeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Bench Press", 2);
     expect(dayTexts(next)[0]).to.equal("Squat[1-2] / 3x5 100lb\nBench Press[1-2] / 5x5 50lb");
   });
 
@@ -98,7 +108,7 @@ Bench Press / 5x5 50lb
 ## Day 1
 Bench Press / 5x5 50lb
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(sparse), { week: 1, dayInWeek: 1 }, "Squat", 1);
+    const next = repeatRange(plannerOf(sparse), { week: 1, dayInWeek: 1 }, "Squat", 1);
     expect(spans(next, "Bench Press")).to.deep.equal(["[0-2]"]);
   });
 
@@ -118,7 +128,7 @@ Bench Press / 5x5 55lb
 ## Day 1
 Bench Press / 5x5 60lb
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
+    const next = repeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
     expect(next.weeks[1].days[0].exerciseText.trim().split("\n")[0]).to.equal("Squat[1-2] / 3x5 100lb");
     expect(spans(next, "Squat")).to.deep.equal(["[0-1]"]);
   });
@@ -138,7 +148,7 @@ Squat[1-3] / 3x5 100lb
 # Week 3
 ## Day 1
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 1);
+    const next = repeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 1);
     expect(spans(next, "Squat")).to.deep.equal(["[0-0]"]);
     expect(next.weeks[0].days[0].exerciseText).to.contain("Squat / 3x5 100lb");
     expect(next.weeks[1].days[0].exerciseText.trim()).to.equal("");
@@ -156,7 +166,7 @@ Squat[1-3] / 3x5 100lb
 # Week 3
 ## Day 1
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
+    const next = repeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
     expect(spans(next, "Squat")).to.deep.equal(["[0-1]"]);
     expect(next.weeks[1].days[0].exerciseText.trim()).to.equal("Squat[1-2] / 3x5 100lb");
   });
@@ -172,7 +182,7 @@ Squat[3,1-2] / 3x5 100lb
 # Week 3
 ## Day 1
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(ordered), { week: 1, dayInWeek: 1 }, "Squat", 3);
+    const next = repeatRange(plannerOf(ordered), { week: 1, dayInWeek: 1 }, "Squat", 3);
     expect(dayTexts(next)[0]).to.equal("Squat[3,1-3] / 3x5 100lb");
   });
 
@@ -191,7 +201,7 @@ Squat / 5x3 200lb
 # Week 4
 ## Day 1
 `;
-    const next = ProgramGridTransforms_setRepeatRange(plannerOf(overridden), { week: 1, dayInWeek: 1 }, "Squat", 4);
+    const next = repeatRange(plannerOf(overridden), { week: 1, dayInWeek: 1 }, "Squat", 4);
     expect(dayTexts(next)[0]).to.equal("Squat[1-4] / 3x5 100lb");
     expect(dayTexts(next)[2]).to.equal("Squat / 5x3 200lb");
     expect(spans(next, "Squat")).to.deep.equal(["[0-1]", "[2-2]", "[3-3]"]);
@@ -792,8 +802,17 @@ Bench Press / 5x5 50lb
     });
   });
 
-  it("leaves the program alone when the exercise isn't on that day", () => {
-    const planner = plannerOf(FOUR_WEEKS);
-    expect(ProgramGridTransforms_setRepeatRange(planner, { week: 1, dayInWeek: 1 }, "Deadlift", 3)).to.equal(planner);
+  it("says so when the exercise isn't on that day, rather than quietly doing nothing", () => {
+    const result = ProgramGridTransforms_setRepeatRange(
+      plannerOf(FOUR_WEEKS),
+      { week: 1, dayInWeek: 1 },
+      "Deadlift",
+      3
+    );
+    expect(result.success).to.equal(false);
+    if (result.success) {
+      return;
+    }
+    expect(result.error).to.contain("Deadlift");
   });
 });

@@ -1,4 +1,4 @@
-import { IProgramGrid, IProgramGridDensity, IProgramGridPlacement } from "./programGrid";
+import { IProgramGrid, IProgramGridDensity, IProgramGridPlacement, ProgramGrid_laneNames } from "./programGrid";
 
 // Where the grid's boxes sit, and what a pointer position means. Everything here is pure arithmetic
 // over the layout model, deliberately outside the components: a drop target can only be exercised
@@ -81,12 +81,9 @@ export function ProgramGridGeometry_build(
   let top = 0;
   return grid.rows.map((row) => {
     const isCollapsed = collapsedRows.indexOf(row.rowIndex) !== -1;
-    const laneNames: string[] = [];
-    for (const placement of grid.placements) {
-      if (placement.rowIndex === row.rowIndex) {
-        laneNames[placement.laneIndex] = placement.fullName;
-      }
-    }
+    // Carried for drawing — the ghosts render these. Anything deciding *which* exercise an edit is
+    // about asks the model instead, via ProgramGrid_laneNames.
+    const laneNames = ProgramGrid_laneNames(grid, row.rowIndex);
     const lanes = laneNames.length;
     // The row is taller than its content by the box's own padding, so the last strip clears the
     // bottom edge by the same gap it keeps from the sides.
@@ -98,7 +95,7 @@ export function ProgramGridGeometry_build(
       height,
       outerHeight: height + GRID_MARGIN_BETWEEN_ROWS * rem,
       contentTop: top + labelHeight,
-      laneNames: Array.from({ length: lanes }, (_, i) => laneNames[i] ?? ""),
+      laneNames,
       isCollapsed,
     };
     top += result.outerHeight;
