@@ -123,6 +123,44 @@ Bench Press / 5x5 60lb
     expect(spans(next, "Squat")).to.deep.equal(["[0-1]"]);
   });
 
+  it("shrinking past the week the line is written in moves the line, not the exercise", () => {
+    // `Squat[1-3]` is authored in week 2 but shows from week 1. Dragging its right edge back to
+    // week 1 must leave Squat in week 1 — rewriting the token in place would strand the line in
+    // week 2, i.e. move the exercise a week to the right instead of shortening its run.
+    const backfilled = `# Week 1
+## Day 1
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat[1-3] / 3x5 100lb
+
+# Week 3
+## Day 1
+`;
+    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 1);
+    expect(spans(next, "Squat")).to.deep.equal(["[0-0]"]);
+    expect(next.weeks[0].days[0].exerciseText).to.contain("Squat / 3x5 100lb");
+    expect(next.weeks[1].days[0].exerciseText.trim()).to.equal("");
+  });
+
+  it("leaves the line alone when the shortened range still covers the week it is written in", () => {
+    const backfilled = `# Week 1
+## Day 1
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat[1-3] / 3x5 100lb
+
+# Week 3
+## Day 1
+`;
+    const next = ProgramGridTransforms_setRepeatRange(plannerOf(backfilled), { week: 1, dayInWeek: 1 }, "Squat", 2);
+    expect(spans(next, "Squat")).to.deep.equal(["[0-1]"]);
+    expect(next.weeks[1].days[0].exerciseText.trim()).to.equal("Squat[1-2] / 3x5 100lb");
+  });
+
   it("keeps a forced order when the range changes", () => {
     const ordered = `# Week 1
 ## Day 1
@@ -204,6 +242,38 @@ Deadlift / 1x5 210lb
       }
       // Day 1 is what the others reuse, so it refuses instead of orphaning them.
       expect(result.error).to.contain("reuses this day");
+    });
+
+    it("renumbers a description reuse hiding in a comment", () => {
+      // `// ...Squat[1:2]` reuses another exercise's description. It is a comment, so it is invisible
+      // to the parse tree — and a stale one silently shows the wrong description rather than erroring.
+      const text = `# Week 1
+## Day 1
+// First description
+Squat / 1x1
+
+## Day 2
+// Second description
+Squat / 1x1
+
+## Day 3
+// ...Squat[1:2]
+Bench Press / 1x1
+`;
+      const deleted = ProgramGridTransforms_deleteDayRow(plannerOf(text), 0, Settings_build());
+      expect(deleted.success).to.equal(true);
+      if (!deleted.success) {
+        return;
+      }
+      // Day 2 became day 1, so the reuse has to follow it.
+      expect(deleted.data.weeks[0].days[1].exerciseText).to.contain("// ...Squat[1:1]");
+
+      const moved = ProgramGridTransforms_moveDayRow(plannerOf(text), 2, 0, Settings_build());
+      expect(moved.success).to.equal(true);
+      if (!moved.success) {
+        return;
+      }
+      expect(moved.data.weeks[0].days[0].exerciseText).to.contain("// ...Squat[1:3]");
     });
 
     it("shifts a qualifier down when an earlier day is removed", () => {
@@ -444,6 +514,37 @@ Squat / 3x5 200lb
       expect(result.success).to.equal(false);
     });
 
+    it("refuses when a week that only inherits the exercise has no destination day", () => {
+      // Squat is authored in week 2 and backfills into week 1, which has no Day 2. Checking
+      // authored text alone missed week 1 and the move deleted its only copy, silently.
+      const text = `# Week 1
+## Day 1
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat[1-2] / 3x5 100lb
+
+## Day 2
+Deadlift / 1x5 200lb
+`;
+      const before = spans(plannerOf(text), "Squat");
+      expect(before).to.deep.equal(["[0-1]"]);
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        plannerOf(text),
+        0,
+        "Squat",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("Week 1");
+    });
+
     it("refuses when a week that authors the exercise has no destination day", () => {
       const text = `# Week 1
 ## Day 1
@@ -565,6 +666,25 @@ Deadlift / 1x5 220lb
         return;
       }
       expect(result.error).to.contain("Squat");
+    });
+
+    it("renumbers a description reuse comment's week number", () => {
+      const text = `# Week 1
+## Day 1
+// Base description
+Squat / 1x1
+
+# Week 2
+## Day 1
+// ...Squat[1:1]
+Bench Press / 1x1
+`;
+      const weekMoved = ProgramGridTransforms_moveWeek(plannerOf(text), 1, 0, Settings_build());
+      expect(weekMoved.success).to.equal(true);
+      if (!weekMoved.success) {
+        return;
+      }
+      expect(weekMoved.data.weeks[0].days[0].exerciseText).to.contain("// ...Squat[2:1]");
     });
 
     it("keeps every week's name with the week that moved, out of order or not", () => {

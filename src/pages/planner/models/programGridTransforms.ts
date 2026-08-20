@@ -57,8 +57,14 @@ function findExerciseLine(text: string, fullName: string): IExerciseLine | undef
 // which exercise stands in the way rather than just refusing.
 export type IProgramGridTransformResult = IEither<IPlannerProgram, string>;
 
+// Only `from`/`to` are ever read, so a parser node and a span found by hand in a comment both fit.
+interface ITextSpan {
+  from: number;
+  to: number;
+}
+
 interface IDayReference {
-  node: SyntaxNode;
+  node: ITextSpan;
   day: number;
   hasWeek: boolean;
 }
@@ -89,11 +95,53 @@ function dayReferences(text: string): IDayReference[] {
       }
     }
   }
-  return result;
+  return [...result, ...commentReferences(text).days];
+}
+
+// `// ...Squat[1:2]` reuses another exercise's *description* (llms/liftoscript.md). It lives in a
+// comment, so the parser hands it back as one opaque LineComment and the coordinates inside have no
+// structure — they have to be found by hand. Miss them and a day or week move renumbers every
+// exercise reuse while silently leaving these pointing at whatever now occupies the old slot, with
+// no evaluation error for refuseIfWorse to catch.
+function commentReferences(text: string): { days: IDayReference[]; weeks: IWeekReference[] } {
+  const tree = plannerExerciseParser.parse(text);
+  const days: IDayReference[] = [];
+  const weeks: IWeekReference[] = [];
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.LineComment) {
+      continue;
+    }
+    const comment = text.slice(node.from, node.to);
+    const pattern = /\.\.\.[^[\n]*\[([^\]\n]*)\]/g;
+    let match = pattern.exec(comment);
+    while (match != null) {
+      const inner = match[1];
+      const innerStart = node.from + match.index + match[0].length - 1 - inner.length;
+      let offset = 0;
+      const spans = inner.split(":").map((part) => {
+        const span = { from: innerStart + offset, to: innerStart + offset + part.length, value: part };
+        offset += part.length + 1;
+        return span;
+      });
+      const daySpan = spans[spans.length - 1];
+      const day = parseInt(daySpan.value, 10);
+      if (!isNaN(day)) {
+        days.push({ node: daySpan, day, hasWeek: spans.length > 1 });
+      }
+      if (spans.length > 1) {
+        const week = parseInt(spans[0].value, 10);
+        if (!isNaN(week)) {
+          weeks.push({ node: spans[0], week });
+        }
+      }
+      match = pattern.exec(comment);
+    }
+  }
+  return { days, weeks };
 }
 
 interface IWeekReference {
-  node: SyntaxNode;
+  node: ITextSpan;
   week: number;
 }
 
@@ -119,7 +167,7 @@ function weekReferences(text: string): IWeekReference[] {
       }
     }
   }
-  return result;
+  return [...result, ...commentReferences(text).weeks];
 }
 
 interface IRepeatToken {
@@ -394,8 +442,9 @@ function stripRepeats(text: string): string {
 function renumberDayReferences(text: string, deletedDay: number): string {
   const references = dayReferences(text).filter((r) => r.day > deletedDay);
   let result = text;
-  // Back to front so earlier splices don't move later offsets.
-  for (const reference of references.slice().reverse()) {
+  // Back to front so earlier splices don't move later offsets — sorted rather than reversed,
+  // because comment references are collected after the exercise ones, not in document order.
+  for (const reference of references.slice().sort((a, b) => b.node.from - a.node.from)) {
     result = `${result.slice(0, reference.node.from)}${reference.day - 1}${result.slice(reference.node.to)}`;
   }
   return result;
@@ -593,14 +642,17 @@ export function ProgramGridTransforms_moveExerciseToDay(
   // A ragged program can have the day in one week and not the other. Moving then would delete the
   // exercise from the week that has no destination for it, so refuse the whole thing rather than
   // silently losing a week's worth of work.
-  const missing = planner.weeks.filter(
-    (week) =>
-      week.days[toRowIndex] == null &&
-      week.days[fromRowIndex] != null &&
-      exerciseBlocks(week.days[fromRowIndex].exerciseText).blocks.some((b) => b.fullName === fullName)
-  );
+  // Which weeks actually *show* the exercise on this day — asked of the evaluator, not of the text.
+  // A repeat backfills: `Squat[1-2]` authored in week 2 is visible in week 1, which holds no text
+  // for it. Checking authored blocks alone missed exactly those weeks, and moving into a day they
+  // don't have deleted the only copy without any evaluation error to catch it.
+  const visibleWeeks = weeksShowing(planner, fromRowIndex, fullName, settings);
+  const missing = visibleWeeks.filter((weekIndex) => planner.weeks[weekIndex]?.days[toRowIndex] == null);
   if (missing.length > 0) {
-    return { success: false, error: `${missing.map((w) => w.name).join(", ")} has no day to move ${fullName} into.` };
+    return {
+      success: false,
+      error: `${missing.map((w) => planner.weeks[w].name).join(", ")} has no day to move ${fullName} into.`,
+    };
   }
 
   const result = ObjectUtils_clone(planner);
@@ -637,6 +689,18 @@ export function ProgramGridTransforms_moveExerciseToDay(
   return refuseIfWorse(planner, result, settings);
 }
 
+// The weeks whose copy of this day prescribes the exercise, whether it is written there or arrives
+// by a repeat. Anything that asks "where does this appear" has to ask the evaluator: the text says
+// where it is *authored*, which is a different question.
+function weeksShowing(planner: IPlannerProgram, rowIndex: number, fullName: string, settings: ISettings): number[] {
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  return evaluatedWeeks.reduce<number[]>((acc, week, weekIndex) => {
+    const day = week[rowIndex];
+    const shows = day != null && day.success && day.data.some((exercise) => exercise.fullName === fullName);
+    return shows ? [...acc, weekIndex] : acc;
+  }, []);
+}
+
 // Moves a whole day row. Every week is permuted identically, which is what keeps this a renumber
 // rather than a desync: after it, day slot N means the same thing in every week, and the qualifiers
 // that named the old positions are rewritten to the new ones.
@@ -669,7 +733,7 @@ export function ProgramGridTransforms_moveDayRow(
 function remapDayReferences(text: string, newDayForOld: Map<number, number>): string {
   const references = dayReferences(text);
   let result = text;
-  for (const reference of references.slice().reverse()) {
+  for (const reference of references.slice().sort((a, b) => b.node.from - a.node.from)) {
     const next = newDayForOld.get(reference.day);
     if (next != null && next !== reference.day) {
       result = `${result.slice(0, reference.node.from)}${next}${result.slice(reference.node.to)}`;
@@ -725,7 +789,7 @@ export function ProgramGridTransforms_setRepeatRange(
   const result = ObjectUtils_clone(planner);
   const authored = findAuthoringWeek(result, runStart, fullName);
   const day = authored != null ? result.weeks[authored]?.days[runStart.dayInWeek - 1] : undefined;
-  if (day == null) {
+  if (authored == null || day == null) {
     return planner;
   }
   const text = day.exerciseText;
@@ -745,5 +809,36 @@ export function ProgramGridTransforms_setRepeatRange(
   const from = line.repeatNode?.from ?? line.variationsEnd;
   const to = line.repeatNode?.to ?? line.variationsEnd;
   day.exerciseText = `${text.slice(0, from)}${token}${text.slice(to)}`;
+
+  // Shrinking a backfilled repeat can pull the range off the week the line is written in —
+  // `Squat[1-3]` authored in week 2, dragged back to end at week 1. Rewriting the token in place
+  // would leave the exercise sitting in week 2, i.e. moving it a week to the right instead of
+  // shortening it. The line follows its own range.
+  const coversAuthored = authored + 1 >= runStart.week && authored + 1 <= Math.max(toWeek, runStart.week);
+  if (!coversAuthored) {
+    const target = result.weeks[runStart.week - 1]?.days[runStart.dayInWeek - 1];
+    const source = exerciseBlocks(day.exerciseText);
+    const index = source.blocks.findIndex((b) => b.fullName === fullName);
+    const destination = target != null ? exerciseBlocks(target.exerciseText) : undefined;
+    // A destination that already declares the exercise is an override that owns that week; leaving
+    // the line where it is beats writing the same exercise into one day twice.
+    if (
+      target == null ||
+      index === -1 ||
+      destination == null ||
+      destination.blocks.some((b) => b.fullName === fullName)
+    ) {
+      return planner;
+    }
+    const block = source.blocks[index];
+    day.exerciseText = joinBlocks(
+      source.blocks.filter((_, i) => i !== index),
+      source.trailing,
+      day.exerciseText
+    );
+    const blocks = destination.blocks.slice();
+    blocks.splice(Math.min(index, blocks.length), 0, block);
+    target.exerciseText = joinBlocks(blocks, destination.trailing, target.exerciseText);
+  }
   return result;
 }
