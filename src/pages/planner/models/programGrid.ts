@@ -100,10 +100,6 @@ function displaySetsToTokens(exercise: IPlannerProgramExercise, settings: ISetti
   }, []);
 }
 
-export function ProgramGrid_schemeToString(tokens: IProgramGridSchemeToken[]): string {
-  return tokens.map((t) => t.text).join("");
-}
-
 function buildLanes(program: IEvaluatedProgram, rowIndex: number): string[] {
   const lanes: string[] = [];
   for (const week of program.weeks) {
@@ -292,14 +288,6 @@ export function ProgramGrid_cellScheme(
   density: IProgramGridDensity
 ): IProgramGridSchemeToken[] {
   return density === 0 ? [] : placement.scheme;
-}
-
-export function ProgramGrid_placementsAt(
-  grid: IProgramGrid,
-  rowIndex: number,
-  weekIndex: number
-): IProgramGridPlacement[] {
-  return grid.placements.filter((p) => p.rowIndex === rowIndex && p.colStart <= weekIndex && p.colEnd >= weekIndex);
 }
 
 export function ProgramGrid_errorAt(

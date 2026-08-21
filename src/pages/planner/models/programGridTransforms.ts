@@ -457,13 +457,6 @@ export function ProgramGridTransforms_duplicateWeek(
   return refuseIfWorse(planner, result, settings);
 }
 
-// Nothing in the language addresses a week by name — reuse and repeats are all numbers — so a
-// duplicate name evaluates fine. It still has to be avoided: several tab bars key their React
-// elements and testIDs off the name, and "Week 3" twice makes one of them disappear.
-export function ProgramGridTransforms_uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
-  return uniqueWeekName(planner, preferred);
-}
-
 function uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
   const taken = new Set(planner.weeks.map((week) => week.name));
   let name = preferred;

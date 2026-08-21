@@ -16,24 +16,18 @@ export function useGridDayDrag(args: {
 }): IGridDragSession {
   const { rowIndex, drags } = args;
   const { getGeometry, draggedRow, dropBoundary, ghostY } = drags;
-  // The ghost follows the finger rather than the drop target, so it needs the raw translation that
-  // `resolve` was handed — the session's target says where it would *land*, not where it is.
-  const translationRef = useRef(0);
   const onMoveRef = useRef(args.onMoveDayRow);
   onMoveRef.current = args.onMoveDayRow;
 
   return useGridDragSession<number>({
     axis: "y",
     autoScroll: drags.autoScroll,
-    resolve: (translationY) => {
-      translationRef.current = translationY;
-      return ProgramGridGeometry_dayDropAt(getGeometry(), rowIndex, translationY);
-    },
-    show: (to) => {
+    resolve: (translationY) => ProgramGridGeometry_dayDropAt(getGeometry(), rowIndex, translationY),
+    show: (to, translationY) => {
       draggedRow.value = to == null ? -1 : rowIndex;
       dropBoundary.value = to == null ? -1 : ProgramGridGeometry_gapForMove(rowIndex, to);
       if (to != null) {
-        ghostY.value = (getGeometry()[rowIndex]?.top ?? 0) + translationRef.current;
+        ghostY.value = (getGeometry()[rowIndex]?.top ?? 0) + translationY;
       }
     },
     commit: (to) => {

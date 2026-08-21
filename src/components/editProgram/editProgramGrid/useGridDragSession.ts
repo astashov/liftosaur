@@ -24,10 +24,17 @@ export interface IGridDragSession {
 export interface IGridDragSessionOptions<TTarget> {
   axis: "x" | "y";
   autoScroll: IGridDragAutoScroll;
-  // Where the drag would land, given how far the finger has travelled from where it started.
+  // Where the drag would land, given how far the finger has travelled from where it started. Pure:
+  // the same translation always resolves to the same target, and nothing else happens.
   resolve: (translation: number) => TTarget | undefined;
   // Draw it. Called with the target on every move, and with undefined when the drag is over.
-  show: (target: TTarget | undefined) => void;
+  //
+  // The raw translation comes too, because where a drag *lands* and where it should be *drawn* are
+  // different questions: the target snaps to a row or a column, while the floating copy follows the
+  // finger. Without it, the two drags that need both smuggled the translation past the contract —
+  // one by writing a ref from inside `resolve`, the other by hanging a preview coordinate on its
+  // semantic target.
+  show: (target: TTarget | undefined, translation: number) => void;
   commit: (target: TTarget) => void;
 }
 
@@ -42,7 +49,7 @@ export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTa
   const apply = useCallback((translation: number) => {
     const target = optionsRef.current.resolve(translation);
     targetRef.current = target;
-    optionsRef.current.show(target);
+    optionsRef.current.show(target, translation);
   }, []);
 
   const onDragStart = useCallback(
@@ -65,7 +72,7 @@ export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTa
       autoScroll.end();
       const target = targetRef.current;
       targetRef.current = undefined;
-      optionsRef.current.show(undefined);
+      optionsRef.current.show(undefined, 0);
       if (commit && target !== undefined) {
         optionsRef.current.commit(target);
       }

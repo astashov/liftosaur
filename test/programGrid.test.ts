@@ -5,13 +5,11 @@ import {
   ProgramGrid_counts,
   ProgramGrid_hasDay,
   ProgramGrid_weekDayCount,
-  ProgramGrid_schemeToString,
   ProgramGrid_select,
   ProgramGrid_isRelated,
   ProgramGrid_laneNames,
   ProgramGrid_dayDataAt,
   ProgramGrid_cellScheme,
-  ProgramGrid_placementsAt,
   ProgramGrid_errorAt,
   IProgramGrid,
   IProgramGridPlacement,
@@ -25,6 +23,14 @@ function buildGrid(text: string): IProgramGrid {
   const planner: IPlannerProgram = { vtype: "planner", name: "P", weeks: PlannerProgram_evaluateText(text) };
   const program: IProgram = { ...Program_create("P"), planner };
   return ProgramGrid_build(Program_evaluate(program, Settings_build()), Settings_build());
+}
+
+function schemeText(tokens: { text: string }[]): string {
+  return tokens.map((t) => t.text).join("");
+}
+
+function placementsAt(grid: IProgramGrid, rowIndex: number, weekIndex: number): IProgramGridPlacement[] {
+  return grid.placements.filter((p) => p.rowIndex === rowIndex && p.colStart <= weekIndex && p.colEnd >= weekIndex);
 }
 
 function span(placement: IProgramGridPlacement): string {
@@ -49,7 +55,7 @@ Squat[1-3] / 3x5 100lb
 `);
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-2]"]);
     expect(grid.placements[0].repeatSpan).to.deep.equal([0, 2]);
-    expect(ProgramGrid_schemeToString(grid.placements[0].scheme)).to.equal("3x5 100lb");
+    expect(schemeText(grid.placements[0].scheme)).to.equal("3x5 100lb");
   });
 
   it("collapses identical consecutive weeks and breaks the run where the definition differs", () => {
@@ -173,8 +179,8 @@ Squat / 3x3 60lb
 `);
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-1]", "Squat@r0[2-2]", "Squat@r0[3-3]"]);
     expect(grid.placements.map((p) => p.isOverride)).to.deep.equal([false, true, false]);
-    expect(ProgramGrid_schemeToString(grid.placements[1].scheme)).to.equal("3x3 60lb");
-    expect(ProgramGrid_schemeToString(grid.placements[2].scheme)).to.equal("3x5 100lb");
+    expect(schemeText(grid.placements[1].scheme)).to.equal("3x3 60lb");
+    expect(schemeText(grid.placements[2].scheme)).to.equal("3x5 100lb");
   });
 
   it("does not call undulation an override — there is no repeat to punch into", () => {
@@ -363,12 +369,12 @@ Bench Press / 5x5 50lb
 `);
 
     it("finds every run covering a week, not just the ones starting there", () => {
-      expect(ProgramGrid_placementsAt(grid, 0, 1).map((p) => p.fullName)).to.include("Squat");
-      expect(ProgramGrid_placementsAt(grid, 0, 0).map((p) => p.fullName)).to.have.members(["Squat", "Bench Press"]);
+      expect(placementsAt(grid, 0, 1).map((p) => p.fullName)).to.include("Squat");
+      expect(placementsAt(grid, 0, 0).map((p) => p.fullName)).to.have.members(["Squat", "Bench Press"]);
     });
 
     it("returns nothing for a row or week that holds no run", () => {
-      expect(ProgramGrid_placementsAt(grid, 9, 0)).to.eql([]);
+      expect(placementsAt(grid, 9, 0)).to.eql([]);
       expect(ProgramGrid_errorAt(grid, 0, 0)).to.equal(undefined);
     });
 

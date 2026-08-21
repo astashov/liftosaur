@@ -69,7 +69,9 @@ export function useGridActions(args: {
     (
       transform: (planner: IPlannerProgram) => IProgramGridTransformResult,
       description: string,
-      kind: IEditKind = "content"
+      // Required, not defaulted: a default is a classification the next command can forget to make,
+      // and forgetting leaves a selection pointing at a row or week that now holds something else.
+      kind: IEditKind
     ) => {
       const check = transform(plannerRef.current);
       if (!check.success) {
@@ -142,7 +144,8 @@ export function useGridActions(args: {
             toWeekIndex + 1,
             settings
           ),
-        `Repeat ${placement.fullName} through week ${toWeekIndex + 1}`
+        `Repeat ${placement.fullName} through week ${toWeekIndex + 1}`,
+        "content"
       );
     },
     [applyTransform, grid, settings]
@@ -211,7 +214,8 @@ export function useGridActions(args: {
     (rowIndex: number, order: string[]) => {
       applyTransform(
         (planner) => ProgramGridTransforms_reorderExercisesInDay(planner, rowIndex, order, settings),
-        `Reorder exercises in day ${rowIndex + 1}`
+        `Reorder exercises in day ${rowIndex + 1}`,
+        "content"
       );
     },
     [applyTransform, settings]
@@ -221,7 +225,8 @@ export function useGridActions(args: {
     (fromRow: number, fullName: string, toRow: number, before: string | undefined) => {
       applyTransform(
         (planner) => ProgramGridTransforms_moveExerciseToDay(planner, fromRow, fullName, toRow, before, settings),
-        `Move ${fullName} to day ${toRow + 1}`
+        `Move ${fullName} to day ${toRow + 1}`,
+        "content"
       );
     },
     [applyTransform, settings]

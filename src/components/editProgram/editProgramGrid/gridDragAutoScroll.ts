@@ -13,6 +13,49 @@ const autoScrollIntervalMs = 16;
 // points without changing the translation at all.
 type IApplyDrag = (translation: number) => void;
 
+// The whole decision a tick makes, as arithmetic — no refs, no timers, no scroller. Extracted
+// because this is the part that can be wrong in ways nobody notices: an off-by-one edge zone, a
+// clamp that deadlocks, a stall that goes undetected. The hook keeps measurement, the timer and
+// `scrollTo`; everything else about *whether and where to scroll* is here, and tested.
+export type IGridAutoScrollStep =
+  | { kind: "idle" }
+  // The scroller stopped following where it was asked — it ran out of content. Believe it rather
+  // than keep adding scroll that never happens, or the ghost sails away from the finger.
+  | { kind: "resync"; to: number }
+  | { kind: "scroll"; to: number };
+
+export function GridDragAutoScroll_step(args: {
+  // Where the finger is, in screen coordinates, and the edges it is measured against.
+  position: number;
+  bounds: { start: number; end: number };
+  zone: number;
+  maxStep: number;
+  // Where the scroller was last asked to be, where it says it is, and where it was asked to go.
+  current: number;
+  reported: number;
+  target: number | undefined;
+  // The furthest it can scroll. Zero or less means "not known yet" — the extent of a scroller that
+  // has never reported is unknown, and clamping to 0 there would deadlock: no scroll, no event, no
+  // maximum, ever. So the ceiling stays open until something is known.
+  knownMax: number;
+}): IGridAutoScrollStep {
+  const { position, bounds, zone, maxStep } = args;
+  const overStart = bounds.start + zone - position;
+  const overEnd = position - (bounds.end - zone);
+  const depth = overStart > 0 ? -overStart : overEnd > 0 ? overEnd : 0;
+  if (depth === 0) {
+    return { kind: "idle" };
+  }
+  if (args.target != null && Math.abs(args.reported - args.target) > maxStep * 2) {
+    return { kind: "resync", to: args.reported };
+  }
+  // Speed ramps with how far past the edge the finger is, up to one full step.
+  const step = Math.sign(depth) * Math.min(maxStep, (Math.abs(depth) / zone) * maxStep);
+  const max = args.knownMax > 0 ? args.knownMax : Number.MAX_SAFE_INTEGER;
+  const next = Math.min(Math.max(0, args.current + step), max);
+  return next === args.current ? { kind: "idle" } : { kind: "scroll", to: next };
+}
+
 export interface IGridDragAutoScroll {
   begin: (axis: "x" | "y", absolute: number, apply: IApplyDrag) => void;
   move: (translation: number, absolute: number) => void;
@@ -71,35 +114,26 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
     if (bounds == null || apply == null || node == null) {
       return;
     }
-    const position = absoluteRef.current;
-    const overStart = bounds.start + autoScrollZone - position;
-    const overEnd = position - (bounds.end - autoScrollZone);
-    const depth = overStart > 0 ? -overStart : overEnd > 0 ? overEnd : 0;
-    if (depth === 0) {
+    const step = GridDragAutoScroll_step({
+      position: absoluteRef.current,
+      bounds,
+      zone: autoScrollZone,
+      maxStep: autoScrollMaxStep,
+      current: scrollNow(),
+      reported: axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : horizontalOffsetRef.current,
+      target: targetRef.current,
+      knownMax: axisRef.current === "y" ? maxVerticalRef.current : maxHorizontalScroll(),
+    });
+    if (step.kind === "idle") {
       return;
     }
-    const step = Math.sign(depth) * Math.min(autoScrollMaxStep, (Math.abs(depth) / autoScrollZone) * autoScrollMaxStep);
-    // The vertical extent is only known once the screen has reported a scroll, which it may never
-    // have done when the grid is opened and dragged straight away. Rather than refusing to scroll
-    // until then, watch whether the scroller actually went where it was asked: if it stopped
-    // following, it has run out of content, and the target is corrected to where it really is.
-    // Without that, a drag held past the end would keep adding scroll that never happened, and the
-    // ghost would sail off the finger.
-    const reported = axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : horizontalOffsetRef.current;
-    if (targetRef.current != null && Math.abs(reported - targetRef.current) > autoScrollMaxStep * 2) {
-      targetRef.current = reported;
+    if (step.kind === "resync") {
+      targetRef.current = step.to;
       return;
     }
-    const knownMax = axisRef.current === "y" ? maxVerticalRef.current : maxHorizontalScroll();
-    const max = knownMax > 0 ? knownMax : Number.MAX_SAFE_INTEGER;
-    const current = scrollNow();
-    const next = Math.min(Math.max(0, current + step), max);
-    if (next === current) {
-      return;
-    }
-    targetRef.current = next;
-    node.scrollTo(axisRef.current === "y" ? { y: next, animated: false } : { x: next, animated: false });
-    apply(lastTranslationRef.current + (next - scrollAtStartRef.current));
+    targetRef.current = step.to;
+    node.scrollTo(axisRef.current === "y" ? { y: step.to, animated: false } : { x: step.to, animated: false });
+    apply(lastTranslationRef.current + (step.to - scrollAtStartRef.current));
   }, [scrollCtx, horizontalRef, horizontalOffsetRef, maxHorizontalScroll, scrollNow]);
 
   const begin = useCallback(

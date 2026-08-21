@@ -13,7 +13,6 @@ import {
   ProgramGridTransforms_deleteExercises,
   ProgramGridTransforms_addDay,
   ProgramGridTransforms_addWeek,
-  ProgramGridTransforms_uniqueWeekName,
 } from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
@@ -936,21 +935,6 @@ Squat[1-2] / 3x5 100lb
       }
       expect(result.data.weeks.length).to.equal(before.length + 1);
       expect(result.data.weeks.slice(0, before.length).map((w) => w.name)).to.eql(before);
-    });
-  });
-
-  describe("uniqueWeekName", () => {
-    it("keeps the preferred name when it is free", () => {
-      const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
-      expect(ProgramGridTransforms_uniqueWeekName(planner, "Deload")).to.equal("Deload");
-    });
-
-    // Nothing in the language resolves a week by name, but duplicates break tab bars that key
-    // React elements off them.
-    it("walks to the next free name when the preferred one is taken", () => {
-      const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
-      const taken = planner.weeks[0].name;
-      expect(ProgramGridTransforms_uniqueWeekName(planner, taken)).to.not.equal(taken);
     });
   });
 
