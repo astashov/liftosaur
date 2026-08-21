@@ -34,10 +34,12 @@ export function GridDragAutoScroll_step(args: {
   current: number;
   reported: number;
   target: number | undefined;
-  // The furthest it can scroll. Zero or less means "not known yet" — the extent of a scroller that
-  // has never reported is unknown, and clamping to 0 there would deadlock: no scroll, no event, no
-  // maximum, ever. So the ceiling stays open until something is known.
-  knownMax: number;
+  // The furthest it can scroll, or undefined when nothing has reported yet. Undefined leaves the
+  // ceiling open on purpose: clamping an unknown extent to 0 deadlocks, since no scroll means no
+  // scroll event means the maximum is never learned. A known 0 is different — the view genuinely
+  // does not scroll — and conflating the two made a non-scrollable grid report movement that never
+  // happened, which moved the drop target under a still finger.
+  knownMax: number | undefined;
 }): IGridAutoScrollStep {
   const { position, bounds, zone, maxStep } = args;
   const overStart = bounds.start + zone - position;
@@ -51,7 +53,7 @@ export function GridDragAutoScroll_step(args: {
   }
   // Speed ramps with how far past the edge the finger is, up to one full step.
   const step = Math.sign(depth) * Math.min(maxStep, (Math.abs(depth) / zone) * maxStep);
-  const max = args.knownMax > 0 ? args.knownMax : Number.MAX_SAFE_INTEGER;
+  const max = args.knownMax ?? Number.MAX_SAFE_INTEGER;
   const next = Math.min(Math.max(0, args.current + step), max);
   return next === args.current ? { kind: "idle" } : { kind: "scroll", to: next };
 }
@@ -82,7 +84,9 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
   // frame or two, which the eye reads as the ghost sliding off the finger.
   const targetRef = useRef<number | undefined>(undefined);
   const boundsRef = useRef<{ start: number; end: number } | undefined>(undefined);
-  const maxVerticalRef = useRef(0);
+  // Undefined until the screen reports a scroll, which it may never have done when the grid is
+  // opened and dragged straight away. Distinct from a known 0 — see GridDragAutoScroll_step.
+  const maxVerticalRef = useRef<number | undefined>(undefined);
   const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
@@ -122,6 +126,8 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
       current: scrollNow(),
       reported: axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : horizontalOffsetRef.current,
       target: targetRef.current,
+      // Vertical is unknown until the screen reports; horizontal is known from the content and
+      // container widths, so a 0 there means it genuinely does not scroll.
       knownMax: axisRef.current === "y" ? maxVerticalRef.current : maxHorizontalScroll(),
     });
     if (step.kind === "idle") {

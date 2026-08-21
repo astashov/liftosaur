@@ -1038,4 +1038,63 @@ Squat[1-2] / 3x5 100lb
       expect(weekTexts(result.data, 1)[1]).to.contain("Squat | !Front Squat");
     });
   });
+
+  // A third review round, on the fixes above. Four of these were holes in those fixes.
+  describe("regressions, round two", () => {
+    function weekTexts(planner: IPlannerProgram, dayIndex: number = 0): string[] {
+      return planner.weeks.map((w) => (w.days[dayIndex]?.exerciseText ?? "").trim());
+    }
+
+    it("drops a repeat range whose every claimed week was deleted", () => {
+      // Squat[1-1] in W4 prescribes W1 and W4. Delete W1 and nothing it claimed survives — keeping
+      // the range would leave it claiming whichever week now holds number 1.
+      const planner = plannerOf(`# W1\n## D1\n\n# W2\n## D1\n\n# W3\n## D1\n\n# W4\n## D1\nSquat[1-1] / 1x1\n`);
+      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(weekTexts(result.data)[2]).to.equal("Squat / 1x1");
+      expect(spans(result.data, "Squat")).to.eql(["[2-2]"]);
+    });
+
+    it("renumbers a description reuse that carries the current-description marker", () => {
+      const planner = plannerOf(
+        `# W1\n## A\n// base\nSquat / 1x1\n\n## B\nBench Press / 1x1\n\n## C\n// !...Squat[1]\nDeadlift / 1x1\n`
+      );
+      const result = ProgramGridTransforms_moveDayRow(planner, 0, 1, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect((result.data.weeks[0].days[2].exerciseText ?? "").trim()).to.contain("!...Squat[2]");
+    });
+
+    it("reorders every week when the active variation differs between them", () => {
+      const planner = plannerOf(
+        `# W1\n## D1\n!Squat | Front Squat / 1x1\nDeadlift / 1x1\n` +
+          `\n# W2\n## D1\nSquat | !Front Squat / 2x2\nDeadlift / 2x2\n`
+      );
+      const result = ProgramGridTransforms_reorderExercisesInDay(
+        planner,
+        0,
+        ["Deadlift", "Squat | !Front Squat"],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(weekTexts(result.data)[0].split("\n")[0]).to.contain("Deadlift");
+      expect(weekTexts(result.data)[1].split("\n")[0]).to.contain("Deadlift");
+    });
+
+    it("allows an edit that moves a pre-existing error rather than introducing one", () => {
+      // The message embeds the week number, so a moved error reads as a different string. What the
+      // check cares about is whether more days broke, not what they say.
+      const planner = plannerOf(`# W1\n## D1\nSquat / ...Missing\n\n# W2\n## D1\nBench Press / 1x1\n`);
+      const result = ProgramGridTransforms_moveWeek(planner, 0, 1, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+    });
+  });
 });

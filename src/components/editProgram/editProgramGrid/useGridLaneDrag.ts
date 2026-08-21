@@ -56,7 +56,7 @@ export function useGridLaneDrag(args: {
         ? undefined
         : ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, origin.lane, translationY, getLaneHeight());
     },
-    show: (drop) => {
+    show: (drop, translationY) => {
       const origin = originRef.current;
       draggedLaneRow.value = drop == null || origin == null ? -1 : origin.row;
       draggedLane.value = drop == null || origin == null ? -1 : origin.lane;
@@ -64,8 +64,12 @@ export function useGridLaneDrag(args: {
         drop == null || origin == null || ProgramGridGeometry_isLaneDropNoop(drop, origin.row, origin.lane);
       dropLaneRow.value = isNoop ? -1 : drop!.toRow;
       dropLaneGap.value = isNoop ? -1 : drop!.gap;
-      if (drop != null) {
-        ghostY.value = drop.ghostY;
+      if (drop != null && origin != null) {
+        // Drawn from the translation rather than carried on the drop: where the strip *lands* snaps
+        // to a lane, where it is *drawn* follows the finger, and a target that carries both is a
+        // target doing two jobs.
+        const source = getGeometry()[origin.row];
+        ghostY.value = (source?.contentTop ?? 0) + origin.lane * getLaneHeight() + translationY;
       }
     },
     commit: (drop) => {

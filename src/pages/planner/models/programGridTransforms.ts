@@ -9,6 +9,7 @@ import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerProgram_evaluate } from "./plannerProgram";
 import { PlannerKey_fromFullName } from "../plannerKey";
+import { StringUtils_unindent } from "../../../utils/string";
 
 function children(node: SyntaxNode): SyntaxNode[] {
   const cursor = node.cursor();
@@ -125,15 +126,27 @@ function commentReferences(text: string): { days: IDayReference[]; weeks: IWeekR
       continue;
     }
     const comment = text.slice(node.from, node.to);
-    // Anchored, because the evaluator only reads a description as a reuse when its value *starts*
-    // with `...` (plannerEvaluator.ts:544). A comment that merely mentions the syntax in prose —
-    // "type ...Squat[1:1] literally" — is ordinary text, and renumbering it would edit someone's
-    // note behind their back.
-    const pattern = /^\/\/\s*\.\.\.[^[\n]*\[([^\]\n]*)\]/;
-    const match = pattern.exec(comment);
-    if (match != null) {
-      const inner = match[1];
-      const innerStart = node.from + match.index + match[0].length - 1 - inner.length;
+    // Lezer hands us the comment's extent and nothing inside it — the grammar is
+    // `LineComment { "//" ![\n]* linebreakOrEof }`, one opaque token — so whether this is a reuse
+    // directive can only be decided by doing to it exactly what the evaluator does, in the same
+    // order, with the same helper: strip the `//`, strip a leading `!` (the current-description
+    // marker), unindent, and ask whether what is left starts with `...`. A pattern of our own here
+    // is a second definition of the same thing, and the two drift — an earlier version required the
+    // `...` immediately after the `//` and silently stopped renumbering every `// !...` directive.
+    const value = StringUtils_unindent(comment.replace(/^\/\//, "").replace(/^\s*!/, ""));
+    if (!value.startsWith("...")) {
+      continue;
+    }
+    // It is a directive, so the brackets that follow the name are its week/day qualifier rather
+    // than incidental text: index to them instead of matching a shape.
+    const open = comment.indexOf("[", comment.indexOf("..."));
+    const close = open === -1 ? -1 : comment.indexOf("]", open);
+    if (open === -1 || close === -1) {
+      continue;
+    }
+    {
+      const inner = comment.slice(open + 1, close);
+      const innerStart = node.from + open + 1;
       let offset = 0;
       const spans = inner.split(":").map((part) => {
         const span = { from: innerStart + offset, to: innerStart + offset + part.length, value: part };
@@ -272,6 +285,10 @@ function rewriteWeekNumbersInDay(
     }
     moved.sort((a, b) => a - b);
     if (moved.length === 0) {
+      // Every week it claimed is gone. Leaving the range alone would leave it claiming whichever
+      // weeks now hold those numbers — weeks that never had this exercise. What survives is the
+      // line itself, which prescribes the week it is written in, so drop the range.
+      edits.push({ from: repeat.node.from, to: repeat.node.to, text: repeatToken(repeat.order, undefined) });
       continue;
     }
     if (moved[moved.length - 1] - moved[0] !== moved.length - 1) {
@@ -537,29 +554,27 @@ function refuseIfWorse(
   after: IPlannerProgram,
   settings: ISettings
 ): IProgramGridTransformResult {
-  // Counted, not set-subtracted: the same message can be true of two different days, so an edit
-  // that adds a *second* occurrence of an error the program already had is still an edit that broke
-  // something. Comparing by location instead would false-refuse, since a structural edit moves
-  // every error below it to a new week or day.
-  const before_ = countByMessage(evaluationErrors(before, settings));
-  const after_ = countByMessage(evaluationErrors(after, settings));
-  for (const [message, count] of after_) {
-    if (count > (before_.get(message) ?? 0)) {
-      return { success: false, error: `That would break the program: ${message}` };
-    }
+  // How many days fail to evaluate, not which messages they carry. Message text is not stable
+  // across a structural edit — it embeds the week number and the source position, so "no such
+  // exercise Missing at week: 1" becomes "... at week: 2" when the week moves, and comparing
+  // strings called that an introduced error and refused a valid move. Counting failures asks the
+  // question this check actually cares about: did the edit break a day that used to work?
+  //
+  // The gap it accepts: a day that failed before and fails differently after is not caught. The
+  // transforms never repair an error, so a swap would mean an edit both broke and fixed something
+  // in one step, which none of them can do.
+  const brokenBefore = failingDays(before, settings);
+  const brokenAfter = failingDays(after, settings);
+  if (brokenAfter.length > brokenBefore.length) {
+    const introduced = brokenAfter.find((message) => brokenBefore.indexOf(message) === -1) ?? brokenAfter[0];
+    return { success: false, error: `That would break the program: ${introduced}` };
   }
   return { success: true, data: after };
 }
 
-function countByMessage(messages: string[]): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const message of messages) {
-    counts.set(message, (counts.get(message) ?? 0) + 1);
-  }
-  return counts;
-}
-
-function evaluationErrors(planner: IPlannerProgram, settings: ISettings): string[] {
+// One message per day that fails to evaluate. The messages are for showing the user which day
+// broke; the count is what the check is made of.
+function failingDays(planner: IPlannerProgram, settings: ISettings): string[] {
   const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
   const result: string[] = [];
   for (const week of evaluatedWeeks) {
@@ -644,17 +659,16 @@ function exerciseBlocks(text: string): { blocks: IExerciseBlock[]; trailing: str
   return { blocks, trailing: text.slice(cursor) };
 }
 
-function reorderDayText(text: string, order: string[]): string {
+function reorderDayText(text: string, order: string[], settings: ISettings): string {
   const { blocks, trailing } = exerciseBlocks(text);
+  // By key, like every other match in this module: the order comes from one week, and another week
+  // may spell the same exercise differently.
+  const orderKeys = order.map((name) => exerciseKey(name, settings));
+  const rank = (block: IExerciseBlock): number => orderKeys.indexOf(exerciseKey(block.fullName, settings));
   // Only the blocks named in `order` move, and they move within the slots they already occupy, so
   // anything the grid doesn't know about stays exactly where the author put it.
-  const movableSlots = blocks.reduce<number[]>(
-    (acc, block, index) => (order.indexOf(block.fullName) !== -1 ? [...acc, index] : acc),
-    []
-  );
-  const reordered = movableSlots
-    .map((slot) => blocks[slot])
-    .sort((a, b) => order.indexOf(a.fullName) - order.indexOf(b.fullName));
+  const movableSlots = blocks.reduce<number[]>((acc, block, index) => (rank(block) !== -1 ? [...acc, index] : acc), []);
+  const reordered = movableSlots.map((slot) => blocks[slot]).sort((a, b) => rank(a) - rank(b));
   const result = blocks.slice();
   movableSlots.forEach((slot, i) => {
     result[slot] = reordered[i];
@@ -680,7 +694,7 @@ export function ProgramGridTransforms_reorderExercisesInDay(
   for (const week of result.weeks) {
     const day = week.days[rowIndex];
     if (day != null) {
-      day.exerciseText = reorderDayText(day.exerciseText, order);
+      day.exerciseText = reorderDayText(day.exerciseText, order, settings);
     }
   }
   return refuseIfWorse(planner, result, settings);

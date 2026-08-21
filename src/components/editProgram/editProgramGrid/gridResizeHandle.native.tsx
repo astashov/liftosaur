@@ -9,7 +9,10 @@ interface IGridResizeHandleProps {
   // Whole weeks the drag currently spans, positive to the right. Reported live so the strip can
   // show the extent it would commit to, and once more on release to commit it.
   onResize: (deltaWeeks: number) => void;
-  onResizeEnd: () => void;
+  // `commit` is false when the gesture was cancelled rather than released. onEnd *and* onFinalize
+  // both fire on a normal release and onFinalize alone fires on a cancel, so the handler must be
+  // idempotent — the same contract GridDragHandle has.
+  onResizeEnd: (commit: boolean) => void;
   columnWidth: number;
   // Placed by the lane rather than hugging a cell: it lives outside the lane's drag detector, so
   // that a touch landing on it can't be taken by the exercise drag's long press.
@@ -34,10 +37,10 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
           runOnJS(onResize)(Math.round(e.translationX / columnWidth));
         })
         .onEnd(() => {
-          runOnJS(onResizeEnd)();
+          runOnJS(onResizeEnd)(true);
         })
-        .onFinalize(() => {
-          runOnJS(onResizeEnd)();
+        .onFinalize((_e, success) => {
+          runOnJS(onResizeEnd)(success);
         }),
     [columnWidth, onResize, onResizeEnd]
   );

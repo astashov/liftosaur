@@ -123,8 +123,6 @@ export interface IGridLaneDrop {
   toRow: number;
   // Insert position among the target row's lanes, 0..lanes.
   gap: number;
-  // Where the dragged strip's top edge should be drawn.
-  ghostY: number;
 }
 
 // An exercise chases the finger by its own centre, so the drop follows what you see rather than
@@ -152,7 +150,7 @@ export function ProgramGridGeometry_laneDropAt(
   const gap = target.isCollapsed
     ? target.laneNames.length
     : Math.max(0, Math.min(target.laneNames.length, Math.round((y - target.contentTop) / laneHeight)));
-  return { toRow, gap, ghostY: y - laneHeight / 2 };
+  return { toRow, gap };
 }
 
 // True when a lane drop would put the strip back where it already is: within its own row, both the

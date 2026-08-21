@@ -68,12 +68,19 @@ describe("GridDragAutoScroll_step", () => {
   // Clamping to 0 while the extent is unknown deadlocks: no scroll means no scroll event, which
   // means the maximum is never learned, so it never scrolls again.
   it("keeps scrolling when the extent is not known yet", () => {
-    const result = step({ position: 490, knownMax: 0 });
+    const result = step({ position: 490, knownMax: undefined });
     expect(result.kind).to.equal("scroll");
     if (result.kind !== "scroll") {
       return;
     }
     expect(result.to).to.be.greaterThan(200);
+  });
+
+  // A known zero is not the same as not knowing: the view genuinely does not scroll, and pretending
+  // otherwise reports movement that never happened and drags the drop target under a still finger.
+  it("does nothing when the view is known not to scroll", () => {
+    // A view that cannot scroll is at 0 and stays there.
+    expect(step({ position: 490, knownMax: 0, current: 0 }).kind).to.equal("idle");
   });
 
   it("resyncs when the scroller stopped following where it was asked", () => {

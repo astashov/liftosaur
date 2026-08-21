@@ -139,7 +139,8 @@ Deadlift / 1x5 200lb
       const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 50, 50)!;
       expect(drop.toRow).to.equal(0);
       expect(drop.gap).to.equal(2);
-      expect(drop.ghostY).to.equal(82);
+      // Where the ghost is *drawn* is not part of the drop target — the drag computes it from the
+      // translation, because it follows the finger rather than the lane the drop snaps to.
     });
 
     it("lands in another row once the centre crosses into it", () => {

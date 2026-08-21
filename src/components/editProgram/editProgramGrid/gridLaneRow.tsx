@@ -90,21 +90,25 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
     [grid, lastPlacement, columnWidth, resizePreviewEnd, resizeHandleOffset]
   );
 
-  const onResizeEnd = useCallback(() => {
-    const current = resizeRef.current;
-    resizeRef.current = undefined;
-    resizePreviewEnd.value = -1;
-    resizeHandleOffset.value = 0;
-    if (Platform.OS === "web") {
-      setWebResize(undefined);
-    }
-    if (current != null) {
+  const onResizeEnd = useCallback(
+    (commit: boolean) => {
+      const current = resizeRef.current;
+      resizeRef.current = undefined;
+      resizePreviewEnd.value = -1;
+      resizeHandleOffset.value = 0;
+      if (Platform.OS === "web") {
+        setWebResize(undefined);
+      }
+      if (!commit || current == null) {
+        return;
+      }
       const placement = grid.placements.find((p) => p.id === current.id);
       if (placement != null && current.colEnd !== placement.colEnd) {
         onSetRepeatRange(placement, current.colEnd);
       }
-    }
-  }, [grid, onSetRepeatRange, resizePreviewEnd, resizeHandleOffset]);
+    },
+    [grid, onSetRepeatRange, resizePreviewEnd, resizeHandleOffset]
+  );
 
   // Width rather than a transform, deliberately: this is one leaf node with no children, and the
   // rule it bends ("animate opacity and transform only") exists to stop per-frame layout commits

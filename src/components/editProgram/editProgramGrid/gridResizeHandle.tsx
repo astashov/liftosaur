@@ -7,7 +7,8 @@ interface IGridResizeHandleProps {
   // Whole weeks the drag currently spans, positive to the right. Reported live so the strip can
   // show the extent it would commit to, and once more on release to commit it.
   onResize: (deltaWeeks: number) => void;
-  onResizeEnd: () => void;
+  // False when the gesture was terminated rather than released — see the native variant.
+  onResizeEnd: (commit: boolean) => void;
   columnWidth: number;
   // Placed by the lane rather than hugging a cell — see the native variant.
   left: number;
@@ -47,8 +48,8 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
       onMoveShouldSetResponder={() => true}
       onResponderGrant={onGrant}
       onResponderMove={onMove}
-      onResponderRelease={onResizeEnd}
-      onResponderTerminate={onResizeEnd}
+      onResponderRelease={() => onResizeEnd(true)}
+      onResponderTerminate={() => onResizeEnd(false)}
     >
       <View
         style={{
