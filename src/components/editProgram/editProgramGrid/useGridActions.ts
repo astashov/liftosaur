@@ -143,9 +143,13 @@ export function useGridActions(args: {
         (planner) =>
           PlannerStructure_setRepeatRange(
             planner,
-            // The line's week, not the strip's: resizing a fragment of an interrupted repeat has to
-            // widen the line that produces it, not plant a new one where the fragment is drawn.
-            ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.sourceWeeks[0] ?? placement.colStart),
+            // Where the line's claimed range starts — not where this strip is drawn, and not where
+            // the line is written. A repeat interrupted by an override draws several strips, and
+            // dragging the edge of any of them means "make this line cover through here"; a
+            // back-filled repeat is drawn before the week it is written in. `repeatSpan` is the
+            // claim itself, so it is the only one of the three that answers the question.
+            ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.repeatSpan?.[0] ?? placement.colStart),
+            (placement.repeatSpan?.[1] ?? placement.colEnd) + 1,
             placement.fullName,
             toWeekIndex + 1,
             settings

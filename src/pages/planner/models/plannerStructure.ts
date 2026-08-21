@@ -606,14 +606,45 @@ export function PlannerStructure_duplicateDayRow(
   settings: ISettings
 ): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
-  for (const week of result.weeks) {
+  const copies = result.weeks.map((week) => {
     const day = week.days[rowIndex];
-    if (day != null) {
-      week.days.push({ name: `Day ${week.days.length + 1}`, exerciseText: day.exerciseText });
+    if (day == null) {
+      return -1;
+    }
+    week.days.push({ name: `Day ${week.days.length + 1}`, exerciseText: day.exerciseText });
+    return week.days.length - 1;
+  });
+  // A copied day can redeclare an exercise the original owned, so this gets the same check.
+  const checked = refuseIfWorse(planner, result, settings);
+  if (!checked.success) {
+    return checked;
+  }
+  // And then the check this operation needs on top: does the copy actually say what the original
+  // said, in every week?
+  //
+  // Appending puts the copy at a different row index in a week with fewer days, so a repeat that
+  // fills "day 3" has no day 3 to fill in the short week and the copy evaluates empty. Inserting
+  // beside the original instead of appending would fix it properly, but that moves every slot
+  // below and means renumbering every reference to them — so for now this refuses rather than
+  // handing back a duplicate that is silently blank in some weeks.
+  const { evaluatedWeeks } = PlannerProgram_evaluate(checked.data, settings);
+  for (let weekIndex = 0; weekIndex < copies.length; weekIndex += 1) {
+    if (copies[weekIndex] === -1) {
+      continue;
+    }
+    const source = evaluatedWeeks[weekIndex]?.[rowIndex];
+    const copy = evaluatedWeeks[weekIndex]?.[copies[weekIndex]];
+    if (!source?.success || !copy?.success) {
+      continue;
+    }
+    if (copy.data.length !== source.data.length) {
+      return {
+        success: false,
+        error: `${result.weeks[weekIndex].name} inherits this day from a repeat elsewhere, so the copy would come out empty. Write the day out in that week first.`,
+      };
     }
   }
-  // A copied day can redeclare an exercise the original owned, so this gets the same check.
-  return refuseIfWorse(planner, result, settings);
+  return checked;
 }
 
 // A comment or description line belongs to the exercise it precedes, so reordering moves the block
@@ -1009,6 +1040,22 @@ function findAuthoringWeek(
 // evaluator synthesizes them from the range — so this is the whole edit: no other line moves, and a
 // week that has its own definition inside the new range stays put and reads as an override.
 //
+// What a week says about this exercise, with the repeat token taken off — two weeks that draw as
+// one strip say the same thing and differ only in the range they claim.
+function declaredText(text: string, fullName: string, settings: ISettings): string | undefined {
+  const block = exerciseBlocks(text).blocks.find((b) => sameExercise(b.fullName, fullName, settings));
+  return block == null ? undefined : stripRepeats(block.text).trim();
+}
+
+// Which weeks write this exercise out themselves, as opposed to inheriting it from a repeat.
+function weeksDeclaring(planner: IPlannerProgram, dayIndex: number, fullName: string, settings: ISettings): number[] {
+  return planner.weeks.reduce<number[]>((acc, week, weekIndex) => {
+    const text = week.days[dayIndex]?.exerciseText ?? "";
+    const declares = exerciseBlocks(text).blocks.some((b) => sameExercise(b.fullName, fullName, settings));
+    return declares ? [...acc, weekIndex] : acc;
+  }, []);
+}
+
 // `toWeek` equal to `runStart.week` drops the repeat entirely, leaving the exercise in its own week.
 //
 // `runStart` is where the *run* begins, which is where the grid draws the strip — not necessarily
@@ -1018,6 +1065,7 @@ function findAuthoringWeek(
 export function PlannerStructure_setRepeatRange(
   planner: IPlannerProgram,
   runStart: { week: number; dayInWeek: number },
+  runEnd: number,
   fullName: string,
   toWeek: number,
   settings: ISettings
@@ -1027,6 +1075,31 @@ export function PlannerStructure_setRepeatRange(
   const day = authored != null ? result.weeks[authored]?.days[runStart.dayInWeek - 1] : undefined;
   if (authored == null || day == null) {
     return { success: false, error: `Couldn't find where ${fullName} is defined.` };
+  }
+  // Identical weeks draw as one strip even when each is written out separately, and *shrinking*
+  // such a strip cannot be done by editing one line: the weeks being dragged off still write the
+  // exercise out themselves, so the strip comes back unchanged and the drag reads as having done
+  // nothing. Extending is fine — the weeks it grows over keep their own lines, which simply become
+  // overrides of the wider range.
+  //
+  // Only lines identical to the one being resized count. A week saying something different is an
+  // override, and resizing around one is exactly what this is expected to handle. The line being
+  // resized is excluded too: when it sits outside the new range it gets relocated below, which is
+  // the back-filled case rather than a second line.
+  const resized = declaredText(day.exerciseText, fullName, settings);
+  const stranded = weeksDeclaring(result, runStart.dayInWeek - 1, fullName, settings).filter((weekIndex) => {
+    const week = weekIndex + 1;
+    const droppedByShrink = week > toWeek && week <= runEnd;
+    const text = result.weeks[weekIndex].days[runStart.dayInWeek - 1]?.exerciseText ?? "";
+    return weekIndex !== authored && droppedByShrink && declaredText(text, fullName, settings) === resized;
+  });
+  if (stranded.length > 0) {
+    const writtenIn = [authored, ...stranded].sort((a, b) => a - b);
+    const names = writtenIn.map((weekIndex) => result.weeks[weekIndex].name).join(", ");
+    return {
+      success: false,
+      error: `${fullName} is written out separately in ${names}, so this run can't be resized as one. Edit those weeks individually.`,
+    };
   }
   const text = day.exerciseText;
   const line = findExerciseLine(text, fullName);

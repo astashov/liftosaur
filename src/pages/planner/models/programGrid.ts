@@ -262,11 +262,15 @@ function addSourceWeek(
 ): void {
   let source = weekIndex;
   if (exercise.isRepeat) {
+    // Both directions: `Squat[1-2]` can be written in week 4 and fill weeks 1 and 2, so the line
+    // behind an instance is not always above it. Searching backwards only left a back-filled strip
+    // with no provenance at all, and an edit with nothing to act on reports success having done
+    // nothing.
     source = -1;
-    for (let back = weekIndex - 1; back >= 0; back -= 1) {
-      const previous = byWeek[back][lane];
-      if (previous != null && !previous.isRepeat && previous.text === exercise.text) {
-        source = back;
+    for (let other = 0; other < byWeek.length; other += 1) {
+      const candidate = byWeek[other][lane];
+      if (other !== weekIndex && candidate != null && !candidate.isRepeat && candidate.text === exercise.text) {
+        source = other;
         break;
       }
     }

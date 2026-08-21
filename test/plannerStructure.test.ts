@@ -15,7 +15,11 @@ import {
   PlannerStructure_addWeek,
 } from "../src/pages/planner/models/plannerStructure";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
-import { ProgramGrid_build, ProgramGrid_dayDataAt } from "../src/pages/planner/models/programGrid";
+import {
+  ProgramGrid_build,
+  ProgramGrid_dayDataAt,
+  IProgramGridPlacement,
+} from "../src/pages/planner/models/programGrid";
 import { Program_evaluate, Program_create } from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
 import { IPlannerProgram, IProgram } from "../src/types";
@@ -26,9 +30,12 @@ function repeatRange(
   planner: IPlannerProgram,
   runStart: { week: number; dayInWeek: number },
   fullName: string,
-  toWeek: number
+  toWeek: number,
+  // Where the run currently ends. Defaults to a run that starts and ends in the same week, which is
+  // what most of these cases are.
+  runEnd: number = runStart.week
 ): IPlannerProgram {
-  const result = PlannerStructure_setRepeatRange(planner, runStart, fullName, toWeek, Settings_build());
+  const result = PlannerStructure_setRepeatRange(planner, runStart, runEnd, fullName, toWeek, Settings_build());
   if (!result.success) {
     throw new Error(`setRepeatRange refused: ${result.error}`);
   }
@@ -788,6 +795,7 @@ Bench Press / 5x5 50lb
     const result = PlannerStructure_setRepeatRange(
       plannerOf(FOUR_WEEKS),
       { week: 1, dayInWeek: 1 },
+      1,
       "Deadlift",
       3,
       Settings_build()
@@ -1141,9 +1149,12 @@ Squat[1-2] / 3x5 100lb
     it("widens the line behind a fragment rather than planting a new one where it is drawn", () => {
       const planner = plannerOf(OVERRIDDEN);
       const strip = stripStartingAt(planner, 3);
+      // The claimed range, not the fragment: dragging any fragment of an interrupted repeat means
+      // "make the line behind it cover through here".
       const result = PlannerStructure_setRepeatRange(
         planner,
-        ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.sourceWeeks[0]),
+        ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.repeatSpan?.[0] ?? strip.colStart),
+        (strip.repeatSpan?.[1] ?? strip.colEnd) + 1,
         "Squat",
         5,
         Settings_build()
@@ -1195,6 +1206,64 @@ Squat[1-2] / 3x5 100lb
         Settings_build()
       );
       expect(result.success).to.equal(false);
+    });
+
+    // Resizing takes the run's *claimed* range, which is neither where the strip is drawn nor where
+    // the line is written. Passing either of the other two produced a bug; these hold that down.
+    function resizeStrip(planner: IPlannerProgram, strip: IProgramGridPlacement, toWeek: number) {
+      return PlannerStructure_setRepeatRange(
+        planner,
+        ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.repeatSpan?.[0] ?? strip.colStart),
+        (strip.repeatSpan?.[1] ?? strip.colEnd) + 1,
+        strip.fullName,
+        toWeek,
+        Settings_build()
+      );
+    }
+
+    it("shrinks a back-filled repeat onto the week it is dragged to, not the week it is written in", () => {
+      // `Squat[1-2]` written in W2 draws a strip over W1-W2. Dragging its edge back to W1 means the
+      // exercise ends up in W1 — the line follows its range.
+      const planner = plannerOf(`# W1\n## D1\n\n# W2\n## D1\nSquat[1-2] / 3x5\n`);
+      const result = resizeStrip(planner, stripStartingAt(planner, 0), 1);
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect((result.data.weeks[0].days[0].exerciseText ?? "").trim()).to.equal("Squat / 3x5");
+      expect((result.data.weeks[1].days[0].exerciseText ?? "").trim()).to.equal("");
+    });
+
+    it("refuses to shrink a strip that several identical lines draw, rather than doing nothing", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat / 3x5\n\n# W2\n## D1\nSquat / 3x5\n`);
+      const result = resizeStrip(planner, stripStartingAt(planner, 0), 1);
+      expect(result.success).to.equal(false);
+    });
+
+    it("still extends such a strip, because the weeks it grows over keep their own lines", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat / 3x5\n\n# W2\n## D1\nSquat / 3x5\n\n# W3\n## D1\n`);
+      const result = resizeStrip(planner, stripStartingAt(planner, 0), 3);
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect((result.data.weeks[0].days[0].exerciseText ?? "").trim()).to.equal("Squat[1-3] / 3x5");
+    });
+
+    it("refuses to duplicate a day that some week only inherits, rather than copying it blank", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat[1-2] / 3x5\n\n## D2\nBench Press / 3x5\n\n# W2\n## D1\n`);
+      const result = PlannerStructure_duplicateDayRow(planner, 0, Settings_build());
+      expect(result.success).to.equal(false);
+    });
+
+    it("still duplicates a day every week writes out for itself", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat / 3x5\n\n# W2\n## D1\nSquat / 3x5\n`);
+      const result = PlannerStructure_duplicateDayRow(planner, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.map((w) => w.days.length)).to.eql([2, 2]);
     });
   });
 });
