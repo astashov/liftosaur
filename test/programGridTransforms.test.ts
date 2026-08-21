@@ -841,8 +841,9 @@ Bench Press / 5x5 50lb
       if (!result.success) {
         return;
       }
-      // The surviving text comes back canonically printed, not as it was typed.
-      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 / 50lb");
+      // Byte-for-byte as the author wrote it. A delete edits one line; it does not reprint the
+      // program, so nothing else can drift.
+      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 50lb");
       expect(dayTexts(result.data)[1]).to.contain("Squat");
     });
 
@@ -865,7 +866,7 @@ Deadlift / 1x5 200lb
       if (!result.success) {
         return;
       }
-      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 / 50lb");
+      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 50lb");
     });
 
     // The whole point of routing deletes through a transform: an edit that would break the program
@@ -888,6 +889,27 @@ Front Squat / ...Squat
       expect(result.error.length).to.be.greaterThan(0);
     });
 
+    it("leaves the author's formatting alone everywhere it did not edit", () => {
+      const text =
+        `# W1\n## D1\n/// positional note\n\n// a description\nSquat   /   3x5   100lb\n\n` +
+        `Bench Press / 5x5 50lb\n\n# W2\n## D1\nDeadlift / 1x5 200lb\n`;
+      const planner = plannerOf(text);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [{ week: 1, dayInWeek: 1, fullName: "Bench Press" }],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // The odd spacing, the positional comment and the untouched week all survive verbatim.
+      expect((result.data.weeks[0].days[0].exerciseText ?? "").trim()).to.equal(
+        "/// positional note\n\n// a description\nSquat   /   3x5   100lb"
+      );
+      expect((result.data.weeks[1].days[0].exerciseText ?? "").trim()).to.equal("Deadlift / 1x5 200lb");
+    });
+
     it("is a no-op when the target isn't there", () => {
       const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
       const result = ProgramGridTransforms_deleteExercises(
@@ -899,7 +921,7 @@ Front Squat / ...Squat
       if (!result.success) {
         return;
       }
-      expect(dayTexts(result.data)[0]).to.equal("Squat / 3x5 / 100lb");
+      expect(dayTexts(result.data)[0]).to.equal("Squat / 3x5 100lb");
     });
   });
 

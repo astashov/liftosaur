@@ -3,12 +3,11 @@ import { IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
 import { IEither } from "../../../utils/types";
 import { StringUtils_nextName } from "../../../utils/string";
-import { Program_create, Program_evaluateCachedPlanner } from "../../../models/program";
-import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerProgram_evaluate } from "./plannerProgram";
 import { PlannerKey_fromFullName } from "../plannerKey";
+import { PlannerDocument_blockSpans } from "./plannerDocument";
 import { StringUtils_unindent } from "../../../utils/string";
 
 function children(node: SyntaxNode): SyntaxNode[] {
@@ -409,7 +408,7 @@ export function ProgramGridTransforms_deleteWeek(
       }
       const target = relocated.weeks[nextWeek].days[dayIndex];
       const to = exerciseBlocks(target.exerciseText);
-      target.exerciseText = joinBlocks([...to.blocks, block], to.trailing, target.exerciseText);
+      target.exerciseText = joinBlocks(withBlockAt(to, to.blocks.length, block), target.exerciseText);
     }
     // Emptied rather than left to be dropped with the week, so that the intermediate program the
     // checks below evaluate never holds the same exercise twice.
@@ -634,51 +633,81 @@ function sameExercise(a: string, b: string, settings: ISettings): boolean {
   return exerciseKey(a, settings) === exerciseKey(b, settings);
 }
 
-function exerciseBlocks(text: string): { blocks: IExerciseBlock[]; trailing: string } {
-  const tree = plannerExerciseParser.parse(text);
+// A day's text as movable blocks separated by spans that stay where they are. `fixed` is one
+// longer than `blocks`: fixed[0], blocks[0], fixed[1], blocks[1] ... fixed[n]. The fixed spans hold
+// `///` comments and the blank lines that space a day out — content that belongs to the position
+// rather than to any exercise, and that must not travel when an exercise is moved or deleted.
+interface IDayDocument {
+  blocks: IExerciseBlock[];
+  fixed: string[];
+}
+
+function exerciseBlocks(text: string): IDayDocument {
+  const spans = PlannerDocument_blockSpans(text);
   const blocks: IExerciseBlock[] = [];
+  const fixed: string[] = [];
   let cursor = 0;
-  for (const node of children(tree.topNode)) {
-    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
-      continue;
+  for (const span of spans) {
+    fixed.push(text.slice(cursor, span.from));
+    const body = text.slice(span.from, span.exerciseTo);
+    // An exercise expression usually ends past its own line break, but the last one in a day does
+    // not. Normalize so a block moved anywhere else does not run into the line after it — and only
+    // step over a line break the body did not already take, or the blank line that spaces the next
+    // one out gets eaten.
+    const complete = body.endsWith("\n");
+    blocks.push({ fullName: span.fullName, text: complete ? body : `${body}\n` });
+    cursor = span.exerciseTo;
+    if (!complete && text[cursor] === "\n") {
+      cursor += 1;
     }
-    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
-    if (variations == null) {
-      continue;
-    }
-    // Whatever sits between the last exercise and this one — comments, blank lines — leads it.
-    // The final block carries no trailing newline, so normalize: moved to the front it would
-    // otherwise run into the line that follows it.
-    const body = text.slice(cursor, node.to);
-    blocks.push({
-      fullName: text.slice(variations.from, variations.to).trim(),
-      text: body.endsWith("\n") ? body : `${body}\n`,
-    });
-    cursor = node.to;
   }
-  return { blocks, trailing: text.slice(cursor) };
+  fixed.push(text.slice(cursor));
+  return { blocks, fixed };
+}
+
+function joinBlocks(document: IDayDocument, originalText: string): string {
+  const joined = document.fixed.reduce(
+    (acc, span, i) => `${acc}${span}${i < document.blocks.length ? document.blocks[i].text : ""}`,
+    ""
+  );
+  return originalText.endsWith("\n") || joined === "" ? joined : joined.replace(/\n$/, "");
+}
+
+// Dropping a block closes the gap it left: the spans on either side of it become one, so the
+// `///` comment that sat above it and the blank line below do not end up doubled.
+function withoutBlock(document: IDayDocument, index: number): IDayDocument {
+  const fixed = document.fixed.slice();
+  fixed.splice(index, 2, `${fixed[index]}${fixed[index + 1]}`);
+  return { blocks: document.blocks.filter((_, i) => i !== index), fixed };
+}
+
+function withBlockAt(document: IDayDocument, index: number, block: IExerciseBlock): IDayDocument {
+  const blocks = document.blocks.slice();
+  blocks.splice(index, 0, block);
+  const fixed = document.fixed.slice();
+  fixed.splice(index + 1, 0, "");
+  return { blocks, fixed };
 }
 
 function reorderDayText(text: string, order: string[], settings: ISettings): string {
-  const { blocks, trailing } = exerciseBlocks(text);
+  const document = exerciseBlocks(text);
   // By key, like every other match in this module: the order comes from one week, and another week
   // may spell the same exercise differently.
   const orderKeys = order.map((name) => exerciseKey(name, settings));
   const rank = (block: IExerciseBlock): number => orderKeys.indexOf(exerciseKey(block.fullName, settings));
   // Only the blocks named in `order` move, and they move within the slots they already occupy, so
-  // anything the grid doesn't know about stays exactly where the author put it.
-  const movableSlots = blocks.reduce<number[]>((acc, block, index) => (rank(block) !== -1 ? [...acc, index] : acc), []);
-  const reordered = movableSlots.map((slot) => blocks[slot]).sort((a, b) => rank(a) - rank(b));
-  const result = blocks.slice();
+  // anything the grid doesn't know about stays exactly where the author put it — including the
+  // fixed spans between them, which never move at all.
+  const movableSlots = document.blocks.reduce<number[]>(
+    (acc, block, index) => (rank(block) !== -1 ? [...acc, index] : acc),
+    []
+  );
+  const reordered = movableSlots.map((slot) => document.blocks[slot]).sort((a, b) => rank(a) - rank(b));
+  const blocks = document.blocks.slice();
   movableSlots.forEach((slot, i) => {
-    result[slot] = reordered[i];
+    blocks[slot] = reordered[i];
   });
-  return joinBlocks(result, trailing, text);
-}
-
-function joinBlocks(blocks: IExerciseBlock[], trailing: string, originalText: string): string {
-  const joined = `${blocks.map((b) => b.text).join("")}${trailing}`;
-  return originalText.endsWith("\n") ? joined : joined.replace(/\n$/, "");
+  return joinBlocks({ blocks, fixed: document.fixed }, text);
 }
 
 // Reorders exercises within a day. This is content order — no slot identity moves — so it is safe
@@ -748,17 +777,12 @@ export function ProgramGridTransforms_moveExerciseToDay(
     if (block == null) {
       continue;
     }
-    fromDay.exerciseText = joinBlocks(
-      from.blocks.filter((b) => b !== block),
-      from.trailing,
-      fromDay.exerciseText
-    );
+    fromDay.exerciseText = joinBlocks(withoutBlock(from, from.blocks.indexOf(block)), fromDay.exerciseText);
     const to = exerciseBlocks(toDay.exerciseText);
     const anchor =
       beforeFullName != null ? to.blocks.findIndex((b) => sameExercise(b.fullName, beforeFullName, settings)) : -1;
-    const blocks = to.blocks.slice();
-    blocks.splice(anchor === -1 ? blocks.length : anchor, 0, block);
-    toDay.exerciseText = joinBlocks(blocks, to.trailing, toDay.exerciseText);
+    const inserted = withBlockAt(to, anchor === -1 ? to.blocks.length : anchor, block);
+    toDay.exerciseText = joinBlocks(inserted, toDay.exerciseText);
     moved = true;
   }
   if (!moved) {
@@ -798,32 +822,29 @@ export function ProgramGridTransforms_deleteExercises(
     };
   }
 
-  const evaluated = ObjectUtils_clone(Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings));
+  // Splice the line out of the day it is written in. That is the whole operation: a repeat has no
+  // text of its own, so removing the line removes every week it repeated into, and a week that
+  // writes its own line — an override, or an independently written week — is a different line and
+  // is left alone.
+  //
+  // This used to delete from the *evaluated* program and print the result back through
+  // ProgramToPlanner, which rewrote the entire program: a delete of an exercise that wasn't even
+  // there still reformatted every day. Editing the text the author wrote is the only way to leave
+  // the rest of it as they wrote it.
+  const result = ObjectUtils_clone(planner);
   for (const target of targets) {
-    const day = evaluated.weeks[target.week - 1]?.days[target.dayInWeek - 1];
-    const targetKey = exerciseKey(target.fullName, settings);
-    const exercise = day?.exercises.find((e) => e.key === targetKey);
-    if (day == null || exercise == null) {
+    const day = result.weeks[target.week - 1]?.days[target.dayInWeek - 1];
+    if (day == null) {
       continue;
     }
-    // The line's own week plus the weeks it repeats into — deleting a strip deletes the run it
-    // draws, not just the cell under the finger. A week inside that span which authors its own line
-    // is a *different* line that happens to sit in the range: an override, or an independently
-    // written week. It survives, and only the instances this line produced are removed.
-    const weeks = new Set<number>([target.week, ...exercise.repeating]);
-    for (const week of weeks) {
-      const exercises = evaluated.weeks[week - 1]?.days[target.dayInWeek - 1]?.exercises;
-      const index = exercises?.findIndex((e) => e.key === targetKey) ?? -1;
-      if (exercises == null || index === -1) {
-        continue;
-      }
-      if (week !== target.week && !exercises[index].isRepeat) {
-        continue;
-      }
-      exercises.splice(index, 1);
+    const document = exerciseBlocks(day.exerciseText);
+    const index = document.blocks.findIndex((b) => sameExercise(b.fullName, target.fullName, settings));
+    if (index === -1) {
+      continue;
     }
+    day.exerciseText = joinBlocks(withoutBlock(document, index), day.exerciseText);
   }
-  return refuseIfWorse(planner, new ProgramToPlanner(evaluated, settings).convertToPlanner(), settings);
+  return refuseIfWorse(planner, result, settings);
 }
 
 // Every exercise name that something else reuses, anywhere in the program.
@@ -1038,14 +1059,11 @@ export function ProgramGridTransforms_setRepeatRange(
       };
     }
     const block = source.blocks[index];
-    day.exerciseText = joinBlocks(
-      source.blocks.filter((_, i) => i !== index),
-      source.trailing,
-      day.exerciseText
+    day.exerciseText = joinBlocks(withoutBlock(source, index), day.exerciseText);
+    target.exerciseText = joinBlocks(
+      withBlockAt(destination, Math.min(index, destination.blocks.length), block),
+      target.exerciseText
     );
-    const blocks = destination.blocks.slice();
-    blocks.splice(Math.min(index, blocks.length), 0, block);
-    target.exerciseText = joinBlocks(blocks, destination.trailing, target.exerciseText);
   }
   return { success: true, data: result };
 }
