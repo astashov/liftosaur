@@ -1,19 +1,19 @@
 import "mocha";
 import { expect } from "chai";
 import {
-  ProgramGridTransforms_setRepeatRange,
-  ProgramGridTransforms_deleteDayRow,
-  ProgramGridTransforms_duplicateDayRow,
-  ProgramGridTransforms_moveDayRow,
-  ProgramGridTransforms_reorderExercisesInDay,
-  ProgramGridTransforms_moveExerciseToDay,
-  ProgramGridTransforms_moveWeek,
-  ProgramGridTransforms_deleteWeek,
-  ProgramGridTransforms_duplicateWeek,
-  ProgramGridTransforms_deleteExercises,
-  ProgramGridTransforms_addDay,
-  ProgramGridTransforms_addWeek,
-} from "../src/pages/planner/models/programGridTransforms";
+  PlannerStructure_setRepeatRange,
+  PlannerStructure_deleteDayRow,
+  PlannerStructure_duplicateDayRow,
+  PlannerStructure_moveDayRow,
+  PlannerStructure_reorderExercisesInDay,
+  PlannerStructure_moveExerciseToDay,
+  PlannerStructure_moveWeek,
+  PlannerStructure_deleteWeek,
+  PlannerStructure_duplicateWeek,
+  PlannerStructure_deleteExercises,
+  PlannerStructure_addDay,
+  PlannerStructure_addWeek,
+} from "../src/pages/planner/models/plannerStructure";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build, ProgramGrid_dayDataAt } from "../src/pages/planner/models/programGrid";
 import { Program_evaluate, Program_create } from "../src/models/program";
@@ -28,7 +28,7 @@ function repeatRange(
   fullName: string,
   toWeek: number
 ): IPlannerProgram {
-  const result = ProgramGridTransforms_setRepeatRange(planner, runStart, fullName, toWeek, Settings_build());
+  const result = PlannerStructure_setRepeatRange(planner, runStart, fullName, toWeek, Settings_build());
   if (!result.success) {
     throw new Error(`setRepeatRange refused: ${result.error}`);
   }
@@ -67,7 +67,7 @@ Bench Press / 5x5 50lb
 Bench Press / 5x5 50lb
 `;
 
-describe("ProgramGridTransforms", () => {
+describe("PlannerStructure", () => {
   it("extends a repeat by rewriting its range, touching no other line", () => {
     const next = repeatRange(plannerOf(FOUR_WEEKS), { week: 1, dayInWeek: 1 }, "Squat", 4);
     expect(dayTexts(next)[0]).to.equal("Squat[1-4] / 3x5 100lb\nBench Press / 5x5 50lb");
@@ -234,7 +234,7 @@ Deadlift / 1x5 210lb
 `;
 
     it("removes the day from every week, not just one", () => {
-      const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 1, Settings_build());
+      const result = PlannerStructure_deleteDayRow(plannerOf(THREE_DAYS), 1, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -248,7 +248,7 @@ Deadlift / 1x5 210lb
     });
 
     it("refuses when another day reuses the one being deleted", () => {
-      const result = ProgramGridTransforms_deleteDayRow(plannerOf(THREE_DAYS), 0, Settings_build());
+      const result = PlannerStructure_deleteDayRow(plannerOf(THREE_DAYS), 0, Settings_build());
       expect(result.success).to.equal(false);
       if (result.success) {
         return;
@@ -273,7 +273,7 @@ Squat / 1x1
 // ...Squat[1:2]
 Bench Press / 1x1
 `;
-      const deleted = ProgramGridTransforms_deleteDayRow(plannerOf(text), 0, Settings_build());
+      const deleted = PlannerStructure_deleteDayRow(plannerOf(text), 0, Settings_build());
       expect(deleted.success).to.equal(true);
       if (!deleted.success) {
         return;
@@ -281,7 +281,7 @@ Bench Press / 1x1
       // Day 2 became day 1, so the reuse has to follow it.
       expect(deleted.data.weeks[0].days[1].exerciseText).to.contain("// ...Squat[1:1]");
 
-      const moved = ProgramGridTransforms_moveDayRow(plannerOf(text), 2, 0, Settings_build());
+      const moved = PlannerStructure_moveDayRow(plannerOf(text), 2, 0, Settings_build());
       expect(moved.success).to.equal(true);
       if (!moved.success) {
         return;
@@ -310,7 +310,7 @@ main / used: none / 3x5 110lb
 ## Day 3
 Bench Press / ...main[2]
 `;
-      const result = ProgramGridTransforms_deleteDayRow(plannerOf(text), 0, Settings_build());
+      const result = PlannerStructure_deleteDayRow(plannerOf(text), 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -335,7 +335,7 @@ Bench Press / 5x5 50lb
 ## Day 2
 Bench Press / 5x5 50lb
 `;
-      const result = ProgramGridTransforms_duplicateDayRow(plannerOf(text), 1, Settings_build());
+      const result = PlannerStructure_duplicateDayRow(plannerOf(text), 1, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -371,7 +371,7 @@ Bench Press / ...main[2]
 
     it("permutes every week identically and rewrites the qualifiers", () => {
       // Day C moves to the front, so what was day 2 is now day 3.
-      const result = ProgramGridTransforms_moveDayRow(plannerOf(THREE_DAYS), 2, 0, Settings_build());
+      const result = PlannerStructure_moveDayRow(plannerOf(THREE_DAYS), 2, 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -385,7 +385,7 @@ Bench Press / ...main[2]
 
     it("is a no-op when nothing moves", () => {
       const planner = plannerOf(THREE_DAYS);
-      const result = ProgramGridTransforms_moveDayRow(planner, 1, 1, Settings_build());
+      const result = PlannerStructure_moveDayRow(planner, 1, 1, Settings_build());
       expect(result.success).to.equal(true);
       if (result.success) {
         expect(result.data).to.equal(planner);
@@ -407,7 +407,7 @@ Deadlift / 1x5 200lb
 Bench Press / 5x5 55lb
 Deadlift / 1x5 210lb
 `;
-      const result = ProgramGridTransforms_reorderExercisesInDay(
+      const result = PlannerStructure_reorderExercisesInDay(
         plannerOf(text),
         0,
         ["Deadlift", "Squat", "Bench Press"],
@@ -454,7 +454,7 @@ Deadlift / 1x5 210lb
     }
 
     it("moves an exercise into another day in every week that authors it", () => {
-      const result = ProgramGridTransforms_moveExerciseToDay(
+      const result = PlannerStructure_moveExerciseToDay(
         plannerOf(TWO_DAYS),
         0,
         "Bench Press",
@@ -474,7 +474,7 @@ Deadlift / 1x5 210lb
     });
 
     it("inserts before the exercise it was dropped above", () => {
-      const result = ProgramGridTransforms_moveExerciseToDay(
+      const result = PlannerStructure_moveExerciseToDay(
         plannerOf(TWO_DAYS),
         0,
         "Bench Press",
@@ -490,7 +490,7 @@ Deadlift / 1x5 210lb
     });
 
     it("carries the repeat with the line, so the run lands on the new day", () => {
-      const result = ProgramGridTransforms_moveExerciseToDay(
+      const result = PlannerStructure_moveExerciseToDay(
         plannerOf(TWO_DAYS),
         0,
         "Squat",
@@ -516,14 +516,7 @@ Squat / 3x5 100lb
 ## Day 2
 Squat / 3x5 200lb
 `;
-      const result = ProgramGridTransforms_moveExerciseToDay(
-        plannerOf(text),
-        0,
-        "Squat",
-        1,
-        undefined,
-        Settings_build()
-      );
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
       expect(result.success).to.equal(false);
     });
 
@@ -543,14 +536,7 @@ Deadlift / 1x5 200lb
 `;
       const before = spans(plannerOf(text), "Squat");
       expect(before).to.deep.equal(["[0-1]"]);
-      const result = ProgramGridTransforms_moveExerciseToDay(
-        plannerOf(text),
-        0,
-        "Squat",
-        1,
-        undefined,
-        Settings_build()
-      );
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
       expect(result.success).to.equal(false);
       if (result.success) {
         return;
@@ -571,7 +557,7 @@ Deadlift / 1x5 200lb
 ## Day 1
 Bench Press / 5x5 55lb
 `;
-      const result = ProgramGridTransforms_moveExerciseToDay(
+      const result = PlannerStructure_moveExerciseToDay(
         plannerOf(text),
         0,
         "Bench Press",
@@ -607,14 +593,7 @@ Deadlift / 1x5 210lb
 ## Day 3
 Bench Press / 5x5 55lb
 `;
-      const result = ProgramGridTransforms_moveExerciseToDay(
-        plannerOf(text),
-        0,
-        "Squat",
-        2,
-        undefined,
-        Settings_build()
-      );
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 2, undefined, Settings_build());
       expect(result.success).to.equal(false);
     });
   });
@@ -652,7 +631,7 @@ Deadlift / 1x5 220lb
     it("rewrites the repeat range when a week moves under it", () => {
       // [W1, W2, W3] -> [W3, W1, W2]: Squat still belongs to old weeks 1 and 2, now sitting 2nd
       // and 3rd, so its range has to become 2-3.
-      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
+      const result = PlannerStructure_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -662,7 +641,7 @@ Deadlift / 1x5 220lb
     });
 
     it("renumbers a week qualifier that pointed at the moved week", () => {
-      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
+      const result = PlannerStructure_moveWeek(plannerOf(THREE_WEEKS), 2, 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -673,7 +652,7 @@ Deadlift / 1x5 220lb
 
     it("refuses a move that would scatter a repeat across non-adjacent weeks", () => {
       // [W1, W2, W3] -> [W1, W3, W2] leaves Squat in weeks 1 and 3, which no repeat can say.
-      const result = ProgramGridTransforms_moveWeek(plannerOf(THREE_WEEKS), 1, 2, Settings_build());
+      const result = PlannerStructure_moveWeek(plannerOf(THREE_WEEKS), 1, 2, Settings_build());
       expect(result.success).to.equal(false);
       if (result.success) {
         return;
@@ -692,7 +671,7 @@ Squat / 1x1
 // ...Squat[1:1]
 Bench Press / 1x1
 `;
-      const weekMoved = ProgramGridTransforms_moveWeek(plannerOf(text), 1, 0, Settings_build());
+      const weekMoved = PlannerStructure_moveWeek(plannerOf(text), 1, 0, Settings_build());
       expect(weekMoved.success).to.equal(true);
       if (!weekMoved.success) {
         return;
@@ -702,7 +681,7 @@ Bench Press / 1x1
 
     it("keeps every week's name with the week that moved, out of order or not", () => {
       const text = THREE_WEEKS.replace("# Week 3", "# Deload");
-      const result = ProgramGridTransforms_moveWeek(plannerOf(text), 2, 0, Settings_build());
+      const result = PlannerStructure_moveWeek(plannerOf(text), 2, 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -723,7 +702,7 @@ Bench Press / 5x5 50lb
 ## Day 1
 Bench Press / 5x5 60lb
 `;
-      const result = ProgramGridTransforms_deleteWeek(plannerOf(text), 0, Settings_build());
+      const result = PlannerStructure_deleteWeek(plannerOf(text), 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -735,12 +714,12 @@ Bench Press / 5x5 60lb
     });
 
     it("refuses to delete a week that another week reuses by number", () => {
-      const result = ProgramGridTransforms_deleteWeek(plannerOf(THREE_WEEKS), 0, Settings_build());
+      const result = PlannerStructure_deleteWeek(plannerOf(THREE_WEEKS), 0, Settings_build());
       expect(result.success).to.equal(false);
     });
 
     it("refuses to delete the only week", () => {
-      const result = ProgramGridTransforms_deleteWeek(
+      const result = PlannerStructure_deleteWeek(
         plannerOf("# Week 1\n## Day 1\nSquat / 3x5 100lb\n"),
         0,
         Settings_build()
@@ -757,7 +736,7 @@ Squat[1-2] / 3x5 100lb
 ## Day 1
 Bench Press / 5x5 50lb
 `;
-      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
+      const result = PlannerStructure_duplicateWeek(plannerOf(text), 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -778,7 +757,7 @@ Squat / 3x5 100lb
 ## Day 1
 Bench Press / 5x5 50lb
 `;
-      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 0, Settings_build());
+      const result = PlannerStructure_duplicateWeek(plannerOf(text), 0, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -796,7 +775,7 @@ Squat[1-2] / 3x5 100lb
 Bench Press / 5x5 50lb
 `;
       // Week 2 shows Squat, but holds no text for it.
-      const result = ProgramGridTransforms_duplicateWeek(plannerOf(text), 1, Settings_build());
+      const result = PlannerStructure_duplicateWeek(plannerOf(text), 1, Settings_build());
       expect(result.success).to.equal(false);
       if (result.success) {
         return;
@@ -806,7 +785,7 @@ Bench Press / 5x5 50lb
   });
 
   it("says so when the exercise isn't on that day, rather than quietly doing nothing", () => {
-    const result = ProgramGridTransforms_setRepeatRange(
+    const result = PlannerStructure_setRepeatRange(
       plannerOf(FOUR_WEEKS),
       { week: 1, dayInWeek: 1 },
       "Deadlift",
@@ -832,7 +811,7 @@ Bench Press / 5x5 50lb
 Squat / 3x5 100lb
 Bench Press / 5x5 50lb
 `);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
         Settings_build()
@@ -854,7 +833,7 @@ Squat / 3x5 100lb
 Bench Press / 5x5 50lb
 Deadlift / 1x5 200lb
 `);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [
           { week: 1, dayInWeek: 1, fullName: "Squat" },
@@ -877,7 +856,7 @@ Deadlift / 1x5 200lb
 Squat / 3x5 100lb
 Front Squat / ...Squat
 `);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
         Settings_build()
@@ -894,7 +873,7 @@ Front Squat / ...Squat
         `# W1\n## D1\n/// positional note\n\n// a description\nSquat   /   3x5   100lb\n\n` +
         `Bench Press / 5x5 50lb\n\n# W2\n## D1\nDeadlift / 1x5 200lb\n`;
       const planner = plannerOf(text);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [{ week: 1, dayInWeek: 1, fullName: "Bench Press" }],
         Settings_build()
@@ -912,7 +891,7 @@ Front Squat / ...Squat
 
     it("is a no-op when the target isn't there", () => {
       const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [{ week: 1, dayInWeek: 1, fullName: "Overhead Press" }],
         Settings_build()
@@ -935,7 +914,7 @@ Squat / 3x5 100lb
 ## Day 1
 Squat / 3x5 100lb
 `);
-      const result = ProgramGridTransforms_addDay(planner, 0, Settings_build());
+      const result = PlannerStructure_addDay(planner, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -950,7 +929,7 @@ Squat / 3x5 100lb
 Squat[1-2] / 3x5 100lb
 `);
       const before = planner.weeks.map((w) => w.name);
-      const result = ProgramGridTransforms_addWeek(planner, Settings_build());
+      const result = PlannerStructure_addWeek(planner, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -968,7 +947,7 @@ Squat[1-2] / 3x5 100lb
 
     it("relocates a definition past a week that overrides it, instead of dropping it", () => {
       const planner = plannerOf(`# W1\n## D1\nSquat[1-3] / 1x1\n\n# W2\n## D1\nSquat / 2x2\n\n# W3\n## D1\n`);
-      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      const result = PlannerStructure_deleteWeek(planner, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -982,7 +961,7 @@ Squat[1-2] / 3x5 100lb
       // Squat[1-2] authored in W4 prescribes weeks 1, 2 and 4. Deleting W1 leaves weeks 1 and 3 —
       // dropping the range would strand it in its own week alone.
       const planner = plannerOf(`# W1\n## D1\n\n# W2\n## D1\n\n# W3\n## D1\n\n# W4\n## D1\nSquat[1-2] / 1x1\n`);
-      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      const result = PlannerStructure_deleteWeek(planner, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -993,7 +972,7 @@ Squat[1-2] / 3x5 100lb
 
     it("drops a single-week range when it lands on the week that holds the line", () => {
       const planner = plannerOf(`# W1\n## D1\nSquat[1-2] / 1x1\n\n# W2\n## D1\n\n# W3\n## D1\nBench Press / 1x1\n`);
-      const result = ProgramGridTransforms_deleteWeek(planner, 1, Settings_build());
+      const result = PlannerStructure_deleteWeek(planner, 1, Settings_build());
       expect(result.success).to.equal(true);
       if (!result.success) {
         return;
@@ -1008,7 +987,7 @@ Squat[1-2] / 3x5 100lb
         `# W1\n## A\nSquat / 1x1\n\n## B\nDeadlift / 1x1\n\n## C\nOverhead Press / 1x1\n` +
           `\n# W2\n## A\nmain / used: none / 1x1\n\n## B\nmain / used: none / 2x2\nBench Press / ...main[1]\n`
       );
-      const result = ProgramGridTransforms_moveDayRow(planner, 2, 0, Settings_build());
+      const result = PlannerStructure_moveDayRow(planner, 2, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -1021,7 +1000,7 @@ Squat[1-2] / 3x5 100lb
       // D3 already has a duplicate-Squat error, so comparing error messages as a set made the new
       // duplicate in D2 look like nothing had changed.
       const planner = plannerOf(`# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\n\n## D3\nSquat / 3x3\nSquat / 4x4\n`);
-      const result = ProgramGridTransforms_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
       expect(result.success).to.equal(false);
     });
 
@@ -1029,7 +1008,7 @@ Squat[1-2] / 3x5 100lb
       const planner = plannerOf(
         `# W1\n## D1\n// To compare, type ...Squat[1:1] literally.\nBench Press / 1x1\n\n# W2\n## D1\nBench Press / 2x2\n`
       );
-      const result = ProgramGridTransforms_moveWeek(planner, 1, 0, Settings_build());
+      const result = PlannerStructure_moveWeek(planner, 1, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -1042,7 +1021,7 @@ Squat[1-2] / 3x5 100lb
         `# W1\n## D1\n!Squat | Front Squat / 1x1\n\n## D2\nDeadlift / 1x1\n` +
           `\n# W2\n## D1\nSquat | !Front Squat / 2x2\n\n## D2\nDeadlift / 2x2\n`
       );
-      const result = ProgramGridTransforms_moveExerciseToDay(
+      const result = PlannerStructure_moveExerciseToDay(
         planner,
         0,
         "Squat | !Front Squat",
@@ -1071,7 +1050,7 @@ Squat[1-2] / 3x5 100lb
       // Squat[1-1] in W4 prescribes W1 and W4. Delete W1 and nothing it claimed survives — keeping
       // the range would leave it claiming whichever week now holds number 1.
       const planner = plannerOf(`# W1\n## D1\n\n# W2\n## D1\n\n# W3\n## D1\n\n# W4\n## D1\nSquat[1-1] / 1x1\n`);
-      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      const result = PlannerStructure_deleteWeek(planner, 0, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -1084,7 +1063,7 @@ Squat[1-2] / 3x5 100lb
       const planner = plannerOf(
         `# W1\n## A\n// base\nSquat / 1x1\n\n## B\nBench Press / 1x1\n\n## C\n// !...Squat[1]\nDeadlift / 1x1\n`
       );
-      const result = ProgramGridTransforms_moveDayRow(planner, 0, 1, Settings_build());
+      const result = PlannerStructure_moveDayRow(planner, 0, 1, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
       if (!result.success) {
         return;
@@ -1097,7 +1076,7 @@ Squat[1-2] / 3x5 100lb
         `# W1\n## D1\n!Squat | Front Squat / 1x1\nDeadlift / 1x1\n` +
           `\n# W2\n## D1\nSquat | !Front Squat / 2x2\nDeadlift / 2x2\n`
       );
-      const result = ProgramGridTransforms_reorderExercisesInDay(
+      const result = PlannerStructure_reorderExercisesInDay(
         planner,
         0,
         ["Deadlift", "Squat | !Front Squat"],
@@ -1115,7 +1094,7 @@ Squat[1-2] / 3x5 100lb
       // The message embeds the week number, so a moved error reads as a different string. What the
       // check cares about is whether more days broke, not what they say.
       const planner = plannerOf(`# W1\n## D1\nSquat / ...Missing\n\n# W2\n## D1\nBench Press / 1x1\n`);
-      const result = ProgramGridTransforms_moveWeek(planner, 0, 1, Settings_build());
+      const result = PlannerStructure_moveWeek(planner, 0, 1, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
     });
   });
@@ -1162,7 +1141,7 @@ Squat[1-2] / 3x5 100lb
     it("widens the line behind a fragment rather than planting a new one where it is drawn", () => {
       const planner = plannerOf(OVERRIDDEN);
       const strip = stripStartingAt(planner, 3);
-      const result = ProgramGridTransforms_setRepeatRange(
+      const result = PlannerStructure_setRepeatRange(
         planner,
         ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.sourceWeeks[0]),
         "Squat",
@@ -1179,7 +1158,7 @@ Squat[1-2] / 3x5 100lb
 
     it("deletes every line behind a strip, not just the week it starts in", () => {
       const planner = plannerOf(`# W1\n## D1\nSquat / 3x5 100lb\n\n# W2\n## D1\nSquat / 3x5 100lb\n`);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         targetsFor(planner, stripStartingAt(planner, 0)),
         Settings_build()
@@ -1193,7 +1172,7 @@ Squat[1-2] / 3x5 100lb
 
     it("leaves an override standing when the line it interrupts is deleted", () => {
       const planner = plannerOf(OVERRIDDEN);
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         targetsFor(planner, stripStartingAt(planner, 0)),
         Settings_build()
@@ -1210,7 +1189,7 @@ Squat[1-2] / 3x5 100lb
       const planner = plannerOf(
         `# W1\n## D1\n// source description\nSquat / 3x5 100lb\n// ...Squat\nBench Press / 3x5 100lb\n`
       );
-      const result = ProgramGridTransforms_deleteExercises(
+      const result = PlannerStructure_deleteExercises(
         planner,
         [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
         Settings_build()

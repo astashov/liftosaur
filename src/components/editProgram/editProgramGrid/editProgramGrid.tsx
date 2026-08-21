@@ -63,7 +63,7 @@ interface IEditProgramGridProps {
 }
 
 // The whole calendar view. This file is composition only: the layout maths lives in
-// programGridGeometry, the edits in programGridTransforms via useGridActions, and each drag in
+// programGridGeometry, the edits in plannerStructure via useGridActions, and each drag in
 // useGridDragSession — see lambda/scripts/archdocs/program-grid.md.
 export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgramGridProps): JSX.Element {
   usePerfRenderCount("EditProgramGrid");

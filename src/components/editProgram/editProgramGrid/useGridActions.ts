@@ -7,20 +7,20 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { Dialog_alert } from "../../../utils/dialog";
 import { IProgramGrid, IProgramGridPlacement, ProgramGrid_dayDataAt } from "../../../pages/planner/models/programGrid";
 import {
-  IProgramGridTransformResult,
-  ProgramGridTransforms_deleteDayRow,
-  ProgramGridTransforms_deleteWeek,
-  ProgramGridTransforms_duplicateDayRow,
-  ProgramGridTransforms_duplicateWeek,
-  ProgramGridTransforms_moveDayRow,
-  ProgramGridTransforms_moveExerciseToDay,
-  ProgramGridTransforms_moveWeek,
-  ProgramGridTransforms_reorderExercisesInDay,
-  ProgramGridTransforms_setRepeatRange,
-  ProgramGridTransforms_addDay,
-  ProgramGridTransforms_addWeek,
-  ProgramGridTransforms_deleteExercises,
-} from "../../../pages/planner/models/programGridTransforms";
+  IPlannerStructureResult,
+  PlannerStructure_deleteDayRow,
+  PlannerStructure_deleteWeek,
+  PlannerStructure_duplicateDayRow,
+  PlannerStructure_duplicateWeek,
+  PlannerStructure_moveDayRow,
+  PlannerStructure_moveExerciseToDay,
+  PlannerStructure_moveWeek,
+  PlannerStructure_reorderExercisesInDay,
+  PlannerStructure_setRepeatRange,
+  PlannerStructure_addDay,
+  PlannerStructure_addWeek,
+  PlannerStructure_deleteExercises,
+} from "../../../pages/planner/models/plannerStructure";
 
 // Every edit the grid can make, and *only* edits — navigation lives in useGridNavigation. They all
 // share one shape: ask a pure transform first so a refusal can be shown, then dispatch it through
@@ -67,7 +67,7 @@ export function useGridActions(args: {
 
   const applyTransform = useCallback(
     (
-      transform: (planner: IPlannerProgram) => IProgramGridTransformResult,
+      transform: (planner: IPlannerProgram) => IPlannerStructureResult,
       description: string,
       // Required, not defaulted: a default is a classification the next command can forget to make,
       // and forgetting leaves a selection pointing at a row or week that now holds something else.
@@ -99,7 +99,7 @@ export function useGridActions(args: {
   const onMoveDayRow = useCallback(
     (from: number, to: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_moveDayRow(planner, from, to, settings),
+        (planner) => PlannerStructure_moveDayRow(planner, from, to, settings),
         `Move day ${from + 1} to position ${to + 1}`,
         "structural"
       );
@@ -118,7 +118,7 @@ export function useGridActions(args: {
         }))
       );
       applyTransform(
-        (planner) => ProgramGridTransforms_deleteExercises(planner, targets, settings),
+        (planner) => PlannerStructure_deleteExercises(planner, targets, settings),
         `Delete ${placements.length} exercise(s) from grid`,
         "structural"
       );
@@ -129,7 +129,7 @@ export function useGridActions(args: {
   const onAddDay = useCallback(
     (weekIndex: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_addDay(planner, weekIndex, settings),
+        (planner) => PlannerStructure_addDay(planner, weekIndex, settings),
         `Add a day to week ${weekIndex + 1}`,
         "structural"
       );
@@ -141,7 +141,7 @@ export function useGridActions(args: {
     (placement: IProgramGridPlacement, toWeekIndex: number) => {
       applyTransform(
         (planner) =>
-          ProgramGridTransforms_setRepeatRange(
+          PlannerStructure_setRepeatRange(
             planner,
             // The line's week, not the strip's: resizing a fragment of an interrupted repeat has to
             // widen the line that produces it, not plant a new one where the fragment is drawn.
@@ -158,13 +158,13 @@ export function useGridActions(args: {
   );
 
   const onAddWeek = useCallback(() => {
-    applyTransform((planner) => ProgramGridTransforms_addWeek(planner, settings), "Add new week", "structural");
+    applyTransform((planner) => PlannerStructure_addWeek(planner, settings), "Add new week", "structural");
   }, [applyTransform, settings]);
 
   const onDuplicateDay = useCallback(
     (rowIndex: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_duplicateDayRow(planner, rowIndex, settings),
+        (planner) => PlannerStructure_duplicateDayRow(planner, rowIndex, settings),
         `Duplicate day ${rowIndex + 1} in every week`,
         "structural"
       );
@@ -175,7 +175,7 @@ export function useGridActions(args: {
   const onDeleteDay = useCallback(
     (rowIndex: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_deleteDayRow(planner, rowIndex, settings),
+        (planner) => PlannerStructure_deleteDayRow(planner, rowIndex, settings),
         `Delete day ${rowIndex + 1} from every week`,
         "structural"
       );
@@ -186,7 +186,7 @@ export function useGridActions(args: {
   const onDuplicateWeek = useCallback(
     (weekIndex: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_duplicateWeek(planner, weekIndex, settings),
+        (planner) => PlannerStructure_duplicateWeek(planner, weekIndex, settings),
         `Duplicate week ${weekIndex + 1}`,
         "structural"
       );
@@ -197,7 +197,7 @@ export function useGridActions(args: {
   const onDeleteWeek = useCallback(
     (weekIndex: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_deleteWeek(planner, weekIndex, settings),
+        (planner) => PlannerStructure_deleteWeek(planner, weekIndex, settings),
         `Delete week ${weekIndex + 1}`,
         "structural"
       );
@@ -208,7 +208,7 @@ export function useGridActions(args: {
   const onMoveWeek = useCallback(
     (from: number, to: number) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_moveWeek(planner, from, to, settings),
+        (planner) => PlannerStructure_moveWeek(planner, from, to, settings),
         `Move week ${from + 1} to position ${to + 1}`,
         "structural"
       );
@@ -219,7 +219,7 @@ export function useGridActions(args: {
   const onReorderExercisesInDay = useCallback(
     (rowIndex: number, order: string[]) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_reorderExercisesInDay(planner, rowIndex, order, settings),
+        (planner) => PlannerStructure_reorderExercisesInDay(planner, rowIndex, order, settings),
         `Reorder exercises in day ${rowIndex + 1}`,
         "content"
       );
@@ -230,7 +230,7 @@ export function useGridActions(args: {
   const onMoveExerciseToDay = useCallback(
     (fromRow: number, fullName: string, toRow: number, before: string | undefined) => {
       applyTransform(
-        (planner) => ProgramGridTransforms_moveExerciseToDay(planner, fromRow, fullName, toRow, before, settings),
+        (planner) => PlannerStructure_moveExerciseToDay(planner, fromRow, fullName, toRow, before, settings),
         `Move ${fullName} to day ${toRow + 1}`,
         "content"
       );

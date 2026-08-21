@@ -10,6 +10,22 @@ import { PlannerKey_fromFullName } from "../plannerKey";
 import { PlannerDocument_blockSpans } from "./plannerDocument";
 import { StringUtils_unindent } from "../../../utils/string";
 
+// Every edit that changes *where things are* in a program: which weeks exist and in what order,
+// which day slots exist, and which exercises sit in which day. Not what an exercise says — that is
+// the per-exercise editors' half of the split, and this module never touches a set, a weight or a
+// progression.
+//
+// It is named for the job rather than for the grid, because the job outlives the feature. The grid
+// is the surface that offers these operations today (plans/20260722-liftoscript-first-editor.md
+// deliberately keeps cross-week structure there, and puts per-exercise content in the text editor),
+// but the rules here are the language's, not the grid's: a repeat covers one contiguous run of
+// weeks, a day slot means the same thing in every week, `[2]` means "day 2 of my week" while
+// `[1:2]` means "day 2 of week 1". Anything that ever rearranges a program has to obey them.
+//
+// Every edit takes a planner and returns either a new one or a sentence saying why not. None of
+// them evaluates its way to an answer and prints the program back out — they splice the text the
+// author wrote, so everything they did not edit stays exactly as it was.
+
 function children(node: SyntaxNode): SyntaxNode[] {
   const cursor = node.cursor();
   const result: SyntaxNode[] = [];
@@ -58,7 +74,7 @@ function findExerciseLine(text: string, fullName: string): IExerciseLine | undef
 
 // The failure side carries a sentence, not a code: the UI shows it verbatim, so a refusal can say
 // which exercise stands in the way rather than just refusing.
-export type IProgramGridTransformResult = IEither<IPlannerProgram, string>;
+export type IPlannerStructureResult = IEither<IPlannerProgram, string>;
 
 // Only `from`/`to` are ever read, so a parser node and a span found by hand in a comment both fit.
 interface ITextSpan {
@@ -323,7 +339,7 @@ type IDayRewrite = IEither<string, string>;
 
 // Permutes the weeks and rewrites everything that addressed them by number. `oldOrder[newIndex]` is
 // the week that ends up there; a week left out of it is being deleted.
-function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: ISettings): IProgramGridTransformResult {
+function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: ISettings): IPlannerStructureResult {
   const newForOld = new Map<number, number | undefined>();
   planner.weeks.forEach((_week, oldIndex) => newForOld.set(oldIndex, undefined));
   oldOrder.forEach((oldIndex, newIndex) => newForOld.set(oldIndex, newIndex));
@@ -349,12 +365,12 @@ function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: IS
 // Moves a week. Unlike a day row, this is not a renumbering that always works: every repeat is a
 // range of week numbers, so moving a week can scatter the weeks an exercise repeats over into
 // something the language cannot express, and then this refuses.
-export function ProgramGridTransforms_moveWeek(
+export function PlannerStructure_moveWeek(
   planner: IPlannerProgram,
   fromIndex: number,
   toIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const count = planner.weeks.length;
   if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= count || toIndex >= count) {
     return { success: true, data: planner };
@@ -368,11 +384,11 @@ export function ProgramGridTransforms_moveWeek(
 // would take the rest of the run with it, so its line moves to the first week of the run that
 // survives — the range says where an exercise appears, not the week its text happens to sit in, so
 // relocating the line changes nothing about the program.
-export function ProgramGridTransforms_deleteWeek(
+export function PlannerStructure_deleteWeek(
   planner: IPlannerProgram,
   weekIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   if (planner.weeks.length <= 1) {
     return { success: false, error: "A program needs at least one week." };
   }
@@ -433,11 +449,11 @@ export function ProgramGridTransforms_deleteWeek(
 // text would produce an empty week that looks like the one you asked for. Writing out what the
 // evaluator resolved instead is the materialize operation, which the grid doesn't have yet, so this
 // says so rather than silently making an empty week.
-export function ProgramGridTransforms_duplicateWeek(
+export function PlannerStructure_duplicateWeek(
   planner: IPlannerProgram,
   weekIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const week = planner.weeks[weekIndex];
   if (week == null) {
     return { success: true, data: planner };
@@ -506,11 +522,11 @@ function renumberDayReferences(text: string, deletedDay: number): string {
 // depending on which week you read it from — the corruption this editor exists to prevent. Removing
 // the whole row is a uniform renumber instead: every week loses the same slot, and every day
 // qualifier after it shifts by one.
-export function ProgramGridTransforms_deleteDayRow(
+export function PlannerStructure_deleteDayRow(
   planner: IPlannerProgram,
   rowIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const deletedDay = rowIndex + 1;
   const blockers = new Set<string>();
   for (const week of planner.weeks) {
@@ -548,11 +564,7 @@ export function ProgramGridTransforms_deleteDayRow(
 // redefined in the others, a reuse by name across days, something not yet thought of — so rather
 // than trying to enumerate them, check the answer: if the edit breaks something that evaluated
 // cleanly before, refuse and say what broke. Enumerating is how silent corruption gets shipped.
-function refuseIfWorse(
-  before: IPlannerProgram,
-  after: IPlannerProgram,
-  settings: ISettings
-): IProgramGridTransformResult {
+function refuseIfWorse(before: IPlannerProgram, after: IPlannerProgram, settings: ISettings): IPlannerStructureResult {
   // How many days fail to evaluate, not which messages they carry. Message text is not stable
   // across a structural edit — it embeds the week number and the source position, so "no such
   // exercise Missing at week: 1" becomes "... at week: 2" when the week moves, and comparing
@@ -588,11 +600,11 @@ function failingDays(planner: IPlannerProgram, settings: ISettings): string[] {
 
 // Appends a copy of the day to every week. Appending is what keeps this safe: no existing slot
 // moves, so nothing that points at one has to be rewritten.
-export function ProgramGridTransforms_duplicateDayRow(
+export function PlannerStructure_duplicateDayRow(
   planner: IPlannerProgram,
   rowIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   for (const week of result.weeks) {
     const day = week.days[rowIndex];
@@ -713,12 +725,12 @@ function reorderDayText(text: string, order: string[], settings: ISettings): str
 // Reorders exercises within a day. This is content order — no slot identity moves — so it is safe
 // in a way none of the other structural edits are. Applied to every week's copy of the day so the
 // grid's lanes, which are shared across weeks, keep meaning one thing.
-export function ProgramGridTransforms_reorderExercisesInDay(
+export function PlannerStructure_reorderExercisesInDay(
   planner: IPlannerProgram,
   rowIndex: number,
   order: string[],
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   for (const week of result.weeks) {
     const day = week.days[rowIndex];
@@ -737,14 +749,14 @@ export function ProgramGridTransforms_reorderExercisesInDay(
 // `beforeFullName` anchors the insert by name rather than by index: the target day can hold a
 // different number of exercises in each week (a ragged week, an override), and an index would land
 // in a different place in each of them.
-export function ProgramGridTransforms_moveExerciseToDay(
+export function PlannerStructure_moveExerciseToDay(
   planner: IPlannerProgram,
   fromRowIndex: number,
   fullName: string,
   toRowIndex: number,
   beforeFullName: string | undefined,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   if (fromRowIndex === toRowIndex) {
     return { success: true, data: planner };
   }
@@ -794,7 +806,7 @@ export function ProgramGridTransforms_moveExerciseToDay(
   return refuseIfWorse(planner, result, settings);
 }
 
-export interface IProgramGridExerciseTarget {
+export interface IPlannerStructureExerciseTarget {
   week: number;
   dayInWeek: number;
   fullName: string;
@@ -805,11 +817,11 @@ export interface IProgramGridExerciseTarget {
 // to take its repeats with it, and the evaluated structure is where "this run, in these weeks"
 // already exists. It is the same mechanism the older per-exercise editor uses, minus that one's
 // dialog — a transform reports a refusal, it doesn't show one.
-export function ProgramGridTransforms_deleteExercises(
+export function PlannerStructure_deleteExercises(
   planner: IPlannerProgram,
-  targets: IProgramGridExerciseTarget[],
+  targets: IPlannerStructureExerciseTarget[],
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   // Deleting an exercise that others reuse orphans them, and materializing the reusers is separate
   // work, so this refuses rather than quietly breaking the program.
   const sources = reusedNames(planner, settings);
@@ -876,11 +888,11 @@ function reusedNames(planner: IPlannerProgram, settings: ISettings): Set<string>
 // Appends a day to one week. The grid offers this per column, so a program can deliberately have
 // weeks of different lengths; appending moves no existing slot, so nothing that points at one has
 // to be rewritten.
-export function ProgramGridTransforms_addDay(
+export function PlannerStructure_addDay(
   planner: IPlannerProgram,
   weekIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   const week = result.weeks[weekIndex];
   if (week == null) {
@@ -891,10 +903,7 @@ export function ProgramGridTransforms_addDay(
 }
 
 // Appends an empty week, named so it collides with nothing.
-export function ProgramGridTransforms_addWeek(
-  planner: IPlannerProgram,
-  settings: ISettings
-): IProgramGridTransformResult {
+export function PlannerStructure_addWeek(planner: IPlannerProgram, settings: ISettings): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   result.weeks.push({ name: uniqueWeekName(planner, `Week ${result.weeks.length + 1}`), days: [] });
   return refuseIfWorse(planner, result, settings);
@@ -916,12 +925,12 @@ function weeksShowing(planner: IPlannerProgram, rowIndex: number, fullName: stri
 // Moves a whole day row. Every week is permuted identically, which is what keeps this a renumber
 // rather than a desync: after it, day slot N means the same thing in every week, and the qualifiers
 // that named the old positions are rewritten to the new ones.
-export function ProgramGridTransforms_moveDayRow(
+export function PlannerStructure_moveDayRow(
   planner: IPlannerProgram,
   fromIndex: number,
   toIndex: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const rows = planner.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
   if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= rows || toIndex >= rows) {
     return { success: true, data: planner };
@@ -1006,13 +1015,13 @@ function findAuthoringWeek(
 // where the line is written. A repeat can back-fill: `Squat[1-3]` authored in week 2 shows from
 // week 1, and week 1 holds no text for it. So the line is searched for rather than assumed, or
 // dragging that strip's edge silently does nothing.
-export function ProgramGridTransforms_setRepeatRange(
+export function PlannerStructure_setRepeatRange(
   planner: IPlannerProgram,
   runStart: { week: number; dayInWeek: number },
   fullName: string,
   toWeek: number,
   settings: ISettings
-): IProgramGridTransformResult {
+): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   const authored = findAuthoringWeek(result, runStart, fullName, settings);
   const day = authored != null ? result.weeks[authored]?.days[runStart.dayInWeek - 1] : undefined;
