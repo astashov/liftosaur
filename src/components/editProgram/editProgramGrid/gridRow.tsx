@@ -9,7 +9,6 @@ import { IconArrowDown2 } from "../../icons/iconArrowDown2";
 import { IconArrowRight } from "../../icons/iconArrowRight";
 import {
   IProgramGrid,
-  IProgramGridDensity,
   IProgramGridPlacement,
   IProgramGridSelection,
   ProgramGrid_errorAt,
@@ -33,7 +32,7 @@ export interface IGridRowProps {
   rowIndex: number;
   columnWidth: number;
   laneHeight: number;
-  density: IProgramGridDensity;
+  showScheme: boolean;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   onAddExercise: (weekIndex: number, rowIndex: number) => void;
@@ -209,7 +208,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             laneIndex={laneIndex}
             columnWidth={props.columnWidth}
             laneHeight={props.laneHeight}
-            density={props.density}
+            showScheme={props.showScheme}
             selection={props.selection}
             onSelect={props.onSelect}
             onSetRepeatRange={props.onSetRepeatRange}

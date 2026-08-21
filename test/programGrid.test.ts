@@ -9,7 +9,6 @@ import {
   ProgramGrid_isRelated,
   ProgramGrid_laneNames,
   ProgramGrid_dayDataAt,
-  ProgramGrid_cellScheme,
   ProgramGrid_errorAt,
   IProgramGrid,
   IProgramGridPlacement,
@@ -380,12 +379,6 @@ Bench Press / 5x5 50lb
     it("returns nothing for a row or week that holds no run", () => {
       expect(placementsAt(grid, 9, 0)).to.eql([]);
       expect(ProgramGrid_errorAt(grid, 0, 0)).to.equal(undefined);
-    });
-
-    it("drops the scheme at the smallest density, keeps it otherwise", () => {
-      const placement = grid.placements[0];
-      expect(ProgramGrid_cellScheme(placement, 0)).to.eql([]);
-      expect(ProgramGrid_cellScheme(placement, 1)).to.eql(placement.scheme);
     });
   });
 });

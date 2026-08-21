@@ -3,12 +3,7 @@ import { View, Platform } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useRem } from "../../../utils/useRem";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
-import {
-  IProgramGrid,
-  IProgramGridDensity,
-  IProgramGridPlacement,
-  IProgramGridSelection,
-} from "../../../pages/planner/models/programGrid";
+import { IProgramGrid, IProgramGridPlacement, IProgramGridSelection } from "../../../pages/planner/models/programGrid";
 import {
   GRID_CELL_INSET_Y,
   GRID_CELL_INSET_X,
@@ -27,7 +22,7 @@ export interface ILaneRowProps {
   laneIndex: number;
   columnWidth: number;
   laneHeight: number;
-  density: IProgramGridDensity;
+  showScheme: boolean;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
@@ -153,7 +148,7 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
                     : segment.span)
                 }
                 height={props.laneHeight}
-                density={props.density}
+                showScheme={props.showScheme}
                 selection={props.selection}
                 onSelect={props.onSelect}
                 isResizing={webResize?.id === segment.placement.id}

@@ -30,7 +30,9 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
     target.kind === "day" || target.kind === "week" ? target.name : target.placements.map((p) => p.fullName).join(", ");
   // Distinct exercises, not placements: a placement is one *run* of an exercise, so an undulating
   // day would otherwise report a count several times its actual size.
-  const exerciseCount = target.kind === "day" ? new Set(target.placements.map((p) => p.fullName)).size : 0;
+  // Keyed, so an exercise whose active variation differs between weeks counts once rather than once
+  // per spelling.
+  const exerciseCount = target.kind === "day" ? new Set(target.placements.map((p) => p.key)).size : 0;
   const caption =
     target.kind === "day"
       ? `${exerciseCount === 0 ? "empty" : `${exerciseCount} ${StringUtils_pluralize("exercise", exerciseCount)}`} · in every week`

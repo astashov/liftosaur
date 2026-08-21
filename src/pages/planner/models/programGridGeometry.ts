@@ -1,4 +1,4 @@
-import { IProgramGrid, IProgramGridDensity, IProgramGridPlacement, ProgramGrid_laneNames } from "./programGrid";
+import { IProgramGrid, IProgramGridPlacement, ProgramGrid_laneNames } from "./programGrid";
 
 // Where the grid's boxes sit, and what a pointer position means. Everything here is pure arithmetic
 // over the layout model, deliberately outside the components: a drop target can only be exercised
@@ -42,7 +42,10 @@ export interface IGridMetrics {
   columnWidth: number;
   totalWidth: number;
   laneHeight: number;
-  density: IProgramGridDensity;
+  // Whether a cell has room for its sets and weights, or shows the exercise name alone. It was a
+  // three-level `density` for a while, but only two levels were ever produced and only "any or
+  // none" was ever read.
+  showScheme: boolean;
   // What the pinch gesture should start from, which is the width actually in use rather than the
   // one that was asked for — a program that fits the screen has no explicit scale yet.
   scale: number;
@@ -60,12 +63,12 @@ export function ProgramGridGeometry_metrics(args: {
   const base = GRID_BASE_COLUMN_WIDTH * rem;
   const autoColumnWidth = weekCount > 0 && weekCount <= GRID_WEEKS_THAT_FIT ? containerWidth / weekCount : base;
   const columnWidth = args.scale != null ? base * args.scale : autoColumnWidth;
-  const density: IProgramGridDensity = columnWidth >= GRID_SCHEME_MIN_WIDTH * rem ? 2 : 0;
+  const showScheme = columnWidth >= GRID_SCHEME_MIN_WIDTH * rem;
   return {
     columnWidth,
     totalWidth: columnWidth * weekCount,
-    laneHeight: (density === 0 ? GRID_LANE_HEIGHT_NAME_ONLY : GRID_LANE_HEIGHT_WITH_SCHEME) * rem,
-    density,
+    laneHeight: (showScheme ? GRID_LANE_HEIGHT_WITH_SCHEME : GRID_LANE_HEIGHT_NAME_ONLY) * rem,
+    showScheme,
     scale: columnWidth / base,
   };
 }

@@ -74,7 +74,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const windowWidth = useWindowDimensions().width;
   const [containerWidth, setContainerWidth] = useState(windowWidth);
   const onLayout = useCallback((e: LayoutChangeEvent) => setContainerWidth(e.nativeEvent.layout.width), []);
-  const { columnWidth, totalWidth, laneHeight, density, scale } = ProgramGridGeometry_metrics({
+  const { columnWidth, totalWidth, laneHeight, showScheme, scale } = ProgramGridGeometry_metrics({
     weekCount: grid.columns.length,
     containerWidth,
     scale: props.scale,
@@ -176,7 +176,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
             exerciseCount: new Set(
               grid.placements
                 .filter((p) => p.colStart <= selectedWeek && p.colEnd >= selectedWeek)
-                .map((p) => `${p.rowIndex}:${p.fullName}`)
+                .map((p) => `${p.rowIndex}:${p.key}`)
             ).size,
           }
         : selectedDayRow != null && dayRow != null
@@ -285,7 +285,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     rowIndex={row.rowIndex}
                     columnWidth={columnWidth}
                     laneHeight={laneHeight}
-                    density={density}
+                    showScheme={showScheme}
                     selection={selection}
                     onSelect={onSelect}
                     onAddExercise={navigation.onAddExercise}

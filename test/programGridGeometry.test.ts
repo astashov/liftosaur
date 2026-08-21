@@ -102,10 +102,10 @@ Deadlift / 1x5 200lb
 
     it("drops the scheme and shrinks the lanes once a column gets narrow", () => {
       const wide = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 1, rem: 16 });
-      expect(wide.density).to.equal(2);
+      expect(wide.showScheme).to.equal(true);
       expect(wide.laneHeight).to.equal(3.25 * 16);
       const narrow = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 0.6, rem: 16 });
-      expect(narrow.density).to.equal(0);
+      expect(narrow.showScheme).to.equal(false);
       expect(narrow.laneHeight).to.equal(2 * 16);
     });
   });

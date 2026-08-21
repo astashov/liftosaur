@@ -7,11 +7,9 @@ import { FastText } from "../../primitives/fastText";
 import { StyledText, StyledText_remToPx } from "../../../utils/styledText";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import {
-  IProgramGridDensity,
   IProgramGridPlacement,
   IProgramGridSelection,
   IProgramGridTokenKind,
-  ProgramGrid_cellScheme,
   ProgramGrid_isRelated,
 } from "../../../pages/planner/models/programGrid";
 import { GRID_CELL_INSET_X, GRID_CELL_INSET_Y } from "../../../pages/planner/models/programGridGeometry";
@@ -20,7 +18,7 @@ export interface IGridCellProps {
   placement: IProgramGridPlacement;
   width: number;
   height: number;
-  density: IProgramGridDensity;
+  showScheme: boolean;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   isResizing: boolean;
@@ -29,7 +27,7 @@ export interface IGridCellProps {
 export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
   const rem = useRem();
   const { placement, selection } = props;
-  const scheme = ProgramGrid_cellScheme(placement, props.density);
+  const scheme = props.showScheme ? placement.scheme : [];
   const isSelected = selection?.selectedIds.has(placement.id) ?? false;
   const isLinked = selection?.linkedIds.has(placement.id) ?? false;
   const isRelated = ProgramGrid_isRelated(selection, placement.id);

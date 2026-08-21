@@ -1110,6 +1110,57 @@ Squat[1-2] / 3x5 100lb
   // A clean-slate review, told nothing about what had been looked at before. Everything it found
   // was at one seam: a strip is what the program *means*, a line is what it *says*, and the two do
   // not correspond one to one.
+  describe("refuseIfWorse", () => {
+    // Row 0 holds a template in Week 1, which Week 1's Day 2 reuses, and a broken exercise in Week
+    // 2. Deleting the row takes both: Week 2's failure goes away and Week 1 Day 2 breaks, so the
+    // number of failing days is identical before and after. Only matching days by id can see it.
+    const SUBSTITUTION = `# Week 1
+## Day 1
+tpl / used: none / 3x5
+
+## Day 2
+Bench Press / ...tpl
+
+# Week 2
+## Day 1
+Squat / ...Nonexistent
+
+## Day 2
+Squat / 3x5
+`;
+
+    function withDayIds(text: string): IPlannerProgram {
+      const planner = plannerOf(text);
+      planner.weeks.forEach((week, weekIndex) => {
+        week.id = `w${weekIndex}`;
+        week.days.forEach((day, dayIndex) => {
+          day.id = `w${weekIndex}d${dayIndex}`;
+        });
+      });
+      return planner;
+    }
+
+    it("refuses an edit that breaks a day even when another day's failure disappears", () => {
+      const result = PlannerStructure_deleteDayRow(withDayIds(SUBSTITUTION), 0, Settings_build());
+      expect(result.success).to.equal(false);
+    });
+
+    // The honest limit of the fallback, written down so nobody reads a passing test here as proof
+    // the check is airtight. Programs in the app always have ids — the storage migration and the
+    // backfill in screenProgram see to that — but a planner parsed from text, which is every other
+    // test in this file, does not.
+    it("cannot see that substitution without ids, and falls back to counting failures", () => {
+      const result = PlannerStructure_deleteDayRow(plannerOf(SUBSTITUTION), 0, Settings_build());
+      expect(result.success).to.equal(true);
+    });
+
+    it("still allows an edit that merely moves an existing failure around", () => {
+      const planner = withDayIds(`# Week 1\n## Day 1\nSquat / ...Missing\n\n# Week 2\n## Day 1\nBench Press / 1x1\n`);
+      const result = PlannerStructure_moveWeek(planner, 0, 1, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+    });
+  });
+
   describe("a strip is not a line", () => {
     const OVERRIDDEN = `# W1\n## D1\nSquat[1-4] / 3x5 100lb\n\n# W2\n## D1\n\n# W3\n## D1\nSquat / 5x3 200lb\n\n# W4\n## D1\n\n# W5\n## D1\n`;
 

@@ -565,37 +565,65 @@ export function PlannerStructure_deleteDayRow(
 // than trying to enumerate them, check the answer: if the edit breaks something that evaluated
 // cleanly before, refuse and say what broke. Enumerating is how silent corruption gets shipped.
 function refuseIfWorse(before: IPlannerProgram, after: IPlannerProgram, settings: ISettings): IPlannerStructureResult {
-  // How many days fail to evaluate, not which messages they carry. Message text is not stable
-  // across a structural edit — it embeds the week number and the source position, so "no such
-  // exercise Missing at week: 1" becomes "... at week: 2" when the week moves, and comparing
-  // strings called that an introduced error and refused a valid move. Counting failures asks the
-  // question this check actually cares about: did the edit break a day that used to work?
+  // Ask it of each day individually: was this day fine before, and is it broken now?
   //
-  // The gap it accepts: a day that failed before and fails differently after is not caught. The
-  // transforms never repair an error, so a swap would mean an edit both broke and fixed something
-  // in one step, which none of them can do.
-  const brokenBefore = failingDays(before, settings);
-  const brokenAfter = failingDays(after, settings);
+  // Days are matched by id rather than by position, because a structural edit moves them, and not
+  // by message, because a message embeds the week it happened in — "no such exercise Missing at
+  // week: 1" becomes "... at week: 2" when the week moves, which once made a legitimate move look
+  // like a new error and refused it. A day the edit removed is not compared at all: it was meant to
+  // go.
+  const beforeDays = dayOutcomes(before, settings);
+  const afterDays = dayOutcomes(after, settings);
+  const identified = [...beforeDays, ...afterDays].every((day) => day.id != null);
+  if (identified) {
+    const wasFine = new Set(beforeDays.filter((day) => day.failure == null).map((day) => day.id));
+    const broken = afterDays.find((day) => day.failure != null && wasFine.has(day.id));
+    if (broken != null) {
+      return { success: false, error: `That would break the program: ${broken.failure}` };
+    }
+    return { success: true, data: after };
+  }
+
+  // Without ids there is nothing to match days by, so fall back to counting failures. That misses a
+  // *substitution* — one day going green while another goes red keeps the count the same — which
+  // matters because deleting a week or a day removes whatever was failing inside it, so exactly the
+  // destructive edits this guards can hide a new break behind a removed one.
+  //
+  // This is the path a planner parsed straight from text takes, which is every test in this
+  // module; the app itself always has ids, from the storage migration and the backfill in
+  // screenProgram. Worth knowing when reading a test that says an edit is refused: it proves less
+  // than the same edit does in the app.
+  const brokenBefore = beforeDays.filter((day) => day.failure != null);
+  const brokenAfter = afterDays.filter((day) => day.failure != null);
   if (brokenAfter.length > brokenBefore.length) {
-    const introduced = brokenAfter.find((message) => brokenBefore.indexOf(message) === -1) ?? brokenAfter[0];
-    return { success: false, error: `That would break the program: ${introduced}` };
+    const messages = brokenBefore.map((day) => day.failure);
+    const introduced = brokenAfter.find((day) => messages.indexOf(day.failure) === -1) ?? brokenAfter[0];
+    return { success: false, error: `That would break the program: ${introduced.failure}` };
   }
   return { success: true, data: after };
 }
 
 // One message per day that fails to evaluate. The messages are for showing the user which day
 // broke; the count is what the check is made of.
-function failingDays(planner: IPlannerProgram, settings: ISettings): string[] {
+interface IDayOutcome {
+  // Days carry a stable id once a program has been through the store, but a planner parsed straight
+  // from text has none — see refuseIfWorse for what that costs.
+  id: string | undefined;
+  failure: string | undefined;
+}
+
+function dayOutcomes(planner: IPlannerProgram, settings: ISettings): IDayOutcome[] {
   const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
-  const result: string[] = [];
-  for (const week of evaluatedWeeks) {
-    for (const day of week) {
-      if (!day.success) {
-        result.push(day.error.message);
-      }
-    }
-  }
-  return result;
+  return planner.weeks.reduce<IDayOutcome[]>(
+    (acc, week, weekIndex) => [
+      ...acc,
+      ...week.days.map((day, dayIndex) => {
+        const evaluated = evaluatedWeeks[weekIndex]?.[dayIndex];
+        return { id: day.id, failure: evaluated != null && !evaluated.success ? evaluated.error.message : undefined };
+      }),
+    ],
+    []
+  );
 }
 
 // Appends a copy of the day to every week. Appending is what keeps this safe: no existing slot
@@ -843,11 +871,7 @@ export interface IPlannerStructureExerciseTarget {
   fullName: string;
 }
 
-// Deletes exercises. Unlike every other transform here this one works on the *evaluated* program
-// and prints it back through ProgramToPlanner, rather than splicing text: removing an exercise has
-// to take its repeats with it, and the evaluated structure is where "this run, in these weeks"
-// already exists. It is the same mechanism the older per-exercise editor uses, minus that one's
-// dialog — a transform reports a refusal, it doesn't show one.
+// Deletes exercises, by splicing their lines out of the text like every other transform here.
 export function PlannerStructure_deleteExercises(
   planner: IPlannerProgram,
   targets: IPlannerStructureExerciseTarget[],

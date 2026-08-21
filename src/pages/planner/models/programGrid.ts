@@ -68,8 +68,6 @@ export interface IProgramGrid {
   errors: IProgramGridError[];
 }
 
-export type IProgramGridDensity = 0 | 1 | 2;
-
 interface IOpenRun {
   placement: IProgramGridPlacement;
   definingText: string;
@@ -326,15 +324,6 @@ export function ProgramGrid_counts(grid: IProgramGrid): { weeks: number; exercis
   return { weeks: grid.columns.length, exercises: exerciseKeys.size, templates: templateKeys.size };
 }
 
-// Density decides whether the scheme shows at all, never how much of it — the full text is handed
-// to the view so it ellipsizes only when it genuinely doesn't fit the column.
-export function ProgramGrid_cellScheme(
-  placement: IProgramGridPlacement,
-  density: IProgramGridDensity
-): IProgramGridSchemeToken[] {
-  return density === 0 ? [] : placement.scheme;
-}
-
 export function ProgramGrid_errorAt(
   grid: IProgramGrid,
   rowIndex: number,
@@ -366,7 +355,11 @@ export function ProgramGrid_select(grid: IProgramGrid, placementIds: string[]): 
     if (selectedIds.has(placement.id)) {
       continue;
     }
-    if (placements.some((s) => s.fullName === placement.fullName)) {
+    // By key, not by name. A multi-variation exercise is spelled differently in the weeks where a
+    // different variation is active — `!Squat | Front Squat` and `Squat | !Front Squat` are one
+    // exercise with one key, and comparing names left the second one dimmed as unrelated to the
+    // first. Everything that decides identity uses the key; this was the last place that didn't.
+    if (placements.some((s) => s.key === placement.key)) {
       sameExerciseIds.add(placement.id);
     } else if (placements.some((s) => s.reuseOf === placement.fullName || s.fullName === placement.reuseOf)) {
       linkedIds.add(placement.id);
