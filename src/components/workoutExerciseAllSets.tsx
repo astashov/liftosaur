@@ -33,6 +33,7 @@ import { memo, useCallback, useMemo } from "react";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { useTrackClick } from "../utils/clickTracking";
 import { useRem } from "../utils/useRem";
+import { IWeightPlatesResult, Weight_calculatePlatesForSets } from "../models/weight";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -55,6 +56,7 @@ interface IWorkoutExerciseAllSets {
   otherStates?: IByExercise<IProgramState>;
   settings: ISettings;
   dispatch: IDispatch;
+  plateResults?: ReadonlyMap<string, IWeightPlatesResult>;
 }
 
 function getTargetColumnLabel(targetType: ITargetType): string {
@@ -83,6 +85,12 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
     warmupSets[0]?.weight?.unit ??
     Equipment_getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
+  const plateResults = useMemo(() => {
+    if (props.plateResults != null) {
+      return props.plateResults;
+    }
+    return Weight_calculatePlatesForSets([...warmupSets, ...sets], props.settings, props.exerciseType);
+  }, [props.plateResults, warmupSets, sets, props.settings, props.exerciseType]);
   const lbEntry = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex), [props.entryIndex]);
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const remValue = useRem();
@@ -205,6 +213,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             lbSets={props.lbWarmupSets}
             lbSet={lbWarmupSetByIndex[i]}
             set={set}
+            plateResult={plateResults.get(set.id)}
             entryIndex={props.entryIndex}
             isNext={nextSetIndex === i}
             setIndex={i}
@@ -231,6 +240,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             lbSets={props.lbSets}
             lbSet={lbSetByIndex[i]}
             set={set}
+            plateResult={plateResults.get(set.id)}
             entryIndex={props.entryIndex}
             setIndex={i}
             columnWidths={columnWidths}

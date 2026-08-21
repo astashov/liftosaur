@@ -6,6 +6,8 @@ import {
   Weight_calculatePlates,
   Weight_platesWeight,
   Weight_formatOneSide,
+  Weight_formatOneSideOrdered,
+  Weight_calculatePlatesSequence,
   Weight_strictParse,
 } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
@@ -131,6 +133,114 @@ describe("Weight", () => {
     });
   });
 
+  describe(".calculatePlatesSequence()", () => {
+    it("preserves a useful inner stack across increasing targets", () => {
+      const settings = buildSettings(
+        [
+          { weight: Weight_build(10, "lb"), num: 2 },
+          { weight: Weight_build(5, "lb"), num: 2 },
+          { weight: Weight_build(2, "lb"), num: 2 },
+        ],
+        0
+      );
+      const results = Weight_calculatePlatesSequence(
+        [Weight_build(24, "lb"), Weight_build(34, "lb")],
+        settings,
+        "lb",
+        exerciseType
+      );
+
+      expect(results.map((result) => result.totalWeight)).to.eql([Weight_build(24, "lb"), Weight_build(34, "lb")]);
+      expect(results[1].plates).to.eql([
+        { weight: Weight_build(10, "lb"), num: 2 },
+        { weight: Weight_build(2, "lb"), num: 2 },
+        { weight: Weight_build(5, "lb"), num: 2 },
+      ]);
+      expect(Weight_formatOneSideOrdered(settings, results[1].plates, exerciseType)).to.equal("10/2/5");
+      expect(Weight_formatOneSide(settings, results[1].plates, exerciseType)).to.equal("10/5/2");
+    });
+
+    it("retains the conventional descending answer when ordering saves no actions", () => {
+      const settings = buildSettings(
+        [
+          { weight: Weight_build(10, "lb"), num: 2 },
+          { weight: Weight_build(5, "lb"), num: 2 },
+          { weight: Weight_build(2, "lb"), num: 2 },
+        ],
+        0
+      );
+      const result = Weight_calculatePlatesSequence([Weight_build(24, "lb")], settings, "lb", exerciseType)[0];
+      expect(result.plates).to.eql([
+        { weight: Weight_build(10, "lb"), num: 2 },
+        { weight: Weight_build(2, "lb"), num: 2 },
+      ]);
+    });
+
+    it("uses exact gram units for kilogram plates", () => {
+      const settings = buildSettings(
+        [
+          { weight: Weight_build(10, "kg"), num: 2 },
+          { weight: Weight_build(2.5, "kg"), num: 2 },
+          { weight: Weight_build(1.25, "kg"), num: 2 },
+        ],
+        0
+      );
+      const results = Weight_calculatePlatesSequence(
+        [Weight_build(22.5, "kg"), Weight_build(27.5, "kg")],
+        settings,
+        "kg",
+        exerciseType
+      );
+
+      expect(results.map((result) => result.totalWeight)).to.eql([Weight_build(22.5, "kg"), Weight_build(27.5, "kg")]);
+      expect(Weight_formatOneSideOrdered(settings, results[1].plates, exerciseType)).to.equal("10/1.25/2.5");
+    });
+
+    it("keeps the legacy result for plate precision below one milli-unit", () => {
+      const settings = buildSettings([{ weight: Weight_build(0.3333, "lb"), num: 2 }], 0);
+      const result = Weight_calculatePlatesSequence([Weight_build(0.6666, "lb")], settings, "lb", exerciseType)[0];
+      expect(result.plates).to.eql([{ weight: Weight_build(0.3333, "lb"), num: 2 }]);
+      expect(result.totalWeight).to.eql(Weight_build(0.6666, "lb"));
+    });
+
+    it("preserves assisting equipment with a bodyweight bar", () => {
+      const settings = buildSettings(
+        [
+          { weight: Weight_build(10, "lb"), num: 4 },
+          { weight: Weight_build(5, "lb"), num: 2 },
+        ],
+        0
+      );
+      const equipment = settings.gyms[0].equipment.barbell!;
+      equipment.multiplier = 1;
+      equipment.useBodyweightForBar = true;
+      equipment.isAssisting = true;
+      settings.currentBodyweight = Weight_build(100, "lb");
+      const targets = [Weight_build(80, "lb"), Weight_build(70, "lb")];
+      const results = Weight_calculatePlatesSequence(targets, settings, "lb", exerciseType);
+
+      expect(results.map((result) => result.totalWeight)).to.eql(targets);
+      expect(results.map((result) => result.platesWeight)).to.eql([Weight_build(-20, "lb"), Weight_build(-30, "lb")]);
+    });
+
+    it("handles intermediate and advanced sequences with the default inventory", () => {
+      const settings = buildSettings([
+        { weight: Weight_build(45, "lb"), num: 8 },
+        { weight: Weight_build(25, "lb"), num: 4 },
+        { weight: Weight_build(10, "lb"), num: 4 },
+        { weight: Weight_build(5, "lb"), num: 4 },
+        { weight: Weight_build(2.5, "lb"), num: 4 },
+        { weight: Weight_build(1.25, "lb"), num: 2 },
+      ]);
+      const targets = [45, 135, 225, 315, 405, 495, 455, 495].map((value) => Weight_build(value, "lb"));
+      const results = Weight_calculatePlatesSequence(targets, settings, "lb", exerciseType);
+      expect(results.map((result) => result.totalWeight)).to.eql(targets);
+
+      const legacy = targets.map((target) => Weight_calculatePlates(target, settings, "lb", exerciseType));
+      expect(sequenceActionCount(results, 2)).to.be.at.most(sequenceActionCount(legacy, 2));
+    });
+  });
+
   describe(".platesWeight()", () => {
     it("calculates properly", () => {
       const plates = [
@@ -171,3 +281,20 @@ describe("Weight", () => {
     });
   });
 });
+
+function sequenceActionCount(results: { plates: IPlate[] }[], multiplier: number): number {
+  let actions = 0;
+  let previous: number[] = [];
+  for (const result of [...results, { plates: [] }]) {
+    const current = result.plates.flatMap((plate) =>
+      new Array(Math.floor(plate.num / multiplier)).fill(plate.weight.value)
+    );
+    let retained = 0;
+    while (retained < previous.length && retained < current.length && previous[retained] === current[retained]) {
+      retained += 1;
+    }
+    actions += previous.length + current.length - 2 * retained;
+    previous = current;
+  }
+  return actions;
+}
