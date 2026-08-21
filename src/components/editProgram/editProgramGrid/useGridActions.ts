@@ -109,10 +109,14 @@ export function useGridActions(args: {
 
   const onDeletePlacements = useCallback(
     (placements: IProgramGridPlacement[]) => {
-      const targets = placements.map((placement) => ({
-        ...ProgramGrid_dayDataAt(grid, placement),
-        fullName: placement.fullName,
-      }));
+      // One target per line behind the strip: a strip drawn from two identically written weeks has
+      // two, and deleting only the one it starts in leaves the other behind.
+      const targets = placements.flatMap((placement) =>
+        placement.sourceWeeks.map((week) => ({
+          ...ProgramGrid_dayDataAt(grid, placement.rowIndex, week),
+          fullName: placement.fullName,
+        }))
+      );
       applyTransform(
         (planner) => ProgramGridTransforms_deleteExercises(planner, targets, settings),
         `Delete ${placements.length} exercise(s) from grid`,
@@ -139,7 +143,9 @@ export function useGridActions(args: {
         (planner) =>
           ProgramGridTransforms_setRepeatRange(
             planner,
-            ProgramGrid_dayDataAt(grid, placement),
+            // The line's week, not the strip's: resizing a fragment of an interrupted repeat has to
+            // widen the line that produces it, not plant a new one where the fragment is drawn.
+            ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.sourceWeeks[0] ?? placement.colStart),
             placement.fullName,
             toWeekIndex + 1,
             settings

@@ -15,7 +15,7 @@ import {
   ProgramGridTransforms_addWeek,
 } from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
-import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
+import { ProgramGrid_build, ProgramGrid_dayDataAt } from "../src/pages/planner/models/programGrid";
 import { Program_evaluate, Program_create } from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
 import { IPlannerProgram, IProgram } from "../src/types";
@@ -1095,6 +1095,105 @@ Squat[1-2] / 3x5 100lb
       const planner = plannerOf(`# W1\n## D1\nSquat / ...Missing\n\n# W2\n## D1\nBench Press / 1x1\n`);
       const result = ProgramGridTransforms_moveWeek(planner, 0, 1, Settings_build());
       expect(result.success, !result.success ? result.error : "").to.equal(true);
+    });
+  });
+
+  // A clean-slate review, told nothing about what had been looked at before. Everything it found
+  // was at one seam: a strip is what the program *means*, a line is what it *says*, and the two do
+  // not correspond one to one.
+  describe("a strip is not a line", () => {
+    const OVERRIDDEN = `# W1\n## D1\nSquat[1-4] / 3x5 100lb\n\n# W2\n## D1\n\n# W3\n## D1\nSquat / 5x3 200lb\n\n# W4\n## D1\n\n# W5\n## D1\n`;
+
+    function gridOf(planner: IPlannerProgram) {
+      return ProgramGrid_build(
+        Program_evaluate({ ...Program_create("P"), planner }, Settings_build()),
+        Settings_build()
+      );
+    }
+    function stripStartingAt(planner: IPlannerProgram, colStart: number) {
+      const strip = gridOf(planner)
+        .placements.filter((p) => p.fullName === "Squat")
+        .find((p) => p.colStart === colStart);
+      expect(strip, `expected a Squat strip starting at ${colStart}`).to.not.equal(undefined);
+      return strip!;
+    }
+    function targetsFor(planner: IPlannerProgram, strip: { rowIndex: number; sourceWeeks: number[] }) {
+      return strip.sourceWeeks.map((week) => ({
+        ...ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, week),
+        fullName: "Squat",
+      }));
+    }
+
+    it("records which weeks hold the lines behind a strip", () => {
+      const planner = plannerOf(OVERRIDDEN);
+      // The W4 fragment is drawn from W1's line; the W3 override is its own.
+      expect(stripStartingAt(planner, 3).sourceWeeks).to.eql([0]);
+      expect(stripStartingAt(planner, 2).sourceWeeks).to.eql([2]);
+      expect(stripStartingAt(planner, 0).sourceWeeks).to.eql([0]);
+    });
+
+    it("records both lines when two identical weeks collapse into one strip", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat / 3x5 100lb\n\n# W2\n## D1\nSquat / 3x5 100lb\n`);
+      expect(stripStartingAt(planner, 0).sourceWeeks).to.eql([0, 1]);
+    });
+
+    it("widens the line behind a fragment rather than planting a new one where it is drawn", () => {
+      const planner = plannerOf(OVERRIDDEN);
+      const strip = stripStartingAt(planner, 3);
+      const result = ProgramGridTransforms_setRepeatRange(
+        planner,
+        ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.sourceWeeks[0]),
+        "Squat",
+        5,
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect((result.data.weeks[0].days[0].exerciseText ?? "").trim()).to.equal("Squat[1-5] / 3x5 100lb");
+      expect((result.data.weeks[2].days[0].exerciseText ?? "").trim()).to.equal("Squat / 5x3 200lb");
+    });
+
+    it("deletes every line behind a strip, not just the week it starts in", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat / 3x5 100lb\n\n# W2\n## D1\nSquat / 3x5 100lb\n`);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        targetsFor(planner, stripStartingAt(planner, 0)),
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.map((w) => (w.days[0].exerciseText ?? "").trim())).to.eql(["", ""]);
+    });
+
+    it("leaves an override standing when the line it interrupts is deleted", () => {
+      const planner = plannerOf(OVERRIDDEN);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        targetsFor(planner, stripStartingAt(planner, 0)),
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect((result.data.weeks[2].days[0].exerciseText ?? "").trim()).to.contain("5x3");
+      expect((result.data.weeks[0].days[0].exerciseText ?? "").trim()).to.equal("");
+    });
+
+    it("refuses to delete an exercise whose description another one reuses", () => {
+      const planner = plannerOf(
+        `# W1\n## D1\n// source description\nSquat / 3x5 100lb\n// ...Squat\nBench Press / 3x5 100lb\n`
+      );
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
+        Settings_build()
+      );
+      expect(result.success).to.equal(false);
     });
   });
 });

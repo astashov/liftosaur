@@ -333,7 +333,11 @@ Bench Press / 5x5 50lb
 `);
       const secondWeekFirstDay = grid.placements.find((p) => p.rowIndex === 0 && p.colStart === 1);
       expect(secondWeekFirstDay, "expected a week-2 placement in row 0").to.not.equal(undefined);
-      expect(ProgramGrid_dayDataAt(grid, secondWeekFirstDay!)).to.eql({ week: 2, dayInWeek: 1, day: 3 });
+      expect(ProgramGrid_dayDataAt(grid, secondWeekFirstDay!.rowIndex, secondWeekFirstDay!.colStart)).to.eql({
+        week: 2,
+        dayInWeek: 1,
+        day: 3,
+      });
     });
 
     it("counts a ragged week by the days it actually has", () => {
@@ -353,7 +357,7 @@ Bench Press / 5x5 50lb
 Squat / 3x5 120lb
 `);
       const thirdWeek = grid.placements.find((p) => p.rowIndex === 0 && p.colStart === 2);
-      expect(ProgramGrid_dayDataAt(grid, thirdWeek!).day).to.equal(4);
+      expect(ProgramGrid_dayDataAt(grid, thirdWeek!.rowIndex, thirdWeek!.colStart).day).to.equal(4);
     });
   });
 

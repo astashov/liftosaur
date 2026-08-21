@@ -806,15 +806,21 @@ export function ProgramGridTransforms_deleteExercises(
     if (day == null || exercise == null) {
       continue;
     }
-    // The instance's own week plus every week it repeats into — deleting a strip deletes the run it
-    // draws, not just the cell under the finger.
+    // The line's own week plus the weeks it repeats into — deleting a strip deletes the run it
+    // draws, not just the cell under the finger. A week inside that span which authors its own line
+    // is a *different* line that happens to sit in the range: an override, or an independently
+    // written week. It survives, and only the instances this line produced are removed.
     const weeks = new Set<number>([target.week, ...exercise.repeating]);
     for (const week of weeks) {
       const exercises = evaluated.weeks[week - 1]?.days[target.dayInWeek - 1]?.exercises;
       const index = exercises?.findIndex((e) => e.key === targetKey) ?? -1;
-      if (exercises != null && index !== -1) {
-        exercises.splice(index, 1);
+      if (exercises == null || index === -1) {
+        continue;
       }
+      if (week !== target.week && !exercises[index].isRepeat) {
+        continue;
+      }
+      exercises.splice(index, 1);
     }
   }
   return refuseIfWorse(planner, new ProgramToPlanner(evaluated, settings).convertToPlanner(), settings);
@@ -832,6 +838,13 @@ function reusedNames(planner: IPlannerProgram, settings: ISettings): Set<string>
       for (const exercise of day.data) {
         if (exercise.reuse?.fullName != null) {
           result.add(exercise.reuse.fullName);
+        }
+        // A description can reuse another exercise's description (`// ...Squat`) just as sets can
+        // reuse its sets. Deleting the source leaves the dependent description as the literal text
+        // `...Squat`, which the evaluator no longer resolves and no longer complains about — so
+        // nothing downstream catches it and the author's note is simply gone.
+        if (exercise.descriptions?.reuse?.fullName != null) {
+          result.add(exercise.descriptions.reuse.fullName);
         }
       }
     }

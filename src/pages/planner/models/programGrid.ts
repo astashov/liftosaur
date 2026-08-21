@@ -39,6 +39,15 @@ export interface IProgramGridPlacement {
   // The weeks a `[from-to]` claims, which is not the same as the weeks this run covers: a run stops
   // where the text changes, a claim doesn't. Used to tell an override from independent authoring.
   repeatSpan?: [number, number];
+  // Which weeks hold the line or lines that produce this run — its provenance.
+  //
+  // A strip is not an editable unit: one line can draw several strips (a repeat interrupted by an
+  // override), and several identical lines can collapse into one strip. Every edit needs to know
+  // which lines the strip in front of the user actually came from, and the answer is free here,
+  // while the runs are being collapsed, but expensive and error-prone to reconstruct afterwards
+  // from week numbers alone. Reconstructing it is what every data-loss bug in this feature has had
+  // in common.
+  sourceWeeks: number[];
   isTemplate: boolean;
   isReuseSource: boolean;
   reuseOf?: string;
@@ -184,6 +193,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
         }
         if (open != null && exercise.text === open.definingText) {
           open.placement.colEnd = weekIndex;
+          addSourceWeek(open.placement, byWeek, lane, weekIndex, exercise);
           continue;
         }
         const schemeGroups = displaySetsToTokens(exercise, settings);
@@ -194,6 +204,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
         );
         const placement: IProgramGridPlacement = {
           id: `${rowIndex}:${lane}:${weekIndex}`,
+          sourceWeeks: [],
           key: exercise.key,
           fullName: exercise.fullName,
           rowIndex,
@@ -210,6 +221,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           isOverride: false,
           scheme,
         };
+        addSourceWeek(placement, byWeek, lane, weekIndex, exercise);
         lanePlacements.push(placement);
         open = { placement, definingText: exercise.text };
       }
@@ -236,6 +248,33 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
 
 // Everything below is derived from the grid rather than stored on it: a second copy of a fact is a
 // chance for the two to disagree after an edit.
+
+// Where the line behind one week of a run lives. An instance that is not a repeat holds its own
+// line; a repeat holds a copy of an earlier week's, and the one it copies is the nearest preceding
+// week with the same text that authored it — "same text" being what separates the line it repeats
+// from an override sitting in between.
+function addSourceWeek(
+  placement: IProgramGridPlacement,
+  byWeek: Record<string, IPlannerProgramExercise>[],
+  lane: string,
+  weekIndex: number,
+  exercise: IPlannerProgramExercise
+): void {
+  let source = weekIndex;
+  if (exercise.isRepeat) {
+    source = -1;
+    for (let back = weekIndex - 1; back >= 0; back -= 1) {
+      const previous = byWeek[back][lane];
+      if (previous != null && !previous.isRepeat && previous.text === exercise.text) {
+        source = back;
+        break;
+      }
+    }
+  }
+  if (source !== -1 && placement.sourceWeeks.indexOf(source) === -1) {
+    placement.sourceWeeks.push(source);
+  }
+}
 
 export function ProgramGrid_hasDay(row: IProgramGridRow, weekIndex: number): boolean {
   return row.namePerWeek[weekIndex] !== undefined;
@@ -264,12 +303,14 @@ export function ProgramGrid_weekDayCount(grid: IProgramGrid, weekIndex: number):
 //
 // `day` is the program-wide day counter the rest of the app uses, so it has to count the days of
 // every preceding week — including the short ones in a ragged program.
-export function ProgramGrid_dayDataAt(grid: IProgramGrid, placement: IProgramGridPlacement): Required<IDayData> {
-  let day = placement.rowIndex + 1;
-  for (let weekIndex = 0; weekIndex < placement.colStart; weekIndex += 1) {
-    day += ProgramGrid_weekDayCount(grid, weekIndex);
+// The week is explicit because the caller has to say which one it means: the week a strip is drawn
+// in is not always the week its line lives in.
+export function ProgramGrid_dayDataAt(grid: IProgramGrid, rowIndex: number, weekIndex: number): Required<IDayData> {
+  let day = rowIndex + 1;
+  for (let earlier = 0; earlier < weekIndex; earlier += 1) {
+    day += ProgramGrid_weekDayCount(grid, earlier);
   }
-  return { week: placement.colStart + 1, dayInWeek: placement.rowIndex + 1, day };
+  return { week: weekIndex + 1, dayInWeek: rowIndex + 1, day };
 }
 
 export function ProgramGrid_counts(grid: IProgramGrid): { weeks: number; exercises: number; templates: number } {

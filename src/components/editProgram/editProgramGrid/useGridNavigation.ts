@@ -32,7 +32,13 @@ export function useGridNavigation(args: {
 
   const onEditPlacement = useCallback(
     (placement: IProgramGridPlacement) => {
-      dispatch(Thunk_pushToEditProgramExercise(placement.key, ProgramGrid_dayDataAt(grid, placement), programId));
+      dispatch(
+        Thunk_pushToEditProgramExercise(
+          placement.key,
+          ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart),
+          programId
+        )
+      );
     },
     [dispatch, grid, programId]
   );
@@ -41,7 +47,7 @@ export function useGridNavigation(args: {
   // rather than editing anything itself.
   const onDuplicatePlacement = useCallback(
     (placement: IProgramGridPlacement) => {
-      const dayData = ProgramGrid_dayDataAt(grid, placement);
+      const dayData = ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart);
       const exercise = Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, placement.key);
       plannerDispatch(
         lb<IPlannerState>()
