@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { IGridDragAutoScroll } from "./gridDragAutoScroll";
 
 // One drag, in the shape all three of the grid's drags share: a pointer position resolves to a drop
@@ -73,5 +73,8 @@ export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTa
     [autoScroll]
   );
 
-  return { onDragStart, onDragMove, onDragEnd };
+  // Memoized because the whole chain above it is: useGridLaneDrag's callbacks depend on this
+  // object, useGridDrags spreads that into the bus, and every row reads the bus — so a fresh object
+  // here re-renders every row on every parent render, including under a live finger.
+  return useMemo(() => ({ onDragStart, onDragMove, onDragEnd }), [onDragStart, onDragMove, onDragEnd]);
 }

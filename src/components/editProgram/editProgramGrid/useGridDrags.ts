@@ -1,9 +1,8 @@
-import { RefObject, useCallback, useMemo, useRef } from "react";
-import { ScrollView, View, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
+import { useCallback, useMemo, useRef } from "react";
 import { SharedValue, useSharedValue } from "react-native-reanimated";
 import { IProgramGrid } from "../../../pages/planner/models/programGrid";
 import { IGridGeometryRow } from "../../../pages/planner/models/programGridGeometry";
-import { IGridDragAutoScroll, useGridDragAutoScroll } from "./gridDragAutoScroll";
+import { IGridDragAutoScroll } from "./gridDragAutoScroll";
 import { IGridLaneDrag, useGridLaneDrag } from "./useGridLaneDrag";
 
 // Everything the three drags share, in one place instead of scattered across the render tree.
@@ -40,19 +39,16 @@ export interface IGridDrags {
   autoScroll: IGridDragAutoScroll;
   // The exercise drag is owned here rather than by a row, because it can end in a different row.
   lane: IGridLaneDrag;
-  // Attach these to the horizontal scroller so a week drag can scroll it at the edges.
-  horizontalScrollRef: RefObject<ScrollView | null>;
-  horizontalViewportRef: RefObject<View | null>;
-  onHorizontalScroll: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 export function useGridDrags(args: {
   grid: IProgramGrid;
   geometry: IGridGeometryRow[];
   laneHeight: number;
-  // The grid's own horizontal extent, for clamping edge-scroll.
-  contentWidth: number;
-  containerWidth: number;
+  // Edge-scrolling drives the grid's own scroller, which the component renders — so the refs to it
+  // come in rather than being owned here. They are render plumbing; a bus that handed them out
+  // would be handing out mutable refs again, which is the thing this hook exists not to do.
+  autoScroll: IGridDragAutoScroll;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
 }): IGridDrags {
@@ -70,28 +66,11 @@ export function useGridDrags(args: {
   const gridRef = useRef(args.grid);
   gridRef.current = args.grid;
 
-  const horizontalScrollRef = useRef<ScrollView | null>(null);
-  const horizontalViewportRef = useRef<View | null>(null);
-  const horizontalOffsetRef = useRef(0);
-  const onHorizontalScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    horizontalOffsetRef.current = e.nativeEvent.contentOffset.x;
-  }, []);
-  const contentWidthRef = useRef(args.contentWidth);
-  contentWidthRef.current = args.contentWidth;
-  const containerWidthRef = useRef(args.containerWidth);
-  containerWidthRef.current = args.containerWidth;
-  const maxHorizontalScroll = useCallback(() => Math.max(0, contentWidthRef.current - containerWidthRef.current), []);
-
-  const autoScroll = useGridDragAutoScroll({
-    horizontalRef: horizontalScrollRef,
-    horizontalViewportRef,
-    horizontalOffsetRef,
-    maxHorizontalScroll,
-  });
-
   const getGeometry = useCallback(() => geometryRef.current, []);
   const getLaneHeight = useCallback(() => laneHeightRef.current, []);
   const getGrid = useCallback(() => gridRef.current, []);
+
+  const autoScroll = args.autoScroll;
 
   const lane = useGridLaneDrag({
     getGrid,
@@ -120,9 +99,6 @@ export function useGridDrags(args: {
       getGrid,
       autoScroll,
       lane,
-      horizontalScrollRef,
-      horizontalViewportRef,
-      onHorizontalScroll,
     }),
     [
       draggedRow,
@@ -136,7 +112,6 @@ export function useGridDrags(args: {
       getGrid,
       autoScroll,
       lane,
-      onHorizontalScroll,
     ]
   );
 }

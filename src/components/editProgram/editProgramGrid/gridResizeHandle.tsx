@@ -13,6 +13,9 @@ interface IGridResizeHandleProps {
   left: number;
   top: number;
   height: number;
+  // Unused on web: Reanimated is stubbed here, and the responder-based handle below has no pan for
+  // a re-render to cancel, so the preview stays state-driven and `left` moves with it.
+  offsetX: unknown;
 }
 
 // react-native-gesture-handler is stubbed to no-ops on web (utils/rnStubs/gestureHandler.js), so

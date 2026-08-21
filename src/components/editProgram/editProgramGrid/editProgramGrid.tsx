@@ -1,5 +1,13 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
-import { View, ScrollView, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  View,
+  ScrollView,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 import { lb } from "lens-shmens";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
@@ -29,6 +37,7 @@ import { useGridPinch } from "./gridPinch";
 import { useGridActions } from "./useGridActions";
 import { useGridNavigation } from "./useGridNavigation";
 import { useGridSelectionState } from "./useGridSelectionState";
+import { useGridDragAutoScroll } from "./gridDragAutoScroll";
 import { useGridDrags } from "./useGridDrags";
 import { WeekHeaderRow } from "./gridWeekHeaderRow";
 import { GridRow } from "./gridRow";
@@ -121,12 +130,32 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // Every drag's shared values, refs and edge-scrolling live together in one hook rather than in
   // this component's state — see useGridDrags. What comes back is a bus the rows and columns read,
   // plus the exercise drag, which is the one the grid owns because it can cross rows.
+  // The scroller belongs to this component, so its refs live here and go into auto-scroll rather
+  // than onto the drag bus. The "+ Week" button sits past the last column, so the content is one
+  // column wider than the grid.
+  const horizontalScrollRef = useRef<ScrollView | null>(null);
+  const horizontalViewportRef = useRef<View | null>(null);
+  const horizontalOffsetRef = useRef(0);
+  const onHorizontalScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    horizontalOffsetRef.current = e.nativeEvent.contentOffset.x;
+  }, []);
+  const contentWidthRef = useRef(0);
+  contentWidthRef.current = totalWidth + columnWidth;
+  const containerWidthRef = useRef(0);
+  containerWidthRef.current = containerWidth;
+  const maxHorizontalScroll = useCallback(() => Math.max(0, contentWidthRef.current - containerWidthRef.current), []);
+  const autoScroll = useGridDragAutoScroll({
+    horizontalRef: horizontalScrollRef,
+    horizontalViewportRef,
+    horizontalOffsetRef,
+    maxHorizontalScroll,
+  });
+
   const drags = useGridDrags({
     grid,
     geometry,
     laneHeight,
-    contentWidth: totalWidth + columnWidth,
-    containerWidth,
+    autoScroll,
     onReorderExercisesInDay: actions.onReorderExercisesInDay,
     onMoveExerciseToDay: actions.onMoveExerciseToDay,
   });
@@ -196,7 +225,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   useEffect(() => () => publishSelection(undefined), [publishSelection]);
 
   return (
-    <View className="pb-4" onLayout={onLayout} ref={drags.horizontalViewportRef}>
+    <View className="pb-4" onLayout={onLayout} ref={horizontalViewportRef}>
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-xs text-text-secondary">
           {counts.weeks} {StringUtils_pluralize("week", counts.weeks)} · {counts.exercises}{" "}
@@ -226,8 +255,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={true}
-          ref={drags.horizontalScrollRef}
-          onScroll={drags.onHorizontalScroll}
+          ref={horizontalScrollRef}
+          onScroll={onHorizontalScroll}
           scrollEventThrottle={16}
         >
           {/* Deliberately not a Pressable for tap-to-clear. A day name is a gesture detector rather

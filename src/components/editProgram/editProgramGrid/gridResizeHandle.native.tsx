@@ -1,7 +1,7 @@
 import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import Animated, { runOnJS, SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IGridResizeHandleProps {
@@ -16,6 +16,10 @@ interface IGridResizeHandleProps {
   left: number;
   top: number;
   height: number;
+  // How far the handle currently sits from its committed position. A shared value rather than a
+  // changing `left`, because the finger is on this view: re-rendering it every frame rebuilds the
+  // subtree under an active pan, which is what cancels one.
+  offsetX: SharedValue<number>;
 }
 
 export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResizeHandleProps): JSX.Element {
@@ -38,11 +42,13 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
     [columnWidth, onResize, onResizeEnd]
   );
 
+  const followStyle = useAnimatedStyle(() => ({ transform: [{ translateX: props.offsetX.value }] }));
+
   return (
     <GestureDetector gesture={gesture}>
-      <View
+      <Animated.View
         className="absolute items-center justify-center"
-        style={{ width: props.width, left: props.left, top: props.top, height: props.height }}
+        style={[{ width: props.width, left: props.left, top: props.top, height: props.height }, followStyle]}
         testID="grid-resize-handle"
         accessibilityLabel="Drag to change how many weeks this repeats for"
       >
@@ -54,7 +60,7 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
             backgroundColor: Tailwind_semantic().icon.purple,
           }}
         />
-      </View>
+      </Animated.View>
     </GestureDetector>
   );
 });

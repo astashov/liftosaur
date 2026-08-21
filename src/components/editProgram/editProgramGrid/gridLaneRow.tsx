@@ -1,6 +1,8 @@
 import { JSX, memo, useCallback, useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useRem } from "../../../utils/useRem";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import {
   IProgramGrid,
   IProgramGridDensity,
@@ -9,6 +11,7 @@ import {
 } from "../../../pages/planner/models/programGrid";
 import {
   GRID_CELL_INSET_Y,
+  GRID_CELL_INSET_X,
   GRID_RESIZE_HANDLE_WIDTH,
   ProgramGridGeometry_clampWeek,
   ProgramGridGeometry_laneSegments,
@@ -36,7 +39,7 @@ export interface ILaneRowProps {
 
 export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element {
   const rem = useRem();
-  const { grid, rowIndex, laneIndex, onLaneDragStart, onLaneDragMove } = props;
+  const { grid, rowIndex, laneIndex, onLaneDragStart, onLaneDragMove, columnWidth } = props;
   // Stable for the same reason the day handlers are: a rebuilt gesture drops the drag.
   const onDragStartLane = useCallback(
     (absolute: number) => onLaneDragStart(rowIndex, laneIndex, absolute),
@@ -46,8 +49,12 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
     (dy: number, absolute: number) => onLaneDragMove(rowIndex, laneIndex, dy, absolute),
     [onLaneDragMove, rowIndex, laneIndex]
   );
-  // Held here rather than at the top so a drag only re-renders its own lane.
-  const [resize, setResize] = useState<{ id: string; deltaWeeks: number } | undefined>(undefined);
+  // The live preview rides shared values on native: the finger is on the resize handle, and a
+  // re-render of the subtree under it cancels the pan. Web keeps a state-driven preview — Reanimated
+  // is stubbed there and its handle uses the responder system, which has no pan to cancel.
+  const resizePreviewEnd = useSharedValue(-1);
+  const resizeHandleOffset = useSharedValue(0);
+  const [webResize, setWebResize] = useState<{ id: string; colEnd: number } | undefined>(undefined);
   const segments = useMemo(
     () => ProgramGridGeometry_laneSegments(grid, rowIndex, laneIndex),
     [grid, rowIndex, laneIndex]
@@ -60,31 +67,56 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
     return withPlacement[withPlacement.length - 1]?.placement;
   }, [segments]);
 
-  // The pending drag is mirrored in a ref so the commit can read it from an event handler. Doing it
-  // inside the setState updater instead would dispatch during render, which React rejects — and the
-  // ref also makes the end/finalize pair idempotent, since the first one clears it.
-  const resizeRef = useRef(resize);
-  resizeRef.current = resize;
-  const onResizeEnd = useCallback(() => {
-    const current = resizeRef.current;
-    resizeRef.current = undefined;
-    if (current != null && current.deltaWeeks !== 0) {
-      const placement = grid.placements.find((p) => p.id === current.id);
-      if (placement != null) {
-        props.onSetRepeatRange(placement, ProgramGridGeometry_clampWeek(grid, placement, current.deltaWeeks));
-      }
-    }
-    setResize(undefined);
-  }, [grid, props]);
+  // The pending drag is mirrored in a ref so the commit can read it from an event handler, and so
+  // the end/finalize pair is idempotent — the first one clears it.
+  const resizeRef = useRef<{ id: string; colEnd: number } | undefined>(undefined);
+  const onSetRepeatRange = props.onSetRepeatRange;
 
   const onResizeStart = useCallback(
     (deltaWeeks: number) => {
-      if (lastPlacement != null) {
-        setResize({ id: lastPlacement.id, deltaWeeks });
+      if (lastPlacement == null) {
+        return;
+      }
+      // Clamping happens here rather than in the preview, so what is drawn is exactly what a
+      // release would commit.
+      const colEnd = ProgramGridGeometry_clampWeek(grid, lastPlacement, deltaWeeks);
+      resizeRef.current = { id: lastPlacement.id, colEnd };
+      resizePreviewEnd.value = colEnd;
+      resizeHandleOffset.value = columnWidth * (colEnd - lastPlacement.colEnd);
+      if (Platform.OS === "web") {
+        setWebResize({ id: lastPlacement.id, colEnd });
       }
     },
-    [lastPlacement]
+    [grid, lastPlacement, columnWidth, resizePreviewEnd, resizeHandleOffset]
   );
+
+  const onResizeEnd = useCallback(() => {
+    const current = resizeRef.current;
+    resizeRef.current = undefined;
+    resizePreviewEnd.value = -1;
+    resizeHandleOffset.value = 0;
+    if (Platform.OS === "web") {
+      setWebResize(undefined);
+    }
+    if (current != null) {
+      const placement = grid.placements.find((p) => p.id === current.id);
+      if (placement != null && current.colEnd !== placement.colEnd) {
+        onSetRepeatRange(placement, current.colEnd);
+      }
+    }
+  }, [grid, onSetRepeatRange, resizePreviewEnd, resizeHandleOffset]);
+
+  // Width rather than a transform, deliberately: this is one leaf node with no children, and the
+  // rule it bends ("animate opacity and transform only") exists to stop per-frame layout commits
+  // across the whole grid. Nothing under the finger re-renders either way.
+  const previewColStart = lastPlacement?.colStart ?? 0;
+  const previewInset = 2 * GRID_CELL_INSET_X * rem;
+  const previewStyle = useAnimatedStyle(() => {
+    const end = resizePreviewEnd.value;
+    return end < 0
+      ? { opacity: 0, width: 0 }
+      : { opacity: 1, width: columnWidth * (end - previewColStart + 1) - previewInset };
+  });
 
   // Where the resize handle sits: the right edge of the last run's card, following the preview
   // while a resize is in flight.
@@ -92,10 +124,7 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
     lastPlacement == null
       ? 0
       : ProgramGridGeometry_resizeHandleLeft({
-          colEnd:
-            resize?.id === lastPlacement.id
-              ? ProgramGridGeometry_clampWeek(grid, lastPlacement, resize.deltaWeeks)
-              : lastPlacement.colEnd,
+          colEnd: webResize?.id === lastPlacement.id ? webResize.colEnd : lastPlacement.colEnd,
           columnWidth: props.columnWidth,
           rem,
         });
@@ -115,17 +144,15 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
                 placement={segment.placement}
                 width={
                   props.columnWidth *
-                  (resize?.id === segment.placement.id
-                    ? ProgramGridGeometry_clampWeek(grid, segment.placement, resize.deltaWeeks) -
-                      segment.placement.colStart +
-                      1
+                  (webResize?.id === segment.placement.id
+                    ? webResize.colEnd - segment.placement.colStart + 1
                     : segment.span)
                 }
                 height={props.laneHeight}
                 density={props.density}
                 selection={props.selection}
                 onSelect={props.onSelect}
-                isResizing={resize?.id === segment.placement.id}
+                isResizing={webResize?.id === segment.placement.id}
               />
             ) : (
               <View key={i} style={{ width: props.columnWidth * segment.span, height: props.laneHeight }} />
@@ -133,6 +160,22 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
           )}
         </View>
       </GridDragHandle>
+      {lastPlacement != null && Platform.OS !== "web" && (
+        <Animated.View
+          pointerEvents="none"
+          className="absolute rounded"
+          style={[
+            {
+              left: props.columnWidth * lastPlacement.colStart + GRID_CELL_INSET_X * rem,
+              top: GRID_CELL_INSET_Y * rem,
+              height: props.laneHeight - 2 * GRID_CELL_INSET_Y * rem,
+              borderWidth: 2,
+              borderColor: Tailwind_semantic().icon.purple,
+            },
+            previewStyle,
+          ]}
+        />
+      )}
       {lastPlacement != null && (
         <GridResizeHandle
           width={GRID_RESIZE_HANDLE_WIDTH * rem}
@@ -140,6 +183,7 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
           onResize={onResizeStart}
           onResizeEnd={onResizeEnd}
           left={resizeLeft}
+          offsetX={resizeHandleOffset}
           top={GRID_CELL_INSET_Y * rem}
           height={props.laneHeight - 2 * GRID_CELL_INSET_Y * rem}
         />
