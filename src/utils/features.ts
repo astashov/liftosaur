@@ -12,7 +12,7 @@ export interface IFeature {
 const affiliates: IFeature = {
   name: "affiliates",
   rollout: 0.0,
-  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz", "egedgruckx", "kaqcnvsbyq"],
+  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz", "egedgruckx", "kaqcnvsbyq", "ozlkwrauwl"],
 };
 
 export function Features_isEnabled(name: keyof typeof Features_features, userid?: string): boolean {
