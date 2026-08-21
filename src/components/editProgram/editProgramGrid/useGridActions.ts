@@ -139,12 +139,13 @@ export function useGridActions(args: {
             planner,
             ProgramGrid_dayDataAt(grid, placement),
             placement.fullName,
-            toWeekIndex + 1
+            toWeekIndex + 1,
+            settings
           ),
         `Repeat ${placement.fullName} through week ${toWeekIndex + 1}`
       );
     },
-    [applyTransform, grid]
+    [applyTransform, grid, settings]
   );
 
   const onAddWeek = useCallback(() => {

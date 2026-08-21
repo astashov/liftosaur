@@ -5,6 +5,9 @@ import {
   IGridGeometryRow,
   ProgramGridGeometry_build,
   ProgramGridGeometry_clampWeek,
+  ProgramGridGeometry_resizeHandleLeft,
+  GRID_CELL_INSET_X,
+  GRID_RESIZE_HANDLE_WIDTH,
   ProgramGridGeometry_dayDropAt,
   ProgramGridGeometry_gapForMove,
   ProgramGridGeometry_indexForGap,
@@ -254,6 +257,28 @@ Squat / 3x5 100lb
       const placement = grid.placements[0];
       expect(ProgramGridGeometry_clampWeek(grid, placement, 5)).to.equal(1);
       expect(ProgramGridGeometry_clampWeek(grid, placement, -5)).to.equal(placement.colStart);
+    });
+  });
+
+  describe("resize handle", () => {
+    // The handle sits at the run's trailing edge, inset so it stays inside the cell rather than
+    // straddling the boundary with the next column.
+    it("sits inside the last column the run covers", () => {
+      const left = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 100, rem: 16 });
+      expect(left).to.equal(100 - GRID_CELL_INSET_X * 16 - GRID_RESIZE_HANDLE_WIDTH * 16);
+      expect(left).to.be.lessThan(100);
+    });
+
+    it("moves one column right for each extra week the run spans", () => {
+      const one = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 100, rem: 16 });
+      const three = ProgramGridGeometry_resizeHandleLeft({ colEnd: 2, columnWidth: 100, rem: 16 });
+      expect(three - one).to.equal(200);
+    });
+
+    it("scales its inset with rem, so the Appearance slider moves it too", () => {
+      const small = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 100, rem: 8 });
+      const large = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 100, rem: 16 });
+      expect(large).to.be.lessThan(small);
     });
   });
 });

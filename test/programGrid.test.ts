@@ -8,6 +8,11 @@ import {
   ProgramGrid_schemeToString,
   ProgramGrid_select,
   ProgramGrid_isRelated,
+  ProgramGrid_laneNames,
+  ProgramGrid_dayDataAt,
+  ProgramGrid_cellScheme,
+  ProgramGrid_placementsAt,
+  ProgramGrid_errorAt,
   IProgramGrid,
   IProgramGridPlacement,
 } from "../src/pages/planner/models/programGrid";
@@ -260,5 +265,117 @@ Bench Press / 5x5 60lb
     const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
     expect(squat.laneIndex).to.equal(0);
     expect(bench.laneIndex).to.equal(1);
+  });
+
+  describe("lane names", () => {
+    it("indexes by lane, so lane k is the same exercise in every week", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+`);
+      expect(ProgramGrid_laneNames(grid, 0)).to.eql(["Squat", "Bench Press"]);
+    });
+
+    // A drag reports the lane index it was rendered at, and positions it by the same index — so a
+    // hole must stay a hole rather than compacting, or every lane after it shifts by one.
+    it("keeps holes as empty strings rather than compacting them", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Deadlift / 1x5 200lb
+`);
+      const names = ProgramGrid_laneNames(grid, 0);
+      expect(names.length).to.equal(grid.placements.filter((p) => p.rowIndex === 0).length);
+      for (const placement of grid.placements.filter((p) => p.rowIndex === 0)) {
+        expect(names[placement.laneIndex]).to.equal(placement.fullName);
+      }
+    });
+
+    it("returns an empty list for a row that has no exercises", () => {
+      expect(ProgramGrid_laneNames(buildGrid(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`), 3)).to.eql([]);
+    });
+  });
+
+  describe("day data", () => {
+    // `day` is a program-wide counter, not the index within the week — the evaluator numbers days
+    // straight through, so week 2 day 1 of a 3-day week is day 4.
+    it("counts days across the whole program, not within the week", () => {
+      // Week 2 differs, so its run starts there rather than collapsing into week 1's.
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat / 3x5 110lb
+
+## Day 2
+Bench Press / 5x5 50lb
+`);
+      const secondWeekFirstDay = grid.placements.find((p) => p.rowIndex === 0 && p.colStart === 1);
+      expect(secondWeekFirstDay, "expected a week-2 placement in row 0").to.not.equal(undefined);
+      expect(ProgramGrid_dayDataAt(grid, secondWeekFirstDay!)).to.eql({ week: 2, dayInWeek: 1, day: 3 });
+    });
+
+    it("counts a ragged week by the days it actually has", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+# Week 2
+## Day 1
+Squat / 3x5 110lb
+
+## Day 2
+Bench Press / 5x5 50lb
+
+# Week 3
+## Day 1
+Squat / 3x5 120lb
+`);
+      const thirdWeek = grid.placements.find((p) => p.rowIndex === 0 && p.colStart === 2);
+      expect(ProgramGrid_dayDataAt(grid, thirdWeek!).day).to.equal(4);
+    });
+  });
+
+  describe("cell lookups", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Bench Press / 5x5 50lb
+`);
+
+    it("finds every run covering a week, not just the ones starting there", () => {
+      expect(ProgramGrid_placementsAt(grid, 0, 1).map((p) => p.fullName)).to.include("Squat");
+      expect(ProgramGrid_placementsAt(grid, 0, 0).map((p) => p.fullName)).to.have.members(["Squat", "Bench Press"]);
+    });
+
+    it("returns nothing for a row or week that holds no run", () => {
+      expect(ProgramGrid_placementsAt(grid, 9, 0)).to.eql([]);
+      expect(ProgramGrid_errorAt(grid, 0, 0)).to.equal(undefined);
+    });
+
+    it("drops the scheme at the smallest density, keeps it otherwise", () => {
+      const placement = grid.placements[0];
+      expect(ProgramGrid_cellScheme(placement, 0)).to.eql([]);
+      expect(ProgramGrid_cellScheme(placement, 1)).to.eql(placement.scheme);
+    });
   });
 });

@@ -10,6 +10,10 @@ import {
   ProgramGridTransforms_moveWeek,
   ProgramGridTransforms_deleteWeek,
   ProgramGridTransforms_duplicateWeek,
+  ProgramGridTransforms_deleteExercises,
+  ProgramGridTransforms_addDay,
+  ProgramGridTransforms_addWeek,
+  ProgramGridTransforms_uniqueWeekName,
 } from "../src/pages/planner/models/programGridTransforms";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import { ProgramGrid_build } from "../src/pages/planner/models/programGrid";
@@ -25,7 +29,7 @@ function repeatRange(
   fullName: string,
   toWeek: number
 ): IPlannerProgram {
-  const result = ProgramGridTransforms_setRepeatRange(planner, runStart, fullName, toWeek);
+  const result = ProgramGridTransforms_setRepeatRange(planner, runStart, fullName, toWeek, Settings_build());
   if (!result.success) {
     throw new Error(`setRepeatRange refused: ${result.error}`);
   }
@@ -807,12 +811,247 @@ Bench Press / 5x5 50lb
       plannerOf(FOUR_WEEKS),
       { week: 1, dayInWeek: 1 },
       "Deadlift",
-      3
+      3,
+      Settings_build()
     );
     expect(result.success).to.equal(false);
     if (result.success) {
       return;
     }
     expect(result.error).to.contain("Deadlift");
+  });
+
+  describe("deleteExercises", () => {
+    it("removes only the targeted exercise, leaving its neighbours and other weeks alone", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+`);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // The surviving text comes back canonically printed, not as it was typed.
+      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 / 50lb");
+      expect(dayTexts(result.data)[1]).to.contain("Squat");
+    });
+
+    it("deletes several targets in one pass", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+Deadlift / 1x5 200lb
+`);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [
+          { week: 1, dayInWeek: 1, fullName: "Squat" },
+          { week: 1, dayInWeek: 1, fullName: "Deadlift" },
+        ],
+        Settings_build()
+      );
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(dayTexts(result.data)[0]).to.equal("Bench Press / 5x5 / 50lb");
+    });
+
+    // The whole point of routing deletes through a transform: an edit that would break the program
+    // is refused with a sentence rather than applied.
+    it("refuses rather than orphaning a reuse of the deleted exercise", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Front Squat / ...Squat
+`);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [{ week: 1, dayInWeek: 1, fullName: "Squat" }],
+        Settings_build()
+      );
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error.length).to.be.greaterThan(0);
+    });
+
+    it("is a no-op when the target isn't there", () => {
+      const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
+      const result = ProgramGridTransforms_deleteExercises(
+        planner,
+        [{ week: 1, dayInWeek: 1, fullName: "Overhead Press" }],
+        Settings_build()
+      );
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(dayTexts(result.data)[0]).to.equal("Squat / 3x5 / 100lb");
+    });
+  });
+
+  describe("adding", () => {
+    it("appends a day to the named week only, leaving every other week's day count alone", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+`);
+      const result = ProgramGridTransforms_addDay(planner, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[0].days.length).to.equal(2);
+      expect(result.data.weeks[1].days.length).to.equal(1);
+    });
+
+    it("appends a week, so no existing week index moves", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+`);
+      const before = planner.weeks.map((w) => w.name);
+      const result = ProgramGridTransforms_addWeek(planner, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.length).to.equal(before.length + 1);
+      expect(result.data.weeks.slice(0, before.length).map((w) => w.name)).to.eql(before);
+    });
+  });
+
+  describe("uniqueWeekName", () => {
+    it("keeps the preferred name when it is free", () => {
+      const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
+      expect(ProgramGridTransforms_uniqueWeekName(planner, "Deload")).to.equal("Deload");
+    });
+
+    // Nothing in the language resolves a week by name, but duplicates break tab bars that key
+    // React elements off them.
+    it("walks to the next free name when the preferred one is taken", () => {
+      const planner = plannerOf(`# Week 1\n## Day 1\nSquat / 3x5 100lb\n`);
+      const taken = planner.weeks[0].name;
+      expect(ProgramGridTransforms_uniqueWeekName(planner, taken)).to.not.equal(taken);
+    });
+  });
+
+  // Six bugs found by an adversarial review of this module, each reproduced before it was fixed.
+  describe("regressions", () => {
+    function weekTexts(planner: IPlannerProgram, dayIndex: number = 0): string[] {
+      return planner.weeks.map((w) => (w.days[dayIndex]?.exerciseText ?? "").trim());
+    }
+
+    it("relocates a definition past a week that overrides it, instead of dropping it", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat[1-3] / 1x1\n\n# W2\n## D1\nSquat / 2x2\n\n# W3\n## D1\n`);
+      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // The override stays where it is; the base definition lands in the first week that inherits.
+      expect(weekTexts(result.data)[0]).to.equal("Squat / 2x2");
+      expect(spans(result.data, "Squat")).to.eql(["[0-0]", "[1-1]"]);
+    });
+
+    it("keeps a single-week range when the line is written in another week", () => {
+      // Squat[1-2] authored in W4 prescribes weeks 1, 2 and 4. Deleting W1 leaves weeks 1 and 3 —
+      // dropping the range would strand it in its own week alone.
+      const planner = plannerOf(`# W1\n## D1\n\n# W2\n## D1\n\n# W3\n## D1\n\n# W4\n## D1\nSquat[1-2] / 1x1\n`);
+      const result = ProgramGridTransforms_deleteWeek(planner, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(weekTexts(result.data)[2]).to.equal("Squat[1-1] / 1x1");
+      expect(spans(result.data, "Squat")).to.eql(["[0-0]", "[2-2]"]);
+    });
+
+    it("drops a single-week range when it lands on the week that holds the line", () => {
+      const planner = plannerOf(`# W1\n## D1\nSquat[1-2] / 1x1\n\n# W2\n## D1\n\n# W3\n## D1\nBench Press / 1x1\n`);
+      const result = ProgramGridTransforms_deleteWeek(planner, 1, Settings_build());
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(weekTexts(result.data)[0]).to.equal("Squat / 1x1");
+    });
+
+    it("leaves references alone in a week that the day move did not reorder", () => {
+      // W2 has no third row, so its two days keep their positions — renumbering them with the
+      // permutation applied to W1 would repoint the reuse at a different template.
+      const planner = plannerOf(
+        `# W1\n## A\nSquat / 1x1\n\n## B\nDeadlift / 1x1\n\n## C\nOverhead Press / 1x1\n` +
+          `\n# W2\n## A\nmain / used: none / 1x1\n\n## B\nmain / used: none / 2x2\nBench Press / ...main[1]\n`
+      );
+      const result = ProgramGridTransforms_moveDayRow(planner, 2, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[1].days.map((d) => d.name)).to.eql(["A", "B"]);
+      expect((result.data.weeks[1].days[1].exerciseText ?? "").trim()).to.contain("...main[1]");
+    });
+
+    it("refuses a move that duplicates an exercise even when the same error exists elsewhere", () => {
+      // D3 already has a duplicate-Squat error, so comparing error messages as a set made the new
+      // duplicate in D2 look like nothing had changed.
+      const planner = plannerOf(`# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\n\n## D3\nSquat / 3x3\nSquat / 4x4\n`);
+      const result = ProgramGridTransforms_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success).to.equal(false);
+    });
+
+    it("does not renumber a week reference that is prose rather than a reuse directive", () => {
+      const planner = plannerOf(
+        `# W1\n## D1\n// To compare, type ...Squat[1:1] literally.\nBench Press / 1x1\n\n# W2\n## D1\nBench Press / 2x2\n`
+      );
+      const result = ProgramGridTransforms_moveWeek(planner, 1, 0, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(weekTexts(result.data)[1]).to.contain("...Squat[1:1] literally");
+    });
+
+    it("moves every week's line when the active variation differs between them", () => {
+      const planner = plannerOf(
+        `# W1\n## D1\n!Squat | Front Squat / 1x1\n\n## D2\nDeadlift / 1x1\n` +
+          `\n# W2\n## D1\nSquat | !Front Squat / 2x2\n\n## D2\nDeadlift / 2x2\n`
+      );
+      const result = ProgramGridTransforms_moveExerciseToDay(
+        planner,
+        0,
+        "Squat | !Front Squat",
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // Both weeks moved, and each kept its own spelling of which variation is active.
+      expect(weekTexts(result.data, 0)).to.eql(["", ""]);
+      expect(weekTexts(result.data, 1)[0]).to.contain("!Squat | Front Squat");
+      expect(weekTexts(result.data, 1)[1]).to.contain("Squat | !Front Squat");
+    });
   });
 });
