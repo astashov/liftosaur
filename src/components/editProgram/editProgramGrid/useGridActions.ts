@@ -8,12 +8,13 @@ import { Dialog_alert } from "../../../utils/dialog";
 import { IProgramGrid, IProgramGridPlacement, ProgramGrid_dayDataAt } from "../../../pages/planner/models/programGrid";
 import {
   IPlannerStructureResult,
+  IPlannerStructureExerciseMove,
   PlannerStructure_deleteDayRow,
   PlannerStructure_deleteWeek,
   PlannerStructure_duplicateDayRow,
   PlannerStructure_duplicateWeek,
-  PlannerStructure_moveDayRow,
-  PlannerStructure_moveExerciseToDay,
+  PlannerStructure_moveDayRows,
+  PlannerStructure_moveExercisesToDay,
   PlannerStructure_moveWeek,
   PlannerStructure_reorderExercisesInDay,
   PlannerStructure_setRepeatRange,
@@ -35,14 +36,31 @@ export interface IGridActions {
   onAddDay: (weekIndex: number) => void;
   onAddWeek: () => void;
   onSetRepeatRange: (placement: IProgramGridPlacement, toWeekIndex: number) => void;
-  onMoveDayRow: (from: number, to: number) => void;
-  onDuplicateDay: (rowIndex: number) => void;
-  onDeleteDay: (rowIndex: number) => void;
+  onMoveDayRows: (rows: number[], insertAt: number) => void;
+  onDuplicateDays: (rowIndexes: number[]) => void;
+  onDeleteDays: (rowIndexes: number[]) => void;
   onMoveWeek: (from: number, to: number) => void;
   onDuplicateWeek: (weekIndex: number) => void;
   onDeleteWeek: (weekIndex: number) => void;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
-  onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
+  onMoveExercisesToDay: (moves: IPlannerStructureExerciseMove[], toRow: number, before: string | undefined) => void;
+}
+
+// Several rows through a transform that only knows how to do one. Bottom up, because deleting a row
+// shifts the ones after it; and the first refusal stops the chain, since half of a structural edit
+// is worse than none of it.
+function eachRow(
+  start: IPlannerProgram,
+  rowIndexes: number[],
+  transform: (planner: IPlannerProgram, rowIndex: number) => IPlannerStructureResult
+): IPlannerStructureResult {
+  return rowIndexes
+    .slice()
+    .sort((a, b) => b - a)
+    .reduce<IPlannerStructureResult>((acc, rowIndex) => (acc.success ? transform(acc.data, rowIndex) : acc), {
+      success: true,
+      data: start,
+    });
 }
 
 export function useGridActions(args: {
@@ -96,11 +114,11 @@ export function useGridActions(args: {
     [plannerDispatch, onStructuralChange]
   );
 
-  const onMoveDayRow = useCallback(
-    (from: number, to: number) => {
+  const onMoveDayRows = useCallback(
+    (rows: number[], insertAt: number) => {
       applyTransform(
-        (planner) => PlannerStructure_moveDayRow(planner, from, to, settings),
-        `Move day ${from + 1} to position ${to + 1}`,
+        (planner) => PlannerStructure_moveDayRows(planner, rows, insertAt, settings),
+        `Move ${rows.length} day(s) to position ${insertAt + 1}`,
         "structural"
       );
     },
@@ -165,22 +183,24 @@ export function useGridActions(args: {
     applyTransform((planner) => PlannerStructure_addWeek(planner, settings), "Add new week", "structural");
   }, [applyTransform, settings]);
 
-  const onDuplicateDay = useCallback(
-    (rowIndex: number) => {
+  const onDuplicateDays = useCallback(
+    (rowIndexes: number[]) => {
       applyTransform(
-        (planner) => PlannerStructure_duplicateDayRow(planner, rowIndex, settings),
-        `Duplicate day ${rowIndex + 1} in every week`,
+        (planner) =>
+          eachRow(planner, rowIndexes, (p, rowIndex) => PlannerStructure_duplicateDayRow(p, rowIndex, settings)),
+        `Duplicate ${rowIndexes.length} day(s) in every week`,
         "structural"
       );
     },
     [applyTransform, settings]
   );
 
-  const onDeleteDay = useCallback(
-    (rowIndex: number) => {
+  const onDeleteDays = useCallback(
+    (rowIndexes: number[]) => {
       applyTransform(
-        (planner) => PlannerStructure_deleteDayRow(planner, rowIndex, settings),
-        `Delete day ${rowIndex + 1} from every week`,
+        (planner) =>
+          eachRow(planner, rowIndexes, (p, rowIndex) => PlannerStructure_deleteDayRow(p, rowIndex, settings)),
+        `Delete ${rowIndexes.length} day(s) from every week`,
         "structural"
       );
     },
@@ -231,11 +251,11 @@ export function useGridActions(args: {
     [applyTransform, settings]
   );
 
-  const onMoveExerciseToDay = useCallback(
-    (fromRow: number, fullName: string, toRow: number, before: string | undefined) => {
+  const onMoveExercisesToDay = useCallback(
+    (moves: IPlannerStructureExerciseMove[], toRow: number, before: string | undefined) => {
       applyTransform(
-        (planner) => PlannerStructure_moveExerciseToDay(planner, fromRow, fullName, toRow, before, settings),
-        `Move ${fullName} to day ${toRow + 1}`,
+        (planner) => PlannerStructure_moveExercisesToDay(planner, moves, toRow, before, settings),
+        `Move ${moves.map((m) => m.fullName).join(", ")} to day ${toRow + 1}`,
         "content"
       );
     },
@@ -247,13 +267,13 @@ export function useGridActions(args: {
     onAddDay,
     onAddWeek,
     onSetRepeatRange,
-    onMoveDayRow,
-    onDuplicateDay,
-    onDeleteDay,
+    onMoveDayRows,
+    onDuplicateDays,
+    onDeleteDays,
     onMoveWeek,
     onDuplicateWeek,
     onDeleteWeek,
     onReorderExercisesInDay,
-    onMoveExerciseToDay,
+    onMoveExercisesToDay,
   };
 }

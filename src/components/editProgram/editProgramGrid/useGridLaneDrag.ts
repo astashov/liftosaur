@@ -3,21 +3,21 @@ import { SharedValue, useSharedValue } from "react-native-reanimated";
 import {
   IGridGeometryRow,
   IGridLaneDrop,
-  ProgramGridGeometry_indexForGap,
-  ProgramGridGeometry_isLaneDropNoop,
+  ProgramGridGeometry_isBlockDropNoop,
   ProgramGridGeometry_laneDropAt,
+  ProgramGridGeometry_moveBlock,
 } from "../../../pages/planner/models/programGridGeometry";
 import { IProgramGrid, ProgramGrid_laneNames } from "../../../pages/planner/models/programGrid";
+import { IPlannerStructureExerciseMove } from "../../../pages/planner/models/plannerStructure";
 import { IGridDragAutoScroll } from "./gridDragAutoScroll";
-import { IGridActiveGhost } from "./useGridDrags";
+import { IGridActiveGhost, IGridLaneRef } from "./useGridDrags";
 import { useGridDragSession } from "./useGridDragSession";
 
 export interface IGridLaneDrag {
   onLaneDragStart: (rowIndex: number, laneIndex: number, absolute: number) => void;
   onLaneDragMove: (rowIndex: number, laneIndex: number, translation: number, absolute: number) => void;
   onLaneDragEnd: (commit: boolean) => void;
-  draggedLaneRow: SharedValue<number>;
-  draggedLane: SharedValue<number>;
+  draggedLanes: SharedValue<IGridLaneRef[]>;
   dropLaneRow: SharedValue<number>;
   dropLaneGap: SharedValue<number>;
 }
@@ -32,79 +32,128 @@ export function useGridLaneDrag(args: {
   getGrid: () => IProgramGrid;
   getGeometry: () => IGridGeometryRow[];
   getLaneHeight: () => number;
+  getSelectedLanes: () => IGridLaneRef[];
   ghostY: SharedValue<number>;
   autoScroll: IGridDragAutoScroll;
   setActiveGhost: (ghost: IGridActiveGhost | undefined) => void;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
-  onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
+  onMoveExercisesToDay: (moves: IPlannerStructureExerciseMove[], toRow: number, before: string | undefined) => void;
 }): IGridLaneDrag {
-  const { getGrid, getGeometry, getLaneHeight, ghostY, autoScroll } = args;
-  const draggedLaneRow = useSharedValue(-1);
-  const draggedLane = useSharedValue(-1);
+  const { getGrid, getGeometry, getLaneHeight, getSelectedLanes, ghostY, autoScroll } = args;
+  const draggedLanes = useSharedValue<IGridLaneRef[]>([]);
   const dropLaneRow = useSharedValue(-1);
   // The gap, in the target row's lanes: gap N sits above lane N, and gap `lanes` below the last one.
   const dropLaneGap = useSharedValue(-1);
-  // Which strip is being dragged. Set on start, read by resolve/commit, cleared on release.
-  const originRef = useRef<{ row: number; lane: number } | undefined>(undefined);
+  // Which strip the finger grabbed. Set on start, read by resolve/commit, cleared on release.
+  const originRef = useRef<IGridLaneRef | undefined>(undefined);
   const argsRef = useRef(args);
   argsRef.current = args;
+
+  // Which strips this drag carries, decided when it starts and fixed for its whole life: grabbing a
+  // selected strip drags the whole selection, grabbing anything else drags that strip alone. Sorted,
+  // so the block keeps the order it is drawn in whichever of its strips the drag started from.
+  const movedRef = useRef<IGridLaneRef[]>([]);
+
+  // Whether the drop would leave the program as it is: within one row that is a reorder that
+  // reorders nothing, and across rows it never is.
+  const isNoop = useCallback(
+    (drop: IGridLaneDrop, moved: IGridLaneRef[]): boolean => {
+      if (moved.some((lane) => lane.row !== drop.toRow)) {
+        return false;
+      }
+      const lanes = getGeometry()[drop.toRow]?.laneNames.length ?? 0;
+      return ProgramGridGeometry_isBlockDropNoop(
+        lanes,
+        moved.map((lane) => lane.lane),
+        drop.gap
+      );
+    },
+    [getGeometry]
+  );
 
   const drag = useGridDragSession<IGridLaneDrop>({
     axis: "y",
     autoScroll,
     resolve: (translationY) => {
       const origin = originRef.current;
-      return origin == null
-        ? undefined
-        : ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, origin.lane, translationY, getLaneHeight());
+      if (origin == null) {
+        return undefined;
+      }
+      // From the block's leading strip — its last one going down, its first going up — for the same
+      // reason the day drag is: a block that measured from whichever strip the finger grabbed would
+      // have to travel its own height before it displaced anything.
+      const leading = movedRef.current.reduce(
+        (acc, lane) =>
+          lane.row !== origin.row ? acc : translationY > 0 ? Math.max(acc, lane.lane) : Math.min(acc, lane.lane),
+        origin.lane
+      );
+      return ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, leading, translationY, getLaneHeight());
     },
     show: (drop, translationY) => {
-      const origin = originRef.current;
-      draggedLaneRow.value = drop == null || origin == null ? -1 : origin.row;
-      draggedLane.value = drop == null || origin == null ? -1 : origin.lane;
-      const isNoop =
-        drop == null || origin == null || ProgramGridGeometry_isLaneDropNoop(drop, origin.row, origin.lane);
-      dropLaneRow.value = isNoop ? -1 : drop!.toRow;
-      dropLaneGap.value = isNoop ? -1 : drop!.gap;
-      if (drop != null && origin != null) {
-        // Drawn from the translation rather than carried on the drop: where the strip *lands* snaps
-        // to a lane, where it is *drawn* follows the finger, and a target that carries both is a
+      const moved = movedRef.current;
+      draggedLanes.value = drop == null ? [] : moved;
+      const noop = drop == null || isNoop(drop, moved);
+      dropLaneRow.value = noop ? -1 : drop!.toRow;
+      dropLaneGap.value = noop ? -1 : drop!.gap;
+      if (drop != null) {
+        // Drawn from the translation rather than carried on the drop: where the strips *land* snaps
+        // to a lane, where they are *drawn* follows the finger, and a target that carries both is a
         // target doing two jobs.
-        const source = getGeometry()[origin.row];
-        ghostY.value = (source?.contentTop ?? 0) + origin.lane * getLaneHeight() + translationY;
+        ghostY.value = translationY;
       }
     },
     commit: (drop) => {
-      const origin = originRef.current;
       const grid = getGrid();
-      // Both the thing being moved and the thing it lands above are identities, so both come from
+      const moved = movedRef.current;
+      // Both the strips being moved and the one they land above are identities, so both come from
       // the model's lanes rather than from the geometry rows the drag was drawn against.
-      const sourceLanes = origin != null ? ProgramGrid_laneNames(grid, origin.row) : [];
-      const fullName = origin != null ? sourceLanes[origin.lane] : undefined;
-      if (origin == null || fullName == null || fullName === "") {
+      const targetNames = ProgramGrid_laneNames(grid, drop.toRow);
+      if (moved.length === 0 || isNoop(drop, moved)) {
         return;
       }
-      if (drop.toRow === origin.row) {
-        const to = ProgramGridGeometry_indexForGap(origin.lane, drop.gap);
-        if (to === origin.lane) {
-          return;
-        }
-        const order = sourceLanes.slice();
-        order.splice(to, 0, ...order.splice(origin.lane, 1));
+      if (moved.every((lane) => lane.row === drop.toRow)) {
+        const order = ProgramGridGeometry_moveBlock(
+          targetNames,
+          moved.map((lane) => lane.lane),
+          drop.gap
+        );
         argsRef.current.onReorderExercisesInDay(
-          origin.row,
-          order.filter((n) => n !== "")
+          drop.toRow,
+          order.filter((name) => name !== "")
         );
         return;
       }
+      const moves = moved.reduce<IPlannerStructureExerciseMove[]>((acc, lane) => {
+        const fullName = ProgramGrid_laneNames(grid, lane.row)[lane.lane];
+        return fullName == null || fullName === "" ? acc : [...acc, { fromRowIndex: lane.row, fullName }];
+      }, []);
+      if (moves.length === 0) {
+        return;
+      }
       // Anchored by the name it was dropped above rather than by index: the target day can hold a
-      // different number of exercises in each week.
-      const before = ProgramGrid_laneNames(grid, drop.toRow)[drop.gap];
-      argsRef.current.onMoveExerciseToDay(origin.row, fullName, drop.toRow, before === "" ? undefined : before);
+      // different number of exercises in each week. A strip that is itself on the move can't anchor
+      // anything, so the anchor is the first one below the gap that is staying put.
+      const before = targetNames.find(
+        (name, laneIndex) =>
+          laneIndex >= drop.gap &&
+          name !== "" &&
+          !moved.some((lane) => lane.row === drop.toRow && lane.lane === laneIndex)
+      );
+      argsRef.current.onMoveExercisesToDay(moves, drop.toRow, before);
     },
     onActive: (active) => {
-      const origin = originRef.current;
-      argsRef.current.setActiveGhost(active && origin != null ? { kind: "lane", index: origin.row } : undefined);
+      if (active) {
+        const origin = originRef.current;
+        const selected = getSelectedLanes();
+        const isSelected = origin != null && selected.some((l) => l.row === origin.row && l.lane === origin.lane);
+        movedRef.current = isSelected
+          ? selected.slice().sort((a, b) => (a.row === b.row ? a.lane - b.lane : a.row - b.row))
+          : origin == null
+            ? []
+            : [origin];
+      }
+      const moved = movedRef.current;
+      argsRef.current.setActiveGhost(active && moved.length > 0 ? { kind: "lane", lanes: moved } : undefined);
     },
   });
 
@@ -135,7 +184,7 @@ export function useGridLaneDrag(args: {
   // makes `drags` fresh, which re-renders every GridRow — including while a pan is live, which is
   // the one thing that reliably kills a drag.
   return useMemo(
-    () => ({ onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap }),
-    [onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap]
+    () => ({ onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLanes, dropLaneRow, dropLaneGap }),
+    [onLaneDragStart, onLaneDragMove, onLaneDragEnd, draggedLanes, dropLaneRow, dropLaneGap]
   );
 }

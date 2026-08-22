@@ -8,11 +8,12 @@ import {
   ProgramGridGeometry_resizeHandleLeft,
   GRID_CELL_INSET_X,
   GRID_RESIZE_HANDLE_WIDTH,
-  ProgramGridGeometry_dayDropAt,
+  ProgramGridGeometry_dayBlockDropAt,
   ProgramGridGeometry_gapForMove,
-  ProgramGridGeometry_indexForGap,
-  ProgramGridGeometry_isLaneDropNoop,
+  ProgramGridGeometry_insertAtForGap,
+  ProgramGridGeometry_isBlockDropNoop,
   ProgramGridGeometry_laneDropAt,
+  ProgramGridGeometry_moveBlock,
   ProgramGridGeometry_laneSegments,
   ProgramGridGeometry_metrics,
   ProgramGridGeometry_totalHeight,
@@ -44,6 +45,24 @@ Squat / 3x5 100lb
 Bench Press / 5x5 50lb
 
 ## Day 2
+Deadlift / 1x5 200lb
+`),
+    [],
+    50,
+    16
+  );
+}
+
+function threeRowsFixture(): IGridGeometryRow[] {
+  return ProgramGridGeometry_build(
+    buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Bench Press / 5x5 50lb
+
+## Day 3
 Deadlift / 1x5 200lb
 `),
     [],
@@ -125,9 +144,29 @@ Deadlift / 1x5 200lb
           if (from === to) {
             continue;
           }
-          expect(ProgramGridGeometry_indexForGap(from, ProgramGridGeometry_gapForMove(from, to))).to.equal(to);
+          expect(ProgramGridGeometry_insertAtForGap([from], ProgramGridGeometry_gapForMove(from, to))).to.equal(to);
         }
       }
+    });
+
+    it("moves a block into a gap, keeping its own order", () => {
+      const items = ["a", "b", "c", "d"];
+      expect(ProgramGridGeometry_moveBlock(items, [0, 2], 4)).to.deep.equal(["b", "d", "a", "c"]);
+      expect(ProgramGridGeometry_moveBlock(items, [1, 3], 0)).to.deep.equal(["b", "d", "a", "c"]);
+      // The gap counts the original positions, so one taken by a member of the block still means
+      // "above what used to be here".
+      expect(ProgramGridGeometry_moveBlock(items, [2, 3], 1)).to.deep.equal(["a", "c", "d", "b"]);
+    });
+
+    it("knows when a drop changes nothing", () => {
+      // Anywhere inside a contiguous block, or at either of its edges, is where it already is.
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [1, 2], 1)).to.equal(true);
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [1, 2], 2)).to.equal(true);
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [1, 2], 3)).to.equal(true);
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [1, 2], 4)).to.equal(false);
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [1, 2], 0)).to.equal(false);
+      // A scattered selection always changes something, since dropping it puts it together.
+      expect(ProgramGridGeometry_isBlockDropNoop(4, [0, 2], 0)).to.equal(false);
     });
   });
 
@@ -174,9 +213,9 @@ Deadlift / 1x5 200lb
     it("knows when a drop would change nothing", () => {
       const rows = rowsFixture();
       const stay = ProgramGridGeometry_laneDropAt(rows, 0, 1, 0, 50)!;
-      expect(ProgramGridGeometry_isLaneDropNoop(stay, 0, 1)).to.equal(true);
+      expect(ProgramGridGeometry_isBlockDropNoop(2, [1], stay.gap)).to.equal(true);
       const moved = ProgramGridGeometry_laneDropAt(rows, 0, 1, -60, 50)!;
-      expect(ProgramGridGeometry_isLaneDropNoop(moved, 0, 1)).to.equal(false);
+      expect(ProgramGridGeometry_isBlockDropNoop(2, [1], moved.gap)).to.equal(false);
     });
 
     it("swaps with a neighbour only once its centre is passed, not when it is reached", () => {
@@ -188,19 +227,33 @@ Deadlift / 1x5 200lb
     });
   });
 
-  describe("dayDropAt", () => {
-    it("needs half of each neighbour's own height before the target moves past it", () => {
+  describe("dayBlockDropAt", () => {
+    it("passes a neighbour at its centre, which is half of each of the two rows away", () => {
       const rows = rowsFixture();
-      // Row 0 (164) to row 1 (114) needs 82 + 57 = 139.
-      expect(ProgramGridGeometry_dayDropAt(rows, 0, 138)).to.equal(0);
-      expect(ProgramGridGeometry_dayDropAt(rows, 0, 139)).to.equal(1);
-      expect(ProgramGridGeometry_dayDropAt(rows, 1, -139)).to.equal(0);
+      // Row 0's centre is 82, row 1's is 221, so row 0 passes it after 139.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 139)).to.equal(1);
+      expect(ProgramGridGeometry_isBlockDropNoop(2, [0], 1)).to.equal(true);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 140)).to.equal(2);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1], -139)).to.equal(0);
     });
 
     it("never runs past either end", () => {
       const rows = rowsFixture();
-      expect(ProgramGridGeometry_dayDropAt(rows, 0, -10000)).to.equal(0);
-      expect(ProgramGridGeometry_dayDropAt(rows, 0, 10000)).to.equal(1);
+      // Dragged off the top, the first row lands above the one below it — where it already is.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], -10000)).to.equal(1);
+      expect(ProgramGridGeometry_isBlockDropNoop(2, [0], 1)).to.equal(true);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 10000)).to.equal(2);
+    });
+
+    it("measures a block from its leading row and ignores its own members", () => {
+      const rows = threeRowsFixture();
+      // Rows are 114 apart, centres at 57, 171, 285. Dragging rows 0 and 1 down, it is row 1 that
+      // has to pass row 2's centre — one row's travel, not two.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 114)).to.equal(2);
+      expect(ProgramGridGeometry_isBlockDropNoop(3, [0, 1], 2)).to.equal(true);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 115)).to.equal(3);
+      // And going up it is the first of them, so the same travel puts the block above row 0.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1, 2], -115)).to.equal(0);
     });
   });
 

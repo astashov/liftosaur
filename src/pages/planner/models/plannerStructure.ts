@@ -816,7 +816,35 @@ export function PlannerStructure_moveExerciseToDay(
   beforeFullName: string | undefined,
   settings: ISettings
 ): IPlannerStructureResult {
-  if (fromRowIndex === toRowIndex) {
+  return PlannerStructure_moveExercisesToDay(
+    planner,
+    [{ fromRowIndex, fullName }],
+    toRowIndex,
+    beforeFullName,
+    settings
+  );
+}
+
+export interface IPlannerStructureExerciseMove {
+  fromRowIndex: number;
+  fullName: string;
+}
+
+// Several exercises into the same day at once — what dragging a multi-selection does. They land
+// together, in the order given, above the same anchor.
+//
+// Ones that are already in the destination day are left alone rather than repositioned: they are a
+// reorder, not a move, and reordering is a different transform that keeps the day's fixed spans in
+// place. The grid uses that one when the whole selection lives in the target day.
+export function PlannerStructure_moveExercisesToDay(
+  planner: IPlannerProgram,
+  moves: IPlannerStructureExerciseMove[],
+  toRowIndex: number,
+  beforeFullName: string | undefined,
+  settings: ISettings
+): IPlannerStructureResult {
+  const crossing = moves.filter((move) => move.fromRowIndex !== toRowIndex);
+  if (crossing.length === 0) {
     return { success: true, data: planner };
   }
   // A ragged program can have the day in one week and not the other. Moving then would delete the
@@ -826,38 +854,62 @@ export function PlannerStructure_moveExerciseToDay(
   // A repeat backfills: `Squat[1-2]` authored in week 2 is visible in week 1, which holds no text
   // for it. Checking authored blocks alone missed exactly those weeks, and moving into a day they
   // don't have deleted the only copy without any evaluation error to catch it.
-  const visibleWeeks = weeksShowing(planner, fromRowIndex, fullName, settings);
-  const missing = visibleWeeks.filter((weekIndex) => planner.weeks[weekIndex]?.days[toRowIndex] == null);
-  if (missing.length > 0) {
+  const missing = new Set<number>();
+  const homeless = new Set<string>();
+  for (const move of crossing) {
+    for (const weekIndex of weeksShowing(planner, move.fromRowIndex, move.fullName, settings)) {
+      if (planner.weeks[weekIndex]?.days[toRowIndex] == null) {
+        missing.add(weekIndex);
+        homeless.add(move.fullName);
+      }
+    }
+  }
+  if (missing.size > 0) {
+    const weeks = Array.from(missing).map((weekIndex) => planner.weeks[weekIndex].name);
     return {
       success: false,
-      error: `${missing.map((w) => planner.weeks[w].name).join(", ")} has no day to move ${fullName} into.`,
+      error: `${weeks.join(", ")} has no day to move ${Array.from(homeless).join(", ")} into.`,
     };
   }
 
   const result = ObjectUtils_clone(planner);
   let moved = false;
   for (const week of result.weeks) {
-    const fromDay = week.days[fromRowIndex];
     const toDay = week.days[toRowIndex];
-    if (fromDay == null || toDay == null) {
+    if (toDay == null) {
       continue;
     }
-    const from = exerciseBlocks(fromDay.exerciseText);
-    const block = from.blocks.find((b) => sameExercise(b.fullName, fullName, settings));
-    if (block == null) {
+    const blocks: IExerciseBlock[] = [];
+    for (const move of crossing) {
+      const fromDay = week.days[move.fromRowIndex];
+      if (fromDay == null) {
+        continue;
+      }
+      const from = exerciseBlocks(fromDay.exerciseText);
+      const block = from.blocks.find((b) => sameExercise(b.fullName, move.fullName, settings));
+      if (block == null) {
+        continue;
+      }
+      fromDay.exerciseText = joinBlocks(withoutBlock(from, from.blocks.indexOf(block)), fromDay.exerciseText);
+      blocks.push(block);
+      moved = true;
+    }
+    if (blocks.length === 0) {
       continue;
     }
-    fromDay.exerciseText = joinBlocks(withoutBlock(from, from.blocks.indexOf(block)), fromDay.exerciseText);
-    const to = exerciseBlocks(toDay.exerciseText);
+    // The anchor is resolved after the removals, since one of them may have been above it.
+    let to = exerciseBlocks(toDay.exerciseText);
     const anchor =
       beforeFullName != null ? to.blocks.findIndex((b) => sameExercise(b.fullName, beforeFullName, settings)) : -1;
-    const inserted = withBlockAt(to, anchor === -1 ? to.blocks.length : anchor, block);
-    toDay.exerciseText = joinBlocks(inserted, toDay.exerciseText);
-    moved = true;
+    let at = anchor === -1 ? to.blocks.length : anchor;
+    for (const block of blocks) {
+      to = withBlockAt(to, at, block);
+      at += 1;
+    }
+    toDay.exerciseText = joinBlocks(to, toDay.exerciseText);
   }
   if (!moved) {
-    return { success: false, error: `Couldn't find ${fullName} in that day.` };
+    return { success: false, error: `Couldn't find ${crossing.map((m) => m.fullName).join(", ")} in that day.` };
   }
   // The destination day may already declare the same exercise, or something may reuse this one by
   // its old `[week:day]` address — both surface as evaluation errors rather than as anything this
@@ -986,12 +1038,30 @@ export function PlannerStructure_moveDayRow(
   toIndex: number,
   settings: ISettings
 ): IPlannerStructureResult {
+  return PlannerStructure_moveDayRows(planner, [fromIndex], toIndex, settings);
+}
+
+// The same for several rows at once, which is what dragging a multi-row selection does. `insertAt`
+// counts the rows that stay, not the rows there are now — the block is lifted out before it lands,
+// so an index into the original list would mean something different depending on how many of the
+// dragged rows were above it.
+export function PlannerStructure_moveDayRows(
+  planner: IPlannerProgram,
+  fromIndexes: number[],
+  insertAt: number,
+  settings: ISettings
+): IPlannerStructureResult {
   const rows = planner.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
-  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= rows || toIndex >= rows) {
+  // Sorted, so the block keeps the order it is drawn in whichever of its rows the drag started from.
+  const moved = Array.from(new Set(fromIndexes))
+    .filter((index) => index >= 0 && index < rows)
+    .sort((a, b) => a - b);
+  const remaining = Array.from({ length: rows }, (_, i) => i).filter((index) => moved.indexOf(index) === -1);
+  const at = Math.max(0, Math.min(remaining.length, insertAt));
+  const oldOrder = [...remaining.slice(0, at), ...moved, ...remaining.slice(at)];
+  if (moved.length === 0 || oldOrder.every((oldIndex, index) => oldIndex === index)) {
     return { success: true, data: planner };
   }
-  const oldOrder = Array.from({ length: rows }, (_, i) => i);
-  oldOrder.splice(toIndex, 0, ...oldOrder.splice(fromIndex, 1));
   const result = ObjectUtils_clone(planner);
   // A week that lacks one of the rows keeps the days it has, compacted — so the permutation lands
   // differently there, and a short week may not move at all. Renumbering every week's references

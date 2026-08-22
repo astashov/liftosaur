@@ -120,9 +120,33 @@ export function ProgramGridGeometry_gapForMove(from: number, to: number): number
   return to === from ? -1 : to > from ? to + 1 : to;
 }
 
-// The inverse: which index a drop into `gap` ends up at once the item has been lifted out.
-export function ProgramGridGeometry_indexForGap(from: number, gap: number): number {
-  return gap > from ? gap - 1 : gap;
+// A gap is counted in the list's original positions, because that is what the drop line is drawn
+// against; an insert position is counted in what is left once the dragged items are lifted out,
+// because that is what actually performs the move.
+export function ProgramGridGeometry_insertAtForGap(moved: number[], gap: number): number {
+  return gap - moved.filter((index) => index < gap).length;
+}
+
+// Dropping several items at once: they leave their old positions together and land together, in the
+// order they had, which is the one thing a multi-selection drag must not scramble.
+export function ProgramGridGeometry_moveBlock<T>(items: T[], moved: number[], gap: number): T[] {
+  const sorted = moved.slice().sort((a, b) => a - b);
+  const remaining = items.filter((_, index) => sorted.indexOf(index) === -1);
+  const insertAt = Math.max(0, Math.min(remaining.length, ProgramGridGeometry_insertAtForGap(sorted, gap)));
+  return [...remaining.slice(0, insertAt), ...sorted.map((index) => items[index]), ...remaining.slice(insertAt)];
+}
+
+// Whether a drop would put the block back exactly where it was — answered by building the order it
+// would produce and comparing, because for several items at once there is no shorter honest test:
+// a gap anywhere inside a contiguous block changes nothing, and one inside a scattered selection
+// always changes something.
+export function ProgramGridGeometry_isBlockDropNoop(count: number, moved: number[], gap: number): boolean {
+  const order = ProgramGridGeometry_moveBlock(
+    Array.from({ length: count }, (_, index) => index),
+    moved,
+    gap
+  );
+  return order.every((value, index) => value === index);
 }
 
 export interface IGridLaneDrop {
@@ -159,26 +183,34 @@ export function ProgramGridGeometry_laneDropAt(
   return { toRow, gap };
 }
 
-// True when a lane drop would put the strip back where it already is: within its own row, both the
-// gap above it and the gap below it are its current position.
-export function ProgramGridGeometry_isLaneDropNoop(drop: IGridLaneDrop, fromRow: number, fromLane: number): boolean {
-  return drop.toRow === fromRow && (drop.gap === fromLane || drop.gap === fromLane + 1);
-}
-
-// Rows have different heights, so each neighbour needs its own distance travelled before the drop
-// target moves past it — half of its height plus half of the one before it.
-export function ProgramGridGeometry_dayDropAt(rows: IGridGeometryRow[], fromRow: number, translationY: number): number {
-  let to = fromRow;
-  let travelled = 0;
-  const step = translationY > 0 ? 1 : -1;
-  for (let i = fromRow + step; i >= 0 && i < rows.length; i += step) {
-    travelled += (rows[i]?.outerHeight ?? 0) / 2 + (rows[i - step]?.outerHeight ?? 0) / 2;
-    if (Math.abs(translationY) < travelled) {
-      break;
-    }
-    to = i;
+// Where a dragged block of rows lands, as a gap in the rows' own indexing: the first row it has not
+// passed the centre of. Rows have different heights, so there is no step to divide by — each
+// neighbour is passed at its own centre.
+//
+// Measured from the block's leading row — its last one going down, its first going up — and against
+// the rows that stay. Measuring from the row the finger grabbed instead would make a block behave
+// differently depending on which of its rows you took hold of, and counting its own members would
+// make it travel its whole height before anything moved.
+export function ProgramGridGeometry_dayBlockDropAt(
+  rows: IGridGeometryRow[],
+  moved: number[],
+  translationY: number
+): number {
+  const leading = moved.reduce(
+    (acc, index) => (translationY > 0 ? Math.max(acc, index) : Math.min(acc, index)),
+    moved[0] ?? 0
+  );
+  const source = rows[leading];
+  if (source == null) {
+    return 0;
   }
-  return to;
+  const center = source.top + source.outerHeight / 2 + translationY;
+  for (let i = 0; i < rows.length; i += 1) {
+    if (moved.indexOf(i) === -1 && rows[i].top + rows[i].outerHeight / 2 >= center) {
+      return i;
+    }
+  }
+  return rows.length;
 }
 
 // Columns are all one width, so unlike the day rows this is a single division.

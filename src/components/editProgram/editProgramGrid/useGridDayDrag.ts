@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import {
-  ProgramGridGeometry_dayDropAt,
-  ProgramGridGeometry_gapForMove,
+  ProgramGridGeometry_dayBlockDropAt,
+  ProgramGridGeometry_insertAtForGap,
+  ProgramGridGeometry_isBlockDropNoop,
 } from "../../../pages/planner/models/programGridGeometry";
 import { IGridDrags } from "./useGridDrags";
 import { IGridDragSession, useGridDragSession } from "./useGridDragSession";
@@ -12,29 +13,43 @@ import { IGridDragSession, useGridDragSession } from "./useGridDragSession";
 export function useGridDayDrag(args: {
   rowIndex: number;
   drags: IGridDrags;
-  onMoveDayRow: (from: number, to: number) => void;
+  onMoveDayRows: (rows: number[], insertAt: number) => void;
 }): IGridDragSession {
   const { rowIndex, drags } = args;
-  const { getGeometry, draggedRow, dropBoundary, ghostY, setActiveGhost } = drags;
-  const onMoveRef = useRef(args.onMoveDayRow);
-  onMoveRef.current = args.onMoveDayRow;
+  const { getGeometry, getSelectedDayRows, draggedRows, dropBoundary, ghostY, setActiveGhost } = drags;
+  const onMoveRef = useRef(args.onMoveDayRows);
+  onMoveRef.current = args.onMoveDayRows;
+
+  // Which rows this drag carries, decided when it starts and fixed for its whole life: grabbing a
+  // row that is part of the selection takes the whole selection, grabbing anything else takes just
+  // that row — so a drag never moves something the finger is nowhere near, and never changes its
+  // mind about what it is moving halfway through.
+  const movedRef = useRef<number[]>([]);
 
   return useGridDragSession<number>({
     axis: "y",
     autoScroll: drags.autoScroll,
-    resolve: (translationY) => ProgramGridGeometry_dayDropAt(getGeometry(), rowIndex, translationY),
-    show: (to, translationY) => {
-      draggedRow.value = to == null ? -1 : rowIndex;
-      dropBoundary.value = to == null ? -1 : ProgramGridGeometry_gapForMove(rowIndex, to);
-      if (to != null) {
-        ghostY.value = (getGeometry()[rowIndex]?.top ?? 0) + translationY;
+    resolve: (translationY) => ProgramGridGeometry_dayBlockDropAt(getGeometry(), movedRef.current, translationY),
+    show: (gap, translationY) => {
+      draggedRows.value = gap == null ? [] : movedRef.current;
+      dropBoundary.value =
+        gap == null || ProgramGridGeometry_isBlockDropNoop(getGeometry().length, movedRef.current, gap) ? -1 : gap;
+      if (gap != null) {
+        ghostY.value = translationY;
       }
     },
-    commit: (to) => {
-      if (to !== rowIndex) {
-        onMoveRef.current(rowIndex, to);
+    commit: (gap) => {
+      const moved = movedRef.current;
+      if (!ProgramGridGeometry_isBlockDropNoop(getGeometry().length, moved, gap)) {
+        onMoveRef.current(moved, ProgramGridGeometry_insertAtForGap(moved, gap));
       }
     },
-    onActive: (active) => setActiveGhost(active ? { kind: "day", index: rowIndex } : undefined),
+    onActive: (active) => {
+      if (active) {
+        const selected = getSelectedDayRows();
+        movedRef.current = selected.indexOf(rowIndex) !== -1 ? selected.slice().sort((a, b) => a - b) : [rowIndex];
+      }
+      setActiveGhost(active ? { kind: "day", rows: movedRef.current } : undefined);
+    },
   });
 }

@@ -27,8 +27,9 @@ export function useGridWeekDrag(args: {
       draggedWeek.value = to == null ? -1 : weekIndex;
       dropWeekGap.value = to == null ? -1 : ProgramGridGeometry_gapForMove(weekIndex, to);
       if (to != null) {
-        // The column snaps to `to`; the copy under the finger does not.
-        ghostX.value = weekIndex * columnWidth + translationX;
+        // The column snaps to `to`; the copy under the finger does not. A translation only — the
+        // ghost knows which column it is and where that column starts.
+        ghostX.value = translationX;
       }
     },
     commit: (to) => {
@@ -36,6 +37,6 @@ export function useGridWeekDrag(args: {
         onMoveRef.current(weekIndex, to);
       }
     },
-    onActive: (active) => setActiveGhost(active ? { kind: "week", index: weekIndex } : undefined),
+    onActive: (active) => setActiveGhost(active ? { kind: "week", weeks: [weekIndex] } : undefined),
   });
 }

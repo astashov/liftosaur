@@ -5,8 +5,10 @@ import {
   PlannerStructure_deleteDayRow,
   PlannerStructure_duplicateDayRow,
   PlannerStructure_moveDayRow,
+  PlannerStructure_moveDayRows,
   PlannerStructure_reorderExercisesInDay,
   PlannerStructure_moveExerciseToDay,
+  PlannerStructure_moveExercisesToDay,
   PlannerStructure_moveWeek,
   PlannerStructure_deleteWeek,
   PlannerStructure_duplicateWeek,
@@ -398,6 +400,29 @@ Bench Press / ...main[2]
         expect(result.data).to.equal(planner);
       }
     });
+
+    it("moves several rows as one block, in their own order", () => {
+      // Days A and C to the front, so the block keeps A before C and B follows them.
+      const result = PlannerStructure_moveDayRows(plannerOf(THREE_DAYS), [2, 0], 0, Settings_build());
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      for (const week of result.data.weeks) {
+        expect(week.days.map((d) => d.name)).to.deep.equal(["Day A", "Day C", "Day B"]);
+      }
+      // `main` was day 2 and is now day 3, and the reuse that named it follows.
+      expect(result.data.weeks[0].days[1].exerciseText.trim()).to.equal("Bench Press / ...main[3]");
+    });
+
+    it("is a no-op when a block lands where it already is", () => {
+      const planner = plannerOf(THREE_DAYS);
+      const result = PlannerStructure_moveDayRows(planner, [0, 1], 0, Settings_build());
+      expect(result.success).to.equal(true);
+      if (result.success) {
+        expect(result.data).to.equal(planner);
+      }
+    });
   });
 
   describe("reorderExercisesInDay", () => {
@@ -577,6 +602,103 @@ Bench Press / 5x5 55lb
         return;
       }
       expect(result.error).to.contain("Bench Press");
+    });
+
+    it("moves several exercises into the same day at once, above the same anchor", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+Overhead Press / 5x5 40lb
+
+## Day 2
+Deadlift / 1x5 200lb
+`;
+      const result = PlannerStructure_moveExercisesToDay(
+        plannerOf(text),
+        [
+          { fromRowIndex: 0, fullName: "Squat" },
+          { fromRowIndex: 0, fullName: "Overhead Press" },
+        ],
+        1,
+        "Deadlift",
+        Settings_build()
+      );
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 0)).to.deep.equal(["Bench Press / 5x5 50lb"]);
+      expect(linesOf(result.data, 0, 1)).to.deep.equal([
+        "Squat / 3x5 100lb",
+        "Overhead Press / 5x5 40lb",
+        "Deadlift / 1x5 200lb",
+      ]);
+    });
+
+    it("gathers exercises from different days into one", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+## Day 3
+Bench Press / 5x5 50lb
+`;
+      const result = PlannerStructure_moveExercisesToDay(
+        plannerOf(text),
+        [
+          { fromRowIndex: 0, fullName: "Squat" },
+          { fromRowIndex: 2, fullName: "Bench Press" },
+        ],
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 0)).to.deep.equal([""]);
+      expect(linesOf(result.data, 0, 1)).to.deep.equal([
+        "Deadlift / 1x5 200lb",
+        "Squat / 3x5 100lb",
+        "Bench Press / 5x5 50lb",
+      ]);
+      expect(linesOf(result.data, 0, 2)).to.deep.equal([""]);
+    });
+
+    it("refuses the whole move when any one of them has nowhere to land", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 5x5 50lb
+
+## Day 2
+Deadlift / 1x5 200lb
+
+# Week 2
+## Day 1
+Squat / 3x5 105lb
+Bench Press / 5x5 55lb
+`;
+      const result = PlannerStructure_moveExercisesToDay(
+        plannerOf(text),
+        [
+          { fromRowIndex: 0, fullName: "Squat" },
+          { fromRowIndex: 0, fullName: "Bench Press" },
+        ],
+        1,
+        undefined,
+        Settings_build()
+      );
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("Week 2");
     });
 
     it("refuses when something reuses the exercise by its old day", () => {

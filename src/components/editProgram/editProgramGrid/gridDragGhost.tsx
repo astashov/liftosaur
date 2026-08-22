@@ -10,6 +10,7 @@ import {
   GRID_DAY_BOX_INSET,
   IGridGeometryRow,
 } from "../../../pages/planner/models/programGridGeometry";
+import { IGridActiveGhost, IGridLaneRef } from "./useGridDrags";
 
 // What is being dragged, floating over the grid: one per row for the day drag and one for the
 // exercise drag. The animated *shells* are mounted for the whole life of the grid, because building
@@ -17,6 +18,9 @@ import {
 // Their contents are not: a ghost is a second copy of a row, and keeping every copy mounted made a
 // zoom re-render the whole grid twice over. So the shells wait empty and fill in at drag start —
 // which is safe as long as the flag reaches only the ghosts, never a row (see EditProgramGrid).
+//
+// A drag can carry several rows or several strips, and each of them lifts from where it already is:
+// the shells sit at their own row's coordinates and the drag only ever contributes a translation.
 //
 // Only `opacity` and `transform` are ever animated. Animating `top`/`height`/`zIndex` instead —
 // which is what the first version did — makes Fabric commit a new shadow tree and reorder subviews
@@ -27,66 +31,71 @@ export interface IGridDragGhostProps {
   name: string;
   laneNames: string[];
   width: number;
+  top: number;
   labelHeight: number;
   laneHeight: number;
-  // Which row is being dragged as a day, and which as an exercise — the same values that dim the
-  // source, so a ghost needs nothing of its own to know it is the one on the move.
-  draggedRow: SharedValue<number>;
-  draggedLaneRow: SharedValue<number>;
-  draggedLane: SharedValue<number>;
+  // Which rows are being dragged as days, and which strips as exercises — the same values that dim
+  // the sources, so a ghost needs nothing of its own to know it is one of the ones on the move.
+  draggedRows: SharedValue<number[]>;
+  draggedLanes: SharedValue<IGridLaneRef[]>;
   ghostY: SharedValue<number>;
-  // The shell stays mounted; its contents do not. A ghost is a full second copy of the row it
+  // The shells stay mounted; their contents do not. A ghost is a full second copy of the row it
   // shadows, and mounting all of them at rest made every zoom re-render the grid twice over.
-  showDay: boolean;
-  showLane: boolean;
+  activeGhost?: IGridActiveGhost;
 }
+
+// Enough to read what is being carried, sheer enough that the row it is passing over and the drop
+// line under it stay visible through it.
+const GHOST_OPACITY = 0.75;
 
 export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostProps): JSX.Element {
   const rem = useRem();
-  const { rowIndex, draggedRow, draggedLaneRow, draggedLane, ghostY, laneHeight, labelHeight } = props;
+  const { rowIndex, draggedRows, draggedLanes, ghostY, laneHeight, labelHeight } = props;
   const dayStyle = useAnimatedStyle(() => ({
-    opacity: draggedRow.value === rowIndex ? 0.9 : 0,
+    opacity: draggedRows.value.indexOf(rowIndex) !== -1 ? GHOST_OPACITY : 0,
     transform: [{ translateY: ghostY.value }],
   }));
   const laneStyle = useAnimatedStyle(() => ({
-    opacity: draggedLaneRow.value === rowIndex ? 0.9 : 0,
+    opacity: draggedLanes.value.some((lane) => lane.row === rowIndex) ? GHOST_OPACITY : 0,
     transform: [{ translateY: ghostY.value }],
   }));
-  // The band shows one lane of the same list, scrolled to it — cheaper than a ghost per exercise,
-  // and it can't drift out of step with the day ghost.
-  const laneContentStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -Math.max(0, draggedLane.value) * laneHeight }],
-  }));
 
-  const laneStrips = (): JSX.Element[] =>
-    props.laneNames.map((laneName, laneIndex) => (
+  const activeGhost = props.activeGhost;
+  const showDay = activeGhost?.kind === "day" && activeGhost.rows.indexOf(rowIndex) !== -1;
+  // Which of this row's strips are on the move. They gather into one card from the topmost of them
+  // rather than each floating at its own lane, so a scattered selection travels as one thing.
+  const movedLanes =
+    activeGhost?.kind === "lane"
+      ? activeGhost.lanes.filter((lane) => lane.row === rowIndex).map((lane) => lane.lane)
+      : [];
+
+  const laneStrip = (laneName: string, key: number): JSX.Element => (
+    <View
+      key={key}
+      style={{
+        height: laneHeight,
+        paddingHorizontal: GRID_CELL_INSET_X * rem,
+        paddingVertical: GRID_CELL_INSET_Y * rem,
+      }}
+    >
       <View
-        key={laneIndex}
+        className="justify-center flex-1 px-2 rounded"
         style={{
-          height: laneHeight,
-          paddingHorizontal: GRID_CELL_INSET_X * rem,
-          paddingVertical: GRID_CELL_INSET_Y * rem,
+          borderWidth: 1,
+          borderColor: Tailwind_semantic().text.purple,
+          backgroundColor: Tailwind_semantic().background.cardpurpleselected,
         }}
       >
-        <View
-          className="justify-center flex-1 px-2 rounded"
-          style={{
-            borderWidth: 1,
-            borderColor: Tailwind_semantic().text.purple,
-            backgroundColor: Tailwind_semantic().background.cardpurpleselected,
-          }}
-        >
-          <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
-            {laneName}
-          </Text>
-        </View>
+        <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+          {laneName}
+        </Text>
       </View>
-    ));
-  // The shadow lives on the outer view of each pair: clipping the lane band to one strip would clip
+    </View>
+  );
+  // The shadow lives on the outer view of each pair: clipping the lane card to its strips would clip
   // its shadow away with the rest.
   const lift = {
     position: "absolute" as const,
-    top: 0,
     left: 0,
     width: props.width,
     // Also as a style, not only as the prop: a ghost sits over the very day names whose long press
@@ -106,22 +115,22 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
 
   return (
     <>
-      <Animated.View pointerEvents="none" style={[dayStyle, lift]}>
-        {props.showDay ? (
+      <Animated.View pointerEvents="none" style={[dayStyle, lift, { top: props.top }]}>
+        {showDay ? (
           <View className="overflow-hidden rounded" style={card}>
             <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
               <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
                 {props.name}
               </Text>
             </View>
-            {laneStrips()}
+            {props.laneNames.map((laneName, laneIndex) => laneStrip(laneName, laneIndex))}
           </View>
         ) : null}
       </Animated.View>
-      <Animated.View pointerEvents="none" style={[laneStyle, lift]}>
-        {props.showLane ? (
-          <View className="overflow-hidden rounded" style={[card, { height: laneHeight }]}>
-            <Animated.View style={laneContentStyle}>{laneStrips()}</Animated.View>
+      <Animated.View pointerEvents="none" style={[laneStyle, lift, { top: props.top + labelHeight }]}>
+        {movedLanes.length > 0 ? (
+          <View className="overflow-hidden rounded" style={[card, { marginTop: Math.min(...movedLanes) * laneHeight }]}>
+            {movedLanes.map((laneIndex) => laneStrip(props.laneNames[laneIndex] ?? "", laneIndex))}
           </View>
         ) : null}
       </Animated.View>
@@ -148,16 +157,18 @@ export interface IGridWeekGhostProps {
   ghostX: SharedValue<number>;
   // As for the day ghost: a week ghost is a whole column of day boxes and strips, and there is one
   // per week. Built when a week drag starts, not before.
-  show: boolean;
+  activeGhost?: IGridActiveGhost;
 }
 
 export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostProps): JSX.Element {
   const rem = useRem();
   const { weekIndex, draggedWeek, ghostX, laneHeight, labelHeight } = props;
   const style = useAnimatedStyle(() => ({
-    opacity: draggedWeek.value === weekIndex ? 0.9 : 0,
+    opacity: draggedWeek.value === weekIndex ? GHOST_OPACITY : 0,
     transform: [{ translateX: ghostX.value }],
   }));
+  const activeGhost = props.activeGhost;
+  const show = activeGhost?.kind === "week" && activeGhost.weeks.indexOf(weekIndex) !== -1;
 
   return (
     <Animated.View
@@ -167,7 +178,7 @@ export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostPr
         {
           position: "absolute",
           top: 0,
-          left: 0,
+          left: weekIndex * props.columnWidth,
           width: props.columnWidth,
           height: props.height,
           pointerEvents: "none" as const,
@@ -179,7 +190,7 @@ export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostPr
         },
       ]}
     >
-      {!props.show ? null : (
+      {!show ? null : (
         <>
           {/* The name rides above the ghost's top edge rather than inside it, so the day boxes below
           stay lined up with the rows they came from — `bottom: 100%` puts it exactly where the

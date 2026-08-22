@@ -73,13 +73,16 @@ const WeekHeaderCell = memo(function WeekHeaderCell(props: IWeekHeaderCellProps)
   const dropRightStyle = useAnimatedStyle(() => ({
     opacity: props.isLast && dropWeekGap.value === weekIndex + 1 ? 1 : 0,
   }));
+  // Orange, where everything else about a drag is purple: the line says where the drop *lands*, and
+  // it has to be told apart at a glance from the purple that says what is selected and what is on
+  // the move.
   const line = {
     position: "absolute" as const,
     top: 0,
     bottom: 0,
     width: 3,
     borderRadius: 2,
-    backgroundColor: Tailwind_semantic().icon.purple,
+    backgroundColor: Tailwind_semantic().graph.orange,
   };
 
   return (

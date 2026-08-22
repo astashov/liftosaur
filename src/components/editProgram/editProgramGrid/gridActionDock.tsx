@@ -41,7 +41,9 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
         : undefined;
 
   return (
-    <View className="flex-row items-center gap-1 px-3 py-2 border-t bg-background-default border-background-subtle">
+    // The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the grid's
+    // own scrolling content, so without a visible edge its background reads as more grid.
+    <View className="flex-row items-center gap-1 px-3 py-2 border-t bg-background-default border-border-neutral">
       <Pressable className="p-1 nm-grid-clear-selection" testID="grid-clear-selection" onPress={props.onClear}>
         <IconCloseCircleOutline size={20} color={Tailwind_semantic().icon.neutral} />
       </Pressable>
@@ -67,11 +69,17 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       )}
       <DockButton
         name="grid-action-duplicate"
-        label={target.kind === "day" ? "Duplicate day" : target.kind === "week" ? "Duplicate week" : "Duplicate"}
+        label={
+          target.kind === "day"
+            ? `Duplicate ${StringUtils_pluralize("day", target.rowIndexes.length)}`
+            : target.kind === "week"
+              ? "Duplicate week"
+              : "Duplicate"
+        }
         disabled={target.kind === "exercises" && single == null}
         onPress={() => {
           if (target.kind === "day") {
-            props.onDuplicateDay(target.rowIndex);
+            props.onDuplicateDays(target.rowIndexes);
           } else if (target.kind === "week") {
             props.onDuplicateWeek(target.weekIndex);
           } else if (single != null) {
@@ -83,10 +91,16 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       </DockButton>
       <DockButton
         name="grid-action-delete"
-        label={target.kind === "day" ? "Delete day" : target.kind === "week" ? "Delete week" : "Delete"}
+        label={
+          target.kind === "day"
+            ? `Delete ${StringUtils_pluralize("day", target.rowIndexes.length)}`
+            : target.kind === "week"
+              ? "Delete week"
+              : "Delete"
+        }
         onPress={() => {
           if (target.kind === "day") {
-            props.onDeleteDay(target.rowIndex);
+            props.onDeleteDays(target.rowIndexes);
           } else if (target.kind === "week") {
             props.onDeleteWeek(target.weekIndex);
           } else {

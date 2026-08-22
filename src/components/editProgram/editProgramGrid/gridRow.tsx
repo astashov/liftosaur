@@ -44,7 +44,7 @@ export interface IGridRowProps {
   isDayDimmed: boolean;
   lanes: number;
   rowHeight: number;
-  onMoveDayRow: (from: number, to: number) => void;
+  onMoveDayRows: (rows: number[], insertAt: number) => void;
   // The shared drag bus; see useGridDrags.
   drags: IGridDrags;
 }
@@ -57,20 +57,16 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   const addHeight = GRID_ADD_ROW_HEIGHT * rem;
   const isCollapsed = props.isCollapsed;
 
-  const { drags, onMoveDayRow } = props;
-  const { draggedRow, dropBoundary, draggedLaneRow, draggedLane, dropLaneRow, dropLaneGap } = drags;
+  const { drags, onMoveDayRows } = props;
+  const { draggedRows, dropBoundary, draggedLanes, dropLaneRow, dropLaneGap } = drags;
   const onSelectDay = props.onSelectDay;
   const onTapDay = useCallback(() => onSelectDay(rowIndex), [onSelectDay, rowIndex]);
 
-  const dayDrag = useGridDayDrag({ rowIndex, drags, onMoveDayRow });
+  const dayDrag = useGridDayDrag({ rowIndex, drags, onMoveDayRows });
 
-  // -1 means no drag, so an idle grid keeps whatever the selection styling asked for.
+  // An empty set means no drag, so an idle grid keeps whatever the selection styling asked for.
   const rowOverlayStyle = useAnimatedStyle(() => {
-    const dragging = draggedRow.value;
-    if (dragging < 0) {
-      return { opacity: 0 };
-    }
-    return { opacity: dragging === rowIndex ? 0.18 : 0 };
+    return { opacity: draggedRows.value.indexOf(rowIndex) !== -1 ? 0.18 : 0 };
   });
   // Each row owns the gap above it; the last row owns the one below it too, so a drop at the very
   // end has somewhere to draw.
@@ -85,12 +81,19 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   // An exercise can be dropped into any day, so both the strip being dragged and the line showing
   // where it will land are drawn here, over the row, from shared values the grid writes. The lanes
   // themselves stay out of it: giving them drag props would re-render the one under the finger.
+  // Several strips of this row can be on the move at once, and they gather into one card from the
+  // topmost of them — so what is dimmed here is that same span, not each strip where it sits.
   const laneHeight = props.laneHeight;
   const draggedLaneStyle = useAnimatedStyle(() => {
-    if (draggedLaneRow.value !== rowIndex) {
+    const dragged = draggedLanes.value.filter((lane) => lane.row === rowIndex);
+    if (dragged.length === 0) {
       return { opacity: 0, top: 0, height: 0 };
     }
-    return { opacity: 0.25, top: labelHeight + draggedLane.value * laneHeight, height: laneHeight };
+    let first = dragged[0].lane;
+    for (const lane of dragged) {
+      first = Math.min(first, lane.lane);
+    }
+    return { opacity: 0.25, top: labelHeight + first * laneHeight, height: dragged.length * laneHeight };
   });
   const dropLaneStyle = useAnimatedStyle(() => {
     if (dropLaneRow.value !== rowIndex) {
@@ -259,6 +262,8 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
           },
         ]}
       />
+      {/* Orange, where everything else about a drag is purple: these say where the drop *lands*, and
+          have to be told apart at a glance from the purple that says what is on the move. */}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -270,7 +275,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             right: 0,
             height: 3,
             borderRadius: 2,
-            backgroundColor: Tailwind_semantic().icon.purple,
+            backgroundColor: Tailwind_semantic().graph.orange,
           },
         ]}
       />
@@ -285,7 +290,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             right: 0,
             height: 3,
             borderRadius: 2,
-            backgroundColor: Tailwind_semantic().icon.purple,
+            backgroundColor: Tailwind_semantic().graph.orange,
           },
         ]}
       />
@@ -311,7 +316,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             right: GRID_CELL_INSET_X * rem,
             height: 3,
             borderRadius: 2,
-            backgroundColor: Tailwind_semantic().icon.purple,
+            backgroundColor: Tailwind_semantic().graph.orange,
           },
         ]}
       />

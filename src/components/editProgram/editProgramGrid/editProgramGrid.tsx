@@ -102,7 +102,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   );
   const { Wrap } = useGridPinch({ scale, onScalePreview: setPreviewScale, onScaleCommit: onCommitScale });
 
-  const { selectedDayRow, selectedWeek, selection, onSelect, onSelectDay, onSelectWeek, onClear } =
+  const { selectedDayRows, selectedWeek, selection, selectedLanes, onSelect, onSelectDay, onSelectWeek, onClear } =
     useGridSelectionState(grid);
 
   // Two hooks on purpose: everything that changes the program goes through `actions`, and every one
@@ -171,14 +171,15 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     grid,
     geometry,
     laneHeight,
+    selectedDayRows,
+    selectedLanes,
     autoScroll,
     onGhostActive: setActiveGhost,
     onReorderExercisesInDay: actions.onReorderExercisesInDay,
-    onMoveExerciseToDay: actions.onMoveExerciseToDay,
+    onMoveExercisesToDay: actions.onMoveExercisesToDay,
   });
 
   const publishSelection = useGridSelectionPublish();
-  const dayRow = selectedDayRow != null ? grid.rows[selectedDayRow] : undefined;
   const weekColumn = selectedWeek != null ? grid.columns[selectedWeek] : undefined;
   const payload = useMemo(() => {
     const target: IGridSelectionTarget | undefined =
@@ -196,12 +197,18 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                 .map((p) => `${p.rowIndex}:${p.key}`)
             ).size,
           }
-        : selectedDayRow != null && dayRow != null
+        : selectedDayRows.length > 0
           ? {
               kind: "day",
-              rowIndex: selectedDayRow,
-              name: dayRow.namePerWeek.find((n) => n != null) ?? `Day ${selectedDayRow + 1}`,
-              placements: grid.placements.filter((p) => p.rowIndex === selectedDayRow),
+              rowIndexes: selectedDayRows,
+              // One day is named; several are counted, because a list of names is what the dock has
+              // the least room for and the least use of.
+              name:
+                selectedDayRows.length === 1
+                  ? (grid.rows[selectedDayRows[0]]?.namePerWeek.find((n) => n != null) ??
+                    `Day ${selectedDayRows[0] + 1}`)
+                  : `${selectedDayRows.length} days`,
+              placements: grid.placements.filter((p) => selectedDayRows.indexOf(p.rowIndex) !== -1),
             }
           : selection != null
             ? { kind: "exercises", placements: selection.placements }
@@ -212,25 +219,24 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           onEdit: navigation.onEditPlacement,
           onDuplicate: navigation.onDuplicatePlacement,
           onDelete: actions.onDeletePlacements,
-          onDuplicateDay: actions.onDuplicateDay,
-          onDeleteDay: actions.onDeleteDay,
+          onDuplicateDays: actions.onDuplicateDays,
+          onDeleteDays: actions.onDeleteDays,
           onDuplicateWeek: actions.onDuplicateWeek,
           onDeleteWeek: actions.onDeleteWeek,
           onClear: onClear,
         }
       : undefined;
   }, [
-    grid.placements,
+    grid,
     selection,
-    selectedDayRow,
-    dayRow,
+    selectedDayRows,
     selectedWeek,
     weekColumn,
     navigation.onEditPlacement,
     navigation.onDuplicatePlacement,
     actions.onDeletePlacements,
-    actions.onDuplicateDay,
-    actions.onDeleteDay,
+    actions.onDuplicateDays,
+    actions.onDeleteDays,
     actions.onDuplicateWeek,
     actions.onDeleteWeek,
     onClear,
@@ -310,11 +316,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     onSelectDay={onSelectDay}
                     onToggleCollapsed={onToggleCollapsed}
                     isCollapsed={collapsedRows.indexOf(row.rowIndex) !== -1}
-                    isDaySelected={selectedDayRow === row.rowIndex}
-                    isDayDimmed={selectedDayRow != null && selectedDayRow !== row.rowIndex}
+                    isDaySelected={selectedDayRows.indexOf(row.rowIndex) !== -1}
+                    isDayDimmed={selectedDayRows.length > 0 && selectedDayRows.indexOf(row.rowIndex) === -1}
                     lanes={geometry[row.rowIndex].laneNames.length}
                     rowHeight={geometry[row.rowIndex].height}
-                    onMoveDayRow={actions.onMoveDayRow}
+                    onMoveDayRows={actions.onMoveDayRows}
                     drags={drags}
                   />
                 ))}
@@ -329,14 +335,13 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       name={row.namePerWeek.find((n) => n != null) ?? `Day ${row.rowIndex + 1}`}
                       laneNames={geometry[row.rowIndex].isCollapsed ? [] : geometry[row.rowIndex].laneNames}
                       width={totalWidth}
+                      top={geometry[row.rowIndex].top}
                       labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
                       laneHeight={laneHeight}
-                      draggedRow={drags.draggedRow}
-                      draggedLaneRow={drags.draggedLaneRow}
-                      draggedLane={drags.draggedLane}
+                      draggedRows={drags.draggedRows}
+                      draggedLanes={drags.draggedLanes}
                       ghostY={drags.ghostY}
-                      showDay={activeGhost?.kind === "day" && activeGhost.index === row.rowIndex}
-                      showLane={activeGhost?.kind === "lane" && activeGhost.index === row.rowIndex}
+                      activeGhost={activeGhost}
                     />
                   ))}
                 {Platform.OS !== "web" &&
@@ -355,7 +360,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       laneHeight={laneHeight}
                       draggedWeek={drags.draggedWeek}
                       ghostX={drags.ghostX}
-                      show={activeGhost?.kind === "week" && activeGhost.index === column.weekIndex}
+                      activeGhost={activeGhost}
                     />
                   ))}
               </View>
