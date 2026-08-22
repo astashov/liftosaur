@@ -12,8 +12,11 @@ import {
 } from "../../../pages/planner/models/programGridGeometry";
 
 // What is being dragged, floating over the grid: one per row for the day drag and one for the
-// exercise drag, both mounted for the whole life of the grid. Building a ghost when the drag starts
-// would mean a render while the pan is live, which is what cancels the pan.
+// exercise drag. The animated *shells* are mounted for the whole life of the grid, because building
+// one when the drag starts would mean a render while the pan is live, which is what cancels the pan.
+// Their contents are not: a ghost is a second copy of a row, and keeping every copy mounted made a
+// zoom re-render the whole grid twice over. So the shells wait empty and fill in at drag start —
+// which is safe as long as the flag reaches only the ghosts, never a row (see EditProgramGrid).
 //
 // Only `opacity` and `transform` are ever animated. Animating `top`/`height`/`zIndex` instead —
 // which is what the first version did — makes Fabric commit a new shadow tree and reorder subviews
@@ -32,6 +35,10 @@ export interface IGridDragGhostProps {
   draggedLaneRow: SharedValue<number>;
   draggedLane: SharedValue<number>;
   ghostY: SharedValue<number>;
+  // The shell stays mounted; its contents do not. A ghost is a full second copy of the row it
+  // shadows, and mounting all of them at rest made every zoom re-render the grid twice over.
+  showDay: boolean;
+  showLane: boolean;
 }
 
 export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostProps): JSX.Element {
@@ -51,29 +58,30 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
     transform: [{ translateY: -Math.max(0, draggedLane.value) * laneHeight }],
   }));
 
-  const laneStrips = props.laneNames.map((laneName, laneIndex) => (
-    <View
-      key={laneIndex}
-      style={{
-        height: laneHeight,
-        paddingHorizontal: GRID_CELL_INSET_X * rem,
-        paddingVertical: GRID_CELL_INSET_Y * rem,
-      }}
-    >
+  const laneStrips = (): JSX.Element[] =>
+    props.laneNames.map((laneName, laneIndex) => (
       <View
-        className="justify-center flex-1 px-2 rounded"
+        key={laneIndex}
         style={{
-          borderWidth: 1,
-          borderColor: Tailwind_semantic().text.purple,
-          backgroundColor: Tailwind_semantic().background.cardpurpleselected,
+          height: laneHeight,
+          paddingHorizontal: GRID_CELL_INSET_X * rem,
+          paddingVertical: GRID_CELL_INSET_Y * rem,
         }}
       >
-        <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
-          {laneName}
-        </Text>
+        <View
+          className="justify-center flex-1 px-2 rounded"
+          style={{
+            borderWidth: 1,
+            borderColor: Tailwind_semantic().text.purple,
+            backgroundColor: Tailwind_semantic().background.cardpurpleselected,
+          }}
+        >
+          <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+            {laneName}
+          </Text>
+        </View>
       </View>
-    </View>
-  ));
+    ));
   // The shadow lives on the outer view of each pair: clipping the lane band to one strip would clip
   // its shadow away with the rest.
   const lift = {
@@ -99,19 +107,23 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
   return (
     <>
       <Animated.View pointerEvents="none" style={[dayStyle, lift]}>
-        <View className="overflow-hidden rounded" style={card}>
-          <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
-            <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
-              {props.name}
-            </Text>
+        {props.showDay ? (
+          <View className="overflow-hidden rounded" style={card}>
+            <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
+              <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
+                {props.name}
+              </Text>
+            </View>
+            {laneStrips()}
           </View>
-          {laneStrips}
-        </View>
+        ) : null}
       </Animated.View>
       <Animated.View pointerEvents="none" style={[laneStyle, lift]}>
-        <View className="overflow-hidden rounded" style={[card, { height: laneHeight }]}>
-          <Animated.View style={laneContentStyle}>{laneStrips}</Animated.View>
-        </View>
+        {props.showLane ? (
+          <View className="overflow-hidden rounded" style={[card, { height: laneHeight }]}>
+            <Animated.View style={laneContentStyle}>{laneStrips()}</Animated.View>
+          </View>
+        ) : null}
       </Animated.View>
     </>
   );
@@ -134,6 +146,9 @@ export interface IGridWeekGhostProps {
   laneHeight: number;
   draggedWeek: SharedValue<number>;
   ghostX: SharedValue<number>;
+  // As for the day ghost: a week ghost is a whole column of day boxes and strips, and there is one
+  // per week. Built when a week drag starts, not before.
+  show: boolean;
 }
 
 export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostProps): JSX.Element {
@@ -164,71 +179,75 @@ export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostPr
         },
       ]}
     >
-      {/* The name rides above the ghost's top edge rather than inside it, so the day boxes below
+      {!props.show ? null : (
+        <>
+          {/* The name rides above the ghost's top edge rather than inside it, so the day boxes below
           stay lined up with the rows they came from — `bottom: 100%` puts it exactly where the
           week header it was lifted from sits. */}
-      <View
-        className="absolute px-2 py-2 rounded"
-        style={{
-          bottom: "100%",
-          left: GRID_DAY_BOX_INSET * rem,
-          right: GRID_DAY_BOX_INSET * rem,
-          borderWidth: 2,
-          borderColor: Tailwind_semantic().icon.purple,
-          backgroundColor: Tailwind_semantic().background.cardyellow,
-        }}
-      >
-        <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
-          {props.name}
-        </Text>
-        <Text className="text-xs text-text-secondary" numberOfLines={1}>
-          {props.numberOfDays} days
-        </Text>
-      </View>
-      {props.rows.map((row, rowIndex) => (
-        <View
-          key={rowIndex}
-          className="absolute overflow-hidden rounded"
-          style={{
-            top: row.top,
-            left: GRID_DAY_BOX_INSET * rem,
-            right: GRID_DAY_BOX_INSET * rem,
-            height: row.height,
-            borderWidth: 2,
-            borderColor: Tailwind_semantic().icon.purple,
-            backgroundColor: Tailwind_semantic().background.cardyellow,
-          }}
-        >
-          <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
-            <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
-              {props.dayNames[rowIndex] ?? ""}
+          <View
+            className="absolute px-2 py-2 rounded"
+            style={{
+              bottom: "100%",
+              left: GRID_DAY_BOX_INSET * rem,
+              right: GRID_DAY_BOX_INSET * rem,
+              borderWidth: 2,
+              borderColor: Tailwind_semantic().icon.purple,
+              backgroundColor: Tailwind_semantic().background.cardyellow,
+            }}
+          >
+            <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
+              {props.name}
+            </Text>
+            <Text className="text-xs text-text-secondary" numberOfLines={1}>
+              {props.numberOfDays} days
             </Text>
           </View>
-          {(props.laneNames[rowIndex] ?? []).map((laneName, laneIndex) =>
-            laneName === "" ? null : (
-              <View
-                key={laneIndex}
-                className="absolute rounded"
-                style={{
-                  top: labelHeight + laneIndex * laneHeight + GRID_CELL_INSET_Y * rem,
-                  left: GRID_CELL_INSET_X * rem,
-                  right: GRID_CELL_INSET_X * rem,
-                  height: laneHeight - 2 * GRID_CELL_INSET_Y * rem,
-                  justifyContent: "center",
-                  paddingHorizontal: 0.5 * rem,
-                  borderWidth: 1,
-                  borderColor: Tailwind_semantic().text.purple,
-                  backgroundColor: Tailwind_semantic().background.cardpurpleselected,
-                }}
-              >
-                <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
-                  {laneName}
+          {props.rows.map((row, rowIndex) => (
+            <View
+              key={rowIndex}
+              className="absolute overflow-hidden rounded"
+              style={{
+                top: row.top,
+                left: GRID_DAY_BOX_INSET * rem,
+                right: GRID_DAY_BOX_INSET * rem,
+                height: row.height,
+                borderWidth: 2,
+                borderColor: Tailwind_semantic().icon.purple,
+                backgroundColor: Tailwind_semantic().background.cardyellow,
+              }}
+            >
+              <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
+                <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
+                  {props.dayNames[rowIndex] ?? ""}
                 </Text>
               </View>
-            )
-          )}
-        </View>
-      ))}
+              {(props.laneNames[rowIndex] ?? []).map((laneName, laneIndex) =>
+                laneName === "" ? null : (
+                  <View
+                    key={laneIndex}
+                    className="absolute rounded"
+                    style={{
+                      top: labelHeight + laneIndex * laneHeight + GRID_CELL_INSET_Y * rem,
+                      left: GRID_CELL_INSET_X * rem,
+                      right: GRID_CELL_INSET_X * rem,
+                      height: laneHeight - 2 * GRID_CELL_INSET_Y * rem,
+                      justifyContent: "center",
+                      paddingHorizontal: 0.5 * rem,
+                      borderWidth: 1,
+                      borderColor: Tailwind_semantic().text.purple,
+                      backgroundColor: Tailwind_semantic().background.cardpurpleselected,
+                    }}
+                  >
+                    <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
+                      {laneName}
+                    </Text>
+                  </View>
+                )
+              )}
+            </View>
+          ))}
+        </>
+      )}
     </Animated.View>
   );
 });

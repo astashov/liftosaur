@@ -15,7 +15,7 @@ export function useGridWeekDrag(args: {
   onMoveWeek: (from: number, to: number) => void;
 }): IGridDragSession {
   const { weekIndex, weekCount, columnWidth, drags } = args;
-  const { draggedWeek, dropWeekGap, ghostX } = drags;
+  const { draggedWeek, dropWeekGap, ghostX, setActiveGhost } = drags;
   const onMoveRef = useRef(args.onMoveWeek);
   onMoveRef.current = args.onMoveWeek;
 
@@ -36,5 +36,6 @@ export function useGridWeekDrag(args: {
         onMoveRef.current(weekIndex, to);
       }
     },
+    onActive: (active) => setActiveGhost(active ? { kind: "week", index: weekIndex } : undefined),
   });
 }

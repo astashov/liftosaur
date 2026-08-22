@@ -14,6 +14,15 @@ import { IGridLaneDrag, useGridLaneDrag } from "./useGridLaneDrag";
 //
 // The refs are the other half: handlers are built once per drag and must not be rebuilt while a pan
 // is live, so they read the current model and layout through refs rather than closing over them.
+// Which ghost, if any, has something to draw. Deliberately *not* on the bus itself: the bus is read
+// by every row, so a value that changed when a drag started would re-render every row at exactly
+// the moment the pan must not be disturbed. Only the stable setter lives here; the value lives in
+// the grid, and reaches the ghosts alone.
+export interface IGridActiveGhost {
+  kind: "day" | "lane" | "week";
+  index: number;
+}
+
 export interface IGridDrags {
   // Which row/column/lane is lifted, and where its drop would land. -1 means "no drag".
   draggedRow: SharedValue<number>;
@@ -37,6 +46,7 @@ export interface IGridDrags {
   getLaneHeight: () => number;
   getGrid: () => IProgramGrid;
   autoScroll: IGridDragAutoScroll;
+  setActiveGhost: (ghost: IGridActiveGhost | undefined) => void;
   // The exercise drag is owned here rather than by a row, because it can end in a different row.
   lane: IGridLaneDrag;
 }
@@ -49,6 +59,7 @@ export function useGridDrags(args: {
   // come in rather than being owned here. They are render plumbing; a bus that handed them out
   // would be handing out mutable refs again, which is the thing this hook exists not to do.
   autoScroll: IGridDragAutoScroll;
+  onGhostActive: (ghost: IGridActiveGhost | undefined) => void;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
 }): IGridDrags {
@@ -69,6 +80,9 @@ export function useGridDrags(args: {
   const getGeometry = useCallback(() => geometryRef.current, []);
   const getLaneHeight = useCallback(() => laneHeightRef.current, []);
   const getGrid = useCallback(() => gridRef.current, []);
+  // Straight through, not via a ref: it is a useState setter, so it is already stable for the life
+  // of the grid, and wrapping it only adds a thing that can be stale.
+  const setActiveGhost = args.onGhostActive;
 
   const autoScroll = args.autoScroll;
 
@@ -78,6 +92,7 @@ export function useGridDrags(args: {
     getLaneHeight,
     ghostY,
     autoScroll,
+    setActiveGhost,
     onReorderExercisesInDay: args.onReorderExercisesInDay,
     onMoveExerciseToDay: args.onMoveExerciseToDay,
   });
@@ -98,6 +113,7 @@ export function useGridDrags(args: {
       getLaneHeight,
       getGrid,
       autoScroll,
+      setActiveGhost,
       lane,
     }),
     [
@@ -111,6 +127,7 @@ export function useGridDrags(args: {
       getLaneHeight,
       getGrid,
       autoScroll,
+      setActiveGhost,
       lane,
     ]
   );

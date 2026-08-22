@@ -27,6 +27,9 @@ export const GRID_ADD_ROW_HEIGHT = 1.5;
 export const GRID_DAY_LABEL_HEIGHT = 2;
 export const GRID_RESIZE_HANDLE_WIDTH = 1;
 export const GRID_MARGIN_BETWEEN_ROWS = 0.25;
+// The "+ Week" button is a full-height rail past the last column rather than a column-wide box, so
+// it costs the horizontal scroll almost nothing and reads as "the grid continues this way".
+export const GRID_ADD_WEEK_WIDTH = 3;
 
 export interface IGridGeometryRow {
   top: number;

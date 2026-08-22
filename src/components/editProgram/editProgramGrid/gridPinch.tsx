@@ -6,7 +6,8 @@ export const GRID_SCALE_MAX = 2.2;
 
 export interface IGridPinchArgs {
   scale: number;
-  onScaleChange: (scale: number) => void;
+  onScalePreview: (scale: number) => void;
+  onScaleCommit: (scale: number) => void;
 }
 
 export interface IGridPinchResult {

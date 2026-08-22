@@ -36,6 +36,10 @@ export interface IGridDragSessionOptions<TTarget> {
   // semantic target.
   show: (target: TTarget | undefined, translation: number) => void;
   commit: (target: TTarget) => void;
+  // Fires once when the drag starts and once when it ends — the only two moments in a drag where a
+  // render is allowed. Everything in between goes through shared values. The ghosts use it to build
+  // their contents on demand instead of keeping a copy of the grid mounted at all times.
+  onActive?: (active: boolean) => void;
 }
 
 export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTarget>): IGridDragSession {
@@ -54,6 +58,7 @@ export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTa
 
   const onDragStart = useCallback(
     (absolute: number) => {
+      optionsRef.current.onActive?.(true);
       apply(0);
       autoScroll.begin(axis, absolute, apply);
     },
@@ -73,6 +78,7 @@ export function useGridDragSession<TTarget>(options: IGridDragSessionOptions<TTa
       const target = targetRef.current;
       targetRef.current = undefined;
       optionsRef.current.show(undefined, 0);
+      optionsRef.current.onActive?.(false);
       if (commit && target !== undefined) {
         optionsRef.current.commit(target);
       }

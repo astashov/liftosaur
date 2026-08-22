@@ -13,7 +13,8 @@ export interface IGridDragHandleProps {
   axis?: "y" | "x";
 }
 
-const LONG_PRESS_MS = 200;
+// Kept in step with the native handle's threshold — see gridDragHandle.native.tsx.
+const LONG_PRESS_MS = 500;
 // Moving further than this before the long press lands means the user is scrolling, not dragging.
 const SLOP = 8;
 

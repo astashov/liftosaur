@@ -25,6 +25,7 @@ import {
   ProgramGrid_weekDayCount,
 } from "../../../pages/planner/models/programGrid";
 import {
+  GRID_ADD_WEEK_WIDTH,
   GRID_DAY_BOX_INSET,
   GRID_DAY_LABEL_HEIGHT,
   ProgramGridGeometry_build,
@@ -38,11 +39,11 @@ import { useGridActions } from "./useGridActions";
 import { useGridNavigation } from "./useGridNavigation";
 import { useGridSelectionState } from "./useGridSelectionState";
 import { useGridDragAutoScroll } from "./gridDragAutoScroll";
-import { useGridDrags } from "./useGridDrags";
+import { IGridActiveGhost, useGridDrags } from "./useGridDrags";
 import { WeekHeaderRow } from "./gridWeekHeaderRow";
 import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
-import { AddButton } from "./gridAddButton";
+import { AddButton, VerticalAddButton } from "./gridAddButton";
 
 // Scale presets for the zoom control; pinch fills in everything between them.
 const SCALE_PRESETS: { label: string; scale: number }[] = [
@@ -74,21 +75,32 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const windowWidth = useWindowDimensions().width;
   const [containerWidth, setContainerWidth] = useState(windowWidth);
   const onLayout = useCallback((e: LayoutChangeEvent) => setContainerWidth(e.nativeEvent.layout.width), []);
+  // What a live pinch is showing, before it is worth writing down. The committed scale is the
+  // remembered one — it outlives the screen — so the preview only ever shadows it, and a preset
+  // clears the shadow so the committed value wins again.
+  const [previewScale, setPreviewScale] = useState<number | undefined>(undefined);
   const { columnWidth, totalWidth, laneHeight, showScheme, scale } = ProgramGridGeometry_metrics({
     weekCount: grid.columns.length,
     containerWidth,
-    scale: props.scale,
+    scale: previewScale ?? props.scale,
     rem,
   });
 
   const plannerDispatch = props.plannerDispatch;
-  const onChangeScale = useCallback(
+  const onCommitScale = useCallback(
     (newScale: number) => {
       plannerDispatch(lb<IPlannerState>().p("ui").p("gridScale").record(newScale), `Change grid scale to ${newScale}`);
     },
     [plannerDispatch]
   );
-  const { Wrap } = useGridPinch({ scale, onScaleChange: onChangeScale });
+  const onChangeScale = useCallback(
+    (newScale: number) => {
+      setPreviewScale(undefined);
+      onCommitScale(newScale);
+    },
+    [onCommitScale]
+  );
+  const { Wrap } = useGridPinch({ scale, onScalePreview: setPreviewScale, onScaleCommit: onCommitScale });
 
   const { selectedDayRow, selectedWeek, selection, onSelect, onSelectDay, onSelectWeek, onClear } =
     useGridSelectionState(grid);
@@ -131,8 +143,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // this component's state — see useGridDrags. What comes back is a bus the rows and columns read,
   // plus the exercise drag, which is the one the grid owns because it can cross rows.
   // The scroller belongs to this component, so its refs live here and go into auto-scroll rather
-  // than onto the drag bus. The "+ Week" button sits past the last column, so the content is one
-  // column wider than the grid.
+  // than onto the drag bus. The "+ Week" rail sits past the last column, so the content is that
+  // much wider than the grid.
   const horizontalScrollRef = useRef<ScrollView | null>(null);
   const horizontalViewportRef = useRef<View | null>(null);
   const horizontalOffsetRef = useRef(0);
@@ -140,7 +152,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     horizontalOffsetRef.current = e.nativeEvent.contentOffset.x;
   }, []);
   const contentWidthRef = useRef(0);
-  contentWidthRef.current = totalWidth + columnWidth;
+  contentWidthRef.current = totalWidth + GRID_ADD_WEEK_WIDTH * rem;
   const containerWidthRef = useRef(0);
   containerWidthRef.current = containerWidth;
   const maxHorizontalScroll = useCallback(() => Math.max(0, contentWidthRef.current - containerWidthRef.current), []);
@@ -151,11 +163,16 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     maxHorizontalScroll,
   });
 
+  // Only the ghosts get this, never a row: setting it re-renders the grid at the moment a pan goes
+  // live, and every row has to fall through its memo untouched for the pan to survive.
+  const [activeGhost, setActiveGhost] = useState<IGridActiveGhost | undefined>(undefined);
+
   const drags = useGridDrags({
     grid,
     geometry,
     laneHeight,
     autoScroll,
+    onGhostActive: setActiveGhost,
     onReorderExercisesInDay: actions.onReorderExercisesInDay,
     onMoveExerciseToDay: actions.onMoveExerciseToDay,
   });
@@ -318,6 +335,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       draggedLaneRow={drags.draggedLaneRow}
                       draggedLane={drags.draggedLane}
                       ghostY={drags.ghostY}
+                      showDay={activeGhost?.kind === "day" && activeGhost.index === row.rowIndex}
+                      showLane={activeGhost?.kind === "lane" && activeGhost.index === row.rowIndex}
                     />
                   ))}
                 {Platform.OS !== "web" &&
@@ -336,6 +355,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       laneHeight={laneHeight}
                       draggedWeek={drags.draggedWeek}
                       ghostX={drags.ghostX}
+                      show={activeGhost?.kind === "week" && activeGhost.index === column.weekIndex}
                     />
                   ))}
               </View>
@@ -355,8 +375,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                 ))}
               </View>
             </View>
-            <View style={{ width: columnWidth, padding: GRID_DAY_BOX_INSET * rem }}>
-              <AddButton label="Week" testID="grid-add-week" onPress={actions.onAddWeek} />
+            <View style={{ width: GRID_ADD_WEEK_WIDTH * rem, padding: GRID_DAY_BOX_INSET * rem }}>
+              <VerticalAddButton label="Week" testID="grid-add-week" onPress={actions.onAddWeek} />
             </View>
           </View>
         </ScrollView>

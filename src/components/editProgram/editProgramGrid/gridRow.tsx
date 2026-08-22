@@ -157,7 +157,11 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
                       to keep the same height to stay a grid — so every week's chevron toggles the
                       whole row, and whichever one you have scrolled to is the one you can reach. */}
                   <Pressable
-                    className="py-1 pr-1 nm-grid-toggle-day"
+                    // The chevron itself stays small — it is a hint, not a control — so the target
+                    // is padding around it plus slop beyond that. The left padding is also what
+                    // keeps it off the day box's border, which it otherwise sits right on top of.
+                    className="p-2 nm-grid-toggle-day"
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     testID={`grid-toggle-day-${rowIndex}`}
                     accessibilityLabel={isCollapsed ? "Expand day" : "Collapse day"}
                     onPress={() => props.onToggleCollapsed(rowIndex)}

@@ -15,7 +15,7 @@ export function useGridDayDrag(args: {
   onMoveDayRow: (from: number, to: number) => void;
 }): IGridDragSession {
   const { rowIndex, drags } = args;
-  const { getGeometry, draggedRow, dropBoundary, ghostY } = drags;
+  const { getGeometry, draggedRow, dropBoundary, ghostY, setActiveGhost } = drags;
   const onMoveRef = useRef(args.onMoveDayRow);
   onMoveRef.current = args.onMoveDayRow;
 
@@ -35,5 +35,6 @@ export function useGridDayDrag(args: {
         onMoveRef.current(rowIndex, to);
       }
     },
+    onActive: (active) => setActiveGhost(active ? { kind: "day", index: rowIndex } : undefined),
   });
 }

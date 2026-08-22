@@ -9,6 +9,7 @@ import {
 } from "../../../pages/planner/models/programGridGeometry";
 import { IProgramGrid, ProgramGrid_laneNames } from "../../../pages/planner/models/programGrid";
 import { IGridDragAutoScroll } from "./gridDragAutoScroll";
+import { IGridActiveGhost } from "./useGridDrags";
 import { useGridDragSession } from "./useGridDragSession";
 
 export interface IGridLaneDrag {
@@ -33,6 +34,7 @@ export function useGridLaneDrag(args: {
   getLaneHeight: () => number;
   ghostY: SharedValue<number>;
   autoScroll: IGridDragAutoScroll;
+  setActiveGhost: (ghost: IGridActiveGhost | undefined) => void;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExerciseToDay: (fromRow: number, fullName: string, toRow: number, before: string | undefined) => void;
 }): IGridLaneDrag {
@@ -99,6 +101,10 @@ export function useGridLaneDrag(args: {
       // different number of exercises in each week.
       const before = ProgramGrid_laneNames(grid, drop.toRow)[drop.gap];
       argsRef.current.onMoveExerciseToDay(origin.row, fullName, drop.toRow, before === "" ? undefined : before);
+    },
+    onActive: (active) => {
+      const origin = originRef.current;
+      argsRef.current.setActiveGhost(active && origin != null ? { kind: "lane", index: origin.row } : undefined);
     },
   });
 

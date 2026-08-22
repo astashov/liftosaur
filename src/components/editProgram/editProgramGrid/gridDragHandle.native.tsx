@@ -20,11 +20,19 @@ export interface IGridDragHandleProps {
   axis?: "y" | "x";
 }
 
+// The platform long-press. Shorter than this and the grid grabs rows out from under a scroll or a
+// pinch: every cell is a drag handle, so there is no inert area to start a scroll from, and the
+// press that means "move this" has to be clearly longer than the one that means "I'm scrolling".
+const DRAG_LONG_PRESS_MS = 500;
+
 export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandleProps): JSX.Element {
   const { onDragStart, onDragMove, onDragEnd, onTap, axis } = props;
   const gesture = useMemo(() => {
     const pan = Gesture.Pan()
-      .activateAfterLongPress(200)
+      .activateAfterLongPress(DRAG_LONG_PRESS_MS)
+      // A pinch is two fingers; a drag is one. Without this the first finger of a pinch can promote
+      // itself to a drag while the second is still landing.
+      .maxPointers(1)
       // The finger leaves a small handle almost immediately once the drag is under way; without
       // this the gesture is cancelled the moment it does.
       .shouldCancelWhenOutside(false)
