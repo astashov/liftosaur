@@ -564,10 +564,27 @@ describe("LiftoEditorSession", () => {
   });
 
   describe("pills", () => {
-    it("falls through leaf levels to the nearest pill boundary", () => {
+    it("shows the set group's actions on a value that owns its own rail", () => {
       const tap = tapAt("Squat / 3x8 100kg", "100kg");
       const labels = LiftoEditorSession_pills(tap.session).map((p) => p.label);
       expect(labels).to.include("Add RPE");
+    });
+
+    // The same node name as a set group's weight, and it must not take the rail from the
+    // warmup group it's in.
+    it("falls through a warmup's weight to the warmup rail", () => {
+      const tap = tapAt("Squat / 3x8 / warmup: 2x5 45%, 1x3", "45%");
+      expect(LiftoEditorSession_pills(tap.session).map((p) => p.label)).to.deep.equal([
+        "Add another warmup set group",
+        "Remove warmups",
+      ]);
+    });
+
+    it("falls through a progression's weight to the progression rail", () => {
+      const tap = tapAt("Squat / 3x8 / progress: lp(5kg)", "5kg");
+      const labels = LiftoEditorSession_pills(tap.session).map((p) => p.label);
+      expect(labels).to.include.members(["Require 2 successes", "Add deload on failure"]);
+      expect(labels).to.not.include("Add RPE");
     });
 
     it("stops at an empty boundary instead of surfacing ancestor pills", () => {

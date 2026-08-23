@@ -8,8 +8,7 @@ import {
   ILiftoEditorPill,
   LiftoEditorActions_endOfExerciseLine,
   LiftoEditorActions_enclosingExercise,
-  LiftoEditorActions_labelRenamePill,
-  LiftoEditorActions_pillsForNode,
+  LiftoEditorActions_railForNode,
   LiftoEditorActions_setVariationSections,
   LiftoEditorActions_warmupSetsPillsAt,
 } from "./liftoEditorActions";
@@ -318,6 +317,9 @@ export interface ILiftoEditorLevel {
   start: number;
   end: number;
   pills: ILiftoEditorPill[];
+  // Whether the rail's walk outward stops here. Required rather than optional so it can't be
+  // the field a new contextAt branch forgets — see makeLevel.
+  ownsRail: boolean;
   // Exercise levels only: every variation, i.e. the planner's fullName. The label is just
   // the first variation — enough for a breadcrumb, but not enough to identify the exercise.
   fullName?: string;
@@ -808,6 +810,27 @@ export function LiftoEditorBrain_hasReuse(cache: LiftoEditorParseCache, text: st
   return found;
 }
 
+// The one place a level is built. Every branch below differs only in what it calls the level
+// and where it ends; what the level offers and whether it owns the rail are two answers to the
+// same question about the node, and are always taken from the same call.
+function makeLevel(
+  text: string,
+  node: SyntaxNode,
+  label: string,
+  overrides?: { end?: number; pills?: ILiftoEditorPill[]; fullName?: string }
+): ILiftoEditorLevel {
+  const rail = LiftoEditorActions_railForNode(text, node);
+  return {
+    label,
+    nodeName: node.name,
+    start: node.from,
+    end: overrides?.end ?? node.to,
+    pills: overrides?.pills ?? rail.pills,
+    ownsRail: rail.ownsRail,
+    fullName: overrides?.fullName,
+  };
+}
+
 export function LiftoEditorBrain_contextAt(
   cache: LiftoEditorParseCache,
   text: string,
@@ -822,61 +845,39 @@ export function LiftoEditorBrain_contextAt(
       const isGlobals = node.getChild(PlannerNodeName.SetPart) == null;
       const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseSet) ?? [];
       const setIndex = siblings.findIndex((s) => s.from === node!.from);
-      levels.unshift({
-        label: isGlobals ? "Globals" : `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`,
-        nodeName: name,
-        start: node.from,
-        end: node.to,
-        pills: LiftoEditorActions_pillsForNode(text, node),
-      });
+      levels.unshift(
+        makeLevel(text, node, isGlobals ? "Globals" : `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`)
+      );
     } else if (name === PlannerNodeName.ExerciseSets) {
       const exercise = LiftoEditorActions_enclosingExercise(node);
       const variations = exercise != null ? LiftoEditorActions_setVariationSections(exercise) : [];
       const variationIndex = variations.findIndex((s) => s.from === node!.from);
-      levels.unshift({
-        label: variations.length > 1 && variationIndex !== -1 ? `Sets ${variationIndex + 1}` : "Sets",
-        nodeName: name,
-        start: node.from,
-        end: node.to,
-        pills: LiftoEditorActions_pillsForNode(text, node),
-      });
+      levels.unshift(
+        makeLevel(text, node, variations.length > 1 && variationIndex !== -1 ? `Sets ${variationIndex + 1}` : "Sets")
+      );
     } else if (name === PlannerNodeName.ExerciseVariation) {
       const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseVariation) ?? [];
       // Single-variation exercises (the common case) get no level: the exercise level
       // already covers the name, and "Variation 1" would just be noise.
       if (siblings.length > 1) {
         const variationIndex = siblings.findIndex((s) => s.from === node!.from);
-        levels.unshift({
-          label: `Variation ${variationIndex + 1}`,
-          nodeName: name,
-          start: node.from,
-          end: node.to,
-          pills: LiftoEditorActions_pillsForNode(text, node),
-        });
+        levels.unshift(makeLevel(text, node, `Variation ${variationIndex + 1}`));
       }
     } else if (name === PlannerNodeName.ExerciseExpression) {
       const variations = node.getChild(PlannerNodeName.ExerciseVariations);
       const exerciseName = variations
         ?.getChild(PlannerNodeName.ExerciseVariation)
         ?.getChild(PlannerNodeName.ExerciseName);
-      levels.unshift({
-        label: exerciseName != null ? nodeText(text, exerciseName).trim() : "Exercise",
-        nodeName: name,
-        start: node.from,
-        end: LiftoEditorActions_endOfExerciseLine(text, node),
-        pills: LiftoEditorActions_pillsForNode(text, node),
-        fullName: variations != null ? nodeText(text, variations).trim() : undefined,
-      });
+      levels.unshift(
+        makeLevel(text, node, exerciseName != null ? nodeText(text, exerciseName).trim() : "Exercise", {
+          end: LiftoEditorActions_endOfExerciseLine(text, node),
+          fullName: variations != null ? nodeText(text, variations).trim() : undefined,
+        })
+      );
     } else if (name === PlannerNodeName.KeyValue) {
       const keyword = node.getChild(PlannerNodeName.Keyword);
       if (keyword != null) {
-        levels.unshift({
-          label: nodeText(text, keyword),
-          nodeName: name,
-          start: node.from,
-          end: node.to,
-          pills: LiftoEditorActions_pillsForNode(text, node),
-        });
+        levels.unshift(makeLevel(text, node, nodeText(text, keyword)));
       }
     } else if (name === PlannerNodeName.ExerciseName && node.parent?.name === PlannerNodeName.ExerciseVariation) {
       // The grammar lumps `label: Name` into one ExerciseName token (":" is a name char),
@@ -891,45 +892,26 @@ export function LiftoEditorBrain_contextAt(
         while (text[afterColon] === " ") {
           afterColon += 1;
         }
-        const renamePill = LiftoEditorActions_labelRenamePill(text, node);
-        levels.unshift({
-          label: "Label",
-          nodeName: name,
-          start: node.from,
-          end: afterColon,
-          pills: renamePill != null ? [renamePill] : [],
-        });
+        levels.unshift(makeLevel(text, node, "Label", { end: afterColon }));
       }
     } else if (name === PlannerNodeName.ExerciseProperty) {
       const propertyName = node.getChild(PlannerNodeName.ExercisePropertyName);
       if (propertyName != null) {
         const label = nodeText(text, propertyName);
-        levels.unshift({
-          label: label.charAt(0).toUpperCase() + label.slice(1),
-          nodeName: name,
-          start: node.from,
-          end: node.to,
-          pills: LiftoEditorActions_pillsForNode(text, node),
-        });
+        levels.unshift(makeLevel(text, node, label.charAt(0).toUpperCase() + label.slice(1)));
       }
     } else if (name === PlannerNodeName.WarmupExerciseSets) {
-      levels.unshift({
-        label: breadcrumbLabels[name] ?? "Warmup sets",
-        nodeName: name,
-        start: node.from,
-        end: node.to,
-        pills: LiftoEditorActions_warmupSetsPillsAt(text, node, index),
-      });
+      // The only branch that overrides pills: which warmup group the caret is in decides what
+      // the rail offers, and the node alone can't say.
+      levels.unshift(
+        makeLevel(text, node, breadcrumbLabels[name] ?? "Warmup sets", {
+          pills: LiftoEditorActions_warmupSetsPillsAt(text, node, index),
+        })
+      );
     } else if (name === PlannerNodeName.FunctionExpression) {
       const functionName = node.getChild(PlannerNodeName.FunctionName);
       if (functionName != null) {
-        levels.unshift({
-          label: `${nodeText(text, functionName)}()`,
-          nodeName: name,
-          start: node.from,
-          end: node.to,
-          pills: LiftoEditorActions_pillsForNode(text, node),
-        });
+        levels.unshift(makeLevel(text, node, `${nodeText(text, functionName)}()`));
       }
     } else {
       const isHeader = name === PlannerNodeName.Week || name === PlannerNodeName.Day;
@@ -939,13 +921,7 @@ export function LiftoEditorBrain_contextAt(
       if (label != null && levels[0]?.label !== label) {
         // Week/Day tokens include their trailing linebreak; keep the highlight on the line.
         const end = isHeader ? LiftoEditorActions_endOfExerciseLine(text, node) : node.to;
-        levels.unshift({
-          label,
-          nodeName: name,
-          start: node.from,
-          end,
-          pills: LiftoEditorActions_pillsForNode(text, node),
-        });
+        levels.unshift(makeLevel(text, node, label, { end }));
       }
     }
   }

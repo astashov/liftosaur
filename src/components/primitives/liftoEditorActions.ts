@@ -11,6 +11,10 @@ import type { ITextInputModalData } from "../../navigation/ModalStateContext";
 
 export type ILiftoEditorPillCategory = "weight" | "timer" | "logic" | "sets" | "progress" | "neutral";
 
+// A value a set group carries, named the way an action that reaches every set in the program
+// spelling the same value would name it.
+export type ILiftoEditorAcrossField = "reps" | "weight" | "rpe" | "timer";
+
 // start === end is a plain insert; start < end replaces that range (token transformations
 // like "Make rep range" or progression type switches). Pills with an `action` are not text
 // edits — the hosting surface intercepts them (exercise picker, rename prompt) and uses
@@ -889,22 +893,60 @@ const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxN
   },
 };
 
-export function LiftoEditorActions_pillsForNode(text: string, node: SyntaxNode): ILiftoEditorPill[] {
-  const own = pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
-  // Set-group children with their own rails (sets×reps, timers, set label) would otherwise
-  // hide the group's additive actions: the rail walk stops at the first pill boundary, so
-  // focusing "3x8" showed only "Make rep range" while focusing the weight (no own rail)
-  // fell through to the full group rail.
+const acrossFields: Partial<Record<PlannerNodeName, ILiftoEditorAcrossField>> = {
+  [PlannerNodeName.SetPart]: "reps",
+  [PlannerNodeName.Weight]: "weight",
+  [PlannerNodeName.Percentage]: "weight",
+  [PlannerNodeName.Rpe]: "rpe",
+  [PlannerNodeName.Timer]: "timer",
+  [PlannerNodeName.SetTimer]: "timer",
+};
+
+// The set group a value token belongs to, or null if it isn't one of a set group's values.
+// Only the grammar's own wrappers are stepped through (`WeightWithPlus { Weight Plus? }`), so
+// this answers null for the same node names appearing anywhere else — a warmup group's weight,
+// `lp(5kg)`'s argument, a `weight: 100kg` state var — without any of them being listed.
+function enclosingSetGroup(node: SyntaxNode): SyntaxNode | null {
   const parent = node.parent;
-  if (node.name !== PlannerNodeName.ExerciseSet && parent?.name === PlannerNodeName.ExerciseSet) {
-    return [...own, ...setGroupPills(text, parent)];
+  if (parent == null) {
+    return null;
   }
-  return own;
+  if (parent.name === PlannerNodeName.ExerciseSet) {
+    return parent;
+  }
+  const isWrapper =
+    parent.name === PlannerNodeName.WeightWithPlus || parent.name === PlannerNodeName.PercentageWithPlus;
+  return isWrapper && parent.parent?.name === PlannerNodeName.ExerciseSet ? parent.parent : null;
 }
 
-// Levels of these node types own their pill rail: the rail's ancestor fall-through stops
-// here even when the pill list is empty, so e.g. `used: none` shows "No actions" instead
-// of the whole exercise's pills.
-export function LiftoEditorActions_isPillBoundary(nodeName: string): boolean {
-  return nodeName in pillBuilders;
+// Which of a set's values this node is, for actions that reach every set in the program that
+// shares it. Only within a set group: a warmup weight or a progression's argument is not
+// something the whole program can be retuned by.
+export function LiftoEditorActions_acrossField(node: SyntaxNode): ILiftoEditorAcrossField | undefined {
+  const field = acrossFields[node.name as PlannerNodeName];
+  return field != null && enclosingSetGroup(node) != null ? field : undefined;
+}
+
+// Everything the rail needs to know about a node, from one place — what it offers, and whether
+// the walk outward stops here. Answering the two separately is how they drift: `ownsRail` used
+// to be "is this node name a pill builder", which can't tell a set group's weight from a warmup
+// group's, because they are the same node name.
+export interface ILiftoEditorRail {
+  pills: ILiftoEditorPill[];
+  // The rail's ancestor fall-through stops here even when the pill list is empty, so e.g.
+  // `used: none` shows "No actions" instead of the whole exercise's pills.
+  ownsRail: boolean;
+}
+
+export function LiftoEditorActions_railForNode(text: string, node: SyntaxNode): ILiftoEditorRail {
+  const own = pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
+  // Set-group children with their own rails (sets×reps, timers, set label, and now the values
+  // that own one only to carry a field-specific action) would otherwise hide the group's
+  // additive actions: the walk stops at the first owner, so focusing "3x8" showed only "Make
+  // rep range" while focusing the weight fell through to the full group rail.
+  const setGroup = node.name !== PlannerNodeName.ExerciseSet ? enclosingSetGroup(node) : null;
+  return {
+    pills: setGroup != null ? [...own, ...setGroupPills(text, setGroup)] : own,
+    ownsRail: node.name in pillBuilders || LiftoEditorActions_acrossField(node) != null,
+  };
 }

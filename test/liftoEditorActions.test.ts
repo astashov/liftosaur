@@ -7,8 +7,10 @@ import {
   LiftoEditorActions_swapExerciseEdit,
 } from "../src/components/primitives/liftoEditorActions";
 import {
+  LiftoEditorTestUtils_acrossField,
   LiftoEditorTestUtils_applyPill,
   LiftoEditorTestUtils_contextAt,
+  LiftoEditorTestUtils_level,
   LiftoEditorTestUtils_pillLabels,
   LiftoEditorTestUtils_pills,
   LiftoEditorTestUtils_pressPill,
@@ -103,6 +105,43 @@ describe("LiftoEditorActions", () => {
       expect(labels[0]).to.equal("Split set/rest timer");
       expect(labels).to.include.members(["Add weight", "Add RPE"]);
       expect(labels).to.not.include.members(["Add set timer", "Add rest timer"]);
+    });
+  });
+
+  describe("rail ownership", () => {
+    it("names the field of every value a set group carries", () => {
+      const text = "Squat / 3x8 100kg @8 30s | 60s / warmup: 2x5 45%";
+      expect(LiftoEditorTestUtils_acrossField(text, "3x8")).to.equal("reps");
+      expect(LiftoEditorTestUtils_acrossField(text, "100kg")).to.equal("weight");
+      expect(LiftoEditorTestUtils_acrossField(text, "@8")).to.equal("rpe");
+      expect(LiftoEditorTestUtils_acrossField(text, "30s")).to.equal("timer");
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 100kg 90s", "90s")).to.equal("timer");
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 80%", "80%")).to.equal("weight");
+    });
+
+    // The same node names, everywhere they mean something the whole program can't be retuned by.
+    it("names no field outside a set group", () => {
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 / warmup: 2x5 45%", "45%")).to.equal(undefined);
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 / warmup: 2x5 100kg", "100kg")).to.equal(undefined);
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 / warmup: 2x5 45%", "2x5")).to.equal(undefined);
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 / progress: lp(5kg)", "5kg")).to.equal(undefined);
+      expect(LiftoEditorTestUtils_acrossField("Squat / 3x8 / progress: custom(weight: 100kg) {~ ~}", "100kg")).to.equal(
+        undefined
+      );
+    });
+
+    it("gives a set group's values their own rail, carrying the group's pills", () => {
+      for (const needle of ["100kg", "@8"]) {
+        const level = LiftoEditorTestUtils_level("Squat / 3x8 100kg @8", needle, needle === "@8" ? "RPE" : "Weight");
+        expect(level.ownsRail).to.equal(true);
+        expect(level.pills.map((p) => p.label)).to.include.members(["Add set timer", "Add another set group"]);
+      }
+    });
+
+    it("leaves the same values transparent outside a set group", () => {
+      expect(LiftoEditorTestUtils_level("Squat / 3x8 / warmup: 2x5 45%", "45%", "Percentage").ownsRail).to.equal(false);
+      expect(LiftoEditorTestUtils_level("Squat / 3x8 / progress: lp(5kg)", "5kg", "Weight").ownsRail).to.equal(false);
+      expect(LiftoEditorTestUtils_level("Squat / 3x8 100kg auto", "auto", "Auto").ownsRail).to.equal(false);
     });
   });
 

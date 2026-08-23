@@ -11,7 +11,7 @@ import {
   LiftoEditorBrain_tokens,
   LiftoEditorParseCache,
 } from "./liftoEditorBrain";
-import { ILiftoEditorPill, LiftoEditorActions_isPillBoundary } from "./liftoEditorActions";
+import { ILiftoEditorPill } from "./liftoEditorActions";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
 import { Exercise_onerm } from "../../models/exercise";
@@ -606,10 +606,6 @@ export function LiftoEditorSession_activeLevelIndex(session: ILiftoEditorSession
   return session.focusLevel != null ? Math.min(session.focusLevel, levels.length - 1) : levels.length - 1;
 }
 
-// Leaf levels (a weight, a percentage) have no own pills — fall through to the nearest
-// structural ancestor, so focusing a token surfaces its context's actions. The walk stops
-// at the first pill-boundary level even if its rail is empty: `used: none` should show
-// "No actions", not the whole exercise's pills.
 // Which exercise the caret sits in, as the planner's fullName. Inline this is the only way
 // to tell — the document holds every exercise in the day.
 export function LiftoEditorSession_focusedExerciseFullName(session: ILiftoEditorSession): string | undefined {
@@ -622,11 +618,15 @@ function scopePills(pills: ILiftoEditorPill[], scope: ILiftoEditorScope): ILifto
   return scope === "day" ? pills.filter((pill) => pill.action !== "editReuse") : pills;
 }
 
+// Levels that own no rail (a set group's `auto`, a reuse target's week/day) are transparent —
+// the walk falls through to the nearest ancestor that owns one, so focusing a token surfaces
+// its context's actions. It stops at the first owner even when that rail is empty: `used: none`
+// should show "No actions", not the whole exercise's pills.
 export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEditorPill[] {
   const levels = session.context?.levels ?? [];
   for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
     const level = levels[i];
-    if (level != null && LiftoEditorActions_isPillBoundary(level.nodeName)) {
+    if (level?.ownsRail) {
       return scopePills(level.pills, session.scope);
     }
   }

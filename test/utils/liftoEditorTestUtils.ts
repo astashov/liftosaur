@@ -1,3 +1,4 @@
+import { SyntaxNode } from "@lezer/common";
 import {
   ILiftoEditorContext,
   ILiftoEditorLevel,
@@ -5,7 +6,11 @@ import {
   LiftoEditorBrain_contextAt,
   LiftoEditorParseCache,
 } from "../../src/components/primitives/liftoEditorBrain";
-import { ILiftoEditorPill } from "../../src/components/primitives/liftoEditorActions";
+import {
+  ILiftoEditorAcrossField,
+  ILiftoEditorPill,
+  LiftoEditorActions_acrossField,
+} from "../../src/components/primitives/liftoEditorActions";
 
 // Position of `needle`'s occurrence in `text`, nudged one char inside the token — the same
 // spot LiftoEditorSession_tap anchors to (token.start + 1).
@@ -32,6 +37,25 @@ export function LiftoEditorTestUtils_contextAt(
     text,
     LiftoEditorTestUtils_pos(text, needle, occurrence)
   );
+}
+
+// LiftoEditorActions_acrossField answers about one node; contextAt asks it of every ancestor
+// on its way out, and so does this — a tap inside "3x8" resolves to the inner Rep, and it is
+// the SetPart above it that names a field.
+export function LiftoEditorTestUtils_acrossField(
+  text: string,
+  needle: string,
+  occurrence: number = 0
+): ILiftoEditorAcrossField | undefined {
+  const index = LiftoEditorTestUtils_pos(text, needle, occurrence);
+  let node: SyntaxNode | null = new LiftoEditorParseCache().parse(text).resolveInner(index, -1);
+  for (; node != null; node = node.parent) {
+    const field = LiftoEditorActions_acrossField(node);
+    if (field != null) {
+      return field;
+    }
+  }
+  return undefined;
 }
 
 export function LiftoEditorTestUtils_level(
