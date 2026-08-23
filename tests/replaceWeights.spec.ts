@@ -54,11 +54,11 @@ Bicep Curl / 1x8 80lb`
   // Week 2 declaration via the sheet's week chip: 51lb -> 52.5lb, 70lb -> 182lb.
   await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").first().click();
-  await page.getByTestId("editor-sheet").getByTestId("editor-sheet-instance-2-1").click();
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lb");
-  await page.getByTestId("editor-sheet").getByTestId("editor-sheet-save").click();
-  await expect(page.getByTestId("editor-sheet")).toBeHidden();
+  await page.getByTestId("exercise-liftoeditor").getByTestId("exercise-liftoeditor-instance-2-1").click();
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lb");
+  await page.getByTestId("exercise-liftoeditor").getByTestId("exercise-liftoeditor-save").click();
+  await expect(page.getByTestId("exercise-liftoeditor")).toBeHidden();
 
   await expect(
     PlaywrightUtils_activeScreen(page).getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(1)

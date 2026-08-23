@@ -192,11 +192,11 @@ export async function PlaywrightUtils_closeTour(page: Page): Promise<void> {
 // The edit-exercise pencil (and the workout kebab's Edit Program Exercise) opens the
 // Liftoscript editor sheet; replace the whole exercise text there and save.
 export async function PlaywrightUtils_saveExerciseInSheet(page: Page, text: string): Promise<void> {
-  await expect(page.getByTestId("editor-sheet")).toBeVisible();
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", text);
-  await page.getByTestId("editor-sheet").getByTestId("editor-sheet-save").click();
-  await expect(page.getByTestId("editor-sheet")).toBeHidden();
+  await expect(page.getByTestId("exercise-liftoeditor")).toBeVisible();
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", text);
+  await page.getByTestId("exercise-liftoeditor").getByTestId("exercise-liftoeditor-save").click();
+  await expect(page.getByTestId("exercise-liftoeditor")).toBeHidden();
 }
 
 export async function PlaywrightUtils_disableTours(page: Page): Promise<void> {

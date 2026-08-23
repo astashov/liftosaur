@@ -64,7 +64,25 @@ function firstWorkoutEntry(page: Page): Promise<{ exerciseId?: string; programEx
   });
 }
 
-// The two places an editor-sheet save can land: the program editor's unsaved draft
+// Every entry of the ongoing workout, for the cases where a program change adds one alongside
+// the entries the workout already had.
+function workoutEntries(
+  page: Page
+): Promise<{ exerciseId?: string; programExerciseId?: string; hasCompletedWork: boolean }[]> {
+  return page.evaluate(() => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const entries = (window as any).state.storage.progress?.[0]?.entries ?? [];
+    return entries.map((entry: any) => ({
+      exerciseId: entry?.exercise?.id,
+      programExerciseId: entry?.programExerciseId,
+      hasCompletedWork:
+        (entry?.sets ?? []).some((s: any) => s.isCompleted) ||
+        (entry?.warmupSets ?? []).some((s: any) => s.isCompleted),
+    }));
+  });
+}
+
+// The two places an editor sheet save can land: the program editor's unsaved draft
 // (editProgramStates) vs the persisted program in storage.
 function programTexts(page: Page): Promise<{ draft: string | undefined; storage: string | undefined }> {
   return page.evaluate(() => {
@@ -83,13 +101,13 @@ test("edit exercise opens the sheet; its save stays a draft until the editor sav
   await seedProgramInEditor(page, singleWeek);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
+  const sheet = page.getByTestId("exercise-liftoeditor");
   await expect(sheet).toBeVisible();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
 
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 4x5 / 110lb / progress: lp(5lb)");
-  await sheet.getByTestId("editor-sheet-save").click();
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 4x5 / 110lb / progress: lp(5lb)");
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
 
   const afterSheetSave = await programTexts(page);
@@ -104,9 +122,9 @@ test("live validation flags bad text and save is blocked with the error", async 
   await seedProgramInEditor(page, singleWeek);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 3x8 / progress: lpx(5lb)");
+  const sheet = page.getByTestId("exercise-liftoeditor");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 3x8 / progress: lpx(5lb)");
   await expect(sheet.locator(".planner-editor-error")).toContainText("Error:");
 
   let alertMessage = "";
@@ -114,7 +132,7 @@ test("live validation flags bad text and save is blocked with the error", async 
     alertMessage = dialog.message();
     return dialog.dismiss();
   });
-  await sheet.getByTestId("editor-sheet-save").click();
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeVisible();
   expect(alertMessage).not.toEqual("");
 });
@@ -123,25 +141,25 @@ test("week chips switch the edited declaration and warn about unsaved changes", 
   await seedProgramInEditor(page, twoWeeks);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
+  const sheet = page.getByTestId("exercise-liftoeditor");
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
-  await expect(sheet.getByTestId("editor-sheet-instance-1-1")).toHaveText("Intro Week · Push Day");
-  await expect(sheet.getByTestId("editor-sheet-instance-2-1")).toHaveText("Volume Week · Push Day");
+  await expect(sheet.getByTestId("exercise-liftoeditor-instance-1-1")).toHaveText("Intro Week · Push Day");
+  await expect(sheet.getByTestId("exercise-liftoeditor-instance-2-1")).toHaveText("Volume Week · Push Day");
 
-  await sheet.getByTestId("editor-sheet-instance-2-1").click();
+  await sheet.getByTestId("exercise-liftoeditor-instance-2-1").click();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 5x5 / 120lb");
-  await sheet.getByTestId("editor-sheet-instance-1-1").click();
+  await sheet.getByTestId("exercise-liftoeditor-instance-1-1").click();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
 
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 9x9 / 100lb");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 9x9 / 100lb");
   // Playwright auto-dismisses dialogs, so the discard confirmation resolves to "cancel"
   // and the switch must not happen.
-  await sheet.getByTestId("editor-sheet-instance-2-1").click();
+  await sheet.getByTestId("exercise-liftoeditor-instance-2-1").click();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 9x9 / 100lb");
 
   page.once("dialog", (dialog) => dialog.accept());
-  await sheet.getByTestId("editor-sheet-instance-2-1").click();
+  await sheet.getByTestId("exercise-liftoeditor-instance-2-1").click();
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 5x5 / 120lb");
 });
 
@@ -149,9 +167,9 @@ test("closing the sheet with unsaved changes asks for confirmation", async ({ pa
   await seedProgramInEditor(page, singleWeek);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 9x9 / 100lb");
+  const sheet = page.getByTestId("exercise-liftoeditor");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 9x9 / 100lb");
 
   const closeButton = page.getByTestId("bottom-sheet-close").and(page.locator(":visible"));
   // Auto-dismissed confirmation keeps the sheet open.
@@ -182,11 +200,11 @@ test("editing from the workout saves straight to the program", async ({ page }) 
   await page.getByTestId("exercise-options").first().click();
   await page.getByTestId("exercise-edit-mode").click();
 
-  const sheet = page.getByTestId("editor-sheet");
+  const sheet = page.getByTestId("exercise-liftoeditor");
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squat / 3x8 / 105lb / progress: lp(5lb)");
-  await sheet.getByTestId("editor-sheet-save").click();
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squat / 3x8 / 105lb / progress: lp(5lb)");
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
 
   await expect.poll(async () => (await programTexts(page)).storage).toContain("Squat / 3x8 / 105lb");
@@ -196,14 +214,14 @@ test("renaming an exercise something else reuses carries the reference with it",
   await seedProgramInEditor(page, reuseProgram);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
+  const sheet = page.getByTestId("exercise-liftoeditor");
   await expect(sheet.getByTestId("planner-editor")).toContainText("Squat / 3x8 / 100lb");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Front Squat / 3x8 / 100lb");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Front Squat / 3x8 / 100lb");
 
   // A plain text splice would leave `...Squat` pointing at a name the program no longer has,
   // and the save would be refused with nothing the user can do about it from in here.
-  await sheet.getByTestId("editor-sheet-save").click();
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
 
   const texts = await allDayTexts(page);
@@ -215,9 +233,9 @@ test("a name typed over an unknown one is a typo, not a swap", async ({ page }) 
   await seedProgramInEditor(page, reuseProgram);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Squatt / 3x8 / 100lb");
+  const sheet = page.getByTestId("exercise-liftoeditor");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Squatt / 3x8 / 100lb");
   await expect(sheet.locator(".planner-editor-error")).toContainText("Unknown exercise");
 
   let alertMessage = "";
@@ -225,7 +243,7 @@ test("a name typed over an unknown one is a typo, not a swap", async ({ page }) 
     alertMessage = dialog.message();
     return dialog.dismiss();
   });
-  await sheet.getByTestId("editor-sheet-save").click();
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeVisible();
   expect(alertMessage).toContain("Unknown exercise");
 });
@@ -234,9 +252,9 @@ test("an exercise on several days asks how far the change should reach", async (
   await seedProgramInEditor(page, twoWeeks);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Front Squat / 3x8 / 100lb");
+  const sheet = page.getByTestId("exercise-liftoeditor");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Front Squat / 3x8 / 100lb");
 
   // Accepting picks the first option, "Change only this day".
   let scopeMessage = "";
@@ -244,7 +262,7 @@ test("an exercise on several days asks how far the change should reach", async (
     scopeMessage = dialog.message();
     return dialog.accept();
   });
-  await sheet.getByTestId("editor-sheet-save").click();
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
   expect(scopeMessage).toContain("2 days");
 
@@ -257,9 +275,9 @@ test("declining the scope question changes the exercise across the whole program
   await seedProgramInEditor(page, twoWeeks);
   await page.getByTestId("edit-exercise").first().click();
 
-  const sheet = page.getByTestId("editor-sheet");
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", "Front Squat / 3x8 / 100lb");
+  const sheet = page.getByTestId("exercise-liftoeditor");
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", "Front Squat / 3x8 / 100lb");
 
   // Dismissing picks the last option, "Change across whole program" — the browser has no
   // three-button dialog, so each branch is spelled out in the message.
@@ -268,7 +286,7 @@ test("declining the scope question changes the exercise across the whole program
     scopeMessage = dialog.message();
     return dialog.dismiss();
   });
-  await sheet.getByTestId("editor-sheet-save").click();
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
   expect(scopeMessage).toContain("Change across whole program");
 
@@ -297,11 +315,11 @@ async function startWorkoutOn(page: Page, code: string): Promise<void> {
 async function swapFirstExerciseFromWorkout(page: Page, text: string): Promise<void> {
   await page.getByTestId("exercise-options").first().click();
   await page.getByTestId("exercise-edit-mode").click();
-  const sheet = page.getByTestId("editor-sheet");
+  const sheet = page.getByTestId("exercise-liftoeditor");
   await expect(sheet.getByTestId("planner-editor")).toBeVisible();
-  await PlaywrightUtils_clearCodeMirror(page, "editor-sheet");
-  await PlaywrightUtils_typeCodeMirror(page, "editor-sheet", text);
-  await sheet.getByTestId("editor-sheet-save").click();
+  await PlaywrightUtils_clearCodeMirror(page, "exercise-liftoeditor");
+  await PlaywrightUtils_typeCodeMirror(page, "exercise-liftoeditor", text);
+  await sheet.getByTestId("exercise-liftoeditor-save").click();
   await expect(sheet).toBeHidden();
 }
 
@@ -328,7 +346,14 @@ test("a swap asks before converting sets that are already logged", async ({ page
   await swapFirstExerciseFromWorkout(page, "Front Squat / 3x8 / 100lb / progress: lp(5lb)");
   expect(confirmMessage).toContain("already logged sets");
 
-  // Declining leaves the logged work alone; the program still changed.
-  expect((await firstWorkoutEntry(page)).exerciseId).toEqual("squat");
+  // Declining leaves the logged work alone: the Squat entry keeps its sets and its old program
+  // id, and the swapped-in exercise joins the workout as the day's new exercise instead.
+  const entries = await workoutEntries(page);
+  expect(entries.find((e) => e.exerciseId === "squat")).toEqual({
+    exerciseId: "squat",
+    programExerciseId: "squat_barbell",
+    hasCompletedWork: true,
+  });
+  expect(entries.map((e) => e.exerciseId)).toContain("frontSquat");
   expect(await allDayTexts(page)).toContain("Front Squat");
 });
