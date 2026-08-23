@@ -87,6 +87,10 @@ export const Input = memo(
         errors.add("required");
       }
       let result = trimmed;
+      // Matches the web input's `pattern`, which the DOM anchors to the whole value.
+      if (trimmed !== "" && props.pattern != null && !new RegExp(`^(?:${props.pattern})$`).test(trimmed)) {
+        errors.add("pattern-mismatch");
+      }
       if (trimmed !== "" && props.type === "number") {
         const normalized = MathUtils_normalizeNumStr(trimmed);
         result = normalized;

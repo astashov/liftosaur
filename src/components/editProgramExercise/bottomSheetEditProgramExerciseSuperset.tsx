@@ -8,6 +8,10 @@ import { ISettings } from "../../types";
 import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
 import { StringUtils_dashcase } from "../../utils/string";
+import {
+  PlannerNames_supersetNameMessage,
+  PlannerNames_supersetNamePattern,
+} from "../../pages/planner/models/plannerNames";
 import { useModal } from "../../navigation/ModalStateContext";
 
 interface IBottomSheetEditProgramExerciseSupersetProps {
@@ -97,6 +101,8 @@ export function BottomSheetEditProgramExerciseSupersetContent(
               placeholder: "My Group Name",
               submitLabel: "Add",
               dataCyPrefix: "modal-new-superset",
+              pattern: PlannerNames_supersetNamePattern,
+              patternMessage: PlannerNames_supersetNameMessage,
             });
           }}
           data-testid="superset-create-group"

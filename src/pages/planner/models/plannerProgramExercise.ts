@@ -895,6 +895,7 @@ export function PlannerProgramExercise_createExerciseFromEntry(
     order: 0,
     text: "",
     tags: [],
+    superset: entry.superset != null ? { name: entry.superset } : undefined,
     equipment,
     name,
     line: 1,

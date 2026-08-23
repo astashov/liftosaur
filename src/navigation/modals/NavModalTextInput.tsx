@@ -52,6 +52,8 @@ export function NavModalTextInput(): JSX.Element {
           type="text"
           placeholder={data.placeholder}
           maxLength={data.maxLength}
+          pattern={data.pattern}
+          patternMessage={data.patternMessage}
           changeType="oninput"
           changeHandler={setResult}
           handleRef={inputHandle}
