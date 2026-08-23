@@ -1,6 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import {
+  GRID_ADD_WEEK_WIDTH,
   GRID_BASE_COLUMN_WIDTH,
   IGridGeometryRow,
   ProgramGridGeometry_build,
@@ -16,9 +17,7 @@ import {
   ProgramGridGeometry_moveBlock,
   ProgramGridGeometry_laneSegments,
   ProgramGridGeometry_metrics,
-  ProgramGridGeometry_totalHeight,
   ProgramGridGeometry_weekDropAt,
-  ProgramGridGeometry_weekLaneNames,
 } from "../src/pages/planner/models/programGridGeometry";
 import { ProgramGrid_build, IProgramGrid } from "../src/pages/planner/models/programGrid";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
@@ -84,7 +83,6 @@ describe("ProgramGridGeometry", () => {
       // The second row starts below the first, margin included.
       expect(rows[1].top).to.equal(164);
       expect(rows[1].laneNames).to.deep.equal(["Deadlift"]);
-      expect(ProgramGridGeometry_totalHeight(rows)).to.equal(164 + 114);
     });
 
     it("collapses a row to its label, and the rows below move up", () => {
@@ -107,8 +105,11 @@ Deadlift / 1x5 200lb
 
   describe("metrics", () => {
     it("divides the width between one or two weeks, and scrolls from three", () => {
+      // What is divided is the width left over once the "+ Week" rail has had its share, so the rail
+      // stays on screen instead of sitting just past its right edge.
       const fit = ProgramGridGeometry_metrics({ weekCount: 2, containerWidth: 400, rem: 16 });
-      expect(fit.columnWidth).to.equal(200);
+      expect(fit.columnWidth).to.equal((400 - GRID_ADD_WEEK_WIDTH * 16) / 2);
+      expect(fit.totalWidth + GRID_ADD_WEEK_WIDTH * 16).to.equal(400);
       const scroll = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, rem: 16 });
       expect(scroll.columnWidth).to.equal(GRID_BASE_COLUMN_WIDTH * 16);
     });
@@ -280,22 +281,6 @@ Squat[1-2] / 3x5 100lb
 `);
       const segments = ProgramGridGeometry_laneSegments(grid, 0, 0);
       expect(segments.map((s) => `${s.placement?.fullName ?? "-"}x${s.span}`)).to.deep.equal(["Squatx2", "-x1"]);
-    });
-  });
-
-  describe("weekLaneNames", () => {
-    it("repeats a spanning run into every column it covers", () => {
-      const grid = buildGrid(`# Week 1
-## Day 1
-Squat[1-2] / 3x5 100lb
-
-# Week 2
-## Day 1
-`);
-      const rows = ProgramGridGeometry_build(grid, [], 50, 16);
-      const names = ProgramGridGeometry_weekLaneNames(grid, rows);
-      expect(names[0][0]).to.deep.equal(["Squat"]);
-      expect(names[1][0]).to.deep.equal(["Squat"]);
     });
   });
 

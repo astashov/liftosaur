@@ -3,7 +3,7 @@ import { View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
 import { Text } from "../../primitives/text";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
-import { IProgramGrid, IProgramGridColumn, ProgramGrid_weekDayCount } from "../../../pages/planner/models/programGrid";
+import { IProgramGrid, IProgramGridColumn } from "../../../pages/planner/models/programGrid";
 import { GridDragHandle } from "./gridDragHandle";
 import { IGridDrags } from "./useGridDrags";
 import { useGridWeekDrag } from "./useGridWeekDrag";
@@ -25,7 +25,6 @@ export const WeekHeaderRow = memo(function WeekHeaderRow(props: IWeekHeaderRowPr
         <WeekHeaderCell
           key={column.weekIndex}
           column={column}
-          numberOfDays={ProgramGrid_weekDayCount(grid, column.weekIndex)}
           weekCount={grid.columns.length}
           columnWidth={columnWidth}
           isSelected={props.selectedWeek === column.weekIndex}
@@ -42,7 +41,6 @@ export const WeekHeaderRow = memo(function WeekHeaderRow(props: IWeekHeaderRowPr
 
 interface IWeekHeaderCellProps {
   column: IProgramGridColumn;
-  numberOfDays: number;
   weekCount: number;
   columnWidth: number;
   isSelected: boolean;
@@ -104,9 +102,6 @@ const WeekHeaderCell = memo(function WeekHeaderCell(props: IWeekHeaderCellProps)
         >
           <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
             {column.name}
-          </Text>
-          <Text className="text-xs text-text-secondary" numberOfLines={1}>
-            {props.numberOfDays} days
           </Text>
         </View>
       </GridDragHandle>

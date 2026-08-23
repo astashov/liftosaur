@@ -64,7 +64,11 @@ export function ProgramGridGeometry_metrics(args: {
 }): IGridMetrics {
   const { weekCount, containerWidth, rem } = args;
   const base = GRID_BASE_COLUMN_WIDTH * rem;
-  const autoColumnWidth = weekCount > 0 && weekCount <= GRID_WEEKS_THAT_FIT ? containerWidth / weekCount : base;
+  // Fitting divides what is left *after* the "+ Week" rail, not the whole width: filling the screen
+  // edge to edge pushes the rail off it, and a button you have to scroll sideways to discover is one
+  // nobody knows the grid has.
+  const autoColumnWidth =
+    weekCount > 0 && weekCount <= GRID_WEEKS_THAT_FIT ? (containerWidth - GRID_ADD_WEEK_WIDTH * rem) / weekCount : base;
   const columnWidth = args.scale != null ? base * args.scale : autoColumnWidth;
   const showScheme = columnWidth >= GRID_SCHEME_MIN_WIDTH * rem;
   return {
@@ -107,10 +111,6 @@ export function ProgramGridGeometry_build(
     top += result.outerHeight;
     return result;
   });
-}
-
-export function ProgramGridGeometry_totalHeight(rows: IGridGeometryRow[]): number {
-  return rows.reduce((acc, row) => acc + row.outerHeight, 0);
 }
 
 // The gap a move lands in, counted in the list's *current* positions: gap N sits above item N, and
@@ -249,26 +249,6 @@ export function ProgramGridGeometry_laneSegments(
     }
   }
   return result;
-}
-
-// What each week holds, by row and lane — the week ghost's contents. A run spanning several weeks
-// appears in every column it covers, because that is what the week prescribes there.
-export function ProgramGridGeometry_weekLaneNames(grid: IProgramGrid, rows: IGridGeometryRow[]): string[][][] {
-  return grid.columns.map((column) =>
-    rows.map((row, rowIndex) => {
-      const names = Array.from({ length: row.laneNames.length }, () => "");
-      for (const placement of grid.placements) {
-        if (
-          placement.rowIndex === rowIndex &&
-          placement.colStart <= column.weekIndex &&
-          placement.colEnd >= column.weekIndex
-        ) {
-          names[placement.laneIndex] = placement.fullName;
-        }
-      }
-      return names;
-    })
-  );
 }
 
 // A run can never end before it starts, nor past the last week. The row being ragged doesn't

@@ -8,7 +8,6 @@ import {
   GRID_CELL_INSET_X,
   GRID_CELL_INSET_Y,
   GRID_DAY_BOX_INSET,
-  IGridGeometryRow,
 } from "../../../pages/planner/models/programGridGeometry";
 import { IGridActiveGhost, IGridLaneRef } from "./useGridDrags";
 
@@ -138,31 +137,22 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
   );
 });
 
-// The same idea one axis over: a week is a column, so its ghost is a column — the days stacked at
-// the tops the geometry already knows, each showing what that week prescribes. Mounted per week and
-// animated on opacity and translateX only, for the reasons above.
+// A week's ghost is its name alone, riding in the sticky header among the other week names: the
+// column it stands for is the whole grid below, and carrying a copy of it under the finger said
+// less than the header row already says, at the cost of covering everything you drop it against.
 export interface IGridWeekGhostProps {
   weekIndex: number;
   name: string;
-  numberOfDays: number;
   columnWidth: number;
-  height: number;
-  rows: IGridGeometryRow[];
-  dayNames: (string | undefined)[];
-  // Per row, per lane, what this week holds there — blank where the run doesn't reach this column.
-  laneNames: string[][];
-  labelHeight: number;
-  laneHeight: number;
   draggedWeek: SharedValue<number>;
   ghostX: SharedValue<number>;
-  // As for the day ghost: a week ghost is a whole column of day boxes and strips, and there is one
-  // per week. Built when a week drag starts, not before.
+  // As for the day ghost: mounted empty for the grid's life, filled in when a week drag starts.
   activeGhost?: IGridActiveGhost;
 }
 
 export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostProps): JSX.Element {
   const rem = useRem();
-  const { weekIndex, draggedWeek, ghostX, laneHeight, labelHeight } = props;
+  const { weekIndex, draggedWeek, ghostX } = props;
   const style = useAnimatedStyle(() => ({
     opacity: draggedWeek.value === weekIndex ? GHOST_OPACITY : 0,
     transform: [{ translateX: ghostX.value }],
@@ -178,9 +168,11 @@ export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostPr
         {
           position: "absolute",
           top: 0,
+          bottom: 0,
           left: weekIndex * props.columnWidth,
           width: props.columnWidth,
-          height: props.height,
+          justifyContent: "center",
+          paddingHorizontal: GRID_DAY_BOX_INSET * rem,
           pointerEvents: "none" as const,
           shadowColor: "#000",
           shadowOffset: { width: 4, height: 0 },
@@ -191,73 +183,18 @@ export const GridWeekGhost = memo(function GridWeekGhost(props: IGridWeekGhostPr
       ]}
     >
       {!show ? null : (
-        <>
-          {/* The name rides above the ghost's top edge rather than inside it, so the day boxes below
-          stay lined up with the rows they came from — `bottom: 100%` puts it exactly where the
-          week header it was lifted from sits. */}
-          <View
-            className="absolute px-2 py-2 rounded"
-            style={{
-              bottom: "100%",
-              left: GRID_DAY_BOX_INSET * rem,
-              right: GRID_DAY_BOX_INSET * rem,
-              borderWidth: 2,
-              borderColor: Tailwind_semantic().icon.purple,
-              backgroundColor: Tailwind_semantic().background.cardyellow,
-            }}
-          >
-            <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
-              {props.name}
-            </Text>
-            <Text className="text-xs text-text-secondary" numberOfLines={1}>
-              {props.numberOfDays} days
-            </Text>
-          </View>
-          {props.rows.map((row, rowIndex) => (
-            <View
-              key={rowIndex}
-              className="absolute overflow-hidden rounded"
-              style={{
-                top: row.top,
-                left: GRID_DAY_BOX_INSET * rem,
-                right: GRID_DAY_BOX_INSET * rem,
-                height: row.height,
-                borderWidth: 2,
-                borderColor: Tailwind_semantic().icon.purple,
-                backgroundColor: Tailwind_semantic().background.cardyellow,
-              }}
-            >
-              <View className="justify-center px-[0.375rem]" style={{ height: labelHeight }}>
-                <Text className="text-sm font-semibold text-text-primary" numberOfLines={1}>
-                  {props.dayNames[rowIndex] ?? ""}
-                </Text>
-              </View>
-              {(props.laneNames[rowIndex] ?? []).map((laneName, laneIndex) =>
-                laneName === "" ? null : (
-                  <View
-                    key={laneIndex}
-                    className="absolute rounded"
-                    style={{
-                      top: labelHeight + laneIndex * laneHeight + GRID_CELL_INSET_Y * rem,
-                      left: GRID_CELL_INSET_X * rem,
-                      right: GRID_CELL_INSET_X * rem,
-                      height: laneHeight - 2 * GRID_CELL_INSET_Y * rem,
-                      justifyContent: "center",
-                      paddingHorizontal: 0.5 * rem,
-                      borderWidth: 1,
-                      borderColor: Tailwind_semantic().text.purple,
-                      backgroundColor: Tailwind_semantic().background.cardpurpleselected,
-                    }}
-                  >
-                    <Text className="text-xs font-bold text-text-primary" numberOfLines={1}>
-                      {laneName}
-                    </Text>
-                  </View>
-                )
-              )}
-            </View>
-          ))}
-        </>
+        <View
+          className="px-2 py-2 rounded"
+          style={{
+            borderWidth: 2,
+            borderColor: Tailwind_semantic().icon.purple,
+            backgroundColor: Tailwind_semantic().background.cardyellow,
+          }}
+        >
+          <Text className="text-sm font-bold text-text-primary" numberOfLines={1}>
+            {props.name}
+          </Text>
+        </View>
       )}
     </Animated.View>
   );

@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
   View,
   ScrollView,
   LayoutChangeEvent,
@@ -30,8 +31,6 @@ import {
   GRID_DAY_LABEL_HEIGHT,
   ProgramGridGeometry_build,
   ProgramGridGeometry_metrics,
-  ProgramGridGeometry_totalHeight,
-  ProgramGridGeometry_weekLaneNames,
 } from "../../../pages/planner/models/programGridGeometry";
 import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionContext";
 import { useGridPinch } from "./gridPinch";
@@ -44,6 +43,7 @@ import { WeekHeaderRow } from "./gridWeekHeaderRow";
 import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
 import { AddButton, VerticalAddButton } from "./gridAddButton";
+import { useGridStickyHeader } from "./useGridStickyHeader";
 
 // Scale presets for the zoom control; pinch fills in everything between them.
 const SCALE_PRESETS: { label: string; scale: number }[] = [
@@ -136,8 +136,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     () => ProgramGridGeometry_build(grid, collapsedRows, laneHeight, rem),
     [grid, collapsedRows, laneHeight, rem]
   );
-  const rowsHeight = ProgramGridGeometry_totalHeight(geometry);
-  const weekLaneNames = useMemo(() => ProgramGridGeometry_weekLaneNames(grid, geometry), [grid, geometry]);
 
   // Every drag's shared values, refs and edge-scrolling live together in one hook rather than in
   // this component's state — see useGridDrags. What comes back is a bus the rows and columns read,
@@ -162,6 +160,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     horizontalOffsetRef,
     maxHorizontalScroll,
   });
+
+  const sticky = useGridStickyHeader();
 
   // Only the ghosts get this, never a row: setting it re-renders the grid at the moment a pan goes
   // live, and every row has to fall through its memo untouched for the pan to survive.
@@ -288,15 +288,37 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
               ancestor competed with the long-press drag. Clearing lives on the dock's ✕ and on
               tapping a selected thing again. */}
           <View className="flex-row">
-            <View style={{ width: totalWidth }}>
-              <WeekHeaderRow
-                grid={grid}
-                columnWidth={columnWidth}
-                selectedWeek={selectedWeek}
-                onSelectWeek={onSelectWeek}
-                onMoveWeek={actions.onMoveWeek}
-                drags={drags}
-              />
+            <View style={{ width: totalWidth }} ref={sticky.containerRef} onLayout={sticky.onContainerLayout}>
+              {/* Rides down with the scroll to stay at the top of the grid, and paints over the rows
+                  it slides across — so it needs a background of its own and an order above them. */}
+              <Animated.View
+                className="bg-background-default"
+                onLayout={sticky.onHeaderLayout}
+                style={{ transform: [{ translateY: sticky.translateY }], zIndex: 2 }}
+              >
+                <WeekHeaderRow
+                  grid={grid}
+                  columnWidth={columnWidth}
+                  selectedWeek={selectedWeek}
+                  onSelectWeek={onSelectWeek}
+                  onMoveWeek={actions.onMoveWeek}
+                  drags={drags}
+                />
+                {/* Inside the header rather than over the grid: a week ghost is its name, and this
+                    is the row of names it is being dragged among. */}
+                {Platform.OS !== "web" &&
+                  grid.columns.map((column) => (
+                    <GridWeekGhost
+                      key={column.weekIndex}
+                      weekIndex={column.weekIndex}
+                      name={column.name}
+                      columnWidth={columnWidth}
+                      draggedWeek={drags.draggedWeek}
+                      ghostX={drags.ghostX}
+                      activeGhost={activeGhost}
+                    />
+                  ))}
+              </Animated.View>
               {/* The rows and the ghosts share one coordinate space — the geometry's — and it
                   starts here, below the week header. zIndex keeps a ghost dragged past the last row
                   above the "+ Day" strip that follows. */}
@@ -341,25 +363,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                       draggedRows={drags.draggedRows}
                       draggedLanes={drags.draggedLanes}
                       ghostY={drags.ghostY}
-                      activeGhost={activeGhost}
-                    />
-                  ))}
-                {Platform.OS !== "web" &&
-                  grid.columns.map((column) => (
-                    <GridWeekGhost
-                      key={column.weekIndex}
-                      weekIndex={column.weekIndex}
-                      name={column.name}
-                      numberOfDays={ProgramGrid_weekDayCount(grid, column.weekIndex)}
-                      columnWidth={columnWidth}
-                      height={rowsHeight}
-                      rows={geometry}
-                      dayNames={grid.rows.map((row) => row.namePerWeek[column.weekIndex])}
-                      laneNames={weekLaneNames[column.weekIndex]}
-                      labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
-                      laneHeight={laneHeight}
-                      draggedWeek={drags.draggedWeek}
-                      ghostX={drags.ghostX}
                       activeGhost={activeGhost}
                     />
                   ))}
