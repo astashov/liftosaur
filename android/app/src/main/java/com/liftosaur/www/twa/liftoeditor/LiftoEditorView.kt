@@ -282,12 +282,17 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     }
   }
 
+  // Color.parseColor reads charAt(0) before validating, so a blank string throws
+  // StringIndexOutOfBoundsException rather than IllegalArgumentException.
   private fun parseHexColor(value: String): Int? {
     val v = value.trim()
+    if (v.isEmpty()) {
+      return null
+    }
     if (!v.startsWith("#")) {
       return try {
         Color.parseColor(v)
-      } catch (e: IllegalArgumentException) {
+      } catch (e: RuntimeException) {
         null
       }
     }
@@ -301,7 +306,7 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     }
     return try {
       Color.parseColor(normalized)
-    } catch (e: IllegalArgumentException) {
+    } catch (e: RuntimeException) {
       null
     }
   }
