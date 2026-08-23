@@ -178,6 +178,18 @@ lambda/            # Backend Lambda functions
 
 For detailed Liftoscript documentation, see `/llms/liftoscript.md` and `/llms/liftoscript_examples.md`.
 
+## Editing Files
+
+Change files with the Edit/Write tools, not with shell commands. A `sed -i`,
+heredoc, or `python3 - <<EOF` rewrite renders no diff in the transcript, and it
+no-ops silently when the pattern doesn't match — Edit fails loudly instead.
+This holds even when the harness suggests preferring Bash for file changes.
+
+The one exception is a genuine sweep across many files (a codemod, a mechanical
+migration), where one script beats dozens of Edits. Those go through the shell
+with `# allow-bash-edit` in the command, so the choice is visible. A single-file
+change is never that exception.
+
 ## Comments
 NEVER add comments unless they explain WHY something non-obvious is done. Comments that describe WHAT the code does are forbidden - the code itself should be readable.
 
