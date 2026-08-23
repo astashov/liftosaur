@@ -1946,7 +1946,7 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         productId: data.google.yearly.productId,
       },
     };
-    return ResponseUtils_json(200, event, { affiliate: coupon.affiliate, data: { googleOffer } });
+    return ResponseUtils_json(200, event, { data: { affiliate: coupon.affiliate, googleOffer } });
   }
   if (data) {
     return ResponseUtils_json(400, event, { error: "wrong_platform" });
