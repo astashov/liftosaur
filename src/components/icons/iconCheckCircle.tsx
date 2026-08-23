@@ -52,8 +52,9 @@ export function IconCheckCircle(props: IProps): JSX.Element {
           height: scaledSize,
           borderWidth: 2 * scale,
           borderRadius: scaledSize / 2,
+          borderColor: Tailwind_semantic().border.prominent,
         }}
-        className={`${props.className ?? ""} border-bluev2`}
+        className={props.className ?? ""}
       />
     );
   }
