@@ -67,10 +67,10 @@ export function NavModalDayLiftoEditor(): JSX.Element {
   const settings = state.storage.settings;
   const isFromWorkout = params?.fromWorkout ?? true;
 
-  // Snapshot on open: the editor reads its initial text once, and re-evaluating the program on
-  // every state change would waste work while the sheet is up. Saving must NOT use this — onDone
-  // re-resolves from the current state at commit time.
-  const [snapshot] = useState(() => {
+  // What the sheet mounted with — open-time values by nature. The editor reads its initial text
+  // once, and that text is also the baseline "has anything changed" is measured against, so a
+  // program that moves underneath must not move it.
+  const [opened] = useState(() => {
     if (params == null) {
       return undefined;
     }
@@ -85,21 +85,36 @@ export function NavModalDayLiftoEditor(): JSX.Element {
       return undefined;
     }
     return {
-      program: withPlanner,
-      dayData,
       headerLabel: Program_getDayName(Program_evaluate(withPlanner, settings), params.day),
       initialText: day.exerciseText,
     };
   });
+  // The program this sheet edits against, read live rather than snapshotted, so a program that
+  // moves underneath is seen straight away instead of at the next save. Memoized on `resolved`
+  // because the narrowing spread would otherwise re-splice and re-evaluate every render.
+  const resolved = params != null ? LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout) : undefined;
+  const program = useMemo(
+    (): (IProgram & { planner: IPlannerProgram }) | undefined =>
+      resolved?.planner != null ? { ...resolved, planner: resolved.planner } : undefined,
+    [resolved]
+  );
+  // Which day this sheet is on, resolved live from its absolute day number rather than kept from
+  // open. Another surface can add or remove days, and the week/day indices the sheet opened on
+  // would then address a different one. Analysis, the sheet's chrome and the save all read this
+  // one value, so they cannot disagree about which day is being edited.
+  const dayData = useMemo(
+    () => (program != null && params != null ? dayDataFor(program, params.day, settings) : undefined),
+    [program, params, settings]
+  );
 
   const [editorMode, setEditorMode] = useState<"structured" | "freeform">("structured");
   // What the editor holds right now, in a ref rather than state: it changes on every keystroke
   // and nothing in this render depends on it — only the close guard reads it, and only when
   // asked. As state it would re-render the whole sheet per character.
-  const liveTextRef = useRef(snapshot?.initialText ?? "");
+  const liveTextRef = useRef(opened?.initialText ?? "");
   // The same text on a debounce, which is what the analysis below keys on. Splicing and
   // evaluating the program is far too heavy to do per keystroke.
-  const [analyzedText, setAnalyzedText] = useState(snapshot?.initialText ?? "");
+  const [analyzedText, setAnalyzedText] = useState(opened?.initialText ?? "");
   const analyzeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const onTextChange = (newText: string): void => {
     liveTextRef.current = newText;
@@ -119,22 +134,22 @@ export function NavModalDayLiftoEditor(): JSX.Element {
   // The draft spliced into the program the sheet opened on and evaluated: one pass answers the
   // error banner, what the pills resolve against, and which exercises this day now holds.
   const analysis = useMemo(() => {
-    if (snapshot == null || params == null) {
+    if (program == null || params == null || dayData == null) {
       return undefined;
     }
-    const planner = ProgramDayText_replace(snapshot.program.planner, snapshot.dayData, analyzedText);
-    const evaluatedProgram = Program_evaluate({ ...snapshot.program, planner }, settings);
+    const planner = ProgramDayText_replace(program.planner, dayData, analyzedText);
+    const evaluatedProgram = Program_evaluate({ ...program, planner }, settings);
     const error = evaluatedProgram.errors.find(
-      (e) => e.dayData.week === snapshot.dayData.week && e.dayData.dayInWeek === snapshot.dayData.dayInWeek
+      (e) => e.dayData.week === dayData.week && e.dayData.dayInWeek === dayData.dayInWeek
     )?.error;
     return {
       evaluatedProgram,
       error,
       exercises: Program_getProgramDay(evaluatedProgram, params.day)?.exercises ?? [],
     };
-  }, [snapshot, params, analyzedText, settings]);
+  }, [program, params, dayData, analyzedText, settings]);
 
-  const isDirty = (): boolean => snapshot != null && liveTextRef.current.trim() !== snapshot.initialText.trim();
+  const isDirty = (): boolean => opened != null && liveTextRef.current.trim() !== opened.initialText.trim();
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
   // Set once a close is approved (or changes are saved), so the beforeRemove guard doesn't
@@ -175,21 +190,21 @@ export function NavModalDayLiftoEditor(): JSX.Element {
   // window, and the last thing typed has to be part of what's written.
   const onDone = async (newText: string): Promise<void> => {
     liveTextRef.current = newText;
-    if (params == null || snapshot == null || newText.trim() === snapshot.initialText.trim()) {
+    if (params == null || opened == null || newText.trim() === opened.initialText.trim()) {
       onClose();
       return;
     }
-    // Re-resolved from the current state rather than the open-time snapshot: another surface
-    // can save this same program while the sheet is up, and writing the snapshot's program back
-    // would silently revert that save.
-    const program = LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout);
-    if (program?.planner == null) {
+    // Guarded here rather than trusted from the render above: the program can be deleted, or
+    // removed by a sync, between the sheet opening and Save, and writing this copy back would
+    // recreate it.
+    if (program == null) {
       Dialog_alert("Couldn't find this program anymore, so the changes weren't saved.");
       onClose();
       return;
     }
-    const withPlanner = { ...program, planner: program.planner };
-    const dayData = dayDataFor(withPlanner, params.day, settings);
+    const withPlanner = program;
+    // The same day the analysis above was about, not a second resolution of it — the two
+    // diverging is how a draft gets validated against one day and written into another.
     if (dayData == null) {
       Dialog_alert("Couldn't find this day in the program anymore, so the changes weren't saved.");
       onClose();
@@ -308,7 +323,7 @@ export function NavModalDayLiftoEditor(): JSX.Element {
         }
       >
         <CustomKeyboardProvider applySafeAreaBottom={false} fitContent={true} noShadow={true}>
-          {snapshot == null || analysis == null ? (
+          {opened == null || analysis == null || dayData == null ? (
             // The program or the day went missing between the tap and this render. Nothing to
             // edit, and no fabricated program to fall back on that wouldn't save over something.
             <View className="px-gutter py-6">
@@ -316,11 +331,11 @@ export function NavModalDayLiftoEditor(): JSX.Element {
             </View>
           ) : (
             <DayLiftoEditorSheet
-              initialText={snapshot.initialText}
-              headerLabel={snapshot.headerLabel}
+              initialText={opened.initialText}
+              headerLabel={opened.headerLabel}
               settings={settings}
               evaluatedProgram={analysis.evaluatedProgram}
-              dayData={snapshot.dayData}
+              dayData={dayData}
               exercises={analysis.exercises}
               error={analysis.error}
               exerciseFullNames={exerciseFullNames}
