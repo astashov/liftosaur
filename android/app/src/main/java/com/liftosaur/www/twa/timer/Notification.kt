@@ -20,8 +20,11 @@ import com.facebook.react.modules.core.PermissionListener
 import java.util.concurrent.TimeUnit
 
 class Notification(private val context: Context, private val activity: Activity? = null) {
-    private fun showAlert(message: String, onOk: () -> Unit) {
+    private fun showAlertOnce(permission: String, message: String, onOk: () -> Unit) {
         val act = activity ?: return
+        val prefs = context.applicationContext.getSharedPreferences(PROMPTS_PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(permission, false)) return
+        prefs.edit().putBoolean(permission, true).apply()
         Handler(Looper.getMainLooper()).post {
             try {
                 AlertDialog.Builder(act)
@@ -42,6 +45,7 @@ class Notification(private val context: Context, private val activity: Activity?
         const val REST_TIMER_ID: Int = 1
         const val REMINDER_ID: Int = 2
         private const val NOTIF_PERM_REQUEST_CODE: Int = 41001
+        private const val PROMPTS_PREFS: String = "LftTimerPermissionPrompts"
         var startedIntents: MutableMap<Int, PendingIntent> = mutableMapOf()
     }
 
@@ -78,12 +82,13 @@ class Notification(private val context: Context, private val activity: Activity?
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             android.util.Log.d("LftTimer", "Notification.send -> missing exactAlarm")
-            showAlert(
+            showAlertOnce(
+                "exactAlarm",
                 """Please grant permissions to use alarms, otherwise the app won't be able to notify you when the app is in background and the when rest timer is triggered.
 
 If you don't want the alarm and timers, set Rest Timers to 0 in Settings."""
             ) {
-                val act = activity ?: return@showAlert
+                val act = activity ?: return@showAlertOnce
                 act.startActivity(
                     Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -95,12 +100,13 @@ If you don't want the alarm and timers, set Rest Timers to 0 in Settings."""
             !NotificationManagerCompat.from(context).areNotificationsEnabled()
         ) {
             android.util.Log.d("LftTimer", "Notification.send -> missing notifications permission")
-            showAlert(
+            showAlertOnce(
+                "notifications",
                 """Please grant permissions to show notifications, otherwise the app won't be able to notify you when the app is in background and the when rest timer is triggered.
 
 If you don't want the notifications and timers, set Rest Timers to 0 in Settings."""
             ) {
-                val act = activity as? PermissionAwareActivity ?: return@showAlert
+                val act = activity as? PermissionAwareActivity ?: return@showAlertOnce
                 act.requestPermissions(
                     arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                     NOTIF_PERM_REQUEST_CODE,
@@ -114,12 +120,13 @@ If you don't want the notifications and timers, set Rest Timers to 0 in Settings
             !notificationManager.isNotificationPolicyAccessGranted
         ) {
             android.util.Log.d("LftTimer", "Notification.send -> missing dndAccess")
-            showAlert(
+            showAlertOnce(
+                "dndAccess",
                 """Please grant permissions to fire notification even in Do Not Disturb mode, so that you definitely don't miss it!
 
 If you don't want that, disable 'Ignore Do Not Disturb' in Settings."""
             ) {
-                val act = activity ?: return@showAlert
+                val act = activity ?: return@showAlertOnce
                 act.startActivity(
                     Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
