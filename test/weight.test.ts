@@ -129,6 +129,29 @@ describe("Weight", () => {
         { weight: Weight_build(2.5, "lb"), num: 4 },
       ]);
     });
+
+    it("converts the weight into the equipment units before picking plates", () => {
+      const settings = buildSettings(
+        [
+          { weight: Weight_build(45, "lb"), num: 10 },
+          { weight: Weight_build(25, "lb"), num: 2 },
+          { weight: Weight_build(10, "lb"), num: 4 },
+          { weight: Weight_build(5, "lb"), num: 2 },
+          { weight: Weight_build(2.5, "lb"), num: 2 },
+        ],
+        0
+      );
+      settings.units = "kg";
+      settings.gyms[0].equipment.barbell!.unit = "lb";
+      const result = Weight_calculatePlates(Weight_build(77.25, "kg"), settings, "lb", exerciseType);
+      expect(result.plates).to.eql([
+        { weight: Weight_build(45, "lb"), num: 2 },
+        { weight: Weight_build(25, "lb"), num: 2 },
+        { weight: Weight_build(10, "lb"), num: 2 },
+        { weight: Weight_build(5, "lb"), num: 2 },
+      ]);
+      expect(result.totalWeight).to.eql(Weight_build(77, "kg"));
+    });
   });
 
   describe(".platesWeight()", () => {
