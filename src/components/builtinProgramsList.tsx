@@ -26,6 +26,7 @@ import { equipmentName } from "../models/exercise";
 import { Equipment_currentEquipment } from "../models/equipment";
 import { navigateToModal } from "../navigation/navigationService";
 import { SimpleMarkdown } from "./simpleMarkdown";
+import { useRemScale } from "../utils/useRem";
 
 interface IProps {
   programs: IProgram[];
@@ -123,6 +124,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   );
 
   const scrollMarkers = usePerfScrollMarkers("BuiltinProgramsList");
+  const remScale = useRemScale();
   return (
     <LegendList
       style={{ flex: 1 }}
@@ -131,6 +133,9 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
       keyExtractor={keyExtractor}
       ListHeaderComponent={listHeader}
       ListEmptyComponent={listEmpty}
+      // LegendList never grows totalSize past the items it has measured, so an estimate below the
+      // real average makes the tail of the list unreachable - it must err on the high side.
+      estimatedItemSize={260 * remScale}
       contentContainerStyle={{ paddingHorizontal: 16 }}
       onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
       onScrollEndDrag={scrollMarkers.onScrollEndDrag}

@@ -31,6 +31,7 @@ import { EditProgram_deleteProgram } from "../models/editProgram";
 import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 import { Equipment_currentEquipment } from "../models/equipment";
+import { useRemScale } from "../utils/useRem";
 
 interface IProps {
   programs: IProgram[];
@@ -69,6 +70,7 @@ export function CustomProgramsList(props: IProps): JSX.Element {
 
   const keyExtractor = useCallback((item: IProgram) => item.id, []);
   const scrollMarkers = usePerfScrollMarkers("CustomProgramsList");
+  const remScale = useRemScale();
 
   return (
     <LegendList
@@ -76,6 +78,9 @@ export function CustomProgramsList(props: IProps): JSX.Element {
       data={programs}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      // LegendList never grows totalSize past the items it has measured, so an estimate below the
+      // real average makes the tail of the list unreachable - it must err on the high side.
+      estimatedItemSize={240 * remScale}
       contentContainerStyle={{ paddingHorizontal: 16 }}
       onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
       onScrollEndDrag={scrollMarkers.onScrollEndDrag}
