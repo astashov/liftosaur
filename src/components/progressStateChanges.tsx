@@ -10,6 +10,10 @@ import { IHistoryEntry, ISettings, IProgramState, IDayData, IPercentage, IWeight
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { LinkButton } from "./linkButton";
 
+// Not a "line-through" className - RN doesn't inherit text decoration from a View into its Text
+// children the way CSS does, so it has to sit on every Text node itself.
+const strikeThrough = { textDecorationLine: "line-through" } as const;
+
 interface IProps {
   entry: IHistoryEntry;
   settings: ISettings;
@@ -80,16 +84,8 @@ export function ProgressStateChangesView(props: IViewProps): JSX.Element | null 
       data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
     >
       <View>
-        {hasDiffVars && (
-          <View className={props.isSuppressed ? "line-through" : ""}>
-            <ExerciseChanges diffVars={diffVars} />
-          </View>
-        )}
-        {hasDiffState && (
-          <View className={props.isSuppressed ? "line-through" : ""}>
-            <StateVariablesChanges diffState={diffState} />
-          </View>
-        )}
+        {hasDiffVars && <ExerciseChanges diffVars={diffVars} isSuppressed={props.isSuppressed} />}
+        {hasDiffState && <StateVariablesChanges diffState={diffState} isSuppressed={props.isSuppressed} />}
         {prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
         {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
       </View>
@@ -112,8 +108,15 @@ export function ProgressStateChangesView(props: IViewProps): JSX.Element | null 
   );
 }
 
-function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
+function ExerciseChanges({
+  diffVars,
+  isSuppressed,
+}: {
+  diffVars: Record<string, string | undefined>;
+  isSuppressed?: boolean;
+}): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffVars)) {
+    const strike = isSuppressed ? strikeThrough : undefined;
     return (
       <View>
         <Text className="text-xs font-bold">Exercise Changes</Text>
@@ -124,9 +127,13 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
               data-testid={`variable-changes-key-${StringUtils_dashcase(key)}`}
               testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
             >
-              <Text className="text-xs">
-                <Text className="text-xs italic">{key}</Text>:{" "}
+              <Text style={strike} className="text-xs">
+                <Text style={strike} className="text-xs italic">
+                  {key}
+                </Text>
+                :{" "}
                 <Text
+                  style={strike}
                   className="text-xs font-bold"
                   data-testid={`variable-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`variable-changes-value-${StringUtils_dashcase(key)}`}
@@ -143,11 +150,20 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
   return null;
 }
 
-function StateVariablesChanges({ diffState }: { diffState: Record<string, string | undefined> }): JSX.Element | null {
+function StateVariablesChanges({
+  diffState,
+  isSuppressed,
+}: {
+  diffState: Record<string, string | undefined>;
+  isSuppressed?: boolean;
+}): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffState)) {
+    const strike = isSuppressed ? strikeThrough : undefined;
     return (
       <View>
-        <Text className="text-xs font-bold">State Variables changes</Text>
+        <Text style={strike} className="text-xs font-bold">
+          State Variables changes
+        </Text>
         <View data-testid="state-changes" testID="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (
             <View
@@ -155,9 +171,13 @@ function StateVariablesChanges({ diffState }: { diffState: Record<string, string
               data-testid={`state-changes-key-${StringUtils_dashcase(key)}`}
               testID={`state-changes-key-${StringUtils_dashcase(key)}`}
             >
-              <Text className="text-xs">
-                <Text className="text-xs italic">{key}</Text>:{" "}
+              <Text style={strike} className="text-xs">
+                <Text style={strike} className="text-xs italic">
+                  {key}
+                </Text>
+                :{" "}
                 <Text
+                  style={strike}
                   className="text-xs font-bold"
                   data-testid={`state-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`state-changes-value-${StringUtils_dashcase(key)}`}
