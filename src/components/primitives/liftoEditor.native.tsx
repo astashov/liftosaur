@@ -62,6 +62,9 @@ export interface ILiftoEditorBaseProps {
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   style?: StyleProp<ViewStyle>;
+  // Defaults to the rem, which is what makes the editor follow the Appearance size slider;
+  // pass a value only to hold a different ratio to it (see liftoEditorMetrics).
+  fontSize?: number;
   // Numbering restarts per editor, so this only reads as the document's own numbering where
   // the document is a whole day.
   showLineNumbers?: boolean;
@@ -92,7 +95,8 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   const nativeRef = useRef<React.ElementRef<typeof LiftoEditorNative>>(null);
   // The editor's base font is 16pt at the default rem, so the current rem value IS the
   // scaled font size — this is what makes the editor follow the Appearance size slider.
-  const fontSize = useRem();
+  const rem = useRem();
+  const fontSize = props.fontSize ?? rem;
   const textRef = useRef(props.initialText);
   // Set on programmatic replaceRange: the post-edit text, known before the native TextDelta
   // round trip. Pushing ranges computed from it in the same command batch as the replace

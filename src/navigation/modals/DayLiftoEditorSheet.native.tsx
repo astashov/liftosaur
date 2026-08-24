@@ -304,6 +304,7 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
                   <View ref={editorBoxRef}>
                     <LiftoEditor
                       {...controller.editorProps}
+                      fontSize={layout.editorFontSize}
                       // The eval error quotes a line, and this editor's document is exactly what
                       // that line was counted against.
                       showLineNumbers={true}

@@ -401,6 +401,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
             <View className="px-gutter py-3">
               <LiftoEditor
                 {...controller.editorProps}
+                fontSize={layout.editorFontSize}
                 // Room for Android's cursor drop handle under the last line (~24dp, not
                 // rem-scaled — the handle is a fixed-size system graphic).
                 bottomPadding={isFreeform ? 24 : 0}

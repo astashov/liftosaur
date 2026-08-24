@@ -49,7 +49,7 @@
     "neutral": { "light": "@colors.lightgray.100", "dark": "@colors.darkgray.900" },
     "editoractiveline": { "light": "#cceeff44", "dark": "#34495444" },
     "editorfocus": { "light": "@colors.lightgray.100", "dark": "@colors.lightgray.900" },
-    "editoractive": { "light": "@colors.purple.150", "dark": "@colors.darkgray.500" },
+    "editoractive": { "light": "@colors.purple.300", "dark": "@colors.purple.800" },
     "editorselection": { "light": "#8356F633", "dark": "#A48BFA4D" },
     "subtlecardpurple": { "light": "@colors.purple.50", "dark": "@colors.darkgray.950" },
     "cardpurple": { "light": "@colors.purple.100", "dark": "@colors.darkgray.900" },

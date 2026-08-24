@@ -4,10 +4,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardAnimatedHeight, useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { useSheetExpansion } from "../SheetExpansionContext";
 import { useRem } from "../../utils/useRem";
+import {
+  useLiftoEditorSheetFontSize,
+  useLiftoEditorSheetLineHeight,
+} from "../../components/primitives/liftoEditorMetrics";
 
-// Runestone and sora both lay a line out at roughly this much of the font size, and the
-// editor's font size is the rem (see LiftoEditor).
-const EDITOR_LINE_HEIGHT_RATIO = 1.3;
 const MIN_EDITOR_LINES = 5;
 // The `py-3` the editor sits in, top and bottom, at the current rem.
 const EDITOR_PADDING_REMS = 1.5;
@@ -16,6 +17,9 @@ export interface ILiftoEditorSheetLayout {
   container: Animated.WithAnimatedObject<ViewStyle>;
   body: ViewStyle;
   editor: ViewStyle;
+  // Handed out here rather than read from the metrics directly, so the floor below and the text
+  // it is a floor of can't drift apart.
+  editorFontSize: number;
   onContainerLayout: (event: LayoutChangeEvent) => void;
 }
 
@@ -34,6 +38,8 @@ export function useLiftoEditorSheetLayout(): ILiftoEditorSheetLayout {
   const keypadHeight = useCustomKeyboardHeight();
   const keypadAnimatedHeight = useCustomKeyboardAnimatedHeight();
   const rem = useRem();
+  const editorFontSize = useLiftoEditorSheetFontSize();
+  const editorLineHeight = useLiftoEditorSheetLineHeight();
   const { isExpanded, isDragging, dragOffset, collapsedHeight, setCollapsedHeight, setExpandRange } =
     useSheetExpansion();
   const floorHeight = windowHeight * 0.25;
@@ -48,7 +54,7 @@ export function useLiftoEditorSheetLayout(): ILiftoEditorSheetLayout {
     outputRange: [keypadlessHeight, floorHeight],
     extrapolate: "clamp",
   });
-  const minEditorHeight = Math.round(rem * (MIN_EDITOR_LINES * EDITOR_LINE_HEIGHT_RATIO + EDITOR_PADDING_REMS));
+  const minEditorHeight = Math.round(editorLineHeight * MIN_EDITOR_LINES + rem * EDITOR_PADDING_REMS);
   // While the drag owns the height, laying out reports back the height it asked for rather than
   // the one the content wants — so the collapsed height is only readable in between, and holding
   // the container at it the rest of the time would stop the content ever shrinking again.
@@ -68,6 +74,7 @@ export function useLiftoEditorSheetLayout(): ILiftoEditorSheetLayout {
     container: { maxHeight: animatedMaxHeight, minHeight: minContainerHeight },
     body: { flexShrink: 1, flexGrow: 1 },
     editor: { flexShrink: 1, flexGrow: 1, minHeight: Math.min(minEditorHeight, maxHeight) },
+    editorFontSize,
     onContainerLayout: (event: LayoutChangeEvent) => {
       if (!isDriven) {
         setCollapsedHeight(event.nativeEvent.layout.height);
