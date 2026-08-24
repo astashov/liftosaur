@@ -16,6 +16,7 @@ import {
   NativeAttributeValue,
 } from "@aws-sdk/lib-dynamodb";
 import { CollectionUtils_inGroupsOf, CollectionUtils_compact } from "../../src/utils/collection";
+import { Concurrency_runWithLimit } from "../../src/utils/concurrency";
 import { ILogUtil } from "./log";
 
 export interface IDynamoUtil {
@@ -526,8 +527,8 @@ export class DynamoUtil implements IDynamoUtil {
     if (clampedPaths.length > 0) {
       this.log.log(`Dynamo batch put: clamped out-of-range numbers in ${args.tableName}: `, clampedPaths);
     }
-    await Promise.all(
-      CollectionUtils_inGroupsOf(25, sanitizedItems).map(async (group) => {
+    await Concurrency_runWithLimit(
+      CollectionUtils_inGroupsOf(25, sanitizedItems).map((group) => async () => {
         const startTime = Date.now();
         try {
           await this.sendBatchWriteWithRetry(
@@ -571,12 +572,20 @@ export class DynamoUtil implements IDynamoUtil {
           throw e;
         }
         this.log.log(`Dynamo batch put: ${args.tableName}`, `${group.length} items`, ` - ${Date.now() - startTime}ms`);
-      })
+      }),
+      BATCH_WRITE_CONCURRENCY
     );
   }
 }
 
 const BATCH_MAX_ATTEMPTS = 8;
+
+// A write that touches one partition key (e.g. every stat of a single user, which a full Apple
+// Health re-import produces) is capped at DynamoDB's 1000 WCU/s per-partition ceiling no matter how
+// the table is billed. Fanning every 25-item batch out at once put 100+ BatchWriteItems in flight
+// against that one key and returned a hard ThrottlingException instead of retryable
+// UnprocessedItems, so keep the in-flight burst small enough for the backoff loop to absorb.
+const BATCH_WRITE_CONCURRENCY = 8;
 
 // Exponential backoff with full jitter, capped at ~2s, so retries of throttled batch operations
 // spread out instead of hammering the table in lockstep.
