@@ -1,5 +1,5 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Platform, Pressable, useWindowDimensions, View } from "react-native";
+import { Animated, Platform, Pressable, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../../components/button";
@@ -27,6 +27,8 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { useCustomKeyboardHeight } from "../CustomKeyboardContext";
+import { SheetDragHandle } from "../TransparentModal";
+import { useLiftoEditorSheetLayout } from "./liftoEditorSheetLayout";
 import { NavScreenScrollContext } from "../NavScreenScrollContext";
 import { useNavScreenScroll } from "../useNavScreenScroll";
 
@@ -216,9 +218,9 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
 
   const hint = LiftoEditorHints_forContext(controller.context, controller.activeLevelIndex, controller.text);
   const iconScale = useRem() / 16;
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();
+  const layout = useLiftoEditorSheetLayout();
   const [isScrollable, setIsScrollable] = useState(false);
   const scrollSizeRef = useRef({ container: 0, content: 0 });
   const measureScrollable = (container: number, content: number): void => {
@@ -227,14 +229,13 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
   };
 
   return (
-    // Auto-height: the sheet hugs the content; the nested fit-content keyboard host adds inline
-    // space below when the keypad opens, growing the sheet. The cap keeps the whole sheet
-    // (including the docked keypad, which renders below this view) within the screen — past it,
-    // the editor is the part that shrinks and scrolls. A day is usually past it.
-    <View style={{ maxHeight: Math.max(windowHeight * 0.25, windowHeight * 0.9 - keypadHeight - insets.bottom) }}>
+    // A day is usually past the cap, so it's the scrolling editor that gives.
+    <Animated.View style={layout.container} onLayout={layout.onContainerLayout}>
       <NavScreenScrollContext.Provider value={contextValue}>
-        <View style={{ flexShrink: 1 }}>
-          <View className="flex-row items-center gap-2 px-4 pb-2 border-b border-border-neutral">
+        <View style={layout.body}>
+          {/* The bar alone is a hard target, so the header drags the sheet too - the crumbs
+              and Save keep their own taps. */}
+          <SheetDragHandle className="flex-row items-center gap-2 px-4 pb-2 border-b border-border-neutral">
             <View className="flex-1">
               <Text className="text-xs font-bold text-text-secondary">{props.headerLabel}</Text>
               {isFreeform ? (
@@ -260,7 +261,7 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
             >
               {isFreeform ? "Apply" : "Save"}
             </Button>
-          </View>
+          </SheetDragHandle>
           {!isFreeform && (controller.context?.levels ?? []).length > 0 ? (
             <LiftoEditorPillRail controller={controller} className="border-b border-border-neutral" />
           ) : null}
@@ -274,13 +275,14 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
           ) : null}
           {/* The viewport the drag measures against and the caret is revealed into is this
               scroll area itself. */}
-          <View ref={viewportRef} style={{ flexShrink: 1 }}>
+          <View ref={viewportRef} style={layout.editor}>
             <Animated.ScrollView
               ref={scrollRef}
               testID="day-liftoeditor-scroll"
               // Both this and the viewport wrapper shrink: the sheet's cap is on an ancestor,
               // and a ScrollView that can't shrink would push past it and clip its own end.
-              style={{ flexShrink: 1 }}
+              // It grows to fill the wrapper, which carries the editor's min height.
+              style={{ flexShrink: 1, flexGrow: 1 }}
               scrollEnabled={isScrollable}
               onScroll={onScroll}
               scrollEventThrottle={16}
@@ -336,6 +338,6 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
           ) : null}
         </View>
       </NavScreenScrollContext.Provider>
-    </View>
+    </Animated.View>
   );
 }

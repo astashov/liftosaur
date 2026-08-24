@@ -1,11 +1,13 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import { LayoutChangeEvent, Platform, Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Animated, LayoutChangeEvent, Platform, Pressable, ScrollView, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CollectionUtils_compact } from "../../utils/collection";
 import type { IDayData } from "../../types";
 import { useLiftoEditorModalActions } from "../../components/liftoEditorModalActions";
-import { useCloseCustomKeyboard, useCustomKeyboardHeight } from "../CustomKeyboardContext";
+import { useCloseCustomKeyboard } from "../CustomKeyboardContext";
+import { SheetDragHandle } from "../TransparentModal";
+import { useLiftoEditorSheetLayout } from "./liftoEditorSheetLayout";
 import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import {
   ILiftoEditorStyledRange,
@@ -202,10 +204,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   const hint = LiftoEditorHints_forContext(controller.context, controller.activeLevelIndex, controller.text);
   const accent = Tailwind_semantic().text.purple;
   const iconScale = useRem() / 16;
-  const { height: windowHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();
-  const keypadHeight = useCustomKeyboardHeight();
+  const layout = useLiftoEditorSheetLayout();
   const closeKeyboard = useCloseCustomKeyboard();
   const isFreeform = controller.mode === "freeform";
   const onModeChangeRef = useRef(props.onModeChange);
@@ -307,14 +308,12 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   );
 
   return (
-    // Auto-height: the sheet hugs the content; the nested fit-content keyboard host adds
-    // inline space below when the keypad opens, growing the sheet. The cap keeps the whole
-    // sheet (including the docked keypad, which renders below this view) within the screen —
-    // past it, the editor is the part that shrinks and scrolls. The system-keyboard spacer
-    // lives inside this view, so it needs no subtraction here.
-    <View style={{ maxHeight: Math.max(windowHeight * 0.25, windowHeight * 0.9 - keypadHeight - insets.bottom) }}>
-      <View style={{ flexShrink: 1 }}>
-        <View className="flex-row items-center gap-2 px-4 pb-2 border-b border-border-neutral">
+    // The system-keyboard spacer lives inside this view, so the cap needs no subtraction for it.
+    <Animated.View style={layout.container} onLayout={layout.onContainerLayout}>
+      <View style={layout.body}>
+        {/* The bar alone is a hard target on the way to a sheet this small, so the header
+            drags it too - the chips, the crumbs and Save keep their own taps. */}
+        <SheetDragHandle className="flex-row items-center gap-2 px-4 pb-2 border-b border-border-neutral">
           <View className="flex-1">
             {props.instances.length > 1 ? (
               <FadeScrollView className="mb-1" contentClassName="gap-1" scrollRef={railRef}>
@@ -364,7 +363,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
           >
             {isFreeform ? "Apply" : "Save"}
           </Button>
-        </View>
+        </SheetDragHandle>
         {/* On a line that reuses something, rendered before anything is focused too, unlike the
             other hosts: filling the reuse in lives in this rail, and "what does ...t3 even mean"
             is a question the sheet gets asked on the way in, before the first token is tapped. */}
@@ -389,7 +388,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
         ) : null}
         <GestureDetector gesture={walkFling}>
           <ScrollView
-            style={{ flexShrink: 1 }}
+            style={layout.editor}
             scrollEnabled={isEditorScrollable}
             onLayout={(e) => {
               const height = e.nativeEvent.layout.height;
@@ -474,6 +473,6 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
           />
         ) : null}
       </View>
-    </View>
+    </Animated.View>
   );
 }
