@@ -198,6 +198,8 @@ module.exports = defineConfig([
   },
   globalIgnores([
     "**/dist",
+    "ios",
+    "android",
     "cypress",
     "**/dist-lambda",
     "**/cdk.out",

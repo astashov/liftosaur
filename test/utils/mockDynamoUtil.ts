@@ -236,9 +236,9 @@ export class MockDynamoUtil implements IDynamoUtil {
       let current = "";
       for (const ch of s) {
         if (ch === "(") {
-          depth++;
+          depth += 1;
         } else if (ch === ")") {
-          depth--;
+          depth -= 1;
         }
         if (ch === "," && depth === 0) {
           parts.push(current);
