@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
+import { useReportSheetHeight } from "./ActiveSheetHeightContext";
 import { Tailwind_isDark } from "../utils/tailwindConfig";
 
 // Matches the radius iOS gives formSheets, so both kinds of sheet read the same.
@@ -50,6 +51,9 @@ export function TransparentModal(props: IProps): JSX.Element {
   const insets = useSafeAreaInsets();
   const keyboardHeight = useCustomKeyboardHeight();
   const sheetHeight = Math.round(screenHeight * 0.85);
+  // The sheet resizes as its content and the custom keypad grow, so repositioning floating UI
+  // above it would make it hop around - and at any size it can cover the sheet's own keypad.
+  useReportSheetHeight(true);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   // Dimming does nothing over a black background, so dark mode lifts the covered content

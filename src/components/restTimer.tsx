@@ -2,7 +2,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import { View, Pressable, Platform, Animated, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardActiveId } from "../navigation/CustomKeyboardContext";
-import { useActiveSheetHeight } from "../navigation/ActiveSheetHeightContext";
+import { useActiveSheet } from "../navigation/ActiveSheetHeightContext";
 import { useTrackedState } from "../navigation/TrackedStateContext";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
@@ -55,10 +55,11 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const insets = useSafeAreaInsets();
   const keyboardActiveId = useCustomKeyboardActiveId();
   const { height: windowHeight } = useWindowDimensions();
-  const activeSheetHeight = useActiveSheetHeight();
+  const activeSheet = useActiveSheet();
+  const activeSheetHeight = activeSheet.height;
   // When the custom keyboard is open, the timer is shown inside it (see KeyboardRestTimer), so hide
   // the floating one here. We keep it mounted (not returning null) so the completion chirp still fires.
-  const hideTimer = activeSheetHeight > windowHeight * 0.5 || keyboardActiveId != null;
+  const hideTimer = activeSheet.hidesFloatingUi || activeSheetHeight > windowHeight * 0.5 || keyboardActiveId != null;
   const baseBottom = insets.bottom + 80;
   const targetBottom = Math.max(baseBottom, activeSheetHeight > 0 ? activeSheetHeight + 16 : 0);
   const animatedTargetBottom = useRef(new Animated.Value(targetBottom)).current;
