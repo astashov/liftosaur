@@ -166,6 +166,10 @@ publish_update() {
   echo "  published $PLATFORM"
 }
 
+# The native half of the licenses page is derived from these bundles' source maps, so it can
+# only be refreshed here, while dist-rn still exists.
+npm run build:licenses
+
 publish_update ios "$IOS_RUNTIME_VERSION" "$OUTPUT_DIR/ios/main.jsbundle"
 publish_update android "$ANDROID_RUNTIME_VERSION" "$OUTPUT_DIR/android/index.android.bundle"
 

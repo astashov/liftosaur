@@ -1,0 +1,349 @@
+{
+  "_readme": [
+    "Curated inventory of native code that ships inside the iOS/Android apps but never",
+    "appears in the JS bundle. build-licenses.ts fails if ios/Podfile.lock or a build.gradle",
+    "contains something not covered here, so new native dependencies force an update.",
+    "'npmPackage' entries reuse the license text already on disk in node_modules."
+  ],
+
+  "reactNativePodPrefixes": ["React", "RCT", "Yoga", "FBLazyVector", "FBReactNativeSpec"],
+
+  "podToNpm": {
+    "react-native-appsflyer": "react-native-appsflyer",
+    "react-native-blur": "@react-native-community/blur",
+    "react-native-document-picker": "@react-native-documents/picker",
+    "react-native-image-picker": "react-native-image-picker",
+    "react-native-in-app-review": "react-native-in-app-review",
+    "react-native-keep-awake": "@sayem314/react-native-keep-awake",
+    "react-native-pager-view": "react-native-pager-view",
+    "react-native-safe-area-context": "react-native-safe-area-context",
+    "react-native-slider": "@react-native-community/slider",
+    "react-native-view-shot": "react-native-view-shot",
+    "react-native-webview": "react-native-webview",
+    "RNAppleAuthentication": "@invertase/react-native-apple-authentication",
+    "RNCClipboard": "@react-native-clipboard/clipboard",
+    "RNDateTimePicker": "@react-native-community/datetimepicker",
+    "RNFS": "react-native-fs",
+    "RNGestureHandler": "react-native-gesture-handler",
+    "RNGoogleSignin": "@react-native-google-signin/google-signin",
+    "RNInAppBrowser": "react-native-inappbrowser-reborn",
+    "RNKeychain": "react-native-keychain",
+    "RNLiveMarkdown": "@expensify/react-native-live-markdown",
+    "RNReactNativeHapticFeedback": "react-native-haptic-feedback",
+    "RNReanimated": "react-native-reanimated",
+    "RNScreens": "react-native-screens",
+    "RNShare": "react-native-share",
+    "RNSVG": "react-native-svg",
+    "RNWorklets": "react-native-worklets",
+    "RollbarReactNative": "rollbar-react-native",
+    "NitroModules": "react-native-nitro-modules",
+    "NitroMmkv": "react-native-mmkv",
+    "NitroIap": "react-native-iap"
+  },
+
+  "gradleToNpm": {
+    "com.facebook.react:react-android": "react-native",
+    "com.facebook.react:react-native": "react-native",
+    "io.github.zhongwuzw:mmkv": "react-native-mmkv"
+  },
+
+  "components": [
+    {
+      "id": "hermes",
+      "name": "Hermes",
+      "url": "https://github.com/facebook/hermes",
+      "license": "MIT",
+      "copyright": "Copyright (c) Meta Platforms, Inc. and affiliates.",
+      "platforms": ["ios", "android"],
+      "pods": ["hermes-engine"],
+      "gradle": ["com.facebook.react:hermes-android"]
+    },
+    {
+      "id": "yoga-proguard-annotations",
+      "name": "Yoga",
+      "url": "https://github.com/facebook/yoga",
+      "license": "MIT",
+      "copyright": "Copyright (c) Meta Platforms, Inc. and affiliates.",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.facebook.yoga:proguard-annotations"]
+    },
+    {
+      "id": "boost",
+      "name": "Boost",
+      "url": "https://www.boost.org/",
+      "license": "BSL-1.0",
+      "copyright": null,
+      "note": "Bundled inside the prebuilt React Native core binary.",
+      "platforms": ["ios", "android"],
+      "pods": [],
+      "gradle": []
+    },
+    {
+      "id": "folly",
+      "name": "Folly",
+      "url": "https://github.com/facebook/folly",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (c) Meta Platforms, Inc. and affiliates.",
+      "note": "Bundled inside the prebuilt React Native core binary.",
+      "platforms": ["ios", "android"],
+      "pods": [],
+      "gradle": []
+    },
+    {
+      "id": "glog",
+      "name": "glog",
+      "url": "https://github.com/google/glog",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (c) 2008, Google Inc.",
+      "note": "Bundled inside the prebuilt React Native core binary.",
+      "platforms": ["ios", "android"],
+      "pods": [],
+      "gradle": []
+    },
+    {
+      "id": "double-conversion",
+      "name": "double-conversion",
+      "url": "https://github.com/google/double-conversion",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright 2006-2011, the V8 project authors. All rights reserved.",
+      "note": "Bundled inside the prebuilt React Native core binary.",
+      "platforms": ["ios", "android"],
+      "pods": [],
+      "gradle": []
+    },
+    {
+      "id": "fmt",
+      "name": "{fmt}",
+      "url": "https://github.com/fmtlib/fmt",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors",
+      "note": "Bundled inside the prebuilt React Native core binary.",
+      "platforms": ["ios", "android"],
+      "pods": [],
+      "gradle": []
+    },
+    {
+      "id": "appauth",
+      "name": "AppAuth for iOS",
+      "url": "https://github.com/openid/AppAuth-iOS",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2016 The AppAuth for iOS Authors. All Rights Reserved.",
+      "platforms": ["ios"],
+      "pods": ["AppAuth", "GTMAppAuth"],
+      "gradle": []
+    },
+    {
+      "id": "google-ios-sdks",
+      "name": "Google Sign-In, GoogleUtilities, GTMSessionFetcher, AppCheckCore, PromisesObjC",
+      "url": "https://github.com/google/GoogleSignIn-iOS",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2023 Google LLC",
+      "platforms": ["ios"],
+      "pods": ["GoogleSignIn", "GoogleUtilities", "GTMSessionFetcher", "AppCheckCore", "PromisesObjC"],
+      "gradle": []
+    },
+    {
+      "id": "nanopb",
+      "name": "nanopb",
+      "url": "https://github.com/nanopb/nanopb",
+      "license": "Zlib",
+      "copyright": "Copyright (c) 2011 Petteri Aimonen <jpa at nanopb.mail.kapsi.fi>",
+      "platforms": ["ios"],
+      "pods": ["nanopb"],
+      "gradle": []
+    },
+    {
+      "id": "mmkv-core",
+      "name": "MMKV",
+      "url": "https://github.com/Tencent/MMKV",
+      "license": "BSD-3-Clause",
+      "copyright": "Copyright (C) 2018 THL A29 Limited, a Tencent company.",
+      "platforms": ["ios"],
+      "pods": ["MMKVCore"],
+      "gradle": []
+    },
+    {
+      "id": "swiftui-introspect",
+      "name": "SwiftUI Introspect",
+      "url": "https://github.com/siteline/swiftui-introspect",
+      "license": "MIT",
+      "copyright": "Copyright 2019 Timber Software",
+      "platforms": ["ios"],
+      "pods": ["SwiftUIIntrospect"],
+      "gradle": []
+    },
+    {
+      "id": "rollbar-apple",
+      "name": "Rollbar Apple SDK",
+      "url": "https://github.com/rollbar/rollbar-apple",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2020 Rollbar, Inc.",
+      "platforms": ["ios"],
+      "pods": ["RollbarCommon", "RollbarCrash", "RollbarNotifier", "RollbarReport"],
+      "gradle": []
+    },
+    {
+      "id": "openiap",
+      "name": "OpenIAP",
+      "url": "https://github.com/hyochan/openiap-apple",
+      "license": "MIT",
+      "copyright": null,
+      "platforms": ["ios", "android"],
+      "pods": ["openiap"],
+      "gradle": ["io.github.hyochan.openiap:openiap-google", "io.github.hyochan.openiap:openiap-google-horizon"]
+    },
+    {
+      "id": "androidx",
+      "name": "AndroidX / Jetpack (appcompat, core, fragment, exifinterface, browser, biometric, lifecycle, transition, viewpager2, swiperefreshlayout, coordinatorlayout, annotation, collection, health-connect)",
+      "url": "https://developer.android.com/jetpack/androidx",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (C) The Android Open Source Project",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["androidx.", "com.android.support:"]
+    },
+    {
+      "id": "android-material",
+      "name": "Material Components for Android",
+      "url": "https://github.com/material-components/material-components-android",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (C) The Android Open Source Project",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.google.android.material:material"]
+    },
+    {
+      "id": "play-services",
+      "name": "Google Play libraries (play-services-base, Play In-App Review, Install Referrer)",
+      "url": "https://developers.google.com/android/guides/setup",
+      "license": "Proprietary",
+      "copyright": "Copyright Google LLC",
+      "licenseNotice": "Distributed under the Android Software Development Kit License Agreement — https://developer.android.com/studio/terms",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.google.android.gms:", "com.google.android.play:", "com.android.installreferrer:"]
+    },
+    {
+      "id": "fresco",
+      "name": "Fresco",
+      "url": "https://github.com/facebook/fresco",
+      "license": "MIT",
+      "copyright": "Copyright (c) Meta Platforms, Inc. and affiliates.",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.facebook.fresco:"]
+    },
+    {
+      "id": "rollbar-android",
+      "name": "Rollbar Android SDK",
+      "url": "https://github.com/rollbar/rollbar-java",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2017 Rollbar, Inc.",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.rollbar:"]
+    },
+    {
+      "id": "gson",
+      "name": "Gson",
+      "url": "https://github.com/google/gson",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2008 Google Inc.",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.google.code.gson:gson"]
+    },
+    {
+      "id": "eventbus",
+      "name": "EventBus",
+      "url": "https://github.com/greenrobot/EventBus",
+      "license": "Apache-2.0",
+      "copyright": "Copyright (C) 2012-2021 Markus Junginger, greenrobot",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["org.greenrobot:eventbus"]
+    },
+    {
+      "id": "blurview",
+      "name": "BlurView",
+      "url": "https://github.com/Dimezis/BlurView",
+      "license": "Apache-2.0",
+      "copyright": null,
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.github.Dimezis:BlurView"]
+    },
+    {
+      "id": "kotlin",
+      "name": "Kotlin standard library and kotlinx.coroutines",
+      "url": "https://github.com/JetBrains/kotlin",
+      "license": "Apache-2.0",
+      "copyright": "Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["org.jetbrains.kotlin:", "org.jetbrains.kotlinx:"]
+    },
+    {
+      "id": "sora-editor",
+      "name": "sora-editor",
+      "url": "https://github.com/Rosemoe/sora-editor",
+      "license": "LGPL-2.1-or-later",
+      "copyright": "Copyright (C) 2020-2024  Rosemoe",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["io.github.Rosemoe.sora-editor:"],
+      "lgplNotice": true
+    },
+    {
+      "id": "appsflyer",
+      "name": "AppsFlyer SDK",
+      "url": "https://www.appsflyer.com/",
+      "license": "Proprietary",
+      "copyright": "Copyright AppsFlyer Ltd.",
+      "licenseNotice": "Closed-source SDK, redistributed as part of this application under the AppsFlyer Services Agreement — https://www.appsflyer.com/legal/services-agreement/",
+      "platforms": ["ios", "android"],
+      "pods": ["AppsFlyerFramework"],
+      "gradle": ["com.appsflyer:"]
+    },
+    {
+      "id": "google-ads-on-device-conversion",
+      "name": "Google Ads On-Device Conversion Measurement",
+      "url": "https://developers.google.com/ads/on-device-conversion",
+      "license": "Proprietary",
+      "copyright": "Copyright Google LLC",
+      "licenseNotice": "Closed-source SDK, redistributed under Google's developer terms — https://developers.google.com/terms",
+      "platforms": ["ios"],
+      "pods": ["GoogleAdsOnDeviceConversion"],
+      "gradle": []
+    },
+    {
+      "id": "tiktok-open-sdk",
+      "name": "TikTok Open SDK",
+      "url": "https://developers.tiktok.com/",
+      "license": "Proprietary",
+      "copyright": "Copyright TikTok Pte. Ltd.",
+      "licenseNotice": "Closed-source SDK, redistributed as part of this application under the TikTok Developer Terms of Service — https://developers.tiktok.com/terms/",
+      "platforms": ["ios", "android"],
+      "pods": ["TikTokOpenSDKCore", "TikTokOpenShareSDK"],
+      "gradle": ["com.tiktok.open.sdk:"]
+    }
+  ],
+
+  "fonts": [
+    {
+      "id": "poppins",
+      "name": "Poppins",
+      "url": "https://github.com/itfoundry/Poppins",
+      "license": "OFL-1.1",
+      "copyright": "Copyright 2020 The Poppins Project Authors (https://github.com/itfoundry/Poppins)"
+    },
+    {
+      "id": "iosevka",
+      "name": "Iosevka",
+      "url": "https://github.com/be5invis/Iosevka",
+      "license": "OFL-1.1",
+      "copyright": "Copyright (c) 2015-2026, Renzhi Li (aka. Belleve Invis, belleve@typeof.net)"
+    }
+  ]
+}
