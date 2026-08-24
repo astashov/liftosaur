@@ -177,6 +177,8 @@ export type IRootStackParamList = {
   changeNextDayModal: undefined;
   inputSelectModal: undefined;
   stateVarsModal: undefined;
+  // Data and result travel through ModalStateContext, not route params.
+  acrossProgramModal: undefined;
   createStateVarModal: undefined;
   textInputModal: undefined;
   repMaxCalculatorModal: undefined;

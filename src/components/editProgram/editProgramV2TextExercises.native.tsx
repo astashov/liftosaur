@@ -7,7 +7,10 @@ import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/pl
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
-import { IEvaluatedProgram } from "../../models/program";
+import { IEvaluatedProgram, Program_findPlannerExercise } from "../../models/program";
+import { Dialog_alert } from "../../utils/dialog";
+import { ProgramDayText_replace } from "../../models/programDayText";
+import { useModal } from "../../navigation/ModalStateContext";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
 import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { TimeUtils_formatHHMM } from "../../utils/time";
@@ -31,6 +34,9 @@ interface IEditProgramV2TextExercisesProps {
 
 export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesProps): JSX.Element {
   const { plannerDay, plannerDispatch, dayIndex, evaluatedDay, lbProgram, weekIndex } = props;
+  const openAcrossProgram = useModal("acrossProgramModal", (planner) => {
+    plannerDispatch(lbProgram.record(planner), "Change across program");
+  });
   const focusedExercise = props.ui.focusedExercise;
   const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
   let approxDayTime: string | undefined;
@@ -60,6 +66,25 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
           return exercises.find((e) => e.key === key)?.exerciseType;
         }}
         contextAt={() => ({ dayData: props.dayData, exercises })}
+        // Fold, then apply. The day's text is committed on a debounce, so the version the sheet
+        // groups by has to be spliced in here rather than waited for; the rewritten planner comes
+        // back through plannerDispatch, which is also what gives this undo/redo, and the editor
+        // absorbs its own rewritten line through the `text` prop.
+        onEditAcrossProgram={(field, exerciseFullName, text) => {
+          const planner = ProgramDayText_replace(props.evaluatedProgram.planner, props.dayData, text);
+          // Resolved against the planner just folded, not against `exercises` — that is the last
+          // committed evaluation, so within the commit debounce, or after a rename that hasn't
+          // landed, it answers with a key this planner no longer has.
+          const exercise =
+            exerciseFullName != null
+              ? Program_findPlannerExercise(planner, props.settings, exerciseFullName)
+              : undefined;
+          if (exercise == null) {
+            Dialog_alert("Couldn't tell which exercise this is. Fix any errors on this line and try again.");
+            return;
+          }
+          openAcrossProgram({ planner, exerciseKey: exercise.key, exerciseFullName: exercise.fullName, field });
+        }}
         onChange={(text) => {
           plannerDispatch(
             lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(text),

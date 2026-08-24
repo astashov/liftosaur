@@ -1,5 +1,6 @@
 import { ILiftoEditorContext } from "./primitives/liftoEditorBrain";
 import {
+  ILiftoEditorAcrossField,
   ILiftoEditorPill,
   ILiftoEditorReuseSelection,
   ILiftoEditorStateVarsTarget,
@@ -38,6 +39,7 @@ export interface ILiftoEditorControllerActions {
   ) => void;
   promptRename?: (current: string, kind: "label" | "stateVar", onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
+  editAcrossProgram?: (field: ILiftoEditorAcrossField, exerciseFullName: string | undefined) => void;
   pickReuse?: (
     kind: "sets" | "progress" | "update",
     exerciseFullName: string | undefined,

@@ -38,9 +38,12 @@ export interface ILiftoEditorPill {
     | "reuseSets"
     | "reuseProgressScript"
     | "reuseUpdateScript"
-    | "editStateVars";
+    | "editStateVars"
+    | "editAcrossProgram";
   // For editStateVars: everything the sheet needs that only the text knows.
   stateVars?: ILiftoEditorStateVarsTarget;
+  // For editAcrossProgram: which of the set's values the action is about.
+  acrossField?: ILiftoEditorAcrossField;
   // For reuse* actions: how the picked `...Target[w:d]` lands in this pill's range —
   // "{target}" gets substituted (" / {target}" appends a section, "{ {target} }" swaps a
   // script body, bare "{target}" swaps just the reuse target).
@@ -936,17 +939,46 @@ export interface ILiftoEditorRail {
   // The rail's ancestor fall-through stops here even when the pill list is empty, so e.g.
   // `used: none` shows "No actions" instead of the whole exercise's pills.
   ownsRail: boolean;
+  // Set-group values only: which of the set's values this node is, so a host can act on the
+  // focused field without parsing the document a second time.
+  acrossField?: ILiftoEditorAcrossField;
 }
+
+// The label doesn't name the field: the rail is a row of chips on a phone, and the user just
+// tapped the value it is about. Only the chip's colour distinguishes them, matching the token.
+const acrossPillDefs: Record<ILiftoEditorAcrossField, IPillDef> = {
+  reps: { label: "Change everywhere", category: "sets" },
+  weight: { label: "Change everywhere", category: "weight" },
+  rpe: { label: "Change everywhere", category: "weight" },
+  timer: { label: "Change everywhere", category: "timer" },
+};
 
 export function LiftoEditorActions_railForNode(text: string, node: SyntaxNode): ILiftoEditorRail {
   const own = pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
-  // Set-group children with their own rails (sets×reps, timers, set label, and now the values
-  // that own one only to carry a field-specific action) would otherwise hide the group's
-  // additive actions: the walk stops at the first owner, so focusing "3x8" showed only "Make
-  // rep range" while focusing the weight fell through to the full group rail.
+  // Set-group children with their own rails (sets×reps, timers, set label, and the values that
+  // own one only to carry a field-specific action) would otherwise hide the group's additive
+  // actions: the walk stops at the first owner, so focusing "3x8" showed only "Make rep range"
+  // while focusing the weight fell through to the full group rail.
   const setGroup = node.name !== PlannerNodeName.ExerciseSet ? enclosingSetGroup(node) : null;
-  return {
-    pills: setGroup != null ? [...own, ...setGroupPills(text, setGroup)] : own,
-    ownsRail: node.name in pillBuilders || LiftoEditorActions_acrossField(node) != null,
+  const groupPills = setGroup != null ? setGroupPills(text, setGroup) : [];
+  const acrossField = LiftoEditorActions_acrossField(node);
+  if (acrossField == null) {
+    return { pills: [...own, ...groupPills], ownsRail: node.name in pillBuilders };
+  }
+  // First on the rail, ahead of the token's own actions: retuning a value across the program is
+  // the reason to focus one on a phone at all, and hunting for it behind "Make rep range" on
+  // every set of a multiweek program is the thing this feature exists to stop. Not a text edit —
+  // the host rewrites the program and hands the line back — so the range covers the focused
+  // token only so that the pill has one.
+  const def = acrossPillDefs[acrossField];
+  const acrossPill: ILiftoEditorPill = {
+    label: def.label,
+    category: def.category,
+    start: node.from,
+    end: node.to,
+    text: nodeText(text, node),
+    action: "editAcrossProgram",
+    acrossField,
   };
+  return { pills: [acrossPill, ...own, ...groupPills], ownsRail: true, acrossField };
 }

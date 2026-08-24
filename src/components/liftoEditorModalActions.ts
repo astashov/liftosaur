@@ -5,6 +5,7 @@ import type { IExercisePickerSelectedExercise, IExerciseType } from "../types";
 import type { ILiftoEditorReuseCandidates } from "./liftoEditorReuse";
 import type { ILiftoEditorControllerActions } from "./liftoEditorController";
 import {
+  ILiftoEditorAcrossField,
   ILiftoEditorReuseSelection,
   ILiftoEditorStateVarsTarget,
   LiftoEditorActions_renamePrompt,
@@ -27,6 +28,9 @@ export interface ILiftoEditorModalActionsOptions {
   stateVarsExerciseTypeFor: (exerciseFullName: string | undefined) => IExerciseType | undefined;
   onBeforeChangeExercise?: () => Promise<boolean>;
   onEditReuse?: (targetName: string) => void;
+  // Host-owned like onEditReuse: it rewrites the program rather than this line, so there is no
+  // modal result for the controller to splice. Absent on a host that can't offer it.
+  onEditAcrossProgram?: (field: ILiftoEditorAcrossField, exerciseFullName: string | undefined) => void;
 }
 
 // The controller's actions, wired to the app's modals. Every host that drives a LiftoEditor
@@ -100,6 +104,7 @@ export function useLiftoEditorModalActions(options: ILiftoEditorModalActionsOpti
       openRename(LiftoEditorActions_renamePrompt(current, kind));
     },
     editReuse: (targetName) => optionsRef.current.onEditReuse?.(targetName),
+    editAcrossProgram: (field, exerciseFullName) => optionsRef.current.onEditAcrossProgram?.(field, exerciseFullName),
     pickReuse: (kind, exerciseFullName, onSelect) => {
       const candidates = optionsRef.current.reuseCandidatesFor(exerciseFullName);
       if (candidates == null) {

@@ -94,6 +94,7 @@ import {
   PlannerEvaluator_evaluate,
   PlannerEvaluator_changeExerciseName,
 } from "../pages/planner/plannerEvaluator";
+import { PlannerKey_fromFullName } from "../pages/planner/plannerKey";
 import { PP_iterate2, PP_iterate } from "./pp";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariation,
@@ -883,11 +884,13 @@ function Program_emptyEvaluatedProgram(program: IProgram): IEvaluatedProgram {
   };
 }
 
-function Program_buildEvaluatedProgram(
-  program: IProgram,
+// The half of an evaluation that comes from the planner alone. Split out because it is all some
+// surfaces need: an evaluated program's id, name and nextDay are fields it carries, not inputs to
+// working out what its weeks contain.
+function Program_buildWeeks(
   planner: IPlannerProgram,
   evaluatedWeeks: IPlannerEvalResult[][]
-): IEvaluatedProgram {
+): { weeks: IEvaluatedProgramWeek[]; errors: IEvaluatedProgramError[] } {
   let dayNum = 0;
   const errors: IEvaluatedProgramError[] = [];
   const weeks = planner.weeks.map((week, weekIndex) => {
@@ -913,6 +916,47 @@ function Program_buildEvaluatedProgram(
     });
     return { name: week.name, description: week.description, days };
   });
+  return { weeks, errors };
+}
+
+// Evaluating a planner on its own, for surfaces that only ever have one. Planner in, weeks out —
+// no program required, because none of it is used to work them out.
+export function Program_evaluatePlannerWeeks(planner: IPlannerProgram, settings: ISettings): IEvaluatedProgramWeek[] {
+  const { evaluatedWeeks } = PlannerEvaluator_evaluate(planner, settings);
+  return Program_buildWeeks(planner, evaluatedWeeks).weeks;
+}
+
+// Which exercise a name refers to *in this planner*, for an action that has just built one and
+// needs the key that is valid in it. Resolved here rather than against whatever evaluation the
+// caller had lying around: that one predates the edit being folded in, so after a rename it
+// answers with a key the new planner no longer has — or with the wrong exercise entirely.
+//
+// Day-by-day, so a syntax error on one day costs only that day. A whole-document parse is
+// all-or-nothing, and using one here would take the action away from every line in the program
+// because of an unfinished one somewhere else.
+export function Program_findPlannerExercise(
+  planner: IPlannerProgram,
+  settings: ISettings,
+  fullName: string
+): IPlannerProgramExercise | undefined {
+  const key = PlannerKey_fromFullName(fullName, settings.exercises);
+  for (const week of Program_evaluatePlannerWeeks(planner, settings)) {
+    for (const day of week.days) {
+      const exercise = day.exercises.find((e) => e.key === key);
+      if (exercise != null) {
+        return exercise;
+      }
+    }
+  }
+  return undefined;
+}
+
+function Program_buildEvaluatedProgram(
+  program: IProgram,
+  planner: IPlannerProgram,
+  evaluatedWeeks: IPlannerEvalResult[][]
+): IEvaluatedProgram {
+  const { weeks, errors } = Program_buildWeeks(planner, evaluatedWeeks);
   const states: IByTag<IProgramState> = {};
   PP_iterate(evaluatedWeeks, (exercise) => {
     for (const tag of exercise.tags) {

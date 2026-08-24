@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { ILiftoEditorContext, ILiftoEditorHandle, ITextEdit } from "./primitives/liftoEditorBrain";
 import {
+  ILiftoEditorAcrossField,
   ILiftoEditorPill,
   ILiftoEditorReuseSelection,
   ILiftoEditorStateVarsTarget,
@@ -87,6 +88,9 @@ export interface ILiftoEditorControllerActions {
   ) => void;
   promptRename?: (current: string, kind: "label" | "stateVar", onSubmit: (value: string) => void) => void;
   editReuse?: (targetName: string) => void;
+  // Rewrites the program beyond this line, so the host owns it entirely: it applies nothing to
+  // the document and hands the rewritten line back through the editor's own text instead.
+  editAcrossProgram?: (field: ILiftoEditorAcrossField, exerciseFullName: string | undefined) => void;
   pickReuse?: (
     kind: "sets" | "progress" | "update",
     exerciseFullName: string | undefined,
@@ -265,6 +269,10 @@ export function useLiftoEditorController(
       });
     } else if (pill.action === "editReuse") {
       actions?.editReuse?.(pill.text);
+    } else if (pill.action === "editAcrossProgram") {
+      if (pill.acrossField != null) {
+        actions?.editAcrossProgram?.(pill.acrossField, exerciseFullName);
+      }
     } else if (pill.action === "editStateVars") {
       // No plain-pill fallback: the pill's range covers the parens while its text doesn't,
       // so applying it as-is would strip them.

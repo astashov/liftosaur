@@ -1,19 +1,12 @@
 import type { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
-import {
-  IPlannerExerciseState,
-  IPlannerExerciseUi,
-  IPlannerProgramExercise,
-  IPlannerProgramExerciseEvaluatedSet,
-} from "../../pages/planner/models/types";
-import { IDaySetData, IExerciseType, ISettings } from "../../types";
-import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program_getProgramExerciseFromDay } from "../../models/program";
+import { IPlannerProgramExercise, IPlannerProgramExerciseEvaluatedSet } from "../../pages/planner/models/types";
+import { IDaySetData, IExerciseType, IPlannerProgram, ISettings } from "../../types";
+import { IEvaluatedProgramWeek, Program_getProgramExerciseFromDay } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { PP_iterate2 } from "../../models/pp";
 import { InputNumber2 } from "../inputNumber2";
-import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeSets } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils_compact } from "../../utils/collection";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
@@ -22,24 +15,23 @@ import { InputWeight2 } from "../inputWeight2";
 import { InputNumberAddOn } from "./editProgramExerciseSet";
 
 interface IEditProgramExerciseAcrossAllWeeksProps {
-  evaluatedProgram: IEvaluatedProgram;
-  ui: IPlannerExerciseUi;
+  weeks: IEvaluatedProgramWeek[];
   plannerExercise: IPlannerProgramExercise;
-  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  tabIndex: number;
+  onChangeTabIndex: (index: number) => void;
+  // A modifier rather than a finished planner: a host holding the program in a lens applies it
+  // to whatever state holds at dispatch time, which is not necessarily the evaluation this
+  // component was rendered from.
+  onChange: (apply: (planner: IPlannerProgram) => IPlannerProgram) => void;
 }
 
 export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcrossAllWeeksProps): JSX.Element {
-  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-
   function change(setData: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
-    props.plannerDispatch(
-      lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers_changeSets(program, props.plannerExercise.key, setData, props.settings, (set) => {
-          changeFn(set);
-        });
-      }),
-      "Update sets"
+    props.onChange((planner) =>
+      EditProgramUiHelpers_changeSets(planner, props.plannerExercise.key, setData, props.settings, (set) => {
+        changeFn(set);
+      })
     );
   }
 
@@ -48,9 +40,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
       label: "Reps",
       children: () => (
         <Tab
-          evaluatedProgram={props.evaluatedProgram}
+          weeks={props.weeks}
           plannerExercise={props.plannerExercise}
-          plannerDispatch={props.plannerDispatch}
           settings={props.settings}
           getKey={(set) => `${set.minrep}-${set.maxrep}-${set.isAmrap}`}
           getRightSide={(group, set) => (
@@ -70,9 +61,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     label: "Weights",
     children: () => (
       <Tab
-        evaluatedProgram={props.evaluatedProgram}
+        weeks={props.weeks}
         plannerExercise={props.plannerExercise}
-        plannerDispatch={props.plannerDispatch}
         settings={props.settings}
         getKey={(set) => `${set.weight?.unit}-${set.weight?.value}-${set.askWeight}`}
         getRightSide={(group, set) => (
@@ -91,9 +81,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     label: "RPE",
     children: () => (
       <Tab
-        evaluatedProgram={props.evaluatedProgram}
+        weeks={props.weeks}
         plannerExercise={props.plannerExercise}
-        plannerDispatch={props.plannerDispatch}
         settings={props.settings}
         getKey={(set) => `${set.rpe}-${set.logRpe}`}
         getRightSide={(group, set) => (
@@ -112,9 +101,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     label: "Timers",
     children: () => (
       <Tab
-        evaluatedProgram={props.evaluatedProgram}
+        weeks={props.weeks}
         plannerExercise={props.plannerExercise}
-        plannerDispatch={props.plannerDispatch}
         settings={props.settings}
         getKey={(set) => `${set.timer}`}
         getRightSide={(group, set) => (
@@ -134,13 +122,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     <View>
       <ScrollableTabs
         topPadding="1rem"
-        defaultIndex={props.ui.acrossWeeksTabIndex}
-        onChange={(index: number) => {
-          props.plannerDispatch(
-            lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index),
-            "Change across weeks tab"
-          );
-        }}
+        defaultIndex={props.tabIndex}
+        onChange={props.onChangeTabIndex}
         shouldNotExpand={true}
         nonSticky={true}
         color="purple"
@@ -151,9 +134,8 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
 }
 
 interface ITabProps {
-  evaluatedProgram: IEvaluatedProgram;
+  weeks: IEvaluatedProgramWeek[];
   plannerExercise: IPlannerProgramExercise;
-  plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   getKey: (set: IPlannerProgramExerciseEvaluatedSet) => string;
   getRightSide: (group: IDaySetData[], set: IPlannerProgramExerciseEvaluatedSet) => JSX.Element;
   settings: ISettings;
@@ -161,7 +143,7 @@ interface ITabProps {
 
 function Tab(props: ITabProps): JSX.Element {
   const groups: Record<string, IDaySetData[]> = {};
-  PP_iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
+  PP_iterate2(props.weeks, (exercise, weekIndex, dayInWeekIndex) => {
     if (exercise.key !== props.plannerExercise.key) {
       return;
     }
@@ -207,7 +189,7 @@ function Tab(props: ITabProps): JSX.Element {
     <View className="px-4">
       {Object.entries(groups).map(([key, group]) => {
         const first = group[0];
-        const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
+        const day = props.weeks[first.week - 1].days[first.dayInWeek - 1];
         const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
         if (!exercise) {
           return (

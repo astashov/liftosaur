@@ -2,10 +2,11 @@ import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
-import { ILiftoEditorExercisePickerModalData } from "../ModalStateContext";
+import { ILiftoEditorExercisePickerModalData, useModal } from "../ModalStateContext";
 import {
   IEvaluatedProgram,
   Program_evaluate,
+  Program_findPlannerExercise,
   Program_getAllProgramExercises,
   Program_getProgramExercise,
 } from "../../models/program";
@@ -14,7 +15,10 @@ import {
   ILiftoEditorStateVarsContext,
   LiftoEditorStateVars_contextFor,
 } from "../../components/primitives/liftoEditorStateVars";
-import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/liftoEditorActions";
+import type {
+  ILiftoEditorAcrossField,
+  ILiftoEditorStateVarsTarget,
+} from "../../components/primitives/liftoEditorActions";
 import { LiftoEditorBrain_exerciseFullName, LiftoEditorParseCache } from "../../components/primitives/liftoEditorBrain";
 import {
   IProgramExerciseIdentity,
@@ -120,13 +124,23 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // kept off unrelated re-renders by the memo below, which is what the snapshot this replaced
   // was really for.
   const resolved = params != null ? LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout) : undefined;
-  // Memoized on `resolved` rather than rebuilt per render: the narrowing spread would otherwise
-  // be a new object every time and re-evaluate the whole program on every unrelated re-render.
-  const program = useMemo(
-    (): (IProgram & { planner: IPlannerProgram }) | undefined =>
-      resolved?.planner != null ? { ...resolved, planner: resolved.planner } : undefined,
-    [resolved]
-  );
+  // A whole-program rewrite that hasn't been saved yet. It can't wait in the editor's text the
+  // way an ordinary edit does — it reaches lines this sheet isn't showing — so it waits here,
+  // and Done writes it while closing without saving drops it. Set only by the across-program
+  // sheet; undefined the rest of the time, which is what keeps the program read live.
+  const [pendingPlanner, setPendingPlanner] = useState<IPlannerProgram | undefined>(undefined);
+  // Memoized rather than rebuilt per render: the narrowing spread would otherwise be a new
+  // object every time and re-evaluate the whole program on every unrelated re-render.
+  const program = useMemo((): (IProgram & { planner: IPlannerProgram }) | undefined => {
+    if (resolved?.planner == null) {
+      return undefined;
+    }
+    return { ...resolved, planner: pendingPlanner ?? resolved.planner };
+  }, [resolved, pendingPlanner]);
+  // Which exercise this sheet is on. Not `params.key` — that is the key it opened with, and a
+  // rename folded into a whole-program edit moves it. Everything below resolves through this, so
+  // when the key moves the sheet follows instead of losing track of its own exercise.
+  const [exerciseKey, setExerciseKey] = useState(params?.key);
   const [selectedDayData, setSelectedDayData] = useState<Required<IDayData> | undefined>(undefined);
   const [editorMode, setEditorMode] = useState<"structured" | "freeform">("structured");
   const [isSharedVisible, setIsSharedVisible] = useState(false);
@@ -142,16 +156,16 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   );
   const programExercise =
     evaluatedProgram != null && params != null
-      ? Program_getProgramExercise(params.dayData.day, evaluatedProgram, params.key)
+      ? Program_getProgramExercise(params.dayData.day, evaluatedProgram, exerciseKey)
       : undefined;
   // One entry per declaration: repeat instances share the declaration's text, so a chip per
   // repeated week would be several ways to edit the same source line.
   const instances = useMemo(
     () =>
-      evaluatedProgram != null && params != null
-        ? Program_getAllProgramExercises(evaluatedProgram).filter((e) => e.key === params.key && !e.isRepeat)
+      evaluatedProgram != null && exerciseKey != null
+        ? Program_getAllProgramExercises(evaluatedProgram).filter((e) => e.key === exerciseKey && !e.isRepeat)
         : [],
-    [evaluatedProgram, params]
+    [evaluatedProgram, exerciseKey]
   );
   // Until an instance chip is pressed, the sheet is on the declaration — which is not
   // necessarily the day that was tapped, since a repeat instance carries another week's text.
@@ -229,6 +243,81 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
     setSelectedDayData(instance.dayData);
+  };
+
+  // A whole-program rewrite normally rewrites the line on screen too — that is the point of
+  // invoking it from this exercise's weight — so the editor is left showing text the program no
+  // longer has, and its baselines describe a line that no longer exists. Re-projected on the
+  // render after the rewrite lands, because the new line can only be read off the new program.
+  //
+  // Same four steps as switching instance: rebuild the record, drop the shared-section override,
+  // remount so the editor picks the text up.
+  const needsReprojectRef = useRef(false);
+  useEffect(() => {
+    if (!needsReprojectRef.current || currentDeclaration == null) {
+      return;
+    }
+    needsReprojectRef.current = false;
+    textDraftRef.current = ExerciseLiftoEditorDraft_create(currentDeclaration.text, sharedSections);
+    setBodyText(undefined);
+    setIsSharedVisible(false);
+    setRemountKey((key) => key + 1);
+  }, [currentDeclaration, sharedSections]);
+
+  // The key the fold resolved to, held until the sheet actually comes back with a result: cancel
+  // the modal and nothing was folded, so the sheet is still on the key it had.
+  const foldedKeyRef = useRef<string | undefined>(undefined);
+  const openAcrossProgram = useModal("acrossProgramModal", (planner) => {
+    setPendingPlanner(planner);
+    if (foldedKeyRef.current != null) {
+      setExerciseKey(foldedKeyRef.current);
+    }
+    needsReprojectRef.current = true;
+  });
+
+  // Fold, then apply. The across-program sheet groups by value, so it has to be looking at what
+  // is on screen — including edits not yet folded into the program. A line that doesn't parse
+  // has nothing to fold, and applying on top of the last good version would silently drop the
+  // typing, so it is refused with the error the banner is already showing.
+  const onEditAcrossProgram = async (
+    field: ILiftoEditorAcrossField,
+    exerciseFullName: string | undefined
+  ): Promise<void> => {
+    if (params == null || currentExercise == null || currentDeclaration == null) {
+      return;
+    }
+    // A pending rename is folded in along with everything else, and folding it means choosing how
+    // far it reaches. `applyDraft` defaults that to "all" — harmless where its planner is thrown
+    // away, but here it is kept, so an unsaved one-day rename would quietly become a program-wide
+    // one. Same question the save asks, asked before the fold rather than after it.
+    const swap = detectSwap(textDraftRef.current.localText.trim(), currentDeclaration);
+    if (swap != null && (await requestSwapScope(swap.isLadder)) == null) {
+      return;
+    }
+    const folded = applyDraft(textDraftRef.current.localText);
+    if (folded == null || "error" in folded.applied) {
+      Dialog_alert("Fix the error in this exercise first, then you can change it across the program.");
+      return;
+    }
+    // Resolved from the folded planner, not from `params.key`: that is the key the sheet opened
+    // on, and a rename folded in just now has already moved it. Looking the old one up would find
+    // nothing, or — worse — a leftover declaration of the exercise that used to be here.
+    const target = Program_findPlannerExercise(
+      folded.applied.planner,
+      settings,
+      exerciseFullName ?? currentExercise.fullName
+    );
+    if (target == null) {
+      Dialog_alert("Couldn't tell which exercise this is. Fix any errors on this line and try again.");
+      return;
+    }
+    foldedKeyRef.current = target.key;
+    openAcrossProgram({
+      planner: folded.applied.planner,
+      exerciseKey: target.key,
+      exerciseFullName: target.fullName,
+      field,
+    });
   };
 
   // The sheet's own derived answers follow `program` on their own. The body does not: it holds
@@ -362,7 +451,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // Re-evaluated rather than reusing the render's memo: `currentExercise` may name a day the
     // program no longer has, and the save has to answer against what it is about to write.
     const saveEvaluatedProgram = Program_evaluate(program, settings);
-    const saveExercise = Program_getProgramExercise(currentExercise.dayData.day, saveEvaluatedProgram, params.key);
+    const saveExercise = Program_getProgramExercise(currentExercise.dayData.day, saveEvaluatedProgram, exerciseKey);
     const declaration =
       saveExercise != null ? ProgramExerciseText_findDeclaration(saveEvaluatedProgram, saveExercise) : undefined;
     if (declaration == null) {
@@ -569,7 +658,13 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // line. Either way it is exactly what the body is mounted with, so it doubles as the baseline
   // the close guard compares the draft against.
   const initialText = bodyText ?? currentDeclaration?.text ?? sampleText;
-  const isDirty = (): boolean => ExerciseLiftoEditorDraft_isDirty(textDraftRef.current);
+  // A pending whole-program rewrite counts: it is unsaved work even when the line on screen is
+  // back to matching the program, which is exactly what re-projecting leaves behind. Without it
+  // Done would take the "nothing changed" exit and drop the rewrite on the floor.
+  const isDirty = (): boolean =>
+    ExerciseLiftoEditorDraft_isDirty(textDraftRef.current) || pendingPlannerRef.current != null;
+  const pendingPlannerRef = useRef(pendingPlanner);
+  pendingPlannerRef.current = pendingPlanner;
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 
@@ -610,8 +705,8 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
       ? Array.from(new Set(Program_getAllProgramExercises(evaluatedProgram).map((e) => e.fullName)))
       : [];
   const reuseCandidates: ILiftoEditorReuseCandidates | undefined =
-    evaluatedProgram != null && params != null && currentExercise != null && dayData != null
-      ? LiftoEditorReuse_candidates(params.key, !!currentExercise.notused, evaluatedProgram, dayData)
+    evaluatedProgram != null && exerciseKey != null && currentExercise != null && dayData != null
+      ? LiftoEditorReuse_candidates(exerciseKey, !!currentExercise.notused, evaluatedProgram, dayData)
       : undefined;
   // Resolved per press against the draft's program: the reuse target comes from the live text,
   // so it can name an exercise this declaration didn't reuse when the sheet opened.
@@ -678,6 +773,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
             pickerData={pickerData}
             exerciseFor={exerciseFor}
             onEditReuse={onEditReuse}
+            onEditAcrossProgram={onEditAcrossProgram}
             reuseCandidates={reuseCandidates}
             stateVarsFor={stateVarsFor}
             analyzeText={analyzeText}

@@ -56,11 +56,22 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
             label: "Across all weeks",
             children: () => (
               <EditProgramExerciseAcrossAllWeeks
-                ui={props.ui}
-                evaluatedProgram={props.evaluatedProgram}
+                weeks={props.evaluatedProgram.weeks}
                 plannerExercise={plannerExercise}
-                plannerDispatch={props.plannerDispatch}
                 settings={props.settings}
+                tabIndex={props.ui.acrossWeeksTabIndex ?? 0}
+                onChangeTabIndex={(index) =>
+                  props.plannerDispatch(
+                    lb<IPlannerExerciseState>().p("ui").p("acrossWeeksTabIndex").record(index),
+                    "Change across weeks tab"
+                  )
+                }
+                onChange={(apply) =>
+                  props.plannerDispatch(
+                    lb<IPlannerExerciseState>().p("current").p("program").pi("planner").recordModify(apply),
+                    "Update sets"
+                  )
+                }
               />
             ),
           },

@@ -68,6 +68,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
       propsRef.current.exerciseFor?.(exerciseFullName)?.exerciseType ?? propsRef.current.pickerData?.exerciseType,
     onBeforeChangeExercise: props.onBeforeChangeExercise,
     onEditReuse: props.onEditReuse,
+    onEditAcrossProgram: props.onEditAcrossProgram,
   });
   const sharedPropertyNames = (props.sharedProperties ?? []).map((s) => s.property);
   const controller = useLiftoEditorController(props.initialText, {

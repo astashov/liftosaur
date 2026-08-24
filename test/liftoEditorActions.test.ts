@@ -1,6 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import {
+  ILiftoEditorAcrossField,
   ILiftoEditorStateVarsTarget,
   LiftoEditorActions_renameEdit,
   LiftoEditorActions_reuseTargetText,
@@ -74,10 +75,10 @@ describe("LiftoEditorActions", () => {
       );
     });
 
-    it("also offers the enclosing set group's pills", () => {
+    it("also offers the enclosing set group's pills, after its own", () => {
       const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8", "3x8", "Sets×Reps");
-      expect(labels[0]).to.equal("Make rep range");
       expect(labels).to.include.members(["Add weight", "Add RPE", "Add set timer", "Add rest timer"]);
+      expect(labels.indexOf("Make rep range")).to.be.lessThan(labels.indexOf("Add weight"));
     });
   });
 
@@ -102,9 +103,9 @@ describe("LiftoEditorActions", () => {
 
     it("also offers the enclosing set group's pills, minus timer adds", () => {
       const labels = LiftoEditorTestUtils_pillLabels("Squat / 3x8 90s", "90s", "Rest timer");
-      expect(labels[0]).to.equal("Split set/rest timer");
       expect(labels).to.include.members(["Add weight", "Add RPE"]);
       expect(labels).to.not.include.members(["Add set timer", "Add rest timer"]);
+      expect(labels.indexOf("Split set/rest timer")).to.be.lessThan(labels.indexOf("Add weight"));
     });
   });
 
@@ -135,6 +136,61 @@ describe("LiftoEditorActions", () => {
         const level = LiftoEditorTestUtils_level("Squat / 3x8 100kg @8", needle, needle === "@8" ? "RPE" : "Weight");
         expect(level.ownsRail).to.equal(true);
         expect(level.pills.map((p) => p.label)).to.include.members(["Add set timer", "Add another set group"]);
+      }
+    });
+
+    it("offers the across-program action on every value a set group carries", () => {
+      const cases: [string, string, string, ILiftoEditorAcrossField][] = [
+        ["Squat / 3x8 100kg", "3x8", "Sets×Reps", "reps"],
+        ["Squat / 3x8 100kg", "100kg", "Weight", "weight"],
+        ["Squat / 3x8 80%", "80%", "Percentage", "weight"],
+        ["Squat / 3x8 @8", "@8", "RPE", "rpe"],
+        ["Squat / 3x8 90s", "90s", "Rest timer", "timer"],
+        ["Squat / 3x8 30s|60s", "30s|60s", "Set timer", "timer"],
+      ];
+      for (const [text, needle, levelLabel, field] of cases) {
+        const pills = LiftoEditorTestUtils_pills(text, needle, levelLabel);
+        const pill = pills.find((p) => p.action === "editAcrossProgram");
+        expect(pill, `${needle} has no across-program pill`).to.not.equal(undefined);
+        // One label for all four: the rail is a row of chips, and the user just tapped the value.
+        expect(pill?.label).to.equal("Change everywhere");
+        expect(pill?.acrossField).to.equal(field);
+        // The host rewrites the program; the range exists only so the pill has one.
+        expect(text.slice(pill?.start ?? 0, pill?.end ?? 0)).to.equal(needle);
+      }
+    });
+
+    // Ahead of everything, including the token's own actions: it is the reason to focus a value
+    // on a phone, and it must not need hunting for on a long rail.
+    it("puts the across-program action first on every set-group value", () => {
+      for (const [text, needle, levelLabel] of [
+        ["Squat / 3x8 100kg", "3x8", "Sets×Reps"],
+        ["Squat / 3x8 100kg", "100kg", "Weight"],
+        ["Squat / 3x8 80%", "80%", "Percentage"],
+        ["Squat / 3x8 @8", "@8", "RPE"],
+        ["Squat / 3x8 90s", "90s", "Rest timer"],
+        ["Squat / 3x8 30s|60s", "30s|60s", "Set timer"],
+      ] as const) {
+        const pills = LiftoEditorTestUtils_pills(text, needle, levelLabel);
+        expect(pills[0].action, `${needle} rail starts with ${pills[0].label}`).to.equal("editAcrossProgram");
+      }
+    });
+
+    it("names the field on the level so a host needn't parse again", () => {
+      expect(LiftoEditorTestUtils_level("Squat / 3x8 100kg", "100kg", "Weight").acrossField).to.equal("weight");
+      expect(LiftoEditorTestUtils_level("Squat / 3x8 / warmup: 2x5 45%", "45%", "Percentage").acrossField).to.equal(
+        undefined
+      );
+    });
+
+    it("offers no across-program action outside a set group", () => {
+      for (const [text, needle, levelLabel] of [
+        ["Squat / 3x8 / warmup: 2x5 45%", "45%", "Warmup sets"],
+        ["Squat / 3x8 / progress: lp(5kg)", "5kg", "lp()"],
+        ["Squat / 3x8 / progress: custom(weight: 100kg) {~ ~}", "100kg", "weight"],
+      ] as const) {
+        const pills = LiftoEditorTestUtils_pills(text, needle, levelLabel);
+        expect(pills.filter((p) => p.action === "editAcrossProgram")).to.deep.equal([]);
       }
     });
 

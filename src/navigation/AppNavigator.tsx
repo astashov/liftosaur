@@ -118,6 +118,7 @@ import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 import { NavModalStateVars } from "./modals/NavModalStateVars";
+import { NavModalAcrossProgram } from "./modals/NavModalAcrossProgram";
 import { NavModalCreateStateVar } from "./modals/NavModalCreateStateVar";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
@@ -412,6 +413,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
           <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
+          <RootStack.Screen name="acrossProgramModal" component={NavModalAcrossProgram} />
           <RootStack.Screen name="createStateVarModal" component={NavModalCreateStateVar} />
           <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
           <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />

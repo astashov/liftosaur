@@ -10,7 +10,9 @@ import {
   PlannerProgram_evaluateFull,
   PlannerProgram_evaluateText,
 } from "../../pages/planner/models/plannerProgram";
-import { IEvaluatedProgram } from "../../models/program";
+import { IEvaluatedProgram, Program_findPlannerExercise } from "../../models/program";
+import { Dialog_alert } from "../../utils/dialog";
+import { useModal } from "../../navigation/ModalStateContext";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
 import { LiftoEditorBrain_dayDataAt } from "../primitives/liftoEditorBrain";
 import { DayLiftoEditorInline } from "./dayLiftoEditorInline";
@@ -32,6 +34,9 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   const expectedRegenRef = useRef(fulltext);
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
+  const openAcrossProgram = useModal("acrossProgramModal", (planner) => {
+    props.plannerDispatch(lbProgram.record(planner), "Change across program");
+  });
   const { evaluatedWeeks } = useMemo(() => {
     return PlannerProgram_evaluateFull(fulltext, props.settings);
   }, [fulltext, props.settings]);
@@ -89,6 +94,25 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           const dayData = LiftoEditorBrain_dayDataAt(fulltext, offset);
           const day = perDayWeeks[dayData.week - 1]?.[dayData.dayInWeek - 1];
           return { dayData, exercises: day?.success ? day.data : [] };
+        }}
+        // Fold, then apply. Here the document is the whole program, so folding is parsing it back
+        // into weeks — the same step this editor's own commit does — and the rewritten planner
+        // returns through plannerDispatch, which regenerates the text this editor absorbs.
+        onEditAcrossProgram={(field, exerciseFullName, text) => {
+          const planner = { ...props.plannerProgram, weeks: PlannerProgram_evaluateText(text) };
+          // Resolved against the planner just folded, not against `perDayWeeks` — a full-document
+          // parse is all-or-nothing (`PlannerProgram_fullToWeekEvalResult` collapses a failure to a
+          // single error cell), so an unfinished line anywhere would take this action away from
+          // every line in the program. Evaluating the folded planner costs only the broken day.
+          const exercise =
+            exerciseFullName != null
+              ? Program_findPlannerExercise(planner, props.settings, exerciseFullName)
+              : undefined;
+          if (exercise == null) {
+            Dialog_alert("Couldn't tell which exercise this is. Fix any errors on this line and try again.");
+            return;
+          }
+          openAcrossProgram({ planner, exerciseKey: exercise.key, exerciseFullName: exercise.fullName, field });
         }}
         onChange={(text) => {
           setFulltext(text);

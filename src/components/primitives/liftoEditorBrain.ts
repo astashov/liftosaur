@@ -5,6 +5,7 @@ import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { IDayData } from "../../types";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import {
+  ILiftoEditorAcrossField,
   ILiftoEditorPill,
   LiftoEditorActions_endOfExerciseLine,
   LiftoEditorActions_enclosingExercise,
@@ -320,6 +321,9 @@ export interface ILiftoEditorLevel {
   // Whether the rail's walk outward stops here. Required rather than optional so it can't be
   // the field a new contextAt branch forgets — see makeLevel.
   ownsRail: boolean;
+  // Set-group values only: which of the set's values this level is, for actions that reach every
+  // set in the program spelling the same one.
+  acrossField?: ILiftoEditorAcrossField;
   // Exercise levels only: every variation, i.e. the planner's fullName. The label is just
   // the first variation — enough for a breadcrumb, but not enough to identify the exercise.
   fullName?: string;
@@ -827,6 +831,7 @@ function makeLevel(
     end: overrides?.end ?? node.to,
     pills: overrides?.pills ?? rail.pills,
     ownsRail: rail.ownsRail,
+    acrossField: rail.acrossField,
     fullName: overrides?.fullName,
   };
 }

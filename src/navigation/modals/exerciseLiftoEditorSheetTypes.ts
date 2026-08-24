@@ -4,7 +4,10 @@ import type { ILiftoEditorReuseCandidates } from "../../components/liftoEditorRe
 import type { IProgramExerciseIdentity } from "../../models/programExerciseSwap";
 import type { IProgramExerciseTextError } from "../../models/programExerciseText";
 import type { ILiftoEditorStateVarsContext } from "../../components/primitives/liftoEditorStateVars";
-import type { ILiftoEditorStateVarsTarget } from "../../components/primitives/liftoEditorActions";
+import type {
+  ILiftoEditorAcrossField,
+  ILiftoEditorStateVarsTarget,
+} from "../../components/primitives/liftoEditorActions";
 
 // The banner/line-tint renders exactly what the save pipeline produces, so the two can't drift.
 export type IExerciseLiftoEditorSheetLiveError = IProgramExerciseTextError;
@@ -89,6 +92,10 @@ export interface IExerciseLiftoEditorSheetProps {
   // unsaved changes.
   onTextChange?: (text: string) => void;
   onEditReuse?: (targetName: string) => void;
+  // Retuning the focused value across every set in the program that shares it. Host-owned: it
+  // rewrites the program rather than this line, and hands the rewritten line back by remounting
+  // this body on it.
+  onEditAcrossProgram?: (field: ILiftoEditorAcrossField, exerciseFullName: string | undefined) => void;
   // Lets the host adapt chrome outside the body (the safe-area gesture hint) to the
   // structured/freeform switch; the web body never calls it.
   onModeChange?: (mode: "structured" | "freeform") => void;

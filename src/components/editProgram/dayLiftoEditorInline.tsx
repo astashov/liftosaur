@@ -12,6 +12,7 @@ import { LiftoEditorReuse_candidates } from "../liftoEditorReuse";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
 import { LiftoEditorStateVars_contextFor } from "../primitives/liftoEditorStateVars";
 import { useLiftoEditorModalActions } from "../liftoEditorModalActions";
+import type { ILiftoEditorAcrossField } from "../primitives/liftoEditorActions";
 import { LiftoEditor } from "../primitives/liftoEditor";
 import type { ILiftoEditorStyledRange } from "../primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../liftoEditorController";
@@ -153,6 +154,10 @@ interface IDayLiftoEditorInlineProps {
   contextAt: (offset: number) => IDayLiftoEditorInlineContext;
   onChange: (text: string) => void;
   onLineChange?: (line: number) => void;
+  // Retuning the focused value across every set in the program that shares it. The editor's live
+  // text comes along because the host has to fold it into the program before the action runs —
+  // otherwise the sheet groups by values that disagree with what is on screen.
+  onEditAcrossProgram?: (field: ILiftoEditorAcrossField, exerciseFullName: string | undefined, text: string) => void;
 }
 
 // A LiftoEditor wired for the Program screen: it claims the screen's dock while focused,
@@ -166,6 +171,9 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
   // Where the focus sits, for the actions to ask which day they're in. Kept in a ref because
   // the pills fire from the dock, a render after focus moved.
   const focusOffsetRef = useRef(0);
+  // Declared up here because the pill actions below close over it, and the controller that keeps
+  // it current is created after them.
+  const textRef = useRef(props.text);
   const contextAtRef = useRef(props.contextAt);
   contextAtRef.current = props.contextAt;
   const settingsRef = useRef(props.settings);
@@ -218,6 +226,10 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
       ),
     stateVarsExerciseTypeFor: (exerciseFullName) =>
       exerciseFullName != null ? props.exerciseTypeFor(exerciseFullName) : undefined,
+    onEditAcrossProgram:
+      props.onEditAcrossProgram != null
+        ? (field, exerciseFullName) => props.onEditAcrossProgram?.(field, exerciseFullName, textRef.current)
+        : undefined,
   });
   const controller = useLiftoEditorController(props.text, {
     scope: "day",
@@ -340,7 +352,6 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
     }
   }, [isFreeform, systemKeyboardHeight, handleRef]);
 
-  const textRef = useRef(controller.text);
   textRef.current = controller.text;
   const onChangeRef = useRef(props.onChange);
   onChangeRef.current = props.onChange;
@@ -348,15 +359,18 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
   // card, since a fresh evaluation produces all-new objects). Structured pill edits still
   // land within one debounce window.
   const committedRef = useRef(props.text);
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const text = controller.text;
   useEffect(() => {
     if (text === committedRef.current) {
       return;
     }
     const timer = setTimeout(() => {
+      commitTimerRef.current = undefined;
       committedRef.current = text;
       onChangeRef.current(text);
     }, 300);
+    commitTimerRef.current = timer;
     return () => clearTimeout(timer);
   }, [text]);
 
@@ -382,6 +396,14 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
     while (liveEnd > start && externalEnd > start && live[liveEnd - 1] === externalText[externalEnd - 1]) {
       liveEnd -= 1;
       externalEnd -= 1;
+    }
+    // A commit still on the debounce is about the document this rewrite supersedes, and
+    // `replaceRange` is asynchronous, so letting it fire would dispatch the pre-rewrite text back
+    // over what just arrived. The effect's own cleanup doesn't cover it: it only runs when the
+    // editor's text changes, and the editor's text hasn't changed yet at this point.
+    if (commitTimerRef.current != null) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = undefined;
     }
     committedRef.current = externalText;
     blurRef.current();

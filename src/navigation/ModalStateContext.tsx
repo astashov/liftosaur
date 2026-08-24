@@ -5,6 +5,7 @@ import type {
   IExerciseType,
   IExercisePickerSelectedExercise,
   IDayData,
+  IPlannerProgram,
   IProgramState,
   IProgramStateMetadata,
 } from "../types";
@@ -12,7 +13,7 @@ import type { IEvaluatedProgram } from "../models/program";
 import { getNavigationRef } from "./navUtils";
 import { UidFactory_generateUid } from "../utils/generator";
 import type { IStateVariableType } from "../components/editProgramExercise/progressions/modalCreateStateVariable";
-import type { ILiftoEditorStateVarEntry } from "../components/primitives/liftoEditorActions";
+import type { ILiftoEditorAcrossField, ILiftoEditorStateVarEntry } from "../components/primitives/liftoEditorActions";
 
 export interface IInputSelectModalData {
   name?: string;
@@ -94,8 +95,20 @@ export interface ICreateStateVarModalResult {
   isUserPrompted: boolean;
 }
 
+// Retuning one exercise's sets across every week that shares a value. Planner in, planner out —
+// nothing about the program around it is read. Handed over rather than looked up by id because
+// the opener may be holding edits that aren't in app state yet, and the grouping has to be of
+// what the user can actually see.
+export interface IAcrossProgramModalData {
+  planner: IPlannerProgram;
+  exerciseKey: string;
+  exerciseFullName: string;
+  field: ILiftoEditorAcrossField;
+}
+
 export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
+  acrossProgramModal: IAcrossProgramModalData;
   stateVarsModal: IStateVarsModalData;
   createStateVarModal: { existingNames?: string[] };
   liftoEditorExercisePickerModal: ILiftoEditorExercisePickerModalData;
@@ -111,6 +124,9 @@ export interface IModalDataMap {
 
 export interface IModalResultMap {
   inputSelectModal: string;
+  // The rewritten program. The opener decides where it goes — pending in a sheet, or straight
+  // into a lens — so this modal never writes to app state itself.
+  acrossProgramModal: IPlannerProgram;
   stateVarsModal: string;
   createStateVarModal: ICreateStateVarModalResult;
   liftoEditorExercisePickerModal: IExercisePickerSelectedExercise;
