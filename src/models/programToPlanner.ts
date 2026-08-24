@@ -60,7 +60,7 @@ interface IPlannerToProgram2Globals {
 
 type IDereuseDecision = "sets" | "weight" | "rpe" | "timer" | "setTimer" | "progress" | "update";
 
-type IShareablePropertyName = "progress" | "update" | "warmup";
+type IShareablePropertyName = "progress" | "update" | "warmup" | "id";
 interface IPropertyCandidate {
   location: string;
   exercise: IPlannerProgramExercise;
@@ -335,11 +335,13 @@ export class ProgramToPlanner {
   // 'progress'/'update'/'warmup' are shared across every instance of an exercise, so they're printed
   // only once. Authors deliberately place bulky blocks away from the top of the program (e.g. on the
   // last week), so print them back where they were written instead of on the first instance.
+  // A repeat-materialized copy carries the original's syntax points, so it's excluded from being the
+  // origin - otherwise every week a `[1-3]` line spans would claim to be where it was written.
   private getPropertyTargets(
     groupedTopLineMap: IPlannerTopLineItem[][][][],
     opts: IPlannerToProgramConvertOpts
   ): IPropertyTargets {
-    const candidates: IPropertyCandidates = { progress: {}, update: {}, warmup: {} };
+    const candidates: IPropertyCandidates = { progress: {}, update: {}, warmup: {}, id: {} };
     PP_iterateTopLineExercises(groupedTopLineMap, (line, weekIndex, dayInWeekIndex, dayIndex) => {
       const value = this.getRenamedValue(opts, line, weekIndex, dayInWeekIndex);
       const exercise = Program_getProgramExercise(dayIndex + 1, this.program, value);
@@ -358,7 +360,7 @@ export class ProgramToPlanner {
         this.addPropertyCandidate(candidates.progress, exercise.key, {
           location,
           exercise,
-          isOrigin: exercise.points.progressPoint != null,
+          isOrigin: exercise.points.progressPoint != null && !exercise.isRepeat,
         });
       }
       const update = exercise.update;
@@ -370,18 +372,25 @@ export class ProgramToPlanner {
         this.addPropertyCandidate(candidates.update, exercise.key, {
           location,
           exercise,
-          isOrigin: exercise.points.updatePoint != null,
+          isOrigin: exercise.points.updatePoint != null && !exercise.isRepeat,
         });
       }
       if (exercise.warmupSets != null) {
         this.addPropertyCandidate(candidates.warmup, exercise.key, {
           location,
           exercise,
-          isOrigin: exercise.points.warmupPoint != null,
+          isOrigin: exercise.points.warmupPoint != null && !exercise.isRepeat,
+        });
+      }
+      if ((exercise.tags || []).length > 0) {
+        this.addPropertyCandidate(candidates.id, exercise.key, {
+          location,
+          exercise,
+          isOrigin: exercise.points.idPoint != null && !exercise.isRepeat,
         });
       }
     });
-    const targets: IPropertyTargets = { progress: {}, update: {}, warmup: {} };
+    const targets: IPropertyTargets = { progress: {}, update: {}, warmup: {}, id: {} };
     for (const property of ObjectUtils_keys(candidates)) {
       for (const key of ObjectUtils_keys(candidates[property])) {
         const list = candidates[property][key];
@@ -615,8 +624,16 @@ export class ProgramToPlanner {
                   }
                 }
 
-                if (!addedIdMap[key] && (evalExercise.tags || []).length > 0) {
-                  plannerExercise += ` / ${this.idToStr(evalExercise)}`;
+                // Printed at the instance the author wrote it on, like the other shared properties.
+                // Every instance of a key carries identical tags (PlannerEvaluator_fillInMetadata
+                // rejects anything else), so which one prints them doesn't change the value - but
+                // printing them on the first instance put them on a line compaction may delete.
+                const idSource =
+                  !addedIdMap[key] && (evalExercise.tags || []).length > 0
+                    ? this.getPropertySource(propertyTargets, "id", key, weekIndex, dayInWeekIndex, evalExercise)
+                    : undefined;
+                if (idSource != null) {
+                  plannerExercise += ` / ${this.idToStr(idSource)}`;
                   addedIdMap[key] = true;
                 }
 

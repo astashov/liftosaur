@@ -32,7 +32,11 @@ import {
   Program_getAllProgramExercises,
   Program_exportedPlannerProgramToExportedProgram,
 } from "../../../models/program";
-import { PlannerEvaluator_evaluate, PlannerEvaluator_evaluateFull } from "../plannerEvaluator";
+import {
+  PlannerEvaluator_compareExerciseOrder,
+  PlannerEvaluator_evaluate,
+  PlannerEvaluator_evaluateFull,
+} from "../plannerEvaluator";
 import { IWeightChange } from "../../../models/programExercise";
 import { Storage_getDefault, Storage_get } from "../../../models/storage";
 import { Weight_eqNull } from "../../../models/weight";
@@ -335,6 +339,37 @@ export function PlannerProgram_compact(
     repeatingExercises.add(ex);
   }
 
+  // The weeks that actually spell a repeating exercise out. A range may reach backwards
+  // (`tmpl[1-3]` written in week 3), so it can't just be scanned forward from the first week the
+  // exercise shows up in - that week may be a materialized copy with nothing to declare. There can
+  // be more than one declaration per key/day (`tmp[1-3]` in week 3 and `tmp[4-5]` in week 4), and
+  // each one owns its own range, so this is a set rather than a single week.
+  const declaringWeekIndexes: Record<string, Set<number>> = {};
+  PP_iterate(evaluatedWeeks, (exercise, weekIndex, dayInWeekIndex) => {
+    if (!exercise.isRepeat && exercise.repeat != null && exercise.repeat.length > 0) {
+      const declaringKey = `${exercise.key}_${dayInWeekIndex}`;
+      declaringWeekIndexes[declaringKey] = declaringWeekIndexes[declaringKey] || new Set();
+      declaringWeekIndexes[declaringKey].add(weekIndex);
+    }
+  });
+
+  // declaringWeekIndexes is keyed by the old program's exercise keys, while the lines being
+  // compacted come from the newly printed text - PlannerProgram_replaceExercise renames keys in
+  // between. Both the declaring lookup and claimWeek's `repeating` check have to go back through
+  // the rename to find the exercise they're talking about.
+  function oldKeyFor(value: string, weekIndex: number, dayInWeekIndex: number): string {
+    if (!renameMapping) {
+      return value;
+    }
+    const beforeRenaming = ObjectUtils_findKeyByExpression(
+      renameMapping,
+      (_, v) =>
+        v.to === value &&
+        (v.dayData == null || (v.dayData.week === weekIndex + 1 && v.dayData.dayInWeek === dayInWeekIndex + 1))
+    );
+    return beforeRenaming ?? value;
+  }
+
   const lastDescriptions: Partial<Record<number, string | undefined>> = {};
   plannerProgram.weeks.forEach((week) => {
     week.days.forEach((day, dayInWeekIndex) => {
@@ -362,18 +397,29 @@ export function PlannerProgram_compact(
     });
   });
 
-  for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
-    const week = mapping[weekIndex];
-    for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
-      const day = week[dayIndex];
-      for (const line of day) {
-        if (line.type === "exercise" && !line.used && repeatingExercises.has(line.value)) {
-          const repeatRanges: [number, number | undefined][] = [];
-          for (let repeatWeekIndex = weekIndex + 1; repeatWeekIndex < mapping.length; repeatWeekIndex += 1) {
+  // Declaring weeks go first, so a range written backwards (`tmpl[1-3]` in week 3) keeps the
+  // spelled-out line in the week that spells it out. Everything left over then compacts forward,
+  // which is what a repeat broken up by a mid-program change (`Squat[1-5]` splitting into `[1-2]`,
+  // week 3, `[4-5]`) needs.
+  for (const declaringPass of [true, false]) {
+    for (let weekIndex = 0; weekIndex < mapping.length; weekIndex += 1) {
+      const week = mapping[weekIndex];
+      for (dayIndex = 0; dayIndex < week.length; dayIndex += 1) {
+        const day = week[dayIndex];
+        for (const line of day) {
+          if (line.type !== "exercise" || line.used || !repeatingExercises.has(line.value)) {
+            continue;
+          }
+          const declaringWeeks = declaringWeekIndexes[`${oldKeyFor(line.value, weekIndex, dayIndex)}_${dayIndex}`];
+          if (!!declaringWeeks?.has(weekIndex) !== declaringPass) {
+            continue;
+          }
+          const claimWeek = (repeatWeekIndex: number): boolean => {
             const repeatDay = mapping[repeatWeekIndex]?.[dayIndex];
             const repeatedExercises = (repeatDay || []).filter((e) => {
               if (
                 e.type !== "exercise" ||
+                e.used ||
                 e.value !== line.value ||
                 e.sectionsToReuse !== line.sectionsToReuse ||
                 e.exerciseIndex !== line.exerciseIndex ||
@@ -381,38 +427,39 @@ export function PlannerProgram_compact(
               ) {
                 return false;
               }
+              const oldKey = oldKeyFor(line.value, repeatWeekIndex, dayIndex);
+              // A week that spells the exercise out owns its own range - only materialized copies
+              // are collapsible. Without this, `tmp[1-3]` in week 3 and `tmp[4-5]` in week 4 let
+              // week 1's copy swallow week 3's line, taking the progress block written on it.
+              if (declaringWeekIndexes[`${oldKey}_${dayIndex}`]?.has(repeatWeekIndex)) {
+                return false;
+              }
               const oldDay = evaluatedWeeks[repeatWeekIndex][dayIndex];
-              const beforeRenamingExercise = renameMapping
-                ? ObjectUtils_findKeyByExpression(
-                    renameMapping,
-                    (_, v) =>
-                      v.to === line.value &&
-                      (v.dayData == null ||
-                        (v.dayData.week === repeatWeekIndex + 1 && v.dayData.dayInWeek === dayIndex + 1))
-                  )
-                : undefined;
-              const oldKey = beforeRenamingExercise ?? line.value;
               const oldExercise = oldDay.success ? oldDay.data.find((ex) => ex.key === oldKey) : undefined;
               return oldExercise?.repeating?.includes(weekIndex + 1);
             });
             for (const e of repeatedExercises) {
               e.used = true;
             }
-            if (repeatedExercises.length > 0) {
-              if (repeatRanges.length === 0 || repeatRanges[repeatRanges.length - 1][1] != null) {
-                repeatRanges.push([repeatWeekIndex, undefined]);
-              }
-            } else {
-              if (repeatRanges.length > 0) {
-                repeatRanges[repeatRanges.length - 1][1] = repeatWeekIndex;
-              }
+            return repeatedExercises.length > 0;
+          };
+          let firstWeek = weekIndex + 1;
+          let lastWeek = weekIndex + 1;
+          for (let repeatWeekIndex = weekIndex + 1; repeatWeekIndex < mapping.length; repeatWeekIndex += 1) {
+            if (!claimWeek(repeatWeekIndex)) {
               break;
             }
+            lastWeek = repeatWeekIndex + 1;
           }
-          if (repeatRanges.length > 0 && repeatRanges[repeatRanges.length - 1][1] == null) {
-            repeatRanges[repeatRanges.length - 1][1] = mapping.length;
+          if (declaringPass) {
+            for (let repeatWeekIndex = weekIndex - 1; repeatWeekIndex >= 0; repeatWeekIndex -= 1) {
+              if (!claimWeek(repeatWeekIndex)) {
+                break;
+              }
+              firstWeek = repeatWeekIndex + 1;
+            }
           }
-          line.repeatRanges = repeatRanges.map((r) => `${r[0]}-${r[1]}`);
+          line.repeatRanges = firstWeek === lastWeek ? [] : [`${firstWeek}-${lastWeek}`];
         }
       }
     }
@@ -496,15 +543,7 @@ export function PlannerProgram_groupedTopLines(topLine: IPlannerTopLineItem[][][
         if (ex1 == null || ex2 == null) {
           return 0;
         }
-        if ((ex1.exerciseIndex ?? 0) !== (ex2.exerciseIndex ?? 0)) {
-          return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
-        }
-        // A repeat-materialized copy (appended at the end of the day) shares exerciseIndex with
-        // the used exercise that follows the original in the source week, so it goes before that
-        // exercise to match the source week's position. Other ties (used: none templates before
-        // the used exercise that shares their exerciseIndex) keep document order - the sort is
-        // stable.
-        return (ex1.isRepeat ? 0 : 1) - (ex2.isRepeat ? 0 : 1);
+        return PlannerEvaluator_compareExerciseOrder(ex1, ex2);
       });
     }
   }

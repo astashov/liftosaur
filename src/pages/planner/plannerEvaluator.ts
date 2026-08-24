@@ -362,6 +362,28 @@ export function PlannerEvaluator_fillRepeats(
   }
 }
 
+// The order a day's exercises must be in, whether they're evaluated exercises or the parsed top
+// lines PlannerProgram_groupedTopLines sorts. Both paths have to agree exactly: compaction matches
+// lines across weeks by exerciseIndex, so a template that lands in a different slot in one week
+// stops being recognized as the same line and its week range falls apart.
+//
+// fillRepeats appends materialized copies at the end of the day, so neither tie-break can be left
+// to document order. A `used: none` template takes the exerciseIndex of the used exercise it
+// precedes, so it sorts before it; a repeat copy sorts before the local exercise it shares an
+// index with, matching its position in the week it was written.
+export function PlannerEvaluator_compareExerciseOrder(
+  ex1: { exerciseIndex?: number; notused?: boolean; isRepeat?: boolean },
+  ex2: { exerciseIndex?: number; notused?: boolean; isRepeat?: boolean }
+): number {
+  if ((ex1.exerciseIndex ?? 0) !== (ex2.exerciseIndex ?? 0)) {
+    return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
+  }
+  if (!!ex1.notused !== !!ex2.notused) {
+    return ex1.notused ? -1 : 1;
+  }
+  return (ex1.isRepeat ? 0 : 1) - (ex2.isRepeat ? 0 : 1);
+}
+
 // A reuse resolving back to the very instance that declares it makes exercise.reuse.exercise (or
 // progress/update/descriptions .reuse.exercise) a self-loop, and PlannerProgramExercise_getState
 // walks those pointers with no visited set - so every later read of the program died with
@@ -916,15 +938,7 @@ export function PlannerEvaluator_postProcess(
   for (const week of evaluatedWeeks) {
     for (const day of week) {
       if (day.success) {
-        // Mirrors the sort in PlannerProgram_groupedTopLines: repeat-materialized exercises
-        // (pushed to the end by fillRepeats) move to their source week's position - before the
-        // used exercise sharing their exerciseIndex. Other ties keep document order.
-        day.data.sort((ex1, ex2) => {
-          if (ex1.exerciseIndex !== ex2.exerciseIndex) {
-            return ex1.exerciseIndex - ex2.exerciseIndex;
-          }
-          return (ex1.isRepeat ? 0 : 1) - (ex2.isRepeat ? 0 : 1);
-        });
+        day.data.sort(PlannerEvaluator_compareExerciseOrder);
       }
     }
   }

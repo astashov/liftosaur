@@ -1071,9 +1071,14 @@ export class PlannerExerciseEvaluator {
         .filter((n) => n)[0];
       const idPoint = idNode ? this.getPoint(idNode) : undefined;
 
+      // On the property name rather than on WarmupExerciseSets, so that `warmup: none` - which
+      // parses to a None node and no sets - still records where it was written.
       const warmupNode = expr
         .getChildren(PlannerNodeName.ExerciseSection)
-        .map((n) => n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.WarmupExerciseSets))
+        .map((n) => {
+          const node = n.getChild(PlannerNodeName.ExerciseProperty)?.getChild(PlannerNodeName.ExercisePropertyName);
+          return node != null && this.getValueTrim(node) === "warmup" ? node : undefined;
+        })
         .flat(2)
         .filter((n) => n)[0];
       const warmupPoint = warmupNode ? this.getPoint(warmupNode) : undefined;

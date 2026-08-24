@@ -5,6 +5,7 @@ import {
   PlannerProgram_switchToUnit,
   PlannerProgram_evaluateText,
   PlannerProgram_evaluate,
+  PlannerProgram_replaceExercise,
 } from "../src/pages/planner/models/plannerProgram";
 import {
   PlannerTestUtils_finish,
@@ -20,7 +21,10 @@ import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/plann
 import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { Stats_getEmpty } from "../src/models/stats";
-import { EditProgramUiHelpers_changeFirstInstance } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_changeFirstInstance,
+  EditProgramUiHelpers_getChangedKeys,
+} from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
 import { PlannerProgramExercise_buildProgress } from "../src/pages/planner/models/plannerProgramExercise";
 
 describe("Planner", () => {
@@ -1034,6 +1038,296 @@ Bench Press[4-5] / ...tmp: Squat
 
 
 `);
+  });
+
+  // Authors park a bulky template on the last week so the first week a user opens isn't a wall of
+  // script. Every week the `[1-3]` spans holds a materialized copy of it, and printing the block on
+  // the first copy - then compacting only forward - moved the template to week 1 and split the range.
+  it("keeps a template written on the last week there", () => {
+    const programText = `# Week 1
+## Day 1
+Squat[1,1-3] / ...tmp / 100lb / progress: custom(foo: 0) { ...tmp }
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+/// The program logic lives here
+tmp[1-3] / used: none / 2x5 / 100lb / warmup: none / update: custom() {~
+  numberOfSets = state.foo
+~} / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+`;
+    const { program } = PlannerTestUtils_get(programText);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const newText = PlannerProgram_generateFullText(
+      new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner().weeks
+    );
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat[1,1-3] / ...tmp
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+/// The program logic lives here
+tmp[1-3] / used: none / 2x5 / 100lb / warmup: none / update: custom() {~
+  numberOfSets = state.foo
+~} / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+
+
+`);
+  });
+
+  it("stops a template's backwards range at the week that differs", () => {
+    const programText = `# Week 1
+## Day 1
+tmp / used: none / 3x5 / 100lb
+Squat[1,1-3] / ...tmp / 100lb / progress: custom(foo: 0) { ...tmp }
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+tmp[2-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+`;
+    const { program } = PlannerTestUtils_get(programText);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const newText = PlannerProgram_generateFullText(
+      new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner().weeks
+    );
+    expect(newText).to.equal(`# Week 1
+## Day 1
+tmp / used: none / 3x5 / 100lb
+Squat[1,1-3] / ...tmp
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+tmp[2-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+
+
+`);
+  });
+
+  // Each declaration owns its own range, so tracking only one declaring week per key/day let the
+  // later one hide the earlier - the earlier declaration was then compacted away by a materialized
+  // copy from a week before it, taking the progress block that only existed on that line.
+  it("keeps both declarations when a template is declared twice on the same day", () => {
+    const programText = `# Week 1
+## Day 1
+Squat[1,1-5] / ...tmp / 100lb
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+tmp[1-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+
+# Week 4
+## Day 1
+tmp[4-5] / used: none / 3x5 / 100lb
+
+# Week 5
+## Day 1
+`;
+    const { program } = PlannerTestUtils_get(programText);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const newText = PlannerProgram_generateFullText(
+      new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner().weeks
+    );
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat[1,1-5] / ...tmp
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+tmp[1-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+
+
+# Week 4
+## Day 1
+tmp[4-5] / used: none / 3x5 / 100lb
+
+
+# Week 5
+## Day 1
+
+
+
+`);
+  });
+
+  // The declaring-week table is keyed by the old program's keys, so without going back through
+  // renameMapping a renamed template stopped being recognized as the week that declares it, and
+  // its progress block was compacted away.
+  it("keeps a backwards-declared template's progress when the template itself is renamed", () => {
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(`# Week 1
+## Day 1
+Squat[1,1-3] / ...tmp / 100lb
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+tmp[1-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+`),
+    };
+    const result = PlannerProgram_replaceExercise(planner, "tmp", undefined, "tmpRenamed", Settings_build());
+    expect(PlannerProgram_generateFullText(result.weeks)).to.equal(`# Week 1
+## Day 1
+Squat[1,1-3] / ...tmpRenamed / progress: custom() { ...tmpRenamed }
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+tmpRenamed[1-3] / used: none / 2x5 / 100lb / progress: custom(foo: 0) {~
+  weights += 5lb
+~}
+
+
+`);
+  });
+
+  // `id:` is shared across every instance of a key, and it used to be printed on the first one -
+  // which for a backwards-declared exercise is a materialized copy in an earlier week, exactly the
+  // line compaction deletes. Tags address exercises across days, so losing them is silent breakage.
+  it("keeps id: tags on a backwards-declared exercise", () => {
+    const programText = `# Week 1
+## Day 1
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+Squat[1-3] / 2x5 / 100lb / id: tags(5)
+`;
+    const { program } = PlannerTestUtils_get(programText);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const newText = PlannerProgram_generateFullText(
+      new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner().weeks
+    );
+    expect(newText).to.equal(`# Week 1
+## Day 1
+
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+Squat[1-3] / 2x5 / 100lb / id: tags(5)
+
+
+`);
+  });
+
+  // Pins PlannerEvaluator_compareExerciseOrder directly: in week 2 the template, the materialized
+  // repeat and the local exercise all share exerciseIndex 0, and the whole round trip depends on
+  // them landing in that order in both weeks. Regressing the tie-break shows up here rather than
+  // as a much less obvious compaction failure somewhere else.
+  it("orders a template, a repeat copy and a local exercise the same way in every week", () => {
+    const programText = `# Week 1
+## Day 1
+tmpl[1-2] / used: none / 2x5 / 100lb
+Squat[1-2] / ...tmpl
+
+# Week 2
+## Day 1
+Bench Press / 3x5 / 50lb
+`;
+    const { program } = PlannerTestUtils_get(programText);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const newText = PlannerProgram_generateFullText(
+      new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner().weeks
+    );
+    expect(newText).to.equal(`# Week 1
+## Day 1
+tmpl[1-2] / used: none / 2x5 / 100lb
+Squat[1-2] / ...tmpl
+
+
+# Week 2
+## Day 1
+Bench Press / 3x5 / 50lb
+
+
+`);
+  });
+
+  // Replacing an exercise with a name that isn't a known one turns it into a `used: none` template,
+  // which moves it ahead of the repeat copy it shares an exerciseIndex with. Pairing the day's
+  // exercises by array index then reported a rename for both of them, and edit state followed the
+  // wrong key.
+  it("reports only the actually renamed key when an exercise becomes a template", () => {
+    const settings = Settings_build();
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(`# Week 1
+## Day 1
+Squat[1-2] / 2x5 / 100lb
+
+# Week 2
+## Day 1
+Bench Press / 3x5 / 50lb
+`),
+    };
+    const newPlanner = PlannerProgram_replaceExercise(
+      planner,
+      "benchpress_barbell",
+      undefined,
+      "Mystery Move",
+      settings
+    );
+    expect(EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings)).to.eql({
+      benchpress_barbell: "mystery move",
+    });
   });
 
   // The script getters walk a fixed couple of hops, and the progression/update runners read those

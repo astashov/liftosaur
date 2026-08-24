@@ -571,11 +571,19 @@ export function EditProgramUiHelpers_getChangedKeys(
         const newDay = newWeek[dayInWeekIndex];
         if (oldDay && newDay) {
           if (oldDay.success && newDay.success) {
-            for (let exerciseIndex = 0; exerciseIndex < oldDay.data.length; exerciseIndex++) {
-              const oldExercise = oldDay.data[exerciseIndex];
-              const newExercise = newDay.data[exerciseIndex];
-              if (oldExercise && newExercise && oldExercise.key !== newExercise.key) {
-                changedKeys[oldExercise.key] = newExercise.key;
+            // A key that survives the edit is its own match wherever it moved to, so it's paired
+            // first and only what's left over is paired by position. Pairing everything by array
+            // index instead reports a rename for every exercise a reorder shifted - and the day's
+            // order does shift on its own: `used: none` and repeat-materialized exercises sort
+            // ahead of local ones, so turning an exercise into a template moves it.
+            const newKeys = new Set(newDay.data.map((e) => e.key));
+            const oldKeys = new Set(oldDay.data.map((e) => e.key));
+            const removed = oldDay.data.filter((e) => !newKeys.has(e.key));
+            const added = newDay.data.filter((e) => !oldKeys.has(e.key));
+            for (let i = 0; i < removed.length; i++) {
+              const newExercise = added[i];
+              if (newExercise != null) {
+                changedKeys[removed[i].key] = newExercise.key;
               }
             }
           }
