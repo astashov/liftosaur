@@ -258,6 +258,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           {counts.weeks} {StringUtils_pluralize("week", counts.weeks)} · {counts.exercises}{" "}
           {StringUtils_pluralize("exercise", counts.exercises)}
           {counts.templates > 0 ? ` · ${counts.templates} ${StringUtils_pluralize("template", counts.templates)}` : ""}
+          {counts.unused > 0 ? ` · ${counts.unused} unused` : ""}
         </Text>
         <View className="flex-row items-center">
           {SCALE_PRESETS.map((preset, i) => (

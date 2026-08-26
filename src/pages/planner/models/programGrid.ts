@@ -1,15 +1,20 @@
 import { IEvaluatedProgram } from "../../../models/program";
-import { IDayData, ISettings } from "../../../types";
-import { IPlannerProgramExercise } from "./types";
+import { IDayData, IPercentage, ISettings, IWeight } from "../../../types";
+import { IPlannerProgramExercise, IPlannerProgramExerciseGlobals } from "./types";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_currentSetVariationIndex,
   PlannerProgramExercise_evaluatedSetsToDisplaySets,
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_setsToDisplaySets,
 } from "./plannerProgramExercise";
+import { IDisplaySet } from "../../../models/set";
+import { Weight_print } from "../../../models/weight";
 
 // Mirrors the editor's node→style mapping (liftoEditorBrain.ts:102) so a strip reads like the
 // Liftoscript it stands for, in the same colors. The view owns the mapping to actual palette
 // entries; this only says which kind of token each run of text is.
-export type IProgramGridTokenKind = "setPart" | "weight" | "rpe" | "timer" | "auto" | "separator";
+export type IProgramGridTokenKind = "setPart" | "weight" | "rpe" | "timer" | "auto" | "reuse" | "separator";
 
 export interface IProgramGridSchemeToken {
   text: string;
@@ -52,10 +57,21 @@ export interface IProgramGridPlacement {
   // from week numbers alone. Reconstructing it is what every data-loss bug in this feature has had
   // in common.
   sourceWeeks: number[];
+  // Both are `used: none`; what separates them is whether the name resolves to a real exercise. A
+  // made-up name that exists only to be reused is a template, a real exercise switched off is
+  // unused, and `isTemplate` implies `notused`. Everything visual keys off `notused` — neither one
+  // runs — and only the word the user is shown differs.
+  notused: boolean;
   isTemplate: boolean;
   isReuseSource: boolean;
   reuseOf?: string;
   isOverride: boolean;
+  // The bare number in the `[...]` bracket, which pins this exercise's position in the day.
+  // Undefined rather than 0 — 0 is the evaluator's way of saying there was no such number.
+  order?: number;
+  // `id: tags(3, 5)`, which is how a program says "this exercise belongs to that group".
+  tags: number[];
+  progression?: string;
   scheme: IProgramGridSchemeToken[];
 }
 
@@ -81,9 +97,7 @@ function laneId(exercise: IPlannerProgramExercise, ordinal: number): string {
   return `${exercise.key}#${ordinal}`;
 }
 
-function displaySetsToTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[][] {
-  const variation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
-  const groups = PlannerProgramExercise_evaluatedSetsToDisplaySets(variation?.sets ?? [], settings);
+function displaySetsToTokens(groups: IDisplaySet[][]): IProgramGridSchemeToken[][] {
   return groups.reduce<IProgramGridSchemeToken[][]>((acc, group) => {
     const first = group[0];
     if (first == null) {
@@ -109,6 +123,109 @@ function displaySetsToTokens(exercise: IPlannerProgramExercise, settings: ISetti
     }
     return [...acc, tokens];
   }, []);
+}
+
+function joinGroups(groups: IProgramGridSchemeToken[][]): IProgramGridSchemeToken[] {
+  const separator: IProgramGridSchemeToken = { text: ", ", kind: "separator" };
+  return groups.reduce<IProgramGridSchemeToken[]>(
+    (acc, group, i) => (i === 0 ? group : [...acc, separator, ...group]),
+    []
+  );
+}
+
+// What a reusing line writes on top of what it reuses. `PlannerProgramExercise_sets` resolves a
+// reuse by letting this line's own sets and globals win over the reused ones, so those two fields
+// hold exactly the overrides — everything else came from the source and belongs in the source's
+// cells, not here.
+function overrideTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
+  const tokens: IProgramGridSchemeToken[] = [];
+  const ownSets = exercise.setVariations[PlannerProgramExercise_currentSetVariationIndex(exercise)]?.sets ?? [];
+  if (ownSets.length > 0) {
+    tokens.push(
+      ...joinGroups(
+        displaySetsToTokens(PlannerProgramExercise_setsToDisplaySets(ownSets, true, exercise.globals, settings))
+      )
+    );
+  }
+  for (const token of globalsToTokens(exercise.globals)) {
+    if (tokens.length > 0) {
+      tokens.push({ text: " ", kind: "separator" });
+    }
+    tokens.push(token);
+  }
+  return tokens;
+}
+
+function globalsToTokens(globals: IPlannerProgramExerciseGlobals): IProgramGridSchemeToken[] {
+  const tokens: IProgramGridSchemeToken[] = [];
+  if (globals.weight != null) {
+    tokens.push({ text: `${Weight_print(globals.weight)}${globals.askWeight ? "+" : ""}`, kind: "weight" });
+  } else if (globals.percentage != null) {
+    tokens.push({ text: `${globals.percentage}%${globals.askWeight ? "+" : ""}`, kind: "weight" });
+  }
+  if (globals.rpe != null) {
+    tokens.push({ text: `@${globals.rpe}${globals.logRpe ? "+" : ""}`, kind: "rpe" });
+  }
+  const timer = globals.setTimer ?? globals.timer;
+  if (timer != null) {
+    tokens.push({
+      text: `${timer}s${globals.setTimer != null && globals.isOverflowSetTimer ? "+" : ""}`,
+      kind: "timer",
+    });
+  }
+  if (globals.auto) {
+    tokens.push({ text: "auto", kind: "auto" });
+  }
+  return tokens;
+}
+
+function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
+  const reuse = exercise.reuse;
+  if (reuse == null) {
+    const variation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    return joinGroups(
+      displaySetsToTokens(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation?.sets ?? [], settings))
+    );
+  }
+  // A reuser's inherited numbers vary week to week, so they stay in the source's cells (see the
+  // grid RFC's run-length rule) — but what this line overrides is written right here, and hiding it
+  // made a line that rewrites the sets and the weight look identical to one that reuses wholesale.
+  const weekDay = reuse.week != null ? `[${reuse.week}${reuse.day != null ? `:${reuse.day}` : ""}]` : "";
+  const tokens: IProgramGridSchemeToken[] = [{ text: `...${reuse.fullName}${weekDay}`, kind: "reuse" }];
+  const overrides = overrideTokens(exercise, settings);
+  if (overrides.length > 0) {
+    tokens.push({ text: " / ", kind: "separator" }, ...overrides);
+  }
+  return tokens;
+}
+
+// Short enough for one line of the dock, and spelled the way the program spells it — property name
+// included, because on its own a word like "custom" doesn't say what it is talking about.
+function progressionText(exercise: IPlannerProgramExercise): string | undefined {
+  const progress = exercise.progress;
+  if (progress == null) {
+    return undefined;
+  }
+  const body = (): string => {
+    if (progress.type === "none") {
+      return "none";
+    }
+    const state = PlannerProgramExercise_getState(exercise);
+    const print = (value: unknown): string => Weight_print(value as IWeight | IPercentage);
+    if (progress.type === "lp") {
+      const successes = state.successes as number;
+      return `lp(${print(state.increment)}${successes > 1 ? `, ${successes}` : ""})`;
+    }
+    if (progress.type === "dp") {
+      return `dp(${print(state.increment)}, ${state.minReps}, ${state.maxReps})`;
+    }
+    if (progress.type === "sum") {
+      return `sum(${state.reps}, ${print(state.increment)})`;
+    }
+    const reuse = progress.reuse;
+    return reuse != null ? `custom { ...${reuse.exercise?.fullName ?? reuse.fullName} }` : "custom";
+  };
+  return `progress: ${body()}`;
 }
 
 function buildLanes(program: IEvaluatedProgram, rowIndex: number): string[] {
@@ -200,12 +317,6 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           addSourceWeek(open.placement, byWeek, lane, weekIndex, exercise);
           continue;
         }
-        const schemeGroups = displaySetsToTokens(exercise, settings);
-        const separator: IProgramGridSchemeToken = { text: ", ", kind: "separator" };
-        const scheme = schemeGroups.reduce<IProgramGridSchemeToken[]>(
-          (acc, group, i) => (i === 0 ? group : [...acc, separator, ...group]),
-          []
-        );
         const placement: IProgramGridPlacement = {
           id: `${rowIndex}:${lane}:${weekIndex}`,
           sourceWeeks: [],
@@ -219,11 +330,15 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
             exercise.repeating.length > 1
               ? [Math.min(...exercise.repeating) - 1, Math.max(...exercise.repeating) - 1]
               : undefined,
-          isTemplate: !!exercise.notused,
+          notused: !!exercise.notused,
+          isTemplate: !!exercise.notused && exercise.exerciseType == null,
           isReuseSource: reuseSources.has(exercise.fullName),
           reuseOf: exercise.reuse?.fullName,
           isOverride: false,
-          scheme,
+          order: exercise.order > 0 ? exercise.order : undefined,
+          tags: exercise.tags,
+          progression: progressionText(exercise),
+          scheme: schemeTokens(exercise, settings),
         };
         addSourceWeek(placement, byWeek, lane, weekIndex, exercise);
         lanePlacements.push(placement);
@@ -321,13 +436,25 @@ export function ProgramGrid_dayDataAt(grid: IProgramGrid, rowIndex: number, week
   return { week: weekIndex + 1, dayInWeek: rowIndex + 1, day };
 }
 
-export function ProgramGrid_counts(grid: IProgramGrid): { weeks: number; exercises: number; templates: number } {
+export function ProgramGrid_counts(grid: IProgramGrid): {
+  weeks: number;
+  exercises: number;
+  templates: number;
+  unused: number;
+} {
   const exerciseKeys = new Set<string>();
   const templateKeys = new Set<string>();
+  const unusedKeys = new Set<string>();
   for (const placement of grid.placements) {
-    (placement.isTemplate ? templateKeys : exerciseKeys).add(placement.key);
+    const bucket = placement.isTemplate ? templateKeys : placement.notused ? unusedKeys : exerciseKeys;
+    bucket.add(placement.key);
   }
-  return { weeks: grid.columns.length, exercises: exerciseKeys.size, templates: templateKeys.size };
+  return {
+    weeks: grid.columns.length,
+    exercises: exerciseKeys.size,
+    templates: templateKeys.size,
+    unused: unusedKeys.size,
+  };
 }
 
 export function ProgramGrid_errorAt(

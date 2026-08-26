@@ -107,7 +107,60 @@ Squat[1-2] / ...tmpl
     expect(tmpl.isTemplate).to.equal(true);
     expect(tmpl.isReuseSource).to.equal(true);
     expect(squat.reuseOf).to.equal("tmpl");
-    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 2, exercises: 1, templates: 1 });
+    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 2, exercises: 1, templates: 1, unused: 0 });
+  });
+
+  it("tells a template from an unused exercise by whether the name is a real exercise", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 3x5 100lb
+Bench Press / used: none / 3x5 50lb
+Squat / ...tmpl
+`);
+    const tmpl = grid.placements.find((p) => p.fullName === "tmpl")!;
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    // A made-up name that only exists to be reused.
+    expect([tmpl.notused, tmpl.isTemplate]).to.deep.equal([true, true]);
+    // A real exercise that has been switched off — it doesn't run either, but it isn't a template.
+    expect([bench.notused, bench.isTemplate]).to.deep.equal([true, false]);
+    expect([squat.notused, squat.isTemplate]).to.deep.equal([false, false]);
+    // Neither one runs, so neither is counted as an exercise.
+    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 1, exercises: 1, templates: 1, unused: 1 });
+  });
+
+  it("shows what a reusing line overrides, and shows a plain reuse as just the reference", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 3x5 100lb
+Squat / ...tmpl
+Bench Press / ...tmpl / 180lb
+Deadlift / ...tmpl / 3x8 / @8
+`);
+    const scheme = (name: string): string => schemeText(grid.placements.find((p) => p.fullName === name)!.scheme);
+    expect(scheme("Squat")).to.equal("...tmpl");
+    expect(scheme("Bench Press")).to.equal("...tmpl / 180lb");
+    expect(scheme("Deadlift")).to.equal("...tmpl / 3x8 @8");
+  });
+
+  it("carries the structural facts a strip has no room for", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat[2] / 3x5 100lb / id: tags(3, 5) / progress: lp(5lb)
+Bench Press / 3x5 50lb / progress: dp(5lb, 8, 12)
+Deadlift / 1x5 200lb
+`);
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    const deadlift = grid.placements.find((p) => p.fullName === "Deadlift")!;
+    expect(squat.order).to.equal(2);
+    expect(squat.tags).to.deep.equal([3, 5]);
+    expect(squat.progression).to.equal("progress: lp(5lb)");
+    expect(bench.progression).to.equal("progress: dp(5lb, 8, 12)");
+    // No forced order is 0 in the evaluator, and nothing to say in the dock.
+    expect(deadlift.order).to.equal(undefined);
+    expect(deadlift.tags).to.deep.equal([]);
+    expect(deadlift.progression).to.equal(undefined);
   });
 
   it("is ragged — a row only exists in the weeks that have that day", () => {

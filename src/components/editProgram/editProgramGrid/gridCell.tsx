@@ -13,6 +13,7 @@ import {
   ProgramGrid_isRelated,
 } from "../../../pages/planner/models/programGrid";
 import { GRID_CELL_INSET_X, GRID_CELL_INSET_Y } from "../../../pages/planner/models/programGridGeometry";
+import { GridBadge } from "./gridBadge";
 
 export interface IGridCellProps {
   placement: IProgramGridPlacement;
@@ -36,7 +37,7 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
   // scanner never emitted can't silently fall back to transparent; these still follow the theme.
   const background = placement.isOverride
     ? Tailwind_semantic().background.yellowdark
-    : placement.isTemplate
+    : placement.notused
       ? Tailwind_semantic().border.prominent
       : Tailwind_semantic().background.cardpurpleselected;
   // Each border is a couple of steps darker than its own fill in light mode and lighter in dark, so
@@ -44,7 +45,7 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
   // heavier still — it has to read as a punch-in, not just another card.
   const borderColor = placement.isOverride
     ? Tailwind_semantic().text.cardyellowsubtle
-    : placement.isTemplate
+    : placement.notused
       ? Tailwind_semantic().text.secondary
       : Tailwind_semantic().text.purple;
   const built = useMemo(() => {
@@ -57,6 +58,8 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
       rpe: Tailwind_semantic().syntax.literal,
       timer: Tailwind_semantic().syntax.keyword,
       auto: Tailwind_semantic().syntax.keyword,
+      // The editor leaves a `...name` reference unstyled, so it stays the quiet one here too.
+      reuse: Tailwind_semantic().text.secondary,
       separator: Tailwind_semantic().text.secondary,
     };
     const builder = new StyledText();
@@ -95,29 +98,24 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
             happens to generate that step, and a missing one silently renders fully opaque. */}
         <View className="absolute inset-0" style={{ opacity: 0.85, backgroundColor: background }} />
         <View className="relative justify-center flex-1 px-2">
-          <Text
-            className={`text-xs font-bold ${placement.isTemplate ? "text-text-secondary" : "text-text-primary"}`}
-            numberOfLines={1}
-          >
-            {placement.reuseOf != null ? "↳ " : ""}
-            {placement.fullName}
-            {placement.isTemplate ? " ·tmpl" : ""}
-          </Text>
-          {placement.reuseOf != null ? (
-            // A reuser's resolved numbers vary week to week; the strip is a pointer, so the numbers
-            // live in the source's cells (see the grid RFC's run-length rule).
-            <Text className="text-xs text-text-secondary" numberOfLines={1}>
-              reuses {placement.reuseOf}
+          <View className="flex-row items-center">
+            <Text
+              className={`text-xs font-bold shrink ${placement.notused ? "text-text-secondary" : "text-text-primary"}`}
+              numberOfLines={1}
+            >
+              {placement.fullName}
             </Text>
-          ) : (
-            built.text !== "" && (
-              <FastText
-                text={built.text}
-                fragments={built.fragments}
-                numberOfLines={1}
-                fontSize={StyledText_remToPx("xs", rem)}
-              />
-            )
+            {/* Only what a strip is already shaped to carry. An exercise's order and tags are just
+                as invisible, but a cell is one column wide and the dock is the whole screen. */}
+            {placement.notused && <GridBadge label={placement.isTemplate ? "tmpl" : "unused"} />}
+          </View>
+          {built.text !== "" && (
+            <FastText
+              text={built.text}
+              fragments={built.fragments}
+              numberOfLines={1}
+              fontSize={StyledText_remToPx("xs", rem)}
+            />
           )}
         </View>
       </View>

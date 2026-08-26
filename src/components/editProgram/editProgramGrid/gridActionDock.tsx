@@ -8,6 +8,7 @@ import { IconTrash } from "../../icons/iconTrash";
 import { IconCloseCircleOutline } from "../../icons/iconCloseCircleOutline";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { useGridSelection } from "./gridSelectionContext";
+import { GridBadge } from "./gridBadge";
 import { StringUtils_pluralize } from "../../../utils/string";
 
 // Rendered from NavScreenContent's footer slot, so it is anchored above the tab bar and the scroll
@@ -41,6 +42,20 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       : target.kind === "day"
         ? `day-${target.rowIndexes.join("-")}`
         : undefined;
+  // Structural facts only: what the grid can't draw and the strip has no room to say. Everything
+  // else about an exercise is a tap away in the editor.
+  const badges: string[] = [];
+  if (single != null) {
+    if (single.notused) {
+      badges.push(single.isTemplate ? "tmpl" : "unused");
+    }
+    if (single.order != null) {
+      badges.push(`order ${single.order}`);
+    }
+    if (single.tags.length > 0) {
+      badges.push(`id ${single.tags.join(", ")}`);
+    }
+  }
 
   return (
     // The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the grid's
@@ -51,7 +66,13 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       </Pressable>
       {/* Keyed by what is selected, so picking another week or day starts collapsed again rather
           than inheriting however far the last one was opened. */}
-      <DockDetails key={detailsKey} name={label} description={description} />
+      <DockDetails
+        key={detailsKey}
+        name={label}
+        badges={badges}
+        description={description}
+        detail={single?.progression}
+      />
       <DockButton
         name="grid-action-edit"
         label={target.kind === "week" ? "Edit week" : target.kind === "day" ? "Edit day" : "Edit"}
@@ -123,11 +144,12 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
 // bar — so it shows the first line and opens on a tap for the rest. The ellipsis is spelled out
 // rather than left to truncation: a description whose first line happens to fit would otherwise look
 // like the whole of it.
-function DockDetails(props: { name: string; description?: string }): JSX.Element {
+function DockDetails(props: { name: string; badges?: string[]; description?: string; detail?: string }): JSX.Element {
   const [isExpanded, setIsExpanded] = useState(false);
   const description = props.description;
   const firstLine = description?.split("\n")[0] ?? "";
   const hasMore = description != null && description.trim().length > firstLine.length;
+  const badges = props.badges ?? [];
   return (
     <Pressable
       className="flex-1 ml-1 nm-grid-details"
@@ -135,12 +157,24 @@ function DockDetails(props: { name: string; description?: string }): JSX.Element
       disabled={description == null}
       onPress={() => setIsExpanded((current) => !current)}
     >
-      <Text className="text-sm font-bold text-text-primary" numberOfLines={2}>
-        {props.name}
-      </Text>
+      <View className="flex-row items-center">
+        {/* Shrinks rather than fills: `flex-1` here would push the badges to the far edge of the
+            dock, where they read as belonging to the buttons instead of to the name. */}
+        <Text className="text-sm font-bold shrink text-text-primary" numberOfLines={2}>
+          {props.name}
+        </Text>
+        {badges.map((badge) => (
+          <GridBadge key={badge} label={badge} />
+        ))}
+      </View>
       {description != null && (
         <Text className="text-xs text-text-secondary" numberOfLines={isExpanded ? 6 : 1}>
           {isExpanded ? description : `${firstLine}${hasMore ? "…" : ""}`}
+        </Text>
+      )}
+      {props.detail != null && (
+        <Text className="text-xs text-text-secondary" numberOfLines={1}>
+          {props.detail}
         </Text>
       )}
     </Pressable>
