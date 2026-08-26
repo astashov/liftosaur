@@ -86,7 +86,7 @@ export function TopNavMenu(props: {
                 </div>
               </div>
               <div className="flex flex-col gap-4 mb-6">
-                {getMenuItems(isLoggedIn).map(([text, link]) => (
+                {getMenuItems(isLoggedIn, !!props.account?.affiliateEnabled).map(([text, link]) => (
                   <a key={text} className="font-semibold no-underline" href={link} onClick={() => setIsMenuOpen(false)}>
                     {text}
                   </a>
@@ -158,6 +158,7 @@ export function TopNavMenu(props: {
           current={props.current}
           onAccountClick={() => setIsAccountModalOpen(true)}
           isLoggedIn={isLoggedIn}
+          affiliateEnabled={!!props.account?.affiliateEnabled}
           isWhite={props.isWhite}
         />
       </div>
@@ -172,7 +173,7 @@ export function TopNavMenu(props: {
   );
 }
 
-function getMenuItems(isLoggedIn: boolean): readonly (readonly [string, string, string?])[] {
+function getMenuItems(isLoggedIn: boolean, affiliateEnabled: boolean): readonly (readonly [string, string, string?])[] {
   return [
     ["Programs", "/programs"],
     ["Exercises", "/exercises"],
@@ -181,6 +182,7 @@ function getMenuItems(isLoggedIn: boolean): readonly (readonly [string, string, 
     ["Blog", "/blog"],
     ["AI Helper", "/ai/prompt"],
     ...(isLoggedIn ? [["My Programs", "/user/programs"] as const] : []),
+    ...(isLoggedIn && affiliateEnabled ? [["Affiliate Stats", "/user/affiliates"] as const] : []),
   ];
 }
 
@@ -188,6 +190,7 @@ interface IDesktopNavProps {
   current?: string;
   onAccountClick: () => void;
   isLoggedIn: boolean;
+  affiliateEnabled: boolean;
   isWhite?: boolean;
   maxWidth: number;
 }
@@ -212,7 +215,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
         </a>
         <div className="flex items-center gap-4">
           <ul className="flex flex-wrap items-center justify-end leading-none list-none gap-x-4">
-            {getMenuItems(props.isLoggedIn).map(([text, link, hideClass]) => (
+            {getMenuItems(props.isLoggedIn, props.affiliateEnabled).map(([text, link, hideClass]) => (
               <li key={text} className={`list-none ${hideClass || ""}`}>
                 {props.current === link ? (
                   <span
