@@ -168,8 +168,8 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
     <View className="flex-row items-center" data-testid={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
         <View className="flex-row items-center mr-2">
-          <Text className="text-xs font-semibold leading-6 text-yellow-600">{prTypes.join(", ")} </Text>
-          <Text className="text-sm leading-6">{"\u{1F3C6}"}</Text>
+          <Text className="text-xs font-semibold leading-scaled-6 text-yellow-600">{prTypes.join(", ")} </Text>
+          <Text className="text-sm leading-scaled-6">{"\u{1F3C6}"}</Text>
         </View>
       )}
       <FastText

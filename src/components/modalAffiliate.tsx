@@ -39,7 +39,7 @@ export function ModalAffiliateContent(props: IModalAffiliateContentProps): JSX.E
 
         <View style={{ gap: 16 }}>
           <View className="flex-row items-start">
-            <View className="items-center justify-center w-10 h-10 mr-3 rounded-full bg-color-yellow200">
+            <View className="items-center justify-center w-scaled-10 h-scaled-10 mr-3 rounded-full bg-color-yellow200">
               <IconLink size={18} color={Tailwind_semantic().icon.neutral} />
             </View>
             <View className="flex-1">
@@ -51,7 +51,7 @@ export function ModalAffiliateContent(props: IModalAffiliateContentProps): JSX.E
           </View>
 
           <View className="flex-row items-start">
-            <View className="items-center justify-center w-10 h-10 mr-3 rounded-full bg-color-green100">
+            <View className="items-center justify-center w-scaled-10 h-scaled-10 mr-3 rounded-full bg-color-green100">
               <Text className="font-bold text-icon-green">$</Text>
             </View>
             <View className="flex-1">
@@ -63,7 +63,7 @@ export function ModalAffiliateContent(props: IModalAffiliateContentProps): JSX.E
           </View>
 
           <View className="flex-row items-start">
-            <View className="items-center justify-center w-10 h-10 mr-3 rounded-full bg-color-purple100">
+            <View className="items-center justify-center w-scaled-10 h-scaled-10 mr-3 rounded-full bg-color-purple100">
               <IconCheckCircle
                 isChecked={true}
                 size={16}

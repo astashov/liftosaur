@@ -76,16 +76,23 @@ function computeRpeColumnWidth(rpeLabel: string, remValue: number): number {
   return Math.max(Math.round(units * remValue), Math.round(1.75 * remValue));
 }
 
+// The set number badge and the check button hold an icon plus constant padding, so they need a
+// fixed part and a scaling part rather than a flat rem multiple - a multiple over-reserves badly
+// at large text sizes, and every point taken here comes out of the target label's flex-1 column.
+// The reps and weight fields stay narrow on purpose: values longer than they fit shrink their own
+// font instead of widening the column (see FitText_fontSize).
 export function computeSetColumnWidths(remValue: number, isUnilateral: boolean, rpeLabel: string): ISetColumnWidths {
+  const scale = remValue / 16;
   const labelW = isUnilateral ? remValue : 0;
   const rpe = computeRpeColumnWidth(rpeLabel, remValue);
+  const iconWidth = 24 * scale;
   return {
-    set: Math.round(2.5 * remValue),
-    reps: Math.round(3.5 * remValue) + labelW,
-    separator: Math.round(1.5 * remValue),
-    weight: Math.round(4 * remValue),
+    set: Math.round(iconWidth + 8),
+    reps: Math.round(2.75 * remValue) + labelW,
+    separator: Math.round(remValue),
+    weight: Math.round(3.25 * remValue),
     rpe,
-    check: rpe > 0 ? Math.round(2.5 * remValue) : Math.round(3.5 * remValue),
+    check: Math.round(iconWidth + (rpe > 0 ? 20 : 32)),
   };
 }
 
@@ -269,7 +276,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
           <View className={`flex-row items-center border-b ${borderColor}`}>
             <View className="items-center justify-center py-1" style={{ width: props.columnWidths.set }}>
               <View
-                className="w-6 h-6 items-center justify-center"
+                className="w-scaled-6 h-scaled-6 items-center justify-center"
                 style={{
                   borderRadius: 9999,
                   overflow: "hidden",

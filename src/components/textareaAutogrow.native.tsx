@@ -48,7 +48,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
       maxLength={props.maxLength}
       multiline={true}
       textAlignVertical="top"
-      className={`text-text-primary text-sm min-h-6 ${props.className ?? ""}`}
+      className={`text-text-primary text-sm min-h-scaled-6 ${props.className ?? ""}`}
       testID={props.testID ?? props.id}
       style={styles.input}
       onChangeText={(text) => {
@@ -62,7 +62,6 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
 // Size lives in the className so it tracks the rem - a fontSize here would win over it.
 const styles = StyleSheet.create({
   input: {
-    fontFamily: "Poppins",
     padding: 0,
   },
 });

@@ -56,7 +56,7 @@ function GraphMuscleGroupInner(props: IGraphMuscleGroupProps): JSX.Element {
       <View testID="graph-data" data-testid="graph-data">
         <View className="flex-row items-center mb-1">
           <View className="flex-1">
-            <Text className="text-lg font-semibold leading-6 text-left u-title">{title}</Text>
+            <Text className="text-lg font-semibold leading-scaled-6 text-left u-title">{title}</Text>
           </View>
           <View>
             <Select

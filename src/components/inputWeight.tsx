@@ -60,7 +60,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
       {props.label && <Text className="mb-1 text-xs text-text-secondary">{props.label}</Text>}
       <View className="flex-row items-center gap-2">
         <Pressable
-          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
           data-testid="edit-weight-minus"
           testID="edit-weight-minus"
           onPress={() => {
@@ -118,7 +118,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         </View>
         {unit !== "%" && (
           <Pressable
-            className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+            className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
             data-testid="edit-weight-calculator"
             testID="edit-weight-calculator"
             onPress={() => openCalculator({ unit: unit as IUnit })}
@@ -127,7 +127,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
           </Pressable>
         )}
         <Pressable
-          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
           data-testid="edit-weight-plus"
           testID="edit-weight-plus"
           onPress={() => {

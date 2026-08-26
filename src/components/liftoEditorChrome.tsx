@@ -138,13 +138,13 @@ export function LiftoEditorPillRail(props: {
         })}
         {controller.pills.length === 0 ? <Text className="text-xs text-text-secondary py-1.5">No actions</Text> : null}
       </FadeScrollView>
-      {/* Same w-10 centered column as the hint bar's dismiss and the dock's close, so the three
+      {/* Same w-scaled-10 centered column as the hint bar's dismiss and the dock's close, so the three
           right-edge affordances share a vertical axis despite differing icon widths. */}
       <View className="flex-row items-center border-l border-border-neutral">
         {props.onPreview != null ? (
           <Pressable
             testID="editor-preview-toggle"
-            className="items-center w-10 py-2"
+            className="items-center w-scaled-10 py-2"
             hitSlop={{ top: 8, right: 4, bottom: 8, left: 4 }}
             onPress={props.onPreview}
           >
@@ -156,7 +156,7 @@ export function LiftoEditorPillRail(props: {
         ) : null}
         {(props.canRemove ?? true) && (controller.context?.levels ?? []).length > 0 ? (
           <Pressable
-            className="items-center w-10 py-2"
+            className="items-center w-scaled-10 py-2"
             // Left slop stays small so it doesn't swallow taps meant for the last pill.
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
             onPress={controller.removeFocused}
@@ -236,7 +236,7 @@ export function LiftoEditorHintBar(props: { hint: ILiftoEditorHint; onDismiss: (
         </Animated.View>
       </Animated.View>
       <Pressable
-        className="items-center w-10 py-2"
+        className="items-center w-scaled-10 py-2"
         style={{ position: "absolute", top: 0, right: 0 }}
         hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
         onPress={props.onDismiss}

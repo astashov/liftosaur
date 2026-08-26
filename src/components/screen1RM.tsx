@@ -75,7 +75,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
           <View className="flex-1 pl-4">
             <Text className="text-xs text-text-secondary">Exercise</Text>
           </View>
-          <View className="pr-4" style={{ width: 140 }}>
+          <View className="pr-4 w-scaled-36">
             <Text className="text-xs text-center text-text-secondary">1 Rep Max</Text>
           </View>
         </View>
@@ -88,7 +88,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
               className="flex-row items-center py-1 border-b border-background-subtle"
             >
               <View className="flex-row items-center flex-1 pl-4" style={{ gap: 16 }}>
-                <View style={{ width: 48 }}>
+                <View className="w-scaled-12">
                   <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" width={48} />
                 </View>
                 <View className="flex-1">
@@ -97,7 +97,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                   </Text>
                 </View>
               </View>
-              <View className="items-center justify-center pr-4" style={{ width: 140 }}>
+              <View className="items-center justify-center pr-4 w-scaled-36">
                 <InputWeight2
                   name="onerm-weight"
                   width={4}

@@ -42,7 +42,7 @@ export function NavModalExerciseTypesPicker(): JSX.Element {
 
   const header = (
     <View collapsable={false} className="flex-row items-center mb-4">
-      <Text className="flex-1 text-base font-semibold leading-6 text-center">Types</Text>
+      <Text className="flex-1 text-base font-semibold leading-scaled-6 text-center">Types</Text>
       <View className="absolute right-4">
         <Button kind="purple" name="done-selecting-types" buttonSize="md" onPress={onClose}>
           Done

@@ -296,7 +296,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                   }}
                 >
                   <section className="flex items-center">
-                    <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+                    <div className="w-scaled-12 pr-2" style={{ minHeight: "2.5rem" }}>
                       <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
                     </div>
                     <div className="flex-1 py-2 text-left">
@@ -394,7 +394,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
 
   return (
     <section className="flex items-center">
-      <div className="w-12 pr-2" style={{ minHeight: "2.5rem" }}>
+      <div className="w-scaled-12 pr-2" style={{ minHeight: "2.5rem" }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
       </div>
       <div className="flex-1 py-2 text-sm text-left">

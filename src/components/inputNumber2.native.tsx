@@ -7,6 +7,7 @@ import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { useModal } from "../navigation/ModalStateContext";
 import { useRem } from "../utils/useRem";
+import { FitText_fontSize } from "../utils/fitText";
 import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import {
   IKeyboardConfig,
@@ -429,7 +430,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
 
   const fieldClassName = useMemo(
     () =>
-      `h-6 border rounded border-border-prominent bg-background-default flex-row justify-center items-center ${
+      `h-scaled-6 border rounded border-border-prominent bg-background-default flex-row justify-center items-center ${
         props.autowidth ? "px-2" : ""
       }`,
     [props.autowidth]
@@ -439,6 +440,16 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     [props.autowidth, fieldWidth]
   );
   const cursorStyle = useMemo(() => ({ opacity: cursorOpacity }), [cursorOpacity]);
+  const baseFontSize = (14 * remValue) / 16;
+  const availableTextWidth = props.autowidth ? 0 : fieldWidth - 6;
+  const valueFontStyle = useMemo(
+    () => ({ fontSize: FitText_fontSize(value ?? "", availableTextWidth, baseFontSize) }),
+    [value, availableTextWidth, baseFontSize]
+  );
+  const placeholderFontStyle = useMemo(
+    () => ({ fontSize: FitText_fontSize(props.placeholder ?? "", availableTextWidth, baseFontSize) }),
+    [props.placeholder, availableTextWidth, baseFontSize]
+  );
 
   return (
     <View ref={pressableRef} collapsable={false}>
@@ -451,15 +462,19 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         style={fieldStyle}
       >
         {!value && !isFocused && props.placeholder ? (
-          <Text className="text-sm text-text-secondarysubtle" numberOfLines={1}>
+          <Text className="text-sm text-text-secondarysubtle" numberOfLines={1} style={placeholderFontStyle}>
             {props.placeholder}
           </Text>
         ) : (
-          <Text className={`text-sm ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}>
+          <Text
+            numberOfLines={1}
+            className={`text-sm ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
+            style={valueFontStyle}
+          >
             {value}
           </Text>
         )}
-        {isFocused && <Animated.View className="w-px h-3 bg-background-darkgray" style={cursorStyle} />}
+        {isFocused && <Animated.View className="w-px h-scaled-3 bg-background-darkgray" style={cursorStyle} />}
         {props.showUnitInside && props.selectedUnit && props.value != null && (
           <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
         )}

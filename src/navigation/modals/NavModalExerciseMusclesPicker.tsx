@@ -29,7 +29,7 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
 
   const header = (
     <View collapsable={false} className="flex-row items-center py-4">
-      <Text className="flex-1 text-base font-semibold leading-6 text-center">{data.title}</Text>
+      <Text className="flex-1 text-base font-semibold leading-scaled-6 text-center">{data.title}</Text>
       <View className="absolute right-4">
         <Button
           kind="purple"

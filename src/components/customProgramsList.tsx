@@ -194,7 +194,7 @@ const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): J
                 settings={props.settings}
                 exerciseType={e}
                 size="small"
-                className="w-6 mr-1"
+                className="w-scaled-6 mr-1"
               />
             ))}
           </View>

@@ -245,7 +245,7 @@ const ExerciseItem = memo(function ExerciseItem(props: IExerciseItemProps): JSX.
             <ExerciseImage
               useTextForCustomExercise={true}
               settings={props.settings}
-              className="w-8"
+              className="w-scaled-8"
               exerciseType={props.exercise}
               size="small"
             />

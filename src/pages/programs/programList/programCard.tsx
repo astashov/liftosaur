@@ -53,7 +53,7 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
                 settings={settings}
                 exerciseType={e}
                 size="small"
-                className="w-8 mr-1"
+                className="w-scaled-8 mr-1"
                 width={32}
               />
             ))}

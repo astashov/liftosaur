@@ -155,7 +155,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             placeholder="Super Squat"
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             style={{ minHeight: 40 }}
-            className="px-4 py-2 text-base leading-5 border rounded-lg bg-background-default border-border-prominent text-text-primary"
+            className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
             onChangeText={(text) => {
               props.dispatch(lb<ICustomExercise>().p("name").record(text), "Update custom exercise name");
             }}

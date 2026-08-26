@@ -184,7 +184,7 @@ export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IE
           )}
           <View>
             <Pressable
-              className="w-8 pl-1 pr-2 items-center nm-edit-day-expand-collapse-day"
+              className="w-scaled-8 pl-1 pr-2 items-center nm-edit-day-expand-collapse-day"
               onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()

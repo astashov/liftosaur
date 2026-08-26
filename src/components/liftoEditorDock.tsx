@@ -71,11 +71,11 @@ export function LiftoEditorDock(): JSX.Element | null {
       {/* Centered on the dock rather than over the crumbs: the dock only ever exists while a
           token holds focus, so these are exactly the two gestures that work right now. */}
       <Text className="pt-2 text-xs text-center text-text-secondary">{LiftoEditorHints_gestures}</Text>
-      {/* No right padding and no gap: the close button is a w-10 centered column flush to the
+      {/* No right padding and no gap: the close button is a w-scaled-10 centered column flush to the
           edge, which is what aligns it with the hint bar's dismiss and the pill rail's trash.
           A gap here would push the help icon visibly away from it. */}
       <View className="flex-row items-center py-0 pl-4">
-        {/* Stretched rather than content-height: the row is already as tall as the w-10 close
+        {/* Stretched rather than content-height: the row is already as tall as the w-scaled-10 close
             button, and spanning it gives the crumbs' padding and hitSlop room to work inside
             the parent's bounds — Android clips anything past them — without the row growing. */}
         <View className="justify-center flex-1 self-stretch">
@@ -90,7 +90,7 @@ export function LiftoEditorDock(): JSX.Element | null {
             as deleting whatever the breadcrumb points at. */}
         <Pressable
           testID="editor-dock-close"
-          className="items-center w-10 py-2"
+          className="items-center w-scaled-10 py-2"
           // Left slop stays small so it doesn't swallow taps meant for the help icon.
           hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
           onPress={blurFocused}

@@ -1,5 +1,6 @@
-import { JSX, memo, useCallback, useMemo } from "react";
-import { View } from "react-native";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, LayoutChangeEvent } from "react-native";
+import { useRemScale } from "../../utils/useRem";
 import { Pressable } from "../primitives/pressable";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
@@ -127,6 +128,74 @@ export const EditProgramView = memo(function EditProgramView(
   );
 });
 
+const NAVBAR_ICON_BUTTONS = 6;
+const NAVBAR_ICON_PADDING = 8;
+
+interface IToolbarPadding {
+  padding: number;
+  onRowLayout: (event: LayoutChangeEvent) => void;
+  onGroupLayout: (index: number) => (event: LayoutChangeEvent) => void;
+}
+
+// The icons and the Save label in this toolbar grow with the text size, so at large sizes the row
+// still runs off a narrow screen even with constant padding. Measure the natural width once per
+// text size / screen width, then trim the icon buttons' horizontal padding by just enough to fit.
+function useToolbarPadding(): IToolbarPadding {
+  const scale = useRemScale();
+  const basePadding = NAVBAR_ICON_PADDING;
+  const [padding, setPadding] = useState(basePadding);
+  const paddingRef = useRef(padding);
+  paddingRef.current = padding;
+  const rowWidthRef = useRef(0);
+  const groupWidthsRef = useRef<(number | undefined)[]>([]);
+
+  // Padding is constant now, but the icons and label still grow, so a text size change means the
+  // natural width has to be measured again.
+  useEffect(() => {
+    groupWidthsRef.current = [];
+    setPadding(basePadding);
+  }, [scale, basePadding]);
+
+  const fit = useCallback(() => {
+    const groupWidths = groupWidthsRef.current;
+    const rowWidth = rowWidthRef.current;
+    if (rowWidth === 0 || groupWidths.length < 3 || groupWidths.some((w) => w == null)) {
+      return;
+    }
+    const overflow = groupWidths.reduce<number>((acc, w) => acc + (w ?? 0), 0) - rowWidth;
+    const trim = overflow > 0 ? Math.ceil(overflow / (NAVBAR_ICON_BUTTONS * 2)) : 0;
+    setPadding(Math.max(2, basePadding - trim));
+  }, [basePadding]);
+
+  const onRowLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const width = event.nativeEvent.layout.width;
+      if (rowWidthRef.current !== 0 && rowWidthRef.current !== width) {
+        groupWidthsRef.current = [];
+        setPadding(basePadding);
+      }
+      rowWidthRef.current = width;
+      fit();
+    },
+    [basePadding, fit]
+  );
+
+  // Group widths are only meaningful while the buttons still have their natural padding -
+  // measuring the trimmed row would shrink it again on every pass.
+  const onGroupLayout = useCallback(
+    (index: number) => (event: LayoutChangeEvent) => {
+      if (paddingRef.current !== basePadding) {
+        return;
+      }
+      groupWidthsRef.current[index] = event.nativeEvent.layout.width;
+      fit();
+    },
+    [basePadding, fit]
+  );
+
+  return { padding, onRowLayout, onGroupLayout };
+}
+
 interface IEditProgramNavbarProps {
   state: IPlannerState;
   originalProgram: IProgram;
@@ -145,111 +214,120 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
   );
   const isValidPerDay = evaluatedWeeks.every((week) => week.every((day) => day.success)) ?? true;
   const isValid = isValidFull && isValidPerDay;
+  const { padding, onRowLayout, onGroupLayout } = useToolbarPadding();
 
   return (
-    <View
-      className="flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
-      style={{ zIndex: 25 }}
-    >
-      <View className="flex-row items-center">
-        <Pressable
-          className="p-2 nm-program-undo"
-          disabled={!canUndo(props.state)}
-          onPress={() => undo(props.plannerDispatch, props.state)}
-        >
-          <IconUndo
-            width={20}
-            height={20}
-            color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
-          />
-        </Pressable>
-        <Pressable
-          className="p-2 nm-program-redo"
-          disabled={!canRedo(props.state)}
-          onPress={() => redo(props.plannerDispatch, props.state)}
-        >
-          <View style={{ transform: [{ scaleX: -1 }] }}>
+    <View className="py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle" style={{ zIndex: 25 }}>
+      <View className="flex-row items-center justify-between" onLayout={onRowLayout}>
+        <View className="flex-row items-center" onLayout={onGroupLayout(0)}>
+          <Pressable
+            className="py-2 nm-program-undo"
+            style={{ paddingHorizontal: padding }}
+            disabled={!canUndo(props.state)}
+            onPress={() => undo(props.plannerDispatch, props.state)}
+          >
             <IconUndo
               width={20}
               height={20}
-              color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+              color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
             />
-          </View>
-        </Pressable>
-      </View>
-      <View className="flex-row items-center">
-        <EditProgramModeSwitchButton
-          isSelected={props.state.ui.mode === "reorder"}
-          disabled={!isValid}
-          name="editor-v2-reorder-program"
-          onClick={() => {
-            props.dispatch(Thunk_log("ls-program-mode-reorder"));
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")], "Switch to reorder mode");
-          }}
-        >
-          {(color) => <IconReorder color={color} />}
-        </EditProgramModeSwitchButton>
-        <EditProgramModeSwitchButton
-          isSelected={props.state.ui.mode === "ui"}
-          name="editor-v2-ui-program"
-          disabled={!isValid}
-          onClick={() => {
-            props.dispatch(Thunk_log("ls-program-mode-ui"));
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")], "Switch to UI mode");
-          }}
-        >
-          {(color) => <IconUiMode color={color} />}
-        </EditProgramModeSwitchButton>
-        <EditProgramModeSwitchButton
-          isSelected={props.state.ui.mode === "perday"}
-          name="editor-v2-perday-program"
-          onClick={() => {
-            props.dispatch(Thunk_log("ls-program-mode-perday"));
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")], "Switch to per-day mode");
-          }}
-        >
-          {(color) => <IconDayTextMode color={color} />}
-        </EditProgramModeSwitchButton>
-        <EditProgramModeSwitchButton
-          isSelected={props.state.ui.mode === "full"}
-          name="editor-v2-full-program"
-          onClick={() => {
-            props.dispatch(Thunk_log("ls-program-mode-full"));
-            props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")], "Switch to full text mode");
-          }}
-        >
-          {(color) => <IconFullTextMode color={color} />}
-        </EditProgramModeSwitchButton>
-      </View>
-      <View className="flex-row items-center">
-        <Button
-          sticky
-          className="ls-program-save"
-          disabled={!isValid}
-          name="save-program"
-          kind="purple"
-          buttonSize="md"
-          data-testid="save-program"
-          testID="save-program"
-          onClick={() => {
-            const newProgram: IProgram = Program_cleanPlannerProgram({ ...props.originalProgram, planner });
-            updateState(
-              props.dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((programs) => {
-                    return CollectionUtils_setBy(programs, "id", props.originalProgram.id, newProgram);
-                  }),
-              ],
-              `Save program '${newProgram.name}'`
-            );
-            props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
-          }}
-        >
-          Save
-        </Button>
+          </Pressable>
+          <Pressable
+            className="py-2 nm-program-redo"
+            style={{ paddingHorizontal: padding }}
+            disabled={!canRedo(props.state)}
+            onPress={() => redo(props.plannerDispatch, props.state)}
+          >
+            <View style={{ transform: [{ scaleX: -1 }] }}>
+              <IconUndo
+                width={20}
+                height={20}
+                color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+              />
+            </View>
+          </Pressable>
+        </View>
+        <View className="flex-row items-center" onLayout={onGroupLayout(1)}>
+          <EditProgramModeSwitchButton
+            padding={padding}
+            isSelected={props.state.ui.mode === "reorder"}
+            disabled={!isValid}
+            name="editor-v2-reorder-program"
+            onClick={() => {
+              props.dispatch(Thunk_log("ls-program-mode-reorder"));
+              props.plannerDispatch(
+                [lb<IPlannerState>().p("ui").p("mode").record("reorder")],
+                "Switch to reorder mode"
+              );
+            }}
+          >
+            {(color) => <IconReorder color={color} />}
+          </EditProgramModeSwitchButton>
+          <EditProgramModeSwitchButton
+            padding={padding}
+            isSelected={props.state.ui.mode === "ui"}
+            name="editor-v2-ui-program"
+            disabled={!isValid}
+            onClick={() => {
+              props.dispatch(Thunk_log("ls-program-mode-ui"));
+              props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")], "Switch to UI mode");
+            }}
+          >
+            {(color) => <IconUiMode color={color} />}
+          </EditProgramModeSwitchButton>
+          <EditProgramModeSwitchButton
+            padding={padding}
+            isSelected={props.state.ui.mode === "perday"}
+            name="editor-v2-perday-program"
+            onClick={() => {
+              props.dispatch(Thunk_log("ls-program-mode-perday"));
+              props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")], "Switch to per-day mode");
+            }}
+          >
+            {(color) => <IconDayTextMode color={color} />}
+          </EditProgramModeSwitchButton>
+          <EditProgramModeSwitchButton
+            padding={padding}
+            isSelected={props.state.ui.mode === "full"}
+            name="editor-v2-full-program"
+            onClick={() => {
+              props.dispatch(Thunk_log("ls-program-mode-full"));
+              props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")], "Switch to full text mode");
+            }}
+          >
+            {(color) => <IconFullTextMode color={color} />}
+          </EditProgramModeSwitchButton>
+        </View>
+        <View className="flex-row items-center" onLayout={onGroupLayout(2)}>
+          <Button
+            sticky
+            className="ls-program-save"
+            disabled={!isValid}
+            name="save-program"
+            kind="purple"
+            buttonSize="md"
+            data-testid="save-program"
+            testID="save-program"
+            onClick={() => {
+              const newProgram: IProgram = Program_cleanPlannerProgram({ ...props.originalProgram, planner });
+              updateState(
+                props.dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("programs")
+                    .recordModify((programs) => {
+                      return CollectionUtils_setBy(programs, "id", props.originalProgram.id, newProgram);
+                    }),
+                ],
+                `Save program '${newProgram.name}'`
+              );
+              props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
+            }}
+          >
+            Save
+          </Button>
+        </View>
       </View>
     </View>
   );
@@ -259,6 +337,7 @@ interface IEditProgramModeSwitchButtonProps {
   isSelected: boolean;
   name: string;
   disabled?: boolean;
+  padding: number;
   children: (color: string) => JSX.Element;
   onClick: () => void;
 }
@@ -271,8 +350,8 @@ const EditProgramModeSwitchButton = memo(function EditProgramModeSwitchButton(
     <Pressable
       data-testid={props.name}
       testID={props.name}
-      className={`p-2 ${isSelected ? "bg-purplev3-200" : ""} rounded nm-${props.name}`}
-      style={{ opacity: props.disabled && !isSelected ? 0.5 : 1 }}
+      className={`py-2 ${isSelected ? "bg-purplev3-200" : ""} rounded nm-${props.name}`}
+      style={{ opacity: props.disabled && !isSelected ? 0.5 : 1, paddingHorizontal: props.padding }}
       onPress={() => {
         if (!props.disabled && !isSelected) {
           props.onClick();

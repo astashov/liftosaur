@@ -270,7 +270,7 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
                       return (
                         <Pressable
                           key={key}
-                          className={`flex-row items-center gap-2 h-12 overflow-hidden rounded-lg bg-background-subtle ${
+                          className={`flex-row items-center gap-2 h-scaled-12 overflow-hidden rounded-lg bg-background-subtle ${
                             value.isSelected ? "border-button-secondarystroke" : "border-border-neutral"
                           }`}
                           style={{ width: "47%", borderWidth: value.isSelected ? 2 : 1 }}

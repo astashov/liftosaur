@@ -41,7 +41,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
       {label && <Text className="mb-1 text-xs text-text-secondary">{label}</Text>}
       <View className="flex-row items-center gap-2">
         <Pressable
-          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
           data-testid={`${testId}-minus`}
           testID={`${testId}-minus`}
           onPress={() => {
@@ -51,11 +51,11 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             onUpdate(newValue);
           }}
         >
-          <Text className="text-xl font-bold leading-8">-</Text>
+          <Text className="text-xl font-bold leading-scaled-8">-</Text>
         </Pressable>
         <View className="flex-row items-center flex-1">
           <TextInput
-            className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent text-text-primary"
+            className="w-full h-scaled-10 px-4 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
             style={Platform.OS === "android" ? { paddingVertical: 0, includeFontPadding: false } : undefined}
             keyboardType="numeric"
             value={text}
@@ -77,7 +77,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
           />
         </View>
         <Pressable
-          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
           data-testid={`${testId}-plus`}
           testID={`${testId}-plus`}
           onPress={() => {
@@ -87,7 +87,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             onUpdate(newValue);
           }}
         >
-          <Text className="text-xl font-bold leading-8">+</Text>
+          <Text className="text-xl font-bold leading-scaled-8">+</Text>
         </Pressable>
       </View>
     </View>

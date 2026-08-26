@@ -77,7 +77,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             <ExerciseImage
               settings={props.settings}
               width={24}
-              className="w-6"
+              className="w-scaled-6"
               exerciseType={exerciseType}
               size="small"
             />

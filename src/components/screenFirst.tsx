@@ -166,7 +166,7 @@ function FirstSlide(): JSX.Element {
         className="absolute top-0 bottom-0 left-0 right-0 w-full h-full"
         resizeMode="cover"
       />
-      <Text className="px-8 pt-24 text-3xl font-bold text-text-alwayswhite" style={{ lineHeight: 35 }}>
+      <Text className="px-8 pt-24 text-3xl font-bold leading-scaled-9 text-text-alwayswhite">
         The most powerful weightlifting{" "}
         <Text className="text-3xl" style={{ color: Tailwind_colors().purple[400] }}>
           planner

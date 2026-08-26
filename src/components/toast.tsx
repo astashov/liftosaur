@@ -63,7 +63,7 @@ export function Toast(props: IProps): JSX.Element | null {
       }}
     >
       <Pressable
-        className="px-4 py-3 rounded-xl bg-background-darkgray min-h-16 flex-row items-center justify-center opacity-95"
+        className="px-4 py-3 rounded-xl bg-background-darkgray min-h-scaled-16 flex-row items-center justify-center opacity-95"
         style={{ width: "90%" }}
         data-testid="toast"
         testID="toast"

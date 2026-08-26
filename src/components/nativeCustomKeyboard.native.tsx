@@ -100,7 +100,7 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
               testID="keyboard-rm-calculator"
               data-testid="keyboard-rm-calculator"
               onPress={props.onShowCalculator}
-              className="flex-row items-center justify-center w-24 px-2 py-1 my-2 border rounded border-border-cardpurple bg-background-cardpurple"
+              className="flex-row items-center justify-center w-scaled-24 px-2 py-1 my-2 border rounded border-border-cardpurple bg-background-cardpurple"
               style={cardPressedStyle}
             >
               <Text className="mr-2">RM</Text>
@@ -130,7 +130,7 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
           </View>
         </View>
 
-        <View className="w-24 mt-2">
+        <View className="w-scaled-24 mt-2">
           <KeyboardRestTimer />
           <Pressable
             testID="keyboard-close"
@@ -164,7 +164,7 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
           </View>
 
           {props.enableUnits && props.selectedUnit ? (
-            <View className="flex-row items-center h-10 gap-2 mt-4">
+            <View className="flex-row items-center h-scaled-10 gap-2 mt-4">
               {props.enableUnits.map((unit) => (
                 <UnitButton
                   key={unit}
@@ -175,14 +175,14 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
               ))}
             </View>
           ) : (
-            <View className="h-10 mt-4" />
+            <View className="h-scaled-10 mt-4" />
           )}
 
           <Pressable
             testID="keyboard-backspace"
             data-testid="keyboard-backspace"
             onPress={handleBackspace}
-            className="items-center justify-center w-full h-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple"
+            className="items-center justify-center w-full h-scaled-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple"
             style={cardPressedStyle}
           >
             <IconBackspace />

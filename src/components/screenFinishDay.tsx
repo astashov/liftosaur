@@ -272,7 +272,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         </View>
         <View className="items-center">
           <Pressable
-            className="items-center justify-center w-10 h-10 rounded-full nm-finishday-share-text bg-background-subtle"
+            className="items-center justify-center w-scaled-10 h-scaled-10 rounded-full nm-finishday-share-text bg-background-subtle"
             onPress={() => {
               const text = LiftohistorySerializer_serialize(props.record, props.settings);
               ClipboardUtils_copy(text);
@@ -340,7 +340,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
         <View className="items-center">
           <Pressable
             testID="finishday-share-text"
-            className="items-center justify-center w-10 h-10 rounded-full bg-background-subtle"
+            className="items-center justify-center w-scaled-10 h-scaled-10 rounded-full bg-background-subtle"
             onPress={() => {
               const text = LiftohistorySerializer_serialize(props.record, props.settings);
               ClipboardUtils_copy(text);
@@ -353,7 +353,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
         </View>
         <View className="items-center">
           <Pressable
-            className="items-center justify-center w-10 h-10 rounded-full bg-background-subtle"
+            className="items-center justify-center w-scaled-10 h-scaled-10 rounded-full bg-background-subtle"
             onPress={() => {
               if (userId) {
                 const link = Share_generateLink(userId, props.record.id);

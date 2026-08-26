@@ -159,7 +159,7 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
           kind="purple"
           testID="change-password-submit"
           data-testid="change-password-submit"
-          className="min-w-32"
+          className="min-w-scaled-32"
           disabled={isSubmitting}
           onClick={() => submit()}
         >
@@ -566,7 +566,7 @@ export function EmailAuthForm(props: IEmailAuthFormProps): JSX.Element {
           kind="purple"
           testID="email-auth-submit"
           data-testid="email-auth-submit"
-          className="min-w-32"
+          className="min-w-scaled-32"
           disabled={isSubmitting}
           onClick={() => submit()}
         >

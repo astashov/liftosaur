@@ -91,11 +91,11 @@ export function ExerciseTooltip(props: {
           }}
         >
           <div className="flex items-start gap-2 mb-1">
-            <div className="w-12">
+            <div className="w-scaled-12">
               <ExerciseImage
                 width={48}
                 settings={props.settings}
-                className="inline-block w-12"
+                className="inline-block w-scaled-12"
                 exerciseType={props.exerciseType}
                 size="small"
               />

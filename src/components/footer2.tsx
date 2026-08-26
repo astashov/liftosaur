@@ -57,29 +57,27 @@ export function Footer2View(props: IFooterProps): JSX.Element {
       className="items-center w-full bg-background-default footer-shadow"
       style={[nativeShadow, { paddingBottom: insets.bottom }]}
     >
-      <View className={`flex-row w-full px-2 pt-3 ${Platform.OS !== "web" ? "" : "pb-3"}`}>
-        <View className="flex-row justify-around flex-1">
-          <FooterButton
-            name="home"
-            currentTab={currentTab}
-            icon={(isActive) => <IconHome size={20} isSelected={isActive} />}
-            text="Home"
-            onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
-          />
-          <FooterButton
-            name="program"
-            currentTab={currentTab}
-            icon={(isActive) => <IconDoc2 isSelected={isActive} />}
-            hasDot={hasErrorsInProgram}
-            text="Program"
-            onClick={() => props.dispatch(Thunk_pushToEditProgram())}
-          />
-        </View>
-        <View className="items-center w-20">
+      <View className={`flex-row w-full px-1 pt-3 ${Platform.OS !== "web" ? "" : "pb-3"}`}>
+        <FooterButton
+          name="home"
+          currentTab={currentTab}
+          icon={(isActive) => <IconHome size={20} isSelected={isActive} />}
+          text="Home"
+          onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
+        />
+        <FooterButton
+          name="program"
+          currentTab={currentTab}
+          icon={(isActive) => <IconDoc2 isSelected={isActive} />}
+          hasDot={hasErrorsInProgram}
+          text="Program"
+          onClick={() => props.dispatch(Thunk_pushToEditProgram())}
+        />
+        <View className="items-center flex-1">
           <Pressable
             data-testid="footer-workout"
             testID="footer-workout"
-            className="mt-[-1.5rem]"
+            className="-mt-scaled-6"
             onPress={() => {
               if (props.navCommon.isOngoingProgress) {
                 props.dispatch(Thunk_startProgramDay());
@@ -90,35 +88,36 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           >
             <CreateButton isActive={currentTab === "workout"} />
           </Pressable>
-          <Text className={`text-2xs pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}>
+          <Text
+            numberOfLines={1}
+            className={`text-2xs pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}
+          >
             Workout
           </Text>
         </View>
-        <View className="flex-row justify-around flex-1">
-          <FooterButton
-            name="graphs"
-            currentTab={currentTab}
-            icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
-            text="Graphs"
-            onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
-          />
-          <FooterButton
-            name="me"
-            currentTab={currentTab}
-            icon={(isActive) => {
-              const color = isActive
-                ? undefined
-                : props.navCommon.userId
-                  ? Tailwind_colors().green[600]
-                  : isUserLoading
-                    ? Tailwind_colors().lightgray[600]
-                    : Tailwind_colors().red[600];
-              return <IconMe isSelected={isActive} color={color} />;
-            }}
-            text="Me"
-            onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
-          />
-        </View>
+        <FooterButton
+          name="graphs"
+          currentTab={currentTab}
+          icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
+          text="Graphs"
+          onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
+        />
+        <FooterButton
+          name="me"
+          currentTab={currentTab}
+          icon={(isActive) => {
+            const color = isActive
+              ? undefined
+              : props.navCommon.userId
+                ? Tailwind_colors().green[600]
+                : isUserLoading
+                  ? Tailwind_colors().lightgray[600]
+                  : Tailwind_colors().red[600];
+            return <IconMe isSelected={isActive} color={color} />;
+          }}
+          text="Me"
+          onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
+        />
       </View>
     </View>
   );
@@ -127,7 +126,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
 function CreateButton(props: { isActive: boolean }): JSX.Element {
   return (
     <View
-      className="items-center justify-center rounded-full w-14 h-14 bg-button-primarybackground border-background-default footer-shadow"
+      className="items-center justify-center rounded-full w-scaled-14 h-scaled-14 bg-button-primarybackground border-background-default footer-shadow"
       style={[{ borderWidth: 3 }, getNativeShadowStyle(Tailwind_semantic())]}
     >
       <IconBarbell2 isSelected={props.isActive} />

@@ -385,7 +385,7 @@ function FreeformInput(props: {
 }): JSX.Element {
   return (
     <TextInput
-      className="w-full px-4 py-4 text-base leading-5 border rounded-2xl border-border-neutral bg-background-subtle text-text-primary"
+      className="w-full px-4 py-4 text-base border rounded-2xl border-border-neutral bg-background-subtle text-text-primary"
       style={
         Platform.OS === "android"
           ? { minHeight: 52, paddingVertical: 16, includeFontPadding: false }

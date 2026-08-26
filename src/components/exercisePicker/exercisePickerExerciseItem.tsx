@@ -47,8 +47,8 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
   const isDisabled = !props.isEnabled && !props.isSelected;
 
   return (
-    <View className={`flex-row gap-2 ${isDisabled ? "opacity-40" : ""}`}>
-      <View className="self-center w-12" style={{ minHeight: 40 }}>
+    <View className={`flex-row gap-3 ${isDisabled ? "opacity-40" : ""}`}>
+      <View className="self-center w-scaled-12 min-h-scaled-10">
         <View className="p-1 rounded-lg bg-background-image">
           <ExerciseImage
             useTextForCustomExercise={true}
@@ -62,7 +62,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
       </View>
       <View className="flex-1 py-2">
         <Pressable
-          className="flex-row items-center gap-1"
+          className="flex-row items-center gap-2"
           onPress={() => {
             if (props.onStar) {
               props.onStar(key);
@@ -97,7 +97,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
           )}
         </Pressable>
       </View>
-      <View className="flex-row items-center">
+      <View className="flex-row items-center gap-1 ml-2">
         {onEdit && (
           <Pressable
             onPress={onEdit}
@@ -143,7 +143,16 @@ function ExerciseNameLine(props: { name: string; equipment?: string }): JSX.Elem
     builder.add(`, ${equipmentName(props.equipment)}`, cls("text-text-secondary"));
   }
   const built = builder.build();
-  return <FastText text={built.text} fragments={built.fragments} {...cls("text-sm text-text-primary")} />;
+  // Without flexShrink the name is measured at its natural width inside the row and runs under the
+  // edit/select icons instead of wrapping inside its own column.
+  return (
+    <FastText
+      text={built.text}
+      fragments={built.fragments}
+      {...cls("text-sm text-text-primary")}
+      style={{ flexShrink: 1 }}
+    />
+  );
 }
 
 // One picker row renders up to three of these; collapsing each into a single FastText node

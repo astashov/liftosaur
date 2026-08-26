@@ -133,7 +133,7 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
       <View testID="graph-data" data-testid="graph-data">
         {title && (
           <View className="mb-1">
-            <Text className="text-lg font-semibold leading-6 text-left u-title">{title}</Text>
+            <Text className="text-lg font-semibold leading-scaled-6 text-left u-title">{title}</Text>
           </View>
         )}
         <View className="relative">

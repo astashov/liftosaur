@@ -60,7 +60,7 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
         style={{ paddingHorizontal: 2 }}
       >
         <View
-          className={`items-center flex-row justify-center w-14 h-14 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
+          className={`items-center flex-row justify-center w-scaled-14 h-scaled-14 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
           style={{
             borderWidth: isCurrent ? 2 : 1,
             padding: !isCurrent ? 1 : 0,
@@ -69,8 +69,8 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
         >
           <ExerciseImage
             useTextForCustomExercise={true}
-            className="h-10"
-            customClassName="w-10"
+            className="h-scaled-10"
+            customClassName="w-scaled-10"
             exerciseType={entry.exercise}
             size="small"
             settings={props.settings}

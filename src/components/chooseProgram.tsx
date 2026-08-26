@@ -138,8 +138,13 @@ interface IFooterProps {
   hasBottomNav?: boolean;
 }
 
+// At the top of the text size range the two-line labels already fill this footer, and the subtitle
+// pushes it into the tab bar - it only explains the button above it, so it's the part to drop.
+const FOOTER_SUBTITLE_MAX_SCALE = 1.25;
+
 function Footer(props: IFooterProps): JSX.Element {
   const insets = useSafeAreaInsets();
+  const remScale = useRemScale();
   return (
     <View
       className="flex-row items-stretch justify-around gap-2 px-2 pt-4 border-t border-border-neutral bg-background-default"
@@ -161,7 +166,9 @@ function Footer(props: IFooterProps): JSX.Element {
         onPress={props.onEmpty}
       >
         <Text className="text-sm font-semibold text-text-link">Go Without Program</Text>
-        <Text className="text-xs text-gray-500">and build your program along the way</Text>
+        {remScale <= FOOTER_SUBTITLE_MAX_SCALE && (
+          <Text className="text-xs text-gray-500">and build your program along the way</Text>
+        )}
       </Pressable>
     </View>
   );

@@ -40,7 +40,10 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
     <View>
       <View className="flex-row items-end">
         <View className="flex-row items-start gap-2 mx-2">
-          <Image source={{ uri: HostConfig_resolveUrl("/images/icon512.png") }} className="w-6 h-6 rounded-md" />
+          <Image
+            source={{ uri: HostConfig_resolveUrl("/images/icon512.png") }}
+            className="w-scaled-6 h-scaled-6 rounded-md"
+          />
           <Text className="text-lg font-bold text-white">Liftosaur</Text>
         </View>
         {numberOfRecordPrs > 0 && (
@@ -69,7 +72,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
           const exercise = Exercise_get(entry.exercise, settings.exercises);
           return (
             <View key={Exercise_toKey(entry.exercise)} className="flex-row items-center gap-4">
-              <View className="w-12 h-12">
+              <View className="w-scaled-12 h-scaled-12">
                 <ExerciseImage
                   size="small"
                   className="w-full h-full"

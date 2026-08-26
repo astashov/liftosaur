@@ -28,7 +28,7 @@ export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props
           defaultValue={props.templateName ?? ""}
           placeholder="My Awesome Template"
           placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
-          className="px-4 py-2 mt-1 text-base leading-5 border rounded-lg min-h-10 bg-background-default border-border-prominent text-text-primary"
+          className="px-4 py-2 mt-1 text-base border rounded-lg min-h-scaled-10 bg-background-default border-border-prominent text-text-primary"
           onChangeText={(rawValue) => {
             const value = rawValue?.trim() || "";
             const error = Exercise_nameError(value);

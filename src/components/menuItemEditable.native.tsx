@@ -170,7 +170,7 @@ function NativeTextValue(props: {
     <TextInput
       ref={ref}
       className="py-2 text-base text-right text-text-link"
-      style={{ minWidth: 80, fontFamily: "Poppins" }}
+      style={{ minWidth: 80 }}
       defaultValue={currentValueRef.current}
       onChangeText={(text) => {
         const newValue = isNumeric ? MathUtils_normalizeNumStr(text) : text;

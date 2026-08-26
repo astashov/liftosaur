@@ -169,7 +169,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                             "Toggle week collapse"
                           );
                         }}
-                        className="items-center w-8 p-2 mr-1 nm-web-editor-expand-collapse-day"
+                        className="items-center w-scaled-8 p-2 mr-1 nm-web-editor-expand-collapse-day"
                       >
                         {collapsedWeeks.has(`${weekIndex}`) ? <IconArrowRight /> : <IconArrowDown2 />}
                       </Pressable>
@@ -321,7 +321,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                                 exerciseType={exerciseType}
                                                 width={24}
                                                 size="small"
-                                                className="w-6 mr-1"
+                                                className="w-scaled-6 mr-1"
                                               />
                                             );
                                           } else {

@@ -88,7 +88,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
         <div className="sm:ml-4">
           <Button
             name="add-account-program"
-            className="inline-block leading-4"
+            className="inline-block leading-scaled-4"
             kind="purple"
             onClick={() => {
               setShowCreateProgramModal(true);
@@ -98,7 +98,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           </Button>
           <a
             href="/planner"
-            className="inline-block px-8 py-2 mt-2 text-xs font-semibold leading-6 text-text-alwayswhite bg-purple-700 sm:mt-0 sm:ml-4 rounded-2xl nm-add-standalone-program"
+            className="inline-block px-8 py-2 mt-2 text-xs font-semibold leading-scaled-6 text-text-alwayswhite bg-purple-700 sm:mt-0 sm:ml-4 rounded-2xl nm-add-standalone-program"
             target="_blank"
           >
             New Standalone Program
@@ -198,7 +198,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                       settings={state.storage.settings}
                       exerciseType={e}
                       size="small"
-                      className="w-6 mr-1"
+                      className="w-scaled-6 mr-1"
                     />
                   ))}
               </div>

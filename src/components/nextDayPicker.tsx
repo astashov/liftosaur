@@ -109,7 +109,7 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
                   settings={settings}
                   exerciseType={e}
                   size="small"
-                  className="w-6 mr-1"
+                  className="w-scaled-6 mr-1"
                 />
               ))}
             </View>

@@ -17,7 +17,7 @@ export function ExercisePickerOptions<T extends string>(props: IProps<T>): JSX.E
         return (
           <View key={key} style={{ width: "47%" }}>
             <Pressable
-              className={`items-center justify-center h-12 px-2 rounded-lg bg-background-subtle ${
+              className={`items-center justify-center min-h-scaled-12 px-2 py-2 rounded-lg bg-background-subtle ${
                 value.isSelected ? "border-text-purple" : "border-border-neutral"
               }`}
               style={{ borderWidth: value.isSelected ? 2 : 1 }}
@@ -27,7 +27,7 @@ export function ExercisePickerOptions<T extends string>(props: IProps<T>): JSX.E
               }}
             >
               <Text
-                className={`text-center ${
+                className={`w-full text-center ${
                   value.disabledReason
                     ? "text-border-neutral"
                     : value.isSelected

@@ -330,7 +330,7 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
         </View>
         <View>
           <View className={`${!props.inApp ? "flex-row" : ""} items-start mb-2`}>
-            <Text className="w-32 text-sm font-bold text-text-error">Change All</Text>
+            <Text className="w-scaled-32 text-sm font-bold text-text-error">Change All</Text>
             <View className="flex-row flex-1 w-full gap-2">
               <View className="flex-1">
                 <Input
@@ -438,7 +438,7 @@ const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps)
 
   return (
     <View className={`${!props.inApp ? "flex-row" : ""} items-start mb-2`}>
-      <Text className="w-32 text-xs font-bold">{props.muscleGroupName}</Text>
+      <Text className="w-scaled-32 text-xs font-bold">{props.muscleGroupName}</Text>
       <View className="flex-row flex-1 w-full gap-2">
         <View className="flex-1">
           <Input label="Min" min={0} type="number" labelSize="xs" value={props.min} changeHandler={onMin} />

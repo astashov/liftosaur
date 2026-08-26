@@ -48,16 +48,16 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
         className="items-center justify-center py-1 rounded-lg bg-background-image"
         style={{ minWidth: 36 }}
       >
-        <ExerciseImage settings={props.settings} className="w-8" exerciseType={exercise} size="small" />
+        <ExerciseImage settings={props.settings} className="w-scaled-8" exerciseType={exercise} size="small" />
       </View>
       <View
-        className={`flex-1 py-2 min-h-16 flex-row items-center ${
+        className={`flex-1 py-2 min-h-scaled-16 flex-row items-center ${
           !isLast
             ? `border-b ${isNext ? (isOngoing ? "border-border-cardyellow" : "border-border-cardpurple") : "border-border-neutral"}`
             : ""
         }`}
       >
-        <View className="flex-row items-center w-full gap-2 min-h-8">
+        <View className="flex-row items-center w-full gap-2 min-h-scaled-8">
           <View className="flex-1 shrink" style={{ minWidth: "45%" }}>
             <Text
               data-testid="history-entry-exercise-name"

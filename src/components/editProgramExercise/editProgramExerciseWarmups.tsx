@@ -152,7 +152,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
         <View className="overflow-hidden border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
           <View className="w-full">
             <View className="flex-row border-b border-border-neutral">
-              <View className="w-12 px-2 py-1">
+              <View className="w-scaled-12 px-2 py-1">
                 <Text className="text-xs text-text-secondary">Set</Text>
               </View>
               <View className="items-center flex-1 py-1">
@@ -182,7 +182,11 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         style={style as object}
                       >
                         <View className="flex-row items-center border-b border-border-neutral">
-                          <View className="w-12 px-2 py-1" data-testid="warmup-set-number" testID="warmup-set-number">
+                          <View
+                            className="w-scaled-12 px-2 py-1"
+                            data-testid="warmup-set-number"
+                            testID="warmup-set-number"
+                          >
                             <Text className="text-sm">{setIndex + 1}</Text>
                           </View>
                           <View className="items-center justify-center flex-1 py-2">

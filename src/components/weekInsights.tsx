@@ -51,7 +51,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
           props.dispatch(Thunk_pushScreen("subscription"));
         }}
       >
-        <View className="flex-row items-center h-8 gap-1" style={{ marginBottom: 3 }}>
+        <View className="flex-row items-center h-scaled-8 gap-1" style={{ marginBottom: 3 }}>
           <IconCrown size={16} color={Tailwind_colors().yellow[600]} />
           <Text className="text-sm font-semibold text-icon-yellow" style={{ marginTop: 3 }}>
             See Week Insights
@@ -269,7 +269,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
             );
           })}
         </View>
-        <View className="w-20 mb-2">
+        <View className="w-scaled-20 mb-2">
           <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
         </View>
       </View>

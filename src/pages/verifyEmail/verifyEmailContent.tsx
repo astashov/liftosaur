@@ -57,7 +57,7 @@ export function VerifyEmailContent(props: IVerifyEmailContentProps): JSX.Element
                     kind="purple"
                     testID="verify-email-submit"
                     data-testid="verify-email-submit"
-                    className="min-w-32"
+                    className="min-w-scaled-32"
                     disabled={isSubmitting}
                     onClick={() => submit()}
                   >

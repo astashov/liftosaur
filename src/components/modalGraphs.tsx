@@ -335,7 +335,7 @@ const ExercisePreview = memo(function ExercisePreviewInner(props: {
   const e = Exercise_get(Exercise_fromKey(props.exerciseKey), props.settings.exercises);
   return (
     <Fragment>
-      <View className="pr-4" style={{ width: 48, minHeight: 32 }}>
+      <View className="pr-4 w-scaled-12 min-h-scaled-8">
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
       </View>
       <View className="flex-1 py-2">

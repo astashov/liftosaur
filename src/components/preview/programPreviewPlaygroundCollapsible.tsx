@@ -11,6 +11,8 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { useRemScale } from "../../utils/useRem";
+import { Text_resolveFontFamily } from "../primitives/text";
 
 const VISIBLE_TABS_HINT = 3.5;
 
@@ -186,8 +188,18 @@ function PagerTabItemText(props: {
   activeColor: string;
   inactiveColor: string;
 }): JSX.Element {
+  const remScale = useRemScale();
   const textStyle = useAnimatedStyle(() => ({
     color: Math.abs(props.index - props.indexDecimal.value) < 0.5 ? props.activeColor : props.inactiveColor,
   }));
-  return <Animated.Text style={[{ fontFamily: "Poppins", fontSize: 16 }, textStyle]}>{props.name}</Animated.Text>;
+  // Animated.Text can't go through the Text primitive, so it repeats what that primitive does:
+  // a rem-scaled size, the per-platform Poppins face, and no second helping of the OS font scale.
+  return (
+    <Animated.Text
+      allowFontScaling={false}
+      style={[{ fontFamily: Text_resolveFontFamily(undefined), fontSize: 16 * remScale }, textStyle]}
+    >
+      {props.name}
+    </Animated.Text>
+  );
 }

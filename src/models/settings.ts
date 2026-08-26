@@ -473,7 +473,7 @@ export function Settings_getTheme(settings: ISettings): "dark" | "light" {
 }
 
 export const TEXT_SIZE_MIN = 12;
-export const TEXT_SIZE_MAX = 20;
+export const TEXT_SIZE_MAX = 24;
 export const TEXT_SIZE_STEP = 2;
 const TEXT_SIZE_BASE = 16;
 

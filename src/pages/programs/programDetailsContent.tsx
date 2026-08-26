@@ -71,7 +71,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
             <span className="mx-1">/</span>
             <span className="text-text-primary">{program.name}</span>
           </nav>
-          <h1 className="text-2xl font-bold leading-8">{program.name} Workout Program</h1>
+          <h1 className="text-2xl font-bold leading-scaled-8">{program.name} Workout Program</h1>
           {program.author && (
             <div className="mt-2 mb-4 text-sm font-bold">
               {program.url ? (

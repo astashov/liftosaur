@@ -567,7 +567,7 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
     <View>
       {plan.state === "subscriber" && plan.pendingPlan ? (
         <View
-          className="justify-center px-4 py-2 mb-2 border min-h-16 rounded-xl bg-background-cardpurple border-border-cardpurple"
+          className="justify-center px-4 py-2 mb-2 border min-h-scaled-16 rounded-xl bg-background-cardpurple border-border-cardpurple"
           style={{ borderRadius: 16 }}
           data-testid="subscription-pending-switch"
         >
@@ -680,7 +680,7 @@ function PlanCard(props: IPlanCardProps): JSX.Element {
   const subColor = props.highlighted ? "text-text-alwayswhite" : "text-text-secondary";
   return (
     <Pressable
-      className={`flex-row items-center min-h-16 px-4 py-2 mb-2 rounded-xl ${bg} ${borderColor} ${props.disabled ? "opacity-50" : ""}`}
+      className={`flex-row items-center min-h-scaled-16 px-4 py-2 mb-2 rounded-xl ${bg} ${borderColor} ${props.disabled ? "opacity-50" : ""}`}
       style={{ borderRadius: 16 }}
       data-testid={props.testID}
       testID={props.testID}
@@ -731,7 +731,7 @@ interface IFeatureProps {
 function Feature(props: IFeatureProps): JSX.Element {
   return (
     <Pressable className="flex-row mb-6" onPress={props.onPress}>
-      <View className="items-center w-6 pt-1 mr-3">{props.icon}</View>
+      <View className="items-center w-scaled-6 pt-1 mr-3">{props.icon}</View>
       <View className="flex-1">
         <Text className="text-base">
           <Text className={props.onPress ? "font-bold underline text-text-link" : "font-bold"}>{props.title}</Text>

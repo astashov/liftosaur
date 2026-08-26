@@ -19,7 +19,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
   return (
     <View className="relative overflow-hidden">
       <Pressable
-        className="w-10 h-10 rounded-full bg-background-subtle items-center justify-center nm-workout-share-image"
+        className="w-scaled-10 h-scaled-10 rounded-full bg-background-subtle items-center justify-center nm-workout-share-image"
         onPress={async () => {
           setIsLoading(true);
           try {

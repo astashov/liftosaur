@@ -87,8 +87,8 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
           props.onSelect(smallImageUrl, largeImageUrl);
         }}
       >
-        <View className="flex-row items-center h-16 gap-4">
-          <View className="w-10">
+        <View className="flex-row items-center h-scaled-16 gap-4">
+          <View className="w-scaled-10">
             <ExerciseImage settings={props.settings} exerciseType={exercise} size="small" className="w-full" />
           </View>
           <Text className="flex-1">{Exercise_fullName(exercise, props.settings)}</Text>
@@ -121,9 +121,9 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
                     props.onSelect(img);
                   }}
                 >
-                  <View className="flex-row items-center h-16 gap-4">
-                    <View className="w-10">
-                      <Image source={{ uri: img }} style={{ width: 40, height: 40 }} resizeMode="contain" />
+                  <View className="flex-row items-center h-scaled-16 gap-4">
+                    <View className="w-scaled-10">
+                      <Image source={{ uri: img }} className="w-scaled-10 h-scaled-10" resizeMode="contain" />
                     </View>
                     {customExercise && (
                       <Text className="flex-1">{Exercise_fullName(customExercise, props.settings)}</Text>

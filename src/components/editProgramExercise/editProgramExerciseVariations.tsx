@@ -163,7 +163,7 @@ export function EditProgramExerciseVariations(props: IEditProgramExerciseVariati
                       <View className="p-1 rounded-lg bg-background-image">
                         <ExerciseImage
                           settings={settings}
-                          className="w-8"
+                          className="w-scaled-8"
                           exerciseType={variation.exerciseType}
                           size="small"
                         />

@@ -6,7 +6,7 @@ export function SetNumber(props: { setIndex: number; size?: "md" | "sm" }): JSX.
   const isSmall = props.size === "sm";
   return (
     <View
-      className={`items-center justify-center ${isSmall ? "w-5 h-5" : "w-6 h-6"} border rounded-full border-border-prominent`}
+      className={`items-center justify-center ${isSmall ? "w-scaled-5 h-scaled-5" : "w-scaled-6 h-scaled-6"} border rounded-full border-border-prominent`}
     >
       <Text className={`font-bold text-text-secondary ${isSmall ? "text-xs" : ""}`}>{props.setIndex + 1}</Text>
     </View>

@@ -22,7 +22,7 @@ export function ButtonIcon(props: IButtonIconProps): JSX.Element {
     <Pressable
       testID={props.testID ?? `nm-${props.name}`}
       data-testid={props.testID}
-      className={`${props.className || ""} nm-${props.name} min-h-8 w-8 h-8 items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg`}
+      className={`${props.className || ""} nm-${props.name} min-h-scaled-8 w-scaled-8 h-scaled-8 items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg`}
       onPress={onPress}
     >
       {props.children}

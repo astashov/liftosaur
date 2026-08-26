@@ -1,4 +1,6 @@
 import { JSX, Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRemScale } from "../../utils/useRem";
+import { FitText_fontSize } from "../../utils/fitText";
 import { View, Pressable, Platform } from "react-native";
 import { TextInput } from "../primitives/textInput";
 import Animated, {
@@ -119,6 +121,7 @@ interface ITabDef {
 }
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
+  const remScale = useRemScale();
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
   const {
     mode,
@@ -562,40 +565,45 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
 
   const getItemType = useCallback((item: IListItem) => item.kind, []);
 
-  const getEstimatedItemSize = useCallback((_index: number, item: IListItem) => {
-    switch (item.kind) {
-      case "title":
-        return 44;
-      case "labelInput":
-        return 64;
-      case "currentExercise":
-        return 100;
-      case "tabs":
-        return 44;
-      case "weekTabs":
-        return 48;
-      case "searchFilter":
-        return 92;
-      case "stickyChrome": {
-        const tabsHeight = item.showTabs ? 44 : 0;
-        const subHeight = item.sub === "search" ? 92 : item.sub === "program" ? 48 + (item.showWeeks ? 48 : 0) : 0;
-        return tabsHeight + subHeight || 44;
+  // Every row here is sized by text that grows with the text size setting, so these estimates have
+  // to grow with it too - a virtualized list that under-estimates by 50% scrolls to blank regions.
+  const getEstimatedItemSize = useCallback(
+    (_index: number, item: IListItem) => {
+      switch (item.kind) {
+        case "title":
+          return 44 * remScale;
+        case "labelInput":
+          return 64 * remScale;
+        case "currentExercise":
+          return 100 * remScale;
+        case "tabs":
+          return 44 * remScale;
+        case "weekTabs":
+          return 48 * remScale;
+        case "searchFilter":
+          return 92 * remScale;
+        case "stickyChrome": {
+          const tabsHeight = item.showTabs ? 44 : 0;
+          const subHeight = item.sub === "search" ? 92 : item.sub === "program" ? 48 + (item.showWeeks ? 48 : 0) : 0;
+          return (tabsHeight + subHeight || 44) * remScale;
+        }
+        case "recentHeader":
+        case "customHeader":
+        case "builtinHeader":
+          return 44 * remScale;
+        case "customExercise":
+        case "builtinExercise":
+          return 72 * remScale;
+        case "programGroup":
+          return 140 * remScale;
+        case "programEmpty":
+          return 60 * remScale;
+        case "templateForm":
+          return 220 * remScale;
       }
-      case "recentHeader":
-      case "customHeader":
-      case "builtinHeader":
-        return 44;
-      case "customExercise":
-      case "builtinExercise":
-        return 72;
-      case "programGroup":
-        return 140;
-      case "programEmpty":
-        return 60;
-      case "templateForm":
-        return 220;
-    }
-  }, []);
+    },
+    [remScale]
+  );
 
   const scrollY = useSharedValue(0);
   const titleHeight = useSharedValue(0);
@@ -652,14 +660,12 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         case "title":
           return (
             <SheetDragHandle>
-              <View className="relative py-1" onLayout={onTitleLayout}>
-                <Text className="px-4 py-2 font-bold text-center">{title}</Text>
-                <View className="absolute flex-row top-3 left-4">
-                  <Pressable className="px-2" onPress={onSettingsPress}>
-                    <IconFilter />
-                  </Pressable>
-                </View>
-                <View className="absolute flex-row items-center top-3 right-4">
+              <View className="flex-row items-center gap-2 px-2 py-1" onLayout={onTitleLayout}>
+                <Pressable className="px-2" onPress={onSettingsPress}>
+                  <IconFilter />
+                </Pressable>
+                <Text className="flex-1 py-2 font-bold text-center">{title}</Text>
+                <View className="flex-row items-center gap-1">
                   <Pressable className="px-2" onPress={onToggleMuscles}>
                     <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={showMuscles} />
                   </Pressable>
@@ -995,8 +1001,23 @@ interface ITabsRowProps {
 const TabsRow = memo(function TabsRow(props: ITabsRowProps): JSX.Element {
   const { tabs, selectedTab, onTabChange } = props;
   const activeColor = Tailwind_semantic().button.secondarystroke;
+  const remScale = useRemScale();
+  const [rowWidth, setRowWidth] = useState(0);
+  // Tabs split the row evenly, so the longest label decides one font size for all of them - labels
+  // at different sizes next to each other read as a mistake.
+  const fontSize = useMemo(() => {
+    const baseFontSize = 16 * remScale;
+    if (rowWidth <= 0 || tabs.length === 0) {
+      return baseFontSize;
+    }
+    const availableWidth = rowWidth / tabs.length - 16;
+    return tabs.reduce(
+      (min, tab) => Math.min(min, FitText_fontSize(tab.label, availableWidth, baseFontSize)),
+      baseFontSize
+    );
+  }, [rowWidth, tabs, remScale]);
   return (
-    <View className="flex-row bg-background-default">
+    <View className="flex-row bg-background-default" onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}>
       {tabs.map((tab) => {
         const isSelected = selectedTab === tab.index;
         const nameClass = `tab-${StringUtils_dashcase(tab.label.toLowerCase())}`;
@@ -1004,16 +1025,20 @@ const TabsRow = memo(function TabsRow(props: ITabsRowProps): JSX.Element {
           <View
             key={tab.label}
             className="items-center border-b border-border-neutral"
-            style={{ flexGrow: 1, flexShrink: 0, flexBasis: "auto" }}
+            style={{ flexGrow: 1, flexShrink: 1, flexBasis: 0 }}
           >
             <Pressable
-              className="px-4 pt-2 pb-1"
+              className="px-2 pt-2 pb-1"
               style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
               data-testid={nameClass}
               testID={nameClass}
               onPress={() => onTabChange(tab.index)}
             >
-              <Text numberOfLines={1} className={`text-base ${isSelected ? "text-text-purple" : ""}`}>
+              <Text
+                numberOfLines={1}
+                className={`text-base ${isSelected ? "text-text-purple" : ""}`}
+                style={{ fontSize }}
+              >
                 {tab.label}
               </Text>
             </Pressable>
@@ -1272,7 +1297,7 @@ const ProgramExerciseGroupCard = memo(function ProgramExerciseGroupCard(props: I
     >
       <View className="pl-1">
         <View className="p-1 rounded-lg bg-background-image">
-          <ExerciseImage settings={settings} exerciseType={group.exerciseType} size="small" className="w-10" />
+          <ExerciseImage settings={settings} exerciseType={group.exerciseType} size="small" className="w-scaled-10" />
         </View>
       </View>
       <View className="flex-1 pt-1">

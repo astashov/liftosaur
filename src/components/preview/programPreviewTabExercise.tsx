@@ -96,7 +96,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
           day={props.day}
           isPlayground={false}
         />
-        <View style={{ width: 40 }}>
+        <View className="w-scaled-10">
           <Pressable
             className="p-1 rounded-lg bg-background-image"
             onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}

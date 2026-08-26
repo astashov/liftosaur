@@ -34,7 +34,7 @@ export function BottomSheetMonthCalendarContent(props: IBottomSheetMonthCalendar
           </View>
           <View className="flex-row justify-around py-2 mx-3 border-b border-background-subtle">
             {dayNames.map((day, i) => (
-              <View key={i} className="items-center justify-center" style={{ width: 40, height: 40 }}>
+              <View key={i} className="items-center justify-center w-scaled-10 h-scaled-10">
                 <Text className="font-medium text-text-secondary">{day}</Text>
               </View>
             ))}

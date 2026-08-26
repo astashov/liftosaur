@@ -55,7 +55,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
             <View key={idx} className="items-center justify-center">
               <Text className="text-xs text-text-secondary">{day.dayName}</Text>
               <View
-                className={`items-center justify-center w-8 h-8 rounded-full ${
+                className={`items-center justify-center w-scaled-8 h-scaled-8 rounded-full ${
                   day.record && !Progress_isCurrent(day.record) ? "bg-background-error" : ""
                 } ${day.isToday ? "border border-button-primarybackground" : ""}`}
               >

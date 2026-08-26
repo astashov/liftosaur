@@ -122,7 +122,7 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
           programExercise={props.programExercise}
           isPlayground={false}
         />
-        <View style={{ width: 40 }}>
+        <View className="w-scaled-10">
           <View className="p-1 rounded-lg bg-background-image">
             <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
           </View>
@@ -185,7 +185,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           xOffset={20}
         />
         <View className="flex-row items-center mx-4">
-          <View style={{ width: 40 }} className="mr-1">
+          <View className="w-scaled-10 mr-1">
             <View className="p-1 rounded-lg bg-background-image">
               <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
             </View>

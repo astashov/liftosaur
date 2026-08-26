@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { SCALED_SPACINGS, SCALED_LEADINGS } from "./scaledSpacings.generated";
 
 const BASE_REM = 16;
 const listeners = new Set<() => void>();
@@ -17,8 +18,9 @@ export function Rem_set(size: number): void {
     const root = document.documentElement;
     root.style.fontSize = `${size}px`;
     const scale = size / BASE_REM;
+    // --spacing is deliberately absent: paddings, margins and gaps are constant at every text
+    // size. Only type, and the boxes that have to keep containing it, grow.
     const vars: Record<string, string> = {
-      "--spacing": `${4 * scale}px`,
       "--text-2xs": `${10 * scale}px`,
       "--text-xs": `${12 * scale}px`,
       "--text-sm": `${14 * scale}px`,
@@ -30,6 +32,12 @@ export function Rem_set(size: number): void {
       "--text-4xl": `${36 * scale}px`,
       "--text-5xl": `${48 * scale}px`,
     };
+    for (const n of SCALED_SPACINGS) {
+      vars[`--spacing-scaled-${n}`] = `${n * 4 * scale}px`;
+    }
+    for (const n of SCALED_LEADINGS) {
+      vars[`--leading-scaled-${n}`] = `${n * 4 * scale}px`;
+    }
     for (const [k, v] of Object.entries(vars)) {
       root.style.setProperty(k, v);
     }

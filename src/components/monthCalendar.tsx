@@ -171,7 +171,7 @@ const MonthItem = memo(function MonthItem(props: IMonthItemProps): JSX.Element {
           .fill(null)
           .map((_, i) => (
             <View key={`empty-${i}`} style={{ width: "14.285%" }} className="items-center justify-center p-2">
-              <View className="w-8 h-8" />
+              <View className="w-scaled-8 h-scaled-8" />
             </View>
           ))}
         {days.map((day) => {
@@ -197,7 +197,7 @@ const MonthItem = memo(function MonthItem(props: IMonthItemProps): JSX.Element {
               }}
             >
               <View
-                className={`w-8 h-8 rounded-full items-center justify-center ${
+                className={`w-scaled-8 h-scaled-8 rounded-full items-center justify-center ${
                   isWorkout ? "bg-background-error" : ""
                 } ${yyyymmdd === today ? "border border-button-primarybackground" : ""}`}
               >

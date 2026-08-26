@@ -19,14 +19,18 @@ export function FooterButton(props: IProps): JSX.Element {
   const dataCy = `footer-${StringUtils_dashcase(props.text)}`;
   return (
     <Pressable
-      className="relative items-center px-2"
+      className="items-center flex-1 px-0.5"
       data-testid={dataCy}
       testID={dataCy}
       onPress={isActive ? undefined : props.onClick}
     >
-      {props.hasDot && <View className="absolute w-2 h-2 rounded-full top-3 right-3 bg-redv2-700" />}
-      <View className="flex-row items-center justify-center w-6 h-6">{props.icon(isActive)}</View>
-      <Text className={`pt-1 text-2xs ${isActive ? "text-text-purple" : "text-text-secondary"}`}>{props.text}</Text>
+      <View className="relative flex-row items-center justify-center w-scaled-6 h-scaled-6">
+        {props.icon(isActive)}
+        {props.hasDot && <View className="absolute w-2 h-2 rounded-full bg-redv2-700" style={{ top: -1, right: -1 }} />}
+      </View>
+      <Text numberOfLines={1} className={`pt-1 text-2xs ${isActive ? "text-text-purple" : "text-text-secondary"}`}>
+        {props.text}
+      </Text>
     </Pressable>
   );
 }

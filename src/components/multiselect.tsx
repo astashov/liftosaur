@@ -52,7 +52,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
             className="absolute left-0 right-0 border rounded-lg shadow-sm bg-background-default border-border-neutral"
             style={{ top: "100%" }}
           >
-            <ScrollView className="max-h-48" keyboardShouldPersistTaps="always" nestedScrollEnabled={true}>
+            <ScrollView className="max-h-scaled-48" keyboardShouldPersistTaps="always" nestedScrollEnabled={true}>
               {filteredValues.map((value) => (
                 <Pressable
                   key={value}

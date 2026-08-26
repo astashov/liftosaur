@@ -231,16 +231,16 @@ export function MusclesOverrideList(props: {
                   <MuscleImage muscle={mm.muscle} size={61} />
                 </View>
                 <View className="flex-1">
-                  <Text className="leading-5">{mm.muscle}</Text>
+                  <Text className="leading-scaled-5">{mm.muscle}</Text>
                   <Text className="text-xs text-text-secondary">
                     {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
                   </Text>
                 </View>
-                <View className="w-12">
+                <View className="w-scaled-12">
                   <TextInput
                     testID={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
                     data-testid={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
-                    className="px-2 py-2 text-base leading-5 text-center border rounded-md bg-background-default border-border-prominent text-text-primary"
+                    className="px-2 py-2 text-base text-center border rounded-md bg-background-default border-border-prominent text-text-primary"
                     keyboardType="decimal-pad"
                     value={mm.multiplier != null ? String(mm.multiplier) : ""}
                     onChangeText={(text) => {

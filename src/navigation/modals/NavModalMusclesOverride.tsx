@@ -75,7 +75,7 @@ export function NavModalMusclesOverride(): JSX.Element {
   const header = (
     <View className="flex-row items-center py-4">
       <View className="items-center flex-1">
-        <Text className="text-base font-semibold leading-6">Override Muscles</Text>
+        <Text className="text-base font-semibold leading-scaled-6">Override Muscles</Text>
         <LinkButton
           data-testid="toggle-muscle-overrides"
           testID="toggle-muscle-overrides"

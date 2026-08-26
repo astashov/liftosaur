@@ -5,6 +5,14 @@ const textColorPattern =
   /\btext-(icon|text|syntax|red|green|blue|yellow|purple|gray|slate|zinc|stone|neutral|orange|amber|lime|emerald|teal|cyan|sky|indigo|violet|fuchsia|pink|rose|white|black|transparent|inherit|current)\b/;
 const textSizePattern = /\btext-(2xs|xs|sm|base|lg|xl|\dxl|\[)/;
 
+export function Text_hasSizeClass(className: string | undefined): boolean {
+  return className != null && textSizePattern.test(className);
+}
+
+export function Text_resolveFontFamily(className: string | undefined): string {
+  return resolveFontFamily(className);
+}
+
 function resolveFontFamily(className: string | undefined): string {
   if (Platform.OS !== "android") {
     return "Poppins";

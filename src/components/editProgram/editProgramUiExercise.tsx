@@ -112,7 +112,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
               </View>
             </>
           ) : (
-            <View className="w-16" />
+            <View className="w-scaled-16" />
           )}
           <View
             className="flex-row items-center flex-1"
@@ -202,7 +202,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
           </View>
           <View className="py-4 border-l bg-background-default border-border-cardpurple">
             <Pressable
-              className="items-center w-10 px-2 nm-edit-exercise-expand-collapse"
+              className="items-center w-scaled-10 px-2 nm-edit-exercise-expand-collapse"
               onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -289,7 +289,12 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
             {exerciseType ? (
               <View className="p-1">
                 <View className="p-1 m-1 rounded-lg bg-background-image">
-                  <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
+                  <ExerciseImage
+                    settings={props.settings}
+                    className="w-scaled-10"
+                    exerciseType={exerciseType}
+                    size="small"
+                  />
                 </View>
               </View>
             ) : (

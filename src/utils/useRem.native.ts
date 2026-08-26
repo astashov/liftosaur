@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { Uniwind } from "uniwind";
+import { SCALED_SPACINGS, SCALED_LEADINGS } from "./scaledSpacings.generated";
 
 const BASE_REM = 16;
 let currentRem = BASE_REM;
@@ -7,9 +8,18 @@ const subscribers = new Set<() => void>();
 
 const THEMES = ["light", "dark"] as const;
 
+// --spacing is deliberately absent: paddings, margins and gaps are constant at every text size.
+// Only type, and the boxes that have to keep containing it, grow.
 function scaledVars(scale: number): Record<string, number> {
+  const spacings: Record<string, number> = {};
+  for (const n of SCALED_SPACINGS) {
+    spacings[`--spacing-scaled-${n}`] = n * 4 * scale;
+  }
+  for (const n of SCALED_LEADINGS) {
+    spacings[`--leading-scaled-${n}`] = n * 4 * scale;
+  }
   return {
-    "--spacing": 4 * scale,
+    ...spacings,
     "--text-2xs": 10 * scale,
     "--text-xs": 12 * scale,
     "--text-sm": 14 * scale,
