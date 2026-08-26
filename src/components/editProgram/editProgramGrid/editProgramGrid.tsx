@@ -40,7 +40,7 @@ import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
 import { AddButton, VerticalAddButton } from "./gridAddButton";
 import { useGridStickyHeader } from "./useGridStickyHeader";
-import { useGridEditWeek } from "./useGridEditWeek";
+import { useGridEditDetails } from "./useGridEditDetails";
 
 // Scale presets for the zoom control; pinch fills in everything between them.
 const SCALE_PRESETS: { label: string; scale: number }[] = [
@@ -122,7 +122,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     onStructuralChange: onClear,
   });
 
-  const onEditWeek = useGridEditWeek({ grid, onSetDetails: actions.onSetWeekDetails });
+  const editDetails = useGridEditDetails({
+    grid,
+    onSetWeekDetails: actions.onSetWeekDetails,
+    onSetDayDetails: actions.onSetDayDetails,
+  });
 
   const [collapsedRows, setCollapsedRows] = useState<number[]>([]);
   const onToggleCollapsed = useCallback((rowIndex: number) => {
@@ -200,6 +204,10 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                   ? (grid.rows[selectedDayRows[0]]?.namePerWeek.find((n) => n != null) ??
                     `Day ${selectedDayRows[0] + 1}`)
                   : `${selectedDayRows.length} days`,
+              description:
+                selectedDayRows.length === 1
+                  ? grid.rows[selectedDayRows[0]]?.descriptionPerWeek.find((d) => d != null)
+                  : undefined,
               placements: grid.placements.filter((p) => selectedDayRows.indexOf(p.rowIndex) !== -1),
             }
           : selection != null
@@ -215,7 +223,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           onDeleteDays: actions.onDeleteDays,
           onDuplicateWeek: actions.onDuplicateWeek,
           onDeleteWeek: actions.onDeleteWeek,
-          onEditWeek: onEditWeek,
+          onEditWeek: editDetails.onEditWeek,
+          onEditDay: editDetails.onEditDay,
           onClear: onClear,
         }
       : undefined;
@@ -232,7 +241,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     actions.onDeleteDays,
     actions.onDuplicateWeek,
     actions.onDeleteWeek,
-    onEditWeek,
+    editDetails.onEditWeek,
+    editDetails.onEditDay,
     onClear,
   ]);
   useEffect(() => {

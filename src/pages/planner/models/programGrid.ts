@@ -27,6 +27,9 @@ export interface IProgramGridRow {
   // Undefined where the week has no day in this row — a ragged program. `ProgramGrid_hasDay` is the
   // question every caller actually asks.
   namePerWeek: (string | undefined)[];
+  // Per week for the same reason the name is: a row is one slot in every week, and each week writes
+  // its own day, so the two can disagree.
+  descriptionPerWeek: (string | undefined)[];
 }
 
 export interface IProgramGridPlacement {
@@ -173,6 +176,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
     rows.push({
       rowIndex,
       namePerWeek: program.weeks.map((week) => week.days[rowIndex]?.name),
+      descriptionPerWeek: program.weeks.map((week) => week.days[rowIndex]?.description),
     });
   }
 

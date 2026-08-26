@@ -525,6 +525,56 @@ export function PlannerStructure_setWeekDetails(
   return { success: true, data: result };
 }
 
+// A field left out is left alone, in every week. A day row is one slot across the whole program, but
+// each week writes its own `## name` and its own description, and the two can disagree — so an edit
+// that only touched the description must not carry the name it was *shown* into weeks that call the
+// day something else. An empty description is a field the user cleared, not one they left alone.
+export interface IPlannerDayDetails {
+  name?: string;
+  description?: string;
+}
+
+// What a day is called and what it says about itself, in every week at once — the same reason
+// deleting or duplicating a day row applies to all of them: a day number means the same slot in
+// every week, so letting one week disagree about which slot is which is the corruption this editor
+// exists to prevent. Names, though, are not addressable from anywhere in the language, so this can't
+// break an exercise; the checks are about surviving the round trip through the full text, where a
+// day is the one line `## name` under its `//` description.
+export function PlannerStructure_setDayDetails(
+  planner: IPlannerProgram,
+  rowIndex: number,
+  details: IPlannerDayDetails
+): IPlannerStructureResult {
+  const name = details.name?.trim();
+  if (name != null) {
+    if (name.length === 0) {
+      return { success: false, error: "A day needs a name." };
+    }
+    if (name.indexOf("\n") !== -1) {
+      return { success: false, error: "A day name has to fit on one line." };
+    }
+  }
+  const trimmedDescription = details.description?.trim();
+  const description = trimmedDescription != null && trimmedDescription.length > 0 ? trimmedDescription : undefined;
+  const result = ObjectUtils_clone(planner);
+  let changed = false;
+  for (const week of result.weeks) {
+    const day = week.days[rowIndex];
+    if (day == null) {
+      continue;
+    }
+    if (name != null && day.name !== name) {
+      day.name = name;
+      changed = true;
+    }
+    if (details.description != null && day.description !== description) {
+      day.description = description;
+      changed = true;
+    }
+  }
+  return { success: true, data: changed ? result : planner };
+}
+
 function uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
   const taken = new Set(planner.weeks.map((week) => week.name));
   let name = preferred;

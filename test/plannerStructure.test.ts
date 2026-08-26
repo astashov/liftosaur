@@ -13,6 +13,7 @@ import {
   PlannerStructure_deleteWeek,
   PlannerStructure_duplicateWeek,
   PlannerStructure_setWeekDetails,
+  PlannerStructure_setDayDetails,
   PlannerStructure_deleteExercises,
   PlannerStructure_addDay,
   PlannerStructure_addWeek,
@@ -944,6 +945,52 @@ Bench Press / 5x5 50lb
       const planner = plannerOf(THREE_WEEKS);
       expect(PlannerStructure_setWeekDetails(planner, 1, { name: "   " }).success).to.equal(false);
       expect(PlannerStructure_setWeekDetails(planner, 1, { name: "Deload\n## Day 1" }).success).to.equal(false);
+    });
+
+    it("names a day in every week, and only the field that was edited", () => {
+      const disagreeing = `# Week 1
+// Squat focus
+## Squat day
+Squat / 3x5 100lb
+
+# Week 2
+## Leg day
+Squat / 3x5 105lb
+`;
+      const renamed = PlannerStructure_setDayDetails(plannerOf(disagreeing), 0, { name: "  Lower  " });
+      expect(renamed.success).to.equal(true);
+      if (!renamed.success) {
+        return;
+      }
+      expect(renamed.data.weeks.map((week) => week.days[0].name)).to.deep.equal(["Lower", "Lower"]);
+      // The name was the edited field, so week 1's own description is left where it was.
+      expect(renamed.data.weeks.map((week) => week.days[0].description)).to.deep.equal(["Squat focus", undefined]);
+
+      // And the other way round: describing the day must not carry the name the dock showed into the
+      // week that calls it something else.
+      const described = PlannerStructure_setDayDetails(plannerOf(disagreeing), 0, { description: "Heavy" });
+      expect(described.success).to.equal(true);
+      if (!described.success) {
+        return;
+      }
+      expect(described.data.weeks.map((week) => week.days[0].name)).to.deep.equal(["Squat day", "Leg day"]);
+      expect(described.data.weeks.map((week) => week.days[0].description)).to.deep.equal(["Heavy", "Heavy"]);
+    });
+
+    it("clears a day description on an empty string, and refuses a name that is empty or spans lines", () => {
+      const planner = plannerOf(`# Week 1
+// Squat focus
+## Day 1
+Squat / 3x5 100lb
+`);
+      const cleared = PlannerStructure_setDayDetails(planner, 0, { description: "  " });
+      expect(cleared.success).to.equal(true);
+      if (!cleared.success) {
+        return;
+      }
+      expect(cleared.data.weeks[0].days[0].description).to.equal(undefined);
+      expect(PlannerStructure_setDayDetails(planner, 0, { name: " " }).success).to.equal(false);
+      expect(PlannerStructure_setDayDetails(planner, 0, { name: "Day 1\nSquat / 3x5" }).success).to.equal(false);
     });
 
     it("writes a description that survives the trip through the full text, and clears it when emptied", () => {
