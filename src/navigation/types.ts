@@ -181,6 +181,7 @@ export type IRootStackParamList = {
   acrossProgramModal: undefined;
   createStateVarModal: undefined;
   textInputModal: undefined;
+  editDetailsModal: undefined;
   repMaxCalculatorModal: undefined;
   muscleGroupMusclePickerModal: { muscleGroup: IScreenMuscle };
   programPreviewMusclesModal: { type: "program" } | { type: "day"; dayIndex: number };

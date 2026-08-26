@@ -35,6 +35,24 @@ export interface ITextInputModalData {
   patternMessage?: string;
 }
 
+// Editing what something is called and what it says about itself — a week today, a day next. The
+// modal owns neither: it takes the current pair and hands back the edited one.
+export interface IEditDetailsModalData {
+  title: string;
+  nameLabel: string;
+  namePlaceholder: string;
+  descriptionPlaceholder: string;
+  submitLabel: string;
+  dataCyPrefix: string;
+  name: string;
+  description?: string;
+}
+
+export interface IEditDetailsModalResult {
+  name: string;
+  description?: string;
+}
+
 export interface IRepMaxCalculatorModalData {
   unit: "kg" | "lb";
 }
@@ -113,6 +131,7 @@ export interface IModalDataMap {
   createStateVarModal: { existingNames?: string[] };
   liftoEditorExercisePickerModal: ILiftoEditorExercisePickerModalData;
   textInputModal: ITextInputModalData;
+  editDetailsModal: IEditDetailsModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
   exerciseTypesPickerModal: IExerciseTypesPickerModalData;
   exerciseMusclesPickerModal: IExerciseMusclesPickerModalData;
@@ -131,6 +150,7 @@ export interface IModalResultMap {
   createStateVarModal: ICreateStateVarModalResult;
   liftoEditorExercisePickerModal: IExercisePickerSelectedExercise;
   textInputModal: string;
+  editDetailsModal: IEditDetailsModalResult;
   repMaxCalculatorModal: number;
   exerciseTypesPickerModal: IExerciseKind[];
   exerciseMusclesPickerModal: IMuscle[];

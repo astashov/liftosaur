@@ -121,6 +121,7 @@ import { NavModalStateVars } from "./modals/NavModalStateVars";
 import { NavModalAcrossProgram } from "./modals/NavModalAcrossProgram";
 import { NavModalCreateStateVar } from "./modals/NavModalCreateStateVar";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
+import { NavModalEditDetails } from "./modals/NavModalEditDetails";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
 import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
@@ -416,6 +417,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="acrossProgramModal" component={NavModalAcrossProgram} />
           <RootStack.Screen name="createStateVarModal" component={NavModalCreateStateVar} />
           <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
+          <RootStack.Screen name="editDetailsModal" component={NavModalEditDetails} />
           <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
           <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
           <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />

@@ -133,6 +133,7 @@ import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
 import { NavModalHearAboutUs } from "./modals/NavModalHearAboutUs";
 import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
+import { NavModalEditDetails } from "./modals/NavModalEditDetails";
 import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavHeader } from "./NavHeader";
 import { ScreenErrorBoundary } from "../components/screenErrorBoundary";
@@ -520,6 +521,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="hearAboutUsModal" component={NavModalHearAboutUs} />
           <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
           <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
+          <RootStack.Screen name="editDetailsModal" component={NavModalEditDetails} />
           <RootStack.Screen
             name="whatsnewModal"
             component={NavModalWhatsnew}

@@ -19,6 +19,7 @@ export interface IProgramGridSchemeToken {
 export interface IProgramGridColumn {
   weekIndex: number;
   name: string;
+  description?: string;
 }
 
 export interface IProgramGridRow {
@@ -164,6 +165,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
   const columns: IProgramGridColumn[] = program.weeks.map((week, weekIndex) => ({
     weekIndex,
     name: week.name,
+    description: week.description,
   }));
   const numberOfRows = program.weeks.reduce((max, week) => Math.max(max, week.days.length), 0);
   const rows: IProgramGridRow[] = [];

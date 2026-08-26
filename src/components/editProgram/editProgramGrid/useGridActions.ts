@@ -21,6 +21,8 @@ import {
   PlannerStructure_addDay,
   PlannerStructure_addWeek,
   PlannerStructure_deleteExercises,
+  PlannerStructure_setWeekDetails,
+  IPlannerWeekDetails,
 } from "../../../pages/planner/models/plannerStructure";
 
 // Every edit the grid can make, and *only* edits — navigation lives in useGridNavigation. They all
@@ -42,6 +44,7 @@ export interface IGridActions {
   onMoveWeek: (from: number, to: number) => void;
   onDuplicateWeek: (weekIndex: number) => void;
   onDeleteWeek: (weekIndex: number) => void;
+  onSetWeekDetails: (weekIndex: number, details: IPlannerWeekDetails) => void;
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExercisesToDay: (moves: IPlannerStructureExerciseMove[], toRow: number, before: string | undefined) => void;
 }
@@ -229,6 +232,17 @@ export function useGridActions(args: {
     [applyTransform, settings]
   );
 
+  const onSetWeekDetails = useCallback(
+    (weekIndex: number, details: IPlannerWeekDetails) => {
+      applyTransform(
+        (planner) => PlannerStructure_setWeekDetails(planner, weekIndex, details),
+        `Edit week ${weekIndex + 1}`,
+        "content"
+      );
+    },
+    [applyTransform]
+  );
+
   const onMoveWeek = useCallback(
     (from: number, to: number) => {
       applyTransform(
@@ -273,6 +287,7 @@ export function useGridActions(args: {
     onMoveWeek,
     onDuplicateWeek,
     onDeleteWeek,
+    onSetWeekDetails,
     onReorderExercisesInDay,
     onMoveExercisesToDay,
   };

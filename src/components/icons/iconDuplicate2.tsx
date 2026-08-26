@@ -3,10 +3,15 @@ import { Path } from "../primitives/svg";
 import { IconSvg } from "./iconSvg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
-export function IconDuplicate2(): JSX.Element {
+interface IIconDuplicate2Props {
+  width?: number;
+  height?: number;
+}
+
+export function IconDuplicate2(props: IIconDuplicate2Props): JSX.Element {
   const color = Tailwind_semantic().icon.neutral;
   return (
-    <IconSvg width={18} height={19} viewBox="0 0 18 19" fill="none">
+    <IconSvg width={props.width ?? 18} height={props.height ?? 19} viewBox="0 0 18 19" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"

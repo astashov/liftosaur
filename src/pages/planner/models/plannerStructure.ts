@@ -489,6 +489,42 @@ export function PlannerStructure_duplicateWeek(
   return refuseIfWorse(planner, result, settings);
 }
 
+export interface IPlannerWeekDetails {
+  name: string;
+  description?: string;
+}
+
+// What a week is called and what it says about itself. Nothing in the language addresses a week by
+// name — a repeat and a `[week:day]` both count weeks — so neither field can break an exercise, and
+// the checks are about surviving the round trip through the full text, where a week is the one line
+// `# name` above its `//` description.
+export function PlannerStructure_setWeekDetails(
+  planner: IPlannerProgram,
+  weekIndex: number,
+  details: IPlannerWeekDetails
+): IPlannerStructureResult {
+  const week = planner.weeks[weekIndex];
+  if (week == null) {
+    return { success: true, data: planner };
+  }
+  const name = details.name.trim();
+  if (name.length === 0) {
+    return { success: false, error: "A week needs a name." };
+  }
+  if (name.indexOf("\n") !== -1) {
+    return { success: false, error: "A week name has to fit on one line." };
+  }
+  const description = details.description?.trim();
+  const newDescription = description != null && description.length > 0 ? description : undefined;
+  if (name === week.name && newDescription === week.description) {
+    return { success: true, data: planner };
+  }
+  const result = ObjectUtils_clone(planner);
+  result.weeks[weekIndex].name = name;
+  result.weeks[weekIndex].description = newDescription;
+  return { success: true, data: result };
+}
+
 function uniqueWeekName(planner: IPlannerProgram, preferred: string): string {
   const taken = new Set(planner.weeks.map((week) => week.name));
   let name = preferred;

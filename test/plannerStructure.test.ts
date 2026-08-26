@@ -12,12 +12,16 @@ import {
   PlannerStructure_moveWeek,
   PlannerStructure_deleteWeek,
   PlannerStructure_duplicateWeek,
+  PlannerStructure_setWeekDetails,
   PlannerStructure_deleteExercises,
   PlannerStructure_addDay,
   PlannerStructure_addWeek,
   IPlannerStructureResult,
 } from "../src/pages/planner/models/plannerStructure";
-import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
+import {
+  PlannerProgram_evaluateText,
+  PlannerProgram_generateFullText,
+} from "../src/pages/planner/models/plannerProgram";
 import {
   ProgramGrid_build,
   ProgramGrid_dayDataAt,
@@ -912,6 +916,57 @@ Bench Press / 5x5 50lb
         return;
       }
       expect(result.error).to.contain("Squat");
+    });
+
+    it("renames a week without touching a line of it", () => {
+      const planner = plannerOf(THREE_WEEKS);
+      const result = PlannerStructure_setWeekDetails(planner, 1, { name: "  Deload  " });
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.map((week) => week.name)).to.deep.equal(["Week 1", "Deload", "Week 3"]);
+      expect(result.data.weeks.map((week) => week.days.map((day) => day.exerciseText))).to.deep.equal(
+        planner.weeks.map((week) => week.days.map((day) => day.exerciseText))
+      );
+    });
+
+    it("takes a name another week already has — nothing in the language addresses a week by name", () => {
+      const result = PlannerStructure_setWeekDetails(plannerOf(THREE_WEEKS), 1, { name: "Week 1" });
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.map((week) => week.name)).to.deep.equal(["Week 1", "Week 1", "Week 3"]);
+    });
+
+    it("refuses a name that is empty or spans lines", () => {
+      const planner = plannerOf(THREE_WEEKS);
+      expect(PlannerStructure_setWeekDetails(planner, 1, { name: "   " }).success).to.equal(false);
+      expect(PlannerStructure_setWeekDetails(planner, 1, { name: "Deload\n## Day 1" }).success).to.equal(false);
+    });
+
+    it("writes a description that survives the trip through the full text, and clears it when emptied", () => {
+      const described = PlannerStructure_setWeekDetails(plannerOf(THREE_WEEKS), 1, {
+        name: "Week 2",
+        description: "Heavy singles\nthen back off",
+      });
+      expect(described.success).to.equal(true);
+      if (!described.success) {
+        return;
+      }
+      expect(described.data.weeks[1].description).to.equal("Heavy singles\nthen back off");
+      // The description lives in `//` lines above the week header, so it has to come back through
+      // the text the way a week's exercises do.
+      const roundTripped = plannerOf(PlannerProgram_generateFullText(described.data.weeks));
+      expect(roundTripped.weeks[1].description).to.equal("Heavy singles\nthen back off");
+
+      const cleared = PlannerStructure_setWeekDetails(described.data, 1, { name: "Week 2", description: "  " });
+      expect(cleared.success).to.equal(true);
+      if (!cleared.success) {
+        return;
+      }
+      expect(cleared.data.weeks[1].description).to.equal(undefined);
     });
   });
 

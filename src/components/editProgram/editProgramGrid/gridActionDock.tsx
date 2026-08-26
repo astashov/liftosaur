@@ -1,4 +1,4 @@
-import { JSX, memo } from "react";
+import { JSX, memo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
@@ -33,12 +33,12 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   // Keyed, so an exercise whose active variation differs between weeks counts once rather than once
   // per spelling.
   const exerciseCount = target.kind === "day" ? new Set(target.placements.map((p) => p.key)).size : 0;
+  // A week says nothing about itself here: how many days and exercises it has is what the grid
+  // above the dock is already showing. Its own description is not, so that is what it gets.
   const caption =
     target.kind === "day"
       ? `${exerciseCount === 0 ? "empty" : `${exerciseCount} ${StringUtils_pluralize("exercise", exerciseCount)}`} · in every week`
-      : target.kind === "week"
-        ? `${target.dayCount} ${StringUtils_pluralize("day", target.dayCount)} · ${target.exerciseCount} ${StringUtils_pluralize("exercise", target.exerciseCount)}`
-        : undefined;
+      : undefined;
 
   return (
     // The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the grid's
@@ -47,24 +47,36 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       <Pressable className="p-1 nm-grid-clear-selection" testID="grid-clear-selection" onPress={props.onClear}>
         <IconCloseCircleOutline size={20} color={Tailwind_semantic().icon.neutral} />
       </Pressable>
-      <View className="flex-1 ml-1">
-        <Text className="text-sm font-bold text-text-primary" numberOfLines={2}>
-          {label}
-        </Text>
-        {caption != null && (
-          <Text className="text-xs text-text-secondary" numberOfLines={1}>
-            {caption}
+      {target.kind === "week" ? (
+        // Keyed by week, so picking another one starts collapsed again rather than inheriting
+        // however far the last one was opened.
+        <DockWeek key={target.weekIndex} name={target.name} description={target.description} />
+      ) : (
+        <View className="flex-1 ml-1">
+          <Text className="text-sm font-bold text-text-primary" numberOfLines={2}>
+            {label}
           </Text>
-        )}
-      </View>
-      {target.kind === "exercises" && (
+          {caption != null && (
+            <Text className="text-xs text-text-secondary" numberOfLines={1}>
+              {caption}
+            </Text>
+          )}
+        </View>
+      )}
+      {target.kind !== "day" && (
         <DockButton
           name="grid-action-edit"
-          label="Edit"
-          disabled={single == null}
-          onPress={() => single != null && props.onEdit(single)}
+          label={target.kind === "week" ? "Edit week" : "Edit"}
+          disabled={target.kind === "exercises" && single == null}
+          onPress={() => {
+            if (target.kind === "week") {
+              props.onEditWeek(target.weekIndex);
+            } else if (single != null) {
+              props.onEdit(single);
+            }
+          }}
         >
-          <IconEdit2 size={18} color={Tailwind_semantic().icon.neutral} />
+          <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
         </DockButton>
       )}
       <DockButton
@@ -87,7 +99,7 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
           }
         }}
       >
-        <IconDuplicate2 />
+        <IconDuplicate2 width={20} height={21} />
       </DockButton>
       <DockButton
         name="grid-action-delete"
@@ -108,11 +120,39 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
           }
         }}
       >
-        <IconTrash width={15} height={18} color={Tailwind_semantic().icon.red} />
+        <IconTrash width={17} height={21} color={Tailwind_semantic().icon.red} />
       </DockButton>
     </View>
   );
 });
+
+// A description is as long as its author wanted it to be, and the dock is one strip above the tab
+// bar — so it shows the first line and opens on a tap for the rest. The ellipsis is spelled out
+// rather than left to truncation: a description whose first line happens to fit would otherwise look
+// like the whole of it.
+function DockWeek(props: { name: string; description?: string }): JSX.Element {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const description = props.description;
+  const firstLine = description?.split("\n")[0] ?? "";
+  const hasMore = description != null && description.trim().length > firstLine.length;
+  return (
+    <Pressable
+      className="flex-1 ml-1 nm-grid-week-details"
+      testID="grid-week-details"
+      disabled={description == null}
+      onPress={() => setIsExpanded((current) => !current)}
+    >
+      <Text className="text-sm font-bold text-text-primary" numberOfLines={2}>
+        {props.name}
+      </Text>
+      {description != null && (
+        <Text className="text-xs text-text-secondary" numberOfLines={isExpanded ? 6 : 1}>
+          {isExpanded ? description : `${firstLine}${hasMore ? "…" : ""}`}
+        </Text>
+      )}
+    </Pressable>
+  );
+}
 
 interface IDockButtonProps {
   name: string;

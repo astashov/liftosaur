@@ -9,7 +9,7 @@ import { IProgramGridPlacement } from "../../../pages/planner/models/programGrid
 export type IGridSelectionTarget =
   | { kind: "exercises"; placements: IProgramGridPlacement[] }
   | { kind: "day"; rowIndexes: number[]; name: string; placements: IProgramGridPlacement[] }
-  | { kind: "week"; weekIndex: number; name: string; dayCount: number; exerciseCount: number };
+  | { kind: "week"; weekIndex: number; name: string; description?: string };
 
 export interface IGridSelectionPayload {
   target: IGridSelectionTarget;
@@ -20,6 +20,7 @@ export interface IGridSelectionPayload {
   onDeleteDays: (rowIndexes: number[]) => void;
   onDuplicateWeek: (weekIndex: number) => void;
   onDeleteWeek: (weekIndex: number) => void;
+  onEditWeek: (weekIndex: number) => void;
   onClear: () => void;
 }
 

@@ -20,11 +20,7 @@ import { useRem } from "../../../utils/useRem";
 import { StringUtils_pluralize } from "../../../utils/string";
 import { usePerfRenderCount } from "../../../utils/usePerfRenderCount";
 import { IDispatch } from "../../../ducks/types";
-import {
-  ProgramGrid_build,
-  ProgramGrid_counts,
-  ProgramGrid_weekDayCount,
-} from "../../../pages/planner/models/programGrid";
+import { ProgramGrid_build, ProgramGrid_counts } from "../../../pages/planner/models/programGrid";
 import {
   GRID_ADD_WEEK_WIDTH,
   GRID_DAY_BOX_INSET,
@@ -44,6 +40,7 @@ import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
 import { AddButton, VerticalAddButton } from "./gridAddButton";
 import { useGridStickyHeader } from "./useGridStickyHeader";
+import { useGridEditWeek } from "./useGridEditWeek";
 
 // Scale presets for the zoom control; pinch fills in everything between them.
 const SCALE_PRESETS: { label: string; scale: number }[] = [
@@ -125,6 +122,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     onStructuralChange: onClear,
   });
 
+  const onEditWeek = useGridEditWeek({ grid, onSetDetails: actions.onSetWeekDetails });
+
   const [collapsedRows, setCollapsedRows] = useState<number[]>([]);
   const onToggleCollapsed = useCallback((rowIndex: number) => {
     setCollapsedRows((current) =>
@@ -188,14 +187,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
             kind: "week",
             weekIndex: selectedWeek,
             name: weekColumn.name,
-            dayCount: ProgramGrid_weekDayCount(grid, selectedWeek),
-            // Distinct exercises across the week's days, counting a run that spans several weeks
-            // once — it is one exercise in this week like any other.
-            exerciseCount: new Set(
-              grid.placements
-                .filter((p) => p.colStart <= selectedWeek && p.colEnd >= selectedWeek)
-                .map((p) => `${p.rowIndex}:${p.key}`)
-            ).size,
+            description: weekColumn.description,
           }
         : selectedDayRows.length > 0
           ? {
@@ -223,6 +215,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           onDeleteDays: actions.onDeleteDays,
           onDuplicateWeek: actions.onDuplicateWeek,
           onDeleteWeek: actions.onDeleteWeek,
+          onEditWeek: onEditWeek,
           onClear: onClear,
         }
       : undefined;
@@ -239,6 +232,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     actions.onDeleteDays,
     actions.onDuplicateWeek,
     actions.onDeleteWeek,
+    onEditWeek,
     onClear,
   ]);
   useEffect(() => {
