@@ -19,7 +19,7 @@ import { tags } from "@lezer/highlight";
 import { IProgramState } from "../../../types";
 import { ObjectUtils_isEqual } from "../../../utils/object";
 import { buildLiftoscriptLanguageSupport } from "../../../liftoscriptCodemirror";
-import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
+import type { IEditorError } from "../../../editorTypes";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 const buildHighlightStyle = (): HighlightStyle => {
@@ -121,7 +121,7 @@ interface IArgs {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   value?: string;
   height?: number;
-  error?: LiftoscriptSyntaxError;
+  error?: IEditorError;
   state: IProgramState;
   lineNumbers?: boolean;
 }
@@ -152,7 +152,7 @@ export class ScriptEditor {
     }
   }
 
-  public setError(error?: LiftoscriptSyntaxError): void {
+  public setError(error?: IEditorError): void {
     this.args.error = error;
     this.relint();
   }

@@ -2,7 +2,7 @@ import React from "react";
 import { IProgramState } from "../../../types";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { WebviewEditor } from "../../primitives/webviewEditor";
-import { IEditorTheme } from "../../../pages/planner/webviewEditor/editorWebviewBridge";
+import type { IEditorError, IEditorTheme } from "../../../editorTypes";
 
 interface IProps {
   name: string;
@@ -11,7 +11,7 @@ interface IProps {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   error?: LiftoscriptSyntaxError;
   lineNumbers?: boolean;
-  onCustomErrorCta?: (error: string) => React.JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => React.JSX.Element | undefined;
   state: IProgramState;
   value?: string;
   height?: number;

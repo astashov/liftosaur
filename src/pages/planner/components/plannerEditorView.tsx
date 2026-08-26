@@ -2,7 +2,7 @@ import { JSX, useEffect, useRef } from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
-import { IEditorTheme } from "../webviewEditor/editorWebviewBridge";
+import type { IEditorError, IEditorTheme } from "../../../editorTypes";
 
 interface IProps {
   name: string;
@@ -14,7 +14,7 @@ interface IProps {
   // The program editors' error presentation (dark-red band, white text) follows
   // lineNumbers by default; hosts without a gutter (the editor sheet) opt in explicitly.
   redError?: boolean;
-  onCustomErrorCta?: (error: string) => JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => JSX.Element | undefined;
   customExercises: IAllCustomExercises;
   exerciseFullNames: string[];
   value?: string;
@@ -114,12 +114,12 @@ export function PlannerEditorView(props: IProps): JSX.Element {
 interface IEvalResultProps {
   error?: PlannerSyntaxError;
   redTheme?: boolean;
-  onCustomErrorCta?: (error: string) => JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => JSX.Element | undefined;
 }
 
 export function EvalResult(props: IEvalResultProps): JSX.Element | null {
   if (props.error) {
-    const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error.message);
+    const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error);
     return (
       <span className="px-2 text-sm">
         <span className={props.redTheme ? "text-text-alwayswhite" : "text-text-error"}>Error: </span>

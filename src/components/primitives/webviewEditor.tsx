@@ -1,5 +1,5 @@
 import React from "react";
-import { IEditorError, IEditorMode, IEditorTheme } from "../../pages/planner/webviewEditor/editorWebviewBridge";
+import { IEditorError, IEditorMode, IEditorTheme } from "../../editorTypes";
 import { IAllCustomExercises, IProgramState } from "../../types";
 
 export interface IWebviewEditorProps {
@@ -13,7 +13,7 @@ export interface IWebviewEditorProps {
   customExercises?: IAllCustomExercises;
   exerciseFullNames?: string[];
   state?: IProgramState;
-  onCustomErrorCta?: (error: string) => React.ReactNode;
+  onCustomErrorCta?: (error: IEditorError) => React.ReactNode;
   height?: number;
   theme?: IEditorTheme;
   autoHeight?: boolean;

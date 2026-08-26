@@ -40,7 +40,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
     } catch (e) {
       return {
         isValid: false,
-        errors: [new PlannerSyntaxError("Unknown validation error", 0, 0, 0, 0)],
+        errors: [new PlannerSyntaxError("Unknown validation error", 0, 0, 0, 0, { type: "unknownValidationError" })],
       };
     }
   };

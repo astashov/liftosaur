@@ -1,5 +1,6 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
+import { ILiftoscriptErrorDetails } from "./syntaxErrorTypes";
 import { IScriptBindings, IScriptFnContext } from "./models/progress";
 import {
   IScriptFunctions,
@@ -78,13 +79,22 @@ export class LiftoscriptSyntaxError extends SyntaxError {
   public readonly offset: number;
   public readonly from: number;
   public readonly to: number;
+  public readonly details: ILiftoscriptErrorDetails;
 
-  constructor(message: string, line: number, offset: number, from: number, to: number) {
+  constructor(
+    message: string,
+    line: number,
+    offset: number,
+    from: number,
+    to: number,
+    details: ILiftoscriptErrorDetails
+  ) {
     super(message);
     this.line = line;
     this.offset = offset;
     this.from = from;
     this.to = to;
+    this.details = details;
   }
 }
 
@@ -136,7 +146,10 @@ function comparing(
 }
 
 function assert(name: string): never {
-  throw new SyntaxError(`Missing required nodes for ${name}, this should never happen`);
+  throw new LiftoscriptSyntaxError(`Missing required nodes for ${name}, this should never happen`, 0, 0, 0, 1, {
+    type: "internal",
+    data: { node: name },
+  });
 }
 
 export interface ILiftoscriptVariableValue<T> {
@@ -204,9 +217,9 @@ export class LiftoscriptEvaluator {
     return LiftoscriptEvaluator.getValue(this.script, node);
   }
 
-  private error(message: string, node: SyntaxNode): never {
+  private error(message: string, node: SyntaxNode, details: ILiftoscriptErrorDetails): never {
     const [line, offset] = this.getLineAndOffset(node);
-    throw new LiftoscriptSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to);
+    throw new LiftoscriptSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to, details);
   }
 
   private staticTypeOfNode(node: SyntaxNode): IScriptStaticType | undefined {
@@ -235,7 +248,8 @@ export class LiftoscriptEvaluator {
       const argText = this.getValue(node);
       this.error(
         `Function '${name}' doesn't accept arrays. Use an index to pick one value, like '${argText}[1]'`,
-        node
+        node,
+        { type: "fnArrayArgument", data: { fn: name, argText } }
       );
     }
     const argSignature = LiftoscriptFns_argSignature(name, index);
@@ -247,7 +261,11 @@ export class LiftoscriptEvaluator {
           : String(value);
     this.error(
       `Argument ${index + 1} (${argSignature?.name}) of '${name}' should be ${argSignature?.hint}, but got ${printedValue}`,
-      node
+      node,
+      {
+        type: "fnArgumentType",
+        data: { fn: name, index, argName: argSignature?.name, hint: argSignature?.hint, got: printedValue },
+      }
     );
   }
 
@@ -285,7 +303,7 @@ export class LiftoscriptEvaluator {
       }
       const num = this.evaluate(numberNode);
       if (typeof num !== "number") {
-        this.error("WeightExpression must contain a number", numberNode);
+        this.error("WeightExpression must contain a number", numberNode, { type: "malformedWeight" });
       }
       return Weight_build(num, this.getValue(unitNode) as IUnit);
     } else {
@@ -346,7 +364,7 @@ export class LiftoscriptEvaluator {
     const vars: IProgramState = {};
     do {
       if (cursor.node.type.isError) {
-        this.error("Syntax error", cursor.node);
+        this.error("Syntax error", cursor.node, { type: "parse" });
       } else if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
         const [keyword, ...fnArgs] = getChildren(cursor.node);
         if (keyword == null || keyword.type.name !== NodeName.Keyword) {
@@ -354,14 +372,15 @@ export class LiftoscriptEvaluator {
         }
         const name = this.getValue(keyword);
         if (!LiftoscriptFns_isFnName(name)) {
-          this.error(`Unknown function '${name}'`, keyword);
+          this.error(`Unknown function '${name}'`, keyword, { type: "unknownFunction", data: { name } });
         }
         const arity = LiftoscriptFns_arity(name);
         if (fnArgs.length < arity.min || (arity.max != null && fnArgs.length > arity.max)) {
           const expected = arity.max == null || arity.max === arity.min ? `${arity.min}` : `${arity.min}-${arity.max}`;
           this.error(
             `Function '${name}' expects ${expected} argument${arity.max === 1 ? "" : "s"}, but got ${fnArgs.length}`,
-            keyword
+            keyword,
+            { type: "fnArity", data: { fn: name, expected, got: fnArgs.length } }
           );
         }
         fnArgs.forEach((fnArg, index) => {
@@ -371,13 +390,24 @@ export class LiftoscriptEvaluator {
               const argText = this.getValue(fnArg);
               this.error(
                 `Function '${name}' doesn't accept arrays, and '${argText}' is an array. Use an index to pick one value, like '${argText}[1]'`,
-                fnArg
+                fnArg,
+                { type: "fnArrayArgument", data: { fn: name, argText } }
               );
             } else {
               const argSignature = LiftoscriptFns_argSignature(name, index);
               this.error(
                 `Argument ${index + 1} (${argSignature?.name}) of '${name}' should be ${argSignature?.hint}, but '${this.getValue(fnArg)}' is a ${staticType}`,
-                fnArg
+                fnArg,
+                {
+                  type: "fnArgumentType",
+                  data: {
+                    fn: name,
+                    index,
+                    argName: argSignature?.name,
+                    hint: argSignature?.hint,
+                    got: staticType,
+                  },
+                }
               );
             }
           }
@@ -410,13 +440,16 @@ export class LiftoscriptEvaluator {
                   "logrpes",
                 ].indexOf(name) === -1
               ) {
-                this.error(`Cannot assign to '${name}'`, variableNode);
+                this.error(`Cannot assign to '${name}'`, variableNode, { type: "readonlyVariable", data: { name } });
               }
               const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
               if (name === "numberOfSets" && indexExprs.length > 0) {
-                this.error(`${name} is not an array`, variableNode);
+                this.error(`${name} is not an array`, variableNode, { type: "notAnArray", data: { name } });
               } else if (indexExprs.length > 1) {
-                this.error(`Can't assign to set variations, weeks or days here`, variableNode);
+                this.error(`Can't assign to set variations, weeks or days here`, variableNode, {
+                  type: "indexNotAssignableHere",
+                  data: { name },
+                });
               }
             }
           }
@@ -424,12 +457,18 @@ export class LiftoscriptEvaluator {
       } else if (cursor.node.type.name === NodeName.StateVariable) {
         const stateKey = this.getStateKey(cursor.node);
         if (stateKey != null && !(stateKey in this.state)) {
-          this.error(`There's no state variable '${stateKey}'`, cursor.node);
+          this.error(`There's no state variable '${stateKey}'`, cursor.node, {
+            type: "unknownStateVariable",
+            data: { stateKey },
+          });
         }
       } else if (cursor.node.type.name === NodeName.Variable) {
         const variableKey = this.getValue(cursor.node);
         if (!(variableKey in vars)) {
-          this.error(`There's no variable '${variableKey}'`, cursor.node);
+          this.error(`There's no variable '${variableKey}'`, cursor.node, {
+            type: "unknownVariable",
+            data: { name: variableKey },
+          });
         }
       } else if (cursor.node.type.name === NodeName.VariableExpression) {
         const [nameNode, indexExpr] = getChildren(cursor.node);
@@ -468,10 +507,10 @@ export class LiftoscriptEvaluator {
             "askweights",
           ];
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
-            this.error(`${name} is not an array variable`, nameNode);
+            this.error(`${name} is not an array variable`, nameNode, { type: "notAnArray", data: { name } });
           }
         } else if (!(name in this.bindings)) {
-          this.error(`${name} is not a valid variable`, nameNode);
+          this.error(`${name} is not a valid variable`, nameNode, { type: "unknownVariable", data: { name } });
         }
       }
     } while (cursor.next());
@@ -596,7 +635,10 @@ export class LiftoscriptEvaluator {
     const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
     const maxTargetLength = 1;
     if (indexes.length > maxTargetLength) {
-      this.error(`${key} can only have 1 value inside []`, expression);
+      this.error(`${key} can only have 1 value inside []`, expression, {
+        type: "tooManyIndexes",
+        data: { key, max: 1 },
+      });
     }
     const indexValues = this.calculateIndexValues(indexes);
     const normalizedIndexValues = this.normalizeTarget(indexValues, maxTargetLength);
@@ -663,22 +705,37 @@ export class LiftoscriptEvaluator {
           : 4;
     if (key === "setVariationIndex") {
       if (indexes.length > maxTargetLength) {
-        this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+        this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression, {
+          type: "tooManyIndexes",
+          data: { key, max: 2 },
+        });
       }
     } else if (key === "exerciseVariationIndex") {
       if (indexes.length > maxTargetLength) {
-        this.error(`exerciseVariationIndex can only have 2 values inside [*:*]`, expression);
+        this.error(`exerciseVariationIndex can only have 2 values inside [*:*]`, expression, {
+          type: "tooManyIndexes",
+          data: { key, max: 2 },
+        });
       }
     } else if (key === "descriptionIndex") {
       if (indexes.length > maxTargetLength) {
-        this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression);
+        this.error(`descriptionIndex can only have 2 values inside [*:*]`, expression, {
+          type: "tooManyIndexes",
+          data: { key, max: 2 },
+        });
       }
     } else if (key === "numberOfSets") {
       if (indexes.length > maxTargetLength) {
-        this.error(`numberOfSets can only have 3 values inside [*:*:*]`, expression);
+        this.error(`numberOfSets can only have 3 values inside [*:*:*]`, expression, {
+          type: "tooManyIndexes",
+          data: { key, max: 3 },
+        });
       }
     } else if (indexes.length > maxTargetLength) {
-      this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression);
+      this.error(`${key} can only have 4 values inside [*:*:*:*]`, expression, {
+        type: "tooManyIndexes",
+        data: { key, max: 4 },
+      });
     }
     const indexValues = this.calculateIndexValues(indexes);
     const normalizedIndexValues = this.normalizeTarget(indexValues, maxTargetLength);
@@ -780,7 +837,7 @@ export class LiftoscriptEvaluator {
         } else if (op === "||") {
           return evalLeft || evalRight;
         } else {
-          this.error(`Unknown operator ${op}`, operator);
+          this.error(`Unknown operator ${op}`, operator, { type: "unknownOperator", data: { op } });
         }
       } else {
         if (op === ">") {
@@ -797,7 +854,7 @@ export class LiftoscriptEvaluator {
           return comparing(evalLeft, evalRight, op);
         } else {
           if (Array.isArray(evalLeft) || Array.isArray(evalRight)) {
-            this.error(`You cannot apply ${op} to arrays`, operator);
+            this.error(`You cannot apply ${op} to arrays`, operator, { type: "operatorOnArray", data: { op } });
           }
           if (op === "+") {
             return this.add(evalLeft, evalRight);
@@ -810,7 +867,10 @@ export class LiftoscriptEvaluator {
           } else if (op === "%") {
             return this.modulo(evalLeft, evalRight);
           } else {
-            this.error(`Unknown operator ${op} between ${evalLeft} and ${evalRight}`, operator);
+            this.error(`Unknown operator ${op} between ${evalLeft} and ${evalRight}`, operator, {
+              type: "unknownOperator",
+              data: { op },
+            });
           }
         }
       }
@@ -844,7 +904,7 @@ export class LiftoscriptEvaluator {
       }
       const forIn = this.evaluate(forInExpression);
       if (!Array.isArray(forIn)) {
-        this.error(`for in expression should return an array`, forInExpression);
+        this.error(`for in expression should return an array`, forInExpression, { type: "forInNotArray" });
       }
       const varKey = this.getValue(variableNode).replace("var.", "");
       for (let i = 1; i <= forIn.length; i += 1) {
@@ -892,13 +952,13 @@ export class LiftoscriptEvaluator {
       if (variableNode.type.name === NodeName.VariableExpression) {
         const nameNode = variableNode.getChild(NodeName.Keyword);
         if (nameNode == null) {
-          this.error(`Missing variable name`, variableNode);
+          this.error(`Missing variable name`, variableNode, { type: "missingVariableName" });
         }
         const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
         const variable = this.getValue(nameNode);
         if (variable === "rm1") {
           if (indexExprs.length > 0) {
-            this.error(`rm1 is not an array`, expr);
+            this.error(`rm1 is not an array`, expr, { type: "notAnArray", data: { name: "rm1" } });
           }
           const evaluatedValue = this.evaluate(expression);
           let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
@@ -940,7 +1000,10 @@ export class LiftoscriptEvaluator {
         ) {
           return this.changeBinding(variable, expression, indexExprs, "=");
         } else {
-          this.error(`Unknown variable '${variable}'`, variableNode);
+          this.error(`Unknown variable '${variable}'`, variableNode, {
+            type: "unknownVariable",
+            data: { name: variable },
+          });
         }
       } else if (variableNode.type.name === NodeName.Variable) {
         const varKey = this.getValue(variableNode).replace("var.", "");
@@ -961,7 +1024,10 @@ export class LiftoscriptEvaluator {
             if (stateKey in this.state) {
               state = this.state;
             } else {
-              this.error(`There's no state variable '${stateKey}'`, variableNode);
+              this.error(`There's no state variable '${stateKey}'`, variableNode, {
+                type: "unknownStateVariable",
+                data: { stateKey },
+              });
             }
           } else {
             const indexEval = this.evaluate(indexNode);
@@ -996,13 +1062,13 @@ export class LiftoscriptEvaluator {
       if (stateVar.type.name === NodeName.VariableExpression) {
         const nameNode = stateVar.getChild(NodeName.Keyword);
         if (nameNode == null) {
-          this.error(`Missing variable name`, stateVar);
+          this.error(`Missing variable name`, stateVar, { type: "missingVariableName" });
         }
         const indexExprs = stateVar.getChildren(NodeName.VariableIndex);
         const variable = this.getValue(nameNode);
         if (variable === "rm1") {
           if (indexExprs.length > 0) {
-            this.error(`rm1 is not an array`, expr);
+            this.error(`rm1 is not an array`, expr, { type: "notAnArray", data: { name: "rm1" } });
           }
           const evaluatedValue = this.evaluate(expression);
           let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
@@ -1035,7 +1101,10 @@ export class LiftoscriptEvaluator {
               this.unit
             );
           } else {
-            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr, {
+              type: "unknownAssignmentOperator",
+              data: { op, variable },
+            });
           }
           return this.bindings.rm1;
         } else if (
@@ -1053,13 +1122,19 @@ export class LiftoscriptEvaluator {
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
-            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr, {
+              type: "unknownAssignmentOperator",
+              data: { op, variable },
+            });
           }
           return this.recordVariableUpdate(variable, expression, indexExprs, op);
         } else if (this.mode === "update" && variable === "numberOfSets") {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
-            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr, {
+              type: "unknownAssignmentOperator",
+              data: { op, variable },
+            });
           }
           return this.changeNumberOfSets(expression, op);
         } else if (
@@ -1073,11 +1148,17 @@ export class LiftoscriptEvaluator {
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
-            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr);
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr, {
+              type: "unknownAssignmentOperator",
+              data: { op, variable },
+            });
           }
           return this.changeBinding(variable, expression, indexExprs, op);
         } else {
-          this.error(`Unknown variable '${variable}'`, stateVar);
+          this.error(`Unknown variable '${variable}'`, stateVar, {
+            type: "unknownVariable",
+            data: { name: variable },
+          });
         }
       } else if (stateVar.type.name === NodeName.Variable) {
         const varKey = this.getValue(stateVar).replace("var.", "");
@@ -1087,7 +1168,10 @@ export class LiftoscriptEvaluator {
         }
         const op = this.getValue(incAssignmentExpr);
         if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
-          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr);
+          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr, {
+            type: "unknownAssignmentOperator",
+            data: { op, variable: varKey },
+          });
         }
         const currentValue = this.vars[varKey];
         if (op === "+=") {
@@ -1099,7 +1183,10 @@ export class LiftoscriptEvaluator {
         } else if (op === "/=") {
           this.vars[varKey] = this.divide(currentValue, value);
         } else {
-          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr);
+          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr, {
+            type: "unknownAssignmentOperator",
+            data: { op, variable: varKey },
+          });
         }
         return this.vars[varKey];
       } else {
@@ -1112,7 +1199,10 @@ export class LiftoscriptEvaluator {
             if (stateKey in this.state) {
               state = this.state;
             } else {
-              this.error(`There's no state variable '${stateKey}'`, stateVar);
+              this.error(`There's no state variable '${stateKey}'`, stateVar, {
+                type: "unknownStateVariable",
+                data: { stateKey },
+              });
             }
           } else {
             const indexEval = this.evaluate(indexNode);
@@ -1136,7 +1226,10 @@ export class LiftoscriptEvaluator {
             } else if (op === "/=") {
               state[stateKey] = this.divide(currentValue, value);
             } else {
-              this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr);
+              this.error(`Unknown operator ${op} after state.${stateKey}`, incAssignmentExpr, {
+                type: "unknownAssignmentOperator",
+                data: { op, variable: `state.${stateKey}` },
+              });
             }
             return state[stateKey];
           } else {
@@ -1163,7 +1256,7 @@ export class LiftoscriptEvaluator {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (fn as any)(argValues, this.fnContext, this.bindings);
       } else {
-        this.error(`Unknown function '${name}'`, keyword);
+        this.error(`Unknown function '${name}'`, keyword, { type: "unknownFunction", data: { name } });
       }
     } else if (expr.type.name === NodeName.UnaryExpression) {
       const [, expression] = getChildren(expr);
@@ -1193,7 +1286,9 @@ export class LiftoscriptEvaluator {
         const indexExpr = indexExprs[0];
         const indexNode = getChildren(indexExpr)[0];
         if (indexNode.type.name === NodeName.Wildcard || indexNode.type.name === NodeName.Current) {
-          this.error(`Can't use '*' or '_' as an index when reading from variables`, indexNode);
+          this.error(`Can't use '*' or '_' as an index when reading from variables`, indexNode, {
+            type: "wildcardIndexOnRead",
+          });
         }
         const indexEval = this.evaluate(indexNode);
         let index: number;
@@ -1207,10 +1302,13 @@ export class LiftoscriptEvaluator {
         index -= 1;
         const binding = this.bindings[name];
         if (!Array.isArray(binding)) {
-          this.error(`Variable ${name} should be an array`, nameNode);
+          this.error(`Variable ${name} should be an array`, nameNode, { type: "notAnArray", data: { name } });
         }
         if (index >= binding.length) {
-          this.error(`Out of bounds index ${index + 1} for array ${name}`, nameNode);
+          this.error(`Out of bounds index ${index + 1} for array ${name}`, nameNode, {
+            type: "indexOutOfBounds",
+            data: { name, index: index + 1 },
+          });
         }
         let value = binding[index];
         if (value == null) {
@@ -1218,30 +1316,41 @@ export class LiftoscriptEvaluator {
         }
         return value;
       } else {
-        this.error(`Can't use [1:1] syntax when reading from the ${name} variable`, expr);
+        this.error(`Can't use [1:1] syntax when reading from the ${name} variable`, expr, {
+          type: "rangeIndexOnRead",
+          data: { name },
+        });
       }
     } else if (expr.type.name === NodeName.StateVariable) {
       const stateKey = this.getStateKey(expr);
       if (stateKey == null) {
-        this.error(`You cannot read from other exercises states, you can only write to them`, expr);
+        this.error(`You cannot read from other exercises states, you can only write to them`, expr, {
+          type: "otherStateIsWriteOnly",
+        });
       }
       if (stateKey in this.state) {
         return this.state[stateKey];
       } else {
-        this.error(`There's no state variable '${stateKey}'`, expr);
+        this.error(`There's no state variable '${stateKey}'`, expr, {
+          type: "unknownStateVariable",
+          data: { stateKey },
+        });
       }
     } else if (expr.type.name === NodeName.Variable) {
       const varKey = this.getValue(expr).replace("var.", "");
       if (varKey in this.vars) {
         return this.vars[varKey];
       } else {
-        this.error(`There's no variable '${varKey}'`, expr);
+        this.error(`There's no variable '${varKey}'`, expr, { type: "unknownVariable", data: { name: varKey } });
       }
     } else if (expr.type.name === NodeName.ForInExpression) {
       const child = getChildren(expr)[0];
       return this.evaluate(child);
     } else {
-      this.error(`Unknown node type ${expr.node.type.name}`, expr);
+      this.error(`Unknown node type ${expr.node.type.name}`, expr, {
+        type: "unexpectedNode",
+        data: { node: expr.node.type.name },
+      });
     }
   }
 
@@ -1292,7 +1401,7 @@ export class LiftoscriptEvaluator {
       return Weight_op(onerm, a, b, op);
     } catch (error) {
       const e = error as Error;
-      throw new LiftoscriptSyntaxError(e.message, 0, 0, 0, 0);
+      throw new LiftoscriptSyntaxError(e.message, 0, 0, 0, 0, { type: "invalidWeightOperation" });
     }
   }
 }

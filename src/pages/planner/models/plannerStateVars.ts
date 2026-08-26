@@ -4,7 +4,7 @@ import { MathUtils_roundFloat } from "../../../utils/math";
 
 export function PlannerStateVars_fromArgs(
   fnArgs: string[],
-  onError?: (message: string) => void
+  onError?: (message: string, value: string) => void
 ): { state: IProgramState; stateMetadata: IProgramStateMetadata } {
   const state: IProgramState = {};
   const stateMetadata: IProgramStateMetadata = {};
@@ -12,7 +12,7 @@ export function PlannerStateVars_fromArgs(
     // eslint-disable-next-line prefer-const
     let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
     if (onError && (!fnArgKey || !fnArgValStr)) {
-      onError(`Invalid argument ${value}`);
+      onError(`Invalid argument ${value}`, value);
     }
     if (fnArgKey.endsWith("+")) {
       fnArgKey = fnArgKey.replace("+", "");
@@ -29,7 +29,7 @@ export function PlannerStateVars_fromArgs(
       state[fnArgKey] = fnArgVal ?? 0;
     } catch (e) {
       if (onError) {
-        onError(`Invalid argument ${value}`);
+        onError(`Invalid argument ${value}`, value);
       } else {
         throw e;
       }

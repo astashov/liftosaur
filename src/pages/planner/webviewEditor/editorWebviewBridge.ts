@@ -1,11 +1,5 @@
 import type { IAllCustomExercises, IProgramState } from "../../../types";
-import type { PlannerSyntaxError } from "../plannerExerciseEvaluator";
-import type { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
-
-export type IEditorMode = "planner" | "script";
-export type IEditorTheme = "light" | "dark";
-
-export type IEditorError = PlannerSyntaxError | LiftoscriptSyntaxError;
+import type { IEditorError, IEditorMode, IEditorTheme } from "../../../editorTypes";
 
 export interface IEditorInitArgs {
   mode: IEditorMode;

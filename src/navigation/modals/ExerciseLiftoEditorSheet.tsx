@@ -33,7 +33,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   const error = useMemo(
     () =>
       liveError != null
-        ? new PlannerSyntaxError(liveError.message, 0, 0, liveError.from ?? 0, liveError.to ?? 0)
+        ? new PlannerSyntaxError(liveError.message, 0, 0, liveError.from ?? 0, liveError.to ?? 0, {
+            type: "fromWebview",
+          })
         : undefined,
     [liveError]
   );

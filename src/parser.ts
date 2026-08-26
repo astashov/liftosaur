@@ -216,7 +216,10 @@ export class ScriptRunner {
   ): number | IWeight | IPercentage | boolean {
     if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
-        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0);
+        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0, {
+          type: "wrongResultType",
+          data: { expected: "number" },
+        });
       } else if (result < 0) {
         return 0;
       } else {
@@ -224,13 +227,19 @@ export class ScriptRunner {
       }
     } else if (type === "rpe") {
       if (typeof result !== "number") {
-        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0);
+        throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0, {
+          type: "wrongResultType",
+          data: { expected: "number" },
+        });
       } else {
         return Math.round(Math.min(10, Math.max(0, result)) / 0.5) * 0.5;
       }
     } else if (type === "weight") {
       if (typeof result === "boolean") {
-        throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0);
+        throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0, {
+          type: "wrongResultType",
+          data: { expected: "numberOrPercentageOrWeight" },
+        });
       } else if (typeof result === "number") {
         return Weight_build(result, this.units);
       } else {

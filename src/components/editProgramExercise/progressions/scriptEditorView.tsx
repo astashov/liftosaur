@@ -2,7 +2,7 @@ import { JSX, useEffect, useRef } from "react";
 import { IProgramState } from "../../../types";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { ScriptEditor } from "./scriptEditor";
-import { IEditorTheme } from "../../../pages/planner/webviewEditor/editorWebviewBridge";
+import type { IEditorError, IEditorTheme } from "../../../editorTypes";
 
 interface IProps {
   name: string;
@@ -11,7 +11,7 @@ interface IProps {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   error?: LiftoscriptSyntaxError;
   lineNumbers?: boolean;
-  onCustomErrorCta?: (error: string) => JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => JSX.Element | undefined;
   state: IProgramState;
   value?: string;
   // On web the editor lives in the main DOM and inherits the app's theme class, so this is unused here.
@@ -92,12 +92,12 @@ export function ScriptEditorView(props: IProps): JSX.Element {
 interface IEvalResultProps {
   error?: LiftoscriptSyntaxError;
   redTheme?: boolean;
-  onCustomErrorCta?: (error: string) => JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => JSX.Element | undefined;
 }
 
 export function EvalResult(props: IEvalResultProps): JSX.Element | null {
   if (props.error) {
-    const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error.message);
+    const customErrorCta = props.onCustomErrorCta && props.onCustomErrorCta(props.error);
     return (
       <span className="px-2 text-sm">
         <span className={props.redTheme ? "text-redv2-100" : "text-red-500"}>Error: </span>

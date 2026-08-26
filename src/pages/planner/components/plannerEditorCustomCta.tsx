@@ -2,17 +2,18 @@ import type { JSX } from "react";
 import { lb } from "lens-shmens";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerState } from "../models/types";
+import type { IEditorError } from "../../../editorTypes";
 
 interface IPlannerEditorCustomCtaProps {
-  err: string;
+  err: IEditorError;
   dispatch: ILensDispatch<IPlannerState>;
   isInvertedColors?: boolean;
 }
 
 export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX.Element {
-  const match = props.err.match(/Unknown exercise ([^\(]+)/);
-  if (match) {
-    const customExerciseName = match[1].trim();
+  const details = props.err.details;
+  if (details.type === "unknownExercise") {
+    const customExerciseName = details.data.name;
     return (
       <button
         className={`${

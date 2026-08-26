@@ -12,6 +12,7 @@ import {
   IProgramExerciseProgressType,
 } from "./types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
+import type { IPlannerErrorDetails } from "../../../syntaxErrorTypes";
 import { ObjectUtils_clone, ObjectUtils_filter, ObjectUtils_values } from "../../../utils/object";
 import {
   Weight_rpeMultiplier,
@@ -664,7 +665,7 @@ export function PlannerProgramExercise_buildProgress(
     reuseFullname?: string;
     script?: string;
   } = {}
-): IEither<IProgramExerciseProgress, string> {
+): IEither<IProgramExerciseProgress, { message: string; details: IPlannerErrorDetails }> {
   switch (type) {
     case "none": {
       return {
@@ -773,14 +774,14 @@ for (var.i in completedReps) {
     }
     case "custom": {
       const script = opts.script;
-      let errorMessage: string | undefined;
-      const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(args, (message) => {
-        errorMessage = message;
+      let error: { message: string; details: IPlannerErrorDetails } | undefined;
+      const { state, stateMetadata } = PlannerExerciseEvaluator.fnArgsToStateVars(args, (message, value) => {
+        error = { message, details: { type: "invalidStateVariable", data: { value } } };
       });
-      if (errorMessage) {
+      if (error) {
         return {
           success: false,
-          error: errorMessage,
+          error,
         };
       }
       return {

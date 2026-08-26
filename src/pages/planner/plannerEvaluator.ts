@@ -23,6 +23,7 @@ import { PlannerProgram_fullToWeekEvalResult, PlannerProgram_generateFullText } 
 import { ScriptRunner } from "../../parser";
 import { Progress_createEmptyScriptBindings, Progress_createScriptFunctions } from "../../models/progress";
 import { LiftoscriptSyntaxError } from "../../liftoscriptEvaluator";
+import type { IPlannerReuseSection } from "../../syntaxErrorTypes";
 import {
   PlannerProgramExercise_setVariations,
   PlannerProgramExercise_evaluateSetVariations,
@@ -78,7 +79,8 @@ export function PlannerEvaluator_fillInMetadata(
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,
       `Exercise ${exercise.key} is already used in this day. Combine them together, or add a label to separate out.`,
-      exercise.points.fullName
+      exercise.points.fullName,
+      { type: "duplicateExerciseInDay", data: { key: exercise.key } }
     );
   }
   const tagsProp = exercise.tags;
@@ -91,7 +93,11 @@ export function PlannerEvaluator_fillInMetadata(
         `Same property 'id' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
           `week ${existingTags.dayData.week + 1}, day ${existingTags.dayData.dayInWeek + 1} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
-        point
+        point,
+        {
+          type: "conflictingProperty",
+          data: { property: "id", exercise: exercise.name, a: existingTags.dayData, b: dayData },
+        }
       );
     }
     metadata.properties.id[exercise.key] = {
@@ -113,7 +119,11 @@ export function PlannerEvaluator_fillInMetadata(
         `Same property 'progress' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
           `week ${existingProgress.dayData.week + 1}, day ${existingProgress.dayData.dayInWeek + 1} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
-        point
+        point,
+        {
+          type: "conflictingProperty",
+          data: { property: "progress", exercise: exercise.name, a: existingProgress.dayData, b: dayData },
+        }
       );
     }
     metadata.properties.progress[exercise.key] = {
@@ -132,7 +142,11 @@ export function PlannerEvaluator_fillInMetadata(
         `Same property 'update' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
           `week ${existingUpdate.dayData.week + 1}, day ${existingUpdate.dayData.dayInWeek + 1} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
-        point
+        point,
+        {
+          type: "conflictingProperty",
+          data: { property: "update", exercise: exercise.name, a: existingUpdate.dayData, b: dayData },
+        }
       );
     }
     metadata.properties.update[exercise.key] = {
@@ -152,7 +166,11 @@ export function PlannerEvaluator_fillInMetadata(
         `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
           `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
-        exercise.points.warmupPoint || exercise.points.fullName
+        exercise.points.warmupPoint || exercise.points.fullName,
+        {
+          type: "conflictingProperty",
+          data: { property: "warmup", exercise: exercise.name, a: ws.dayData, b: dayData },
+        }
       );
     }
     metadata.properties.warmup[exercise.key] = {
@@ -394,10 +412,11 @@ function PlannerEvaluator_checkSelfReuse(
   exercise: IPlannerProgramExercise,
   originalExercise: IPlannerProgramExercise | undefined,
   message: string,
-  point: IPlannerSyntaxPointer
+  point: IPlannerSyntaxPointer,
+  section: IPlannerReuseSection
 ): void {
   if (originalExercise === exercise) {
-    throw PlannerSyntaxError.fromPoint(exercise.fullName, message, point);
+    throw PlannerSyntaxError.fromPoint(exercise.fullName, message, point, { type: "reuseSelf", data: { section } });
   }
 }
 
@@ -421,7 +440,8 @@ export function PlannerEvaluator_fillSetReuses(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `There're several exercises matching, please be more specific with [week:day] syntax`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        { type: "reuseAmbiguous" }
       );
     }
     const originalExercise = originalExercises[0];
@@ -431,27 +451,34 @@ export function PlannerEvaluator_fillSetReuses(
         `No such exercise ${reuse.fullName} at week: ${reuse.week ?? weekIndex + 1}${
           reuse.day != null ? `, day: ${reuse.day}` : ""
         }`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        {
+          type: "reuseTargetNotFound",
+          data: { fullName: reuse.fullName, week: reuse.week ?? weekIndex + 1, day: reuse.day },
+        }
       );
     }
     PlannerEvaluator_checkSelfReuse(
       exercise,
       originalExercise.exercise,
       `Exercise cannot reuse itself`,
-      exercise.points.reuseSetPoint
+      exercise.points.reuseSetPoint,
+      "sets"
     );
     if (originalExercise.exercise.reuse?.fullName != null) {
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `Original exercise cannot reuse another exercise's sets x reps`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        { type: "reuseChained", data: { section: "sets" } }
       );
     }
     if ((originalExercise.exercise.exerciseVariations?.length ?? 0) > 1) {
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `Cannot reuse '${reuse.fullName}' - it has multiple exercise variations. Move the shared sets/progress into a 'used: none' template and reuse that instead`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        { type: "reuseTargetMultipleVariations", data: { fullName: reuse.fullName } }
       );
     }
     if (
@@ -462,7 +489,8 @@ export function PlannerEvaluator_fillSetReuses(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `This exercise doesn't specify progress - so the original USED exercise's progress cannot reuse another exercise's progress`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        { type: "reuseWithoutOwnSection", data: { section: "progress" } }
       );
     }
     if (
@@ -473,7 +501,8 @@ export function PlannerEvaluator_fillSetReuses(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `This exercise doesn't specify 'update' - so the original exercise's 'update' cannot reuse another exercise's 'update'`,
-        exercise.points.reuseSetPoint
+        exercise.points.reuseSetPoint,
+        { type: "reuseWithoutOwnSection", data: { section: "update" } }
       );
     }
     if (originalExercise.exercise.progress != null && exercise.progress == null) {
@@ -586,7 +615,8 @@ export function PlannerEvaluator_fillDescriptionReuses(
         exercise,
         originalExercise,
         `Exercise cannot reuse its own description`,
-        exercise.points.fullName
+        exercise.points.fullName,
+        "description"
       );
       // Unlike sets or progress, this copies whatever the target holds at the moment it is wired
       // rather than following a pointer, so a target that is itself borrowing hands over either
@@ -598,7 +628,8 @@ export function PlannerEvaluator_fillDescriptionReuses(
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           `Original exercise cannot reuse another description - reuse the one that writes it instead`,
-          exercise.points.fullName
+          exercise.points.fullName,
+          { type: "reuseChained", data: { section: "description" } }
         );
       }
       exercise.descriptions = {
@@ -656,18 +687,27 @@ export function PlannerEvaluator_fillProgressReuses(
       const key = PlannerKey_fromFullName(fullName, settings.exercises);
       const point = exercise.points.progressPoint || exercise.points.fullName;
       if (metadata.byExerciseWeekDay[key] == null) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${fullName}`, point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${fullName}`, point, {
+          type: "reuseTargetNotFound",
+          data: { fullName },
+        });
       }
       const originalProperty = metadata.properties.progress[key];
       const dayData = originalProperty?.dayData;
       const originalProgress = originalProperty?.property;
       if (!originalProgress || !dayData) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point, {
+          type: "reuseTargetMissingSection",
+          data: { section: "progress" },
+        });
       }
       // fillSingleProperties hands every instance the same progress object, so identity here means
       // the exercise reuses its own progress - see PlannerEvaluator_checkSelfReuse.
       if (originalProgress === progress) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own progress`, point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own progress`, point, {
+          type: "reuseSelf",
+          data: { section: "progress" },
+        });
       }
       if (originalProgress.reuse?.fullName != null) {
         // originalProgress.reuse.exercise may not be resolved yet (resolution goes in document
@@ -677,7 +717,8 @@ export function PlannerEvaluator_fillProgressReuses(
           throw PlannerSyntaxError.fromPoint(
             exercise.fullName,
             `Original exercise cannot reuse another progress`,
-            point
+            point,
+            { type: "reuseChained", data: { section: "progress" } }
           );
         }
       }
@@ -685,7 +726,8 @@ export function PlannerEvaluator_fillProgressReuses(
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           "Original exercise should specify custom progress",
-          point
+          point,
+          { type: "reuseTargetNotCustom", data: { section: "progress" } }
         );
       }
       const originalState = originalProgress.state;
@@ -693,7 +735,10 @@ export function PlannerEvaluator_fillProgressReuses(
       for (const stateKey of ObjectUtils_keys(originalState)) {
         const value = originalState[stateKey];
         if (state[key] != null && Weight_type(value) !== Weight_type(state[stateKey])) {
-          throw PlannerSyntaxError.fromPoint(exercise.fullName, `Wrong type of state variable ${stateKey}`, point);
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, `Wrong type of state variable ${stateKey}`, point, {
+            type: "reuseStateTypeMismatch",
+            data: { stateKey },
+          });
         }
       }
       const originalExercises = PlannerEvaluator_findOriginalExercisesAtWeekDay(
@@ -711,7 +756,8 @@ export function PlannerEvaluator_fillProgressReuses(
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           `Original exercise '${originalExercise.fullName}' should not reuse other exercise`,
-          point
+          point,
+          { type: "reuseChained", data: { section: "progress" } }
         );
       }
       progress.reuse.exercise = originalExercise;
@@ -750,7 +796,8 @@ export function PlannerEvaluator_checkUpdateScript(
             line + e.line,
             e.offset,
             liftoscriptNode.from + e.from,
-            liftoscriptNode.from + e.to
+            liftoscriptNode.from + e.to,
+            e.details
           );
         } else {
           throw e;
@@ -774,27 +821,47 @@ export function PlannerEvaluator_fillUpdateReuses(
       const point = exercise.points.updatePoint || exercise.points.fullName;
 
       if (metadata.byExerciseWeekDay[key] == null) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${fullName}`, point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `No such exercise ${fullName}`, point, {
+          type: "reuseTargetNotFound",
+          data: { fullName },
+        });
       }
       const originalProperty = metadata.properties.update[key];
       const originalUpdate = originalProperty?.property;
       const dayData = originalProperty?.dayData;
       if (!originalUpdate || !dayData) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point, {
+          type: "reuseTargetMissingSection",
+          data: { section: "update" },
+        });
       }
       // Same shared-object reasoning as the progress check above.
       if (originalUpdate === update) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own update`, point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Exercise cannot reuse its own update`, point, {
+          type: "reuseSelf",
+          data: { section: "update" },
+        });
       }
       if (originalUpdate.reuse?.fullName != null) {
         // Same as the progress check above: reuse.exercise may not be resolved yet.
         const originalReuseKey = PlannerKey_fromFullName(originalUpdate.reuse.fullName, settings.exercises);
         if (!metadata.notused.has(originalReuseKey)) {
-          throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another update`, point);
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            `Original exercise cannot reuse another update`,
+            point,
+            {
+              type: "reuseChained",
+              data: { section: "update" },
+            }
+          );
         }
       }
       if (originalUpdate.type !== "custom") {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify custom update", point);
+        throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify custom update", point, {
+          type: "reuseTargetNotCustom",
+          data: { section: "update" },
+        });
       }
       const stateKeys = originalUpdate.meta?.stateKeys || new Set();
       if (stateKeys.size !== 0) {
@@ -803,7 +870,8 @@ export function PlannerEvaluator_fillUpdateReuses(
           throw PlannerSyntaxError.fromPoint(
             exercise.fullName,
             "If 'update' block uses state variables, exercise should define them in 'progress' block",
-            point
+            point,
+            { type: "updateStateWithoutProgress" }
           );
         }
         const state = PlannerProgramExercise_getState(exercise);
@@ -812,7 +880,8 @@ export function PlannerEvaluator_fillUpdateReuses(
             throw PlannerSyntaxError.fromPoint(
               exercise.fullName,
               `Missing state variable ${stateKey} that's used in the original update block`,
-              point
+              point,
+              { type: "reuseMissingStateVariable", data: { stateKey } }
             );
           }
         }
@@ -832,7 +901,8 @@ export function PlannerEvaluator_fillUpdateReuses(
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           `Original exercise '${originalExercise.fullName}' should not reuse other exercise`,
-          point
+          point,
+          { type: "reuseChained", data: { section: "update" } }
         );
       }
       update.reuse.exercise = originalExercise;
@@ -868,7 +938,8 @@ export function PlannerEvaluator_checkReuseLoops(exercise: IPlannerProgramExerci
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `This exercise ends up reusing itself through other exercises`,
-        exercise.points.progressPoint || exercise.points.reuseSetPoint || exercise.points.fullName
+        exercise.points.progressPoint || exercise.points.reuseSetPoint || exercise.points.fullName,
+        { type: "reuseCycle" }
       );
     }
     seen.add(current);
@@ -887,14 +958,16 @@ export function PlannerEvaluator_checkReusesResolve(exercise: IPlannerProgramExe
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,
       `Couldn't find the progress script this reuses - reuse the exercise that defines it instead`,
-      exercise.points.progressPoint || exercise.points.fullName
+      exercise.points.progressPoint || exercise.points.fullName,
+      { type: "reuseScriptNotFound", data: { section: "progress" } }
     );
   }
   if (exercise.update != null && PlannerProgramExercise_getUpdateScript(exercise) == null) {
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,
       `Couldn't find the update script this reuses - reuse the exercise that defines it instead`,
-      exercise.points.updatePoint || exercise.points.fullName
+      exercise.points.updatePoint || exercise.points.fullName,
+      { type: "reuseScriptNotFound", data: { section: "update" } }
     );
   }
 }
@@ -965,7 +1038,8 @@ export function PlannerEvaluator_checkUnknownExercises(
         throw PlannerSyntaxError.fromPoint(
           exercise.fullName,
           `Unknown exercise ${variation.name}`,
-          exercise.points.fullName
+          exercise.points.fullName,
+          { type: "unknownExercise", data: { name: variation.name } }
         );
       }
     }
@@ -973,7 +1047,8 @@ export function PlannerEvaluator_checkUnknownExercises(
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,
       `Unknown exercise ${exercise.name}`,
-      exercise.points.fullName
+      exercise.points.fullName,
+      { type: "unknownExercise", data: { name: exercise.name } }
     );
   }
 }

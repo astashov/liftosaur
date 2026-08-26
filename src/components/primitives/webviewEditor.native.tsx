@@ -4,14 +4,8 @@ import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { Text } from "./text";
 import { EDITOR_HTML } from "../../pages/planner/webviewEditor/editorHtml.generated";
-import {
-  IEditorInitArgs,
-  IEditorError,
-  IEditorMode,
-  IEditorTheme,
-  IHostToWebview,
-  IWebviewToHost,
-} from "../../pages/planner/webviewEditor/editorWebviewBridge";
+import { IEditorInitArgs, IHostToWebview, IWebviewToHost } from "../../pages/planner/webviewEditor/editorWebviewBridge";
+import { IEditorError, IEditorMode, IEditorTheme } from "../../editorTypes";
 import { IAllCustomExercises, IProgramState } from "../../types";
 
 export interface IWebviewEditorProps {
@@ -25,7 +19,7 @@ export interface IWebviewEditorProps {
   customExercises?: IAllCustomExercises;
   exerciseFullNames?: string[];
   state?: IProgramState;
-  onCustomErrorCta?: (error: string) => React.ReactNode;
+  onCustomErrorCta?: (error: IEditorError) => React.ReactNode;
   height?: number;
   theme?: IEditorTheme;
   autoHeight?: boolean;
@@ -211,7 +205,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
     }
   }, [props.theme, send]);
 
-  const customCta = props.error != null && props.onCustomErrorCta ? props.onCustomErrorCta(props.error.message) : null;
+  const customCta = props.error != null && props.onCustomErrorCta ? props.onCustomErrorCta(props.error) : null;
   let height: number;
   if (props.autoHeight) {
     const measured = contentHeight ?? props.minHeight ?? DEFAULT_MIN_HEIGHT;

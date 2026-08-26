@@ -1648,7 +1648,10 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
     const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[2][0]).to.deep.equal({
       success: false,
-      error: new PlannerSyntaxError("Squat: No such exercise tmp: Squat at week: 3 (4:13)", 0, 0, 0, 0),
+      error: new PlannerSyntaxError("Squat: No such exercise tmp: Squat at week: 3 (4:13)", 0, 0, 0, 0, {
+        type: "reuseTargetNotFound",
+        data: { fullName: "tmp: Squat", week: 3 },
+      }),
     });
   });
 
@@ -1673,7 +1676,8 @@ Squat / 2x8+ / 100lb / progress: custom(reps: 24) {~
         0,
         0,
         0,
-        0
+        0,
+        { type: "fnArrayArgument", data: { fn: "increment", argText: "weights" } }
       ),
     });
   });
@@ -1692,7 +1696,10 @@ Squat / 2x8+ / 100lb / progress: custom(foo: 0) {~
     const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
     expect(result).to.deep.equal({
       success: false,
-      error: new PlannerSyntaxError("Function 'rpeMultiplier' expects 1-2 arguments, but got 0 (2:14)", 0, 0, 0, 0),
+      error: new PlannerSyntaxError("Function 'rpeMultiplier' expects 1-2 arguments, but got 0 (2:14)", 0, 0, 0, 0, {
+        type: "fnArity",
+        data: { fn: "rpeMultiplier", expected: "1-2", got: 0 },
+      }),
     });
   });
 
@@ -1715,7 +1722,17 @@ Squat / 2x8+ / 100lb / progress: custom(foo: 0) {~
         0,
         0,
         0,
-        0
+        0,
+        {
+          type: "fnArgumentType",
+          data: {
+            fn: "calculateTrainingMax",
+            index: 1,
+            argName: "reps",
+            hint: "a number of reps",
+            got: "weight",
+          },
+        }
       ),
     });
   });
@@ -1734,7 +1751,10 @@ Squat / 2x8+ / 100lb / update: custom() {~
     const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
     expect(result).to.deep.equal({
       success: false,
-      error: new PlannerSyntaxError("Function 'sets' expects 9 arguments, but got 8 (2:2)", 0, 0, 0, 0),
+      error: new PlannerSyntaxError("Function 'sets' expects 9 arguments, but got 8 (2:2)", 0, 0, 0, 0, {
+        type: "fnArity",
+        data: { fn: "sets", expected: "9", got: 8 },
+      }),
     });
   });
 

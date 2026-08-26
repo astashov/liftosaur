@@ -236,7 +236,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                               if (result.success) {
                                 e.progress = result.data;
                               } else {
-                                Dialog_alert(result.error);
+                                Dialog_alert(result.error.message);
                               }
                             }
                           }

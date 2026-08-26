@@ -15,16 +15,18 @@ import {
   PlannerStructure_deleteExercises,
   PlannerStructure_addDay,
   PlannerStructure_addWeek,
+  IPlannerStructureResult,
 } from "../src/pages/planner/models/plannerStructure";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
 import {
   ProgramGrid_build,
   ProgramGrid_dayDataAt,
+  IProgramGrid,
   IProgramGridPlacement,
 } from "../src/pages/planner/models/programGrid";
 import { Program_evaluate, Program_create } from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
-import { IPlannerProgram, IProgram } from "../src/types";
+import { IDayData, IPlannerProgram, IProgram } from "../src/types";
 
 // setRepeatRange returns an IEither like every other transform; these tests assert on the happy
 // path, so unwrap here and fail loudly if a case ever starts refusing.
@@ -1286,20 +1288,23 @@ Squat / 3x5
   describe("a strip is not a line", () => {
     const OVERRIDDEN = `# W1\n## D1\nSquat[1-4] / 3x5 100lb\n\n# W2\n## D1\n\n# W3\n## D1\nSquat / 5x3 200lb\n\n# W4\n## D1\n\n# W5\n## D1\n`;
 
-    function gridOf(planner: IPlannerProgram) {
+    function gridOf(planner: IPlannerProgram): IProgramGrid {
       return ProgramGrid_build(
         Program_evaluate({ ...Program_create("P"), planner }, Settings_build()),
         Settings_build()
       );
     }
-    function stripStartingAt(planner: IPlannerProgram, colStart: number) {
+    function stripStartingAt(planner: IPlannerProgram, colStart: number): IProgramGridPlacement {
       const strip = gridOf(planner)
         .placements.filter((p) => p.fullName === "Squat")
         .find((p) => p.colStart === colStart);
       expect(strip, `expected a Squat strip starting at ${colStart}`).to.not.equal(undefined);
       return strip!;
     }
-    function targetsFor(planner: IPlannerProgram, strip: { rowIndex: number; sourceWeeks: number[] }) {
+    function targetsFor(
+      planner: IPlannerProgram,
+      strip: { rowIndex: number; sourceWeeks: number[] }
+    ): (Required<IDayData> & { fullName: string })[] {
       return strip.sourceWeeks.map((week) => ({
         ...ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, week),
         fullName: "Squat",
@@ -1383,7 +1388,11 @@ Squat / 3x5
 
     // Resizing takes the run's *claimed* range, which is neither where the strip is drawn nor where
     // the line is written. Passing either of the other two produced a bug; these hold that down.
-    function resizeStrip(planner: IPlannerProgram, strip: IProgramGridPlacement, toWeek: number) {
+    function resizeStrip(
+      planner: IPlannerProgram,
+      strip: IProgramGridPlacement,
+      toWeek: number
+    ): IPlannerStructureResult {
       return PlannerStructure_setRepeatRange(
         planner,
         ProgramGrid_dayDataAt(gridOf(planner), strip.rowIndex, strip.repeatSpan?.[0] ?? strip.colStart),

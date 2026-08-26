@@ -65,10 +65,27 @@ function ok<T>(data: T): IApiResult<T> {
   return { success: true, data };
 }
 
-function syntaxErrorDetails(
-  errors: (LiftohistorySyntaxError | PlannerSyntaxError)[]
-): { line: number; offset: number; from: number; to: number; message: string }[] {
-  return errors.map((e) => ({ line: e.line, offset: e.offset, from: e.from, to: e.to, message: e.message }));
+function syntaxErrorDetails(errors: (LiftohistorySyntaxError | PlannerSyntaxError)[]): {
+  line: number;
+  offset: number;
+  from: number;
+  to: number;
+  message: string;
+  type?: string;
+  data?: unknown;
+}[] {
+  return errors.map((e) => {
+    const details = "details" in e ? e.details : undefined;
+    return {
+      line: e.line,
+      offset: e.offset,
+      from: e.from,
+      to: e.to,
+      message: e.message,
+      type: details?.type,
+      data: details != null && "data" in details ? details.data : undefined,
+    };
+  });
 }
 
 function parseDate(dateStr: string): string {

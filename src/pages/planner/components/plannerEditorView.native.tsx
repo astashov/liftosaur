@@ -2,7 +2,7 @@ import React from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { WebviewEditor } from "../../../components/primitives/webviewEditor";
-import { IEditorTheme } from "../webviewEditor/editorWebviewBridge";
+import type { IEditorError, IEditorTheme } from "../../../editorTypes";
 
 interface IProps {
   name: string;
@@ -11,7 +11,7 @@ interface IProps {
   onBlur?: (event: FocusEvent, newValue: string) => void;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
-  onCustomErrorCta?: (error: string) => React.JSX.Element | undefined;
+  onCustomErrorCta?: (error: IEditorError) => React.JSX.Element | undefined;
   customExercises: IAllCustomExercises;
   exerciseFullNames: string[];
   value?: string;
