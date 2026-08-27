@@ -34,8 +34,8 @@ function buildGrid(text: string): IProgramGrid {
 }
 
 // Two rows: row 0 has two lanes, row 1 has one. With rem = 16 and laneHeight = 50 that makes
-// row 0 = 32 (label) + 100 (lanes) + 24 (add) + 4 (gap) = 160, +4 margin = 164
-// row 1 = 32 + 50 + 24 + 4 = 110, +4 margin = 114
+// row 0 = 32 (label) + 100 (lanes) + 24 (add) + 7 (gap) = 163, +4 margin = 167
+// row 1 = 32 + 50 + 24 + 7 = 113, +4 margin = 117
 function rowsFixture(): IGridGeometryRow[] {
   return ProgramGridGeometry_build(
     buildGrid(`# Week 1
@@ -76,12 +76,12 @@ describe("ProgramGridGeometry", () => {
       const rows = rowsFixture();
       expect(rows).to.have.length(2);
       expect(rows[0].top).to.equal(0);
-      expect(rows[0].height).to.equal(160);
-      expect(rows[0].outerHeight).to.equal(164);
+      expect(rows[0].height).to.equal(163);
+      expect(rows[0].outerHeight).to.equal(167);
       expect(rows[0].contentTop).to.equal(32);
       expect(rows[0].laneNames).to.deep.equal(["Squat", "Bench Press"]);
       // The second row starts below the first, margin included.
-      expect(rows[1].top).to.equal(164);
+      expect(rows[1].top).to.equal(167);
       expect(rows[1].laneNames).to.deep.equal(["Deadlift"]);
     });
 
@@ -95,11 +95,11 @@ Bench Press / 5x5 50lb
 Deadlift / 1x5 200lb
 `);
       const rows = ProgramGridGeometry_build(grid, [0], 50, 16);
-      expect(rows[0].height).to.equal(36);
+      expect(rows[0].height).to.equal(39);
       expect(rows[0].isCollapsed).to.equal(true);
       // Still knows its lanes — the ghost draws them even while the row itself is collapsed.
       expect(rows[0].laneNames).to.deep.equal(["Squat", "Bench Press"]);
-      expect(rows[1].top).to.equal(40);
+      expect(rows[1].top).to.equal(43);
     });
   });
 
@@ -112,6 +112,29 @@ Deadlift / 1x5 200lb
       expect(fit.totalWidth + GRID_ADD_WEEK_WIDTH * 16).to.equal(400);
       const scroll = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, rem: 16 });
       expect(scroll.columnWidth).to.equal(GRID_BASE_COLUMN_WIDTH * 16);
+    });
+
+    it("fills a container with room to spare, however many weeks it holds", () => {
+      // The desktop case: three columns at the base width leave most of the screen empty, so they
+      // divide it instead — and the rail still lands exactly on the right edge.
+      const wide = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 1400, rem: 16 });
+      expect(wide.columnWidth).to.equal((1400 - GRID_ADD_WEEK_WIDTH * 16) / 3);
+      expect(wide.totalWidth + GRID_ADD_WEEK_WIDTH * 16).to.equal(1400);
+    });
+
+    it("scrolls rather than shrinking past two weeks", () => {
+      // Same container, more weeks than fit in it: dividing would give slivers, so the base width
+      // holds and the grid scrolls. Only one or two weeks may shrink to avoid that scroll.
+      const many = ProgramGridGeometry_metrics({ weekCount: 12, containerWidth: 1400, rem: 16 });
+      expect(many.columnWidth).to.equal(GRID_BASE_COLUMN_WIDTH * 16);
+      const two = ProgramGridGeometry_metrics({ weekCount: 2, containerWidth: 320, rem: 16 });
+      expect(two.columnWidth).to.equal((320 - GRID_ADD_WEEK_WIDTH * 16) / 2);
+      expect(two.columnWidth).to.be.lessThan(GRID_BASE_COLUMN_WIDTH * 16);
+    });
+
+    it("keeps a column positive before the container has been laid out", () => {
+      const unmeasured = ProgramGridGeometry_metrics({ weekCount: 2, containerWidth: 0, rem: 16 });
+      expect(unmeasured.columnWidth).to.equal(GRID_BASE_COLUMN_WIDTH * 16);
     });
 
     it("an explicit scale wins over fitting", () => {
@@ -231,11 +254,11 @@ Deadlift / 1x5 200lb
   describe("dayBlockDropAt", () => {
     it("passes a neighbour at its centre, which is half of each of the two rows away", () => {
       const rows = rowsFixture();
-      // Row 0's centre is 82, row 1's is 221, so row 0 passes it after 139.
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 139)).to.equal(1);
+      // Row 0's centre is 81.5, row 1's is 223.5, so row 0 passes it after 142.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 142)).to.equal(1);
       expect(ProgramGridGeometry_isBlockDropNoop(2, [0], 1)).to.equal(true);
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 140)).to.equal(2);
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1], -139)).to.equal(0);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0], 143)).to.equal(2);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1], -142)).to.equal(0);
     });
 
     it("never runs past either end", () => {
@@ -248,13 +271,13 @@ Deadlift / 1x5 200lb
 
     it("measures a block from its leading row and ignores its own members", () => {
       const rows = threeRowsFixture();
-      // Rows are 114 apart, centres at 57, 171, 285. Dragging rows 0 and 1 down, it is row 1 that
-      // has to pass row 2's centre — one row's travel, not two.
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 114)).to.equal(2);
+      // Rows are 117 apart, centres at 56.5, 173.5, 290.5. Dragging rows 0 and 1 down, it is row 1
+      // that has to pass row 2's centre — one row's travel, not two.
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 117)).to.equal(2);
       expect(ProgramGridGeometry_isBlockDropNoop(3, [0, 1], 2)).to.equal(true);
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 115)).to.equal(3);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [0, 1], 118)).to.equal(3);
       // And going up it is the first of them, so the same travel puts the block above row 0.
-      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1, 2], -115)).to.equal(0);
+      expect(ProgramGridGeometry_dayBlockDropAt(rows, [1, 2], -117)).to.equal(0);
     });
   });
 

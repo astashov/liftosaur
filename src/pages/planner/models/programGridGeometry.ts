@@ -14,15 +14,21 @@ export const GRID_BASE_COLUMN_WIDTH = 9.5;
 export const GRID_SCHEME_MIN_WIDTH = 7.5;
 export const GRID_LANE_HEIGHT_WITH_SCHEME = 3.25;
 export const GRID_LANE_HEIGHT_NAME_ONLY = 2;
-// Up to this many weeks, columns divide the available width instead of scrolling.
+// Up to this many weeks, columns may divide the available width even when that makes them narrower
+// than the base. Wider programs still stretch to fill a screen with room to spare — they just never
+// shrink to do it.
 export const GRID_WEEKS_THAT_FIT = 2;
 // A day box is inset from its column by DAY_BOX_INSET (so neighbouring boxes are separated by twice
 // that), and a strip is inset by CELL_INSET — the difference between them is the breathing room
 // *inside* the box, and BOTTOM_GAP keeps the same room under the last strip.
+//
+// BOTTOM_GAP is measured from the row's edge while the box's border sits DAY_BOX_INSET inside it,
+// so matching CELL_INSET_X leaves exactly the same gap below the last strip as beside it. It read
+// as CELL_INSET_X - DAY_BOX_INSET for a while, one pixel, which put "+ Exercise" on the border.
 export const GRID_DAY_BOX_INSET = 0.1875;
 export const GRID_CELL_INSET_X = 0.4375;
 export const GRID_CELL_INSET_Y = 0.1875;
-export const GRID_BOTTOM_GAP = 0.25;
+export const GRID_BOTTOM_GAP = GRID_CELL_INSET_X;
 export const GRID_ADD_ROW_HEIGHT = 1.5;
 export const GRID_DAY_LABEL_HEIGHT = 2;
 export const GRID_RESIZE_HANDLE_WIDTH = 1;
@@ -67,8 +73,15 @@ export function ProgramGridGeometry_metrics(args: {
   // Fitting divides what is left *after* the "+ Week" rail, not the whole width: filling the screen
   // edge to edge pushes the rail off it, and a button you have to scroll sideways to discover is one
   // nobody knows the grid has.
-  const autoColumnWidth =
-    weekCount > 0 && weekCount <= GRID_WEEKS_THAT_FIT ? (containerWidth - GRID_ADD_WEEK_WIDTH * rem) / weekCount : base;
+  //
+  // Before layout has happened there is no width to divide, and dividing zero produces a negative
+  // column for the frame before onLayout arrives.
+  const fitted = weekCount > 0 && containerWidth > 0 ? (containerWidth - GRID_ADD_WEEK_WIDTH * rem) / weekCount : base;
+  // Stretching to fill has no week limit — a wide screen showing three narrow columns against a
+  // field of nothing is the whole desktop case. *Shrinking* below the base width keeps one, because
+  // that is a phone deciding a short program is worth squeezing rather than scrolling; past that
+  // limit a program too wide to fit scrolls instead of dissolving into slivers.
+  const autoColumnWidth = weekCount <= GRID_WEEKS_THAT_FIT ? fitted : Math.max(base, fitted);
   const columnWidth = args.scale != null ? base * args.scale : autoColumnWidth;
   const showScheme = columnWidth >= GRID_SCHEME_MIN_WIDTH * rem;
   return {
