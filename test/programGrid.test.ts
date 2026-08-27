@@ -177,8 +177,7 @@ Chin Up / 5x10 0lb
 Squat / 3x5 100lb / superset: A
 Bench Press / 3x5 50lb / superset: A
 `);
-    const color = (name: string): string | undefined =>
-      grid.placements.find((p) => p.fullName === name)!.supersetColor;
+    const color = (name: string): string | undefined => grid.placements.find((p) => p.fullName === name)!.supersetColor;
     expect(color("Squat")).to.equal("red");
     // Its partner shares the color — that is the whole point of the line.
     expect(color("Bench Press")).to.equal("red");

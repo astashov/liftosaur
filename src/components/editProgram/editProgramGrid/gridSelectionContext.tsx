@@ -30,6 +30,9 @@ export interface IGridSelectionPayload {
   onDeleteWeek: (weekIndex: number) => void;
   onEditWeek: (weekIndex: number) => void;
   onEditDay: (rowIndex: number) => void;
+  onShowWeekStats: (weekIndex: number) => void;
+  onShowDayStats: (rowIndex: number) => void;
+  onShowExerciseStats: (placement: IProgramGridPlacement) => void;
   onClear: () => void;
 }
 

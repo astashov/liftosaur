@@ -225,6 +225,9 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           onDeleteWeek: actions.onDeleteWeek,
           onEditWeek: editDetails.onEditWeek,
           onEditDay: editDetails.onEditDay,
+          onShowWeekStats: navigation.onShowWeekStats,
+          onShowDayStats: navigation.onShowDayStats,
+          onShowExerciseStats: navigation.onShowExerciseStats,
           onClear: onClear,
         }
       : undefined;
@@ -243,6 +246,9 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     actions.onDeleteWeek,
     editDetails.onEditWeek,
     editDetails.onEditDay,
+    navigation.onShowWeekStats,
+    navigation.onShowDayStats,
+    navigation.onShowExerciseStats,
     onClear,
   ]);
   useEffect(() => {

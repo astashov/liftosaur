@@ -1,11 +1,13 @@
 import { JSX, memo, useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
 import { IconEdit2 } from "../../icons/iconEdit2";
-import { IconDuplicate2 } from "../../icons/iconDuplicate2";
-import { IconTrash } from "../../icons/iconTrash";
 import { IconCloseCircleOutline } from "../../icons/iconCloseCircleOutline";
+import { IconKebab } from "../../icons/iconKebab";
+import { DropdownMenu, DropdownMenuItem } from "../../dropdownMenu";
+import { ActionSheet_show } from "../../../utils/actionSheet";
+import { useRemScale } from "../../../utils/useRem";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { useGridSelection } from "./gridSelectionContext";
 import { GridBadge } from "./gridBadge";
@@ -16,6 +18,12 @@ import { StringUtils_pluralize } from "../../../utils/string";
 // has scrolled to.
 export const GridActionDock = memo(function GridActionDock(): JSX.Element | null {
   const props = useGridSelection();
+  // The tab bar's workout button overhangs its own bar by `-mt-scaled-6` (footer2.tsx), and that
+  // overhang grows with the text size while padding does not — plain spacing is deliberately
+  // constant at every size. At 1x the button clears the dock's second line on its own; past that it
+  // starts sitting on top of it, so the dock buys the room back in the same scaled unit the
+  // overhang is measured in, which is what keeps the two tracking each other further up the slider.
+  const isTextLarge = useRemScale() >= 1.25;
   if (props == null) {
     return null;
   }
@@ -57,10 +65,56 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
     }
   }
 
+  // Editing is the one thing you do over and over while laying a program out, so it keeps an icon.
+  // The rest are occasional, and four icons plus a name plus badges stopped fitting the strip at
+  // large font scales — the name was being truncated to make room for verbs nobody had reached for.
+  //
+  // An action that doesn't apply is left out rather than shown greyed: a menu is read as a list of
+  // what you can do, and a disabled row in one is a worse answer than a shorter list.
+  const overflowActions: IDockAction[] = [];
+  if (target.kind === "week") {
+    overflowActions.push({ label: "Week stats", onPress: () => props.onShowWeekStats(target.weekIndex) });
+    overflowActions.push({ label: "Duplicate week", onPress: () => props.onDuplicateWeek(target.weekIndex) });
+    overflowActions.push({
+      label: "Delete week",
+      isDestructive: true,
+      onPress: () => props.onDeleteWeek(target.weekIndex),
+    });
+  } else if (target.kind === "day") {
+    const rowIndexes = target.rowIndexes;
+    if (rowIndexes.length === 1) {
+      overflowActions.push({ label: "Day stats", onPress: () => props.onShowDayStats(rowIndexes[0]) });
+    }
+    overflowActions.push({
+      label: `Duplicate ${StringUtils_pluralize("day", rowIndexes.length)}`,
+      onPress: () => props.onDuplicateDays(rowIndexes),
+    });
+    overflowActions.push({
+      label: `Delete ${StringUtils_pluralize("day", rowIndexes.length)}`,
+      isDestructive: true,
+      onPress: () => props.onDeleteDays(rowIndexes),
+    });
+  } else {
+    const placements = target.placements;
+    if (single != null) {
+      overflowActions.push({ label: "Exercise stats", onPress: () => props.onShowExerciseStats(single) });
+      overflowActions.push({ label: "Duplicate exercise", onPress: () => props.onDuplicate(single) });
+    }
+    overflowActions.push({
+      label: `Delete ${StringUtils_pluralize("exercise", placements.length)}`,
+      isDestructive: true,
+      onPress: () => props.onDelete(placements),
+    });
+  }
+
   return (
     // The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the grid's
     // own scrolling content, so without a visible edge its background reads as more grid.
-    <View className="flex-row items-center gap-1 px-3 py-2 border-t bg-background-default border-border-neutral">
+    <View
+      className={`flex-row items-center gap-1 px-3 pt-2 border-t bg-background-default border-border-neutral ${
+        isTextLarge ? "pb-scaled-4" : "pb-2"
+      }`}
+    >
       <Pressable className="p-1 nm-grid-clear-selection" testID="grid-clear-selection" onPress={props.onClear}>
         <IconCloseCircleOutline size={20} color={Tailwind_semantic().icon.neutral} />
       </Pressable>
@@ -93,49 +147,7 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
       >
         <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
       </DockButton>
-      <DockButton
-        name="grid-action-duplicate"
-        label={
-          target.kind === "day"
-            ? `Duplicate ${StringUtils_pluralize("day", target.rowIndexes.length)}`
-            : target.kind === "week"
-              ? "Duplicate week"
-              : "Duplicate"
-        }
-        disabled={target.kind === "exercises" && single == null}
-        onPress={() => {
-          if (target.kind === "day") {
-            props.onDuplicateDays(target.rowIndexes);
-          } else if (target.kind === "week") {
-            props.onDuplicateWeek(target.weekIndex);
-          } else if (single != null) {
-            props.onDuplicate(single);
-          }
-        }}
-      >
-        <IconDuplicate2 width={20} height={21} />
-      </DockButton>
-      <DockButton
-        name="grid-action-delete"
-        label={
-          target.kind === "day"
-            ? `Delete ${StringUtils_pluralize("day", target.rowIndexes.length)}`
-            : target.kind === "week"
-              ? "Delete week"
-              : "Delete"
-        }
-        onPress={() => {
-          if (target.kind === "day") {
-            props.onDeleteDays(target.rowIndexes);
-          } else if (target.kind === "week") {
-            props.onDeleteWeek(target.weekIndex);
-          } else {
-            props.onDelete(target.placements);
-          }
-        }}
-      >
-        <IconTrash width={17} height={21} color={Tailwind_semantic().icon.red} />
-      </DockButton>
+      <DockOverflow actions={overflowActions} />
     </View>
   );
 });
@@ -178,6 +190,76 @@ function DockDetails(props: { name: string; badges?: string[]; description?: str
         </Text>
       )}
     </Pressable>
+  );
+}
+
+interface IDockAction {
+  label: string;
+  isDestructive?: boolean;
+  onPress: () => void;
+}
+
+// The same two-platform overflow the workout screen's exercise card uses (workoutExerciseCard.tsx):
+// a native action sheet, a dropdown on web. Vertical dots, because the dock is a horizontal strip
+// and a horizontal ⋯ reads as more of the same row rather than as something that opens.
+function DockOverflow(props: { actions: IDockAction[] }): JSX.Element | null {
+  const [isOpen, setIsOpen] = useState(false);
+  const actions = props.actions;
+  if (actions.length === 0) {
+    return null;
+  }
+  const onPress = (): void => {
+    if (Platform.OS === "web") {
+      setIsOpen(true);
+      return;
+    }
+    const labels = actions.map((a) => a.label).concat("Cancel");
+    ActionSheet_show(
+      {
+        options: labels,
+        cancelButtonIndex: labels.length - 1,
+        destructiveButtonIndex: actions.findIndex((a) => a.isDestructive),
+      },
+      (buttonIndex) => {
+        if (buttonIndex != null && buttonIndex < actions.length) {
+          actions[buttonIndex].onPress();
+        }
+      }
+    );
+  };
+  return (
+    <View className="relative">
+      <DockButton name="grid-action-more" label="More actions" onPress={onPress}>
+        <IconKebab isVertical={true} color={Tailwind_semantic().icon.neutral} />
+      </DockButton>
+      {Platform.OS === "web" && isOpen && (
+        // The dock sits on the bottom edge, so the menu has to grow upwards — hence a negative top
+        // and no tip, which points the wrong way from down here.
+        <DropdownMenu
+          rightOffset="1rem"
+          topOffset={`-${actions.length * 2.5 + 0.5}rem`}
+          hideTip={true}
+          onClose={() => setIsOpen(false)}
+        >
+          {actions.map((action, i) => (
+            <DropdownMenuItem
+              key={action.label}
+              isTop={i === 0}
+              // Both, because DropdownMenuItem drops `testID` and only spreads DOM attributes.
+              data-testid={`grid-more-${action.label}`}
+              testID={`grid-more-${action.label}`}
+              className={action.isDestructive ? "text-text-error" : undefined}
+              onClick={() => {
+                setIsOpen(false);
+                action.onPress();
+              }}
+            >
+              {action.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenu>
+      )}
+    </View>
   );
 }
 

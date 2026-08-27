@@ -6,15 +6,19 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 interface IProps {
   color?: string;
   className?: string;
+  isVertical?: boolean;
 }
 
 export function IconKebab(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
+  const isVertical = !!props.isVertical;
+  const width = isVertical ? 4 : 16;
+  const height = isVertical ? 16 : 4;
   return (
-    <IconSvg width={16} height={4} viewBox="0 0 16 4" fill="none" className={props.className}>
-      <Circle cx={8} cy={2} r={2} fill={color} />
-      <Circle cx={2} cy={2} r={2} fill={color} />
-      <Circle cx={14} cy={2} r={2} fill={color} />
+    <IconSvg width={width} height={height} viewBox={`0 0 ${width} ${height}`} fill="none" className={props.className}>
+      {[2, 8, 14].map((along) => (
+        <Circle key={along} cx={isVertical ? 2 : along} cy={isVertical ? along : 2} r={2} fill={color} />
+      ))}
     </IconSvg>
   );
 }
