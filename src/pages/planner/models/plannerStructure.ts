@@ -1,13 +1,19 @@
 import { SyntaxNode } from "@lezer/common";
-import { IPlannerProgram, ISettings } from "../../../types";
+import { IDayData, IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
 import { IEither } from "../../../utils/types";
 import { StringUtils_nextName } from "../../../utils/string";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
 import { PlannerNodeName } from "../plannerExerciseStyles";
 import { PlannerProgram_evaluate } from "./plannerProgram";
+import type { PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { PlannerKey_fromFullName } from "../plannerKey";
 import { PlannerDocument_blockSpans } from "./plannerDocument";
+import {
+  PlannerProgramExercise_getProgressScript,
+  PlannerProgramExercise_getUpdateScript,
+} from "./plannerProgramExercise";
+import { IPlannerProgramExercise } from "./types";
 import { StringUtils_unindent } from "../../../utils/string";
 
 // Every edit that changes *where things are* in a program: which weeks exist and in what order,
@@ -74,7 +80,15 @@ function findExerciseLine(text: string, fullName: string): IExerciseLine | undef
 
 // The failure side carries a sentence, not a code: the UI shows it verbatim, so a refusal can say
 // which exercise stands in the way rather than just refusing.
-export type IPlannerStructureResult = IEither<IPlannerProgram, string>;
+//
+// `warnings` is the other half of that: an edit that went through but had to change something the
+// user didn't ask it to change says so, rather than leaving them to notice later. A refusal has
+// none — it changed nothing.
+export type IPlannerStructureResult = IEither<IPlannerProgram, string> & { warnings?: string[] };
+
+function withWarnings(result: IPlannerStructureResult, warnings: string[]): IPlannerStructureResult {
+  return result.success && warnings.length > 0 ? { ...result, warnings } : result;
+}
 
 // Only `from`/`to` are ever read, so a parser node and a span found by hand in a comment both fit.
 interface ITextSpan {
@@ -90,6 +104,12 @@ interface IDayReference {
   // difference matters, because a week that lacks a row is not renumbered the same as one that has
   // it, so a day number only means something relative to a particular week.
   week?: number;
+  // What it reuses, and where that name is written. A renumbering only needs the day, but an edit
+  // that moves one *exercise* has to tell references to it apart from references to its neighbours
+  // in the same day — and relabelling it has to rewrite the name here too, or the reuse keeps
+  // naming an exercise that no longer goes by that.
+  fullName: string;
+  nameNode: ITextSpan;
 }
 
 // `...main[2]` reuses day 2 of this week; `...main[1:2]` reuses week 1 day 2. Both address a day by
@@ -104,7 +124,8 @@ function dayReferences(text: string): IDayReference[] {
     for (const section of node.getChildren(PlannerNodeName.ExerciseSection)) {
       const reuse = section.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
       const weekDay = reuse?.getChild(PlannerNodeName.WeekDay);
-      if (weekDay == null) {
+      const nameNode = reuse?.getChild(PlannerNodeName.ReuseSection)?.getChild(PlannerNodeName.ExerciseName);
+      if (weekDay == null || nameNode == null) {
         continue;
       }
       const parts = weekDay.getChildren(PlannerNodeName.WeekOrDay);
@@ -120,6 +141,8 @@ function dayReferences(text: string): IDayReference[] {
           day,
           hasWeek: parts.length > 1,
           week: week != null && !isNaN(week) ? week : undefined,
+          fullName: text.slice(nameNode.from, nameNode.to).trim(),
+          nameNode,
         });
       }
     }
@@ -152,16 +175,34 @@ function commentReferences(text: string): { days: IDayReference[]; weeks: IWeekR
     if (!value.startsWith("...")) {
       continue;
     }
-    // It is a directive, so the brackets that follow the name are its week/day qualifier rather
-    // than incidental text: index to them instead of matching a shape.
-    const open = comment.indexOf("[", comment.indexOf("..."));
-    const close = open === -1 ? -1 : comment.indexOf("]", open);
-    if (open === -1 || close === -1) {
+    // Which bracket is the qualifier is decided with the evaluator's own pattern — greedy, so it
+    // runs to the *last* `]` — rather than by scanning for the nearest one. Same reason as above: a
+    // second rule for reading the same directive is a rule that drifts, and this one drifting means
+    // renumbering one bracket while the evaluator resolves another.
+    //
+    // Known and accepted: a directive with a *second* bracket after the qualifier — `// ...Squat[1:2]
+    // [cue]` — is read wrong, because the greedy match swallows both and the day span computed from
+    // it covers the trailing prose. Renumbering that comment then deletes the prose, or (if the
+    // second bracket holds a colon) parses the day as NaN and skips the reference, leaving it stale.
+    // Deliberate: matching the evaluator matters more than a shape nobody writes, and diverging here
+    // to fix it is how the two rules drift apart again. Bound the span, don't re-scan, if it ever
+    // does need fixing.
+    const dots = comment.indexOf("...");
+    const directive = comment.slice(dots + 3);
+    const bracket = /\[([^]+)\]/.exec(directive);
+    if (bracket == null) {
       continue;
     }
+    // The name is whatever precedes the qualifier — an exercise name can't hold a bracket, since
+    // `NonSeparator` excludes both. Measured rather than trimmed out of the string, because a
+    // relabel splices back into these coordinates.
+    const rawName = directive.slice(0, bracket.index);
+    const nameFrom = node.from + dots + 3 + (rawName.length - rawName.trimStart().length);
+    const fullName = rawName.trim();
+    const nameNode = { from: nameFrom, to: nameFrom + fullName.length };
     {
-      const inner = comment.slice(open + 1, close);
-      const innerStart = node.from + open + 1;
+      const inner = bracket[1];
+      const innerStart = node.from + dots + 3 + bracket.index + 1;
       let offset = 0;
       const spans = inner.split(":").map((part) => {
         const span = { from: innerStart + offset, to: innerStart + offset + part.length, value: part };
@@ -177,12 +218,14 @@ function commentReferences(text: string): { days: IDayReference[]; weeks: IWeekR
           day,
           hasWeek: spans.length > 1,
           week: commentWeek != null && !isNaN(commentWeek) ? commentWeek : undefined,
+          fullName,
+          nameNode,
         });
       }
       if (spans.length > 1) {
         const week = parseInt(spans[0].value, 10);
         if (!isNaN(week)) {
-          weeks.push({ node: spans[0], week });
+          weeks.push({ node: spans[0], week, fullName });
         }
       }
     }
@@ -193,6 +236,7 @@ function commentReferences(text: string): { days: IDayReference[]; weeks: IWeekR
 interface IWeekReference {
   node: ITextSpan;
   week: number;
+  fullName: string;
 }
 
 // Only the qualifiers that name a week: `...main[1:2]` does, `...main[2]` doesn't — the latter
@@ -207,13 +251,14 @@ function weekReferences(text: string): IWeekReference[] {
     for (const section of node.getChildren(PlannerNodeName.ExerciseSection)) {
       const reuse = section.getChild(PlannerNodeName.ReuseSectionWithWeekDay);
       const weekDay = reuse?.getChild(PlannerNodeName.WeekDay);
+      const nameNode = reuse?.getChild(PlannerNodeName.ReuseSection)?.getChild(PlannerNodeName.ExerciseName);
       const parts = weekDay?.getChildren(PlannerNodeName.WeekOrDay) ?? [];
-      if (parts.length < 2) {
+      if (parts.length < 2 || nameNode == null) {
         continue;
       }
       const week = parseInt(text.slice(parts[0].from, parts[0].to), 10);
       if (!isNaN(week)) {
-        result.push({ node: parts[0], week });
+        result.push({ node: parts[0], week, fullName: text.slice(nameNode.from, nameNode.to).trim() });
       }
     }
   }
@@ -284,7 +329,10 @@ function repeatToken(
 function rewriteWeekNumbersInDay(
   text: string,
   newForOld: Map<number, number | undefined>,
-  newWeekOfText: number
+  newWeekOfText: number,
+  // Where this text lives, for the refusals below. They are the only messages in this module that
+  // can't name a place from the program they were handed, because all this one has is the text.
+  where: string
 ): IDayRewrite {
   const edits: { from: number; to: number; text: string }[] = [];
   for (const repeat of exerciseRepeats(text)) {
@@ -309,7 +357,7 @@ function rewriteWeekNumbersInDay(
     if (moved[moved.length - 1] - moved[0] !== moved.length - 1) {
       return {
         success: false,
-        error: `${repeat.fullName} repeats over weeks that would no longer be next to each other. A repeat can only cover a run of weeks in a row.`,
+        error: `${repeat.fullName} in ${where} repeats over weeks that would no longer be next to each other. A repeat can only cover a run of weeks in a row.`,
       };
     }
     const first = moved[0];
@@ -323,7 +371,10 @@ function rewriteWeekNumbersInDay(
   for (const reference of weekReferences(text)) {
     const next = newForOld.get(reference.week - 1);
     if (next == null) {
-      return { success: false, error: `Something reuses week ${reference.week}, which is being removed.` };
+      return {
+        success: false,
+        error: `${where} reuses ${reference.fullName} from week ${reference.week}, which is being removed. Point it at another week first.`,
+      };
     }
     edits.push({ from: reference.node.from, to: reference.node.to, text: `${next + 1}` });
   }
@@ -347,8 +398,14 @@ function reorderWeeks(planner: IPlannerProgram, oldOrder: number[], settings: IS
   const result = ObjectUtils_clone(planner);
   for (const oldIndex of oldOrder) {
     const newIndex = newForOld.get(oldIndex);
-    for (const day of result.weeks[oldIndex]?.days ?? []) {
-      const rewritten = rewriteWeekNumbersInDay(day.exerciseText, newForOld, newIndex ?? -1);
+    const week = result.weeks[oldIndex];
+    for (const day of week?.days ?? []) {
+      const rewritten = rewriteWeekNumbersInDay(
+        day.exerciseText,
+        newForOld,
+        newIndex ?? -1,
+        `${week.name}, ${day.name}`
+      );
       if (!rewritten.success) {
         return { success: false, error: rewritten.error };
       }
@@ -614,7 +671,9 @@ export function PlannerStructure_deleteDayRow(
   settings: ISettings
 ): IPlannerStructureResult {
   const deletedDay = rowIndex + 1;
-  const blockers = new Set<string>();
+  // Grouped by the day that does the reusing rather than listed flat, so several reuses from one
+  // day read as one clause instead of repeating the day's name for each.
+  const blockers = new Map<string, Set<string>>();
   for (const week of planner.weeks) {
     week.days.forEach((day, dayIndex) => {
       if (dayIndex === rowIndex) {
@@ -622,15 +681,18 @@ export function PlannerStructure_deleteDayRow(
       }
       for (const reference of dayReferences(day.exerciseText)) {
         if (reference.day === deletedDay) {
-          blockers.add(day.name);
+          blockers.set(day.name, (blockers.get(day.name) ?? new Set()).add(reference.fullName));
         }
       }
     });
   }
   if (blockers.size > 0) {
+    const clauses = Array.from(blockers).map(
+      ([dayName, names]) => `${dayName} reuses ${Array.from(names).join(" and ")}`
+    );
     return {
       success: false,
-      error: `${Array.from(blockers).join(", ")} reuses this day. Change those to reuse another day first.`,
+      error: `${clauses.join("; ")} from this day. Change those to reuse another day first.`,
     };
   }
 
@@ -665,7 +727,7 @@ function refuseIfWorse(before: IPlannerProgram, after: IPlannerProgram, settings
     const wasFine = new Set(beforeDays.filter((day) => day.failure == null).map((day) => day.id));
     const broken = afterDays.find((day) => day.failure != null && wasFine.has(day.id));
     if (broken != null) {
-      return { success: false, error: `That would break the program: ${broken.failure}` };
+      return { success: false, error: describeBreak(after, broken, settings) };
     }
     return { success: true, data: after };
   }
@@ -682,20 +744,25 @@ function refuseIfWorse(before: IPlannerProgram, after: IPlannerProgram, settings
   const brokenBefore = beforeDays.filter((day) => day.failure != null);
   const brokenAfter = afterDays.filter((day) => day.failure != null);
   if (brokenAfter.length > brokenBefore.length) {
-    const messages = brokenBefore.map((day) => day.failure);
-    const introduced = brokenAfter.find((day) => messages.indexOf(day.failure) === -1) ?? brokenAfter[0];
-    return { success: false, error: `That would break the program: ${introduced.failure}` };
+    const messages = brokenBefore.map((day) => day.failure?.message);
+    const introduced = brokenAfter.find((day) => messages.indexOf(day.failure?.message) === -1) ?? brokenAfter[0];
+    return { success: false, error: describeBreak(after, introduced, settings) };
   }
   return { success: true, data: after };
 }
 
-// One message per day that fails to evaluate. The messages are for showing the user which day
-// broke; the count is what the check is made of.
+// One outcome per day. The count is what the check is made of; the rest is what the refusal is
+// written from, which is why the whole error is kept rather than its message — the message is
+// written for someone reading the text, and a refusal has to be readable by someone looking at a
+// grid.
 interface IDayOutcome {
   // Days carry a stable id once a program has been through the store, but a planner parsed straight
   // from text has none — see refuseIfWorse for what that costs.
   id: string | undefined;
-  failure: string | undefined;
+  failure: PlannerSyntaxError | undefined;
+  weekName: string;
+  dayName: string;
+  text: string;
 }
 
 function dayOutcomes(planner: IPlannerProgram, settings: ISettings): IDayOutcome[] {
@@ -705,11 +772,79 @@ function dayOutcomes(planner: IPlannerProgram, settings: ISettings): IDayOutcome
       ...acc,
       ...week.days.map((day, dayIndex) => {
         const evaluated = evaluatedWeeks[weekIndex]?.[dayIndex];
-        return { id: day.id, failure: evaluated != null && !evaluated.success ? evaluated.error.message : undefined };
+        return {
+          id: day.id,
+          failure: evaluated != null && !evaluated.success ? evaluated.error : undefined,
+          weekName: week.name,
+          dayName: day.name,
+          text: day.exerciseText,
+        };
       }),
     ],
     []
   );
+}
+
+// How a week and day are named to the user. The grid draws names, not numbers, so a refusal that
+// says "week: 2, day: 1" sends them counting — and counting the wrong thing, since the numbers in
+// an evaluator message are of the *intermediate* program the check built, not the one on screen.
+function placeName(planner: IPlannerProgram, week: number, dayInWeek: number): string {
+  const weekName = planner.weeks[week - 1]?.name ?? `Week ${week}`;
+  const dayName = planner.weeks[week - 1]?.days[dayInWeek - 1]?.name ?? `Day ${dayInWeek}`;
+  return `${weekName}, ${dayName}`;
+}
+
+function placeOf(planner: IPlannerProgram, dayData: IDayData): string | undefined {
+  return dayData.week != null && dayData.dayInWeek != null
+    ? placeName(planner, dayData.week, dayData.dayInWeek)
+    : undefined;
+}
+
+// A refusal, written from the error's details rather than its message. Only the kinds a structural
+// edit can actually cause are spelled out; anything else falls back to the evaluator's own words
+// with its line and column stripped, since those address a day's text and the grid shows no text.
+function describeBreak(planner: IPlannerProgram, outcome: IDayOutcome, settings: ISettings): string {
+  const error = outcome.failure;
+  if (error == null) {
+    return "That would break the program.";
+  }
+  const where = `${outcome.weekName}, ${outcome.dayName}`;
+  const details = error.details;
+  switch (details.type) {
+    case "reuseTargetNotFound": {
+      // A reuse without a day means "wherever in that week it is", so naming a day here would put
+      // a place in front of the user that the reuse never claimed.
+      const { week, day } = details.data;
+      const at =
+        week == null
+          ? ""
+          : day == null
+            ? ` from ${planner.weeks[week - 1]?.name ?? `week ${week}`}`
+            : ` from ${placeName(planner, week, day)}`;
+      return `${details.subject ?? "Something"} in ${where} reuses ${details.data.fullName}${at}, which wouldn't be there any more.`;
+    }
+    case "duplicateExerciseInDay": {
+      const name = exerciseBlocks(outcome.text).blocks.find(
+        (block) => exerciseKey(block.fullName, settings) === details.data.key
+      )?.fullName;
+      return `${where} would end up with two of ${name ?? "the same exercise"}. Give one of them a label to tell them apart.`;
+    }
+    case "conflictingProperty": {
+      // Both are the 1-based `dayData` the evaluator was handed. Its own message adds one to the
+      // first of them, which reads a week late; the details are the numbers themselves, so this
+      // doesn't inherit that.
+      const first = placeOf(planner, details.data.a);
+      const second = placeOf(planner, details.data.b);
+      const between = first != null && second != null ? ` — one in ${first}, another in ${second}` : "";
+      return `${details.data.exercise} would say two different things about ${details.data.property}${between}. It has to say the same thing everywhere.`;
+    }
+    case "reuseAmbiguous":
+      return `A reuse in ${where} would match several exercises. It needs a [week:day] to say which one it means.`;
+    case "unknownExercise":
+      return `${where} has no exercise called ${details.data.name}.`;
+    default:
+      return `That would break the program: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")} (in ${where}).`;
+  }
 }
 
 // Appends a copy of the day to every week. Appending is what keeps this safe: no existing slot
@@ -916,6 +1051,245 @@ export interface IPlannerStructureExerciseMove {
   fullName: string;
 }
 
+// Where an exercise's name is written on its own line, found by key rather than by matching the
+// text: two weeks can spell the same exercise differently — `!Squat | Front Squat` against
+// `Squat | !Front Squat` — and a relabel has to land in both.
+function variationsSpan(text: string, fullName: string, settings: ISettings): ITextSpan | undefined {
+  const tree = plannerExerciseParser.parse(text);
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+    if (variations == null) {
+      continue;
+    }
+    if (sameExercise(text.slice(variations.from, variations.to).trim(), fullName, settings)) {
+      return { from: variations.from, to: variations.to };
+    }
+  }
+  return undefined;
+}
+
+// The same name under a different label. A label is whatever precedes the first colon — the same
+// rule `extractNameParts` applies, so a name that happens to contain one is already being read as
+// labelled and this agrees with the evaluator rather than inventing a second rule. The `!` marking
+// the current variation sits outside the label, and only the first of several `|` variations
+// carries one.
+function withLabel(fullName: string, label: string): string {
+  const segments = fullName.split("|");
+  const marker = segments[0].trimStart().startsWith("!") ? "!" : "";
+  const body = segments[0].trim().replace(/^!\s*/, "");
+  const colon = body.indexOf(":");
+  const unlabeled = colon === -1 ? body : body.slice(colon + 1).trim();
+  return [`${marker}${label}: ${unlabeled}`, ...segments.slice(1)].join("|");
+}
+
+// Rewrites the reuses that address one exercise on one day row — matched on the name *and* the row
+// together, because a day holds several exercises and only the one being moved should have its
+// address rewritten. Both halves are optional: a move changes the day, a relabel changes the name,
+// and a move into an occupied day does both at once.
+function retargetDayReferences(
+  planner: IPlannerProgram,
+  match: { fullName: string; day: number },
+  next: { fullName?: string; day?: number },
+  settings: ISettings
+): void {
+  for (const week of planner.weeks) {
+    for (const day of week.days) {
+      const edits: { from: number; to: number; text: string }[] = [];
+      for (const reference of dayReferences(day.exerciseText)) {
+        if (reference.day !== match.day || !sameExercise(reference.fullName, match.fullName, settings)) {
+          continue;
+        }
+        if (next.day != null && next.day !== reference.day) {
+          edits.push({ from: reference.node.from, to: reference.node.to, text: `${next.day}` });
+        }
+        if (next.fullName != null) {
+          edits.push({ from: reference.nameNode.from, to: reference.nameNode.to, text: next.fullName });
+        }
+      }
+      // Back to front so earlier splices don't move later offsets.
+      day.exerciseText = edits
+        .sort((a, b) => b.from - a.from)
+        .reduce((text, edit) => `${text.slice(0, edit.from)}${edit.text}${text.slice(edit.to)}`, day.exerciseText);
+    }
+  }
+}
+
+// Which exercises one week's copy of a day prescribes. Every question of the form "is this exercise
+// there" goes through here, so that they cannot answer it differently.
+//
+// The evaluator is the authority, because only it sees a repeat backfilling into a week that holds
+// no text of its own. But a day that fails to evaluate hands back *nothing at all*, and reading
+// that as "the day is empty" is how a move deletes the last copy of something or drops a second one
+// on top of it — a broken program is exactly when those must not happen. So a day that doesn't
+// evaluate is answered from the text instead, which is weaker but honest: what this week writes
+// down, plus what another week's repeat claims for it.
+function keysPresentInDay(
+  planner: IPlannerProgram,
+  weekIndex: number,
+  rowIndex: number,
+  settings: ISettings
+): Set<string> {
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  const evaluated = evaluatedWeeks[weekIndex]?.[rowIndex];
+  if (evaluated?.success) {
+    return new Set(evaluated.data.map((exercise) => exercise.key));
+  }
+  const result = new Set<string>();
+  for (const block of exerciseBlocks(planner.weeks[weekIndex]?.days[rowIndex]?.exerciseText ?? "").blocks) {
+    result.add(exerciseKey(block.fullName, settings));
+  }
+  // The repeats other weeks author on this row. Reading only this week's own text is what still
+  // lost an exercise that lives here purely by inheritance — `Squat[1-2]` written in week 1 is in
+  // week 2 as well, and week 2's text says nothing about it.
+  planner.weeks.forEach((week, otherIndex) => {
+    if (otherIndex === weekIndex) {
+      return;
+    }
+    for (const repeat of exerciseRepeats(week.days[rowIndex]?.exerciseText ?? "")) {
+      const range = repeat.range;
+      if (range != null && weekIndex + 1 >= range[0] && weekIndex + 1 <= range[1]) {
+        result.add(exerciseKey(repeat.fullName, settings));
+      }
+    }
+  });
+  return result;
+}
+
+// Every exercise the day shows in any week — what a move has to look at to know whether it is
+// landing on top of something.
+function keysShownInDay(planner: IPlannerProgram, rowIndex: number, settings: ISettings): Set<string> {
+  return planner.weeks.reduce<Set<string>>((acc, _week, weekIndex) => {
+    for (const key of keysPresentInDay(planner, weekIndex, rowIndex, settings)) {
+      acc.add(key);
+    }
+    return acc;
+  }, new Set());
+}
+
+// A day can hold the same exercise twice as long as labels tell them apart, so a move into a day
+// that already has this one renames rather than refuses — and says so, because a name the user
+// didn't choose is not something to discover later. Renaming means rewriting the line in every week
+// that writes it, and every reuse that named it: a reuse that still says `Squat` would now resolve
+// to the exercise that was already there, which is a different exercise wearing the right name.
+// The first label of a fixed sequence that this day doesn't already use. Walking a sequence rather
+// than rolling a random id is what keeps the transform pure: the grid runs it twice — once as the
+// pre-flight that decides whether to dispatch at all, once for real — and a random label differs
+// between the two, so the warning would name something the program never got.
+//
+// A word, not a letter. `superset: a` is how a superset group is written, and single-letter labels
+// are what real programs use for those, so `a: Squat` would read as the wrong kind of thing
+// entirely. Labels cap at 8 characters, which `alt` plus two digits stays well inside.
+function freeLabel(taken: Set<string>, fullName: string, settings: ISettings): string | undefined {
+  for (let attempt = 1; attempt <= 99; attempt += 1) {
+    const label = attempt === 1 ? "alt" : `alt${attempt}`;
+    if (!taken.has(exerciseKey(withLabel(fullName, label), settings))) {
+      return label;
+    }
+  }
+  return undefined;
+}
+
+function labelApart(
+  planner: IPlannerProgram,
+  move: IPlannerStructureExerciseMove,
+  toRowIndex: number,
+  taken: Set<string>,
+  settings: ISettings
+): { fullName: string; warning: string } | undefined {
+  const label = freeLabel(taken, move.fullName, settings);
+  if (label == null) {
+    return undefined;
+  }
+  const fullName = withLabel(move.fullName, label);
+  for (const week of planner.weeks) {
+    const day = week.days[move.fromRowIndex];
+    const span = day != null ? variationsSpan(day.exerciseText, move.fullName, settings) : undefined;
+    if (day != null && span != null) {
+      day.exerciseText = `${day.exerciseText.slice(0, span.from)}${fullName}${day.exerciseText.slice(span.to)}`;
+    }
+  }
+  const dayName = planner.weeks.find((week) => week.days[toRowIndex] != null)?.days[toRowIndex]?.name;
+  return {
+    fullName,
+    warning: `${dayName ?? `Day ${toRowIndex + 1}`} already had ${move.fullName}, so the one you moved now has label: ${fullName}.`,
+  };
+}
+
+// What an exercise prescribes over and above its own sets. The evaluator hoists these across every
+// line sharing a key, so they survive being written on one line only — which is exactly what makes
+// them fragile when a key is split in two.
+interface IHoistedSummary {
+  progress: string;
+  update: string;
+  warmup: string;
+  used: string;
+}
+
+function hoistedSummary(exercise: IPlannerProgramExercise): IHoistedSummary {
+  return {
+    progress: `${exercise.progress?.type ?? "-"}/${PlannerProgramExercise_getProgressScript(exercise) ?? "-"}`,
+    update: `${exercise.update?.type ?? "-"}/${PlannerProgramExercise_getUpdateScript(exercise) ?? "-"}`,
+    warmup: JSON.stringify(exercise.warmupSets ?? null),
+    used: exercise.notused ? "none" : "-",
+  };
+}
+
+function summaryForKey(planner: IPlannerProgram, key: string, settings: ISettings): IHoistedSummary | undefined {
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  for (const week of evaluatedWeeks) {
+    for (const day of week) {
+      if (!day.success) {
+        continue;
+      }
+      const exercise = day.data.find((e) => e.key === key);
+      if (exercise != null) {
+        return hoistedSummary(exercise);
+      }
+    }
+  }
+  return undefined;
+}
+
+// Labelling two same-named exercises apart makes them two keys, and a property written on only one
+// of their lines then belongs to only one of them. The exercise that loses it keeps evaluating
+// cleanly — it simply stops progressing — so nothing downstream catches it and the user finds out
+// weeks later.
+//
+// Rather than trying to move the declaration to where it would be needed, this refuses. Reusing is
+// what the language has for "same as that one", and a labelled copy could say `...Squat[1:2]` and
+// inherit the lot — but a reuse target may not itself be reusing, which is exactly the case in the
+// template-driven programs where this matters. Lifting that restriction is its own piece of work;
+// until then a refusal the user can act on beats a silent loss they can't see.
+function strandedByLabelling(
+  before: IPlannerProgram,
+  after: IPlannerProgram,
+  relabels: { oldFullName: string; newFullName: string }[],
+  settings: ISettings
+): string | undefined {
+  const properties: (keyof IHoistedSummary)[] = ["progress", "update", "warmup", "used"];
+  for (const relabel of relabels) {
+    const wanted = summaryForKey(before, exerciseKey(relabel.oldFullName, settings), settings);
+    if (wanted == null) {
+      continue;
+    }
+    for (const fullName of [relabel.newFullName, relabel.oldFullName]) {
+      const got = summaryForKey(after, exerciseKey(fullName, settings), settings);
+      const lost = got == null ? undefined : properties.find((property) => got[property] !== wanted[property]);
+      if (lost != null) {
+        return (
+          `Both copies of ${relabel.oldFullName} share one ${lost}, and it is written on only one of their lines. ` +
+          `Telling them apart by label would leave the other one without it. ` +
+          `Give this one its own ${lost} first, or move it to a day that doesn't already have ${relabel.oldFullName}.`
+        );
+      }
+    }
+  }
+  return undefined;
+}
+
 // Several exercises into the same day at once — what dragging a multi-selection does. They land
 // together, in the order given, above the same anchor.
 //
@@ -959,6 +1333,32 @@ export function PlannerStructure_moveExercisesToDay(
   }
 
   const result = ObjectUtils_clone(planner);
+  // Everything that pointed at these exercises is rewritten before a single block moves, while the
+  // exercise is still the only one of its name on the row it is leaving. Doing it afterwards can't
+  // work: once it has landed next to an exercise of the same name, `Squat on day 2` names two
+  // things and there is no way to tell which one a reuse meant.
+  const warnings: string[] = [];
+  const relabels: { oldFullName: string; newFullName: string }[] = [];
+  const taken = keysShownInDay(planner, toRowIndex, settings);
+  const landing = crossing.map((move) => {
+    const relabeled = taken.has(exerciseKey(move.fullName, settings))
+      ? labelApart(result, move, toRowIndex, taken, settings)
+      : undefined;
+    const fullName = relabeled?.fullName ?? move.fullName;
+    if (relabeled != null) {
+      warnings.push(relabeled.warning);
+      relabels.push({ oldFullName: move.fullName, newFullName: relabeled.fullName });
+    }
+    taken.add(exerciseKey(fullName, settings));
+    retargetDayReferences(
+      result,
+      { fullName: move.fullName, day: move.fromRowIndex + 1 },
+      { fullName: relabeled?.fullName, day: toRowIndex + 1 },
+      settings
+    );
+    return { ...move, fullName };
+  });
+
   let moved = false;
   for (const week of result.weeks) {
     const toDay = week.days[toRowIndex];
@@ -966,7 +1366,7 @@ export function PlannerStructure_moveExercisesToDay(
       continue;
     }
     const blocks: IExerciseBlock[] = [];
-    for (const move of crossing) {
+    for (const move of landing) {
       const fromDay = week.days[move.fromRowIndex];
       if (fromDay == null) {
         continue;
@@ -997,10 +1397,19 @@ export function PlannerStructure_moveExercisesToDay(
   if (!moved) {
     return { success: false, error: `Couldn't find ${crossing.map((m) => m.fullName).join(", ")} in that day.` };
   }
-  // The destination day may already declare the same exercise, or something may reuse this one by
-  // its old `[week:day]` address — both surface as evaluation errors rather than as anything this
-  // could check for directly.
-  return refuseIfWorse(planner, result, settings);
+  // The addresses were rewritten above and a same-named neighbour was labelled apart, so what is
+  // left for this to catch is what neither could anticipate — a `used: none` template redeclared,
+  // a property the two copies now disagree about.
+  const checked = refuseIfWorse(planner, result, settings);
+  if (!checked.success) {
+    return checked;
+  }
+  // And then the loss that evaluates perfectly well, so nothing above can see it.
+  const stranded = strandedByLabelling(planner, result, relabels, settings);
+  if (stranded != null) {
+    return { success: false, error: stranded };
+  }
+  return withWarnings(checked, warnings);
 }
 
 export interface IPlannerStructureExerciseTarget {
@@ -1103,16 +1512,14 @@ export function PlannerStructure_addWeek(planner: IPlannerProgram, settings: ISe
 }
 
 // The weeks whose copy of this day prescribes the exercise, whether it is written there or arrives
-// by a repeat. Anything that asks "where does this appear" has to ask the evaluator: the text says
-// where it is *authored*, which is a different question.
+// by a repeat — "where does this appear", which is a different question from where it is authored.
 function weeksShowing(planner: IPlannerProgram, rowIndex: number, fullName: string, settings: ISettings): number[] {
-  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
-  return evaluatedWeeks.reduce<number[]>((acc, week, weekIndex) => {
-    const day = week[rowIndex];
-    const key = exerciseKey(fullName, settings);
-    const shows = day != null && day.success && day.data.some((exercise) => exercise.key === key);
-    return shows ? [...acc, weekIndex] : acc;
-  }, []);
+  const key = exerciseKey(fullName, settings);
+  return planner.weeks.reduce<number[]>(
+    (acc, _week, weekIndex) =>
+      keysPresentInDay(planner, weekIndex, rowIndex, settings).has(key) ? [...acc, weekIndex] : acc,
+    []
+  );
 }
 
 // Moves a whole day row. Every week is permuted identically, which is what keeps this a renumber

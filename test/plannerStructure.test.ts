@@ -59,6 +59,11 @@ function dayTexts(planner: IPlannerProgram): string[] {
   return planner.weeks.map((w) => (w.days[0]?.exerciseText ?? "").trim());
 }
 
+function linesOf(planner: IPlannerProgram, weekIndex: number, dayIndex: number): string[] {
+  const text = (planner.weeks[weekIndex]?.days[dayIndex]?.exerciseText ?? "").trim();
+  return text === "" ? [] : text.split("\n");
+}
+
 function spans(planner: IPlannerProgram, name: string): string[] {
   const program: IProgram = { ...Program_create("P"), planner };
   const grid = ProgramGrid_build(Program_evaluate(program, Settings_build()), Settings_build());
@@ -269,8 +274,9 @@ Deadlift / 1x5 210lb
       if (result.success) {
         return;
       }
-      // Day 1 is what the others reuse, so it refuses instead of orphaning them.
-      expect(result.error).to.contain("reuses this day");
+      // Day 1 is what the others reuse, so it refuses instead of orphaning them — and says which
+      // day reuses what, rather than leaving the user to find it.
+      expect(result.error).to.contain("Day 3 reuses main from this day");
     });
 
     it("renumbers a description reuse hiding in a comment", () => {
@@ -488,10 +494,6 @@ Bench Press / 5x5 55lb
 Deadlift / 1x5 210lb
 `;
 
-    function linesOf(planner: IPlannerProgram, weekIndex: number, dayIndex: number): string[] {
-      return planner.weeks[weekIndex].days[dayIndex].exerciseText.trim().split("\n");
-    }
-
     it("moves an exercise into another day in every week that authors it", () => {
       const result = PlannerStructure_moveExerciseToDay(
         plannerOf(TWO_DAYS),
@@ -508,7 +510,7 @@ Deadlift / 1x5 210lb
       expect(linesOf(result.data, 0, 0)).to.deep.equal(["Squat[1-2] / 3x5 100lb"]);
       expect(linesOf(result.data, 0, 1)).to.deep.equal(["Deadlift / 1x5 200lb", "Bench Press / 5x5 50lb"]);
       // Week 2 authors its own copy, and that one moves too, leaving the day empty.
-      expect(linesOf(result.data, 1, 0)).to.deep.equal([""]);
+      expect(linesOf(result.data, 1, 0)).to.deep.equal([]);
       expect(linesOf(result.data, 1, 1)).to.deep.equal(["Deadlift / 1x5 210lb", "Bench Press / 5x5 55lb"]);
     });
 
@@ -547,7 +549,7 @@ Deadlift / 1x5 210lb
       expect(spans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
 
-    it("refuses when the destination day already has that exercise", () => {
+    it("labels the mover apart when the destination day already has that exercise", () => {
       const text = `# Week 1
 ## Day 1
 Squat / 3x5 100lb
@@ -556,7 +558,17 @@ Squat / 3x5 100lb
 Squat / 3x5 200lb
 `;
       const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
-      expect(result.success).to.equal(false);
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      const lines = linesOf(result.data, 0, 1);
+      expect(lines).to.have.length(2);
+      // The resident keeps its name; the one that arrived gets a label so the two have distinct keys.
+      expect(lines[0]).to.equal("Squat / 3x5 200lb");
+      expect(lines[1]).to.equal("alt: Squat / 3x5 100lb");
+      expect(linesOf(result.data, 0, 0)).to.deep.equal([]);
+      expect(result.warnings?.[0]).to.equal("Day 2 already had Squat, so the one you moved now has label: alt: Squat.");
     });
 
     it("refuses when a week that only inherits the exercise has no destination day", () => {
@@ -668,13 +680,13 @@ Bench Press / 5x5 50lb
       if (!result.success) {
         return;
       }
-      expect(linesOf(result.data, 0, 0)).to.deep.equal([""]);
+      expect(linesOf(result.data, 0, 0)).to.deep.equal([]);
       expect(linesOf(result.data, 0, 1)).to.deep.equal([
         "Deadlift / 1x5 200lb",
         "Squat / 3x5 100lb",
         "Bench Press / 5x5 50lb",
       ]);
-      expect(linesOf(result.data, 0, 2)).to.deep.equal([""]);
+      expect(linesOf(result.data, 0, 2)).to.deep.equal([]);
     });
 
     it("refuses the whole move when any one of them has nowhere to land", () => {
@@ -708,6 +720,174 @@ Bench Press / 5x5 55lb
       expect(result.error).to.contain("Week 2");
     });
 
+    it("labels apart two same-named exercises dragged into the same day together", () => {
+      // Neither collides with the destination — they collide with each other, and only once they
+      // both land. Checking each against the day as it was would let the second one overwrite the
+      // first's key and lose a day's worth of work.
+      const text = `# Week 1
+## Day 1
+Squat / 1x1
+
+## Day 2
+Squat / 2x2
+
+## Day 3
+Bench Press / 3x3
+`;
+      const result = PlannerStructure_moveExercisesToDay(
+        plannerOf(text),
+        [
+          { fromRowIndex: 0, fullName: "Squat" },
+          { fromRowIndex: 1, fullName: "Squat" },
+        ],
+        2,
+        undefined,
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      const lines = linesOf(result.data, 0, 2);
+      expect(lines[0]).to.equal("Bench Press / 3x3");
+      expect(lines[1]).to.equal("Squat / 1x1");
+      expect(lines[2]).to.equal("alt: Squat / 2x2");
+      expect(result.warnings).to.have.length(1);
+    });
+
+    // Labelling apart splits one key into two, and a property the evaluator hoists — progress,
+    // update, warmup, used — belongs afterwards only to whichever side holds the line it is written
+    // on. The side that loses it keeps evaluating cleanly and simply stops progressing, so nothing
+    // else in this module can see it. These four pin the refusal, and the fifth pins the case that
+    // must keep working.
+    it("refuses to label apart when the progression is written on the resident's line", () => {
+      const text = `# W1\n## D1\nSquat / 3x5 100lb\n\n## D2\nSquat / 3x5 200lb / progress: lp(5lb)\n`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("share one progress");
+    });
+
+    it("refuses to label apart when the progression is written on the mover's line", () => {
+      // The other direction: here the mover keeps it and the exercise that never moved loses it.
+      const text = `# W1\n## D1\nSquat / 3x5 100lb / progress: lp(5lb)\n\n## D2\nSquat / 3x5 200lb\n`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("share one progress");
+    });
+
+    it("refuses for a warmup too, which no reuse would have carried anyway", () => {
+      const text = `# W1\n## D1\nSquat / 3x5 100lb\n\n## D2\nSquat / 3x5 200lb / warmup: 1x5 45lb\n`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("share one warmup");
+    });
+
+    it("still labels apart when each line already says everything for itself", () => {
+      // Both lines carry their own `...t1`, so the split costs nothing — which is what a
+      // template-driven program looks like, and the reason this isn't a blanket ban on the feature.
+      const text =
+        `# W1\n## D1\nt1 / used: none / 5x5 100lb / progress: lp(5lb)\nSquat / 3x8 100lb / ...t1\n\n` +
+        `## D2\nSquat / 3x8 200lb / ...t1\n`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 1)).to.deep.equal(["Squat / 3x8 200lb / ...t1", "alt: Squat / 3x8 100lb / ...t1"]);
+    });
+
+    it("carries a description reuse to the day the exercise moved to", () => {
+      // This one is the dangerous shape: the evaluator does not error on a description reuse it
+      // can't resolve, so a stale `// ...Squat[1:1]` here is not a refusal — it is a note that
+      // silently stops being the note it was.
+      const text = `# Week 1
+## Day 1
+// Squat notes
+Squat / 3x5 100lb
+
+## Day 2
+// ...Squat[1:1]
+Bench Press / 3x5 50lb
+`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[0].days[1].exerciseText).to.contain("// ...Squat[1:2]");
+    });
+
+    it("renumbers a bare [day] reuse from the week it is written in", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Overhead Press / 3x5 50lb
+
+## Day 3
+Bench Press / ...Squat[1]
+`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 2)).to.deep.equal(["Bench Press / ...Squat[2]"]);
+    });
+
+    it("leaves a reuse of a different exercise on the same day alone", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+Deadlift / 1x5 200lb
+
+## Day 2
+Overhead Press / 3x5 50lb
+
+## Day 3
+Bench Press / ...Deadlift[1]
+`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // Deadlift didn't move, so the address it is reached by didn't change either.
+      expect(linesOf(result.data, 0, 2)).to.deep.equal(["Bench Press / ...Deadlift[1]"]);
+    });
+
+    it("relabels the reuses that named the exercise it had to label apart", () => {
+      const text = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Squat / 3x5 200lb
+
+## Day 3
+Bench Press / ...Squat[1]
+`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // The reuse followed the exercise it named, rather than being left pointing at the one that
+      // was already living on day 2 and now wears the plain name.
+      expect(linesOf(result.data, 0, 1)[1]).to.equal("alt: Squat / 3x5 100lb");
+      expect(linesOf(result.data, 0, 2)).to.deep.equal(["Bench Press / ...alt: Squat[2]"]);
+    });
+
     it("refuses when something reuses the exercise by its old day", () => {
       const text = `# Week 1
 ## Day 1
@@ -730,7 +910,12 @@ Deadlift / 1x5 210lb
 Bench Press / 5x5 55lb
 `;
       const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 2, undefined, Settings_build());
-      expect(result.success).to.equal(false);
+      expect(result.success).to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      // The reuse followed the exercise instead of being left pointing at the day it vacated.
+      expect(linesOf(result.data, 1, 2)).to.deep.equal(["Bench Press / 5x5 55lb", "Squat / ...Squat[1:3]"]);
     });
   });
 
@@ -793,7 +978,18 @@ Deadlift / 1x5 220lb
       if (result.success) {
         return;
       }
-      expect(result.error).to.contain("Squat");
+      expect(result.error).to.contain("Squat in Week 1, Day 1 repeats over weeks");
+    });
+
+    it("names the day and the reuse when a deleted week is still being pointed at", () => {
+      const result = PlannerStructure_deleteWeek(plannerOf(THREE_WEEKS), 0, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.equal(
+        "Week 2, Day 2 reuses Deadlift from week 1, which is being removed. Point it at another week first."
+      );
     });
 
     it("renumbers a description reuse comment's week number", () => {
@@ -1230,12 +1426,86 @@ Squat[1-2] / 3x5 100lb
       expect((result.data.weeks[1].days[1].exerciseText ?? "").trim()).to.contain("...main[1]");
     });
 
-    it("refuses a move that duplicates an exercise even when the same error exists elsewhere", () => {
-      // D3 already has a duplicate-Squat error, so comparing error messages as a set made the new
-      // duplicate in D2 look like nothing had changed.
+    it("labels a move apart rather than duplicating, even when the same error exists elsewhere", () => {
+      // D3 already has a duplicate-Squat error. This used to be a refusal, and the refusal was
+      // fragile: comparing error messages as a set made the new duplicate in D2 look like nothing
+      // had changed. Now the duplicate never happens — and D3's own error is left as it was, rather
+      // than being tidied up by an edit that was never asked to touch it.
       const planner = plannerOf(`# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\n\n## D3\nSquat / 3x3\nSquat / 4x4\n`);
       const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 1)[1]).to.equal("alt: Squat / 1x1");
+      expect(linesOf(result.data, 0, 2)).to.deep.equal(["Squat / 3x3", "Squat / 4x4"]);
+    });
+
+    it("still refuses a homeless move when the source day doesn't evaluate", () => {
+      // W1 D1 is broken, so the evaluator lists no exercises for it and `weeksShowing` used to
+      // answer "week 1 doesn't have Squat" — which turned the has-a-destination guard off and let
+      // the move delete W1's only copy. A broken program is exactly when that must not happen.
+      const planner = plannerOf(
+        `# W1\n## D1\nSquat / 1x1\nSquat / 2x2\n\n# W2\n## D1\nSquat / 1x1\n\n## D2\nBench Press / 1x1\n`
+      );
+      const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
       expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("no day to move Squat into");
+    });
+
+    it("still refuses when the homeless week holds the exercise only by inheritance", () => {
+      // W1 authors `Squat[1-2]`, so W2 shows it while writing nothing for it. W2's day is broken by
+      // an unrelated line and W2 has no D2. Asking the evaluator returns nothing (broken day) and
+      // asking W2's own text returns nothing either (it authors no Squat) — so a fallback that
+      // reads only this week's text still answered "W2 doesn't have Squat", and the move deleted
+      // W2's only copy with no refusal.
+      const planner = plannerOf(
+        `# W1\n## D1\nSquat[1-2] / 3x5 100lb\n\n## D2\nBench Press / 3x5 50lb\n\n# W2\n## D1\nNotARealExercise / 3x5 50lb\n`
+      );
+      const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      expect(result.error).to.contain("no day to move Squat into");
+    });
+
+    it("labels apart against a destination day that doesn't evaluate", () => {
+      // D2 is already broken, so the evaluator hands back no exercises for it. Trusting that alone
+      // would read the day as empty and drop a third Squat into it.
+      const planner = plannerOf(`# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\nSquat / 3x3\n`);
+      const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 1)[2]).to.equal("alt: Squat / 1x1");
+    });
+
+    it("picks the next free label when the obvious one is taken", () => {
+      // The sequence is fixed, so this is what makes it a sequence rather than a single guess.
+      const planner = plannerOf(`# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\nalt: Squat / 3x3\n`);
+      const result = PlannerStructure_moveExerciseToDay(planner, 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 1)[2]).to.equal("alt2: Squat / 1x1");
+    });
+
+    it("gives the same answer every time it is run", () => {
+      // The grid runs each transform twice — a pre-flight that decides whether to dispatch, then
+      // the real one. A label that differed between them would make the warning a lie.
+      const text = `# W1\n## D1\nSquat / 1x1\n\n## D2\nSquat / 2x2\n`;
+      const runs = [1, 2, 3].map(() => {
+        const r = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+        return r.success ? `${linesOf(r.data, 0, 1).join("|")} :: ${(r.warnings ?? []).join("|")}` : r.error;
+      });
+      expect(runs[1]).to.equal(runs[0]);
+      expect(runs[2]).to.equal(runs[0]);
     });
 
     it("does not renumber a week reference that is prose rather than a reuse directive", () => {
@@ -1369,6 +1639,19 @@ Squat / 3x5
     it("refuses an edit that breaks a day even when another day's failure disappears", () => {
       const result = PlannerStructure_deleteDayRow(withDayIds(SUBSTITUTION), 0, Settings_build());
       expect(result.success).to.equal(false);
+    });
+
+    it("says what broke in the program's own words, not the evaluator's", () => {
+      const result = PlannerStructure_deleteDayRow(withDayIds(SUBSTITUTION), 0, Settings_build());
+      expect(result.success).to.equal(false);
+      if (result.success) {
+        return;
+      }
+      // Names the exercise that broke and the week and day it sits in — no line:column offsets into
+      // a text the grid never shows, and no internal exercise key.
+      expect(result.error).to.equal(
+        "Bench Press in Week 1, Day 2 reuses tpl from Week 1, which wouldn't be there any more."
+      );
     });
 
     // The honest limit of the fallback, written down so nobody reads a passing test here as proof

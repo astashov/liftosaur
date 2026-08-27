@@ -108,6 +108,14 @@ export function useGridActions(args: {
           .p("program")
           .pi("planner")
           .recordModify((planner) => {
+            // The pre-flight already computed the answer for exactly this planner, and every
+            // transform is a pure function of it, so re-running would parse and evaluate the whole
+            // program a second time to arrive at the same value. This is only a saving — nothing
+            // here depends on taking it, which is the point: a transform whose two runs could
+            // disagree would be a transform this hook can't check before dispatching.
+            if (planner === plannerRef.current) {
+              return check.data;
+            }
             const result = transform(planner);
             return result.success ? result.data : planner;
           }),
@@ -115,6 +123,11 @@ export function useGridActions(args: {
       );
       if (kind === "structural") {
         onStructuralChange();
+      }
+      // After the dispatch, not before: a warning is about what the edit *did*, so the user should
+      // be looking at the result when they read it.
+      if (check.warnings != null && check.warnings.length > 0) {
+        Dialog_alert(check.warnings.join("\n\n"));
       }
     },
     [plannerDispatch, onStructuralChange]
