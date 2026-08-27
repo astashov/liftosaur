@@ -34,7 +34,14 @@ export type IPlannerReuseSection = "sets" | "progress" | "update" | "description
 
 // A Liftoscript error thrown inside a progress/update block is rethrown as a planner error, so a
 // planner error can carry either language's details - flat, not nested, so consumers switch once.
-export type IPlannerErrorDetails =
+//
+// `subject` rides alongside every variant: which exercise the error is *about*, as opposed to
+// whatever the variant's own `data` names, which is usually the thing that went missing. It is
+// filled in by `PlannerSyntaxError.fromPoint`, the one place that already knows it - see the note
+// there. Without it the only record of the subject is the message's `"<fullName>: "` prefix, and
+// reading a human-facing string as a data format is how a consumer silently loses it the day
+// someone rewords the message.
+export type IPlannerErrorDetails = (
   | ILiftoscriptErrorDetails
   | { type: "unknownExercise"; data: { name: string } }
   | { type: "duplicateExerciseInDay"; data: { key: string } }
@@ -70,4 +77,5 @@ export type IPlannerErrorDetails =
   | { type: "exerciseWithoutDay" }
   | { type: "unknownValidationError" }
   // The webview hands back a message and offsets only, so a round-tripped error has no details left.
-  | { type: "fromWebview" };
+  | { type: "fromWebview" }
+) & { subject?: string };

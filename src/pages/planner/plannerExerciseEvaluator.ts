@@ -77,13 +77,16 @@ export class PlannerSyntaxError extends SyntaxError {
     point: IPlannerSyntaxPointer,
     details: IPlannerErrorDetails
   ): PlannerSyntaxError {
+    // The subject goes into `details` as well as into the message. Every caller that knows which
+    // exercise threw passes it here, so this one line puts it on all of them - and a consumer that
+    // needs it can read a field instead of parsing it back out of the sentence.
     return new PlannerSyntaxError(
       `${fullName ? `${fullName}: ` : ""}${message} (${point.line}:${point.offset})`,
       point.line,
       point.offset,
       point.from,
       point.to,
-      details
+      fullName != null ? { ...details, subject: fullName } : details
     );
   }
 
