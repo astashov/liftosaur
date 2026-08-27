@@ -14,6 +14,7 @@ test("Warmups", async ({ page }) => {
   await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
@@ -32,6 +33,7 @@ test("Sets", async ({ page }) => {
   await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
@@ -54,6 +56,7 @@ test("Change exercise", async ({ page }) => {
   await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("exercise-filter-by-name").fill("arnold press");
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();

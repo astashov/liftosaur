@@ -65,6 +65,7 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
 
   await page.getByTestId("editor-v2-week-muscles").click();
 

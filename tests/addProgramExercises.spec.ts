@@ -81,6 +81,7 @@ Bicep Curl / ...t1 / used: none`
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await expect(
     page.getByTestId("exercise-deadlift_barbell").getByTestId("ui-workout-sets").getByTestId("history-entry-weight")
   ).toHaveText("210");

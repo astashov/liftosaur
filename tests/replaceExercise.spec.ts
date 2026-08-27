@@ -41,6 +41,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("footer-program").click();
 
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise-swap").click();
   await page.getByTestId("edit-exercise-change-all").click();
 

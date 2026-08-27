@@ -43,6 +43,7 @@ Overhead Press / 2x8 100lb / superset: A`
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page
     .getByTestId("edit-day-1-1")
     .getByTestId("exercise-overheadpress_barbell")

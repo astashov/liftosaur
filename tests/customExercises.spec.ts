@@ -16,6 +16,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await PlaywrightUtils_disableSubscriptions(page);
 
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("custom-exercise-create").click();
   await page.getByTestId("custom-exercise-name-input").fill("My Exercise");
@@ -42,6 +43,7 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   // A single-instance exercise's swap goes straight to the picker (no one/all menu).
   await page.getByTestId("edit-exercise-swap").click();
   await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
@@ -68,6 +70,7 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("edit-exercise-swap").click();
 
   await page.getByTestId("custom-exercise-create").click();
@@ -102,6 +105,7 @@ test("CRUD custom exercises", async ({ page }) => {
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("editor-v2-week-muscles").click();
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Shoulders: 2");
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Hamstrings: 2");
