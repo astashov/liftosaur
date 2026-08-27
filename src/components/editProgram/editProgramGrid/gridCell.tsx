@@ -88,7 +88,10 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
     if (isActive) {
       const builder = new StyledText();
       for (const token of scheme) {
-        builder.add(token.text, { color: Tailwind_semantic().text.primaryinverse });
+        builder.add(token.text, {
+          color: Tailwind_semantic().text.primaryinverse,
+          fontWeight: token.isCurrent ? "700" : undefined,
+        });
       }
       return builder.build();
     }
@@ -107,16 +110,29 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
     };
     const builder = new StyledText();
     for (const token of scheme) {
-      builder.add(token.text, { color: colorByKind[token.kind] });
+      builder.add(token.text, { color: colorByKind[token.kind], fontWeight: token.isCurrent ? "700" : undefined });
     }
     return builder.build();
   }, [scheme, isActive]);
 
   const nameColor = isActive
-    ? "text-text-primaryinverse"
+    ? Tailwind_semantic().text.primaryinverse
     : placement.notused
-      ? "text-text-secondary"
-      : "text-text-primary";
+      ? Tailwind_semantic().text.secondary
+      : Tailwind_semantic().text.primary;
+
+  // One node rather than a nested <Text> per rung: the ladder is drawn on every strip of every week,
+  // and on Android a nested span needs its own font family to change weight at all.
+  const name = useMemo(() => {
+    const builder = new StyledText();
+    placement.nameParts.forEach((part, index) => {
+      if (index > 0) {
+        builder.add(" | ", { fontWeight: "400" });
+      }
+      builder.add(part.text, { fontWeight: part.isCurrent ? "700" : "400" });
+    });
+    return builder.build();
+  }, [placement.nameParts]);
 
   return (
     <Pressable
@@ -164,14 +180,19 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
         )}
         <View className="relative justify-center flex-1 px-2">
           <View className="flex-row items-center">
-            <Text className={`text-xs font-bold shrink ${nameColor}`} numberOfLines={1}>
-              {placement.fullName}
-            </Text>
+            <FastText
+              text={name.text}
+              fragments={name.fragments}
+              color={nameColor}
+              fontSize={StyledText_remToPx("xs", rem)}
+              numberOfLines={1}
+              style={{ flexShrink: 1 }}
+            />
             {/* Split off the name rather than written into it, so it is the name that gives way in
                 a narrow column: `Squat, Barb…[1]` still says which exercise runs first, and
                 `Squat, Barbell…` says nothing about order at all. */}
             {placement.order != null && (
-              <Text className={`text-xs font-bold shrink-0 ${nameColor}`} numberOfLines={1}>
+              <Text className="text-xs font-bold shrink-0" style={{ color: nameColor }} numberOfLines={1}>
                 {ProgramGrid_orderSuffix(placement)}
               </Text>
             )}

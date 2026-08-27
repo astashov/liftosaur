@@ -22,6 +22,9 @@ Size FastTextMeasuringShadowNode::measureContent(
   serialized["fontFamily"] = props.fontFamily;
   serialized["textPaddingHorizontal"] = props.textPaddingHorizontal;
   serialized["textLineHeight"] = props.textLineHeight;
+  // Without this the measured layout wraps freely while the drawn one is capped, so a truncated
+  // string is billed for every line it would have taken and leaves that much dead space below it.
+  serialized["numberOfLines"] = props.numberOfLines;
 
   folly::dynamic fragments = folly::dynamic::array;
   for (const auto& f : props.fragments) {

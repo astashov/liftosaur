@@ -26,6 +26,10 @@ function schemeText(tokens: { text: string }[]): string {
   return tokens.map((t) => t.text).join("");
 }
 
+function currentText(tokens: { text: string; isCurrent?: boolean }[]): string {
+  return schemeText(tokens.filter((t) => t.isCurrent));
+}
+
 function placementsAt(grid: IProgramGrid, rowIndex: number, weekIndex: number): IProgramGridPlacement[] {
   return grid.placements.filter((p) => p.rowIndex === rowIndex && p.colStart <= weekIndex && p.colEnd >= weekIndex);
 }
@@ -136,6 +140,52 @@ Deadlift / ...tmpl / 3x8 / @8
     expect(scheme("Squat")).to.equal("...tmpl");
     expect(scheme("Bench Press")).to.equal("...tmpl / 180lb");
     expect(scheme("Deadlift")).to.equal("...tmpl / 3x8 @8");
+  });
+
+  it("shows every set variation, and marks the one the program is on", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 5x3 100lb / !6x2 100lb / 10x1 100lb
+Bench Press / 3x5 100lb
+`);
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    expect(schemeText(squat.scheme)).to.equal("5x3 100lb / 6x2 100lb / 10x1 100lb");
+    expect(currentText(squat.scheme)).to.equal("6x2 100lb");
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    expect(schemeText(bench.scheme)).to.equal("3x5 100lb");
+    expect(currentText(bench.scheme)).to.equal("3x5 100lb");
+  });
+
+  it("shows every set variation a reusing line overrides", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 3x5 100lb
+Squat / ...tmpl / 5x3 / !6x2
+Bench Press / ...tmpl / 180lb
+`);
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    expect(schemeText(squat.scheme)).to.equal("...tmpl / 5x3 / 6x2");
+    expect(currentText(squat.scheme)).to.equal("6x2");
+    // The reference stays quiet, but what the line writes over it reads like any other sets do.
+    const globalsOnly = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    expect(schemeText(globalsOnly.scheme)).to.equal("...tmpl / 180lb");
+    expect(currentText(globalsOnly.scheme)).to.equal("180lb");
+  });
+
+  it("shows every exercise variation, and marks the one the program is on", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat | ! Pistol Squat | Front Squat / 3x5 100lb
+Bench Press / 3x5 100lb
+`);
+    const squat = grid.placements.find((p) => p.nameParts.length > 1)!;
+    expect(squat.nameParts).to.deep.equal([
+      { text: "Squat", isCurrent: false },
+      { text: "Pistol Squat", isCurrent: true },
+      { text: "Front Squat", isCurrent: false },
+    ]);
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    expect(bench.nameParts).to.deep.equal([{ text: "Bench Press", isCurrent: true }]);
   });
 
   it("carries the structural facts a strip has no room for", () => {

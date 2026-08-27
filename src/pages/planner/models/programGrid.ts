@@ -2,7 +2,8 @@ import { IEvaluatedProgram } from "../../../models/program";
 import { IDayData, IPercentage, ISettings, IWeight } from "../../../types";
 import { IPlannerProgramExercise, IPlannerProgramExerciseGlobals } from "./types";
 import {
-  PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentSetVariationIndex,
   PlannerProgramExercise_evaluatedSetsToDisplaySets,
   PlannerProgramExercise_getState,
@@ -20,6 +21,15 @@ export type IProgramGridTokenKind = "setPart" | "weight" | "rpe" | "timer" | "au
 export interface IProgramGridSchemeToken {
   text: string;
   kind: IProgramGridTokenKind;
+  // Liftoscript marks the current set variation with a `!`; a strip has no room to spend on
+  // punctuation, so the view spells it as weight instead.
+  isCurrent?: boolean;
+}
+
+// One rung of an exercise-variation ladder, marked the same way and for the same reason.
+export interface IProgramGridNamePart {
+  text: string;
+  isCurrent: boolean;
 }
 
 export interface IProgramGridColumn {
@@ -42,6 +52,10 @@ export interface IProgramGridPlacement {
   id: string;
   key: string;
   fullName: string;
+  // `fullName` with the variation ladder taken apart, which is what the strip prints. The raw name
+  // carries the `!` that marks the current rung, and printing that verbatim spends a character on
+  // something the strip can say by weight instead.
+  nameParts: IProgramGridNamePart[];
   rowIndex: number;
   laneIndex: number;
   colStart: number;
@@ -137,25 +151,45 @@ function joinGroups(groups: IProgramGridSchemeToken[][]): IProgramGridSchemeToke
   );
 }
 
+// Every set variation, spelled the way the program spells them — `/` between, current one marked.
+// Showing only the current one made a `5x3 / !6x2 / 10x1` exercise indistinguishable from a plain
+// `6x2` one, which is the difference between an exercise that has somewhere to go and one that
+// doesn't. The lone variation of an ordinary exercise is marked too: current is how a strip is
+// drawn, and an exercise with nothing to switch to is not a reason to draw it some other way.
+function joinVariations(variations: IProgramGridSchemeToken[][], currentIndex: number): IProgramGridSchemeToken[] {
+  const present = variations
+    .map((tokens, index) => ({ tokens, isCurrent: index === currentIndex }))
+    .filter((variation) => variation.tokens.length > 0);
+  const tokens: IProgramGridSchemeToken[] = [];
+  for (const variation of present) {
+    if (tokens.length > 0) {
+      tokens.push({ text: " / ", kind: "separator" });
+    }
+    tokens.push(...(variation.isCurrent ? variation.tokens.map((t) => ({ ...t, isCurrent: true })) : variation.tokens));
+  }
+  return tokens;
+}
+
 // What a reusing line writes on top of what it reuses. `PlannerProgramExercise_sets` resolves a
 // reuse by letting this line's own sets and globals win over the reused ones, so those two fields
 // hold exactly the overrides — everything else came from the source and belongs in the source's
 // cells, not here.
 function overrideTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
-  const tokens: IProgramGridSchemeToken[] = [];
-  const ownSets = exercise.setVariations[PlannerProgramExercise_currentSetVariationIndex(exercise)]?.sets ?? [];
-  if (ownSets.length > 0) {
-    tokens.push(
-      ...joinGroups(
-        displaySetsToTokens(PlannerProgramExercise_setsToDisplaySets(ownSets, true, exercise.globals, settings))
+  const tokens: IProgramGridSchemeToken[] = joinVariations(
+    exercise.setVariations.map((variation) =>
+      joinGroups(
+        displaySetsToTokens(PlannerProgramExercise_setsToDisplaySets(variation.sets, true, exercise.globals, settings))
       )
-    );
-  }
+    ),
+    PlannerProgramExercise_currentSetVariationIndex(exercise)
+  );
+  // Marked like the sets are: everywhere else a global is folded into the sets it applies to and
+  // reads as part of them, and this is the one path where it arrives on its own.
   for (const token of globalsToTokens(exercise.globals)) {
     if (tokens.length > 0) {
-      tokens.push({ text: " ", kind: "separator" });
+      tokens.push({ text: " ", kind: "separator", isCurrent: true });
     }
-    tokens.push(token);
+    tokens.push({ ...token, isCurrent: true });
   }
   return tokens;
 }
@@ -186,9 +220,11 @@ function globalsToTokens(globals: IPlannerProgramExerciseGlobals): IProgramGridS
 function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
   const reuse = exercise.reuse;
   if (reuse == null) {
-    const variation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
-    return joinGroups(
-      displaySetsToTokens(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation?.sets ?? [], settings))
+    return joinVariations(
+      exercise.evaluatedSetVariations.map((variation) =>
+        joinGroups(displaySetsToTokens(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation.sets, settings)))
+      ),
+      PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise)
     );
   }
   // A reuser's inherited numbers vary week to week, so they stay in the source's cells (see the
@@ -201,6 +237,21 @@ function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): I
     tokens.push({ text: " / ", kind: "separator" }, ...overrides);
   }
   return tokens;
+}
+
+// Split on the `|` the grammar reserves for the ladder rather than rebuilt from `exerciseVariations`,
+// whose names are stripped of the label and equipment that `fullName` spells out — the strip should
+// print what the line says, minus the `!` that `isCurrent` already knows.
+function nameParts(exercise: IPlannerProgramExercise): IProgramGridNamePart[] {
+  const segments = exercise.fullName.split("|");
+  if (segments.length < 2) {
+    return [{ text: exercise.fullName, isCurrent: true }];
+  }
+  const currentIndex = PlannerProgramExercise_currentExerciseVariationIndex(exercise);
+  return segments.map((segment, index) => ({
+    text: segment.replace(/^\s*!\s*/, "").trim(),
+    isCurrent: index === currentIndex,
+  }));
 }
 
 // Short enough for one line of the dock, and spelled the way the program spells it — property name
@@ -365,6 +416,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           sourceWeeks: [],
           key: exercise.key,
           fullName: exercise.fullName,
+          nameParts: nameParts(exercise),
           rowIndex,
           laneIndex,
           colStart: weekIndex,
