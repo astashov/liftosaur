@@ -64,6 +64,14 @@ function linesOf(planner: IPlannerProgram, weekIndex: number, dayIndex: number):
   return text === "" ? [] : text.split("\n");
 }
 
+// The order a day is actually drawn and performed in, which is not its text order: Program_evaluate
+// sorts every day by its forced order.
+function dayOrder(planner: IPlannerProgram, weekIndex: number, dayIndex: number): string[] {
+  const program: IProgram = { ...Program_create("P"), planner };
+  const evaluated = Program_evaluate(program, Settings_build());
+  return (evaluated.weeks[weekIndex]?.days[dayIndex]?.exercises ?? []).map((e) => e.fullName);
+}
+
 function spans(planner: IPlannerProgram, name: string): string[] {
   const program: IProgram = { ...Program_create("P"), planner };
   const grid = ProgramGrid_build(Program_evaluate(program, Settings_build()), Settings_build());
@@ -475,6 +483,85 @@ Deadlift / 1x5 210lb
       ]);
       expect(spans(result.data, "Squat")).to.deep.equal(["[0-1]"]);
     });
+
+    // `order` outranks document position, so a day carrying numbers used to swallow the reorder
+    // whole: the text changed and the program drew exactly what it drew before.
+    it("drops the forced order it can, so the new positions are the ones that count", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1] / 3x5 100lb
+Bench Press[2] / 5x5 50lb
+Bicep Curl[3] / 3x10 20lb
+`;
+      const result = PlannerStructure_reorderExercisesInDay(
+        plannerOf(text),
+        0,
+        ["Bicep Curl", "Squat", "Bench Press"],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+        "Bicep Curl / 3x10 20lb",
+        "Squat / 3x5 100lb",
+        "Bench Press / 5x5 50lb",
+      ]);
+      expect(dayOrder(result.data, 0, 0)).to.deep.equal(["Bicep Curl", "Squat", "Bench Press"]);
+    });
+
+    // The case the numbers exist for. Week 2 holds no line for the repeated exercises, so dropping
+    // the numbers leaves nothing to say where in that week they go.
+    it("keeps numbering a row whose weeks cannot say the order in text alone", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1,1-2] / 3x5 100lb
+Bench Press[2,1-2] / 5x5 50lb
+
+# Week 2
+## Day 1
+Bicep Curl / 3x10 20lb
+`;
+      const result = PlannerStructure_reorderExercisesInDay(
+        plannerOf(text),
+        0,
+        ["Bench Press", "Squat", "Bicep Curl"],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+        "Bench Press[1,1-2] / 5x5 50lb",
+        "Squat[2,1-2] / 3x5 100lb",
+      ]);
+      expect(result.data.weeks[1].days[0].exerciseText.trim().split("\n")).to.deep.equal(["Bicep Curl[3] / 3x10 20lb"]);
+      expect(dayOrder(result.data, 1, 0)).to.deep.equal(["Bench Press", "Squat", "Bicep Curl"]);
+    });
+
+    it("leaves a day that carries no forced order exactly as the reorder left it", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1-2] / 3x5 100lb
+Bench Press / 5x5 50lb
+`;
+      const result = PlannerStructure_reorderExercisesInDay(
+        plannerOf(text),
+        0,
+        ["Bench Press", "Squat"],
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks[0].days[0].exerciseText.trim().split("\n")).to.deep.equal([
+        "Bench Press / 5x5 50lb",
+        "Squat[1-2] / 3x5 100lb",
+      ]);
+    });
   });
 
   describe("moveExerciseToDay", () => {
@@ -653,6 +740,39 @@ Deadlift / 1x5 200lb
         "Overhead Press / 5x5 40lb",
         "Deadlift / 1x5 200lb",
       ]);
+    });
+
+    // A number written for the day it left means something else in the day it lands in: dropped at
+    // the top of an unnumbered day, `Squat[1]` sorts below everything, since an absent one is 0.
+    it("sheds a forced order the day it lands in has no use for", () => {
+      const text = `# Week 1
+## Day 1
+Squat[1] / 3x5 100lb
+Bench Press[2] / 5x5 50lb
+
+## Day 2
+Deadlift / 1x5 200lb
+Bent Over Row / 3x8 100lb
+`;
+      const result = PlannerStructure_moveExercisesToDay(
+        plannerOf(text),
+        [{ fromRowIndex: 0, fullName: "Squat" }],
+        1,
+        "Deadlift",
+        Settings_build()
+      );
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(linesOf(result.data, 0, 1)).to.deep.equal([
+        "Squat / 3x5 100lb",
+        "Deadlift / 1x5 200lb",
+        "Bent Over Row / 3x8 100lb",
+      ]);
+      expect(dayOrder(result.data, 0, 1)).to.deep.equal(["Squat", "Deadlift", "Bent Over Row"]);
+      // And the day it left keeps no number it no longer needs.
+      expect(linesOf(result.data, 0, 0)).to.deep.equal(["Bench Press / 5x5 50lb"]);
     });
 
     it("gathers exercises from different days into one", () => {

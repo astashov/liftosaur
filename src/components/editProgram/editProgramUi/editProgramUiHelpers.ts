@@ -11,6 +11,7 @@ import {
 } from "../../../pages/planner/models/types";
 import { PlannerEvaluator_evaluate, PlannerEvaluator_getFirstError } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey_fromFullName, PlannerKey_fromLabelNameAndEquipment } from "../../../pages/planner/plannerKey";
+import { PlannerStructure_normalizeOrdersInDay } from "../../../pages/planner/models/plannerStructure";
 import {
   IPlannerProgram,
   ISettings,
@@ -562,7 +563,13 @@ export function EditProgramUiHelpers_changeCurrentInstancePosition(
   );
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName);
   const reorder = weeks.map((week) => ({ dayData: { ...dayData, week }, fromIndex, toIndex }));
-  return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
+  // The reorder moves lines; a forced order outranks where a line sits, so without this the day
+  // would be rewritten and then drawn in exactly the order it was in before.
+  return PlannerStructure_normalizeOrdersInDay(
+    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder }),
+    dayData.dayInWeek - 1,
+    settings
+  );
 }
 
 // Matches by key (the exercise's identity), not fullName. They diverge only for exercise variations:

@@ -1,6 +1,7 @@
 import { SyntaxNode } from "@lezer/common";
 import { IDayData, IPlannerProgram, ISettings } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
+import { CollectionUtils_sortBy } from "../../../utils/collection";
 import { IEither } from "../../../utils/types";
 import { StringUtils_nextName } from "../../../utils/string";
 import { parser as plannerExerciseParser } from "../plannerExerciseParser";
@@ -291,6 +292,49 @@ function exerciseRepeats(text: string): IRepeatToken[] {
       fullName: text.slice(variations.from, variations.to).trim(),
       node: repeat,
       order: orderOf(repeat, text),
+      range:
+        reps.length === 2
+          ? [parseInt(text.slice(reps[0].from, reps[0].to), 10), parseInt(text.slice(reps[1].from, reps[1].to), 10)]
+          : undefined,
+    });
+  }
+  return result;
+}
+
+// Where a line's forced order lives, for every line in a day — including the ones that carry no
+// bracket at all, since a number may need writing there. That is what separates this from
+// exerciseRepeats: that one answers "what does this line repeat", and skips a line with no `[...]`
+// because there is nothing to answer; this one answers "where would this line's number go", and
+// every line has an answer.
+interface IOrderSlot {
+  fullName: string;
+  // The bracket where there is one, and the empty span just past the exercise name where there
+  // isn't — so writing a token is the same splice either way.
+  span: ITextSpan;
+  order?: number;
+  // 1-based and inclusive, straight off the `[from-to]`, and carried through any rewrite verbatim.
+  range?: [number, number];
+}
+
+function exerciseOrderSlots(text: string): IOrderSlot[] {
+  const tree = plannerExerciseParser.parse(text);
+  const result: IOrderSlot[] = [];
+  for (const node of children(tree.topNode)) {
+    if (node.type.name !== PlannerNodeName.ExerciseExpression) {
+      continue;
+    }
+    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
+    if (variations == null) {
+      continue;
+    }
+    const repeat = node.getChild(PlannerNodeName.Repeat);
+    const rangeNode = repeat?.getChild(PlannerNodeName.RepRange);
+    const reps = rangeNode != null ? children(rangeNode).filter((c) => c.type.name === PlannerNodeName.Rep) : [];
+    const order = repeat != null ? orderOf(repeat, text) : undefined;
+    result.push({
+      fullName: text.slice(variations.from, variations.to).trim(),
+      span: repeat != null ? { from: repeat.from, to: repeat.to } : { from: variations.to, to: variations.to },
+      order: order === 0 ? undefined : order,
       range:
         reps.length === 2
           ? [parseInt(text.slice(reps[0].from, reps[0].to), 10), parseInt(text.slice(reps[1].from, reps[1].to), 10)]
@@ -1002,6 +1046,119 @@ function reorderDayText(text: string, order: string[], settings: ISettings): str
   return joinBlocks({ blocks, fixed: document.fixed }, text);
 }
 
+// `Squat[3]` is not a position, it is an absolute sort key: Program_buildWeeks sorts every day by
+// it with an absent one counting as 0, and document position only breaks ties between exercises
+// sharing a number. So a day carrying numbers overrules anything that moves a line, and the two
+// disagree until something makes them agree again — which is why a drag on such a day used to
+// rewrite the text and then appear to do nothing at all.
+//
+// Everything below is that reconciliation, run after a transform has put the lines where they
+// belong. It prefers to reconcile on *no* numbers: with every order 0 the sort is stable and
+// document order wins outright, which is both what the author is looking at and one less thing in
+// the text.
+//
+// A row's exercises in the order its text puts them, which after such a transform is the order that
+// was asked for. Weeks in order, each week's blocks in order, first sighting wins — the same rule
+// the grid builds its lanes by, so the two cannot drift. Every exercise on a row is authored by
+// exactly one line on that row (a repeat covers the same day row in later weeks), so this sees all
+// of them.
+function rowOrderFromText(planner: IPlannerProgram, rowIndex: number, settings: ISettings): string[] {
+  const seen = new Set<string>();
+  return planner.weeks.reduce<string[]>((acc, week) => {
+    for (const slot of exerciseOrderSlots(week.days[rowIndex]?.exerciseText ?? "")) {
+      const key = exerciseKey(slot.fullName, settings);
+      if (!seen.has(key)) {
+        seen.add(key);
+        acc.push(slot.fullName);
+      }
+    }
+    return acc;
+  }, []);
+}
+
+function withRowOrders(
+  planner: IPlannerProgram,
+  rowIndex: number,
+  orderFor: (slot: IOrderSlot) => number | undefined
+): IPlannerProgram {
+  const result = ObjectUtils_clone(planner);
+  for (const week of result.weeks) {
+    const day = week.days[rowIndex];
+    if (day == null) {
+      continue;
+    }
+    // Back to front, so rewriting one bracket does not shift the offsets of the ones after it.
+    day.exerciseText = exerciseOrderSlots(day.exerciseText).reduceRight((text, slot) => {
+      // keepSingleWeek, because a range that survives a rewrite has to survive it verbatim:
+      // `Squat[1-1]` written in week 3 means weeks 1 *and* 3, and dropping it would move it.
+      const token = repeatToken(orderFor(slot), slot.range, slot.range != null);
+      return `${text.slice(0, slot.span.from)}${token}${text.slice(slot.span.to)}`;
+    }, day.exerciseText);
+  }
+  return result;
+}
+
+// Whether every week draws the row the way its text reads. The evaluator does not sort — that is
+// Program_buildWeeks' job, and the grid reads its output — so the same key is applied here.
+function rowReadsInTextOrder(
+  planner: IPlannerProgram,
+  rowIndex: number,
+  wanted: string[],
+  settings: ISettings
+): boolean {
+  const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  const wantedKeys = wanted.map((fullName) => exerciseKey(fullName, settings));
+  return planner.weeks.every((_week, weekIndex) => {
+    const day = evaluatedWeeks[weekIndex]?.[rowIndex];
+    if (day == null || !day.success) {
+      return true;
+    }
+    const shown = CollectionUtils_sortBy(day.data, "order")
+      .map((exercise) => exercise.key)
+      .filter((key) => wantedKeys.indexOf(key) !== -1);
+    // What this week ought to show is the row's order restricted to what this week actually has.
+    // Drawn from a dwindling copy rather than by `includes`, so a day holding two of one exercise
+    // has to match twice.
+    const remaining = shown.slice();
+    const expected = wantedKeys.filter((key) => {
+      const at = remaining.indexOf(key);
+      if (at !== -1) {
+        remaining.splice(at, 1);
+      }
+      return at !== -1;
+    });
+    return shown.length === expected.length && shown.every((key, i) => key === expected[i]);
+  });
+}
+
+// Makes a row's numbers agree with its positions, using as few numbers as it can.
+//
+// When they can be dropped altogether is not readable from the day's own text: an exercise that
+// repeats into a later week has no line there, so its position in that week comes from its number
+// and nothing else. Rather than model that, the stripped program is evaluated and checked, and only
+// a row that fails gets numbered — every exercise on it, because a number can only be outranked by
+// a smaller one, so pinning some of them cannot place the rest.
+export function PlannerStructure_normalizeOrdersInDay(
+  planner: IPlannerProgram,
+  rowIndex: number,
+  settings: ISettings
+): IPlannerProgram {
+  const slots = planner.weeks.flatMap((week) => exerciseOrderSlots(week.days[rowIndex]?.exerciseText ?? ""));
+  if (!slots.some((slot) => slot.order != null)) {
+    return planner;
+  }
+  const wanted = rowOrderFromText(planner, rowIndex, settings);
+  const stripped = withRowOrders(planner, rowIndex, () => undefined);
+  if (rowReadsInTextOrder(stripped, rowIndex, wanted, settings)) {
+    return stripped;
+  }
+  const numbers = wanted.reduce<Record<string, number>>(
+    (acc, fullName, index) => ({ ...acc, [exerciseKey(fullName, settings)]: index + 1 }),
+    {}
+  );
+  return withRowOrders(planner, rowIndex, (slot) => numbers[exerciseKey(slot.fullName, settings)] ?? slot.order);
+}
+
 // Reorders exercises within a day. This is content order — no slot identity moves — so it is safe
 // in a way none of the other structural edits are. Applied to every week's copy of the day so the
 // grid's lanes, which are shared across weeks, keep meaning one thing.
@@ -1018,7 +1175,7 @@ export function PlannerStructure_reorderExercisesInDay(
       day.exerciseText = reorderDayText(day.exerciseText, order, settings);
     }
   }
-  return refuseIfWorse(planner, result, settings);
+  return refuseIfWorse(planner, PlannerStructure_normalizeOrdersInDay(result, rowIndex, settings), settings);
 }
 
 // Moves one exercise from one day row to another, in every week that authors it there. A repeated
@@ -1397,15 +1554,23 @@ export function PlannerStructure_moveExercisesToDay(
   if (!moved) {
     return { success: false, error: `Couldn't find ${crossing.map((m) => m.fullName).join(", ")} in that day.` };
   }
+  // A forced order was written for the day the exercise is leaving and means something else in the
+  // one it lands in — `Squat[1]` dropped at the top of an unnumbered day sorts to the bottom of it,
+  // since an absent number counts as 0. Both ends are reconciled: the row it left can be holding
+  // numbers that no longer say anything now that one of them has gone.
+  const normalized = Array.from(new Set([toRowIndex, ...crossing.map((move) => move.fromRowIndex)])).reduce(
+    (acc, row) => PlannerStructure_normalizeOrdersInDay(acc, row, settings),
+    result
+  );
   // The addresses were rewritten above and a same-named neighbour was labelled apart, so what is
   // left for this to catch is what neither could anticipate — a `used: none` template redeclared,
   // a property the two copies now disagree about.
-  const checked = refuseIfWorse(planner, result, settings);
+  const checked = refuseIfWorse(planner, normalized, settings);
   if (!checked.success) {
     return checked;
   }
   // And then the loss that evaluates perfectly well, so nothing above can see it.
-  const stranded = strandedByLabelling(planner, result, relabels, settings);
+  const stranded = strandedByLabelling(planner, normalized, relabels, settings);
   if (stranded != null) {
     return { success: false, error: stranded };
   }

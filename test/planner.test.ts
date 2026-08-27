@@ -22,6 +22,7 @@ import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { Stats_getEmpty } from "../src/models/stats";
 import {
+  EditProgramUiHelpers_changeCurrentInstancePosition,
   EditProgramUiHelpers_changeFirstInstance,
   EditProgramUiHelpers_getChangedKeys,
 } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
@@ -2969,6 +2970,30 @@ Squat / 3x8 / 100lb
 # Week 2
 ## Day 1
 Squat / 3x8 / 100lb / progress: lp(5lb, 3, 1)`);
+    });
+
+    // A forced order outranks where a line sits, so the day was rewritten and then drawn in the
+    // order it was already in — the drag looked like it did nothing at all.
+    it("drops the forced order when the per-day editor moves an exercise", () => {
+      const settings = Settings_build();
+      const { planner } = PlannerTestUtils_get(`# Week 1
+## Day 1
+Squat[1] / 3x8 100lb
+Bench Press[2] / 3x8 100lb
+Bicep Curl[3] / 3x8 20lb`);
+      const newPlanner = EditProgramUiHelpers_changeCurrentInstancePosition(
+        planner,
+        { week: 1, dayInWeek: 1, day: 1 },
+        "Bicep Curl",
+        2,
+        0,
+        settings
+      );
+      expect(PlannerProgram_generateFullText(newPlanner.weeks).trim()).to.equal(`# Week 1
+## Day 1
+Bicep Curl / 3x8 / 20lb
+Squat / 3x8 / 100lb
+Bench Press / 3x8 / 100lb`);
     });
 
     it("applies a UI progress edit at the week the progress was written on", () => {
