@@ -447,6 +447,19 @@ export function ProgramGrid_hasDay(row: IProgramGridRow, weekIndex: number): boo
   return row.namePerWeek[weekIndex] !== undefined;
 }
 
+// The number pinning an exercise's position, spelled the way the language writes it, to be read as
+// part of the name it follows: `Squat[1]`. Empty when there is no forced order.
+//
+// Part of the name rather than a badge beside it, because a forced order decides where the exercise
+// happens — and it is the one property that reads as nonsense on its own: "order 3" on the second
+// strip down is a puzzle, `Squat[3]` sitting above `Bench Press[1]` is a fact you can act on.
+//
+// Display only, and never spliced into `fullName` — that is the identity every edit matches by, and
+// it stays the name alone.
+export function ProgramGrid_orderSuffix(placement: IProgramGridPlacement): string {
+  return placement.order == null ? "" : `[${placement.order}]`;
+}
+
 // Which exercise sits in each lane of a day row, by lane index. This is *identity*: it answers
 // "what am I dragging", so it comes from the placements rather than from the layout — geometry
 // happens to carry the same names for drawing ghosts, and a drag must not depend on that.

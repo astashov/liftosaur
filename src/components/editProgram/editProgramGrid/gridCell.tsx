@@ -10,6 +10,7 @@ import {
   IProgramGridPlacement,
   IProgramGridSelection,
   IProgramGridTokenKind,
+  ProgramGrid_orderSuffix,
 } from "../../../pages/planner/models/programGrid";
 import { GRID_CELL_INSET_X, GRID_CELL_INSET_Y } from "../../../pages/planner/models/programGridGeometry";
 import { GridBadge } from "./gridBadge";
@@ -111,6 +112,12 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
     return builder.build();
   }, [scheme, isActive]);
 
+  const nameColor = isActive
+    ? "text-text-primaryinverse"
+    : placement.notused
+      ? "text-text-secondary"
+      : "text-text-primary";
+
   return (
     <Pressable
       style={
@@ -157,16 +164,19 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
         )}
         <View className="relative justify-center flex-1 px-2">
           <View className="flex-row items-center">
-            <Text
-              className={`text-xs font-bold shrink ${
-                isActive ? "text-text-primaryinverse" : placement.notused ? "text-text-secondary" : "text-text-primary"
-              }`}
-              numberOfLines={1}
-            >
+            <Text className={`text-xs font-bold shrink ${nameColor}`} numberOfLines={1}>
               {placement.fullName}
             </Text>
-            {/* Only what a strip is already shaped to carry. An exercise's order and tags are just
-                as invisible, but a cell is one column wide and the dock is the whole screen.
+            {/* Split off the name rather than written into it, so it is the name that gives way in
+                a narrow column: `Squat, Barb…[1]` still says which exercise runs first, and
+                `Squat, Barbell…` says nothing about order at all. */}
+            {placement.order != null && (
+              <Text className={`text-xs font-bold shrink-0 ${nameColor}`} numberOfLines={1}>
+                {ProgramGrid_orderSuffix(placement)}
+              </Text>
+            )}
+            {/* Only what a strip is already shaped to carry. An exercise's tags are just as
+                invisible, but a cell is one column wide and the dock is the whole screen.
                 And it goes at the same width the scheme does: the badge is fixed-size, so a column
                 too narrow for numbers is one where it crowds the name down to nothing rather than
                 sharing the room with it. Zoomed that far out the question is which exercises are

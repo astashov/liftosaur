@@ -13,6 +13,7 @@ import { useGridSelection } from "./gridSelectionContext";
 import { GridReusePillFloat } from "./gridReusePill";
 import { GridBadge } from "./gridBadge";
 import { StringUtils_pluralize } from "../../../utils/string";
+import { ProgramGrid_orderSuffix } from "../../../pages/planner/models/programGrid";
 
 // Rendered from NavScreenContent's footer slot, so it is anchored above the tab bar and the scroll
 // content is padded by its height — the selection stays reachable no matter where the tapped strip
@@ -69,7 +70,9 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   // naturally over a set, so it is the one action that stays on with several selected.
   const single = target.kind === "exercises" && target.placements.length === 1 ? target.placements[0] : undefined;
   const label =
-    target.kind === "day" || target.kind === "week" ? target.name : target.placements.map((p) => p.fullName).join(", ");
+    target.kind === "day" || target.kind === "week"
+      ? target.name
+      : target.placements.map((p) => `${p.fullName}${ProgramGrid_orderSuffix(p)}`).join(", ");
   // Distinct exercises, not placements: a placement is one *run* of an exercise, so an undulating
   // day would otherwise report a count several times its actual size.
   // Keyed, so an exercise whose active variation differs between weeks counts once rather than once
@@ -89,9 +92,6 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   if (single != null) {
     if (single.notused) {
       badges.push(single.isTemplate ? "tmpl" : "unused");
-    }
-    if (single.order != null) {
-      badges.push(`order ${single.order}`);
     }
     if (single.tags.length > 0) {
       badges.push(`id ${single.tags.join(", ")}`);
