@@ -45,7 +45,7 @@ export function useGridNavigation(args: {
         Thunk_pushToEditProgramExercise(
           placement.key,
           ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart),
-          programId
+          { editProgramId: programId }
         )
       );
     },

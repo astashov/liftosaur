@@ -71,14 +71,6 @@ import type {
   IExerciseLiftoEditorSheetSharedProperty,
 } from "./exerciseLiftoEditorSheetTypes";
 
-const sampleText = `# Week 1
-## Day 1
-Squat / 5x5 / 100kg / progress: lp(5kg)
-Bench Press, Barbell / 3x8-10 @8 60s / 80% / warmup: 2x5 45%, 1x3 60%
-// A line comment
-Deadlift[1-3] / 1x5 / 150kg+ / update: custom() {~ weights += 2.5kg ~}
-`;
-
 // In a single-week program the week name is the same on every chip, so only day names carry
 // information there.
 function instanceLabel(evaluatedProgram: IEvaluatedProgram | undefined, dayData: IDayData): string {
@@ -657,7 +649,9 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // bodyText is whatever the shared-sections toggle last composed; without it, the plain local
   // line. Either way it is exactly what the body is mounted with, so it doubles as the baseline
   // the close guard compares the draft against.
-  const initialText = bodyText ?? currentDeclaration?.text ?? sampleText;
+  // Never a stand-in for a declaration that couldn't be found — that case doesn't reach the editor
+  // at all now (see the guard below the hooks). The `?? ""` only keeps the expression total.
+  const initialText = bodyText ?? currentDeclaration?.text ?? "";
   // A pending whole-program rewrite counts: it is unsaved work even when the line on screen is
   // back to matching the program, which is exactly what re-projecting leaves behind. Without it
   // Done would take the "nothing changed" exit and drop the rewrite on the floor.
@@ -731,6 +725,28 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
           excludeUsedExerciseTypes: currentExercise.exerciseType != null ? [currentExercise.exerciseType] : undefined,
         }
       : undefined;
+
+  // Nothing to edit, so nothing that looks like an editor. A lookup that fails here is always a bug
+  // or a stale navigation — the key was renamed, the program moved underneath, the caller resolved
+  // against the wrong copy — and the failure mode that matters is the plausible one: a sheet that
+  // opens on *something* reads as the user's program until they notice it isn't. Both save paths
+  // already refuse when this is null, so an editor here could only ever take input and drop it.
+  if (currentDeclaration == null) {
+    return (
+      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+        <TransparentModal onClose={onClose} fitContent={true}>
+          <View className="items-center px-6 py-8">
+            <Text className="text-base font-bold text-center text-text-primary">
+              Couldn't find this exercise in the program
+            </Text>
+            <Text className="mt-2 text-sm text-center text-text-secondary">
+              It may have been renamed or removed since this screen was opened.
+            </Text>
+          </View>
+        </TransparentModal>
+      </SheetScreenContainer>
+    );
+  }
 
   return (
     <SheetScreenContainer onClose={onClose} shouldClose={shouldClose} shouldShowClose={true}>

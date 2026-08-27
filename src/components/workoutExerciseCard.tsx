@@ -209,7 +209,11 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const programIdForEdit = props.program?.id;
   const editProgramExercise = useCallback((): void => {
     if (programExercise) {
-      dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, programIdForEdit));
+      dispatch(
+        Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, {
+          workoutProgramId: programIdForEdit,
+        })
+      );
     }
   }, [dispatch, programExercise, programIdForEdit]);
 

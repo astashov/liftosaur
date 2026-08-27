@@ -1260,16 +1260,26 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
   };
 }
 
+// Which program to edit, and — the part that used to be implicit and got it wrong — whether the
+// *saved* copy or the unsaved draft is the one being edited. A workout reads the saved program,
+// because that is what it is performing. Anything inside the program editor has to read the draft,
+// or an exercise that has only been added and not saved yet doesn't exist at all: the sheet finds no
+// declaration for the key and falls back to its sample text, which reads as some other program
+// entirely. Passing an id used to mean "from a workout", so the editor supplying its own id was
+// enough to send it down the wrong branch.
 export function Thunk_pushToEditProgramExercise(
   key: string,
   dayData: Required<IDayData>,
-  workoutProgramId?: string
+  opts?: { workoutProgramId?: string; editProgramId?: string }
 ): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
+    const workoutProgramId = opts?.workoutProgramId;
     const isFromWorkout = workoutProgramId != null;
     const editProgramIds = Object.keys(state.editProgramStates);
-    const programId = isFromWorkout ? workoutProgramId : (editProgramIds[0] ?? state.storage.currentProgramId);
+    const programId = isFromWorkout
+      ? workoutProgramId
+      : (opts?.editProgramId ?? editProgramIds[0] ?? state.storage.currentProgramId);
     const editProgramState = programId ? state.editProgramStates[programId] : undefined;
     const currentProgram = isFromWorkout
       ? programId != null
