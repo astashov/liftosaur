@@ -17,6 +17,8 @@ export function useGridStickyHeader(): {
   // measurement this hook already keeps fresh, and measuring it a second time somewhere else is how
   // the two answers drift apart.
   rowsTop: number;
+  // The header's own height, for anything that wants to ride just below it on the same translate.
+  headerHeight: number;
 } {
   const scrollCtx = useContext(NavScreenScrollContext);
   const containerRef = useRef<View | null>(null);
@@ -92,5 +94,6 @@ export function useGridStickyHeader(): {
     onHeaderLayout,
     translateY,
     rowsTop: anchor.top + anchor.headerHeight,
+    headerHeight: anchor.headerHeight,
   };
 }

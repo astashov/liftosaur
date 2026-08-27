@@ -27,6 +27,7 @@ import {
 } from "../../../pages/planner/models/programGridGeometry";
 import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionContext";
 import { useGridReuseLocator } from "./useGridReuseLocator";
+import { GridReusePillFloat } from "./gridReusePill";
 import { useGridPinch } from "./gridPinch";
 import { useGridActions } from "./useGridActions";
 import { useGridNavigation } from "./useGridNavigation";
@@ -363,6 +364,22 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           </View>
         </ScrollView>
       </Wrap>
+      {/* A source that lies above belongs at the top of the screen, under the week names — pointing
+          up from a pill docked at the bottom makes the direction something to reconcile rather than
+          something to read. One that lies below is the dock's, which is already anchored there.
+
+          Outside the horizontal scroller, so it stays put while the weeks scroll under it, and on
+          the header's own translate so it holds the same edge as the week names it hangs from.
+          Above both the header and the rows, since it floats over whatever it covers. */}
+      {reuse?.direction === "up" && (
+        <Animated.View
+          pointerEvents="box-none"
+          className="absolute left-0 right-0"
+          style={{ top: sticky.headerHeight, transform: [{ translateY: sticky.translateY }], zIndex: 3 }}
+        >
+          <GridReusePillFloat reuse={reuse} />
+        </Animated.View>
+      )}
       <Text className="px-4 pt-2 text-xs text-text-secondary">Long-press a day, an exercise or a week to move it</Text>
     </View>
   );
