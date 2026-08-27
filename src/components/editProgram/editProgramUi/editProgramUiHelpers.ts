@@ -276,6 +276,37 @@ export function EditProgramUiHelpers_getWeeks2(
   return Array.from(weeks);
 }
 
+// A label the copy can carry without landing on top of something already in the day. The caller's is
+// kept when it already distinguishes them — which is what a typed label is for — and otherwise three
+// random letters, the same way a rename picks a fresh suffix when the name it wanted is taken.
+function uniqueDuplicateLabel(
+  evaluatedProgram: IEvaluatedProgram,
+  dayData: Required<IDayData>,
+  newExerciseType: IExerciseType | string,
+  label: string | undefined,
+  settings: ISettings
+): string | undefined {
+  const day = evaluatedProgram.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
+  const takenKeys = new Set((day?.exercises ?? []).map((e) => e.key));
+  const keyFor = (candidate: string | undefined): string => {
+    const candidateFullName =
+      typeof newExerciseType === "string"
+        ? `${candidate ? `${candidate}: ` : ""}${newExerciseType}`
+        : Exercise_fullName(Exercise_get(newExerciseType, settings.exercises), settings, candidate);
+    return PlannerKey_fromFullName(candidateFullName, settings.exercises);
+  };
+  if (!takenKeys.has(keyFor(label))) {
+    return label;
+  }
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const candidate = UidFactory_generateUid(3);
+    if (!takenKeys.has(keyFor(candidate))) {
+      return candidate;
+    }
+  }
+  return UidFactory_generateUid(3);
+}
+
 export function EditProgramUiHelpers_duplicateCurrentInstance(
   planner: IPlannerProgram,
   dayData: Required<IDayData>,
@@ -288,6 +319,14 @@ export function EditProgramUiHelpers_duplicateCurrentInstance(
     Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
   );
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName);
+  // A copy that keeps its source's label isn't a copy: the label is part of the key, so both lines
+  // would resolve to one exercise and the duplicate would silently merge into the original. When the
+  // caller hasn't supplied a label that distinguishes them, one gets minted — three random letters,
+  // the same way a rename picks a fresh suffix (plannerProgram.ts :143).
+  //
+  // Resolved once rather than per week, because the copy has to be the *same* exercise in every week
+  // this repeats into; a label per week would scatter it into one exercise per week.
+  const resolvedLabel = uniqueDuplicateLabel(evaluatedProgram, dayData, newExerciseType, label, settings);
 
   const add = [];
   for (const week of weeks) {
@@ -299,14 +338,14 @@ export function EditProgramUiHelpers_duplicateCurrentInstance(
     if (index !== -1 && previousExercise) {
       let exercise: IExercise | undefined;
       if (typeof newExerciseType === "string") {
-        newFullName = `${label ? `${label}: ` : ""}${newExerciseType}`;
+        newFullName = `${resolvedLabel ? `${resolvedLabel}: ` : ""}${newExerciseType}`;
       } else {
         exercise = Exercise_get(newExerciseType, settings.exercises);
-        newFullName = Exercise_fullName(exercise, settings, label);
+        newFullName = Exercise_fullName(exercise, settings, resolvedLabel);
       }
       const newExercise: IPlannerProgramExercise = {
         ...ObjectUtils_clone(previousExercise),
-        label: label ?? previousExercise.label,
+        label: resolvedLabel ?? previousExercise.label,
         fullName: newFullName,
         shortName: newFullName,
         notused: typeof newExerciseType === "string" ? true : previousExercise.notused,

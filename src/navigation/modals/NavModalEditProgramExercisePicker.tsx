@@ -134,18 +134,26 @@ function onChangeExercise(
     const day = newPlanner.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
     const exerciseText = day?.exerciseText;
     if (exerciseText != null) {
-      let fullName: string | undefined;
-      if (typeof newExerciseType === "string") {
-        fullName = `${newLabel ? `${newLabel}: ` : ""}${newExerciseType} / used: none`;
-      } else if (newExerciseType != null) {
-        const exercise = Exercise_get(newExerciseType, settings.exercises);
-        fullName = Exercise_fullName(exercise, settings, newLabel);
-      }
-      if (fullName != null) {
-        const newLine = `${fullName} / 1x1 100${settings.units}`;
-        const newExerciseText = exerciseText.trim() ? exerciseText + `\n${newLine}` : newLine;
-        day.exerciseText = newExerciseText;
-        plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Add exercise to exercise text");
+      // Every selected exercise, not just the first: the picker is multi-select whenever it was
+      // opened to add rather than to change one particular exercise, and each pick is its own line.
+      const newLines = selectedExercises.reduce<string[]>((acc, selected) => {
+        const exerciseType = selected.type === "template" ? selected.name : selected.exerciseType;
+        const label = "label" in selected ? selected.label : undefined;
+        let fullName: string | undefined;
+        if (typeof exerciseType === "string") {
+          fullName = `${label ? `${label}: ` : ""}${exerciseType} / used: none`;
+        } else if (exerciseType != null) {
+          fullName = Exercise_fullName(Exercise_get(exerciseType, settings.exercises), settings, label);
+        }
+        return fullName != null ? [...acc, `${fullName} / 1x1 100${settings.units}`] : acc;
+      }, []);
+      if (newLines.length > 0) {
+        const added = newLines.join("\n");
+        day.exerciseText = exerciseText.trim() ? exerciseText + `\n${added}` : added;
+        plannerDispatch(
+          lb<IPlannerProgram>().record(newPlanner),
+          `Add ${newLines.length > 1 ? `${newLines.length} exercises` : "exercise"} to exercise text`
+        );
         onStopIsUndoing();
       }
     }

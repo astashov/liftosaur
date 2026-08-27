@@ -63,7 +63,10 @@ export function useGridNavigation(args: {
           .p("ui")
           .p("exercisePicker")
           .record({
-            state: pickerStateFromPlannerExercise(settings, exercise),
+            // A label is only there to tell two instances of the same exercise apart, which is a
+            // detail of how the program is written rather than a decision worth stopping a
+            // duplicate to ask about — so the grid never asks, and the duplicate names itself.
+            state: { ...pickerStateFromPlannerExercise(settings, exercise), hideLabel: true },
             dayData,
             exerciseKey: placement.key,
             change: "duplicate",
@@ -83,7 +86,7 @@ export function useGridNavigation(args: {
           .record({
             dayData: { week: weekIndex + 1, dayInWeek: rowIndex + 1 },
             change: "all",
-            state: pickerStateFromPlannerExercise(settings),
+            state: { ...pickerStateFromPlannerExercise(settings), hideLabel: true },
           }),
         "Open add exercise picker"
       );

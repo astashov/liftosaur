@@ -57,7 +57,7 @@ import {
 } from "./exercisePickerUtils";
 import { CollectionUtils_compact } from "../../utils/collection";
 import { ObjectUtils_values, ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
-import { StringUtils_dashcase } from "../../utils/string";
+import { StringUtils_dashcase, StringUtils_pluralize } from "../../utils/string";
 import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
@@ -1451,7 +1451,13 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
           : state.exerciseType || state.templateName
             ? `Save ${state.selectedTab === 1 ? "Template" : "Exercise"}`
             : selectedExercises.length > 0
-              ? `Add ${state.selectedTab === 1 ? "Template" : "Exercise"}`
+              ? state.selectedTab === 1
+                ? "Add Template"
+                : // Counted, because adding to a program is multi-select too now and the button is
+                  // the only place that says how many are about to land in the day.
+                  `Add ${StringUtils_pluralize("Exercise", selectedExercises.length)}${
+                    selectedExercises.length > 1 ? ` (${selectedExercises.length})` : ""
+                  }`
               : "Close"}
       </Button>
       {!(state.mode === "program" && state.selectedTab === 1) && selectedExercises.length > 0 && (

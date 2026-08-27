@@ -257,8 +257,12 @@ export type IExercisePickerChooseCtx = Pick<
   "mode" | "exerciseType" | "selectedExercises" | "label"
 >;
 
+// An `exerciseType` means the picker was opened *about* one exercise — replacing it, duplicating it,
+// swapping a variation — and all of those answer with exactly one exercise. Without one it was
+// opened to add, and adding several at once is the same gesture repeated. That holds in a program
+// as much as in a workout, which is why the mode no longer comes into it.
 export function ExercisePickerUtils_getIsMultiselect(ctx: IExercisePickerMultiselectCtx): boolean {
-  return ctx.mode === "workout" && !ctx.exerciseType;
+  return !ctx.exerciseType;
 }
 
 export function ExercisePickerUtils_chooseAdhocExercise(
