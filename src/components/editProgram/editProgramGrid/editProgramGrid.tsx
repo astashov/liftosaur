@@ -6,7 +6,6 @@ import {
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   useWindowDimensions,
 } from "react-native";
 import { lb } from "lens-shmens";
@@ -273,18 +272,17 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                 />
                 {/* Inside the header rather than over the grid: a week ghost is its name, and this
                     is the row of names it is being dragged among. */}
-                {Platform.OS !== "web" &&
-                  grid.columns.map((column) => (
-                    <GridWeekGhost
-                      key={column.weekIndex}
-                      weekIndex={column.weekIndex}
-                      name={column.name}
-                      columnWidth={columnWidth}
-                      draggedWeek={drags.draggedWeek}
-                      ghostX={drags.ghostX}
-                      activeGhost={activeGhost}
-                    />
-                  ))}
+                {grid.columns.map((column) => (
+                  <GridWeekGhost
+                    key={column.weekIndex}
+                    weekIndex={column.weekIndex}
+                    name={column.name}
+                    columnWidth={columnWidth}
+                    draggedWeek={drags.draggedWeek}
+                    ghostX={drags.ghostX}
+                    activeGhost={activeGhost}
+                  />
+                ))}
               </Animated.View>
               {/* The rows and the ghosts share one coordinate space — the geometry's — and it
                   starts here, below the week header. zIndex keeps a ghost dragged past the last row
@@ -314,25 +312,29 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                   />
                 ))}
                 {/* Last, so they paint over every row. Mounted with the grid rather than with the
-                    drag: see GridDragGhost. Reanimated is stubbed on web, where they would land in
-                    the flow with their positioning dropped, so web goes without. */}
-                {Platform.OS !== "web" &&
-                  grid.rows.map((row) => (
-                    <GridDragGhost
-                      key={row.rowIndex}
-                      rowIndex={row.rowIndex}
-                      name={row.namePerWeek.find((n) => n != null) ?? `Day ${row.rowIndex + 1}`}
-                      laneNames={geometry[row.rowIndex].isCollapsed ? [] : geometry[row.rowIndex].laneNames}
-                      width={totalWidth}
-                      top={geometry[row.rowIndex].top}
-                      labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
-                      laneHeight={laneHeight}
-                      draggedRows={drags.draggedRows}
-                      draggedLanes={drags.draggedLanes}
-                      ghostY={drags.ghostY}
-                      activeGhost={activeGhost}
-                    />
-                  ))}
+                    drag: see GridDragGhost.
+
+                    Rendered on web too. Reanimated is only stubbed in the *server* render
+                    (register-rn-web.js); the app bundle carries the real thing, so the shared
+                    values that drive these reach the DOM. And the stub is harmless where it does
+                    apply: it renders Animated.View as a fragment, and a ghost's contents are null
+                    until a drag starts, which cannot happen during SSR. */}
+                {grid.rows.map((row) => (
+                  <GridDragGhost
+                    key={row.rowIndex}
+                    rowIndex={row.rowIndex}
+                    name={row.namePerWeek.find((n) => n != null) ?? `Day ${row.rowIndex + 1}`}
+                    laneNames={geometry[row.rowIndex].isCollapsed ? [] : geometry[row.rowIndex].laneNames}
+                    width={totalWidth}
+                    top={geometry[row.rowIndex].top}
+                    labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
+                    laneHeight={laneHeight}
+                    draggedRows={drags.draggedRows}
+                    draggedLanes={drags.draggedLanes}
+                    ghostY={drags.ghostY}
+                    activeGhost={activeGhost}
+                  />
+                ))}
               </View>
               <View className="flex-row">
                 {grid.columns.map((column) => (
