@@ -21,9 +21,15 @@ export const GridReusePill = memo(function GridReusePill(props: { reuse: IGridRe
   return (
     <Pressable
       className="flex-row items-center gap-1 px-2 py-1 border rounded-full nm-grid-reuse-locator"
+      // The template strip's own green (gridCell's `notused` family), because that is what the pill
+      // is pointing at — a reuse source is nearly always a template, and matching it lets the eye
+      // go from the pill to the thing it names without changing what it is looking for.
+      //
+      // Resolved values rather than `bg-*` classes, for the same reason the strips use them: a
+      // utility the scanner never emitted falls back to transparent without saying so.
       style={{
-        borderColor: Tailwind_semantic().border.cardpurple,
-        backgroundColor: Tailwind_semantic().background.cardpurple,
+        borderColor: Tailwind_semantic().border.gridnotused,
+        backgroundColor: Tailwind_semantic().background.gridnotused,
       }}
       testID="grid-reuse-locator"
       accessibilityLabel={`Scroll to ${reuse.name}, ${reuse.direction === "up" ? "above" : "below"}`}
@@ -33,11 +39,11 @@ export const GridReusePill = memo(function GridReusePill(props: { reuse: IGridRe
           Poppins carries it, and a fallback font would put a stranger's arrow in the middle of a
           pill. */}
       {reuse.direction === "up" ? (
-        <IconArrowUp color={Tailwind_semantic().text.link} />
+        <IconArrowUp color={Tailwind_semantic().icon.green} />
       ) : (
-        <IconArrowDown2 color={Tailwind_semantic().text.link} />
+        <IconArrowDown2 color={Tailwind_semantic().icon.green} />
       )}
-      <Text className="text-xs font-semibold text-text-link" numberOfLines={1}>
+      <Text className="text-xs font-semibold text-text-success" numberOfLines={1}>
         {reuse.name}
       </Text>
     </Pressable>
