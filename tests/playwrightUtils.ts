@@ -111,6 +111,31 @@ export async function PlaywrightUtils_swipeLeft(page: Page, locator: Locator): P
   }
 }
 
+export async function PlaywrightUtils_readCodeMirror(page: Page, dataCy: string): Promise<string> {
+  await expect(page.getByTestId(dataCy).locator("css=.cm-content").first()).toBeVisible();
+  return page.evaluate((theDataCy) => {
+    const cmContent = document.querySelector(`[data-testid=${theDataCy}] .cm-content`) as any;
+    return cmContent.cmView.view.state.doc.toString() as string;
+  }, dataCy);
+}
+
+// A mouse drag in the grid arms on distance rather than on a long press (gridDragHandle.tsx), so
+// the pointer has to clear that threshold in a move of its own before the one that carries it to
+// the target — a single jump from press to destination looks like a click that teleported.
+export async function PlaywrightUtils_dragBy(page: Page, locator: Locator, dx: number, dy: number): Promise<void> {
+  const box = await locator.boundingBox();
+  if (box == null) {
+    throw new Error("Can't drag an element that isn't on the screen");
+  }
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + Math.sign(dx) * 6, y + Math.sign(dy) * 6, { steps: 3 });
+  await page.mouse.move(x + dx, y + dy, { steps: 20 });
+  await page.mouse.up();
+}
+
 export function PlaywrightUtils_typeCodeMirror(
   page: Page,
   dataCy: string,

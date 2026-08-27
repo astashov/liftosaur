@@ -1,10 +1,10 @@
 import { IProgramGrid, IProgramGridPlacement, ProgramGrid_laneNames } from "./programGrid";
 
 // Where the grid's boxes sit, and what a pointer position means. Everything here is pure arithmetic
-// over the layout model, deliberately outside the components: a drop target can only be exercised
-// through a live gesture, which is exactly the thing that can't be driven from a test, and every
-// bug this file has had so far (an off-by-one indicator, a gap confused for an index) lived in the
-// few lines that decide where a drag lands.
+// over the layout model, deliberately outside the components: every bug this file has had so far
+// (an off-by-one indicator, a gap confused for an index) lived in the few lines that decide where a
+// drag lands, and those are worth checking one gap at a time rather than only through the gesture
+// that reaches them.
 //
 // Sizes are in rem multiples, resolved against the caller's `rem` — the app's font scale slider
 // moves it, so nothing here may hardcode pixels.
