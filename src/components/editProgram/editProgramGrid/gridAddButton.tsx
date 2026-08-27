@@ -64,7 +64,11 @@ export const VerticalAddButton = memo(function VerticalAddButton(props: IAddButt
       onLayout={onLayout}
     >
       {Array.from({ length: labels }, (_, i) => i).map((i) => (
-        <View key={i} className="items-center justify-center" style={{ flex: 1 }}>
+        // Deaf to the pointer, so the rail's own Pressable takes every press inside it. The label
+        // below is sized for its unrotated width, which is wider than the rail — on web that box
+        // still hit-tests, and its overhang covered the resize handles of the last week's strips,
+        // making a repeat impossible to drag there. The press belongs to whatever is underneath.
+        <View key={i} pointerEvents="none" className="items-center justify-center" style={{ flex: 1 }}>
           {/* Rotation doesn't change layout, so the label needs its own length along what becomes
               the vertical axis; it overflows the narrow rail before rotating and fits after. */}
           <View
