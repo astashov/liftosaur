@@ -34,9 +34,9 @@ export function useGridDayDrag(args: {
       draggedRows.value = gap == null ? [] : movedRef.current;
       dropBoundary.value =
         gap == null || ProgramGridGeometry_isBlockDropNoop(getGeometry().length, movedRef.current, gap) ? -1 : gap;
-      if (gap != null) {
-        ghostY.value = translationY;
-      }
+      // Zero when there is no target — see useGridWeekDrag: a ghost left translated still takes up
+      // room in the scroller after the drag that moved it is over.
+      ghostY.value = gap == null ? 0 : translationY;
     },
     commit: (gap) => {
       const moved = movedRef.current;

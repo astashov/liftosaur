@@ -95,12 +95,11 @@ export function useGridLaneDrag(args: {
       const noop = drop == null || isNoop(drop, moved);
       dropLaneRow.value = noop ? -1 : drop!.toRow;
       dropLaneGap.value = noop ? -1 : drop!.gap;
-      if (drop != null) {
-        // Drawn from the translation rather than carried on the drop: where the strips *land* snaps
-        // to a lane, where they are *drawn* follows the finger, and a target that carries both is a
-        // target doing two jobs.
-        ghostY.value = translationY;
-      }
+      // Drawn from the translation rather than carried on the drop: where the strips *land* snaps
+      // to a lane, where they are *drawn* follows the finger, and a target that carries both is a
+      // target doing two jobs. Zero when there is no target — see useGridWeekDrag: a ghost left
+      // translated still takes up room in the scroller after the drag is over.
+      ghostY.value = drop == null ? 0 : translationY;
     },
     commit: (drop) => {
       const grid = getGrid();

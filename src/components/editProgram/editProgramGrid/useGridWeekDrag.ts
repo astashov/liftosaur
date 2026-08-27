@@ -26,11 +26,13 @@ export function useGridWeekDrag(args: {
     show: (to, translationX) => {
       draggedWeek.value = to == null ? -1 : weekIndex;
       dropWeekGap.value = to == null ? -1 : ProgramGridGeometry_gapForMove(weekIndex, to);
-      if (to != null) {
-        // The column snaps to `to`; the copy under the finger does not. A translation only — the
-        // ghost knows which column it is and where that column starts.
-        ghostX.value = translationX;
-      }
+      // The column snaps to `to`; the copy under the finger does not. A translation only — the
+      // ghost knows which column it is and where that column starts.
+      //
+      // Back to nothing when there is no target, which is how a drag ends. A ghost left translated
+      // is invisible but still laid out where it was dropped, and the grid's scroller keeps room
+      // for it — a sideways scroll into blank space that outlives the drag that made it.
+      ghostX.value = to == null ? 0 : translationX;
     },
     commit: (to) => {
       if (to !== weekIndex) {
