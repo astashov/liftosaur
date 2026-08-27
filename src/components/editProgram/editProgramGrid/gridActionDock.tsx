@@ -1,5 +1,5 @@
-import { JSX, memo, useState } from "react";
-import { Platform, View } from "react-native";
+import { JSX, memo, useEffect, useRef, useState } from "react";
+import { Animated, Platform, View } from "react-native";
 import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
 import { IconEdit2 } from "../../icons/iconEdit2";
@@ -17,20 +17,52 @@ import { StringUtils_pluralize } from "../../../utils/string";
 // content is padded by its height — the selection stays reachable no matter where the tapped strip
 // has scrolled to.
 export const GridActionDock = memo(function GridActionDock(): JSX.Element | null {
-  const props = useGridSelection();
+  const live = useGridSelection();
+  const liveTarget = live?.target;
+  const selection =
+    live != null && !(liveTarget?.kind === "exercises" && liveTarget.placements.length === 0) ? live : undefined;
+
+  // The dock appears at the bottom of the screen while the user is looking at the strip they just
+  // tapped, so appearing instantly reads as it having been there all along. It slides and fades in
+  // instead, which is the part the eye catches from the middle of the screen.
+  //
+  // Held in state rather than read straight from the context, because leaving has to be animated
+  // too: the selection is already gone by the time the dock starts sliding out, and something has
+  // to keep rendering it until it has.
+  const [shown, setShown] = useState(selection);
+  const anim = useRef(new Animated.Value(selection != null ? 1 : 0)).current;
+  const isOpen = selection != null;
+  useEffect(() => {
+    if (selection != null) {
+      setShown(selection);
+    }
+  }, [selection]);
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: isOpen ? 1 : 0,
+      duration: isOpen ? 180 : 140,
+      // A selection made while the previous one is still sliding out cancels that animation, and a
+      // cancelled one reports `finished: false` — which is what stops it from clearing the dock the
+      // new selection has just filled.
+      useNativeDriver: Platform.OS !== "web",
+    }).start(({ finished }) => {
+      if (finished && !isOpen) {
+        setShown(undefined);
+      }
+    });
+  }, [isOpen, anim]);
+
   // The tab bar's workout button overhangs its own bar by `-mt-scaled-6` (footer2.tsx), and that
   // overhang grows with the text size while padding does not — plain spacing is deliberately
   // constant at every size. At 1x the button clears the dock's second line on its own; past that it
   // starts sitting on top of it, so the dock buys the room back in the same scaled unit the
   // overhang is measured in, which is what keeps the two tracking each other further up the slider.
   const isTextLarge = useRemScale() >= 1.25;
-  if (props == null) {
+  if (shown == null) {
     return null;
   }
+  const props = shown;
   const target = props.target;
-  if (target.kind === "exercises" && target.placements.length === 0) {
-    return null;
-  }
 
   // Editing and duplicating both address one exercise; deleting is the only thing that reads
   // naturally over a set, so it is the one action that stays on with several selected.
@@ -108,47 +140,56 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   }
 
   return (
-    // The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the grid's
-    // own scrolling content, so without a visible edge its background reads as more grid.
-    <View
-      className={`flex-row items-center gap-1 px-3 pt-2 border-t bg-background-default border-border-neutral ${
-        isTextLarge ? "pb-scaled-4" : "pb-2"
-      }`}
+    // Opacity as well as the slide: the dock is opaque and sits over the grid's own content, so a
+    // slide on its own would look like a row of the grid moving rather than a panel arriving.
+    <Animated.View
+      style={{
+        opacity: anim,
+        transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+      }}
     >
-      <Pressable className="p-1 nm-grid-clear-selection" testID="grid-clear-selection" onPress={props.onClear}>
-        <IconCloseCircleOutline size={20} color={Tailwind_semantic().icon.neutral} />
-      </Pressable>
-      {/* Keyed by what is selected, so picking another week or day starts collapsed again rather
-          than inheriting however far the last one was opened. */}
-      <DockDetails
-        key={detailsKey}
-        name={label}
-        badges={badges}
-        description={description}
-        detail={single?.progression}
-      />
-      <DockButton
-        name="grid-action-edit"
-        label={target.kind === "week" ? "Edit week" : target.kind === "day" ? "Edit day" : "Edit"}
-        disabled={
-          (target.kind === "exercises" && single == null) || (target.kind === "day" && target.rowIndexes.length !== 1)
-        }
-        onPress={() => {
-          if (target.kind === "week") {
-            props.onEditWeek(target.weekIndex);
-          } else if (target.kind === "day") {
-            if (target.rowIndexes.length === 1) {
-              props.onEditDay(target.rowIndexes[0]);
-            }
-          } else if (single != null) {
-            props.onEdit(single);
-          }
-        }}
+      {/* The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the
+          grid's own scrolling content, so without a visible edge its background reads as more grid. */}
+      <View
+        className={`flex-row items-center gap-1 px-3 pt-2 border-t bg-background-default border-border-neutral ${
+          isTextLarge ? "pb-scaled-4" : "pb-2"
+        }`}
       >
-        <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
-      </DockButton>
-      <DockOverflow actions={overflowActions} />
-    </View>
+        <Pressable className="p-1 nm-grid-clear-selection" testID="grid-clear-selection" onPress={props.onClear}>
+          <IconCloseCircleOutline size={20} color={Tailwind_semantic().icon.neutral} />
+        </Pressable>
+        {/* Keyed by what is selected, so picking another week or day starts collapsed again rather
+          than inheriting however far the last one was opened. */}
+        <DockDetails
+          key={detailsKey}
+          name={label}
+          badges={badges}
+          description={description}
+          detail={single?.progression}
+        />
+        <DockButton
+          name="grid-action-edit"
+          label={target.kind === "week" ? "Edit week" : target.kind === "day" ? "Edit day" : "Edit"}
+          disabled={
+            (target.kind === "exercises" && single == null) || (target.kind === "day" && target.rowIndexes.length !== 1)
+          }
+          onPress={() => {
+            if (target.kind === "week") {
+              props.onEditWeek(target.weekIndex);
+            } else if (target.kind === "day") {
+              if (target.rowIndexes.length === 1) {
+                props.onEditDay(target.rowIndexes[0]);
+              }
+            } else if (single != null) {
+              props.onEdit(single);
+            }
+          }}
+        >
+          <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
+        </DockButton>
+        <DockOverflow actions={overflowActions} />
+      </View>
+    </Animated.View>
   );
 });
 

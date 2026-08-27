@@ -480,27 +480,6 @@ export function ProgramGrid_dayDataAt(grid: IProgramGrid, rowIndex: number, week
   return { week: weekIndex + 1, dayInWeek: rowIndex + 1, day };
 }
 
-export function ProgramGrid_counts(grid: IProgramGrid): {
-  weeks: number;
-  exercises: number;
-  templates: number;
-  unused: number;
-} {
-  const exerciseKeys = new Set<string>();
-  const templateKeys = new Set<string>();
-  const unusedKeys = new Set<string>();
-  for (const placement of grid.placements) {
-    const bucket = placement.isTemplate ? templateKeys : placement.notused ? unusedKeys : exerciseKeys;
-    bucket.add(placement.key);
-  }
-  return {
-    weeks: grid.columns.length,
-    exercises: exerciseKeys.size,
-    templates: templateKeys.size,
-    unused: unusedKeys.size,
-  };
-}
-
 export function ProgramGrid_errorAt(
   grid: IProgramGrid,
   rowIndex: number,

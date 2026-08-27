@@ -2,7 +2,6 @@ import "mocha";
 import { expect } from "chai";
 import {
   ProgramGrid_build,
-  ProgramGrid_counts,
   ProgramGrid_hasDay,
   ProgramGrid_weekDayCount,
   ProgramGrid_select,
@@ -92,7 +91,7 @@ Squat / 1x1 140lb
     expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-0]", "Squat@r0[1-1]", "Squat@r0[2-2]"]);
   });
 
-  it("marks templates and reusers, and excludes templates from the exercise count", () => {
+  it("marks templates and reusers", () => {
     const grid = buildGrid(`# Week 1
 ## Day 1
 tmpl[1-2] / used: none / 3x5 100lb
@@ -106,7 +105,6 @@ Squat[1-2] / ...tmpl
     expect(tmpl.isTemplate).to.equal(true);
     expect(tmpl.isReuseSource).to.equal(true);
     expect(squat.reuseOf).to.equal("tmpl");
-    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 2, exercises: 1, templates: 1, unused: 0 });
   });
 
   it("tells a template from an unused exercise by whether the name is a real exercise", () => {
@@ -124,8 +122,6 @@ Squat / ...tmpl
     // A real exercise that has been switched off — it doesn't run either, but it isn't a template.
     expect([bench.notused, bench.isTemplate]).to.deep.equal([true, false]);
     expect([squat.notused, squat.isTemplate]).to.deep.equal([false, false]);
-    // Neither one runs, so neither is counted as an exercise.
-    expect(ProgramGrid_counts(grid)).to.deep.equal({ weeks: 1, exercises: 1, templates: 1, unused: 1 });
   });
 
   it("shows what a reusing line overrides, and shows a plain reuse as just the reference", () => {

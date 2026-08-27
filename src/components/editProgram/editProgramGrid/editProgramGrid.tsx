@@ -11,16 +11,14 @@ import {
 } from "react-native";
 import { lb } from "lens-shmens";
 import { Text } from "../../primitives/text";
-import { Pressable } from "../../primitives/pressable";
 import { IEvaluatedProgram } from "../../../models/program";
 import { ISettings } from "../../../types";
 import { IPlannerState } from "../../../pages/planner/models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { useRem } from "../../../utils/useRem";
-import { StringUtils_pluralize } from "../../../utils/string";
 import { usePerfRenderCount } from "../../../utils/usePerfRenderCount";
 import { IDispatch } from "../../../ducks/types";
-import { ProgramGrid_build, ProgramGrid_counts } from "../../../pages/planner/models/programGrid";
+import { ProgramGrid_build } from "../../../pages/planner/models/programGrid";
 import {
   GRID_ADD_WEEK_WIDTH,
   GRID_DAY_BOX_INSET,
@@ -42,20 +40,13 @@ import { AddButton, VerticalAddButton } from "./gridAddButton";
 import { useGridStickyHeader } from "./useGridStickyHeader";
 import { useGridEditDetails } from "./useGridEditDetails";
 
-// Scale presets for the zoom control; pinch fills in everything between them.
-const SCALE_PRESETS: { label: string; scale: number }[] = [
-  { label: "S", scale: 0.6 },
-  { label: "M", scale: 1 },
-  { label: "L", scale: 1.5 },
-];
-
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
   programId: string;
   dispatch: IDispatch;
-  // Undefined until the user pinches or picks a preset, which is what lets a short program fit the
-  // screen by default without freezing that choice the moment they zoom.
+  // Undefined until the user pinches, which is what lets a short program fit the screen by default
+  // without freezing that choice the moment they zoom.
   scale?: number;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
@@ -68,13 +59,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const rem = useRem();
   const { evaluatedProgram, settings } = props;
   const grid = useMemo(() => ProgramGrid_build(evaluatedProgram, settings), [evaluatedProgram, settings]);
-  const counts = useMemo(() => ProgramGrid_counts(grid), [grid]);
   const windowWidth = useWindowDimensions().width;
   const [containerWidth, setContainerWidth] = useState(windowWidth);
   const onLayout = useCallback((e: LayoutChangeEvent) => setContainerWidth(e.nativeEvent.layout.width), []);
   // What a live pinch is showing, before it is worth writing down. The committed scale is the
-  // remembered one — it outlives the screen — so the preview only ever shadows it, and a preset
-  // clears the shadow so the committed value wins again.
+  // remembered one — it outlives the screen — so the preview only ever shadows it.
   const [previewScale, setPreviewScale] = useState<number | undefined>(undefined);
   const { columnWidth, totalWidth, laneHeight, showScheme, scale } = ProgramGridGeometry_metrics({
     weekCount: grid.columns.length,
@@ -89,13 +78,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
       plannerDispatch(lb<IPlannerState>().p("ui").p("gridScale").record(newScale), `Change grid scale to ${newScale}`);
     },
     [plannerDispatch]
-  );
-  const onChangeScale = useCallback(
-    (newScale: number) => {
-      setPreviewScale(undefined);
-      onCommitScale(newScale);
-    },
-    [onCommitScale]
   );
   const { Wrap } = useGridPinch({ scale, onScalePreview: setPreviewScale, onScaleCommit: onCommitScale });
 
@@ -259,32 +241,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
 
   return (
     <View className="pb-4" onLayout={onLayout} ref={horizontalViewportRef}>
-      <View className="flex-row items-center justify-between px-4 py-2">
-        <Text className="text-xs text-text-secondary">
-          {counts.weeks} {StringUtils_pluralize("week", counts.weeks)} · {counts.exercises}{" "}
-          {StringUtils_pluralize("exercise", counts.exercises)}
-          {counts.templates > 0 ? ` · ${counts.templates} ${StringUtils_pluralize("template", counts.templates)}` : ""}
-          {counts.unused > 0 ? ` · ${counts.unused} unused` : ""}
-        </Text>
-        <View className="flex-row items-center">
-          {SCALE_PRESETS.map((preset, i) => (
-            <Pressable
-              key={preset.label}
-              className={`px-2 py-1 ml-1 rounded nm-grid-density-${i}`}
-              testID={`grid-density-${i}`}
-              onPress={() => onChangeScale(preset.scale)}
-            >
-              <Text
-                className={`text-xs ${
-                  Math.abs(scale - preset.scale) < 0.01 ? "font-bold text-text-link" : "text-text-secondary"
-                }`}
-              >
-                {preset.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
       <Wrap>
         <ScrollView
           horizontal
