@@ -6,7 +6,6 @@ import {
   ProgramGrid_hasDay,
   ProgramGrid_weekDayCount,
   ProgramGrid_select,
-  ProgramGrid_isRelated,
   ProgramGrid_laneNames,
   ProgramGrid_dayDataAt,
   ProgramGrid_errorAt,
@@ -290,8 +289,9 @@ Bicep Curl[1-2] / 3x12 20lb
     const fromSource = ProgramGrid_select(grid, [tmpl.id])!;
     expect(Array.from(fromSource.linkedIds).sort()).to.deep.equal([squat.id, bench.id].sort());
 
-    expect(ProgramGrid_isRelated(fromSource, curl.id)).to.equal(false);
-    expect(ProgramGrid_isRelated(undefined, curl.id)).to.equal(true);
+    // An exercise with no reuse relationship to the selection is in neither set, so it gets no ring.
+    expect(fromSource.linkedIds.has(curl.id)).to.equal(false);
+    expect(fromSource.sameExerciseIds.has(curl.id)).to.equal(false);
   });
 
   it("relates the separate runs of one exercise to each other", () => {

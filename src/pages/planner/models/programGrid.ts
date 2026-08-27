@@ -500,14 +500,3 @@ export function ProgramGrid_select(grid: IProgramGrid, placementIds: string[]): 
   }
   return { selectedIds, placements, sameExerciseIds, linkedIds };
 }
-
-export function ProgramGrid_isRelated(selection: IProgramGridSelection | undefined, placementId: string): boolean {
-  if (selection == null) {
-    return true;
-  }
-  return (
-    selection.selectedIds.has(placementId) ||
-    selection.sameExerciseIds.has(placementId) ||
-    selection.linkedIds.has(placementId)
-  );
-}

@@ -57,6 +57,15 @@
     "cardyellow": { "light": "@colors.yellow.50", "dark": "@colors.yellowgray.950" },
     "yellowdark": { "light": "@colors.yellow.600", "dark": "@colors.darkgray.600" },
     "cardpurpleselected": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" },
+    "gridexercise": { "light": "@colors.purple.100", "dark": "@colors.darkgray.800" },
+    "gridexercisereached": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" },
+    "gridexerciseactive": { "light": "@colors.purple.600", "dark": "@colors.purple.300" },
+    "gridnotused": { "light": "@colors.green.100", "dark": "@colors.greengray.950" },
+    "gridnotusedreached": { "light": "@colors.green.200", "dark": "@colors.greengray.800" },
+    "gridnotusedactive": { "light": "@colors.green.600", "dark": "@colors.green.300" },
+    "gridoverride": { "light": "@colors.yellow.200", "dark": "@colors.yellowgray.900" },
+    "gridoverridereached": { "light": "@colors.yellow.400", "dark": "@colors.yellowgray.700" },
+    "gridoverrideactive": { "light": "@colors.yellow.700", "dark": "@colors.yellow.300" },
     "error": { "light": "@colors.red.500", "dark": "@colors.redgray.700" },
     "lighterror": { "light": "@colors.red.50", "dark": "@colors.redgray.950" },
     "success": { "light": "@colors.green.50", "dark": "@colors.greengray.800" },
@@ -71,7 +80,9 @@
     "neutral": { "light": "@colors.lightgray.100", "dark": "@colors.lightgray.800" },
     "prominent": { "light": "@colors.lightgray.200", "dark": "@colors.lightgray.700" },
     "cardyellow": { "light": "@colors.yellow.200", "dark": "@colors.yellowgray.800" },
-    "cardpurple": { "light": "@colors.purple.150", "dark": "@colors.darkgray.800" }
+    "cardpurple": { "light": "@colors.purple.150", "dark": "@colors.darkgray.800" },
+    "gridnotused": { "light": "@colors.green.300", "dark": "@colors.greengray.700" },
+    "gridexercise": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" }
   },
   "text": {
     "primary": { "light": "@colors.black", "dark": "@colors.white" },

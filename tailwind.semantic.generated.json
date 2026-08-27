@@ -58,6 +58,15 @@
       "cardyellow": "#FFF8EC",
       "yellowdark": "#DD8E02",
       "cardpurpleselected": "#CCC1F9",
+      "gridexercise": "#EFEAFF",
+      "gridexercisereached": "#CCC1F9",
+      "gridexerciseactive": "#783AED",
+      "gridnotused": "#CEFCE5",
+      "gridnotusedreached": "#A3F7D0",
+      "gridnotusedactive": "#009F6C",
+      "gridoverride": "#FFE6B4",
+      "gridoverridereached": "#FFD820",
+      "gridoverrideactive": "#B76506",
       "error": "#FF543E",
       "lighterror": "#FFF3F1",
       "success": "#EBFEF5",
@@ -72,7 +81,9 @@
       "neutral": "#E3E8EA",
       "prominent": "#C9D1D8",
       "cardyellow": "#FFE6B4",
-      "cardpurple": "#E2D9F5"
+      "cardpurple": "#E2D9F5",
+      "gridnotused": "#67EEB8",
+      "gridexercise": "#CCC1F9"
     },
     "text": {
       "primary": "#000000",
@@ -201,6 +212,15 @@
       "cardyellow": "#25241E",
       "yellowdark": "#453D58",
       "cardpurpleselected": "#453D58",
+      "gridexercise": "#332D42",
+      "gridexercisereached": "#453D58",
+      "gridexerciseactive": "#CCC1F9",
+      "gridnotused": "#1D2931",
+      "gridnotusedreached": "#3C695B",
+      "gridnotusedactive": "#67EEB8",
+      "gridoverride": "#2E2C24",
+      "gridoverridereached": "#595334",
+      "gridoverrideactive": "#FFDD7E",
       "error": "#824344",
       "lighterror": "#281925",
       "success": "#3C695B",
@@ -215,7 +235,9 @@
       "neutral": "#364756",
       "prominent": "#3C5063",
       "cardyellow": "#474431",
-      "cardpurple": "#332D42"
+      "cardpurple": "#332D42",
+      "gridnotused": "#3F7961",
+      "gridexercise": "#453D58"
     },
     "text": {
       "primary": "#FFFFFF",
