@@ -1227,7 +1227,7 @@ export function Thunk_fetchStorage(storageId?: string): IThunk {
   };
 }
 
-export function Thunk_pushToEditProgram(dayData?: Required<IDayData>, key?: string): IThunk {
+export function Thunk_pushToEditProgram(): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
     const currentProgram =
@@ -1235,7 +1235,7 @@ export function Thunk_pushToEditProgram(dayData?: Required<IDayData>, key?: stri
     if (Program_isEmpty(currentProgram)) {
       dispatch(Thunk_pushScreen("programs", undefined, { tab: "program" }));
     } else if (currentProgram) {
-      Program_editAction(dispatch, currentProgram, dayData, key, { tab: "program" });
+      Program_editAction(dispatch, currentProgram, { tab: "program" });
     }
   };
 }

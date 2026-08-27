@@ -82,7 +82,6 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
       weekIndex: 0,
       exerciseUi: { edit: new Set(), collapsed: new Set() },
       dayUi: { collapsed: new Set() },
-      weekUi: { collapsed: new Set() },
     },
     history: {
       past: [],

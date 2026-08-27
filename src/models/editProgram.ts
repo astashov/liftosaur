@@ -13,7 +13,13 @@ import { updateState, IState } from "./state";
 import { IProgram, IDayData, IProgramState, ISettings, IHistoryRecord } from "../types";
 import { Dialog_alert } from "../utils/dialog";
 import { updateStateVariable } from "./editProgramLenses";
-import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
+import {
+  IPlannerProgramExercise,
+  IPlannerExerciseState,
+  IPlannerState,
+  IPlannerUi,
+  IPlannerEditMode,
+} from "../pages/planner/models/types";
 import { PP_iterate2 } from "./pp";
 import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { ProgramToPlanner } from "./programToPlanner";
@@ -92,27 +98,20 @@ export function EditProgram_setNextDay(dispatch: IDispatch, programId: string, n
 }
 
 export const EditProgram_tabLabels = ["Preview", "Edit", "Playground"] as const;
-export const EditProgram_editTabIndex = EditProgram_tabLabels.indexOf("Edit");
 
-export function EditProgram_initPlannerState(
-  id: string,
-  program: IProgram,
-  focusedDay?: IDayData,
-  key?: string
-): IPlannerState {
+export function EditProgram_mode(ui: IPlannerUi): IPlannerEditMode {
+  return ui.mode ?? "grid";
+}
+
+export function EditProgram_initPlannerState(id: string, program: IProgram): IPlannerState {
   return {
     id,
     current: { program },
     ui: {
-      weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
-      focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
-      // Entering the program with no particular day in mind lands on the grid; a focused day means
-      // the caller wants that day, so it keeps the day-oriented editor.
-      tabIndex: focusedDay ? undefined : EditProgram_editTabIndex,
-      mode: focusedDay ? "ui" : "grid",
+      weekIndex: 0,
+      mode: "grid",
       exerciseUi: { edit: new Set(), collapsed: new Set() },
       dayUi: { collapsed: new Set() },
-      weekUi: { collapsed: new Set() },
     },
     history: { past: [], future: [] },
   };

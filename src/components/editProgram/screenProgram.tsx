@@ -22,7 +22,7 @@ import { StringUtils_dashcase, StringUtils_pluralize } from "../../utils/string"
 import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
-import { EditProgram_setName, EditProgram_tabLabels } from "../../models/editProgram";
+import { EditProgram_setName, EditProgram_tabLabels, EditProgram_mode } from "../../models/editProgram";
 import { EditProgramNavbar, EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
 import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
@@ -143,6 +143,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     [program, props.settings]
   );
   const ui = plannerState.ui;
+  const mode = EditProgram_mode(ui);
 
   useLayoutEffect(() => {
     for (const week of planner.weeks) {
@@ -231,15 +232,15 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     if ((ui.tabIndex ?? 0) !== EDIT_TAB_INDEX) {
       recordings.push(lb<IPlannerState>().p("ui").p("tabIndex").record(EDIT_TAB_INDEX));
     }
-    // Reorder and grid are the edit modes with nowhere to render an error, and the navbar already
-    // refuses to enter them while the program is broken.
-    if (ui.mode === "reorder" || ui.mode === "grid") {
+    // The grid has nowhere to render an error, and the navbar already refuses to enter it while
+    // the program is broken.
+    if (mode === "grid") {
       recordings.push(lb<IPlannerState>().p("ui").p("mode").record("ui"));
     }
     if (recordings.length > 0) {
       plannerDispatch(recordings, "Fall through to editing an invalid program");
     }
-  }, [hasEvalErrors, ui.tabIndex, ui.mode, plannerDispatch]);
+  }, [hasEvalErrors, ui.tabIndex, mode, plannerDispatch]);
 
   const plannerEval = useTimedMemo(
     "editProgram.plannerEval",
@@ -282,7 +283,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   );
   const safePlaygroundWeekIndex = Math.min(playgroundWeekIndex, Math.max(0, playgroundWeekNames.length - 1));
   const showEditWeekTabBar =
-    activeTabLabel === "Edit" && (ui.mode === "ui" || ui.mode === "perday") && planner.weeks.length > 1;
+    activeTabLabel === "Edit" && (mode === "ui" || mode === "perday") && planner.weeks.length > 1;
 
   const onChangeProgram = useCallback(() => {
     dispatch(Thunk_pushScreen("programs"));
@@ -419,8 +420,8 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     perTabStickyHeader = <View className="bg-background-default" />;
   }
 
-  const showEditorDock = activeTabLabel === "Edit" && (ui.mode === "perday" || ui.mode === "full");
-  const showGridDock = activeTabLabel === "Edit" && ui.mode === "grid";
+  const showEditorDock = activeTabLabel === "Edit" && (mode === "perday" || mode === "full");
+  const showGridDock = activeTabLabel === "Edit" && mode === "grid";
 
   return (
     <PerfProfiler id="ScreenProgram.shell" onRender={onProfile}>

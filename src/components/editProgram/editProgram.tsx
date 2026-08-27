@@ -15,13 +15,12 @@ import { EditProgramUiWeekView } from "./editProgramUiWeek";
 import { IProgram, ISettings } from "../../types";
 import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
-import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
 import { EditProgramGrid } from "./editProgramGrid/editProgramGrid";
-import { IconCalendarSmall } from "../icons/iconCalendarSmall";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
+import { EditProgram_mode } from "../../models/editProgram";
 import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
@@ -46,6 +45,7 @@ export const EditProgramView = memo(function EditProgramView(
 ): JSX.Element {
   usePerfRenderCount("EditProgramView");
   const ui = props.state.ui;
+  const mode = EditProgram_mode(ui);
   const program = props.state.current.program;
   const planner = program.planner!;
   const { evaluatedWeeks, exerciseFullNames, plannerDispatch } = props;
@@ -72,7 +72,7 @@ export const EditProgramView = memo(function EditProgramView(
           plannerDispatch={plannerDispatch}
         />
       )}
-      {ui.mode === "grid" ? (
+      {mode === "grid" ? (
         <EditProgramGrid
           evaluatedProgram={props.evaluatedProgram}
           settings={props.settings}
@@ -81,9 +81,7 @@ export const EditProgramView = memo(function EditProgramView(
           scale={ui.gridScale}
           plannerDispatch={props.plannerDispatch}
         />
-      ) : ui.mode === "reorder" ? (
-        <EditProgramV2Weeks state={props.state} settings={props.settings} plannerDispatch={props.plannerDispatch} />
-      ) : ui.mode === "full" ? (
+      ) : mode === "full" ? (
         <EditProgramV2Full
           plannerProgram={planner}
           evaluatedProgram={props.evaluatedProgram}
@@ -225,6 +223,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
   );
   const isValidPerDay = evaluatedWeeks.every((week) => week.every((day) => day.success)) ?? true;
   const isValid = isValidFull && isValidPerDay;
+  const mode = EditProgram_mode(props.state.ui);
   const { padding, onRowLayout, onGroupLayout } = useToolbarPadding();
 
   return (
@@ -261,7 +260,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
         <View className="flex-row items-center" onLayout={onGroupLayout(1)}>
           <EditProgramModeSwitchButton
             padding={padding}
-            isSelected={props.state.ui.mode === "grid"}
+            isSelected={mode === "grid"}
             disabled={!isValid}
             name="editor-v2-grid-program"
             onClick={() => {
@@ -269,26 +268,11 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
               props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("grid")], "Switch to grid mode");
             }}
           >
-            {(color) => <IconCalendarSmall color={color} size={20} />}
-          </EditProgramModeSwitchButton>
-          <EditProgramModeSwitchButton
-            padding={padding}
-            isSelected={props.state.ui.mode === "reorder"}
-            disabled={!isValid}
-            name="editor-v2-reorder-program"
-            onClick={() => {
-              props.dispatch(Thunk_log("ls-program-mode-reorder"));
-              props.plannerDispatch(
-                [lb<IPlannerState>().p("ui").p("mode").record("reorder")],
-                "Switch to reorder mode"
-              );
-            }}
-          >
             {(color) => <IconReorder color={color} />}
           </EditProgramModeSwitchButton>
           <EditProgramModeSwitchButton
             padding={padding}
-            isSelected={props.state.ui.mode === "ui"}
+            isSelected={mode === "ui"}
             name="editor-v2-ui-program"
             disabled={!isValid}
             onClick={() => {
@@ -300,7 +284,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           </EditProgramModeSwitchButton>
           <EditProgramModeSwitchButton
             padding={padding}
-            isSelected={props.state.ui.mode === "perday"}
+            isSelected={mode === "perday"}
             name="editor-v2-perday-program"
             onClick={() => {
               props.dispatch(Thunk_log("ls-program-mode-perday"));
@@ -311,7 +295,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           </EditProgramModeSwitchButton>
           <EditProgramModeSwitchButton
             padding={padding}
-            isSelected={props.state.ui.mode === "full"}
+            isSelected={mode === "full"}
             name="editor-v2-full-program"
             onClick={() => {
               props.dispatch(Thunk_log("ls-program-mode-full"));

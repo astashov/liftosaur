@@ -354,16 +354,6 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
               data-testid="edit-exercise"
               testID="edit-exercise"
               onPress={() => {
-                props.plannerDispatch(
-                  lb<IPlannerState>()
-                    .p("ui")
-                    .p("focusedDay")
-                    .record({
-                      ...props.plannerExercise.dayData,
-                      key: props.plannerExercise.key,
-                    }),
-                  "Focus on exercise day"
-                );
                 props.dispatch(
                   Thunk_pushToEditProgramExercise(props.plannerExercise.key, props.plannerExercise.dayData)
                 );

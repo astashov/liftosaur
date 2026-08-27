@@ -213,6 +213,8 @@ export interface IPlannerUiFocusedExercise {
 
 export type IPlannerUiMode = "full" | "perday";
 
+export type IPlannerEditMode = "grid" | "ui" | "perday" | "full";
+
 export interface IModalExerciseUi {
   focusedExercise: IPlannerUiFocusedExercise;
   types: IExerciseKind[];
@@ -242,9 +244,6 @@ export interface IPlannerUi {
   dayUi: {
     collapsed: Set<string>;
   };
-  weekUi: {
-    collapsed: Set<string>;
-  };
   editExerciseModal?: {
     plannerExercise: IPlannerProgramExercise;
   };
@@ -267,10 +266,9 @@ export interface IPlannerUi {
   showMuscleGroupsOverride?: IExerciseType;
   showPreview?: boolean;
   fullTextError?: PlannerSyntaxError;
-  focusedDay?: IDayData & { key?: string };
   showSettingsModal?: boolean;
   tabIndex?: number;
-  mode?: "grid" | "reorder" | "ui" | "perday" | "full";
+  mode?: IPlannerEditMode;
   gridScale?: number;
 }
 

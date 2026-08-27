@@ -184,7 +184,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       weekIndex: 0,
       exerciseUi: { edit: new Set(), collapsed: new Set() },
       dayUi: { collapsed: new Set() },
-      weekUi: { collapsed: new Set() },
     },
     history: {
       past: [],

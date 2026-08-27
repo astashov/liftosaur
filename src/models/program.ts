@@ -1250,14 +1250,8 @@ export function Program_nextDay(program: IEvaluatedProgram, day?: number): numbe
   return isNaN(nd) ? 1 : nd;
 }
 
-export function Program_editAction(
-  dispatch: IDispatch,
-  program: IProgram,
-  dayData?: IDayData,
-  key?: string,
-  opts?: INavigateOpts
-): void {
-  const plannerState = EditProgram_initPlannerState(program.id, program, dayData, key);
+export function Program_editAction(dispatch: IDispatch, program: IProgram, opts?: INavigateOpts): void {
+  const plannerState = EditProgram_initPlannerState(program.id, program);
   updateState(
     dispatch,
     [lb<IState>().p("editProgramStates").p(program.id).record(plannerState)],
