@@ -8,6 +8,7 @@ import {
   NativeSyntheticEvent,
   useWindowDimensions,
 } from "react-native";
+import Reanimated from "react-native-reanimated";
 import { lb } from "lens-shmens";
 import { Text } from "../../primitives/text";
 import { IEvaluatedProgram } from "../../../models/program";
@@ -80,7 +81,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     },
     [plannerDispatch]
   );
-  const { Wrap } = useGridPinch({ scale, onScalePreview: setPreviewScale, onScaleCommit: onCommitScale });
+  const { Wrap, scrollAnimatedProps } = useGridPinch({
+    scale,
+    onScalePreview: setPreviewScale,
+    onScaleCommit: onCommitScale,
+  });
 
   const { selectedDayRows, selectedWeek, selection, selectedLanes, onSelect, onSelectDay, onSelectWeek, onClear } =
     useGridSelectionState(grid);
@@ -254,12 +259,15 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   return (
     <View className="pb-4" onLayout={onLayout} ref={horizontalViewportRef}>
       <Wrap>
-        <ScrollView
+        {/* Reanimated's rather than the plain one so a pinch can freeze it from the UI thread —
+            see gridPinch.native. */}
+        <Reanimated.ScrollView
           horizontal
           showsHorizontalScrollIndicator={true}
           ref={horizontalScrollRef}
           onScroll={onHorizontalScroll}
           scrollEventThrottle={16}
+          animatedProps={scrollAnimatedProps}
         >
           {/* Deliberately not a Pressable for tap-to-clear. A day name is a gesture detector rather
               than a Pressable, so it does not consume the touch from an ancestor Pressable: the tap
@@ -369,7 +377,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
               <VerticalAddButton label="Week" testID="grid-add-week" onPress={actions.onAddWeek} />
             </View>
           </View>
-        </ScrollView>
+        </Reanimated.ScrollView>
       </Wrap>
       {/* A source that lies above belongs at the top of the screen, under the week names — pointing
           up from a pill docked at the bottom makes the direction something to reconcile rather than

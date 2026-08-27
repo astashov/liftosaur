@@ -1,7 +1,7 @@
 import { JSX, ReactNode, useCallback, useMemo, useRef } from "react";
-import { View } from "react-native";
+import { ScrollViewProps, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { runOnJS, useAnimatedProps, useSharedValue } from "react-native-reanimated";
 
 export const GRID_SCALE_MIN = 0.45;
 export const GRID_SCALE_MAX = 2.2;
@@ -18,6 +18,9 @@ export interface IGridPinchArgs {
 
 export interface IGridPinchResult {
   Wrap: (props: { children: ReactNode }) => JSX.Element;
+  // For the horizontal scroller's `animatedProps` — see `pointerCount` below for why it can't be
+  // an ordinary prop.
+  scrollAnimatedProps?: Partial<ScrollViewProps>;
 }
 
 // Coarse on purpose: a step finer than this moves a column by under a pixel, so it costs a render
@@ -30,6 +33,20 @@ export function useGridPinch(args: IGridPinchArgs): IGridPinchResult {
   const startScaleRef = useRef(args.scale);
   const onScalePreview = args.onScalePreview;
   const onScaleCommit = args.onScaleCommit;
+
+  // A pinch and the scroller under it are mutually exclusive on iOS: RNGH grants automatic
+  // simultaneity only to its own native-view handler, so for a pinch against a UIScrollView's pan
+  // whichever recognizes first prevents the other for the rest of the touch. Two fingers never
+  // land at the same instant, so the first one would often start a scroll and kill the pinch
+  // before it began. Nothing can be declared to fix that — the fix is for the scroller to stop
+  // being a competitor the moment a second finger arrives.
+  //
+  // Touch callbacks fire from the raw platform touch, before this gesture activates and whatever
+  // state it is in, so they see the second finger land. They are worklets, and so is the props
+  // updater, which is the point: the scroller is disabled in the same frame rather than a JS
+  // round-trip later, which is far too late to win the race described above.
+  const pointerCount = useSharedValue(0);
+  const scrollAnimatedProps = useAnimatedProps<ScrollViewProps>(() => ({ scrollEnabled: pointerCount.value < 2 }));
 
   const onPinchStart = useCallback(() => {
     startScaleRef.current = scaleRef.current;
@@ -52,6 +69,15 @@ export function useGridPinch(args: IGridPinchArgs): IGridPinchResult {
 
   const gesture = useMemo(() => {
     return Gesture.Pinch()
+      .onTouchesDown((e) => {
+        pointerCount.value = e.numberOfTouches;
+      })
+      .onTouchesUp((e) => {
+        pointerCount.value = e.numberOfTouches;
+      })
+      .onTouchesCancelled((e) => {
+        pointerCount.value = e.numberOfTouches;
+      })
       .onStart(() => {
         runOnJS(onPinchStart)();
       })
@@ -61,7 +87,7 @@ export function useGridPinch(args: IGridPinchArgs): IGridPinchResult {
       .onFinalize(() => {
         runOnJS(onPinchEnd)();
       });
-  }, [onPinchStart, onPinchUpdate, onPinchEnd]);
+  }, [onPinchStart, onPinchUpdate, onPinchEnd, pointerCount]);
 
   const Wrap = useCallback(
     (props: { children: ReactNode }): JSX.Element => (
@@ -72,5 +98,5 @@ export function useGridPinch(args: IGridPinchArgs): IGridPinchResult {
     [gesture]
   );
 
-  return { Wrap };
+  return { Wrap, scrollAnimatedProps };
 }

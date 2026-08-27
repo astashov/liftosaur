@@ -1,5 +1,5 @@
 import { JSX, ReactNode, useCallback } from "react";
-import { View } from "react-native";
+import { ScrollViewProps, View } from "react-native";
 
 export const GRID_SCALE_MIN = 0.45;
 export const GRID_SCALE_MAX = 2.2;
@@ -12,6 +12,7 @@ export interface IGridPinchArgs {
 
 export interface IGridPinchResult {
   Wrap: (props: { children: ReactNode }) => JSX.Element;
+  scrollAnimatedProps?: Partial<ScrollViewProps>;
 }
 
 // Web has no pinch surface to speak of - the density presets are the control there. Gesture handler
