@@ -64,11 +64,22 @@ export const VerticalAddButton = memo(function VerticalAddButton(props: IAddButt
       onLayout={onLayout}
     >
       {Array.from({ length: labels }, (_, i) => i).map((i) => (
-        // Deaf to the pointer, so the rail's own Pressable takes every press inside it. The label
-        // below is sized for its unrotated width, which is wider than the rail — on web that box
-        // still hit-tests, and its overhang covered the resize handles of the last week's strips,
-        // making a repeat impossible to drag there. The press belongs to whatever is underneath.
-        <View key={i} pointerEvents="none" className="items-center justify-center" style={{ flex: 1 }}>
+        // The label below is sized for its *unrotated* width, so its box is wider than the rail and
+        // hangs over the grid on one side and past the last column on the other. Clipped, because
+        // once rotated it renders well inside the rail and the overhang is pure layout — left to
+        // stand it added a sliver of horizontal scroll past the right edge of a grid that otherwise
+        // fits exactly. Deaf to the pointer for the same reason: on web the overhang still
+        // hit-tests, and it covered the resize handles of the last week's strips, making a repeat
+        // impossible to drag there. Presses inside the rail still reach its own Pressable.
+        // alignSelf, because the rail centres its children and so sizes them to their content —
+        // which here is the label's unrotated width. Stretching takes the rail's width instead, and
+        // the clip then bites on the label rather than on nothing.
+        <View
+          key={i}
+          pointerEvents="none"
+          className="items-center justify-center overflow-hidden"
+          style={{ flex: 1, alignSelf: "stretch" }}
+        >
           {/* Rotation doesn't change layout, so the label needs its own length along what becomes
               the vertical axis; it overflows the narrow rail before rotating and fits after. */}
           <View
