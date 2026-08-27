@@ -2,9 +2,12 @@ import { useCallback, useMemo, useState } from "react";
 import { IProgramGrid, IProgramGridSelection, ProgramGrid_select } from "../../../pages/planner/models/programGrid";
 import { IGridLaneRef } from "./useGridDrags";
 
-// Three selections, and only ever one of them: an exercise set, a set of day rows, or a week column.
-// Each setter clears the other two, because the dock shows one target with one set of verbs — a day
-// is a day, not the bag of exercises inside it.
+// Three selections, and only ever one of them: an exercise, a day row, or a week column. Each setter
+// clears the other two, because the dock shows one target with one set of verbs — a day is a day,
+// not the bag of exercises inside it.
+//
+// The plural shapes are the multi-select plumbing, kept because taking it out is a "for now"
+// decision: everything downstream still handles a set, it just never receives more than one.
 export interface IGridSelectionState {
   selectedIds: string[];
   selectedDayRows: number[];
@@ -13,7 +16,9 @@ export interface IGridSelectionState {
   // Which strips the selection covers, as the exercise drag sees them: a placement is one *run* of
   // an exercise across weeks, but what a drag moves is the lane it sits in.
   selectedLanes: IGridLaneRef[];
-  // Tapping is a toggle, so multi-select needs no mode to enter or leave.
+  // A tap replaces whatever was selected rather than adding to it, and tapping what is already
+  // selected leaves it selected — the dock's ✕ is how a selection is let go of. The tap that
+  // selects doubling as the one that unselects is what made every second tap a mistake.
   onSelect: (placementId: string) => void;
   onSelectDay: (rowIndex: number) => void;
   onSelectWeek: (weekIndex: number) => void;
@@ -37,23 +42,19 @@ export function useGridSelectionState(grid: IProgramGrid): IGridSelectionState {
   const onSelect = useCallback((placementId: string) => {
     setSelectedDayRows([]);
     setSelectedWeek(undefined);
-    setSelectedIds((current) =>
-      current.indexOf(placementId) !== -1 ? current.filter((id) => id !== placementId) : [...current, placementId]
-    );
+    setSelectedIds([placementId]);
   }, []);
 
   const onSelectDay = useCallback((rowIndex: number) => {
     setSelectedIds([]);
     setSelectedWeek(undefined);
-    setSelectedDayRows((current) =>
-      current.indexOf(rowIndex) !== -1 ? current.filter((row) => row !== rowIndex) : [...current, rowIndex]
-    );
+    setSelectedDayRows([rowIndex]);
   }, []);
 
   const onSelectWeek = useCallback((weekIndex: number) => {
     setSelectedIds([]);
     setSelectedDayRows([]);
-    setSelectedWeek((current) => (current === weekIndex ? undefined : weekIndex));
+    setSelectedWeek(weekIndex);
   }, []);
 
   const onClear = useCallback(() => {

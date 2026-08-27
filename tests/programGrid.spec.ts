@@ -70,17 +70,18 @@ async function dragOnto(page: Page, from: Locator, to: Locator, edge?: "above" |
   );
 }
 
-test("selects exercises one at a time, and lets go of them", async ({ page }) => {
+test("selects one exercise at a time, and lets go of it", async ({ page }) => {
   await openGrid(page);
 
   await cell(page, "Squat", 0).click();
-  await expect(page.getByTestId("grid-details")).toContainText("Squat");
+  await expect(page.getByTestId("grid-details")).toHaveText(/^Squat$/);
 
+  // The selection moves to what was tapped rather than growing by it.
   await cell(page, "Bench Press", 0).click();
-  await expect(page.getByTestId("grid-details")).toContainText("Squat, Bench Press");
+  await expect(page.getByTestId("grid-details")).toHaveText(/^Bench Press$/);
 
-  // Tapping is a toggle, which is what lets a multi-selection be undone without a mode to leave.
-  await cell(page, "Squat", 0).click();
+  // Tapping the selected one again keeps it selected — the ✕ is what lets go.
+  await cell(page, "Bench Press", 0).click();
   await expect(page.getByTestId("grid-details")).toHaveText(/^Bench Press$/);
 
   await page.getByTestId("grid-clear-selection").click();
