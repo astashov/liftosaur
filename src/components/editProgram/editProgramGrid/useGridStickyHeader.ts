@@ -12,6 +12,11 @@ export function useGridStickyHeader(): {
   onContainerLayout: () => void;
   onHeaderLayout: (e: LayoutChangeEvent) => void;
   translateY: Animated.AnimatedInterpolation<number> | number;
+  // Where the grid's first row starts in scroll-content coordinates — the header's own anchor,
+  // pushed past the header. Anything asking "where on screen has that row got to" needs the same
+  // measurement this hook already keeps fresh, and measuring it a second time somewhere else is how
+  // the two answers drift apart.
+  rowsTop: number;
 } {
   const scrollCtx = useContext(NavScreenScrollContext);
   const containerRef = useRef<View | null>(null);
@@ -19,7 +24,7 @@ export function useGridStickyHeader(): {
   const stickyHeaderHeight = scrollCtx?.stickyHeaderHeight ?? 0;
   // Where the grid starts in scroll-content coordinates, and how far the header may travel before
   // it would outrun the last row.
-  const [anchor, setAnchor] = useState({ top: 0, range: 0 });
+  const [anchor, setAnchor] = useState({ top: 0, range: 0, headerHeight: 0 });
 
   // Both boxes in window coordinates, turned into a content offset with the scroll position that
   // was live at the same moment — on Android edge-to-edge the window and measureInWindow don't
@@ -33,8 +38,13 @@ export function useGridStickyHeader(): {
     viewport.measureInWindow((_vx, vy) => {
       container.measureInWindow((_x, y, _w, height) => {
         const top = y - vy + (scrollCtx?.scrollYRef.current ?? 0);
-        const range = Math.max(0, height - headerHeightRef.current);
-        setAnchor((prev) => (prev.top === top && prev.range === range ? prev : { top, range }));
+        const headerHeight = headerHeightRef.current;
+        const range = Math.max(0, height - headerHeight);
+        setAnchor((prev) =>
+          prev.top === top && prev.range === range && prev.headerHeight === headerHeight
+            ? prev
+            : { top, range, headerHeight }
+        );
       });
     });
   }, [scrollCtx]);
@@ -76,5 +86,11 @@ export function useGridStickyHeader(): {
     });
   }, [scrollAnimatedY, anchor, stickyHeaderHeight]);
 
-  return { containerRef, onContainerLayout: remeasure, onHeaderLayout, translateY };
+  return {
+    containerRef,
+    onContainerLayout: remeasure,
+    onHeaderLayout,
+    translateY,
+    rowsTop: anchor.top + anchor.headerHeight,
+  };
 }

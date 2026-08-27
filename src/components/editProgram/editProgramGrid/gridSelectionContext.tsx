@@ -1,5 +1,6 @@
 import { createContext, JSX, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 import { IProgramGridPlacement } from "../../../pages/planner/models/programGrid";
+import { IGridReuseLocator } from "./useGridReuseLocator";
 
 // What the grid's current selection offers. The grid publishes it because that is where the program,
 // settings and dispatch live; the dock only renders it, from NavScreenContent's footer slot so it
@@ -21,6 +22,10 @@ export type IGridSelectionTarget =
 
 export interface IGridSelectionPayload {
   target: IGridSelectionTarget;
+  // Which way the selection's reuse source lies, when it has one and it has scrolled out of sight.
+  // Rendered by the dock rather than by the grid because it has to stay put while the grid scrolls,
+  // and the footer slot is already the place that does that.
+  reuse?: IGridReuseLocator;
   onEdit: (placement: IProgramGridPlacement) => void;
   onDuplicate: (placement: IProgramGridPlacement) => void;
   onDelete: (placements: IProgramGridPlacement[]) => void;

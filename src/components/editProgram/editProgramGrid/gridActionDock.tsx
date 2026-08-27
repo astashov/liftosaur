@@ -5,11 +5,14 @@ import { Pressable } from "../../primitives/pressable";
 import { IconEdit2 } from "../../icons/iconEdit2";
 import { IconCloseCircleOutline } from "../../icons/iconCloseCircleOutline";
 import { IconKebab } from "../../icons/iconKebab";
+import { IconArrowUp } from "../../icons/iconArrowUp";
+import { IconArrowDown2 } from "../../icons/iconArrowDown2";
 import { DropdownMenu, DropdownMenuItem } from "../../dropdownMenu";
 import { ActionSheet_show } from "../../../utils/actionSheet";
 import { useRemScale } from "../../../utils/useRem";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { useGridSelection } from "./gridSelectionContext";
+import { IGridReuseLocator } from "./useGridReuseLocator";
 import { GridBadge } from "./gridBadge";
 import { StringUtils_pluralize } from "../../../utils/string";
 
@@ -148,6 +151,7 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
         transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
       }}
     >
+      {props.reuse != null && <ReusePill reuse={props.reuse} />}
       {/* The same top edge the editor's dock has (liftoEditorDock.tsx): the dock floats over the
           grid's own scrolling content, so without a visible edge its background reads as more grid. */}
       <View
@@ -192,6 +196,41 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
     </Animated.View>
   );
 });
+
+// Where the selected exercise's reuse source went, when it is off screen. Above the dock's own top
+// edge and only as wide as its words, so it reads as a note attached to the selection rather than
+// as another row of the dock — and it points the way you would have to scroll.
+//
+// Tappable, because "which way is it" and "take me there" are the same question a beat apart.
+function ReusePill(props: { reuse: IGridReuseLocator }): JSX.Element {
+  const { reuse } = props;
+  return (
+    <View className="flex-row justify-center pb-1">
+      <Pressable
+        className="flex-row items-center gap-1 px-2 py-1 border rounded-full nm-grid-reuse-locator"
+        style={{
+          borderColor: Tailwind_semantic().border.cardpurple,
+          backgroundColor: Tailwind_semantic().background.cardpurple,
+        }}
+        testID="grid-reuse-locator"
+        accessibilityLabel={`Scroll to ${reuse.name}, ${reuse.direction === "up" ? "above" : "below"}`}
+        onPress={reuse.onGoTo}
+      >
+        {/* The app's own chevrons rather than "↑"/"↓": an arrow glyph is at the mercy of whether
+            Poppins carries it, and a fallback font would put a stranger's arrow in the middle of
+            a pill. */}
+        {reuse.direction === "up" ? (
+          <IconArrowUp color={Tailwind_semantic().text.link} />
+        ) : (
+          <IconArrowDown2 color={Tailwind_semantic().text.link} />
+        )}
+        <Text className="text-xs font-semibold text-text-link" numberOfLines={1}>
+          {reuse.name}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
 
 // A description is as long as its author wanted it to be, and the dock is one strip above the tab
 // bar — so it shows the first line and opens on a tap for the rest. The ellipsis is spelled out

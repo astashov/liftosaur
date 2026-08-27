@@ -26,6 +26,7 @@ import {
   ProgramGridGeometry_metrics,
 } from "../../../pages/planner/models/programGridGeometry";
 import { useGridSelectionPublish, IGridSelectionTarget } from "./gridSelectionContext";
+import { useGridReuseLocator } from "./useGridReuseLocator";
 import { useGridPinch } from "./gridPinch";
 import { useGridActions } from "./useGridActions";
 import { useGridNavigation } from "./useGridNavigation";
@@ -164,6 +165,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   });
 
   const publishSelection = useGridSelectionPublish();
+  const reuse = useGridReuseLocator({ grid, geometry, laneHeight, selection, rowsTop: sticky.rowsTop });
   const weekColumn = selectedWeek != null ? grid.columns[selectedWeek] : undefined;
   const payload = useMemo(() => {
     const target: IGridSelectionTarget | undefined =
@@ -197,6 +199,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     return target != null
       ? {
           target,
+          // Only for an exercise selection: a day or a week is not the thing that reuses anything.
+          reuse: target.kind === "exercises" ? reuse : undefined,
           onEdit: navigation.onEditPlacement,
           onDuplicate: navigation.onDuplicatePlacement,
           onDelete: actions.onDeletePlacements,
@@ -215,6 +219,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   }, [
     grid,
     selection,
+    reuse,
     selectedDayRows,
     selectedWeek,
     weekColumn,
