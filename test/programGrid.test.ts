@@ -139,7 +139,7 @@ Deadlift / ...tmpl / 3x8 / @8
     const scheme = (name: string): string => schemeText(grid.placements.find((p) => p.fullName === name)!.scheme);
     expect(scheme("Squat")).to.equal("...tmpl");
     expect(scheme("Bench Press")).to.equal("...tmpl / 180lb");
-    expect(scheme("Deadlift")).to.equal("...tmpl / 3x8 @8");
+    expect(scheme("Deadlift")).to.equal("...tmpl / 3x8 / @8");
   });
 
   it("shows every set variation, and marks the one the program is on", () => {
@@ -149,11 +149,26 @@ Squat / 5x3 100lb / !6x2 100lb / 10x1 100lb
 Bench Press / 3x5 100lb
 `);
     const squat = grid.placements.find((p) => p.fullName === "Squat")!;
-    expect(schemeText(squat.scheme)).to.equal("5x3 100lb / 6x2 100lb / 10x1 100lb");
-    expect(currentText(squat.scheme)).to.equal("6x2 100lb");
+    expect(schemeText(squat.scheme)).to.equal("5x3 / 6x2 / 10x1 / 100lb");
+    expect(currentText(squat.scheme)).to.equal("6x2 / 100lb");
     const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
     expect(schemeText(bench.scheme)).to.equal("3x5 100lb");
     expect(currentText(bench.scheme)).to.equal("3x5 100lb");
+  });
+
+  it("says a value every group repeats once, after the sets", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x3 86%, 1x3+ 86% / 190s
+Bench Press / 3x5 100lb, 1x5 80lb / 90s
+Deadlift / 3x5 100lb
+`);
+    const scheme = (name: string): string => schemeText(grid.placements.find((p) => p.fullName === name)!.scheme);
+    expect(scheme("Squat")).to.equal("3x3, 1x3+ / 86% 190s");
+    // Only what all of them agree on: the weight differs, so it stays with the sets it belongs to.
+    expect(scheme("Bench Press")).to.equal("3x5 100lb, 1x5 80lb / 90s");
+    // A lone group has nothing to hoist away from — a separator here would only make it longer.
+    expect(scheme("Deadlift")).to.equal("3x5 100lb");
   });
 
   it("shows every set variation a reusing line overrides", () => {

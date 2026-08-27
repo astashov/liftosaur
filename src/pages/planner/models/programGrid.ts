@@ -115,32 +115,105 @@ function laneId(exercise: IPlannerProgramExercise, ordinal: number): string {
   return `${exercise.key}#${ordinal}`;
 }
 
-function displaySetsToTokens(groups: IDisplaySet[][]): IProgramGridSchemeToken[][] {
-  return groups.reduce<IProgramGridSchemeToken[][]>((acc, group) => {
+interface IProgramGridSetGroupPart {
+  text: string;
+  kind: IProgramGridTokenKind;
+}
+
+interface IProgramGridSetGroup {
+  reps: string;
+  parts: IProgramGridSetGroupPart[];
+}
+
+// The order Liftoscript writes them in, which is the order they read best in whether they end up
+// next to their sets or after all of them.
+const PART_KINDS: IProgramGridTokenKind[] = ["weight", "rpe", "timer", "auto"];
+
+function displaySetsToGroups(groups: IDisplaySet[][]): IProgramGridSetGroup[] {
+  return groups.reduce<IProgramGridSetGroup[]>((acc, group) => {
     const first = group[0];
     if (first == null) {
       return acc;
     }
-    const tokens: IProgramGridSchemeToken[] = [{ text: `${group.length}x${first.reps}`, kind: "setPart" }];
+    const parts: IProgramGridSetGroupPart[] = [];
     if (!first.dimWeight && first.weight != null) {
-      tokens.push({ text: " ", kind: "separator" });
-      tokens.push({ text: `${first.weight}${first.unit ?? ""}`, kind: "weight" });
+      parts.push({ text: `${first.weight}${first.unit ?? ""}`, kind: "weight" });
     }
     if (first.rpe != null) {
-      tokens.push({ text: " ", kind: "separator" });
-      tokens.push({ text: `@${first.rpe}`, kind: "rpe" });
+      parts.push({ text: `@${first.rpe}`, kind: "rpe" });
     }
     const timer = first.setTimer ?? first.timer;
     if (timer != null) {
-      tokens.push({ text: " ", kind: "separator" });
-      tokens.push({ text: `${timer}s`, kind: "timer" });
+      parts.push({ text: `${timer}s`, kind: "timer" });
     }
     if (first.auto) {
-      tokens.push({ text: " ", kind: "separator" });
-      tokens.push({ text: "auto", kind: "auto" });
+      parts.push({ text: "auto", kind: "auto" });
     }
-    return [...acc, tokens];
+    return [...acc, { reps: `${group.length}x${first.reps}`, parts }];
   }, []);
+}
+
+// A weight or a timer every group of every variation repeats is a property of the exercise rather
+// than of any one group, and that's how the program says it — `3x3 86%, 1x3+ 86% / 190s`, written
+// once after the sets. Repeating it costs the strip the width it has least of, and the repetition
+// is what buries the number that does differ. A lone group has nothing to factor out of: pulling
+// its own values behind a separator would only make it longer.
+function commonParts(variations: IProgramGridSetGroup[][], taken: IProgramGridTokenKind[]): IProgramGridSetGroupPart[] {
+  const groups = variations.reduce<IProgramGridSetGroup[]>((acc, v) => [...acc, ...v], []);
+  const first = groups[0];
+  if (groups.length < 2 || first == null) {
+    return [];
+  }
+  return first.parts.filter(
+    (part) =>
+      taken.indexOf(part.kind) === -1 &&
+      groups.every((group) => group.parts.some((p) => p.kind === part.kind && p.text === part.text))
+  );
+}
+
+function groupToTokens(group: IProgramGridSetGroup, common: IProgramGridSetGroupPart[]): IProgramGridSchemeToken[] {
+  const tokens: IProgramGridSchemeToken[] = [{ text: group.reps, kind: "setPart" }];
+  for (const part of group.parts) {
+    if (common.some((c) => c.kind === part.kind)) {
+      continue;
+    }
+    tokens.push({ text: " ", kind: "separator" });
+    tokens.push({ text: part.text, kind: part.kind });
+  }
+  return tokens;
+}
+
+// Marked like the sets are: a global applies to whichever variation is running, so it belongs to
+// the current prescription as much as the sets it was pulled out of.
+function withTrailing(
+  tokens: IProgramGridSchemeToken[],
+  trailing: IProgramGridSchemeToken[]
+): IProgramGridSchemeToken[] {
+  const result = [...tokens];
+  const sorted = [...trailing].sort((a, b) => PART_KINDS.indexOf(a.kind) - PART_KINDS.indexOf(b.kind));
+  for (let i = 0; i < sorted.length; i += 1) {
+    if (result.length > 0) {
+      result.push({ text: i === 0 ? " / " : " ", kind: "separator", isCurrent: true });
+    }
+    result.push({ ...sorted[i], isCurrent: true });
+  }
+  return result;
+}
+
+function variationsToTokens(
+  variations: IProgramGridSetGroup[][],
+  currentIndex: number,
+  globals: IProgramGridSchemeToken[]
+): IProgramGridSchemeToken[] {
+  const common = commonParts(
+    variations,
+    globals.map((g) => g.kind)
+  );
+  const tokens = joinVariations(
+    variations.map((groups) => joinGroups(groups.map((group) => groupToTokens(group, common)))),
+    currentIndex
+  );
+  return withTrailing(tokens, [...common, ...globals]);
 }
 
 function joinGroups(groups: IProgramGridSchemeToken[][]): IProgramGridSchemeToken[] {
@@ -175,23 +248,13 @@ function joinVariations(variations: IProgramGridSchemeToken[][], currentIndex: n
 // hold exactly the overrides — everything else came from the source and belongs in the source's
 // cells, not here.
 function overrideTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
-  const tokens: IProgramGridSchemeToken[] = joinVariations(
+  return variationsToTokens(
     exercise.setVariations.map((variation) =>
-      joinGroups(
-        displaySetsToTokens(PlannerProgramExercise_setsToDisplaySets(variation.sets, true, exercise.globals, settings))
-      )
+      displaySetsToGroups(PlannerProgramExercise_setsToDisplaySets(variation.sets, true, exercise.globals, settings))
     ),
-    PlannerProgramExercise_currentSetVariationIndex(exercise)
+    PlannerProgramExercise_currentSetVariationIndex(exercise),
+    globalsToTokens(exercise.globals)
   );
-  // Marked like the sets are: everywhere else a global is folded into the sets it applies to and
-  // reads as part of them, and this is the one path where it arrives on its own.
-  for (const token of globalsToTokens(exercise.globals)) {
-    if (tokens.length > 0) {
-      tokens.push({ text: " ", kind: "separator", isCurrent: true });
-    }
-    tokens.push({ ...token, isCurrent: true });
-  }
-  return tokens;
 }
 
 function globalsToTokens(globals: IPlannerProgramExerciseGlobals): IProgramGridSchemeToken[] {
@@ -220,11 +283,14 @@ function globalsToTokens(globals: IPlannerProgramExerciseGlobals): IProgramGridS
 function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
   const reuse = exercise.reuse;
   if (reuse == null) {
-    return joinVariations(
+    // Evaluated sets carry the globals folded into every one of them, so there is nothing left that
+    // says which values were written once — `commonParts` reads that back off the sets themselves.
+    return variationsToTokens(
       exercise.evaluatedSetVariations.map((variation) =>
-        joinGroups(displaySetsToTokens(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation.sets, settings)))
+        displaySetsToGroups(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation.sets, settings))
       ),
-      PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise)
+      PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise),
+      []
     );
   }
   // A reuser's inherited numbers vary week to week, so they stay in the source's cells (see the
