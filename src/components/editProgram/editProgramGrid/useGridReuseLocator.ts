@@ -30,11 +30,19 @@ export function useGridReuseLocator(args: {
   geometry: IGridGeometryRow[];
   laneHeight: number;
   selection?: IProgramGridSelection;
-  // Where the grid's rows begin in scroll-content coordinates — see useGridStickyHeader.
+  // Where the grid's rows begin in scroll-content coordinates, and how tall the week header that
+  // pins itself over them is — both from useGridStickyHeader.
   rowsTop: number;
+  headerHeight: number;
 }): IGridReuseLocator | undefined {
-  const { grid, geometry, laneHeight, selection, rowsTop } = args;
+  const { grid, geometry, laneHeight, selection, rowsTop, headerHeight } = args;
   const scrollCtx = useContext(NavScreenScrollContext);
+
+  // What covers the top of the visible area: the screen's own sticky header, and then the grid's
+  // week names pinned beneath it. Counting only the first leaves a band the height of the week row
+  // that reads as visible and isn't — a strip sitting there is behind the names, and a jump aimed
+  // at it lands with it still behind them.
+  const occludedTop = (scrollCtx?.stickyHeaderHeight ?? 0) + headerHeight;
 
   // What the selection reuses, if it agrees on one thing. Several strips reusing several different
   // sources have no single answer, and pointing at one of them arbitrarily would be worse than
@@ -79,7 +87,7 @@ export function useGridReuseLocator(args: {
       return undefined;
     }
     const scrollY = scrollCtx?.scrollYRef.current ?? 0;
-    const top = scrollY + (scrollCtx?.stickyHeaderHeight ?? 0);
+    const top = scrollY + occludedTop;
     const bottom = scrollY + viewport - (scrollCtx?.footerHeight ?? 0);
     const bounds = boundsRef.current;
     if (bounds.rowBottom - VISIBLE_MARGIN < top) {
@@ -89,7 +97,7 @@ export function useGridReuseLocator(args: {
       return "down";
     }
     return undefined;
-  }, [scrollCtx]);
+  }, [scrollCtx, occludedTop]);
 
   // Recomputed on every scroll event but written only when the answer changes — an arrow that
   // flips at most twice in a flick, rather than a setState per frame under the finger.
@@ -117,8 +125,8 @@ export function useGridReuseLocator(args: {
     if (node == null) {
       return;
     }
-    node.scrollTo({ y: Math.max(0, boundsRef.current.rowTop - (scrollCtx?.stickyHeaderHeight ?? 0) - GO_TO_MARGIN) });
-  }, [scrollCtx]);
+    node.scrollTo({ y: Math.max(0, boundsRef.current.rowTop - occludedTop - GO_TO_MARGIN) });
+  }, [scrollCtx, occludedTop]);
 
   return useMemo(
     () => (target == null || direction == null ? undefined : { name: target.fullName, direction, onGoTo }),

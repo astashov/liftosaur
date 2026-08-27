@@ -166,7 +166,14 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   });
 
   const publishSelection = useGridSelectionPublish();
-  const reuse = useGridReuseLocator({ grid, geometry, laneHeight, selection, rowsTop: sticky.rowsTop });
+  const reuse = useGridReuseLocator({
+    grid,
+    geometry,
+    laneHeight,
+    selection,
+    rowsTop: sticky.rowsTop,
+    headerHeight: sticky.headerHeight,
+  });
   const weekColumn = selectedWeek != null ? grid.columns[selectedWeek] : undefined;
   const payload = useMemo(() => {
     const target: IGridSelectionTarget | undefined =
