@@ -32,6 +32,13 @@ export const GRID_BOTTOM_GAP = GRID_CELL_INSET_X;
 export const GRID_ADD_ROW_HEIGHT = 1.5;
 export const GRID_DAY_LABEL_HEIGHT = 2;
 export const GRID_RESIZE_HANDLE_WIDTH = 1;
+// The grip is drawn a rem wide; the touch box around it is wider, because a target that narrow at
+// the edge of a strip is one fingers miss — and a miss lands on the strip, whose long press starts
+// dragging the exercise somewhere else entirely. Capped as a share of the column so a zoomed-out
+// grid doesn't hand half of every strip over to its own edge; at the narrowest column the cap is
+// still wider than the grip.
+export const GRID_RESIZE_HANDLE_HIT_WIDTH = 2.25;
+export const GRID_RESIZE_HANDLE_MAX_HIT_SHARE = 0.3;
 export const GRID_MARGIN_BETWEEN_ROWS = 0.25;
 // The "+ Week" button is a full-height rail past the last column rather than a column-wide box, so
 // it costs the horizontal scroll almost nothing and reads as "the grid continues this way".
@@ -274,6 +281,14 @@ export function ProgramGridGeometry_clampWeek(
   return Math.max(placement.colStart, Math.min(grid.columns.length - 1, placement.colEnd + deltaWeeks));
 }
 
+// The other end of `clampWeek`: a run that starts in the last week is already clamped to the only
+// week it can end in, so a handle on it is a grip on nothing. Extending is the direction that runs
+// out — the lane's later weeks are free by construction, since a run that had another after it
+// wouldn't be the one carrying the handle.
+export function ProgramGridGeometry_canResize(grid: IProgramGrid, placement: IProgramGridPlacement): boolean {
+  return placement.colStart < grid.columns.length - 1;
+}
+
 // Where the resize handle sits: the right edge of the run's card, following the preview while a
 // resize is in flight.
 export function ProgramGridGeometry_resizeHandleLeft(args: {
@@ -282,4 +297,16 @@ export function ProgramGridGeometry_resizeHandleLeft(args: {
   rem: number;
 }): number {
   return args.columnWidth * (args.colEnd + 1) - GRID_CELL_INSET_X * args.rem - GRID_RESIZE_HANDLE_WIDTH * args.rem;
+}
+
+export function ProgramGridGeometry_resizeHitWidth(columnWidth: number, rem: number): number {
+  return Math.min(GRID_RESIZE_HANDLE_HIT_WIDTH * rem, columnWidth * GRID_RESIZE_HANDLE_MAX_HIT_SHARE);
+}
+
+// Centred on the grip rather than starting where it does, so a wider touch box doesn't move the
+// thing it's a target for. It reaches past the run's trailing edge into the gap between strips,
+// which nothing else claims, and stops short of the next column's card.
+export function ProgramGridGeometry_resizeHitLeft(args: { colEnd: number; columnWidth: number; rem: number }): number {
+  const gripCenter = ProgramGridGeometry_resizeHandleLeft(args) + (GRID_RESIZE_HANDLE_WIDTH * args.rem) / 2;
+  return gripCenter - ProgramGridGeometry_resizeHitWidth(args.columnWidth, args.rem) / 2;
 }

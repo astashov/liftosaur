@@ -243,6 +243,19 @@ Squat / 3x8 100lb
   );
 });
 
+test("offers no repeat handle where there is no week to repeat into", async ({ page }) => {
+  await openGrid(
+    page,
+    `# Week 1
+## Day 1
+Squat / 3x8 100lb
+`
+  );
+
+  await expect(page.getByTestId("grid-cell-Squat-0")).toBeVisible();
+  await expect(page.getByTestId("grid-resize-handle")).toHaveCount(0);
+});
+
 test("adds a week and a day", async ({ page }) => {
   await openGrid(page);
 

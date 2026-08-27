@@ -7,10 +7,11 @@ import { IProgramGrid, IProgramGridPlacement, IProgramGridSelection } from "../.
 import {
   GRID_CELL_INSET_Y,
   GRID_CELL_INSET_X,
-  GRID_RESIZE_HANDLE_WIDTH,
+  ProgramGridGeometry_canResize,
   ProgramGridGeometry_clampWeek,
   ProgramGridGeometry_laneSegments,
-  ProgramGridGeometry_resizeHandleLeft,
+  ProgramGridGeometry_resizeHitLeft,
+  ProgramGridGeometry_resizeHitWidth,
 } from "../../../pages/planner/models/programGridGeometry";
 import { GridDragHandle } from "./gridDragHandle";
 import { GridResizeHandle } from "./gridResizeHandle";
@@ -56,11 +57,13 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
   );
 
   // Only the lane's last run can be dragged: extending a run that has another after it would have
-  // to move that one's start too, which is a different (v2) operation.
-  const lastPlacement = useMemo(() => {
+  // to move that one's start too, which is a different (v2) operation. And only when it has a week
+  // to be dragged to — undefined here takes the handle off the strip entirely.
+  const resizablePlacement = useMemo(() => {
     const withPlacement = segments.filter((s) => s.placement != null);
-    return withPlacement[withPlacement.length - 1]?.placement;
-  }, [segments]);
+    const placement = withPlacement[withPlacement.length - 1]?.placement;
+    return placement != null && ProgramGridGeometry_canResize(grid, placement) ? placement : undefined;
+  }, [segments, grid]);
 
   // The pending drag is mirrored in a ref so the commit can read it from an event handler, and so
   // the end/finalize pair is idempotent — the first one clears it.
@@ -69,20 +72,20 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
 
   const onResizeStart = useCallback(
     (deltaWeeks: number) => {
-      if (lastPlacement == null) {
+      if (resizablePlacement == null) {
         return;
       }
       // Clamping happens here rather than in the preview, so what is drawn is exactly what a
       // release would commit.
-      const colEnd = ProgramGridGeometry_clampWeek(grid, lastPlacement, deltaWeeks);
-      resizeRef.current = { id: lastPlacement.id, colEnd };
+      const colEnd = ProgramGridGeometry_clampWeek(grid, resizablePlacement, deltaWeeks);
+      resizeRef.current = { id: resizablePlacement.id, colEnd };
       resizePreviewEnd.value = colEnd;
-      resizeHandleOffset.value = columnWidth * (colEnd - lastPlacement.colEnd);
+      resizeHandleOffset.value = columnWidth * (colEnd - resizablePlacement.colEnd);
       if (Platform.OS === "web") {
-        setWebResize({ id: lastPlacement.id, colEnd });
+        setWebResize({ id: resizablePlacement.id, colEnd });
       }
     },
-    [grid, lastPlacement, columnWidth, resizePreviewEnd, resizeHandleOffset]
+    [grid, resizablePlacement, columnWidth, resizePreviewEnd, resizeHandleOffset]
   );
 
   const onResizeEnd = useCallback(
@@ -108,7 +111,7 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
   // Width rather than a transform, deliberately: this is one leaf node with no children, and the
   // rule it bends ("animate opacity and transform only") exists to stop per-frame layout commits
   // across the whole grid. Nothing under the finger re-renders either way.
-  const previewColStart = lastPlacement?.colStart ?? 0;
+  const previewColStart = resizablePlacement?.colStart ?? 0;
   const previewInset = 2 * GRID_CELL_INSET_X * rem;
   const previewStyle = useAnimatedStyle(() => {
     const end = resizePreviewEnd.value;
@@ -117,13 +120,13 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
       : { opacity: 1, width: columnWidth * (end - previewColStart + 1) - previewInset };
   });
 
-  // Where the resize handle sits: the right edge of the last run's card, following the preview
-  // while a resize is in flight.
+  // Where the resize handle sits: centred on the right edge of the last run's card, following the
+  // preview while a resize is in flight.
   const resizeLeft =
-    lastPlacement == null
+    resizablePlacement == null
       ? 0
-      : ProgramGridGeometry_resizeHandleLeft({
-          colEnd: webResize?.id === lastPlacement.id ? webResize.colEnd : lastPlacement.colEnd,
+      : ProgramGridGeometry_resizeHitLeft({
+          colEnd: webResize?.id === resizablePlacement.id ? webResize.colEnd : resizablePlacement.colEnd,
           columnWidth: props.columnWidth,
           rem,
         });
@@ -159,13 +162,13 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
           )}
         </View>
       </GridDragHandle>
-      {lastPlacement != null && Platform.OS !== "web" && (
+      {resizablePlacement != null && Platform.OS !== "web" && (
         <Animated.View
           pointerEvents="none"
           className="absolute rounded"
           style={[
             {
-              left: props.columnWidth * lastPlacement.colStart + GRID_CELL_INSET_X * rem,
+              left: props.columnWidth * resizablePlacement.colStart + GRID_CELL_INSET_X * rem,
               top: GRID_CELL_INSET_Y * rem,
               height: props.laneHeight - 2 * GRID_CELL_INSET_Y * rem,
               borderWidth: 2,
@@ -175,9 +178,9 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
           ]}
         />
       )}
-      {lastPlacement != null && (
+      {resizablePlacement != null && (
         <GridResizeHandle
-          width={GRID_RESIZE_HANDLE_WIDTH * rem}
+          width={ProgramGridGeometry_resizeHitWidth(props.columnWidth, rem)}
           columnWidth={props.columnWidth}
           onResize={onResizeStart}
           onResizeEnd={onResizeEnd}

@@ -5,10 +5,15 @@ import {
   GRID_BASE_COLUMN_WIDTH,
   IGridGeometryRow,
   ProgramGridGeometry_build,
+  ProgramGridGeometry_canResize,
   ProgramGridGeometry_clampWeek,
   ProgramGridGeometry_resizeHandleLeft,
   GRID_CELL_INSET_X,
   GRID_RESIZE_HANDLE_WIDTH,
+  GRID_RESIZE_HANDLE_HIT_WIDTH,
+  GRID_RESIZE_HANDLE_MAX_HIT_SHARE,
+  ProgramGridGeometry_resizeHitLeft,
+  ProgramGridGeometry_resizeHitWidth,
   ProgramGridGeometry_dayBlockDropAt,
   ProgramGridGeometry_gapForMove,
   ProgramGridGeometry_insertAtForGap,
@@ -322,6 +327,45 @@ Squat / 3x5 100lb
     });
   });
 
+  describe("canResize", () => {
+    it("is false for a run with no week to be dragged to", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+`);
+      expect(ProgramGridGeometry_canResize(grid, grid.placements[0])).to.equal(false);
+    });
+
+    it("is true where the run can still grow, and where it can only shrink", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 3x5 100lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+Bench Press / 3x5 100lb
+
+# Week 3
+## Day 1
+Bench Press / 3x5 100lb
+Deadlift / 3x5 100lb
+`);
+      const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+      expect([squat.colStart, squat.colEnd]).to.deep.equal([0, 1]);
+      expect(ProgramGridGeometry_canResize(grid, squat)).to.equal(true);
+      // Already at the last week, but three weeks long — dragging back is still somewhere to go.
+      const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+      expect([bench.colStart, bench.colEnd]).to.deep.equal([0, 2]);
+      expect(ProgramGridGeometry_canResize(grid, bench)).to.equal(true);
+      // One week long, in the last week: both directions are already clamped to where it is.
+      const deadlift = grid.placements.find((p) => p.fullName === "Deadlift")!;
+      expect([deadlift.colStart, deadlift.colEnd]).to.deep.equal([2, 2]);
+      expect(ProgramGridGeometry_canResize(grid, deadlift)).to.equal(false);
+    });
+  });
+
   describe("resize handle", () => {
     // The handle sits at the run's trailing edge, inset so it stays inside the cell rather than
     // straddling the boundary with the next column.
@@ -335,6 +379,32 @@ Squat / 3x5 100lb
       const one = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 100, rem: 16 });
       const three = ProgramGridGeometry_resizeHandleLeft({ colEnd: 2, columnWidth: 100, rem: 16 });
       expect(three - one).to.equal(200);
+    });
+
+    it("takes touches from a box wider than the grip, centred on it", () => {
+      const grip = ProgramGridGeometry_resizeHandleLeft({ colEnd: 0, columnWidth: 152, rem: 16 });
+      const hitWidth = ProgramGridGeometry_resizeHitWidth(152, 16);
+      const hitLeft = ProgramGridGeometry_resizeHitLeft({ colEnd: 0, columnWidth: 152, rem: 16 });
+      expect(hitWidth).to.be.greaterThan(GRID_RESIZE_HANDLE_WIDTH * 16);
+      expect(hitLeft + hitWidth / 2).to.equal(grip + (GRID_RESIZE_HANDLE_WIDTH * 16) / 2);
+    });
+
+    // It may reach into the gap between two strips, but not onto the card on the other side of it,
+    // where it would be taking taps meant for the next week's exercise.
+    it("stops short of the next column's card", () => {
+      for (const columnWidth of [68, 100, 152, 300]) {
+        const hitLeft = ProgramGridGeometry_resizeHitLeft({ colEnd: 1, columnWidth, rem: 16 });
+        const right = hitLeft + ProgramGridGeometry_resizeHitWidth(columnWidth, 16);
+        expect(right).to.be.lessThan(columnWidth * 2 + GRID_CELL_INSET_X * 16);
+      }
+    });
+
+    // Zoomed all the way out a fixed-size box would be half the strip, so the cap takes over — and
+    // even then it is no smaller than the grip it replaces.
+    it("never spends more than its share of a narrow column, nor less than the grip", () => {
+      expect(ProgramGridGeometry_resizeHitWidth(68, 16)).to.be.lessThan(GRID_RESIZE_HANDLE_HIT_WIDTH * 16);
+      expect(ProgramGridGeometry_resizeHitWidth(68, 16)).to.be.greaterThan(GRID_RESIZE_HANDLE_WIDTH * 16);
+      expect(ProgramGridGeometry_resizeHitWidth(68, 16) / 68).to.be.at.most(GRID_RESIZE_HANDLE_MAX_HIT_SHARE);
     });
 
     it("scales its inset with rem, so the Appearance slider moves it too", () => {
