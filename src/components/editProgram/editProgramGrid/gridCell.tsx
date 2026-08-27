@@ -113,12 +113,19 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
 
   return (
     <Pressable
-      style={{
-        width: props.width,
-        height: props.height,
-        paddingHorizontal: GRID_CELL_INSET_X * rem,
-        paddingVertical: GRID_CELL_INSET_Y * rem,
-      }}
+      style={
+        {
+          width: props.width,
+          height: props.height,
+          paddingHorizontal: GRID_CELL_INSET_X * rem,
+          paddingVertical: GRID_CELL_INSET_Y * rem,
+          // A strip is the most-dragged thing in the grid, so it says "pick me up" rather than
+          // "click me". Set here rather than inherited from the drag handle above, because
+          // react-native-web gives every Pressable a cursor of its own. `grab` is outside RN's
+          // CursorValue, hence the cast — it is dropped on native, which has no cursor anyway.
+          cursor: "grab",
+        } as object
+      }
       testID={`grid-cell-${placement.fullName}-${placement.colStart}`}
       onPress={() => props.onSelect(placement.id)}
     >
