@@ -729,13 +729,15 @@ export function Progress_showUpdateDate(progress: IHistoryRecord, date: string, 
   };
 }
 
-const supersetColors = ["red", "blue", "green", "purple"];
+// Shared with the program grid: a superset is the same grouping whether you are reading a program or
+// performing it, so it gets the same color in both.
+export const Progress_supersetColors = ["red", "blue", "green", "purple"];
 
 export function Progress_getColorToSupersetGroup(progress: IHistoryRecord): Partial<Record<string, IHistoryEntry[]>> {
   const groups = Progress_getSupersetGroups(progress.entries);
   let index = 0;
   return ObjectUtils_entriesNonnull(groups).reduce<Partial<Record<string, IHistoryEntry[]>>>((memo, [, group]) => {
-    const color = supersetColors[index % supersetColors.length];
+    const color = Progress_supersetColors[index % Progress_supersetColors.length];
     memo[color] = group;
     index += 1;
     return memo;
@@ -746,7 +748,7 @@ export function Progress_getSupersetToColor(entries: IHistoryEntry[]): Partial<R
   const groups = Progress_getSupersetGroups(entries);
   let index = 0;
   return ObjectUtils_entriesNonnull(groups).reduce<Partial<Record<string, string>>>((memo, [superset, group]) => {
-    const color = supersetColors[index % supersetColors.length];
+    const color = Progress_supersetColors[index % Progress_supersetColors.length];
     // Keep color assignment in lockstep with Progress_getColorToSupersetGroup (which advances the
     // index for every group), but a lone leftover entry shouldn't get a pairing line.
     if (group.length > 1) {

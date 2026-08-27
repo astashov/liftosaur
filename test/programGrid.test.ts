@@ -162,6 +162,51 @@ Deadlift / 1x5 200lb
     expect(deadlift.progression).to.equal(undefined);
   });
 
+  it("colors supersets by day row, and gives a group of one no color at all", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb / superset: A
+Bench Press / 3x5 50lb / superset: A
+Deadlift / 1x5 200lb / superset: B
+Pull Up / 5x10 0lb / superset: C
+Push Up / 5x15 0lb / superset: C
+Chin Up / 5x10 0lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb / superset: A
+Bench Press / 3x5 50lb / superset: A
+`);
+    const color = (name: string): string | undefined =>
+      grid.placements.find((p) => p.fullName === name)!.supersetColor;
+    expect(color("Squat")).to.equal("red");
+    // Its partner shares the color — that is the whole point of the line.
+    expect(color("Bench Press")).to.equal("red");
+    // B has one member, so no line; but it still consumes an index, keeping this in step with the
+    // workout screen's assignment for the same day.
+    expect(color("Deadlift")).to.equal(undefined);
+    expect(color("Pull Up")).to.equal("green");
+    expect(color("Push Up")).to.equal("green");
+    expect(color("Chin Up")).to.equal(undefined);
+  });
+
+  it("keeps a supersetted lane the same color in every week", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 5x5 100lb / superset: A
+Bench Press / 3x5 50lb / superset: A
+
+# Week 2
+## Day 1
+Squat / 3x3 120lb / superset: A
+Bench Press / 3x5 50lb / superset: A
+`);
+    // Two runs of Squat, because the weeks differ — a superset belongs to the day, so both say red.
+    const squats = grid.placements.filter((p) => p.fullName === "Squat");
+    expect(squats.length).to.equal(2);
+    expect(squats.map((p) => p.supersetColor)).to.deep.equal(["red", "red"]);
+  });
+
   it("is ragged — a row only exists in the weeks that have that day", () => {
     const grid = buildGrid(`# Week 1
 ## Day 1

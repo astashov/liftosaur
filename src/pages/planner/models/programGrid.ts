@@ -10,6 +10,7 @@ import {
 } from "./plannerProgramExercise";
 import { IDisplaySet } from "../../../models/set";
 import { Weight_print } from "../../../models/weight";
+import { Progress_supersetColors } from "../../../models/progress";
 
 // Mirrors the editor's node→style mapping (liftoEditorBrain.ts:102) so a strip reads like the
 // Liftoscript it stands for, in the same colors. The view owns the mapping to actual palette
@@ -72,6 +73,9 @@ export interface IProgramGridPlacement {
   // `id: tags(3, 5)`, which is how a program says "this exercise belongs to that group".
   tags: number[];
   progression?: string;
+  // The color of the superset this exercise is part of, absent when it is in none — or in one whose
+  // only member it is.
+  supersetColor?: string;
   scheme: IProgramGridSchemeToken[];
 }
 
@@ -228,6 +232,44 @@ function progressionText(exercise: IPlannerProgramExercise): string | undefined 
   return `progress: ${body()}`;
 }
 
+// Which lanes of one day row are supersetted together, and in what color — the workout screen's
+// palette, in the workout screen's order, so a superset looks the same being read as being performed
+// (`Progress_getSupersetToColor`).
+//
+// Scoped to the row rather than the week, because a superset is a fact about a day and a lane is
+// that day's slot in every week: coloring per week would give one group a different color in each
+// column of the same row. A lane's group is read from the first week that has it, the same way the
+// row's name and description are.
+//
+// A group of one gets no color, since a line pairing an exercise with nothing says nothing — but the
+// index still advances past it, which is what keeps this in step with the workout screen.
+function supersetColors(
+  lanes: string[],
+  byWeek: Record<string, IPlannerProgramExercise>[]
+): Record<string, string | undefined> {
+  const groupByLane: Record<string, string> = {};
+  const order: string[] = [];
+  const laneCount: Record<string, number> = {};
+  for (const lane of lanes) {
+    const group = byWeek.map((week) => week[lane]).find((exercise) => exercise != null)?.superset?.name;
+    if (group == null) {
+      continue;
+    }
+    groupByLane[lane] = group;
+    if (order.indexOf(group) === -1) {
+      order.push(group);
+    }
+    laneCount[group] = (laneCount[group] ?? 0) + 1;
+  }
+  return lanes.reduce<Record<string, string | undefined>>((acc, lane) => {
+    const group = groupByLane[lane];
+    if (group != null && laneCount[group] > 1) {
+      acc[lane] = Progress_supersetColors[order.indexOf(group) % Progress_supersetColors.length];
+    }
+    return acc;
+  }, {});
+}
+
 function buildLanes(program: IEvaluatedProgram, rowIndex: number): string[] {
   const lanes: string[] = [];
   for (const week of program.weeks) {
@@ -303,6 +345,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
   for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex += 1) {
     const lanes = buildLanes(program, rowIndex);
     const byWeek = program.weeks.map((_, weekIndex) => exercisesByLane(program, rowIndex, weekIndex));
+    const supersetColorByLane = supersetColors(lanes, byWeek);
     lanes.forEach((lane, laneIndex) => {
       const lanePlacements: IProgramGridPlacement[] = [];
       let open: IOpenRun | undefined;
@@ -338,6 +381,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           order: exercise.order > 0 ? exercise.order : undefined,
           tags: exercise.tags,
           progression: progressionText(exercise),
+          supersetColor: supersetColorByLane[lane],
           scheme: schemeTokens(exercise, settings),
         };
         addSourceWeek(placement, byWeek, lane, weekIndex, exercise);

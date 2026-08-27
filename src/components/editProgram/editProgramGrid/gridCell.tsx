@@ -137,6 +137,17 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
         {/* Translucent only while pale — a selected strip is opaque, because the day box showing
             through the strong fill is exactly what would mute it back down. */}
         <View className="absolute inset-0" style={{ opacity: isActive ? 1 : 0.85, backgroundColor: background }} />
+        {/* The same bar the workout screen draws down the side of supersetted entries
+            (historyEntry.tsx), in the same colors — inside the strip rather than beside it, because
+            here there is no gutter to hang it in. It sits above the fill and outside the content's
+            padding, so it reads as part of the strip's edge. */}
+        {placement.supersetColor != null && (
+          <View
+            testID="grid-cell-superset-line"
+            className="absolute top-0 bottom-0 left-0"
+            style={{ width: 3, backgroundColor: placement.supersetColor }}
+          />
+        )}
         <View className="relative justify-center flex-1 px-2">
           <View className="flex-row items-center">
             <Text
