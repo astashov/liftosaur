@@ -21,6 +21,7 @@ export interface IGridPinchResult {
   // For the horizontal scroller's `animatedProps` — see `pointerCount` below for why it can't be
   // an ordinary prop.
   scrollAnimatedProps?: Partial<ScrollViewProps>;
+  canPinch: boolean;
 }
 
 // Coarse on purpose: a step finer than this moves a column by under a pixel, so it costs a render
@@ -98,5 +99,5 @@ export function useGridPinch(args: IGridPinchArgs): IGridPinchResult {
     [gesture]
   );
 
-  return { Wrap, scrollAnimatedProps };
+  return { Wrap, scrollAnimatedProps, canPinch: true };
 }

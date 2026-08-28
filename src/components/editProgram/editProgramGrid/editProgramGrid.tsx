@@ -80,7 +80,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     },
     [plannerDispatch]
   );
-  const { Wrap, scrollAnimatedProps } = useGridPinch({
+  const { Wrap, scrollAnimatedProps, canPinch } = useGridPinch({
     scale,
     onScalePreview: setPreviewScale,
     onScaleCommit: onCommitScale,
@@ -396,7 +396,9 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           <GridReusePillFloat reuse={reuse} />
         </Animated.View>
       )}
-      <Text className="px-4 pt-2 text-xs text-text-secondary">Long-press a day, an exercise or a week to move it</Text>
+      <Text className="px-4 pt-2 text-xs text-text-secondary">
+        Long-press a day, an exercise or a week to move it{canPinch ? ". Pinch to zoom" : ""}
+      </Text>
     </View>
   );
 });
