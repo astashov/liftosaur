@@ -78,7 +78,10 @@ export function NavModalEditExerciseChange(): JSX.Element {
                     [
                       lbUi.p("editExerciseModal").record(undefined),
                       lbUi.p("exercisePicker").record({
-                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        // A swap keeps whatever label told this instance apart from its siblings —
+                        // which exercise it is and what it is called are different questions, and
+                        // only one of them is being asked here.
+                        state: { ...pickerStateFromPlannerExercise(settings, plannerExercise), hideLabel: true },
                         exerciseKey: plannerExercise.key,
                         dayData: plannerExercise.dayData,
                         change: "one",
@@ -107,7 +110,7 @@ export function NavModalEditExerciseChange(): JSX.Element {
                     [
                       lbUi.p("editExerciseModal").record(undefined),
                       lbUi.p("exercisePicker").record({
-                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        state: { ...pickerStateFromPlannerExercise(settings, plannerExercise), hideLabel: true },
                         exerciseKey: plannerExercise.key,
                         dayData: plannerExercise.dayData,
                         change: "all",

@@ -103,7 +103,10 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                   lb<IPlannerExerciseState>()
                     .p("ui")
                     .p("exercisePickerState")
-                    .record(pickerStateFromPlannerExercise(props.settings, props.plannerExercise)),
+                    .record({
+                      ...pickerStateFromPlannerExercise(props.settings, props.plannerExercise),
+                      hideLabel: true,
+                    }),
                   "Open exercise modal"
                 );
               }}
