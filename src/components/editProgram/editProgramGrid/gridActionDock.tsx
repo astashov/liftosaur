@@ -78,14 +78,17 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
   // Keyed, so an exercise whose active variation differs between weeks counts once rather than once
   // per spelling.
   // Neither a week nor a day says anything about itself here beyond its own words: what it holds,
-  // and how far its verbs reach, is what the grid right above the dock is already showing.
-  const description = target.kind === "week" || target.kind === "day" ? target.description : undefined;
+  // and how far its verbs reach, is what the grid right above the dock is already showing. An
+  // exercise brings the description it is currently on, for the same reason: the strip has no room
+  // for prose, and this is the one place the selection can be read in full.
+  const description =
+    target.kind === "week" || target.kind === "day" ? target.description : (single?.description ?? undefined);
   const detailsKey =
     target.kind === "week"
       ? `week-${target.weekIndex}`
       : target.kind === "day"
         ? `day-${target.rowIndexes.join("-")}`
-        : undefined;
+        : single?.id;
   // Structural facts only: what the grid can't draw and the strip has no room to say. Everything
   // else about an exercise is a tap away in the editor.
   const badges: string[] = [];
@@ -131,6 +134,7 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
     const placements = target.placements;
     if (single != null) {
       overflowActions.push({ label: "Exercise stats", onPress: () => props.onShowExerciseStats(single) });
+      overflowActions.push({ label: "Swap exercise", onPress: () => props.onSwap(single) });
       overflowActions.push({ label: "Duplicate exercise", onPress: () => props.onDuplicate(single) });
     }
     overflowActions.push({

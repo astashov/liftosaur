@@ -18,9 +18,10 @@ import {
   GRID_ADD_ROW_HEIGHT,
   GRID_CELL_INSET_X,
   GRID_DAY_BOX_INSET,
-  GRID_DAY_LABEL_HEIGHT,
   GRID_MARGIN_BETWEEN_ROWS,
+  ProgramGridGeometry_dayLabelHeight,
 } from "../../../pages/planner/models/programGridGeometry";
+import { TimeUtils_formatHOrMin } from "../../../utils/time";
 import { GridDragHandle } from "./gridDragHandle";
 import { IGridDrags } from "./useGridDrags";
 import { useGridDayDrag } from "./useGridDayDrag";
@@ -53,9 +54,10 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   const rem = useRem();
   const { grid, rowIndex, lanes, rowHeight } = props;
   const row = grid.rows[rowIndex];
-  const labelHeight = GRID_DAY_LABEL_HEIGHT * rem;
   const addHeight = GRID_ADD_ROW_HEIGHT * rem;
   const isCollapsed = props.isCollapsed;
+  const showsDuration = !isCollapsed && props.showScheme;
+  const labelHeight = ProgramGridGeometry_dayLabelHeight(rem, { isCollapsed, showScheme: props.showScheme });
 
   const { drags, onMoveDayRows } = props;
   const { draggedRows, dropBoundary, draggedLanes, dropLaneRow, dropLaneGap } = drags;
@@ -148,6 +150,9 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
           const name = row.namePerWeek[column.weekIndex];
           const error = ProgramGrid_errorAt(grid, rowIndex, column.weekIndex);
           const exists = ProgramGrid_hasDay(row, column.weekIndex);
+          // An empty day takes no time, and "0 min" under its name is a fact nobody was missing.
+          const durationMs = row.durationMsPerWeek[column.weekIndex] ?? 0;
+          const duration = showsDuration && durationMs > 0 ? TimeUtils_formatHOrMin(durationMs) : undefined;
           return (
             <View
               key={column.weekIndex}
@@ -187,7 +192,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
                       onDragEnd={dayDrag.onDragEnd}
                     >
                       <View
-                        className="py-1 nm-grid-select-day"
+                        className={`nm-grid-select-day ${duration != null ? "pt-1" : "py-1"}`}
                         testID={`grid-select-day-${column.weekIndex}-${rowIndex}`}
                       >
                         <Text
@@ -197,6 +202,11 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
                           {error != null ? "⚠ " : ""}
                           {name ?? ""}
                         </Text>
+                        {duration != null && (
+                          <Text className="text-xs text-text-secondary" numberOfLines={1}>
+                            {duration.value} {duration.unit}
+                          </Text>
+                        )}
                       </View>
                     </GridDragHandle>
                   </View>

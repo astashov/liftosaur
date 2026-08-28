@@ -28,6 +28,7 @@ export interface IGridSelectionPayload {
   reuse?: IGridReuseLocator;
   onEdit: (placement: IProgramGridPlacement) => void;
   onDuplicate: (placement: IProgramGridPlacement) => void;
+  onSwap: (placement: IProgramGridPlacement) => void;
   onDelete: (placements: IProgramGridPlacement[]) => void;
   onDuplicateDays: (rowIndexes: number[]) => void;
   onDeleteDays: (rowIndexes: number[]) => void;

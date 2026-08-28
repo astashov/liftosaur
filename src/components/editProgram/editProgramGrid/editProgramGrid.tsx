@@ -22,7 +22,6 @@ import { ProgramGrid_build } from "../../../pages/planner/models/programGrid";
 import {
   GRID_ADD_WEEK_WIDTH,
   GRID_DAY_BOX_INSET,
-  GRID_DAY_LABEL_HEIGHT,
   ProgramGridGeometry_build,
   ProgramGridGeometry_metrics,
 } from "../../../pages/planner/models/programGridGeometry";
@@ -124,8 +123,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   }, []);
 
   const geometry = useMemo(
-    () => ProgramGridGeometry_build(grid, collapsedRows, laneHeight, rem),
-    [grid, collapsedRows, laneHeight, rem]
+    () => ProgramGridGeometry_build(grid, collapsedRows, laneHeight, rem, showScheme),
+    [grid, collapsedRows, laneHeight, rem, showScheme]
   );
 
   // Every drag's shared values, refs and edge-scrolling live together in one hook rather than in
@@ -216,6 +215,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           reuse: target.kind === "exercises" ? reuse : undefined,
           onEdit: navigation.onEditPlacement,
           onDuplicate: navigation.onDuplicatePlacement,
+          onSwap: navigation.onSwapPlacement,
           onDelete: actions.onDeletePlacements,
           onDuplicateDays: actions.onDuplicateDays,
           onDeleteDays: actions.onDeleteDays,
@@ -238,6 +238,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     weekColumn,
     navigation.onEditPlacement,
     navigation.onDuplicatePlacement,
+    navigation.onSwapPlacement,
     actions.onDeletePlacements,
     actions.onDuplicateDays,
     actions.onDeleteDays,
@@ -348,7 +349,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     laneNames={geometry[row.rowIndex].isCollapsed ? [] : geometry[row.rowIndex].laneNames}
                     width={totalWidth}
                     top={geometry[row.rowIndex].top}
-                    labelHeight={GRID_DAY_LABEL_HEIGHT * rem}
+                    labelHeight={geometry[row.rowIndex].contentTop - geometry[row.rowIndex].top}
                     laneHeight={laneHeight}
                     draggedRows={drags.draggedRows}
                     draggedLanes={drags.draggedLanes}

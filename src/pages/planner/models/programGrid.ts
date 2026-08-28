@@ -2,6 +2,7 @@ import { IEvaluatedProgram } from "../../../models/program";
 import { IDayData, IPercentage, ISettings, IWeight } from "../../../types";
 import { IPlannerProgramExercise, IPlannerProgramExerciseGlobals } from "./types";
 import {
+  PlannerProgramExercise_currentDescription,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentSetVariationIndex,
@@ -12,6 +13,7 @@ import {
 import { IDisplaySet } from "../../../models/set";
 import { Weight_print } from "../../../models/weight";
 import { Progress_supersetColors } from "../../../models/progress";
+import { PlannerStatsUtils_dayApproxTimeMs } from "./plannerStatsUtils";
 
 // Mirrors the editor's node→style mapping (liftoEditorBrain.ts:102) so a strip reads like the
 // Liftoscript it stands for, in the same colors. The view owns the mapping to actual palette
@@ -46,6 +48,9 @@ export interface IProgramGridRow {
   // Per week for the same reason the name is: a row is one slot in every week, and each week writes
   // its own day, so the two can disagree.
   descriptionPerWeek: (string | undefined)[];
+  // How long the day takes, by the same estimate the per-day editor prints. Per week because a
+  // repeat is not the only thing a week can hold — an override changes the sets, and so the time.
+  durationMsPerWeek: (number | undefined)[];
 }
 
 export interface IProgramGridPlacement {
@@ -87,6 +92,9 @@ export interface IProgramGridPlacement {
   // `id: tags(3, 5)`, which is how a program says "this exercise belongs to that group".
   tags: number[];
   progression?: string;
+  // The description the exercise is currently on, the way a day or a week carries its own — the
+  // strip has no room for it, so the dock is where it gets read.
+  description?: string;
   // The color of the superset this exercise is part of, absent when it is in none — or in one whose
   // only member it is.
   supersetColor?: string;
@@ -453,6 +461,12 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
       rowIndex,
       namePerWeek: program.weeks.map((week) => week.days[rowIndex]?.name),
       descriptionPerWeek: program.weeks.map((week) => week.days[rowIndex]?.description),
+      durationMsPerWeek: program.weeks.map((week) => {
+        const day = week.days[rowIndex];
+        return day == null
+          ? undefined
+          : PlannerStatsUtils_dayApproxTimeMs(day.exercises, settings.timers.workout || 0, settings.timers.superset);
+      }),
     });
   }
 
@@ -499,6 +513,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           order: exercise.order > 0 ? exercise.order : undefined,
           tags: exercise.tags,
           progression: progressionText(exercise),
+          description: PlannerProgramExercise_currentDescription(exercise),
           supersetColor: supersetColorByLane[lane],
           scheme: schemeTokens(exercise, settings),
         };

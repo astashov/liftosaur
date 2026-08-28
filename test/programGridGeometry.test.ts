@@ -9,6 +9,9 @@ import {
   ProgramGridGeometry_clampWeek,
   ProgramGridGeometry_resizeHandleLeft,
   GRID_CELL_INSET_X,
+  GRID_DAY_DURATION_HEIGHT,
+  GRID_DAY_LABEL_HEIGHT,
+  ProgramGridGeometry_dayLabelHeight,
   GRID_RESIZE_HANDLE_WIDTH,
   GRID_RESIZE_HANDLE_HIT_WIDTH,
   GRID_RESIZE_HANDLE_MAX_HIT_SHARE,
@@ -41,6 +44,9 @@ function buildGrid(text: string): IProgramGrid {
 // Two rows: row 0 has two lanes, row 1 has one. With rem = 16 and laneHeight = 50 that makes
 // row 0 = 32 (label) + 100 (lanes) + 24 (add) + 7 (gap) = 163, +4 margin = 167
 // row 1 = 32 + 50 + 24 + 7 = 113, +4 margin = 117
+//
+// Built without the scheme, so the label is the bare one and the arithmetic above is the whole of
+// it — the duration line's own effect on the height has its own tests below.
 function rowsFixture(): IGridGeometryRow[] {
   return ProgramGridGeometry_build(
     buildGrid(`# Week 1
@@ -53,7 +59,8 @@ Deadlift / 1x5 200lb
 `),
     [],
     50,
-    16
+    16,
+    false
   );
 }
 
@@ -71,7 +78,8 @@ Deadlift / 1x5 200lb
 `),
     [],
     50,
-    16
+    16,
+    false
   );
 }
 
@@ -99,12 +107,42 @@ Bench Press / 5x5 50lb
 ## Day 2
 Deadlift / 1x5 200lb
 `);
-      const rows = ProgramGridGeometry_build(grid, [0], 50, 16);
+      const rows = ProgramGridGeometry_build(grid, [0], 50, 16, false);
       expect(rows[0].height).to.equal(39);
       expect(rows[0].isCollapsed).to.equal(true);
       // Still knows its lanes — the ghost draws them even while the row itself is collapsed.
       expect(rows[0].laneNames).to.deep.equal(["Squat", "Bench Press"]);
       expect(rows[1].top).to.equal(43);
+    });
+
+    it("makes room under the day name for how long it takes, and only where it is shown", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Deadlift / 1x5 200lb
+`);
+      const withDuration = ProgramGridGeometry_build(grid, [1], 50, 16, true);
+      const bare = ProgramGridGeometry_build(grid, [1], 50, 16, false);
+      const line = GRID_DAY_DURATION_HEIGHT * 16;
+      expect(withDuration[0].contentTop - bare[0].contentTop).to.equal(line);
+      expect(withDuration[0].height - bare[0].height).to.equal(line);
+      // A collapsed row is a name and nothing else, so it is the same height either way — and the
+      // row below it moves down only by what the row above actually grew.
+      expect(withDuration[1].height).to.equal(bare[1].height);
+      expect(withDuration[1].top - bare[1].top).to.equal(line);
+    });
+  });
+
+  describe("dayLabelHeight", () => {
+    it("adds the duration line only to an expanded row in a grid that shows numbers", () => {
+      const bare = GRID_DAY_LABEL_HEIGHT * 16;
+      expect(ProgramGridGeometry_dayLabelHeight(16, { isCollapsed: false, showScheme: true })).to.equal(
+        bare + GRID_DAY_DURATION_HEIGHT * 16
+      );
+      expect(ProgramGridGeometry_dayLabelHeight(16, { isCollapsed: true, showScheme: true })).to.equal(bare);
+      expect(ProgramGridGeometry_dayLabelHeight(16, { isCollapsed: false, showScheme: false })).to.equal(bare);
     });
   });
 
@@ -233,7 +271,7 @@ Bench Press / 5x5 50lb
 ## Day 2
 Deadlift / 1x5 200lb
 `);
-      const rows = ProgramGridGeometry_build(grid, [1], 50, 16);
+      const rows = ProgramGridGeometry_build(grid, [1], 50, 16, false);
       const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 200, 50)!;
       expect(drop.toRow).to.equal(1);
       expect(drop.gap).to.equal(rows[1].laneNames.length);

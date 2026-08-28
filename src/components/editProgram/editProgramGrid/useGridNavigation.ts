@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { lb } from "lens-shmens";
-import { IEvaluatedProgram, Program_getProgramExerciseForKeyAndShortDayData } from "../../../models/program";
+import {
+  IEvaluatedProgram,
+  Program_getNumberOfExerciseInstances,
+  Program_getProgramExerciseForKeyAndShortDayData,
+} from "../../../models/program";
 import { ISettings } from "../../../types";
 import { IPlannerState } from "../../../pages/planner/models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -23,6 +27,7 @@ import { navigateToModal } from "../../../navigation/navigationService";
 export interface IGridNavigation {
   onEditPlacement: (placement: IProgramGridPlacement) => void;
   onDuplicatePlacement: (placement: IProgramGridPlacement) => void;
+  onSwapPlacement: (placement: IProgramGridPlacement) => void;
   onAddExercise: (weekIndex: number, rowIndex: number) => void;
   onShowWeekStats: (weekIndex: number) => void;
   onShowDayStats: (rowIndex: number) => void;
@@ -75,6 +80,37 @@ export function useGridNavigation(args: {
       );
     },
     [plannerDispatch, grid, evaluatedProgram, settings]
+  );
+
+  // Swapping an exercise that appears more than once is a question before it is an edit — every
+  // instance or only this one — so it goes through the modal that asks. One instance has nothing to
+  // ask about and opens the picker directly.
+  const onSwapPlacement = useCallback(
+    (placement: IProgramGridPlacement) => {
+      const dayData = ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart);
+      const exercise = Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, placement.key);
+      if (exercise != null && Program_getNumberOfExerciseInstances(evaluatedProgram, placement.key) > 1) {
+        plannerDispatch(
+          lb<IPlannerState>().p("ui").p("editExerciseModal").record({ plannerExercise: exercise }),
+          "Open edit exercise modal"
+        );
+        navigateToModal("editExerciseChangeModal", { programId });
+        return;
+      }
+      plannerDispatch(
+        lb<IPlannerState>()
+          .p("ui")
+          .p("exercisePicker")
+          .record({
+            state: { ...pickerStateFromPlannerExercise(settings, exercise), hideLabel: true },
+            dayData,
+            exerciseKey: placement.key,
+            change: "one",
+          }),
+        "Open exercise picker modal"
+      );
+    },
+    [plannerDispatch, grid, evaluatedProgram, settings, programId]
   );
 
   const onAddExercise = useCallback(
@@ -153,6 +189,7 @@ export function useGridNavigation(args: {
   return {
     onEditPlacement,
     onDuplicatePlacement,
+    onSwapPlacement,
     onAddExercise,
     onShowWeekStats,
     onShowDayStats,

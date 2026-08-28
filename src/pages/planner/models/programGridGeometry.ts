@@ -31,6 +31,17 @@ export const GRID_CELL_INSET_Y = 0.1875;
 export const GRID_BOTTOM_GAP = GRID_CELL_INSET_X;
 export const GRID_ADD_ROW_HEIGHT = 1.5;
 export const GRID_DAY_LABEL_HEIGHT = 2;
+// The line under the day's name that says how long it takes. A collapsed row is a name and nothing
+// else, and a zoomed-out grid has already given up its numbers — so both keep the bare label.
+export const GRID_DAY_DURATION_HEIGHT = 0.875;
+
+export function ProgramGridGeometry_dayLabelHeight(
+  rem: number,
+  args: { isCollapsed: boolean; showScheme: boolean }
+): number {
+  const duration = !args.isCollapsed && args.showScheme ? GRID_DAY_DURATION_HEIGHT : 0;
+  return (GRID_DAY_LABEL_HEIGHT + duration) * rem;
+}
 export const GRID_RESIZE_HANDLE_WIDTH = 1;
 // The grip is drawn a rem wide; the touch box around it is wider, because a target that narrow at
 // the edge of a strip is one fingers miss — and a miss lands on the strip, whose long press starts
@@ -104,13 +115,14 @@ export function ProgramGridGeometry_build(
   grid: IProgramGrid,
   collapsedRows: number[],
   laneHeight: number,
-  rem: number
+  rem: number,
+  showScheme: boolean
 ): IGridGeometryRow[] {
-  const labelHeight = GRID_DAY_LABEL_HEIGHT * rem;
   const addHeight = GRID_ADD_ROW_HEIGHT * rem;
   let top = 0;
   return grid.rows.map((row) => {
     const isCollapsed = collapsedRows.indexOf(row.rowIndex) !== -1;
+    const labelHeight = ProgramGridGeometry_dayLabelHeight(rem, { isCollapsed, showScheme });
     // Carried for drawing — the ghosts render these. Anything deciding *which* exercise an edit is
     // about asks the model instead, via ProgramGrid_laneNames.
     const laneNames = ProgramGrid_laneNames(grid, row.rowIndex);

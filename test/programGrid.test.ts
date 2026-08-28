@@ -156,6 +156,38 @@ Bench Press / 3x5 100lb
     expect(currentText(bench.scheme)).to.equal("3x5 100lb");
   });
 
+  it("carries how long each week's copy of a day takes", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+
+# Week 2
+## Day 1
+Squat / 10x5 100lb
+`);
+    const [light, heavy] = grid.rows[0].durationMsPerWeek;
+    expect(light).to.be.greaterThan(0);
+    // An override makes the same row a different length in that week, which is the reason this is
+    // per week rather than per row.
+    expect(heavy).to.be.greaterThan(light!);
+    // An empty day takes no time; a week that lacks the row has no answer at all.
+    expect(grid.rows[1].durationMsPerWeek).to.deep.equal([0, undefined]);
+  });
+
+  it("carries the description an exercise is currently on", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+// Keep the bar over midfoot
+Squat / 3x5 100lb
+Bench Press / 3x5 100lb
+`);
+    const squat = grid.placements.find((p) => p.fullName === "Squat")!;
+    expect(squat.description).to.equal("Keep the bar over midfoot");
+    expect(grid.placements.find((p) => p.fullName === "Bench Press")!.description).to.equal(undefined);
+  });
+
   it("says a value every group repeats once, after the sets", () => {
     const grid = buildGrid(`# Week 1
 ## Day 1

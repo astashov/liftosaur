@@ -243,6 +243,35 @@ Squat / 3x8 100lb
   );
 });
 
+test("reads an exercise's description in the dock, and swaps the exercise from there", async ({ page }) => {
+  await openGrid(
+    page,
+    `# Week 1
+## Day 1
+// Keep the bar over midfoot
+Squat / 3x8 100lb
+`
+  );
+
+  await cell(page, "Squat", 0).click();
+  await expect(page.getByTestId("grid-details")).toContainText("Keep the bar over midfoot");
+
+  // One instance has nothing to ask about, so the swap opens the picker rather than the
+  // this-one-or-every-one modal.
+  await page.getByTestId("grid-action-more").click();
+  await page.getByTestId("grid-more-Swap exercise").click();
+  await expect(page.getByTestId("exercise-picker-confirm")).toBeVisible();
+});
+
+test("says how long a day takes, under its name", async ({ page }) => {
+  await openGrid(page);
+
+  await expect(page.getByTestId("grid-select-day-0-0")).toContainText("min");
+  // Collapsed, a row is a name and nothing else.
+  await page.getByTestId("grid-toggle-day-0").first().click();
+  await expect(page.getByTestId("grid-select-day-0-0")).not.toContainText("min");
+});
+
 test("offers no repeat handle where there is no week to repeat into", async ({ page }) => {
   await openGrid(
     page,
