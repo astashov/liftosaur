@@ -173,7 +173,12 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
   // (`contextmenu`). Each arrives as a *termination*, which this component reads as "cancelled" and
   // throws the drop away. Refusing while a drag is live is the only hook RNW offers to say no —
   // see ResponderSystem.js, where these three are the only events a responder may decline.
-  const onResponderTerminationRequest = useCallback(() => !isDraggingRef.current, []);
+  //
+  // A mouse press refuses from the moment it lands, not from the moment the drag arms. The first
+  // few pixels of a mouse drag cross whatever the handle wraps, and crossing from one text node to
+  // the next starts a selection — which asked for the responder and got it, four pixels before the
+  // drag would have armed. A touch press still yields, because that is how a scroll begins.
+  const onResponderTerminationRequest = useCallback(() => !isDraggingRef.current && !isMouseRef.current, []);
 
   return (
     <View
