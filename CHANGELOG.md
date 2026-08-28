@@ -9,9 +9,33 @@
 
   Custom inline directives:
     ::icon-discord::, ::icon-doc::, ::icon-swap::, ::icon-help::, ::icon-edit2::, ::icon-preview::
+    Editor mode buttons: ::icon-reorder:: (grid), ::icon-ui-mode:: (per-day UI),
+      ::icon-day-text-mode:: (per-day text), ::icon-full-text-mode:: (full text)
     [label](internal:/path)        — internal app/website link
     ```liftoscript ... ```          — Liftoscript code block with syntax highlighting
 -->
+
+---
+date: 2026-08-28
+title: New grid view for structuring the program
+---
+
+Huge change on the Program screen - the previous ::icon-reorder:: that let you reorder weeks now is waaay more powerful.
+
+Now, that mode shows a calendar-like view grid view of your program. If your exercises span multiple weeks with repeat ranges, you'll see them as a single strip crossing multiple weeks. You can drag the end of that strip to extend it to more weeks - and it'll adjust the repeat ranges.
+
+When you select an exercise, it now highlights the template it reuses.
+
+Everything is draggable there, you can long-tap and then drag exercises to reorder within the same day, and across days.
+You can also drag weeks to reorder them. When you select a day and drag - it drags across all weeks though - because the program layout is usually the same across all weeks, and dragging a single day in a multiweek program likely would break the program.
+
+You can pinch-zoom the grid to scale the weeks. All that stuff hopefully gives you a good birds-eye view of your entire program (especially useful if it's multiweek), and you can easily restructure across all of the weeks.
+
+You can also add multiple exercises from the same picker now there.
+
+I'm thinking to eventually remove per-day mode as well (the ::icon-ui-mode:: mode), that new view should do pretty much all the same things. But let me know what you think!
+
+And yeah, it was a massive and very complex change, so let me know if you find any bugs or issues - in Discord, Reddit, or by emailing to **info@liftosaur.com**.
 
 ---
 date: 2026-08-17

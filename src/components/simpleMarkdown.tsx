@@ -11,11 +11,15 @@ import { IconSwap } from "./icons/iconSwap";
 import { IconHelp } from "./icons/iconHelp";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { IconPreview } from "./icons/iconPreview";
+import { IconReorder } from "./icons/iconReorder";
+import { IconUiMode } from "./icons/iconUiMode";
+import { IconDayTextMode } from "./icons/iconDayTextMode";
+import { IconFullTextMode } from "./icons/iconFullTextMode";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 
 const md = new MarkdownIt({ html: false, linkify: true });
 
-const ICON_RE = /::icon-(discord|doc|swap|help|edit2|preview)::/g;
+const ICON_RE = /::icon-(discord|doc|swap|help|edit2|preview|reorder|ui-mode|day-text-mode|full-text-mode)::/g;
 
 interface IProps {
   value: string;
@@ -237,6 +241,16 @@ function renderIcon(name: string, key: string): JSX.Element {
       return <IconEdit2 key={key} size={size} className={className} />;
     case "preview":
       return <IconPreview key={key} size={size} className={className} />;
+    // The editor's four mode buttons, named after the mode rather than after the drawing, so an
+    // entry pointing at one still points at it after the icon is redrawn.
+    case "reorder":
+      return <IconReorder key={key} size={size} className={className} />;
+    case "ui-mode":
+      return <IconUiMode key={key} size={size} className={className} />;
+    case "day-text-mode":
+      return <IconDayTextMode key={key} size={size} className={className} />;
+    case "full-text-mode":
+      return <IconFullTextMode key={key} size={size} className={className} />;
     default:
       return <Text key={key}>{`::icon-${name}::`}</Text>;
   }
