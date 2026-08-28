@@ -1899,5 +1899,21 @@ export function PlannerStructure_setRepeatRange(
       target.exerciseText
     );
   }
-  return { success: true, data: result };
+  // A range may name a week the day doesn't exist in — the text takes it, and nothing appears,
+  // because there is no day there to appear in. Extending onto nothing but those weeks changes the
+  // program without changing anything on screen, which reads as the drag having failed rather than
+  // as the program being ragged. Say so; the range is still worth writing, since the exercise turns
+  // up on its own once the day does.
+  const gained: number[] = [];
+  for (let week = runEnd + 1; week <= toWeek; week += 1) {
+    gained.push(week);
+  }
+  const dayless = gained.filter((week) => result.weeks[week - 1]?.days[runStart.dayInWeek - 1] == null);
+  const warnings =
+    gained.length > 0 && dayless.length === gained.length
+      ? [
+          `No ${day.name} in ${dayless.map((week) => result.weeks[week - 1].name).join(", ")}, so ${fullName} won't show up there yet. The repeat runs through ${result.weeks[toWeek - 1]?.name ?? `week ${toWeek}`} - add that day and it will.`,
+        ]
+      : [];
+  return withWarnings({ success: true, data: result }, warnings);
 }

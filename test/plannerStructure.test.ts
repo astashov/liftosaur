@@ -1333,6 +1333,58 @@ Squat / 3x5 100lb
     });
   });
 
+  it("warns when the weeks it was extended onto have no such day to show it in", () => {
+    const ragged = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+
+## Day 2
+Bench Press / 3x5 50lb
+
+# Week 2
+## Day 1
+Squat / 3x5 100lb
+
+# Week 3
+## Day 1
+Squat / 3x5 100lb
+`);
+    const result = PlannerStructure_setRepeatRange(
+      ragged,
+      { week: 1, dayInWeek: 2 },
+      1,
+      "Bench Press",
+      3,
+      Settings_build()
+    );
+    expect(result.success).to.equal(true);
+    if (!result.success) {
+      return;
+    }
+    // The range is still written — the exercise turns up on its own once the day exists.
+    expect(result.data.weeks[0].days[1].exerciseText).to.contain("Bench Press[1-3]");
+    expect(result.warnings?.length).to.equal(1);
+    expect(result.warnings?.[0]).to.contain("Day 2");
+    expect(result.warnings?.[0]).to.contain("Week 2");
+    expect(result.warnings?.[0]).to.contain("Week 3");
+  });
+
+  it("stays quiet when at least one week it was extended onto does have the day", () => {
+    const result = PlannerStructure_setRepeatRange(
+      plannerOf(FOUR_WEEKS),
+      { week: 1, dayInWeek: 1 },
+      1,
+      "Squat",
+      3,
+      Settings_build()
+    );
+    expect(result.success).to.equal(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.warnings).to.equal(undefined);
+  });
+
   it("says so when the exercise isn't on that day, rather than quietly doing nothing", () => {
     const result = PlannerStructure_setRepeatRange(
       plannerOf(FOUR_WEEKS),
