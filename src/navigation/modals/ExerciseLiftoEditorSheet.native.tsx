@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, LayoutChangeEvent, Platform, Pressable, ScrollView, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +20,7 @@ import {
   LiftoEditorCrumbs,
   LiftoEditorHintBar,
   LiftoEditorPillRail,
+  LiftoEditorSuggestBar,
   useLiftoEditorHintDismissed,
 } from "../../components/liftoEditorChrome";
 import { Button } from "../../components/button";
@@ -73,6 +74,20 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     onEditAcrossProgram: props.onEditAcrossProgram,
   });
   const sharedPropertyNames = (props.sharedProperties ?? []).map((s) => s.property);
+  const reuseCandidates = props.reuseCandidates;
+  const reuseFullNames = useMemo(
+    () =>
+      reuseCandidates == null
+        ? []
+        : Array.from(
+            new Set([
+              ...reuseCandidates.sets.map((s) => s.fullName),
+              ...reuseCandidates.progress,
+              ...reuseCandidates.update,
+            ])
+          ),
+    [reuseCandidates]
+  );
   const controller = useLiftoEditorController(props.initialText, {
     exerciseType: props.pickerData?.exerciseType,
     // Adding a property another day already declares would either duplicate the declaration or,
@@ -95,6 +110,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     // Follows the text, so plates and units track an exercise swapped mid-session instead of
     // the one the sheet opened on; falls back to the snapshot when the name doesn't resolve.
     exerciseTypeFor: (fullName) => props.exerciseFor?.(fullName)?.exerciseType,
+    // What `...` can point at in freeform. The reuse pills split these by what's being reused;
+    // typed by hand there's no such split, so the strip offers the union.
+    exerciseFullNames: reuseFullNames,
     actions,
   });
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
@@ -461,15 +479,22 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
             </View>
           </ScrollView>
         </GestureDetector>
+        {/* Last thing before the keyboard spacer, so it lands on the keyboard itself. In
+            structured mode the pill rail up top is the equivalent row. */}
+        {isFreeform ? <LiftoEditorSuggestBar controller={controller} /> : null}
         {/* iOS reports the raw IME height, which overlaps the home-indicator area the sheet
             already pads for — subtract it. Android's ReactRootView already subtracts the
             system bars from the reported height (imeInsets - systemBars), so subtracting
             insets.bottom again would leave a keyboard-topper-sized strip covered. The extra
-            1rem keeps the last text line from sitting flush against the IME. */}
+            1rem keeps the last text line from sitting flush against the IME — but in freeform
+            the last thing above the IME is the suggestion bar, which carries its own 2px, and
+            adding a rem on top of that is what pushes it visibly off the keyboard. */}
         {systemKeyboardHeight > 0 ? (
           <View
             style={{
-              height: Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) + 16 * iconScale,
+              height:
+                Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) +
+                (isFreeform ? 0 : 16 * iconScale),
             }}
           />
         ) : null}

@@ -142,6 +142,10 @@ static NSString *LiftoEditorNSString(const std::string &string) {
   [_editorView applySelection:start end:end];
 }
 
+- (void)blurEditor {
+  [_editorView blurEditor];
+}
+
 - (void)replaceRange:(NSInteger)start end:(NSInteger)end text:(NSString *)text {
   [_editorView applyReplaceRange:start end:end text:text];
 }

@@ -231,10 +231,30 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
         ? (field, exerciseFullName) => props.onEditAcrossProgram?.(field, exerciseFullName, textRef.current)
         : undefined,
   });
+  const evaluatedProgram = props.evaluatedProgram;
+  // What `...` can point at in freeform: every exercise the program declares, which is the same
+  // list the reuse pills draw their candidates from.
+  const programFullNames = useMemo(
+    () => Program_getAllProgramExercises(evaluatedProgram).map((e) => e.fullName),
+    [evaluatedProgram]
+  );
+  // Read by the effect that re-reveals the caret when the keyboard height changes, and written
+  // from the controller's selection hook below.
+  const lastSelectionRef = useRef<{ start: number; end: number } | undefined>(undefined);
+  const freeformRef = useRef(false);
   const controller = useLiftoEditorController(props.text, {
     scope: "day",
     exerciseTypeFor: props.exerciseTypeFor,
+    exerciseFullNames: programFullNames,
     actions,
+    // Through the controller rather than over `editorProps.onSelectionChange`: overriding that
+    // prop would cut the controller's own caret tracking out of the loop, and nothing would say so.
+    onSelectionChange: (start, end) => {
+      lastSelectionRef.current = { start, end };
+      if (freeformRef.current) {
+        handleRef?.current?.requestCaretRect(start, end);
+      }
+    },
   });
   useLiftoEditorFocusClaim(props.focusId, controller);
 
@@ -299,6 +319,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
 
   // Freeform has no focus stack — the caret is the native selection, so follow that instead.
   const isFreeform = controller.mode === "freeform";
+  freeformRef.current = isFreeform;
   // Press and hold an exercise to move it within the day. Off in freeform, where a long press
   // is the system's own text selection.
   const reorder = useLiftoEditorReorder({
@@ -344,7 +365,6 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
       hideSub.remove();
     };
   }, [isFreeform]);
-  const lastSelectionRef = useRef<{ start: number; end: number } | undefined>(undefined);
   useEffect(() => {
     const selection = lastSelectionRef.current;
     if (isFreeform && selection != null) {
@@ -482,12 +502,6 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
               ]}
               onCaretRect={revealCaret}
               onRangeRects={reorder.onRangeRects}
-              onSelectionChange={(start, end) => {
-                lastSelectionRef.current = { start, end };
-                if (isFreeform) {
-                  handleRef?.current?.requestCaretRect(start, end);
-                }
-              }}
             />
             {reorder.overlay}
           </View>

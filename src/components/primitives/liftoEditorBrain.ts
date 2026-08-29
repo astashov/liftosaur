@@ -290,6 +290,7 @@ export interface ILiftoEditorHandle {
   setSelection: (start: number, end: number) => void;
   replaceRange: (start: number, end: number, text: string) => void;
   getText: () => string;
+  blurEditor: () => void;
   // Asks the native side for the range's vertical extent; answered via onCaretRect.
   requestCaretRect: (start: number, end: number) => void;
   // The same question for many ranges at once; answered via onRangeRects, in order.

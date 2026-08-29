@@ -9,9 +9,10 @@ import {
   LiftoEditorCrumbs,
   LiftoEditorHintBar,
   LiftoEditorPillRail,
+  LiftoEditorSuggestBar,
   useLiftoEditorHintDismissed,
 } from "./liftoEditorChrome";
-import { useLiftoEditorBlurFocused, useLiftoEditorFocusEntry } from "./liftoEditorFocus";
+import { useLiftoEditorBlurFocused, useLiftoEditorFocusEntry, useLiftoEditorFreeformEntry } from "./liftoEditorFocus";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconHelp } from "./icons/iconHelp";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -23,6 +24,7 @@ import { useRem } from "../utils/useRem";
 // CustomKeyboardProvider draws as its own bottom overlay.
 export function LiftoEditorDock(): JSX.Element | null {
   const entry = useLiftoEditorFocusEntry();
+  const freeformEntry = useLiftoEditorFreeformEntry();
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
   const blurFocused = useLiftoEditorBlurFocused();
   const keypadHeight = useCustomKeyboardAnimatedHeight();
@@ -31,10 +33,10 @@ export function LiftoEditorDock(): JSX.Element | null {
   // it standing above the tab bar actually overlaps us. Clamped at 0 so a keypad shorter than
   // the tab bar doesn't push the dock down into it.
   const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
-  // Not for freeform (the dock is hidden there) but for the system keyboard raised by some
-  // other field on the screen — a day name, say — while a token still holds the dock. The two
-  // keyboards are mutually exclusive, so gate the static height on the keypad being shut
-  // rather than adding both; a stale IME height would otherwise stack on top of the keypad.
+  // The system keyboard: freeform's own, and the one some other field on the screen — a day
+  // name, say — raises while a token still holds the dock. The two keyboards are mutually
+  // exclusive, so gate the static height on the keypad being shut rather than adding both; a
+  // stale IME height would otherwise stack on top of the keypad.
   // Measured from the screen bottom, since it's about to be compared with the tab bar.
   const isKeypadOpen = useCustomKeyboardHeight() > 0;
   const imeHeight = useSystemKeyboardHeightFromScreenBottom();
@@ -52,10 +54,20 @@ export function LiftoEditorDock(): JSX.Element | null {
   const iconScale = useRem() / 16;
 
   // Nothing focused, which includes freeform — that's plain text editing against the system
-  // keyboard, with no focus stack to describe. Its hide-keyboard affordance is the text view's
-  // own inputAccessoryView, so the dock stays out of it entirely.
+  // keyboard, with no focus stack to describe. The dock's own chrome (crumbs, pills, hint) is
+  // all about that stack, so freeform gets only the suggestion strip: the completions for the
+  // caret plus the hide-keyboard chevron.
   if (entry == null) {
-    return null;
+    if (freeformEntry == null) {
+      return null;
+    }
+    return (
+      // No band behind it, unlike the docked chrome below: the strip is a floating card, and a
+      // full-width ground under it would put its border back in the middle of a solid block.
+      <Animated.View style={{ transform: [{ translateY: keypadLift }] }}>
+        <LiftoEditorSuggestBar controller={freeformEntry.controller} />
+      </Animated.View>
+    );
   }
   const hint = LiftoEditorHints_forContext(
     entry.controller.context,

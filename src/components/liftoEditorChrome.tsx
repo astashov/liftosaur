@@ -6,14 +6,17 @@ import { useAppState } from "../navigation/StateContext";
 import { IState, updateState } from "../models/state";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { useRem } from "../utils/useRem";
+import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
 import { Text } from "./primitives/text";
 import { FadeScrollView } from "./fadeScrollView";
+import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
 import { IconPreview } from "./icons/iconPreview";
 import { IconTrash } from "./icons/iconTrash";
 import type { ILiftoEditorPillCategory } from "./primitives/liftoEditorActions";
 import { ILiftoEditorHint, LiftoEditorHints_helpId } from "./primitives/liftoEditorHints";
 import type { ILiftoEditorController } from "./liftoEditorController";
+import type { ICompletionKind } from "../pages/planner/plannerCompletions";
 
 function pillHue(category: ILiftoEditorPillCategory): { fg: string; bd: string; bg: string } {
   const pill = Tailwind_semantic().editorpill;
@@ -164,6 +167,102 @@ export function LiftoEditorPillRail(props: {
             <IconTrash width={15 * iconScale} height={18 * iconScale} />
           </Pressable>
         ) : null}
+      </View>
+    </View>
+  );
+}
+
+function completionHue(kind: ICompletionKind): { fg: string; bd: string; bg: string } {
+  switch (kind) {
+    case "section":
+    case "progressFn":
+      return pillHue("progress");
+    case "stateVar":
+    case "liftoscript":
+      return pillHue("logic");
+    case "exercise":
+    case "exerciseVariant":
+    case "reuse":
+      return pillHue("neutral");
+  }
+}
+
+// Freeform's answer to the pill rail: the same completions CodeMirror offers on the web, as a
+// strip of words sitting on the system keyboard. Rendered for the whole of freeform rather than
+// only when there's something to offer — an exercise line almost always has suggestions, and a
+// bar that came and went would shove the text around on nearly every keystroke.
+export function LiftoEditorSuggestBar(props: {
+  controller: ILiftoEditorController;
+  className?: string;
+}): JSX.Element | null {
+  const { controller } = props;
+  const iconScale = useRem() / 16;
+  const scrollRef = useRef<ScrollView>(null);
+  const completions = controller.completions;
+  // The bar is the keyboard's accessory, not the mode's: putting the keyboard away without
+  // leaving freeform — which the sheets allow, since Apply is their only exit — would otherwise
+  // leave it stranded at the bottom of the screen with nothing under it.
+  const hasKeyboard = useSystemKeyboardHeight() > 0;
+  // Keyed on where the completion starts, not on the query: narrowing the same word re-ranks
+  // in place, and yanking the strip back to 0 mid-scroll would fight the finger.
+  const resetKey = `${completions?.kind ?? ""}:${completions?.from ?? -1}`;
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ x: 0, animated: false });
+  }, [resetKey]);
+
+  if (!hasKeyboard) {
+    return null;
+  }
+
+  return (
+    // Rounded and outlined, not a square-edged band: the iOS keyboard has rounded top corners
+    // and a hard edge laid across them reads as a misfit. It runs to the screen edges the way
+    // the keyboard does, though — inset sides would make it a card sitting on a slab instead of
+    // the next layer of one. The 2px below is just enough to keep the two roundings apart.
+    // Fixed height, because the row is empty whenever the caret has nothing to offer, and a bar
+    // that shrank to its chevron would bounce the text on every other keystroke.
+    <View
+      className={`flex-row items-center overflow-hidden h-scaled-12 border bg-background-default border-border-neutral ${
+        props.className ?? ""
+      }`}
+      // Android's Uniwind drops a className borderRadius when the class list is rebuilt, which
+      // the host's className does here. The margin is the whole gap to the keyboard now — the
+      // sheets drop their own 1rem of IME clearance while this bar is up.
+      style={{ borderRadius: 12, marginBottom: 4 }}
+    >
+      {/* px matches py so the chips sit the same distance from every edge of the card. */}
+      <FadeScrollView className="flex-1" contentClassName="gap-2 px-2 py-2 items-center" scrollRef={scrollRef}>
+        {(completions?.options ?? []).map((option) => {
+          const hue = completionHue(completions!.kind);
+          return (
+            <Pressable
+              key={option.label}
+              testID={`editor-suggestion-${option.label}`}
+              className="px-3 py-1.5"
+              // Same reason as the container's.
+              style={{ borderRadius: 8, backgroundColor: hue.bg, borderWidth: 1, borderColor: hue.bd }}
+              onPress={() => controller.applyCompletion(option)}
+            >
+              <Text className="text-xs font-bold" numberOfLines={1} style={{ color: hue.fg }}>
+                {option.display ?? option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </FadeScrollView>
+      {/* Same w-scaled-10 centered column as the dock's close and the hint bar's dismiss. On iOS
+          this replaces Runestone's own inputAccessoryView toolbar, which would otherwise stack a
+          second bar between this one and the keyboard. Full-height divider, so it reads as part
+          of the card's edge rather than a floating tick next to the last chip. */}
+      <View className="flex-row items-center self-stretch border-l border-border-neutral">
+        <Pressable
+          testID="editor-suggestions-hide-keyboard"
+          className="items-center justify-center w-scaled-10 self-stretch"
+          hitSlop={{ top: 8, right: 8, bottom: 8, left: 4 }}
+          onPress={controller.hideKeyboard}
+        >
+          <IconArrowDown2 width={13 * iconScale} height={8 * iconScale} />
+        </Pressable>
       </View>
     </View>
   );

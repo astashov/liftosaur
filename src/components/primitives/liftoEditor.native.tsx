@@ -51,8 +51,11 @@ export interface ILiftoEditorBaseProps {
   // Standalone hosts without a controller get their own.
   parseCache?: LiftoEditorParseCache;
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
-  onTextChange?: (text: string) => void;
+  // The caret is where the edit ended. Selection events alone aren't enough to track it:
+  // neither platform fires one when the new range equals the old.
+  onTextChange?: (text: string, caret: number) => void;
   onTap?: (index: number) => void;
+  onSelectionChange?: (start: number, end: number) => void;
   // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
   onCaretRect?: (rect: { top: number; bottom: number }) => void;
   // Answer to handle.requestRangeRects, in the order the ranges were asked for. `left` is the
@@ -68,7 +71,6 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   // Numbering restarts per editor, so this only reads as the document's own numbering where
   // the document is a whole day.
   showLineNumbers?: boolean;
-  onSelectionChange?: (start: number, end: number) => void;
 }
 
 // Same picks as the web editor's dark chrome in editorWebview.css, expressed semantically so
@@ -190,6 +192,11 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
         }
       },
       getText: () => textRef.current,
+      blurEditor: () => {
+        if (nativeRef.current != null) {
+          Commands.blurEditor(nativeRef.current);
+        }
+      },
       requestCaretRect: (start, end) => {
         if (nativeRef.current != null) {
           Commands.requestCaretRect(nativeRef.current, start, end);
@@ -236,7 +243,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
         }
         pushStyledRanges();
       }
-      onTextChange?.(textRef.current);
+      onTextChange?.(textRef.current, start + insertedText.length);
     },
     [pushStyledRanges, onTextChange]
   );

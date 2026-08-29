@@ -78,6 +78,9 @@ interface NativeCommands {
     rangesJson: string
   ) => void;
   setSelection: (viewRef: React.ElementRef<HostComponent<NativeProps>>, start: Int32, end: Int32) => void;
+  // Puts the system keyboard away without leaving freeform. The freeform suggestion strip is
+  // an RN view, not an inputAccessoryView, so the hide affordance has to reach native from JS.
+  blurEditor: (viewRef: React.ElementRef<HostComponent<NativeProps>>) => void;
   // Fires the same onTextDelta as user edits on both platforms (Runestone routes replace()
   // through shouldChangeText; sora's Content.replace fires ContentChangeEvent), so the JS
   // mirror needs no special handling for programmatic edits.
@@ -97,6 +100,7 @@ export const Commands = codegenNativeCommands<NativeCommands>({
     "setStyledRanges",
     "patchStyledRanges",
     "setSelection",
+    "blurEditor",
     "replaceRange",
     "requestCaretRect",
     "requestRangeRects",

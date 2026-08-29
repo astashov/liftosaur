@@ -18,6 +18,7 @@ import {
   LiftoEditorSession_activeLevelIndex,
   LiftoEditorSession_applyPill,
   LiftoEditorSession_blur,
+  LiftoEditorSession_completions,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
@@ -37,6 +38,7 @@ import {
   LiftoEditorSession_walkFocus,
 } from "./primitives/liftoEditorSession";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
+import { ICompletionOption, ICompletionResult, PlannerCompletionsIndex } from "../pages/planner/plannerCompletions";
 import { PlatesCalculator } from "./inputWeight2";
 import { useCloseCustomKeyboard, useOpenCustomKeyboard } from "../navigation/CustomKeyboardContext";
 import { useModal } from "../navigation/ModalStateContext";
@@ -54,6 +56,13 @@ export interface ILiftoEditorController {
   activeLevelIndex: number;
   // Add-actions for the active breadcrumb level; selecting a level swaps the rail.
   pills: ILiftoEditorPill[];
+  // What the freeform suggestion strip offers at the caret; undefined outside freeform.
+  completions: ICompletionResult | undefined;
+  // Takes only the option: the span it replaces is re-derived from the live caret, so a chip
+  // tapped from a render or two ago still splices in the right place.
+  applyCompletion: (option: ICompletionOption) => void;
+  // Puts the system keyboard away without leaving freeform.
+  hideKeyboard: () => void;
   editorProps: ILiftoEditorBaseProps;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
@@ -116,6 +125,13 @@ export interface ILiftoEditorControllerOptions {
   // Last say over the rail for hosts that know something the text doesn't — the editor sheet
   // uses it to drop "Add progress" where another day already declares it.
   mapPills?: (pills: ILiftoEditorPill[]) => ILiftoEditorPill[];
+  // Completion targets for `...reuse` in freeform. Only the host knows the rest of the
+  // program; without it that one suggestion kind is simply empty.
+  exerciseFullNames?: string[];
+  // A host that wants selections for its own purposes (scrolling the caret into view) passes it
+  // here rather than overriding `editorProps.onSelectionChange`, which would silently cut the
+  // controller's own caret tracking out of the loop.
+  onSelectionChange?: (start: number, end: number) => void;
 }
 
 function selectionToName(selected: IExercisePickerSelectedExercise, settings: ISettings): string {
@@ -150,6 +166,22 @@ export function useLiftoEditorController(
   }
   const sessionRef = useRef(session);
   const handleRef = useRef<ILiftoEditorHandle | undefined>(undefined);
+  // Per-controller, not per-module: it memoizes the expanded exercise list, and it should die
+  // with the editor rather than outlive it.
+  const completionsIndexRef = useRef<PlannerCompletionsIndex>(new PlannerCompletionsIndex());
+  // Where the native text view says the caret is. Echo state, not session state — it lives here
+  // rather than in the pure state machine. Kept twice on purpose: the state redraws the
+  // suggestion strip, the ref is what a tap reads, because the strip a finger lands on can be a
+  // frame behind (the dock renders it from a store that only republishes in a post-render
+  // effect). A collapsed caret only — completing into a selection would replace the wrong span.
+  const [freeformCaret, setFreeformCaret] = useState<number | undefined>(undefined);
+  const freeformCaretRef = useRef<number | undefined>(undefined);
+  function setCaret(caret: number | undefined): void {
+    freeformCaretRef.current = caret;
+    setFreeformCaret(caret);
+  }
+  const hostSelectionRef = useRef(options?.onSelectionChange);
+  hostSelectionRef.current = options?.onSelectionChange;
   const openKeyboard = useOpenCustomKeyboard();
   const closeKeyboard = useCloseCustomKeyboard();
   const state = useTrackedState();
@@ -304,11 +336,18 @@ export function useLiftoEditorController(
   // The editable prop flips on the freeform render commit; the caret can only be placed
   // (and the system keyboard summoned) after the native side has applied it.
   useEffect(() => {
+    if (session.mode !== "freeform") {
+      setCaret(undefined);
+    }
     if (session.mode === "freeform" && session.pendingCaret != null) {
       const consumed = LiftoEditorSession_consumePendingCaret(sessionRef.current);
       commit(consumed.session);
       const caret = consumed.caret;
       if (caret != null) {
+        // Seeded here rather than waited for: neither platform reports a selection change when
+        // the range it's asked to set equals the one it already had, so entering freeform on the
+        // character the cursor already sat on would otherwise leave the caret unknown.
+        setCaret(caret);
         setTimeout(() => handleRef.current?.setSelection(caret, caret), 50);
       }
     }
@@ -320,6 +359,38 @@ export function useLiftoEditorController(
     context: session.context,
     activeLevelIndex: LiftoEditorSession_activeLevelIndex(session),
     pills: options?.mapPills?.(LiftoEditorSession_pills(session)) ?? LiftoEditorSession_pills(session),
+    completions: LiftoEditorSession_completions(session, freeformCaret, {
+      customExercises: settings.exercises,
+      exerciseFullNames: options?.exerciseFullNames,
+      index: completionsIndexRef.current,
+    }),
+    // Deliberately takes no completion result: the chip the finger landed on may have been drawn
+    // from a session one render old, and splicing at those offsets would overwrite the wrong
+    // span. The span is re-derived from the current text and caret instead, and if there is no
+    // completion context there any more the tap does nothing rather than something wrong.
+    applyCompletion: (option) => {
+      const caret = freeformCaretRef.current;
+      const current = LiftoEditorSession_completions(sessionRef.current, caret, {
+        customExercises: settings.exercises,
+        exerciseFullNames: options?.exerciseFullNames,
+        index: completionsIndexRef.current,
+      });
+      // The chip has to still exist in the recomputed set: re-deriving the span alone would
+      // happily write a stale exercise name into a `/progress:` slot the caret has since moved
+      // to. An option that's gone means the tap no longer means anything — do nothing.
+      if (caret == null || current == null || !current.options.some((o) => o.label === option.label)) {
+        return;
+      }
+      const insert = option.insert ?? option.label;
+      const caretAfter = current.from + insert.length;
+      handleRef.current?.replaceRange(current.from, current.to, insert);
+      handleRef.current?.setSelection(caretAfter, caretAfter);
+      // Optimistic, because the text and caret only come back through a native round trip: a
+      // second tap landing before that would otherwise recompute against pre-edit state and
+      // splice the same completion in twice.
+      setCaret(caretAfter);
+    },
+    hideKeyboard: () => handleRef.current?.blurEditor(),
     editorProps: {
       initialText,
       autoHeight: true,
@@ -327,7 +398,23 @@ export function useLiftoEditorController(
       editable: session.mode === "freeform",
       extraStyledRanges: LiftoEditorSession_highlight(session),
       handleRef,
-      onTextChange: (newText) => commit(LiftoEditorSession_textChanged(sessionRef.current, newText)),
+      onTextChange: (newText, caret) => {
+        // The delta's own end position, which is the authoritative caret after a keystroke —
+        // selection events alone miss the cases where the new range equals the old.
+        if (sessionRef.current.mode === "freeform") {
+          setCaret(caret);
+        }
+        commit(LiftoEditorSession_textChanged(sessionRef.current, newText));
+      },
+      // Composed here rather than left to the host: a host that needs selections for its own
+      // purposes used to have to remember to call on to this one, and forgetting it broke
+      // suggestions with no error.
+      onSelectionChange: (start, end) => {
+        if (sessionRef.current.mode === "freeform") {
+          setCaret(start === end ? start : undefined);
+        }
+        hostSelectionRef.current?.(start, end);
+      },
       onTap:
         session.mode === "structured"
           ? (index) => dispatch(LiftoEditorSession_tap(sessionRef.current, index, Date.now()))
