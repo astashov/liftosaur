@@ -17,6 +17,7 @@ import {
   LiftoEditorCrumbs,
   LiftoEditorHintBar,
   LiftoEditorPillRail,
+  LiftoEditorSuggestBar,
   useLiftoEditorHintDismissed,
 } from "../../components/liftoEditorChrome";
 import { Program_getAllProgramExercises } from "../../models/program";
@@ -95,9 +96,17 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
     stateVarsExerciseTypeFor: (exerciseFullName) =>
       exerciseFullName != null ? propsRef.current.exerciseTypeFor(exerciseFullName) : undefined,
   });
+  const evaluatedProgram = props.evaluatedProgram;
+  // What `...` can point at in freeform: every exercise the program declares, which is the same
+  // list the reuse pills draw their candidates from.
+  const programFullNames = useMemo(
+    () => Program_getAllProgramExercises(evaluatedProgram).map((e) => e.fullName),
+    [evaluatedProgram]
+  );
   const controller = useLiftoEditorController(props.initialText, {
     scope: "day",
     exerciseTypeFor: props.exerciseTypeFor,
+    exerciseFullNames: programFullNames,
     actions,
   });
 
@@ -325,6 +334,9 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
               </View>
             </Animated.ScrollView>
           </View>
+          {/* Last thing before the keyboard spacer, so it lands on the keyboard itself. In
+              structured mode the pill rail up top is the equivalent row. */}
+          {isFreeform ? <LiftoEditorSuggestBar controller={controller} /> : null}
           {/* iOS reports the raw IME height, which overlaps the home-indicator area the sheet
               already pads for — subtract it. Android's ReactRootView already subtracts the
               system bars from the reported height, so subtracting insets.bottom again would
@@ -333,7 +345,8 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
             <View
               style={{
                 height:
-                  Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) + 16 * iconScale,
+                  Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) +
+                  (isFreeform ? 0 : 16 * iconScale),
               }}
             />
           ) : null}

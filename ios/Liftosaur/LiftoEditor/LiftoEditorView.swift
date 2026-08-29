@@ -58,10 +58,6 @@ import Runestone
     tapRecognizer.delegate = tapDelegateProxy
     textView.addGestureRecognizer(tapRecognizer)
     structuredTapRecognizer = tapRecognizer
-    // iOS offers no built-in way to put the keyboard away, and the drag-to-dismiss gesture is
-    // easy to miss. Runestone enables the accessory view exactly when the editable interaction
-    // is installed, i.e. only in freeform, so this needs no gating of its own.
-    textView.inputAccessoryView = makeKeyboardAccessoryView()
     contentSizeObservation = textView.observe(\.contentSize, options: [.new]) { [weak self] observedTextView, _ in
       guard let self = self else {
         return
@@ -74,26 +70,10 @@ import Runestone
     }
   }
 
-  private func makeKeyboardAccessoryView() -> UIToolbar {
-    let toolbar = UIToolbar()
-    toolbar.sizeToFit()
-    // sizeToFit gives the item exactly its own height, leaving it flush against the keyboard.
-    // The item stays vertically centered, so the extra splits evenly above and below it.
-    toolbar.frame.size.height += 8 
-    let hideItem = UIBarButtonItem(
-      image: UIImage(systemName: "keyboard.chevron.compact.down"),
-      style: .plain,
-      target: self,
-      action: #selector(handleHideKeyboard)
-    )
-    hideItem.accessibilityLabel = "Hide keyboard"
-    toolbar.items = [UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil), hideItem]
-    return toolbar
-  }
-
   // Resigning is enough: JS treats the keyboard going away as leaving freeform, so every
-  // dismissal path — this button, the drag gesture, Android's back — lands in the same place.
-  @objc private func handleHideKeyboard() {
+  // dismissal path — the suggestion strip's chevron, the drag gesture, Android's back — lands
+  // in the same place.
+  @objc public func blurEditor() {
     textView.resignFirstResponder()
   }
 

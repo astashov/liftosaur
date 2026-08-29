@@ -18,7 +18,12 @@ import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Wei
 import { Exercise_onerm } from "../../models/exercise";
 import { MathUtils_roundFloat } from "../../utils/math";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { IExerciseType, IPercentageUnit, ISettings, IUnit } from "../../types";
+import { IAllCustomExercises, IExerciseType, IPercentageUnit, ISettings, IUnit } from "../../types";
+import {
+  ICompletionResult,
+  PlannerCompletions_at,
+  PlannerCompletionsIndex,
+} from "../../pages/planner/plannerCompletions";
 
 // The structured-editing interaction state machine, pure by construction: every user
 // gesture is a `(session, input) -> { session, effects }` transition. Timestamps and
@@ -69,7 +74,9 @@ export interface ILiftoEditorSession {
   active: IActiveNumber | undefined;
   lastTapTime: number;
   lastTapIndex: number | undefined;
-  // Caret to place once the freeform render commits editable on the native side.
+  // Caret to place once the freeform render commits editable on the native side. The *live*
+  // freeform caret is deliberately not here: it's an echo of where the native text view put the
+  // cursor, not a decision this state machine makes, and the controller owns it.
   pendingCaret: number | undefined;
 }
 
@@ -593,6 +600,20 @@ export function LiftoEditorSession_switchToFreeform(session: ILiftoEditorSession
 
 export function LiftoEditorSession_switchToStructured(session: ILiftoEditorSession): ILiftoEditorSessionResult {
   return { session: { ...session, mode: "structured" }, effects: {} };
+}
+
+// What the suggestion strip offers at `caret`. The caret is passed in rather than read off the
+// session — it belongs to the controller — but the lookup lives here, next to the parse cache
+// it reads. Pure: same session and caret, same answer.
+export function LiftoEditorSession_completions(
+  session: ILiftoEditorSession,
+  caret: number | undefined,
+  args: { customExercises?: IAllCustomExercises; exerciseFullNames?: string[]; index: PlannerCompletionsIndex }
+): ICompletionResult | undefined {
+  if (session.mode !== "freeform" || caret == null || caret > session.text.length) {
+    return undefined;
+  }
+  return PlannerCompletions_at(session.text, caret, { ...args, cache: session.cache });
 }
 
 // The freeform caret can only be placed once the native side has committed `editable`; the

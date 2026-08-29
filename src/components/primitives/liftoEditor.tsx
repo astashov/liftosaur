@@ -13,8 +13,9 @@ export interface ILiftoEditorBaseProps {
   extraStyledRanges?: ILiftoEditorStyledRange[];
   parseCache?: LiftoEditorParseCache;
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
-  onTextChange?: (text: string) => void;
+  onTextChange?: (text: string, caret: number) => void;
   onTap?: (index: number) => void;
+  onSelectionChange?: (start: number, end: number) => void;
   // Answer to handle.requestCaretRect: the range's vertical extent (dp) inside the editor.
   onCaretRect?: (rect: { top: number; bottom: number }) => void;
   onRangeRects?: (rects: { top: number; bottom: number; left: number }[]) => void;
@@ -26,7 +27,6 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   // pass a value only to hold a different ratio to it (see liftoEditorMetrics).
   fontSize?: number;
   showLineNumbers?: boolean;
-  onSelectionChange?: (start: number, end: number) => void;
 }
 
 // Native-only component (Runestone/sora-editor hosts); web keeps the CodeMirror editors.

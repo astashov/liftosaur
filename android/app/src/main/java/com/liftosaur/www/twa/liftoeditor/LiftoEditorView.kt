@@ -331,6 +331,13 @@ class LiftoEditorView(private val reactContext: ThemedReactContext) : CodeEditor
     }
   }
 
+  // The suggestion strip's hide affordance. JS treats the keyboard going away as leaving
+  // freeform, so this lands in the same place as the back button does.
+  fun blurEditor() {
+    hideSoftInput()
+    clearFocus()
+  }
+
   fun applyReplaceRange(start: Int, end: Int, replacement: String) {
     val length = text.length
     if (start < 0 || end < start || end > length) {

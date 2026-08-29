@@ -6,6 +6,7 @@ import {
   ILiftoEditorStateVarsTarget,
 } from "./primitives/liftoEditorActions";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
+import { ICompletionOption, ICompletionResult } from "../pages/planner/plannerCompletions";
 import { IExercisePickerSelectedExercise, IExerciseType } from "../types";
 
 export type ILiftoEditorMode = "structured" | "freeform";
@@ -17,6 +18,11 @@ export interface ILiftoEditorController {
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
   pills: ILiftoEditorPill[];
+  // What the freeform suggestion strip offers at the caret; undefined outside freeform.
+  completions: ICompletionResult | undefined;
+  applyCompletion: (option: ICompletionOption) => void;
+  // Puts the system keyboard away without leaving freeform.
+  hideKeyboard: () => void;
   editorProps: ILiftoEditorBaseProps;
   walkFocus: (direction: 1 | -1) => void;
   selectLevel: (index: number) => void;
@@ -58,6 +64,8 @@ export interface ILiftoEditorControllerOptions {
   exerciseTypeFor?: (exerciseFullName: string) => IExerciseType | undefined;
   actions?: ILiftoEditorControllerActions;
   mapPills?: (pills: ILiftoEditorPill[]) => ILiftoEditorPill[];
+  exerciseFullNames?: string[];
+  onSelectionChange?: (start: number, end: number) => void;
 }
 
 // Native-only (drives the native LiftoEditor + custom keyboard); web keeps CodeMirror.

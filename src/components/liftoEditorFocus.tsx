@@ -16,21 +16,26 @@ class LiftoEditorFocusStore {
   // editor has no focus stack to show, but it does hold the system keyboard, and that has to
   // be handed over when another editor takes the screen.
   private occupant: { id: string; evict: () => void } | undefined;
+  // The occupant when it's a freeform editor, republished on every render like `entry` — the
+  // dock renders its suggestion strip, and that has to follow the caret.
+  private freeformEntry: ILiftoEditorFocusEntry | undefined;
   private readonly listeners = new Set<() => void>();
 
   public claim(id: string, controller: ILiftoEditorController, evict: () => void): void {
     this.takeOver(id, evict);
     this.entry = { id, controller };
+    this.freeformEntry = undefined;
     this.emit();
   }
 
   // Freeform occupies the screen without holding the dock — the entry has to go even though
   // the same editor is still the one being edited.
-  public occupy(id: string, evict: () => void): void {
+  public occupy(id: string, controller: ILiftoEditorController, evict: () => void): void {
     this.takeOver(id, evict);
     if (this.entry?.id === id) {
       this.entry = undefined;
     }
+    this.freeformEntry = { id, controller };
     this.emit();
   }
 
@@ -38,7 +43,14 @@ class LiftoEditorFocusStore {
     if (this.occupant?.id === id) {
       this.occupant = undefined;
     }
+    const hadFreeform = this.freeformEntry?.id === id;
+    if (hadFreeform) {
+      this.freeformEntry = undefined;
+    }
     if (this.entry?.id !== id) {
+      if (hadFreeform) {
+        this.emit();
+      }
       return;
     }
     this.entry = undefined;
@@ -51,6 +63,7 @@ class LiftoEditorFocusStore {
     const entry = this.entry;
     this.occupant = undefined;
     this.entry = undefined;
+    this.freeformEntry = undefined;
     entry?.controller.blur();
     this.emit();
   }
@@ -67,6 +80,8 @@ class LiftoEditorFocusStore {
   }
 
   public readonly getEntry = (): ILiftoEditorFocusEntry | undefined => this.entry;
+
+  public readonly getFreeformEntry = (): ILiftoEditorFocusEntry | undefined => this.freeformEntry;
 
   public readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -114,7 +129,7 @@ export function useLiftoEditorFocusClaim(id: string, controller: ILiftoEditorCon
     if (hasFocus) {
       store.claim(id, controller, () => evictRef.current());
     } else if (isFreeform) {
-      store.occupy(id, () => evictRef.current());
+      store.occupy(id, controller, () => evictRef.current());
     } else {
       store.release(id);
     }
@@ -127,6 +142,13 @@ export function useLiftoEditorFocusClaim(id: string, controller: ILiftoEditorCon
 export function useLiftoEditorFocusEntry(): ILiftoEditorFocusEntry | undefined {
   const store = useContext(LiftoEditorFocusContext);
   return useSyncExternalStore(store?.subscribe ?? noopSubscribe, store?.getEntry ?? noopEntry, noopEntry);
+}
+
+// Freeform holds no dock, but it does hold the system keyboard — this is what the dock renders
+// the suggestion strip from.
+export function useLiftoEditorFreeformEntry(): ILiftoEditorFocusEntry | undefined {
+  const store = useContext(LiftoEditorFocusContext);
+  return useSyncExternalStore(store?.subscribe ?? noopSubscribe, store?.getFreeformEntry ?? noopEntry, noopEntry);
 }
 
 export function useLiftoEditorBlurFocused(): () => void {

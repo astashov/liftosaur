@@ -56,6 +56,10 @@ class LiftoEditorViewManager : SimpleViewManager<LiftoEditorView>(), LiftoEditor
     view.applySelection(start, end)
   }
 
+  override fun blurEditor(view: LiftoEditorView) {
+    view.blurEditor()
+  }
+
   override fun replaceRange(view: LiftoEditorView, start: Int, end: Int, text: String?) {
     view.applyReplaceRange(start, end, text ?: "")
   }
