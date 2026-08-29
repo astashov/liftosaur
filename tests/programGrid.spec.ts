@@ -272,6 +272,50 @@ test("says how long a day takes, under its name", async ({ page }) => {
   await expect(page.getByTestId("grid-select-day-0-0")).not.toContainText("min");
 });
 
+test("prints what a reuse resolves to, over the week columns it came from", async ({ page }) => {
+  // One reusing line spanning three weeks, over a template that says something different in each —
+  // so the strip is one strip, and the numbers under it are three.
+  await openGrid(
+    page,
+    `# Week 1
+## Day 1
+t1 / used: none / 3x8 100lb
+Squat[1-3] / ...t1
+
+# Week 2
+## Day 1
+t1 / used: none / 3x5 120lb
+
+# Week 3
+## Day 1
+t1 / used: none / 1x3 140lb
+`
+  );
+
+  await expect(cell(page, "Squat", 0)).toHaveText(/\.\.\.t1/);
+  const sections = page.getByTestId("grid-cell-resolved").locator(":scope > div");
+  await expect(sections).toHaveCount(3);
+  await expect(sections.nth(0)).toHaveText("3x8 100lb");
+  await expect(sections.nth(1)).toHaveText("3x5 120lb");
+  await expect(sections.nth(2)).toHaveText("1x3 140lb");
+
+  // Each section sits over the column whose template it read. Its offset from that week's own strip
+  // is the cell's padding, which is the same for every week — so the three offsets must be equal.
+  // Sizing the sections as a share of the strip instead of as whole columns left this drifting
+  // further per week, a whole column's worth by the end of a long program.
+  const offsets: number[] = [];
+  for (let week = 0; week < 3; week += 1) {
+    const source = await cell(page, "t1", week).boundingBox();
+    const section = await sections.nth(week).boundingBox();
+    if (source == null || section == null) {
+      throw new Error(`Week ${week} isn't on the screen`);
+    }
+    offsets.push(Math.round(section.x - source.x));
+  }
+  expect(offsets[1]).toBe(offsets[0]);
+  expect(offsets[2]).toBe(offsets[0]);
+});
+
 test("offers no repeat handle where there is no week to repeat into", async ({ page }) => {
   await openGrid(
     page,

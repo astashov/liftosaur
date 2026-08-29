@@ -20,6 +20,9 @@ import { GridBadge } from "./gridBadge";
 export interface IGridCellProps {
   placement: IProgramGridPlacement;
   width: number;
+  // One column, which is not `width / span` while a resize is stretching the strip — and it is the
+  // column the resolved sections are laid against, not the strip.
+  columnWidth: number;
   height: number;
   showScheme: boolean;
   selection?: IProgramGridSelection;
@@ -239,8 +242,16 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
               the change itself is the boundary — and each section clips to its own column, so a
               section too narrow for its numbers ellipsizes instead of running into the next one's.
 
-              `flex` rather than a width, so the sections split whatever the strip is actually wide —
-              including mid-resize, when it is wider than its columns. */}
+              A section is exactly as wide as the columns it covers, NOT that share of the strip's
+              content box. The two are not the same: the content box is inset from the strip by the
+              cell's padding, so splitting *it* proportionally puts section i at
+              `columnWidth * i - padding * i / span` and every section drifts further left than the
+              last — a full column's worth of skew by the far end of a twelve-week strip.
+
+              Whole columns work because a one-week strip in that column is inset by the same
+              padding this one is: both content boxes start `padding` into their column, so a plain
+              multiple of `columnWidth` lines the two up. The last section takes the remainder
+              instead, so it ends on the content box's edge rather than running under the border. */}
           {builtResolved.length > 0 && (
             <View className="flex-row" testID="grid-cell-resolved">
               {builtResolved.map((section, index) => (
@@ -248,8 +259,12 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
                   key={index}
                   className="overflow-hidden"
                   style={{
-                    flex: section.colEnd - section.colStart + 1,
-                    paddingRight: index < builtResolved.length - 1 ? GRID_CELL_INSET_X * rem : 0,
+                    ...(index < builtResolved.length - 1
+                      ? {
+                          width: props.columnWidth * (section.colEnd - section.colStart + 1),
+                          paddingRight: GRID_CELL_INSET_X * rem,
+                        }
+                      : { flex: 1 }),
                   }}
                 >
                   <FastText

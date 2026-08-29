@@ -150,6 +150,7 @@ export const LaneRow = memo(function LaneRow(props: ILaneRowProps): JSX.Element 
                     ? webResize.colEnd - segment.placement.colStart + 1
                     : segment.span)
                 }
+                columnWidth={props.columnWidth}
                 height={props.laneHeight}
                 showScheme={props.showScheme}
                 selection={props.selection}
