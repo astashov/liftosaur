@@ -1,7 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { NavScreenScrollContext } from "../../../navigation/NavScreenScrollContext";
 import { IProgramGrid, IProgramGridPlacement, IProgramGridSelection } from "../../../pages/planner/models/programGrid";
-import { IGridGeometryRow } from "../../../pages/planner/models/programGridGeometry";
+import { IGridGeometryRow, ProgramGridGeometry_laneHeight } from "../../../pages/planner/models/programGridGeometry";
 
 // "...main" tells you an exercise reuses another one; it doesn't tell you *where* that one is. The
 // grid already lights the source up when its reuser is selected, which answers the question only
@@ -28,14 +28,13 @@ const GO_TO_MARGIN = 12;
 export function useGridReuseLocator(args: {
   grid: IProgramGrid;
   geometry: IGridGeometryRow[];
-  laneHeight: number;
   selection?: IProgramGridSelection;
   // Where the grid's rows begin in scroll-content coordinates, and how tall the week header that
   // pins itself over them is — both from useGridStickyHeader.
   rowsTop: number;
   headerHeight: number;
 }): IGridReuseLocator | undefined {
-  const { grid, geometry, laneHeight, selection, rowsTop, headerHeight } = args;
+  const { grid, geometry, selection, rowsTop, headerHeight } = args;
   const scrollCtx = useContext(NavScreenScrollContext);
 
   // What covers the top of the visible area: the screen's own sticky header, and then the grid's
@@ -68,9 +67,12 @@ export function useGridReuseLocator(args: {
   //
   // A collapsed row hides its strips, so the row itself is the target there.
   const laneTop =
-    row == null || target == null ? 0 : row.isCollapsed ? row.top : row.contentTop + target.laneIndex * laneHeight;
+    row == null || target == null ? 0 : row.isCollapsed ? row.top : row.contentTop + row.laneTops[target.laneIndex];
   const rowTop = row == null ? 0 : rowsTop + laneTop;
-  const rowBottom = row == null ? 0 : rowTop + (row.isCollapsed ? row.height : laneHeight);
+  const rowBottom =
+    row == null || target == null
+      ? 0
+      : rowTop + (row.isCollapsed ? row.height : ProgramGridGeometry_laneHeight(row, target.laneIndex));
 
   const [direction, setDirection] = useState<IGridReuseDirection | undefined>(undefined);
   // Read by the scroll listener, which outlives the render that installed it.

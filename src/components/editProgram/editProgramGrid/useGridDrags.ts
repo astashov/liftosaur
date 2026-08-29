@@ -57,7 +57,6 @@ export interface IGridDrags {
   // accepting writes *silently*, so every drag then computes against the layout as it was when the
   // first gesture was built. A function is passed by reference and never frozen.
   getGeometry: () => IGridGeometryRow[];
-  getLaneHeight: () => number;
   getGrid: () => IProgramGrid;
   // Which rows a day drag should carry: the selection when the grabbed row is part of it, and the
   // grabbed row alone otherwise.
@@ -71,7 +70,6 @@ export interface IGridDrags {
 export function useGridDrags(args: {
   grid: IProgramGrid;
   geometry: IGridGeometryRow[];
-  laneHeight: number;
   // The current selection, as the two drags see it: which rows and which strips would come along.
   selectedDayRows: number[];
   selectedLanes: IGridLaneRef[];
@@ -92,8 +90,6 @@ export function useGridDrags(args: {
 
   const geometryRef = useRef<IGridGeometryRow[]>(args.geometry);
   geometryRef.current = args.geometry;
-  const laneHeightRef = useRef(args.laneHeight);
-  laneHeightRef.current = args.laneHeight;
   const gridRef = useRef(args.grid);
   gridRef.current = args.grid;
   const selectedDayRowsRef = useRef(args.selectedDayRows);
@@ -102,7 +98,6 @@ export function useGridDrags(args: {
   selectedLanesRef.current = args.selectedLanes;
 
   const getGeometry = useCallback(() => geometryRef.current, []);
-  const getLaneHeight = useCallback(() => laneHeightRef.current, []);
   const getGrid = useCallback(() => gridRef.current, []);
   const getSelectedDayRows = useCallback(() => selectedDayRowsRef.current, []);
   const getSelectedLanes = useCallback(() => selectedLanesRef.current, []);
@@ -115,7 +110,6 @@ export function useGridDrags(args: {
   const lane = useGridLaneDrag({
     getGrid,
     getGeometry,
-    getLaneHeight,
     getSelectedLanes,
     ghostY,
     autoScroll,
@@ -136,7 +130,6 @@ export function useGridDrags(args: {
       ghostX,
       ghostY,
       getGeometry,
-      getLaneHeight,
       getGrid,
       getSelectedDayRows,
       autoScroll,
@@ -151,7 +144,6 @@ export function useGridDrags(args: {
       ghostX,
       ghostY,
       getGeometry,
-      getLaneHeight,
       getGrid,
       getSelectedDayRows,
       autoScroll,

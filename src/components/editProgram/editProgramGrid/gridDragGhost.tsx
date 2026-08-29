@@ -32,7 +32,8 @@ export interface IGridDragGhostProps {
   width: number;
   top: number;
   labelHeight: number;
-  laneHeight: number;
+  // Where each lane starts, from the geometry — see IGridGeometryRow.laneTops.
+  laneTops: number[];
   // Which rows are being dragged as days, and which strips as exercises — the same values that dim
   // the sources, so a ghost needs nothing of its own to know it is one of the ones on the move.
   draggedRows: SharedValue<number[]>;
@@ -49,7 +50,7 @@ const GHOST_OPACITY = 0.75;
 
 export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostProps): JSX.Element {
   const rem = useRem();
-  const { rowIndex, draggedRows, draggedLanes, ghostY, laneHeight, labelHeight } = props;
+  const { rowIndex, draggedRows, draggedLanes, ghostY, laneTops, labelHeight } = props;
   const dayStyle = useAnimatedStyle(() => ({
     opacity: draggedRows.value.indexOf(rowIndex) !== -1 ? GHOST_OPACITY : 0,
     transform: [{ translateY: ghostY.value }],
@@ -68,11 +69,11 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
       ? activeGhost.lanes.filter((lane) => lane.row === rowIndex).map((lane) => lane.lane)
       : [];
 
-  const laneStrip = (laneName: string, key: number): JSX.Element => (
+  const laneStrip = (laneName: string, laneIndex: number): JSX.Element => (
     <View
-      key={key}
+      key={laneIndex}
       style={{
-        height: laneHeight,
+        height: laneTops[laneIndex + 1] - laneTops[laneIndex],
         paddingHorizontal: GRID_CELL_INSET_X * rem,
         paddingVertical: GRID_CELL_INSET_Y * rem,
       }}
@@ -128,7 +129,7 @@ export const GridDragGhost = memo(function GridDragGhost(props: IGridDragGhostPr
       </Animated.View>
       <Animated.View pointerEvents="none" style={[laneStyle, lift, { top: props.top + labelHeight }]}>
         {movedLanes.length > 0 ? (
-          <View className="overflow-hidden rounded" style={[card, { marginTop: Math.min(...movedLanes) * laneHeight }]}>
+          <View className="overflow-hidden rounded" style={[card, { marginTop: laneTops[Math.min(...movedLanes)] }]}>
             {movedLanes.map((laneIndex) => laneStrip(props.laneNames[laneIndex] ?? "", laneIndex))}
           </View>
         ) : null}

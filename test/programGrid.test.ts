@@ -8,6 +8,8 @@ import {
   ProgramGrid_laneNames,
   ProgramGrid_dayDataAt,
   ProgramGrid_errorAt,
+  ProgramGrid_hasResolvedLine,
+  ProgramGrid_laneResolved,
   IProgramGrid,
   IProgramGridPlacement,
 } from "../src/pages/planner/models/programGrid";
@@ -40,6 +42,11 @@ function span(placement: IProgramGridPlacement): string {
 
 function spansFor(grid: IProgramGrid, name: string): string[] {
   return grid.placements.filter((p) => p.fullName === name).map(span);
+}
+
+function resolvedSections(grid: IProgramGrid, name: string): string[] {
+  const placement = grid.placements.find((p) => p.fullName === name)!;
+  return placement.resolved.map((s) => `[${s.colStart}-${s.colEnd}] ${schemeText(s.tokens)}`);
 }
 
 describe("ProgramGrid", () => {
@@ -217,6 +224,81 @@ Bench Press / ...tmpl / 180lb
     const globalsOnly = grid.placements.find((p) => p.fullName === "Bench Press")!;
     expect(schemeText(globalsOnly.scheme)).to.equal("...tmpl / 180lb");
     expect(currentText(globalsOnly.scheme)).to.equal("180lb");
+  });
+
+  it("says what a reference resolves to, and gives an ordinary line nothing to resolve", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 5x3 100lb / !6x2 100lb
+Squat / ...tmpl
+Bench Press / ...tmpl / 180lb
+Deadlift / 3x5 100lb
+`);
+    expect(resolvedSections(grid, "Squat")).to.deep.equal(["[0-0] 5x3 / 6x2 / 100lb"]);
+    // The override wins where it is written, and the rest still comes from the source.
+    expect(resolvedSections(grid, "Bench Press")).to.deep.equal(["[0-0] 5x3 / 6x2 / 180lb"]);
+    // A line that writes its own numbers has them on the scheme already — a second copy says
+    // nothing, and it is what keeps the lanes two lines tall in a program with no reuse in it.
+    expect(resolvedSections(grid, "Deadlift")).to.deep.equal([]);
+    // Which is what keeps a lane with nothing to resolve the height it has always been.
+    expect(ProgramGrid_laneResolved(grid, 0)).to.deep.equal([false, true, true, false]);
+  });
+
+  it("keeps a reuser one strip, and sections what it resolves to by the weeks that differ", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 5x3 100lb
+Squat[1-4] / ...tmpl
+
+# Week 2
+## Day 1
+tmpl / used: none / 3x3 120lb
+
+# Week 3
+## Day 1
+tmpl / used: none / 3x3 120lb
+
+# Week 4
+## Day 1
+tmpl / used: none / 2x2 140lb
+`);
+    // One strip: the reusing line reads the same in every week, which is what a run is.
+    expect(spansFor(grid, "Squat")).to.deep.equal(["Squat@r0[0-3]"]);
+    // Inside it, the numbers are run-length encoded in turn — weeks 2 and 3 resolve alike, so they
+    // share a section rather than repeating themselves.
+    expect(resolvedSections(grid, "Squat")).to.deep.equal(["[0-0] 5x3 100lb", "[1-2] 3x3 120lb", "[3-3] 2x2 140lb"]);
+  });
+
+  it("has no resolved line when the thing it reuses resolves to nothing", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+Squat / used: none
+Bench Press / ...Squat
+`);
+    const bench = grid.placements.find((p) => p.fullName === "Bench Press")!;
+    // The section is still there — sections are laid against the week columns they cover, and a
+    // hole with no width would slide the ones after it into the wrong columns.
+    expect(resolvedSections(grid, "Bench Press")).to.deep.equal(["[0-0] "]);
+    // But there is nothing to print, so the lane keeps its two-line height and the cell must draw
+    // no third line. Both ask this one question; when they each spelled out their own test, the
+    // geometry said "short lane" while the cell drew a blank line into it.
+    expect(ProgramGrid_hasResolvedLine(bench)).to.equal(false);
+    expect(ProgramGrid_laneResolved(grid, 0)).to.deep.equal([false, false]);
+  });
+
+  it("gives a uniform reuse one section spanning the whole strip", () => {
+    const grid = buildGrid(`# Week 1
+## Day 1
+tmpl[1-3] / used: none / 3x5 100lb
+Squat[1-3] / ...tmpl
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+`);
+    expect(resolvedSections(grid, "Squat")).to.deep.equal(["[0-2] 3x5 100lb"]);
   });
 
   it("shows every exercise variation, and marks the one the program is on", () => {

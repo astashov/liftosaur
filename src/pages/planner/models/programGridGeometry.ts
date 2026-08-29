@@ -1,4 +1,4 @@
-import { IProgramGrid, IProgramGridPlacement, ProgramGrid_laneNames } from "./programGrid";
+import { IProgramGrid, IProgramGridPlacement, ProgramGrid_laneNames, ProgramGrid_laneResolved } from "./programGrid";
 
 // Where the grid's boxes sit, and what a pointer position means. Everything here is pure arithmetic
 // over the layout model, deliberately outside the components: every bug this file has had so far
@@ -13,6 +13,10 @@ export const GRID_BASE_COLUMN_WIDTH = 9.5;
 // and show names only — zoomed all the way out is the whole-program structure view, not a mode.
 export const GRID_SCHEME_MIN_WIDTH = 7.5;
 export const GRID_LANE_HEIGHT_WITH_SCHEME = 3.25;
+// Room for a third line, for a lane whose scheme is a `...reference` and the numbers it comes out as
+// go underneath. Only the lanes that have one are this tall — which is why a geometry row carries
+// where each of its lanes starts rather than one height to multiply by.
+export const GRID_LANE_HEIGHT_WITH_RESOLVED = 4.25;
 export const GRID_LANE_HEIGHT_NAME_ONLY = 2;
 // Up to this many weeks, columns may divide the available width even when that makes them narrower
 // than the base. Wider programs still stretch to fill a screen with room to spare — they just never
@@ -61,18 +65,37 @@ export interface IGridGeometryRow {
   outerHeight: number;
   // Top of lane 0, i.e. under the day label.
   contentTop: number;
+  // Where each lane starts, measured from `contentTop`, with one extra entry for the bottom of the
+  // last one. Lanes are not all one height — a lane with a resolved line to print is taller — so
+  // there is no step to multiply by, and this is the only place that knows where a lane sits.
+  laneTops: number[];
   laneNames: string[];
   isCollapsed: boolean;
+}
+
+export function ProgramGridGeometry_laneHeight(row: IGridGeometryRow, laneIndex: number): number {
+  return row.laneTops[laneIndex + 1] - row.laneTops[laneIndex];
+}
+
+// What a lane shows and what that is worth in pixels — one value, because it is one decision. A
+// grid zoomed past the point where numbers fit has given up the resolved line along with them, so
+// both heights collapse to the bare one; splitting these across separate arguments let a caller ask
+// for lanes tall enough for a third line in a grid that prints no numbers at all.
+//
+// Only `ProgramGridGeometry_metrics` produces one.
+export interface IGridLaneLayout {
+  // Whether a cell has room for its sets and weights, or shows the exercise name alone. It was a
+  // three-level `density` for a while, but only two levels were ever produced and only "any or
+  // none" was ever read.
+  showScheme: boolean;
+  plain: number;
+  resolved: number;
 }
 
 export interface IGridMetrics {
   columnWidth: number;
   totalWidth: number;
-  laneHeight: number;
-  // Whether a cell has room for its sets and weights, or shows the exercise name alone. It was a
-  // three-level `density` for a while, but only two levels were ever produced and only "any or
-  // none" was ever read.
-  showScheme: boolean;
+  lanes: IGridLaneLayout;
   // What the pinch gesture should start from, which is the width actually in use rather than the
   // one that was asked for — a program that fits the screen has no explicit scale yet.
   scale: number;
@@ -105,8 +128,13 @@ export function ProgramGridGeometry_metrics(args: {
   return {
     columnWidth,
     totalWidth: columnWidth * weekCount,
-    laneHeight: (showScheme ? GRID_LANE_HEIGHT_WITH_SCHEME : GRID_LANE_HEIGHT_NAME_ONLY) * rem,
-    showScheme,
+    lanes: {
+      showScheme,
+      plain: (showScheme ? GRID_LANE_HEIGHT_WITH_SCHEME : GRID_LANE_HEIGHT_NAME_ONLY) * rem,
+      // Zoomed past the point where numbers fit, the resolved line goes with the scheme it belongs
+      // to — it is more numbers, in a column that has already said it has no room for them.
+      resolved: (showScheme ? GRID_LANE_HEIGHT_WITH_RESOLVED : GRID_LANE_HEIGHT_NAME_ONLY) * rem,
+    },
     scale: columnWidth / base,
   };
 }
@@ -114,29 +142,33 @@ export function ProgramGridGeometry_metrics(args: {
 export function ProgramGridGeometry_build(
   grid: IProgramGrid,
   collapsedRows: number[],
-  laneHeight: number,
-  rem: number,
-  showScheme: boolean
+  lanes: IGridLaneLayout,
+  rem: number
 ): IGridGeometryRow[] {
   const addHeight = GRID_ADD_ROW_HEIGHT * rem;
   let top = 0;
   return grid.rows.map((row) => {
     const isCollapsed = collapsedRows.indexOf(row.rowIndex) !== -1;
-    const labelHeight = ProgramGridGeometry_dayLabelHeight(rem, { isCollapsed, showScheme });
+    const labelHeight = ProgramGridGeometry_dayLabelHeight(rem, { isCollapsed, showScheme: lanes.showScheme });
     // Carried for drawing — the ghosts render these. Anything deciding *which* exercise an edit is
     // about asks the model instead, via ProgramGrid_laneNames.
     const laneNames = ProgramGrid_laneNames(grid, row.rowIndex);
-    const lanes = laneNames.length;
+    const resolved = ProgramGrid_laneResolved(grid, row.rowIndex);
+    const laneTops = laneNames.reduce<number[]>(
+      (acc, _, laneIndex) => [...acc, acc[laneIndex] + (resolved[laneIndex] ? lanes.resolved : lanes.plain)],
+      [0]
+    );
     // The row is taller than its content by the box's own padding, so the last strip clears the
     // bottom edge by the same gap it keeps from the sides.
     const height = isCollapsed
       ? labelHeight + GRID_BOTTOM_GAP * rem
-      : labelHeight + lanes * laneHeight + addHeight + GRID_BOTTOM_GAP * rem;
+      : labelHeight + laneTops[laneNames.length] + addHeight + GRID_BOTTOM_GAP * rem;
     const result: IGridGeometryRow = {
       top,
       height,
       outerHeight: height + GRID_MARGIN_BETWEEN_ROWS * rem,
       contentTop: top + labelHeight,
+      laneTops,
       laneNames,
       isCollapsed,
     };
@@ -193,14 +225,13 @@ export function ProgramGridGeometry_laneDropAt(
   rows: IGridGeometryRow[],
   fromRow: number,
   fromLane: number,
-  translationY: number,
-  laneHeight: number
+  translationY: number
 ): IGridLaneDrop | undefined {
   const source = rows[fromRow];
   if (source == null) {
     return undefined;
   }
-  const y = source.contentTop + (fromLane + 0.5) * laneHeight + translationY;
+  const y = source.contentTop + (source.laneTops[fromLane] + source.laneTops[fromLane + 1]) / 2 + translationY;
   let toRow = 0;
   for (let i = 0; i < rows.length; i += 1) {
     if (y >= rows[i].top) {
@@ -209,9 +240,20 @@ export function ProgramGridGeometry_laneDropAt(
   }
   const target = rows[toRow];
   // A collapsed row shows no lanes to aim between, so anything dropped on it goes to the end.
-  const gap = target.isCollapsed
-    ? target.laneNames.length
-    : Math.max(0, Math.min(target.laneNames.length, Math.round((y - target.contentTop) / laneHeight)));
+  if (target.isCollapsed) {
+    return { toRow, gap: target.laneNames.length };
+  }
+  // How many lanes the strip's centre has drawn level with — lanes are not all one height, so, like
+  // the day rows, each is passed at its own centre rather than at a fixed step from the last. Level
+  // counts as passed, which is what keeps a drop that lands exactly on a neighbour's centre a no-op
+  // in both directions.
+  const offset = y - target.contentTop;
+  let gap = 0;
+  for (let laneIndex = 0; laneIndex < target.laneNames.length; laneIndex += 1) {
+    if ((target.laneTops[laneIndex] + target.laneTops[laneIndex + 1]) / 2 <= offset) {
+      gap = laneIndex + 1;
+    }
+  }
   return { toRow, gap };
 }
 

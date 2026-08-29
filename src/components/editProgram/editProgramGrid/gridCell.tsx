@@ -4,12 +4,14 @@ import { Text } from "../../primitives/text";
 import { Pressable } from "../../primitives/pressable";
 import { useRem } from "../../../utils/useRem";
 import { FastText } from "../../primitives/fastText";
-import { StyledText, StyledText_remToPx } from "../../../utils/styledText";
+import { IFastTextBuild, StyledText, StyledText_remToPx } from "../../../utils/styledText";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import {
   IProgramGridPlacement,
   IProgramGridSelection,
+  IProgramGridSchemeToken,
   IProgramGridTokenKind,
+  ProgramGrid_hasResolvedLine,
   ProgramGrid_orderSuffix,
 } from "../../../pages/planner/models/programGrid";
 import { GRID_CELL_INSET_X, GRID_CELL_INSET_Y } from "../../../pages/planner/models/programGridGeometry";
@@ -23,6 +25,39 @@ export interface IGridCellProps {
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
   isResizing: boolean;
+}
+
+function buildScheme(tokens: IProgramGridSchemeToken[], isActive: boolean): IFastTextBuild {
+  const builder = new StyledText();
+  // Syntax coloring is legible on a pale fill and illegible on the strong one, so a selected strip
+  // drops it and prints in the inverse text color instead. The colors are what is being given up
+  // for the selection to be unmistakable, and only for as long as it is selected.
+  if (isActive) {
+    for (const token of tokens) {
+      builder.add(token.text, {
+        color: Tailwind_semantic().text.primaryinverse,
+        fontWeight: token.isCurrent ? "700" : undefined,
+      });
+    }
+    return builder.build();
+  }
+  // The same palette entries the editor's own highlighting uses (liftoEditorBrain's nodeStyles),
+  // so a strip and the Liftoscript it stands for are the same colors — rather than the workout
+  // screen's reps/weight/rpe family, which is a second opinion about the same tokens.
+  const colorByKind: Record<IProgramGridTokenKind, string> = {
+    setPart: Tailwind_semantic().syntax.atom,
+    weight: Tailwind_semantic().syntax.literal,
+    rpe: Tailwind_semantic().syntax.literal,
+    timer: Tailwind_semantic().syntax.keyword,
+    auto: Tailwind_semantic().syntax.keyword,
+    // The editor leaves a `...name` reference unstyled, so it stays the quiet one here too.
+    reuse: Tailwind_semantic().text.secondary,
+    separator: Tailwind_semantic().text.secondary,
+  };
+  for (const token of tokens) {
+    builder.add(token.text, { color: colorByKind[token.kind], fontWeight: token.isCurrent ? "700" : undefined });
+  }
+  return builder.build();
 }
 
 export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Element {
@@ -81,39 +116,19 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
           notused: Tailwind_semantic().border.gridnotused,
           exercise: Tailwind_semantic().border.gridexercise,
         }[family];
-  const built = useMemo(() => {
-    // Syntax coloring is legible on a pale fill and illegible on the strong one, so a selected strip
-    // drops it and prints in the inverse text color instead. The colors are what is being given up
-    // for the selection to be unmistakable, and only for as long as it is selected.
-    if (isActive) {
-      const builder = new StyledText();
-      for (const token of scheme) {
-        builder.add(token.text, {
-          color: Tailwind_semantic().text.primaryinverse,
-          fontWeight: token.isCurrent ? "700" : undefined,
-        });
-      }
-      return builder.build();
-    }
-    // The same palette entries the editor's own highlighting uses (liftoEditorBrain's nodeStyles),
-    // so a strip and the Liftoscript it stands for are the same colors — rather than the workout
-    // screen's reps/weight/rpe family, which is a second opinion about the same tokens.
-    const colorByKind: Record<IProgramGridTokenKind, string> = {
-      setPart: Tailwind_semantic().syntax.atom,
-      weight: Tailwind_semantic().syntax.literal,
-      rpe: Tailwind_semantic().syntax.literal,
-      timer: Tailwind_semantic().syntax.keyword,
-      auto: Tailwind_semantic().syntax.keyword,
-      // The editor leaves a `...name` reference unstyled, so it stays the quiet one here too.
-      reuse: Tailwind_semantic().text.secondary,
-      separator: Tailwind_semantic().text.secondary,
-    };
-    const builder = new StyledText();
-    for (const token of scheme) {
-      builder.add(token.text, { color: colorByKind[token.kind], fontWeight: token.isCurrent ? "700" : undefined });
-    }
-    return builder.build();
-  }, [scheme, isActive]);
+  const built = useMemo(() => buildScheme(scheme, isActive), [scheme, isActive]);
+  // Only for a line whose scheme is a `...reference` that resolves to something; `resolved` is empty
+  // for everything else, so an ordinary strip keeps its two lines even in a grid tall enough for
+  // three. The same predicate the geometry used to give this lane its height — a strip that fails it
+  // gets no row at all, rather than a blank line in a lane that was never made room for one.
+  const showScheme = props.showScheme;
+  const builtResolved = useMemo(
+    () =>
+      showScheme && ProgramGrid_hasResolvedLine(placement)
+        ? placement.resolved.map((section) => ({ ...section, built: buildScheme(section.tokens, isActive) }))
+        : [],
+    [placement, showScheme, isActive]
+  );
 
   const nameColor = isActive
     ? Tailwind_semantic().text.primaryinverse
@@ -213,6 +228,39 @@ export const GridCell = memo(function GridCell(props: IGridCellProps): JSX.Eleme
               numberOfLines={1}
               fontSize={StyledText_remToPx("xs", rem)}
             />
+          )}
+          {/* What the reference above resolves to. Laid out as sections against the week columns
+              the strip covers rather than as one line, because a reusing line reads the same every
+              week while what it reuses need not — and one strip printing week 1's numbers over four
+              weeks that run something else is worse than printing none.
+
+              No dividers between them: the strip is one thing, and a rule down the middle of it
+              starts an argument about whether it is still one thing. Where the numbers do change,
+              the change itself is the boundary — and each section clips to its own column, so a
+              section too narrow for its numbers ellipsizes instead of running into the next one's.
+
+              `flex` rather than a width, so the sections split whatever the strip is actually wide —
+              including mid-resize, when it is wider than its columns. */}
+          {builtResolved.length > 0 && (
+            <View className="flex-row" testID="grid-cell-resolved">
+              {builtResolved.map((section, index) => (
+                <View
+                  key={index}
+                  className="overflow-hidden"
+                  style={{
+                    flex: section.colEnd - section.colStart + 1,
+                    paddingRight: index < builtResolved.length - 1 ? GRID_CELL_INSET_X * rem : 0,
+                  }}
+                >
+                  <FastText
+                    text={section.built.text}
+                    fragments={section.built.fragments}
+                    numberOfLines={1}
+                    fontSize={StyledText_remToPx("xs", rem)}
+                  />
+                </View>
+              ))}
+            </View>
           )}
         </View>
       </View>

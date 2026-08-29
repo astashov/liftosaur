@@ -66,12 +66,16 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // What a live pinch is showing, before it is worth writing down. The committed scale is the
   // remembered one — it outlives the screen — so the preview only ever shadows it.
   const [previewScale, setPreviewScale] = useState<number | undefined>(undefined);
-  const { columnWidth, totalWidth, laneHeight, showScheme, scale } = ProgramGridGeometry_metrics({
-    weekCount: grid.columns.length,
-    containerWidth,
-    scale: previewScale ?? props.scale,
-    rem,
-  });
+  // Memoized so the lane layout it carries keeps its identity between renders — the geometry below
+  // is built from it, and rebuilding that on every render would hand the drags a new row table
+  // mid-gesture.
+  const requestedScale = previewScale ?? props.scale;
+  const weekCount = grid.columns.length;
+  const { columnWidth, totalWidth, lanes, scale } = useMemo(
+    () => ProgramGridGeometry_metrics({ weekCount, containerWidth, scale: requestedScale, rem }),
+    [weekCount, containerWidth, requestedScale, rem]
+  );
+  const showScheme = lanes.showScheme;
 
   const plannerDispatch = props.plannerDispatch;
   const onCommitScale = useCallback(
@@ -123,8 +127,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   }, []);
 
   const geometry = useMemo(
-    () => ProgramGridGeometry_build(grid, collapsedRows, laneHeight, rem, showScheme),
-    [grid, collapsedRows, laneHeight, rem, showScheme]
+    () => ProgramGridGeometry_build(grid, collapsedRows, lanes, rem),
+    [grid, collapsedRows, lanes, rem]
   );
 
   // Every drag's shared values, refs and edge-scrolling live together in one hook rather than in
@@ -160,7 +164,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const drags = useGridDrags({
     grid,
     geometry,
-    laneHeight,
     selectedDayRows,
     selectedLanes,
     autoScroll,
@@ -173,7 +176,6 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const reuse = useGridReuseLocator({
     grid,
     geometry,
-    laneHeight,
     selection,
     rowsTop: sticky.rowsTop,
     headerHeight: sticky.headerHeight,
@@ -316,7 +318,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     grid={grid}
                     rowIndex={row.rowIndex}
                     columnWidth={columnWidth}
-                    laneHeight={laneHeight}
+                    laneTops={geometry[row.rowIndex].laneTops}
                     showScheme={showScheme}
                     selection={selection}
                     onSelect={onSelect}
@@ -350,7 +352,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     width={totalWidth}
                     top={geometry[row.rowIndex].top}
                     labelHeight={geometry[row.rowIndex].contentTop - geometry[row.rowIndex].top}
-                    laneHeight={laneHeight}
+                    laneTops={geometry[row.rowIndex].laneTops}
                     draggedRows={drags.draggedRows}
                     draggedLanes={drags.draggedLanes}
                     ghostY={drags.ghostY}

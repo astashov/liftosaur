@@ -8,6 +8,8 @@ import {
   ProgramGridGeometry_canResize,
   ProgramGridGeometry_clampWeek,
   ProgramGridGeometry_resizeHandleLeft,
+  GRID_ADD_ROW_HEIGHT,
+  GRID_BOTTOM_GAP,
   GRID_CELL_INSET_X,
   GRID_DAY_DURATION_HEIGHT,
   GRID_DAY_LABEL_HEIGHT,
@@ -58,9 +60,8 @@ Bench Press / 5x5 50lb
 Deadlift / 1x5 200lb
 `),
     [],
-    50,
-    16,
-    false
+    { showScheme: false, plain: 50, resolved: 50 },
+    16
   );
 }
 
@@ -77,9 +78,8 @@ Bench Press / 5x5 50lb
 Deadlift / 1x5 200lb
 `),
     [],
-    50,
-    16,
-    false
+    { showScheme: false, plain: 50, resolved: 50 },
+    16
   );
 }
 
@@ -107,7 +107,7 @@ Bench Press / 5x5 50lb
 ## Day 2
 Deadlift / 1x5 200lb
 `);
-      const rows = ProgramGridGeometry_build(grid, [0], 50, 16, false);
+      const rows = ProgramGridGeometry_build(grid, [0], { showScheme: false, plain: 50, resolved: 50 }, 16);
       expect(rows[0].height).to.equal(39);
       expect(rows[0].isCollapsed).to.equal(true);
       // Still knows its lanes — the ghost draws them even while the row itself is collapsed.
@@ -123,8 +123,8 @@ Squat / 3x5 100lb
 ## Day 2
 Deadlift / 1x5 200lb
 `);
-      const withDuration = ProgramGridGeometry_build(grid, [1], 50, 16, true);
-      const bare = ProgramGridGeometry_build(grid, [1], 50, 16, false);
+      const withDuration = ProgramGridGeometry_build(grid, [1], { showScheme: true, plain: 50, resolved: 50 }, 16);
+      const bare = ProgramGridGeometry_build(grid, [1], { showScheme: false, plain: 50, resolved: 50 }, 16);
       const line = GRID_DAY_DURATION_HEIGHT * 16;
       expect(withDuration[0].contentTop - bare[0].contentTop).to.equal(line);
       expect(withDuration[0].height - bare[0].height).to.equal(line);
@@ -132,6 +132,23 @@ Deadlift / 1x5 200lb
       // row below it moves down only by what the row above actually grew.
       expect(withDuration[1].height).to.equal(bare[1].height);
       expect(withDuration[1].top - bare[1].top).to.equal(line);
+    });
+
+    it("gives the extra height only to the lanes with a resolved line, not to the row", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 3x5 100lb
+Squat / 3x5 100lb
+Bench Press / ...tmpl
+`);
+      const rows = ProgramGridGeometry_build(grid, [], { showScheme: true, plain: 50, resolved: 70 }, 16);
+      // A template prints its own numbers and a plain line prints its own; only the reuser has a
+      // reference to resolve, so only its lane is the taller one.
+      expect(rows[0].laneNames).to.deep.equal(["tmpl", "Squat", "Bench Press"]);
+      expect(rows[0].laneTops).to.deep.equal([0, 50, 100, 170]);
+      // And the row is exactly as tall as the lanes it actually holds.
+      const labelHeight = ProgramGridGeometry_dayLabelHeight(16, { isCollapsed: false, showScheme: true });
+      expect(rows[0].height).to.equal(labelHeight + 170 + GRID_ADD_ROW_HEIGHT * 16 + GRID_BOTTOM_GAP * 16);
     });
   });
 
@@ -188,11 +205,21 @@ Deadlift / 1x5 200lb
 
     it("drops the scheme and shrinks the lanes once a column gets narrow", () => {
       const wide = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 1, rem: 16 });
-      expect(wide.showScheme).to.equal(true);
-      expect(wide.laneHeight).to.equal(3.25 * 16);
+      expect(wide.lanes.showScheme).to.equal(true);
+      expect(wide.lanes.plain).to.equal(3.25 * 16);
       const narrow = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 0.6, rem: 16 });
-      expect(narrow.showScheme).to.equal(false);
-      expect(narrow.laneHeight).to.equal(2 * 16);
+      expect(narrow.lanes.showScheme).to.equal(false);
+      expect(narrow.lanes.plain).to.equal(2 * 16);
+    });
+
+    it("keeps a third line's worth of room aside, and gives it up with the numbers", () => {
+      const wide = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 1, rem: 16 });
+      expect(wide.lanes.resolved).to.equal(4.25 * 16);
+      // Zoomed past the numbers, the third line goes with them — so both heights are the bare one
+      // and no lane is taller than any other. The whole layout decision travels as one value, which
+      // is what stops a caller asking for a tall lane in a grid that prints no numbers.
+      const narrow = ProgramGridGeometry_metrics({ weekCount: 3, containerWidth: 400, scale: 0.6, rem: 16 });
+      expect(narrow.lanes).to.deep.equal({ showScheme: false, plain: 2 * 16, resolved: 2 * 16 });
     });
   });
 
@@ -242,7 +269,7 @@ Deadlift / 1x5 200lb
       const rows = rowsFixture();
       // Lane 0 of row 0 sits at 32..82, so its centre starts at 57. Nudge it down by 50 and it is
       // over lane 1, which means the gap below lane 1.
-      const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 50, 50)!;
+      const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 50)!;
       expect(drop.toRow).to.equal(0);
       expect(drop.gap).to.equal(2);
       // Where the ghost is *drawn* is not part of the drop target — the drag computes it from the
@@ -253,11 +280,11 @@ Deadlift / 1x5 200lb
       const rows = rowsFixture();
       // Row 1 starts at 164; from lane 0's centre (57) that needs +107 or more. Landing above
       // Deadlift's own centre means the gap before it.
-      const above = ProgramGridGeometry_laneDropAt(rows, 0, 0, 120, 50)!;
+      const above = ProgramGridGeometry_laneDropAt(rows, 0, 0, 120)!;
       expect(above.toRow).to.equal(1);
       expect(above.gap).to.equal(0);
       // Past Deadlift's centre (196 + 25) it becomes the gap after it.
-      const below = ProgramGridGeometry_laneDropAt(rows, 0, 0, 170, 50)!;
+      const below = ProgramGridGeometry_laneDropAt(rows, 0, 0, 170)!;
       expect(below.toRow).to.equal(1);
       expect(below.gap).to.equal(1);
     });
@@ -271,17 +298,17 @@ Bench Press / 5x5 50lb
 ## Day 2
 Deadlift / 1x5 200lb
 `);
-      const rows = ProgramGridGeometry_build(grid, [1], 50, 16, false);
-      const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 200, 50)!;
+      const rows = ProgramGridGeometry_build(grid, [1], { showScheme: false, plain: 50, resolved: 50 }, 16);
+      const drop = ProgramGridGeometry_laneDropAt(rows, 0, 0, 200)!;
       expect(drop.toRow).to.equal(1);
       expect(drop.gap).to.equal(rows[1].laneNames.length);
     });
 
     it("knows when a drop would change nothing", () => {
       const rows = rowsFixture();
-      const stay = ProgramGridGeometry_laneDropAt(rows, 0, 1, 0, 50)!;
+      const stay = ProgramGridGeometry_laneDropAt(rows, 0, 1, 0)!;
       expect(ProgramGridGeometry_isBlockDropNoop(2, [1], stay.gap)).to.equal(true);
-      const moved = ProgramGridGeometry_laneDropAt(rows, 0, 1, -60, 50)!;
+      const moved = ProgramGridGeometry_laneDropAt(rows, 0, 1, -60)!;
       expect(ProgramGridGeometry_isBlockDropNoop(2, [1], moved.gap)).to.equal(false);
     });
 
@@ -289,8 +316,24 @@ Deadlift / 1x5 200lb
       const rows = rowsFixture();
       // Lane 1's centre is 107, lane 0's is 57. Landing exactly on 57 is still a no-op — the
       // strip has to go past its neighbour's centre to displace it.
-      expect(ProgramGridGeometry_laneDropAt(rows, 0, 1, -50, 50)!.gap).to.equal(1);
-      expect(ProgramGridGeometry_laneDropAt(rows, 0, 1, -51, 50)!.gap).to.equal(0);
+      expect(ProgramGridGeometry_laneDropAt(rows, 0, 1, -50)!.gap).to.equal(1);
+      expect(ProgramGridGeometry_laneDropAt(rows, 0, 1, -51)!.gap).to.equal(0);
+    });
+
+    it("passes a taller neighbour at that neighbour's own centre", () => {
+      const grid = buildGrid(`# Week 1
+## Day 1
+tmpl / used: none / 3x5 100lb
+Squat / ...tmpl
+Bench Press / 5x5 50lb
+`);
+      // Lanes 50, 70, 50 tall, so they sit at 0, 50, 120 and their centres are 25, 85, 145.
+      const rows = ProgramGridGeometry_build(grid, [], { showScheme: true, plain: 50, resolved: 70 }, 16);
+      expect(rows[0].laneTops).to.deep.equal([0, 50, 120, 170]);
+      // Bench Press's centre is 145. To displace the taller Squat above it, it has to go past 85 —
+      // 61 up, where a grid of uniform lanes would have swapped them at 51.
+      expect(ProgramGridGeometry_laneDropAt(rows, 0, 2, -60)!.gap).to.equal(2);
+      expect(ProgramGridGeometry_laneDropAt(rows, 0, 2, -61)!.gap).to.equal(1);
     });
   });
 

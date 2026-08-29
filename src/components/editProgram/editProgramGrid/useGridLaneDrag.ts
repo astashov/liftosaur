@@ -31,7 +31,6 @@ export function useGridLaneDrag(args: {
   // it must not be the thing that says *what* they are.
   getGrid: () => IProgramGrid;
   getGeometry: () => IGridGeometryRow[];
-  getLaneHeight: () => number;
   getSelectedLanes: () => IGridLaneRef[];
   ghostY: SharedValue<number>;
   autoScroll: IGridDragAutoScroll;
@@ -39,7 +38,7 @@ export function useGridLaneDrag(args: {
   onReorderExercisesInDay: (rowIndex: number, order: string[]) => void;
   onMoveExercisesToDay: (moves: IPlannerStructureExerciseMove[], toRow: number, before: string | undefined) => void;
 }): IGridLaneDrag {
-  const { getGrid, getGeometry, getLaneHeight, getSelectedLanes, ghostY, autoScroll } = args;
+  const { getGrid, getGeometry, getSelectedLanes, ghostY, autoScroll } = args;
   const draggedLanes = useSharedValue<IGridLaneRef[]>([]);
   const dropLaneRow = useSharedValue(-1);
   // The gap, in the target row's lanes: gap N sits above lane N, and gap `lanes` below the last one.
@@ -87,7 +86,7 @@ export function useGridLaneDrag(args: {
           lane.row !== origin.row ? acc : translationY > 0 ? Math.max(acc, lane.lane) : Math.min(acc, lane.lane),
         origin.lane
       );
-      return ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, leading, translationY, getLaneHeight());
+      return ProgramGridGeometry_laneDropAt(getGeometry(), origin.row, leading, translationY);
     },
     show: (drop, translationY) => {
       const moved = movedRef.current;

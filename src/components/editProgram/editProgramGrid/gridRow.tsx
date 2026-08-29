@@ -32,7 +32,8 @@ export interface IGridRowProps {
   grid: IProgramGrid;
   rowIndex: number;
   columnWidth: number;
-  laneHeight: number;
+  // Where each of this row's lanes starts, from the geometry — see IGridGeometryRow.laneTops.
+  laneTops: number[];
   showScheme: boolean;
   selection?: IProgramGridSelection;
   onSelect: (placementId: string) => void;
@@ -85,17 +86,21 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
   // themselves stay out of it: giving them drag props would re-render the one under the finger.
   // Several strips of this row can be on the move at once, and they gather into one card from the
   // topmost of them — so what is dimmed here is that same span, not each strip where it sits.
-  const laneHeight = props.laneHeight;
+  const laneTops = props.laneTops;
   const draggedLaneStyle = useAnimatedStyle(() => {
     const dragged = draggedLanes.value.filter((lane) => lane.row === rowIndex);
     if (dragged.length === 0) {
       return { opacity: 0, top: 0, height: 0 };
     }
     let first = dragged[0].lane;
+    let height = 0;
     for (const lane of dragged) {
       first = Math.min(first, lane.lane);
+      height += laneTops[lane.lane + 1] - laneTops[lane.lane];
     }
-    return { opacity: 0.25, top: labelHeight + first * laneHeight, height: dragged.length * laneHeight };
+    // The heights of the strips on the move, stacked from the topmost of them — the same block the
+    // ghost gathers them into, rather than the lanes they came out of.
+    return { opacity: 0.25, top: labelHeight + laneTops[first], height };
   });
   const dropLaneStyle = useAnimatedStyle(() => {
     if (dropLaneRow.value !== rowIndex) {
@@ -105,7 +110,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
     // the target.
     return {
       opacity: 1,
-      top: isCollapsed ? labelHeight : labelHeight + dropLaneGap.value * laneHeight - 1.5,
+      top: isCollapsed ? labelHeight : labelHeight + (laneTops[dropLaneGap.value] ?? 0) - 1.5,
     };
   });
 
@@ -224,7 +229,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             rowIndex={rowIndex}
             laneIndex={laneIndex}
             columnWidth={props.columnWidth}
-            laneHeight={props.laneHeight}
+            laneHeight={laneTops[laneIndex + 1] - laneTops[laneIndex]}
             showScheme={props.showScheme}
             selection={props.selection}
             onSelect={props.onSelect}

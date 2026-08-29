@@ -34,6 +34,17 @@ export interface IProgramGridNamePart {
   isCurrent: boolean;
 }
 
+// What a run of weeks inside one strip actually runs, once a reuse has been read through to its
+// source. A reusing line's own text is week-invariant — that's why the run collapsed in the first
+// place — but the numbers behind it need not be, so this is a second run-length encoding *inside*
+// the strip: consecutive weeks that resolve alike share a section, and the common case (a reuse that
+// resolves the same every week) is one section spanning the whole strip.
+export interface IProgramGridResolvedSection {
+  colStart: number;
+  colEnd: number;
+  tokens: IProgramGridSchemeToken[];
+}
+
 export interface IProgramGridColumn {
   weekIndex: number;
   name: string;
@@ -99,6 +110,10 @@ export interface IProgramGridPlacement {
   // only member it is.
   supersetColor?: string;
   scheme: IProgramGridSchemeToken[];
+  // What the scheme comes out as, for a line whose scheme is a `...reference` rather than numbers.
+  // Empty for everything else: an ordinary strip's scheme is already the resolved one, and printing
+  // it twice says nothing.
+  resolved: IProgramGridResolvedSection[];
 }
 
 export interface IProgramGridError {
@@ -288,22 +303,27 @@ function globalsToTokens(globals: IPlannerProgramExerciseGlobals): IProgramGridS
   return tokens;
 }
 
+// Evaluated sets carry the globals folded into every one of them, so there is nothing left that
+// says which values were written once — `commonParts` reads that back off the sets themselves. A
+// reuse is already resolved by this point, which is what lets a reuser print its numbers too.
+function evaluatedTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
+  return variationsToTokens(
+    exercise.evaluatedSetVariations.map((variation) =>
+      displaySetsToGroups(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation.sets, settings))
+    ),
+    PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise),
+    []
+  );
+}
+
 function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): IProgramGridSchemeToken[] {
   const reuse = exercise.reuse;
   if (reuse == null) {
-    // Evaluated sets carry the globals folded into every one of them, so there is nothing left that
-    // says which values were written once — `commonParts` reads that back off the sets themselves.
-    return variationsToTokens(
-      exercise.evaluatedSetVariations.map((variation) =>
-        displaySetsToGroups(PlannerProgramExercise_evaluatedSetsToDisplaySets(variation.sets, settings))
-      ),
-      PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise),
-      []
-    );
+    return evaluatedTokens(exercise, settings);
   }
-  // A reuser's inherited numbers vary week to week, so they stay in the source's cells (see the
-  // grid RFC's run-length rule) — but what this line overrides is written right here, and hiding it
-  // made a line that rewrites the sets and the weight look identical to one that reuses wholesale.
+  // The scheme line says what the *line* says: the reference, plus whatever this line writes over
+  // it — hiding the overrides made a line that rewrites the sets and the weight look identical to
+  // one that reuses wholesale. What it all comes out as goes on `resolved`, a line below.
   const weekDay = reuse.week != null ? `[${reuse.week}${reuse.day != null ? `:${reuse.day}` : ""}]` : "";
   const tokens: IProgramGridSchemeToken[] = [{ text: `...${reuse.fullName}${weekDay}`, kind: "reuse" }];
   const overrides = overrideTokens(exercise, settings);
@@ -311,6 +331,32 @@ function schemeTokens(exercise: IPlannerProgramExercise, settings: ISettings): I
     tokens.push({ text: " / ", kind: "separator" }, ...overrides);
   }
   return tokens;
+}
+
+function tokensKey(tokens: IProgramGridSchemeToken[]): string {
+  return tokens.map((token) => `${token.kind}:${token.isCurrent ? 1 : 0}:${token.text}`).join("|");
+}
+
+// Adds one week of a run to the strip's resolved line, extending the last section when the numbers
+// haven't moved. A week that resolves to nothing still gets a section: the sections are laid out
+// against the week columns they cover, and a hole with no width would slide the ones after it into
+// the wrong columns.
+function addResolvedWeek(
+  placement: IProgramGridPlacement,
+  weekIndex: number,
+  exercise: IPlannerProgramExercise,
+  settings: ISettings
+): void {
+  if (exercise.reuse == null) {
+    return;
+  }
+  const tokens = evaluatedTokens(exercise, settings);
+  const last = placement.resolved[placement.resolved.length - 1];
+  if (last != null && tokensKey(last.tokens) === tokensKey(tokens)) {
+    last.colEnd = weekIndex;
+    return;
+  }
+  placement.resolved.push({ colStart: weekIndex, colEnd: weekIndex, tokens });
 }
 
 // Split on the `|` the grammar reserves for the ladder rather than rebuilt from `exerciseVariations`,
@@ -489,6 +535,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
         if (open != null && exercise.text === open.definingText) {
           open.placement.colEnd = weekIndex;
           addSourceWeek(open.placement, byWeek, lane, weekIndex, exercise);
+          addResolvedWeek(open.placement, weekIndex, exercise, settings);
           continue;
         }
         const placement: IProgramGridPlacement = {
@@ -516,8 +563,10 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
           description: PlannerProgramExercise_currentDescription(exercise),
           supersetColor: supersetColorByLane[lane],
           scheme: schemeTokens(exercise, settings),
+          resolved: [],
         };
         addSourceWeek(placement, byWeek, lane, weekIndex, exercise);
+        addResolvedWeek(placement, weekIndex, exercise, settings);
         lanePlacements.push(placement);
         open = { placement, definingText: exercise.text };
       }
@@ -574,6 +623,33 @@ function addSourceWeek(
   if (source !== -1 && placement.sourceWeeks.indexOf(source) === -1) {
     placement.sourceWeeks.push(source);
   }
+}
+
+// Whether a strip has anything to print on its resolved line. A reuse can resolve to nothing — a
+// template with no prescription of its own — and that still leaves a section per week, because the
+// sections are laid against the week columns they cover and a hole with no width would slide the
+// ones after it into the wrong columns.
+//
+// The geometry asks this to decide the lane is a line taller, and the cell asks it to decide whether
+// to draw one. They must agree, so they ask the same function rather than each spelling out the
+// test: they disagreed once, and the result was a blank line in a lane with no room for it.
+export function ProgramGrid_hasResolvedLine(placement: IProgramGridPlacement): boolean {
+  return placement.resolved.some((section) => section.tokens.length > 0);
+}
+
+// Which lanes of a day row have a resolved line to print, which is what decides how tall each one
+// is. Per lane rather than per grid: a lane is one exercise's slot in every week, and it is the
+// smallest band that can afford a third line without every other lane paying for it too. Any one
+// week claiming the line is enough, since a lane is one height across all of them.
+export function ProgramGrid_laneResolved(grid: IProgramGrid, rowIndex: number): boolean[] {
+  const resolved: boolean[] = [];
+  for (const placement of grid.placements) {
+    if (placement.rowIndex === rowIndex) {
+      resolved[placement.laneIndex] =
+        (resolved[placement.laneIndex] ?? false) || ProgramGrid_hasResolvedLine(placement);
+    }
+  }
+  return Array.from({ length: resolved.length }, (_, i) => resolved[i] ?? false);
 }
 
 export function ProgramGrid_hasDay(row: IProgramGridRow, weekIndex: number): boolean {
