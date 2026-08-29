@@ -134,6 +134,11 @@ const editorNodeHints: Partial<Record<string, ILiftoEditorHint>> = {
     detail:
       "'aux: Bench Press' and 'Bench Press' count as separate exercises with their own progress, so the same movement can appear twice in a program.",
   },
+  LineComment: {
+    short: "Description: notes shown under the exercise during the workout.",
+    detail:
+      "Written as '//' lines above the exercise, in Markdown. Leave a blank line between them for several descriptions — '!' marks the current one (the first when unmarked), and progress scripts switch it via 'descriptionIndex'.",
+  },
   ExerciseVariation: {
     short: "Exercise variation: alternative movements, the app uses the current one.",
     detail:

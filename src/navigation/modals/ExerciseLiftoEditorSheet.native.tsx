@@ -227,12 +227,12 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     if (ranges.length === 0) {
       return;
     }
-    let localText = controller.text;
+    let localBlurb = controller.text;
     for (const range of ranges) {
       controller.editorProps.handleRef?.current?.replaceRange(range.start, range.end, "");
-      localText = localText.slice(0, range.start) + localText.slice(range.end);
+      localBlurb = localBlurb.slice(0, range.start) + localBlurb.slice(range.end);
     }
-    props.onSharedHidden?.(localText.trimEnd());
+    props.onSharedHidden?.(localBlurb.trimEnd());
   };
   useEffect(() => {
     if (isFreeform) {

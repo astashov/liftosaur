@@ -45,6 +45,7 @@ import {
 import {
   IProgramExerciseSharedSection,
   ProgramExerciseText_apply,
+  ProgramExerciseText_blurb,
   ProgramExerciseText_findDeclaration,
   ProgramExerciseText_sharedSections,
   ProgramExerciseText_split,
@@ -186,12 +187,25 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
         : [],
     [evaluatedProgram, currentDeclaration]
   );
+  // The declaration's line plus the `//` descriptions above it, which the evaluator hands to
+  // it — so the sheet edits everything this exercise says, not just its sets and properties.
+  const blurbTextFor = (declaration: IPlannerProgramExercise | undefined): string =>
+    program != null && declaration != null ? ProgramExerciseText_blurb(program.planner, declaration) : "";
+  // Memoized because it parses the day: cheap next to the whole-program evaluation this sheet
+  // already runs per keystroke, but it has no business running on unrelated re-renders.
+  const currentBlurbText = useMemo(
+    () =>
+      program != null && currentDeclaration != null
+        ? ProgramExerciseText_blurb(program.planner, currentDeclaration)
+        : "",
+    [program, currentDeclaration]
+  );
 
   // What the editor holds, against the baselines it opened on. Distinct from the program draft
   // above: this one is the text of a single declaration and is folded into the program only at
   // save. In a ref rather than state because it changes on every keystroke and nothing in this
   // render depends on it.
-  const textDraftRef = useRef(ExerciseLiftoEditorDraft_create(currentDeclaration?.text ?? "", sharedSections));
+  const textDraftRef = useRef(ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections));
   const onDraftText = (text: string): void => {
     textDraftRef.current = ExerciseLiftoEditorDraft_fromEditor(textDraftRef.current, text);
   };
@@ -212,9 +226,9 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
 
   // Freeform drops the sections out of the text itself; what the user did to them is already in
   // the draft, so only visibility changes here.
-  const onSharedHidden = (localText: string): void => {
+  const onSharedHidden = (localBlurb: string): void => {
     setIsSharedVisible(false);
-    setBodyText(localText);
+    setBodyText(localBlurb);
   };
 
   // The body asks; the sheet answers, because only the sheet knows what is pending — the body's
@@ -230,7 +244,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // left, and the draft's baseline has to be the one it will be compared against.
     const nextShared =
       evaluatedProgram != null && next != null ? ProgramExerciseText_sharedSections(evaluatedProgram, next) : [];
-    textDraftRef.current = ExerciseLiftoEditorDraft_create(next?.text ?? "", nextShared);
+    textDraftRef.current = ExerciseLiftoEditorDraft_create(blurbTextFor(next), nextShared);
     setBodyText(undefined);
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
@@ -250,7 +264,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
       return;
     }
     needsReprojectRef.current = false;
-    textDraftRef.current = ExerciseLiftoEditorDraft_create(currentDeclaration.text, sharedSections);
+    textDraftRef.current = ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections);
     setBodyText(undefined);
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
@@ -282,11 +296,11 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // far it reaches. `applyDraft` defaults that to "all" — harmless where its planner is thrown
     // away, but here it is kept, so an unsaved one-day rename would quietly become a program-wide
     // one. Same question the save asks, asked before the fold rather than after it.
-    const swap = detectSwap(textDraftRef.current.localText.trim(), currentDeclaration);
+    const swap = detectSwap(textDraftRef.current.localBlurb.trim(), currentDeclaration);
     if (swap != null && (await requestSwapScope(swap.isLadder)) == null) {
       return;
     }
-    const folded = applyDraft(textDraftRef.current.localText);
+    const folded = applyDraft(textDraftRef.current.localBlurb);
     if (folded == null || "error" in folded.applied) {
       Dialog_alert("Fix the error in this exercise first, then you can change it across the program.");
       return;
@@ -408,8 +422,8 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     if (currentDeclaration == null) {
       return true;
     }
-    const { localText } = ProgramExerciseText_split(text.trim(), sharedSections);
-    const swap = detectSwap(localText.trim(), currentDeclaration);
+    const { localBlurb } = ProgramExerciseText_split(text.trim(), sharedSections);
+    const swap = detectSwap(localBlurb.trim(), currentDeclaration);
     if (swap == null) {
       return true;
     }
@@ -455,12 +469,12 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // moved which day declares one, and writing to the owner this sheet opened on would miss it.
     const freshShared = ProgramExerciseText_sharedSections(saveEvaluatedProgram, declaration);
     const pending = ExerciseLiftoEditorDraft_pendingChange(textDraftRef.current, freshShared);
-    const localText = pending.localText.trim();
-    if (localText === "") {
+    const localBlurb = pending.localBlurb.trim();
+    if (localBlurb === "") {
       Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
       return;
     }
-    const swap = detectSwap(localText, declaration);
+    const swap = detectSwap(localBlurb, declaration);
     // Reachable when the name was changed on a surface with no Apply step (the web body), or
     // when the sheet was opened again on a text that already carries the change.
     const scope = swap != null ? await requestSwapScope(swap.isLadder) : "all";
@@ -470,7 +484,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     const applied = ProgramExerciseText_apply(
       program.planner,
       declaration,
-      localText,
+      localBlurb,
       pending.sharedEdits,
       swap,
       scope,
@@ -573,21 +587,21 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
       ExerciseLiftoEditorDraft_fromEditor(textDraftRef.current, trimmed),
       sharedSections
     );
-    const localText = pending.localText.trim();
-    if (localText === "") {
+    const localBlurb = pending.localBlurb.trim();
+    if (localBlurb === "") {
       return undefined;
     }
     // Applied the same way it will be saved, including the swap — otherwise a changed
     // exercise name reports every `...reuse` aimed at the old one as broken, which the save
     // then goes on to rewrite.
-    const swap = detectSwap(localText, currentDeclaration);
+    const swap = detectSwap(localBlurb, currentDeclaration);
     return {
       program,
       swap,
       applied: ProgramExerciseText_apply(
         program.planner,
         currentDeclaration,
-        localText,
+        localBlurb,
         pending.sharedEdits,
         swap,
         swapScopeRef.current ?? "all",
@@ -650,8 +664,8 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // line. Either way it is exactly what the body is mounted with, so it doubles as the baseline
   // the close guard compares the draft against.
   // Never a stand-in for a declaration that couldn't be found — that case doesn't reach the editor
-  // at all now (see the guard below the hooks). The `?? ""` only keeps the expression total.
-  const initialText = bodyText ?? currentDeclaration?.text ?? "";
+  // at all now (see the guard below the hooks); blurbTextFor's "" only keeps it total.
+  const initialText = bodyText ?? currentBlurbText;
   // A pending whole-program rewrite counts: it is unsaved work even when the line on screen is
   // back to matching the program, which is exactly what re-projecting leaves behind. Without it
   // Done would take the "nothing changed" exit and drop the rewrite on the floor.

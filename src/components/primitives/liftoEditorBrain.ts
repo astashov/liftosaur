@@ -2,6 +2,11 @@ import { SyntaxNode, Tree, TreeFragment } from "@lezer/common";
 import { parser } from "../../pages/planner/plannerExerciseParser";
 import { parser as liftoscriptParser } from "../../liftoscript";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
+import {
+  PlannerDocument_blockSpans,
+  PlannerDocument_descriptionAt,
+  PlannerDocument_descriptions,
+} from "../../pages/planner/models/plannerDocument";
 import { IDayData } from "../../types";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import {
@@ -366,65 +371,18 @@ export interface ILiftoEditorBlock {
   fullName: string;
 }
 
-function startOfLine(text: string, index: number): number {
-  let start = index;
-  while (start > 0 && text[start - 1] !== "\n") {
-    const ch = text[start - 1];
-    if (ch !== " " && ch !== "\t") {
-      return index;
-    }
-    start -= 1;
-  }
-  return start;
-}
-
-// The movable unit within a day: one exercise plus the `//` description lines above it, which
-// the evaluator hands to whatever exercise follows them (plannerExerciseEvaluator's
-// lastDescriptions), including the blank lines that separate one description group from the
-// next. Everything else between exercises — `///` comments, blank lines that merely space the
-// day out — belongs to the place rather than to the exercise, and stays where it is.
+// The movable unit within a day: one exercise plus the `//` description lines above it. Which
+// lines those are is a question about the document rather than about dragging, so it is asked
+// once for the whole app — see plannerDocument.ts, which exists because the editor and the grid
+// used to answer it differently. The session's tree is handed over so an edit still costs one
+// incremental reparse, not two.
 export function LiftoEditorBrain_exerciseBlocks(cache: LiftoEditorParseCache, text: string): ILiftoEditorBlock[] {
-  const tree = cache.parse(text);
-  const children: SyntaxNode[] = [];
-  for (let node = tree.topNode.firstChild; node != null; node = node.nextSibling) {
-    children.push(node);
-  }
-  const blocks: ILiftoEditorBlock[] = [];
-  for (let i = 0; i < children.length; i += 1) {
-    const node = children[i];
-    if (node.name !== PlannerNodeName.ExerciseExpression) {
-      continue;
-    }
-    let start = node.from;
-    let j = i - 1;
-    while (j >= 0) {
-      const previous = children[j];
-      if (previous.name === PlannerNodeName.LineComment) {
-        start = previous.from;
-        j -= 1;
-      } else if (previous.name === PlannerNodeName.EmptyExpression) {
-        let above = j;
-        while (above >= 0 && children[above].name === PlannerNodeName.EmptyExpression) {
-          above -= 1;
-        }
-        if (above >= 0 && children[above].name === PlannerNodeName.LineComment) {
-          j = above;
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-    const variations = node.getChild(PlannerNodeName.ExerciseVariations);
-    blocks.push({
-      start: startOfLine(text, start),
-      end: LiftoEditorActions_endOfExerciseLine(text, node),
-      exerciseStart: node.from,
-      fullName: variations != null ? nodeText(text, variations).trim() : nodeText(text, node).trim().split("\n")[0],
-    });
-  }
-  return blocks;
+  return PlannerDocument_blockSpans(text, cache.parse(text)).map((span) => ({
+    start: span.from,
+    end: span.to,
+    exerciseStart: span.exerciseFrom,
+    fullName: span.fullName,
+  }));
 }
 
 export function LiftoEditorBrain_blockIndexAt(blocks: ILiftoEditorBlock[], index: number): number {
@@ -819,15 +777,18 @@ export function LiftoEditorBrain_hasReuse(cache: LiftoEditorParseCache, text: st
 // same question about the node, and are always taken from the same call.
 function makeLevel(
   text: string,
+  // Handed on to the rail so a pill builder asking a document-level question answers it from the
+  // session's tree rather than parsing the text again on every tap.
+  tree: Tree,
   node: SyntaxNode,
   label: string,
-  overrides?: { end?: number; pills?: ILiftoEditorPill[]; fullName?: string }
+  overrides?: { start?: number; end?: number; pills?: ILiftoEditorPill[]; fullName?: string }
 ): ILiftoEditorLevel {
-  const rail = LiftoEditorActions_railForNode(text, node);
+  const rail = LiftoEditorActions_railForNode(text, node, tree);
   return {
     label,
     nodeName: node.name,
-    start: node.from,
+    start: overrides?.start ?? node.from,
     end: overrides?.end ?? node.to,
     pills: overrides?.pills ?? rail.pills,
     ownsRail: rail.ownsRail,
@@ -851,14 +812,19 @@ export function LiftoEditorBrain_contextAt(
       const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseSet) ?? [];
       const setIndex = siblings.findIndex((s) => s.from === node!.from);
       levels.unshift(
-        makeLevel(text, node, isGlobals ? "Globals" : `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`)
+        makeLevel(text, tree, node, isGlobals ? "Globals" : `Set group${siblings.length > 1 ? ` ${setIndex + 1}` : ""}`)
       );
     } else if (name === PlannerNodeName.ExerciseSets) {
       const exercise = LiftoEditorActions_enclosingExercise(node);
       const variations = exercise != null ? LiftoEditorActions_setVariationSections(exercise) : [];
       const variationIndex = variations.findIndex((s) => s.from === node!.from);
       levels.unshift(
-        makeLevel(text, node, variations.length > 1 && variationIndex !== -1 ? `Sets ${variationIndex + 1}` : "Sets")
+        makeLevel(
+          text,
+          tree,
+          node,
+          variations.length > 1 && variationIndex !== -1 ? `Sets ${variationIndex + 1}` : "Sets"
+        )
       );
     } else if (name === PlannerNodeName.ExerciseVariation) {
       const siblings = node.parent?.getChildren(PlannerNodeName.ExerciseVariation) ?? [];
@@ -866,7 +832,7 @@ export function LiftoEditorBrain_contextAt(
       // already covers the name, and "Variation 1" would just be noise.
       if (siblings.length > 1) {
         const variationIndex = siblings.findIndex((s) => s.from === node!.from);
-        levels.unshift(makeLevel(text, node, `Variation ${variationIndex + 1}`));
+        levels.unshift(makeLevel(text, tree, node, `Variation ${variationIndex + 1}`));
       }
     } else if (name === PlannerNodeName.ExerciseExpression) {
       const variations = node.getChild(PlannerNodeName.ExerciseVariations);
@@ -874,7 +840,7 @@ export function LiftoEditorBrain_contextAt(
         ?.getChild(PlannerNodeName.ExerciseVariation)
         ?.getChild(PlannerNodeName.ExerciseName);
       levels.unshift(
-        makeLevel(text, node, exerciseName != null ? nodeText(text, exerciseName).trim() : "Exercise", {
+        makeLevel(text, tree, node, exerciseName != null ? nodeText(text, exerciseName).trim() : "Exercise", {
           end: LiftoEditorActions_endOfExerciseLine(text, node),
           fullName: variations != null ? nodeText(text, variations).trim() : undefined,
         })
@@ -882,7 +848,7 @@ export function LiftoEditorBrain_contextAt(
     } else if (name === PlannerNodeName.KeyValue) {
       const keyword = node.getChild(PlannerNodeName.Keyword);
       if (keyword != null) {
-        levels.unshift(makeLevel(text, node, nodeText(text, keyword)));
+        levels.unshift(makeLevel(text, tree, node, nodeText(text, keyword)));
       }
     } else if (name === PlannerNodeName.ExerciseName && node.parent?.name === PlannerNodeName.ExerciseVariation) {
       // The grammar lumps `label: Name` into one ExerciseName token (":" is a name char),
@@ -897,26 +863,42 @@ export function LiftoEditorBrain_contextAt(
         while (text[afterColon] === " ") {
           afterColon += 1;
         }
-        levels.unshift(makeLevel(text, node, "Label", { end: afterColon }));
+        levels.unshift(makeLevel(text, tree, node, "Label", { end: afterColon }));
       }
     } else if (name === PlannerNodeName.ExerciseProperty) {
       const propertyName = node.getChild(PlannerNodeName.ExercisePropertyName);
       if (propertyName != null) {
         const label = nodeText(text, propertyName);
-        levels.unshift(makeLevel(text, node, label.charAt(0).toUpperCase() + label.slice(1)));
+        levels.unshift(makeLevel(text, tree, node, label.charAt(0).toUpperCase() + label.slice(1)));
       }
     } else if (name === PlannerNodeName.WarmupExerciseSets) {
       // The only branch that overrides pills: which warmup group the caret is in decides what
       // the rail offers, and the node alone can't say.
       levels.unshift(
-        makeLevel(text, node, breadcrumbLabels[name] ?? "Warmup sets", {
+        makeLevel(text, tree, node, breadcrumbLabels[name] ?? "Warmup sets", {
           pills: LiftoEditorActions_warmupSetsPillsAt(text, node, index),
         })
       );
     } else if (name === PlannerNodeName.FunctionExpression) {
       const functionName = node.getChild(PlannerNodeName.FunctionName);
       if (functionName != null) {
-        levels.unshift(makeLevel(text, node, `${nodeText(text, functionName)}()`));
+        levels.unshift(makeLevel(text, tree, node, `${nodeText(text, functionName)}()`));
+      }
+    } else if (name === PlannerNodeName.LineComment) {
+      // A description spans as many `//` lines as were written in a row, and the tap can land on
+      // any of them, so the level covers the whole run rather than the one node the tree resolved
+      // to. Numbered only when the exercise has more than one — with a single description
+      // "Description 1" would be inventing a choice that isn't there. A `//` line the evaluator
+      // gives to no exercise gets no level: it is a comment, not a description.
+      const found = PlannerDocument_descriptionAt(text, node.from, cache.parse(text));
+      const description = found != null ? found.siblings[found.index] : undefined;
+      if (found != null && description != null) {
+        levels.unshift(
+          makeLevel(text, tree, node, found.siblings.length > 1 ? `Description ${found.index + 1}` : "Description", {
+            start: description.from,
+            end: description.to,
+          })
+        );
       }
     } else {
       const isHeader = name === PlannerNodeName.Week || name === PlannerNodeName.Day;
@@ -926,7 +908,7 @@ export function LiftoEditorBrain_contextAt(
       if (label != null && levels[0]?.label !== label) {
         // Week/Day tokens include their trailing linebreak; keep the highlight on the line.
         const end = isHeader ? LiftoEditorActions_endOfExerciseLine(text, node) : node.to;
-        levels.unshift(makeLevel(text, node, label, { end }));
+        levels.unshift(makeLevel(text, tree, node, label, { end }));
       }
     }
   }
@@ -960,10 +942,26 @@ export function LiftoEditorBrain_tokens(cache: LiftoEditorParseCache, text: stri
   const plainSpan = (start: number, end: number): IEditorToken => {
     return { start, end, text: text.slice(start, end), walkStop: true };
   };
+  // A description is one thing to focus however many lines it was written across, so the run's
+  // first `//` is the only one that opens a stop. Resolved once for the document rather than per
+  // comment: this runs on every tap and every focus walk.
+  const descriptionStarts = new Map<number, { from: number; to: number }>();
+  for (const group of PlannerDocument_descriptions(text, tree)) {
+    for (const description of group) {
+      descriptionStarts.set(description.from, description);
+    }
+  }
   tree.iterate({
     enter: (node) => {
       if (node.to <= node.from) {
         return true;
+      }
+      if (node.name === PlannerNodeName.LineComment) {
+        const description = descriptionStarts.get(node.from);
+        if (description != null) {
+          tokens.push(plainSpan(description.from, description.to));
+        }
+        return false;
       }
       const insidePlainStop = plainStopStack.length > 0;
       if (node.name === PlannerNodeName.Liftoscript) {

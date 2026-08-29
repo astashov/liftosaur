@@ -78,7 +78,7 @@ export interface IExerciseLiftoEditorSheetProps {
   // Reported when the body drops the sections out of the text itself (entering freeform) rather
   // than through the toggle — the host records it without remounting, which would bounce the
   // user straight back out of freeform.
-  onSharedHidden?: (localText: string) => void;
+  onSharedHidden?: (localBlurb: string) => void;
   // Autocomplete source for the web CodeMirror body; the native structured editor
   // gets exercise names through its own picker instead.
   exerciseFullNames: string[];

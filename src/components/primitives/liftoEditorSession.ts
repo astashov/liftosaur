@@ -13,6 +13,7 @@ import {
 } from "./liftoEditorBrain";
 import { ILiftoEditorPill } from "./liftoEditorActions";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
+import { PlannerDocument_descriptionAt } from "../../pages/planner/models/plannerDocument";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
 import { Exercise_onerm } from "../../models/exercise";
 import { MathUtils_roundFloat } from "../../utils/math";
@@ -469,6 +470,23 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
     return {
       session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
       effects: { edits: [{ start: scriptBody.start, end: scriptBody.end, text: "{~ ~}" }], keypad: "close" },
+    };
+  }
+  // A description occupies whole lines rather than sitting inside one, so removing it is a
+  // question about lines and the blank ones around them — which the document answers, the same
+  // way it answers which runs are descriptions at all.
+  if (nodeName === PlannerNodeName.LineComment) {
+    const found = PlannerDocument_descriptionAt(text, start, session.cache.parse(text));
+    const description = found != null ? found.siblings[found.index] : undefined;
+    if (description == null) {
+      return { session, effects: {} };
+    }
+    return {
+      session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
+      effects: {
+        edits: [{ start: description.removeFrom, end: description.removeTo, text: "" }],
+        keypad: "close",
+      },
     };
   }
   // Removing a group's sets×reps alone leaves nonsense ("warmup: 40%"; "3x8 100lb" minus

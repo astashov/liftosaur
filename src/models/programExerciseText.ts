@@ -5,6 +5,7 @@ import type { IPlannerEvalResult } from "../pages/planner/plannerExerciseEvaluat
 import { parser as plannerExerciseParser } from "../pages/planner/plannerExerciseParser";
 import { PlannerNodeName } from "../pages/planner/plannerExerciseStyles";
 import { PlannerEvaluator_hoistedProperties } from "../pages/planner/plannerEvaluator";
+import { IPlannerDocumentBlockSpan, PlannerDocument_blockSpans } from "../pages/planner/models/plannerDocument";
 import { CollectionUtils_compact } from "../utils/collection";
 import { IEvaluatedProgram, Program_getAllProgramExercises } from "./program";
 import {
@@ -38,6 +39,38 @@ export function ProgramExerciseText_findDeclaration(
       (e) => e.key === programExercise.key && !e.isRepeat && e.repeating.includes(programExercise.dayData.week)
     ) ?? programExercise
   );
+}
+
+// Where this declaration physically sits in its day. Found by line and confirmed by text:
+// identical exercise lines repeat across weeks and days, and a declaration resolved before an
+// edit landed can name a line that now holds something else — which is exactly what tells a
+// sheet its exercise moved out from under it.
+function declarationSpan(
+  planner: IPlannerProgram,
+  declaration: IPlannerProgramExercise
+): { dayText: string; span: IPlannerDocumentBlockSpan } | undefined {
+  const dayText = planner.weeks[declaration.dayData.week - 1]?.days[declaration.dayData.dayInWeek - 1]?.exerciseText;
+  if (dayText == null) {
+    return undefined;
+  }
+  // Trimmed on both sides, because `declaration.text` is: the span keeps whatever trailing
+  // spaces the line was written with, and those are not a difference in the exercise.
+  const span = PlannerDocument_blockSpans(dayText).find(
+    (s) => s.line === declaration.line && dayText.slice(s.exerciseFrom, s.to).trim() === declaration.text
+  );
+  return span != null ? { dayText, span } : undefined;
+}
+
+// What editing "an exercise" actually covers: the `//` description lines the evaluator attaches
+// to it, plus its own line(s). A surface showing only `declaration.text` hides half of what the
+// user wrote about this exercise — and one that saves only that line leaves the descriptions
+// stranded above whatever ends up there next.
+//
+// Read off the day's source rather than rebuilt from `descriptions.values`: those have already
+// had their `//`, their `!` marker and their indentation stripped, so they can't be spliced back.
+export function ProgramExerciseText_blurb(planner: IPlannerProgram, declaration: IPlannerProgramExercise): string {
+  const found = declarationSpan(planner, declaration);
+  return found != null ? found.dayText.slice(found.span.from, found.span.to) : declaration.text;
 }
 
 // Which properties an instance in a later week is governed by even though its own line never
@@ -191,8 +224,8 @@ export function ProgramExerciseText_sharedSections(
   );
 }
 
-export function ProgramExerciseText_compose(localText: string, shared: { text: string }[]): string {
-  return shared.reduce((acc, section) => `${acc} / ${section.text}`, localText.trimEnd());
+export function ProgramExerciseText_compose(localBlurb: string, shared: { text: string }[]): string {
+  return shared.reduce((acc, section) => `${acc} / ${section.text}`, localBlurb.trimEnd());
 }
 
 // The inverse of compose, but keyed on the property rather than on where compose put it: after
@@ -207,9 +240,9 @@ export function ProgramExerciseText_compose(localText: string, shared: { text: s
 export function ProgramExerciseText_split(
   text: string,
   shared: IProgramExerciseSharedSection[]
-): { localText: string; sharedEdits: IProgramExerciseSharedEdit[] } {
+): { localBlurb: string; sharedEdits: IProgramExerciseSharedEdit[] } {
   if (shared.length === 0) {
-    return { localText: text, sharedEdits: [] };
+    return { localBlurb: text, sharedEdits: [] };
   }
   const sections = exerciseSections(text).filter(isSharedDeclaration);
   const sharedEdits = CollectionUtils_compact(
@@ -218,14 +251,14 @@ export function ProgramExerciseText_split(
       return found != null ? { property: s.property, owners: s.owners, text: found.text } : undefined;
     })
   );
-  let localText = text;
+  let localBlurb = text;
   const cuts = sections
     .filter((section) => shared.some((s) => s.property === section.property))
     .sort((a, b) => b.start - a.start);
   for (const cut of cuts) {
-    localText = cutSection(localText, cut);
+    localBlurb = cutSection(localBlurb, cut);
   }
-  return { localText, sharedEdits };
+  return { localBlurb, sharedEdits };
 }
 
 export function ProgramExerciseText_sharedRanges(text: string, properties: string[]): IProgramExerciseSharedRange[] {
@@ -271,30 +304,28 @@ function groupByOwner(
   return groups;
 }
 
-// Identical exercise lines commonly appear in several weeks (repeated weeks written out),
-// so the replacement must target the declaration's exact day and line, not the first
-// occurrence anywhere in the planner.
+// Identical exercise lines commonly appear in several weeks (repeated weeks written out), so
+// the replacement targets the declaration's own span rather than a search for its text — which
+// could match the same line further down the day and rewrite an exercise nobody was editing.
+//
+// `scope` says how far the replacement reaches: editing the exercise replaces the whole blurb,
+// descriptions included, while a shared property rewritten on another day's line touches that
+// line alone and leaves that day's descriptions where they are.
 export function ProgramExerciseText_replaceInPlanner(
   planner: IPlannerProgram,
   declaration: IPlannerProgramExercise,
-  oldText: string,
-  newText: string
+  newText: string,
+  scope: "blurb" | "exercise"
 ): { planner: IPlannerProgram; dayTextOffset: number } | undefined {
+  const found = declarationSpan(planner, declaration);
+  if (found == null) {
+    return undefined;
+  }
+  const { dayText, span } = found;
+  const at = scope === "blurb" ? span.from : span.exerciseFrom;
+  const newExerciseText = dayText.slice(0, at) + newText + dayText.slice(span.to);
   const weekIndex = declaration.dayData.week - 1;
   const dayIndex = declaration.dayData.dayInWeek - 1;
-  const day = planner.weeks[weekIndex]?.days[dayIndex];
-  if (day == null) {
-    return undefined;
-  }
-  const lineStart = day.exerciseText
-    .split("\n")
-    .slice(0, declaration.line - 1)
-    .reduce((sum, l) => sum + l.length + 1, 0);
-  const at = day.exerciseText.indexOf(oldText, lineStart);
-  if (at === -1) {
-    return undefined;
-  }
-  const newExerciseText = day.exerciseText.slice(0, at) + newText + day.exerciseText.slice(at + oldText.length);
   const newWeeks = planner.weeks.map((w, wi) =>
     wi === weekIndex
       ? { ...w, days: w.days.map((d, di) => (di === dayIndex ? { ...d, exerciseText: newExerciseText } : d)) }
@@ -357,26 +388,28 @@ function evaluatePlannerSafely(
 // aimed at it — and then swapped at the program level, which is what rewrites those
 // references, keeps ladders identical across instances and de-conflicts a colliding name.
 //
-// `trimmed` is the local line only; edits to shared properties land on the lines that declare
-// them. Those go first so the local splice's returned offset — which error ranges are mapped
-// against — is measured against a planner nothing else will move.
+// `localBlurb` is this declaration's whole blurb — its `//` description lines as well as its
+// exercise line — and replaces all of it. Not just the line: the descriptions belong to the
+// exercise, so a surface editing one edits both. Edits to shared properties are the exception,
+// and land on the lines that declare them; those go first so the local splice's returned offset
+// — which error ranges are mapped against — is measured against a planner nothing else will move.
 export function ProgramExerciseText_apply(
   planner: IPlannerProgram,
   declaration: IPlannerProgramExercise,
-  trimmed: string,
+  localBlurb: string,
   sharedEdits: IProgramExerciseSharedEdit[],
   swap: IProgramExerciseSwap | undefined,
   scope: IProgramExerciseSwapScope,
   settings: ISettings
 ): { planner: IPlannerProgram } | { error: IProgramExerciseTextError; notFound?: boolean } {
-  const splicedText = swap != null ? ProgramExerciseSwap_revertedText(trimmed, swap) : trimmed;
+  const splicedText = swap != null ? ProgramExerciseSwap_revertedText(localBlurb, swap) : localBlurb;
   let withShared = planner;
   for (const group of groupByOwner(sharedEdits)) {
     const newOwnerText = rewriteSharedSections(group.owner.text, group.edits);
     if (newOwnerText === group.owner.text) {
       continue;
     }
-    const replacedOwner = ProgramExerciseText_replaceInPlanner(withShared, group.owner, group.owner.text, newOwnerText);
+    const replacedOwner = ProgramExerciseText_replaceInPlanner(withShared, group.owner, newOwnerText, "exercise");
     if (replacedOwner == null) {
       return {
         error: { message: "Couldn't find this exercise in the program anymore, so the changes weren't saved." },
@@ -385,7 +418,7 @@ export function ProgramExerciseText_apply(
     }
     withShared = replacedOwner.planner;
   }
-  const replaced = ProgramExerciseText_replaceInPlanner(withShared, declaration, declaration.text, splicedText);
+  const replaced = ProgramExerciseText_replaceInPlanner(withShared, declaration, splicedText, "blurb");
   if (replaced == null) {
     return {
       error: { message: "Couldn't find this exercise in the program anymore, so the changes weren't saved." },

@@ -469,6 +469,27 @@ describe("LiftoEditorSession", () => {
       expect(removeLevel("Squat / 3x8 / warmup: 1x10 40%", "1x10", "Warmup sets")).to.equal("Squat / 3x8");
     });
 
+    it("removing a description takes its line breaks, not just its text", () => {
+      expect(removeLevel("// Note\nSquat / 3x8", "Note", "Description")).to.equal("Squat / 3x8");
+      expect(removeLevel("// First\n\n// Second\nSquat / 3x8", "First", "Description 1")).to.equal(
+        "// Second\nSquat / 3x8"
+      );
+      expect(removeLevel("// First\n\n// Second\nSquat / 3x8", "Second", "Description 2")).to.equal(
+        "// First\nSquat / 3x8"
+      );
+    });
+
+    it("removing a description leaves the blank line that spaces the exercises apart", () => {
+      expect(removeLevel("Bench Press / 3x8\n\n// Note\nSquat / 3x8", "Note", "Description")).to.equal(
+        "Bench Press / 3x8\n\nSquat / 3x8"
+      );
+    });
+
+    it("removing a description leaves the indentation of the line below it", () => {
+      expect(removeLevel("// Note\n  Squat / 3x8", "Note", "Description")).to.equal("  Squat / 3x8");
+      expect(removeLevel("  // Note\nSquat / 3x8", "Note", "Description")).to.equal("Squat / 3x8");
+    });
+
     it("removing auto eats its leading space", () => {
       expect(removeLevel("Squat / 3x8 100lb auto 60s", "auto", "Auto")).to.equal("Squat / 3x8 100lb 60s");
     });

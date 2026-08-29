@@ -1,5 +1,6 @@
-import { SyntaxNode } from "@lezer/common";
+import { SyntaxNode, Tree } from "@lezer/common";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
+import { PlannerDocument_descriptionAt } from "../../pages/planner/models/plannerDocument";
 import { ITextEdit } from "./liftoEditorBrain";
 import { LiftoEditorStateVars_sanitizeName } from "./liftoEditorStateVars";
 import type { ITextInputModalData } from "../../navigation/ModalStateContext";
@@ -196,6 +197,36 @@ export function LiftoEditorActions_setVariationSections(exercise: SyntaxNode): S
         sets != null &&
         sets.getChildren(PlannerNodeName.ExerciseSet).some((set) => set.getChild(PlannerNodeName.SetPart) != null)
     );
+}
+
+// Same `!` convention as set and exercise variations, but over runs of `//` lines rather than
+// syntax siblings — so it can't go through makeCurrentPill, which keys off a node's children.
+// Which runs exist, which is current and where a marker sits are all the document's answers,
+// not this layer's: see PlannerDocument_descriptions.
+function descriptionPills(text: string, node: SyntaxNode, tree?: Tree): ILiftoEditorPill[] {
+  const found = PlannerDocument_descriptionAt(text, node.from, tree);
+  const target = found != null ? found.siblings[found.index] : undefined;
+  if (found == null || target == null || found.siblings.length < 2 || target.isCurrent) {
+    return [];
+  }
+  const marked = found.siblings.find((d) => d.marker != null);
+  const markerRemoval: ITextEdit | undefined =
+    marked?.marker != null ? { start: marked.marker.from, end: marked.marker.to, text: "" } : undefined;
+  // The first run is current whenever nothing is marked, so making it current is only taking the
+  // other run's marker away — the text never carries a redundant `!` on the first one.
+  if (found.index === 0) {
+    return markerRemoval != null ? [{ label: "Make current", category: "neutral", ...markerRemoval }] : [];
+  }
+  return [
+    {
+      label: "Make current",
+      category: "neutral",
+      start: target.markerAt,
+      end: target.markerAt,
+      text: "! ",
+      extraEdits: markerRemoval != null ? [markerRemoval] : undefined,
+    },
+  ];
 }
 
 // Both variation kinds (set variations, exercise variations) share the `!` convention:
@@ -871,7 +902,9 @@ export function LiftoEditorActions_renameEdit(
   return { start: target.start, end: target.end, text: sanitized };
 }
 
-const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxNode) => ILiftoEditorPill[]>> = {
+const pillBuilders: Partial<
+  Record<PlannerNodeName, (text: string, node: SyntaxNode, tree?: Tree) => ILiftoEditorPill[]>
+> = {
   [PlannerNodeName.ExerciseSet]: setGroupPills,
   [PlannerNodeName.ExerciseVariation]: exerciseVariationPills,
   [PlannerNodeName.ExerciseExpression]: exercisePills,
@@ -887,6 +920,7 @@ const pillBuilders: Partial<Record<PlannerNodeName, (text: string, node: SyntaxN
   [PlannerNodeName.SetLabel]: setLabelPills,
   [PlannerNodeName.Superset]: supersetPills,
   [PlannerNodeName.Repeat]: repeatPills,
+  [PlannerNodeName.LineComment]: descriptionPills,
   // The only ExerciseName level is the synthesized Label one (brain builds its rename pill
   // directly); registering it here makes Label a pill boundary, so focusing a label shows
   // just Rename instead of falling through to the whole exercise's rail.
@@ -953,8 +987,11 @@ const acrossPillDefs: Record<ILiftoEditorAcrossField, IPillDef> = {
   timer: { label: "Change everywhere", category: "timer" },
 };
 
-export function LiftoEditorActions_railForNode(text: string, node: SyntaxNode): ILiftoEditorRail {
-  const own = pillBuilders[node.name as PlannerNodeName]?.(text, node) ?? [];
+// `tree` is optional so a caller that has no parse of its own can still ask; the ones that do —
+// every editor surface — pass it, and the builders that need a document-level answer get it for
+// free instead of parsing the text again.
+export function LiftoEditorActions_railForNode(text: string, node: SyntaxNode, tree?: Tree): ILiftoEditorRail {
+  const own = pillBuilders[node.name as PlannerNodeName]?.(text, node, tree) ?? [];
   // Set-group children with their own rails (sets×reps, timers, set label, and the values that
   // own one only to carry a field-specific action) would otherwise hide the group's additive
   // actions: the walk stops at the first owner, so focusing "3x8" showed only "Make rep range"

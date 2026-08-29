@@ -12,6 +12,7 @@ import {
   IProgramExerciseSharedSection,
   IProgramExerciseTextError,
   ProgramExerciseText_apply,
+  ProgramExerciseText_blurb,
   ProgramExerciseText_compose,
   ProgramExerciseText_findDeclaration,
   ProgramExerciseText_sharedRanges,
@@ -71,13 +72,13 @@ function applyComposed(
   const shared = sharedOf(program, declaration);
   const edited = edit(ProgramExerciseText_compose(declaration.text, shared));
   const split = ProgramExerciseText_split(edited.trim(), shared);
-  const localText = split.localText.trim();
+  const localBlurb = split.localBlurb.trim();
   return ProgramExerciseText_apply(
     program.planner!,
     declaration,
-    localText,
+    localBlurb,
     split.sharedEdits,
-    swapFor(localText, declaration),
+    swapFor(localBlurb, declaration),
     scope,
     settings
   );
@@ -179,6 +180,84 @@ Bench Press / ...Squat
       const result = apply(program, declaration, "Squat / 5x5 100lb");
       expect((result as { notFound?: boolean }).notFound).to.eql(true);
     });
+
+    it("refuses a declaration whose line has moved rather than finding its text further down", () => {
+      const { program } = PlannerTestUtils_get(`# Week 1\n## Day 1\nBench Press / 3x8\nSquat / 3x5 100lb\n`);
+      // What a declaration resolved before something above it changed looks like: the line it
+      // names holds a different exercise now. Searching the day for its text would find it one
+      // line down and rewrite it anyway — on a day with the same exercise written twice, that is
+      // an edit to a line nobody was looking at.
+      const moved = { ...declarationOf(program, "squat_barbell"), line: 1 };
+      const result = apply(program, moved, "Squat / 5x5 100lb");
+      expect((result as { notFound?: boolean }).notFound).to.eql(true);
+    });
+  });
+
+  describe("blurb", () => {
+    it("takes the description lines above the exercise, and the blank lines between them", () => {
+      const { program, planner } = PlannerTestUtils_get(
+        `# Week 1\n## Day 1\n// First\n\n// ! Second\nSquat / 3x5 100lb\n`
+      );
+      const declaration = declarationOf(program, "squat_barbell");
+      expect(ProgramExerciseText_blurb(planner, declaration)).to.eql("// First\n\n// ! Second\nSquat / 3x5 100lb");
+    });
+
+    it("leaves the blank lines that only space the day out to the day", () => {
+      const { program, planner } = PlannerTestUtils_get(
+        `# Week 1\n## Day 1\nBench Press / 3x5\n\n\n// Note\nSquat / 3x5 100lb\n`
+      );
+      const declaration = declarationOf(program, "squat_barbell");
+      expect(ProgramExerciseText_blurb(planner, declaration)).to.eql("// Note\nSquat / 3x5 100lb");
+    });
+
+    it("stops at a `///` comment, which belongs to the day rather than to the exercise", () => {
+      const { program, planner } = PlannerTestUtils_get(
+        `# Week 1\n## Day 1\n/// Accessories\n// Note\nSquat / 3x5 100lb\n`
+      );
+      const declaration = declarationOf(program, "squat_barbell");
+      expect(ProgramExerciseText_blurb(planner, declaration)).to.eql("// Note\nSquat / 3x5 100lb");
+    });
+
+    it("saves an edited description back onto the lines above the exercise", () => {
+      const { program } = PlannerTestUtils_get(`# Week 1\n## Day 1\n// Old note\nSquat / 3x5 100lb\n`);
+      const declaration = declarationOf(program, "squat_barbell");
+      const result = apply(program, declaration, "// New note\nSquat / 5x5 100lb");
+      expect("planner" in result).to.eql(true);
+      expect(dayText((result as { planner: IPlannerProgram }).planner, 1, 1)).to.eql("// New note\nSquat / 5x5 100lb");
+    });
+
+    it("doesn't touch the description of the exercise above when the blurb drops its own", () => {
+      const { program } = PlannerTestUtils_get(
+        `# Week 1\n## Day 1\n// Bench note\nBench Press / 3x5\n\n// Squat note\nSquat / 3x5 100lb\n`
+      );
+      const declaration = declarationOf(program, "squat_barbell");
+      const result = apply(program, declaration, "Squat / 5x5 100lb");
+      expect("planner" in result).to.eql(true);
+      expect(dayText((result as { planner: IPlannerProgram }).planner, 1, 1)).to.eql(
+        "// Bench note\nBench Press / 3x5\n\nSquat / 5x5 100lb"
+      );
+    });
+
+    it("writes a description onto an exercise that had none", () => {
+      const { program } = PlannerTestUtils_get(`# Week 1\n## Day 1\nBench Press / 3x5\nSquat / 3x5 100lb\n`);
+      const declaration = declarationOf(program, "squat_barbell");
+      const result = apply(program, declaration, "// Pause at the bottom\nSquat / 3x5 100lb");
+      expect("planner" in result).to.eql(true);
+      expect(dayText((result as { planner: IPlannerProgram }).planner, 1, 1)).to.eql(
+        "Bench Press / 3x5\n// Pause at the bottom\nSquat / 3x5 100lb"
+      );
+    });
+
+    it("edits the week it was asked for when the same description repeats across weeks", () => {
+      const text = `# Week 1\n## Day 1\n// Note\nSquat / 3x5 100lb\n\n# Week 2\n## Day 1\n// Note\nSquat / 3x5 100lb\n`;
+      const { program } = PlannerTestUtils_get(text);
+      const week2 = declarationOf(program, "squat_barbell", 2);
+      const result = apply(program, week2, "// Week 2 note\nSquat / 3x5 100lb");
+      expect("planner" in result).to.eql(true);
+      const planner = (result as { planner: IPlannerProgram }).planner;
+      expect(dayText(planner, 1, 1)).to.eql("// Note\nSquat / 3x5 100lb");
+      expect(dayText(planner, 2, 1)).to.eql("// Week 2 note\nSquat / 3x5 100lb");
+    });
   });
 
   describe("shared properties", () => {
@@ -220,7 +299,7 @@ Bench Press / ...Squat
       const composed = ProgramExerciseText_compose(declaration.text, shared);
       expect(composed).to.eql("Squat / 3x8 90lb / warmup: 2x5 45lb / progress: lp(5lb)");
       const split = ProgramExerciseText_split(composed, shared);
-      expect(split.localText).to.eql("Squat / 3x8 90lb");
+      expect(split.localBlurb).to.eql("Squat / 3x8 90lb");
       expect(split.sharedEdits.map((e) => e.text)).to.eql(["warmup: 2x5 45lb", "progress: lp(5lb)"]);
     });
 
@@ -279,11 +358,11 @@ Bench Press / ...Squat
       // Nothing composed it in — this is the "Add progress" pill pressed on a week that
       // already inherits one, which used to save an unresolvable duplicate.
       const split = ProgramExerciseText_split("Squat / 3x8 90lb / progress: dp(5lb, 8, 12)", shared);
-      expect(split.localText).to.eql("Squat / 3x8 90lb");
+      expect(split.localBlurb).to.eql("Squat / 3x8 90lb");
       const result = ProgramExerciseText_apply(
         program.planner!,
         declaration,
-        split.localText,
+        split.localBlurb,
         split.sharedEdits,
         undefined,
         "all",
@@ -325,7 +404,7 @@ Squat / 3x8 90lb
       const result = ProgramExerciseText_apply(
         program.planner!,
         declaration,
-        split.localText,
+        split.localBlurb,
         split.sharedEdits,
         undefined,
         "all",
@@ -419,11 +498,11 @@ Squat / 3x8 90lb
       // per-day opt-out — routing it to Week 1 would replace that week's real progression.
       const split = ProgramExerciseText_split("Squat / 3x8 90lb / progress: none", shared);
       expect(split.sharedEdits).to.eql([]);
-      expect(split.localText).to.eql("Squat / 3x8 90lb / progress: none");
+      expect(split.localBlurb).to.eql("Squat / 3x8 90lb / progress: none");
       const result = ProgramExerciseText_apply(
         program.planner!,
         declaration,
-        split.localText,
+        split.localBlurb,
         split.sharedEdits,
         undefined,
         "all",

@@ -652,6 +652,74 @@ describe("LiftoEditorActions", () => {
     });
   });
 
+  describe("description make current", () => {
+    const two = "// First\n\n// Second\nSquat / 3x8";
+
+    it("marks a non-first description with !", () => {
+      expect(LiftoEditorTestUtils_pressPill(two, "Second", "Description 2", "Make current")).to.equal(
+        "// First\n\n// ! Second\nSquat / 3x8"
+      );
+    });
+
+    it("makes the first description current by unmarking the other", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill("// First\n\n// ! Second\nSquat / 3x8", "First", "Description 1", "Make current")
+      ).to.equal("// First\n\n// Second\nSquat / 3x8");
+    });
+
+    it("moves the marker between non-first descriptions in one press", () => {
+      expect(
+        LiftoEditorTestUtils_pressPill(
+          "// First\n\n// ! Second\n\n// Third\nSquat / 3x8",
+          "Third",
+          "Description 3",
+          "Make current"
+        )
+      ).to.equal("// First\n\n// Second\n\n// ! Third\nSquat / 3x8");
+    });
+
+    it("offers no pill on the current description", () => {
+      expect(LiftoEditorTestUtils_pillLabels(two, "First", "Description 1")).to.not.include("Make current");
+      expect(
+        LiftoEditorTestUtils_pillLabels("// First\n\n// ! Second\nSquat / 3x8", "Second", "Description 2")
+      ).to.not.include("Make current");
+    });
+
+    it("offers no pill for a single description, however many lines it spans", () => {
+      expect(LiftoEditorTestUtils_pillLabels("// One\n// two lines\nSquat / 3x8", "One", "Description")).to.deep.equal(
+        []
+      );
+    });
+
+    it("doesn't count an empty // stopper as a description of its own", () => {
+      expect(LiftoEditorTestUtils_pillLabels("//\n\n// Note\nSquat / 3x8", "Note", "Description")).to.deep.equal([]);
+    });
+
+    it("belongs to the exercise below it, not the one above", () => {
+      const text = "// Bench note\nBench Press / 3x8\n\n// Squat note\nSquat / 3x8";
+      expect(LiftoEditorTestUtils_pillLabels(text, "Squat note", "Description")).to.deep.equal([]);
+    });
+
+    // The evaluator's marker test is `/^\s*!/`, so a tab counts. Reading it as "not marked"
+    // offered a pill that added a second `!` and changed nothing.
+    it("sees a tab-indented marker, so it doesn't offer to mark a second run", () => {
+      const text = "// First\n\n//\t! Second\nSquat / 3x8";
+      expect(LiftoEditorTestUtils_pillLabels(text, "Second", "Description 2")).to.deep.equal([]);
+      expect(LiftoEditorTestUtils_pillLabels(text, "First", "Description 1")).to.include("Make current");
+    });
+
+    // The evaluator strips the marker before dropping runs that say nothing, so `// !` is not a
+    // description at all — and `Note` is the only one there is.
+    it("doesn't count a run that is only a marker", () => {
+      expect(LiftoEditorTestUtils_pillLabels("// !\n\n// Note\nSquat / 3x8", "Note", "Description")).to.deep.equal([]);
+    });
+
+    it("offers nothing on comments the evaluator gives to no exercise", () => {
+      const text = "Squat / 3x8\n\n// First\n\n// Second";
+      expect(LiftoEditorTestUtils_contextAt(text, "Second").levels).to.deep.equal([]);
+    });
+  });
+
   describe("exercise variation pills", () => {
     it("marks a non-first variation with !", () => {
       expect(

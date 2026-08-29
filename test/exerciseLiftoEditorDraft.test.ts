@@ -72,7 +72,7 @@ describe("EditorSheetDraft", () => {
     expect(hidden).to.eql("Squat / 4x8 95lb");
     draft = ExerciseLiftoEditorDraft_fromEditor(draft, hidden);
     expect(ExerciseLiftoEditorDraft_isDirty(draft)).to.eql(true);
-    expect(draft.localText).to.eql("Squat / 4x8 95lb");
+    expect(draft.localBlurb).to.eql("Squat / 4x8 95lb");
   });
 
   it("reports a shared edit made while visible, and keeps it after hiding", () => {
@@ -120,7 +120,7 @@ describe("EditorSheetDraft", () => {
 
     const freshShared = shared.map((s) => (s.property === "progress" ? { ...s, text: "progress: lp(25lb)" } : s));
     const pending = ExerciseLiftoEditorDraft_pendingChange(draft, freshShared);
-    expect(pending.localText).to.eql("Squat / 4x8 95lb");
+    expect(pending.localBlurb).to.eql("Squat / 4x8 95lb");
     expect(pending.sharedEdits).to.eql([]);
   });
 

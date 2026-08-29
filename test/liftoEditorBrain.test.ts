@@ -22,6 +22,10 @@ function breadcrumbAt(text: string, needle: string, occurrence: number = 0): str
   return LiftoEditorTestUtils_contextAt(text, needle, occurrence).breadcrumb;
 }
 
+function tokensOf(text: string): IEditorToken[] {
+  return LiftoEditorBrain_tokens(new LiftoEditorParseCache(), text);
+}
+
 function tokenAt(text: string, needle: string, occurrence: number = 0): IEditorToken | undefined {
   const index = LiftoEditorTestUtils_pos(text, needle, occurrence);
   return LiftoEditorBrain_tokens(new LiftoEditorParseCache(), text).find(
@@ -117,6 +121,18 @@ describe("LiftoEditorBrain", () => {
       const level = LiftoEditorTestUtils_contextAt(text, "3x8").levels[0];
       expect(text.slice(level.start, level.end)).to.equal("Squat / 3x8");
     });
+
+    it("covers the whole description run wherever inside it the tap lands", () => {
+      const text = "// Pause at\n// the bottom\nSquat / 3x8";
+      const level = LiftoEditorTestUtils_contextAt(text, "bottom").levels[0];
+      expect(level.label).to.equal("Description");
+      expect(text.slice(level.start, level.end)).to.equal("// Pause at\n// the bottom");
+    });
+
+    it("numbers the descriptions only when the exercise has several", () => {
+      expect(breadcrumbAt("// Note\nSquat / 3x8", "Note")).to.deep.equal(["Description"]);
+      expect(breadcrumbAt("// First\n\n// Second\nSquat / 3x8", "Second")).to.deep.equal(["Description 2"]);
+    });
   });
 
   describe("dayDataAt", () => {
@@ -198,6 +214,21 @@ describe("LiftoEditorBrain", () => {
       expect(tokenAt(text, "rating")?.walkStop).to.equal(true);
       const value = tokenAt(text, "5");
       expect(value?.numeric?.kind).to.equal("number");
+    });
+
+    it("makes a whole description one stop, however many lines it spans", () => {
+      const text = "// Pause at\n// the bottom\nSquat / 3x8";
+      const stops = tokensOf(text).filter((t) => t.walkStop);
+      expect(stops[0].text).to.equal("// Pause at\n// the bottom");
+      expect(stops[1].text).to.equal("Squat");
+    });
+
+    it("makes each description its own stop", () => {
+      const text = "// First\n\n// Second\nSquat / 3x8";
+      const stops = tokensOf(text)
+        .filter((t) => t.walkStop)
+        .map((t) => t.text);
+      expect(stops.slice(0, 2)).to.deep.equal(["// First", "// Second"]);
     });
   });
 
