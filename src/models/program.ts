@@ -65,7 +65,7 @@ import {
 } from "../utils/object";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
-import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage } from "../types";
+import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage, IScriptErrorHandler } from "../types";
 import {
   ProgramExercise_approxTimeMs,
   ProgramExercise_applyVariables,
@@ -653,7 +653,8 @@ export function Program_runAllFinishDayScripts(
   program: IProgram,
   progress: IHistoryRecord,
   stats: IStats,
-  settings: ISettings
+  settings: ISettings,
+  onError?: IScriptErrorHandler
 ): { program: IProgram; exerciseData: IExerciseData } {
   const exerciseData: IExerciseData = {};
   const newEvaluatedProgram = Program_forceEvaluate(program, settings);
@@ -699,7 +700,12 @@ export function Program_runAllFinishDayScripts(
             });
           }
         } else {
-          Dialog_alert(`There was an error executing progress script: ${newStateResult.error}`);
+          const message = `There was an error executing progress script: ${newStateResult.error}`;
+          if (onError) {
+            onError(message);
+          } else {
+            Dialog_alert(message);
+          }
         }
       }
     }

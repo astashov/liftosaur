@@ -39,11 +39,30 @@ import {
   ApiV1_updateMeasurement,
   ApiV1_deleteMeasurement,
 } from "../utils/apiv1Measurements";
+import {
+  ApiV1_getNextWorkout,
+  ApiV1_startWorkout,
+  ApiV1_getCurrentWorkout,
+  ApiV1_writeSets,
+  ApiV1_finishWorkout,
+  ApiV1_discardWorkout,
+  ApiV1_getWorkoutSettings,
+  IApiWorkoutContext,
+} from "../utils/apiv1Workout";
 import { EventDao } from "../dao/eventDao";
 
 interface IPayload {
   event: APIGatewayProxyEvent;
   di: IDI;
+}
+
+function getWorkoutContext(event: APIGatewayProxyEvent): IApiWorkoutContext {
+  const headers = event.headers || {};
+  const header = (name: string): string | undefined => headers[name] ?? headers[name.toLowerCase()];
+  return {
+    client: header("X-Liftosaur-Client"),
+    deviceId: header("X-Liftosaur-Device-Id"),
+  };
 }
 
 function getBodyJson(event: APIGatewayProxyEvent): Record<string, unknown> {
@@ -513,5 +532,116 @@ export const deleteV1MeasurementHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-measurement", async (auth) => {
     return resultToResponse(await ApiV1_deleteMeasurement(auth.userId, auth.user, params.key, params.timestamp, di));
+  });
+};
+
+export const getV1WorkoutNextEndpoint = Endpoint.build("/api/v1/workout/next", {
+  programId: "string?",
+  week: "string?",
+  dayInWeek: "string?",
+});
+export const getV1WorkoutNextHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1WorkoutNextEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-workout-next", async (auth) => {
+    return resultToResponse(await ApiV1_getNextWorkout(auth.userId, auth.user, params, di));
+  });
+};
+
+export const postV1WorkoutStartEndpoint = Endpoint.build("/api/v1/workout/start");
+export const postV1WorkoutStartHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1WorkoutStartEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-start-workout", async (auth) => {
+    return resultToResponse(
+      await ApiV1_startWorkout(auth.userId, auth.user, getBodyJson(event), getWorkoutContext(event), di)
+    );
+  });
+};
+
+export const getV1WorkoutCurrentEndpoint = Endpoint.build("/api/v1/workout/current");
+export const getV1WorkoutCurrentHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1WorkoutCurrentEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-workout-current", async (auth) => {
+    return resultToResponse(await ApiV1_getCurrentWorkout(auth.userId, auth.user, di));
+  });
+};
+
+export const deleteV1WorkoutCurrentEndpoint = Endpoint.build("/api/v1/workout/current");
+export const deleteV1WorkoutCurrentHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1WorkoutCurrentEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-discard-workout", async (auth) => {
+    return resultToResponse(
+      await ApiV1_discardWorkout(auth.userId, auth.user, getBodyJson(event), getWorkoutContext(event), di)
+    );
+  });
+};
+
+// A single-set write is a batch of one, so both endpoints share a code path.
+export const postV1WorkoutSetEndpoint = Endpoint.build("/api/v1/workout/set");
+export const postV1WorkoutSetHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1WorkoutSetEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-write-workout-set", async (auth) => {
+    return resultToResponse(
+      await ApiV1_writeSets(auth.userId, auth.user, { sets: [getBodyJson(event)] }, getWorkoutContext(event), di)
+    );
+  });
+};
+
+export const postV1WorkoutSetsEndpoint = Endpoint.build("/api/v1/workout/sets");
+export const postV1WorkoutSetsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1WorkoutSetsEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-write-workout-sets", async (auth) => {
+    return resultToResponse(
+      await ApiV1_writeSets(auth.userId, auth.user, getBodyJson(event), getWorkoutContext(event), di)
+    );
+  });
+};
+
+export const postV1WorkoutFinishEndpoint = Endpoint.build("/api/v1/workout/finish");
+export const postV1WorkoutFinishHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1WorkoutFinishEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-finish-workout", async (auth) => {
+    return resultToResponse(
+      await ApiV1_finishWorkout(auth.userId, auth.user, getBodyJson(event), getWorkoutContext(event), di)
+    );
+  });
+};
+
+export const getV1SettingsEndpoint = Endpoint.build("/api/v1/settings");
+export const getV1SettingsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1SettingsEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-settings", async (auth) => {
+    return resultToResponse(ApiV1_getWorkoutSettings(auth.user));
   });
 };

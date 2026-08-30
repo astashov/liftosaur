@@ -75,7 +75,7 @@ import {
 import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
 import { SendMessage_print } from "../utils/sendMessage";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { IPercentage } from "../types";
+import { IPercentage, IScriptErrorHandler } from "../types";
 import {
   History_workoutTime,
   History_createCustomEntry,
@@ -961,7 +961,8 @@ export function Progress_runUpdateScript(
   setIndex: number,
   mode: IProgressMode,
   settings: ISettings,
-  stats: IStats
+  stats: IStats,
+  onError?: IScriptErrorHandler
 ): IHistoryRecord {
   if (mode === "warmup") {
     return aProgress;
@@ -981,7 +982,12 @@ export function Progress_runUpdateScript(
   } catch (error) {
     const e = error as Error;
     console.error(e);
-    Dialog_alert(`Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`);
+    const message = `Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`;
+    if (onError) {
+      onError(message);
+    } else {
+      Dialog_alert(message);
+    }
     newEntry = entry;
   }
   const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
@@ -2033,7 +2039,8 @@ export function Progress_changeAmrapAction(
   stats: IStats,
   progress: IHistoryRecord,
   action: IChangeAMRAPAction,
-  subscription: ISubscription | undefined
+  subscription: ISubscription | undefined,
+  onError?: IScriptErrorHandler
 ): IHistoryRecord {
   let newProgress = { ...progress };
   if (
@@ -2071,7 +2078,8 @@ export function Progress_changeAmrapAction(
       action.setIndex,
       "workout",
       settings,
-      stats
+      stats,
+      onError
     );
   }
   if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
@@ -2128,7 +2136,8 @@ export function Progress_completeSetAction(
   stats: IStats,
   progress: IHistoryRecord,
   action: ICompleteSetAction,
-  subscription: ISubscription | undefined
+  subscription: ISubscription | undefined,
+  onError?: IScriptErrorHandler
 ): IHistoryRecord {
   const setTimerModal = progress.setTimer;
   const wasSetTimerOpen =
@@ -2241,7 +2250,8 @@ export function Progress_completeSetAction(
       action.setIndex,
       action.mode,
       settings,
-      stats
+      stats,
+      onError
     );
   }
 

@@ -319,6 +319,11 @@ export type ITargetType = v.InferOutput<typeof VTargetType>;
 export const VProgressMode = v.picklist(["warmup", "workout"] as const);
 export type IProgressMode = v.InferOutput<typeof VProgressMode>;
 
+// Liftoscript runtime failures are shown to the user as an alert and the offending change is dropped. Callers
+// with no UI (the public API in lambda) pass this instead, so a failed script can be surfaced as an error
+// response rather than silently no-opping.
+export type IScriptErrorHandler = (message: string) => void;
+
 export const VProgramTag = v.picklist([
   "first-starter",
   "beginner",
@@ -1004,6 +1009,9 @@ export interface IHistoryRecord {
   currentEntryIndex?: number;
   notes?: string;
   updatedAt?: number;
+  // Which client wrote this workout, from the X-Liftosaur-Client header on the public API. Absent for
+  // anything logged in our own apps. Provenance can't be reconstructed later, so it's recorded at write time.
+  source?: string;
 }
 const _VHistoryRecord = v.object({
   vtype: v.union([v.literal("history_record"), v.literal("progress")]),
@@ -1051,6 +1059,7 @@ const _VHistoryRecord = v.object({
   currentEntryIndex: v.optional(v.number()),
   notes: v.optional(v.string()),
   updatedAt: v.optional(v.number()),
+  source: v.optional(v.string()),
 });
 const _VHistoryRecordMatches: IEquals<v.InferOutput<typeof _VHistoryRecord>, IHistoryRecord> = true;
 void _VHistoryRecordMatches;

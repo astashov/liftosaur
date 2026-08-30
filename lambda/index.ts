@@ -180,6 +180,22 @@ import {
   putV1MeasurementHandler,
   deleteV1MeasurementEndpoint,
   deleteV1MeasurementHandler,
+  getV1WorkoutNextEndpoint,
+  getV1WorkoutNextHandler,
+  postV1WorkoutStartEndpoint,
+  postV1WorkoutStartHandler,
+  getV1WorkoutCurrentEndpoint,
+  getV1WorkoutCurrentHandler,
+  deleteV1WorkoutCurrentEndpoint,
+  deleteV1WorkoutCurrentHandler,
+  postV1WorkoutSetEndpoint,
+  postV1WorkoutSetHandler,
+  postV1WorkoutSetsEndpoint,
+  postV1WorkoutSetsHandler,
+  postV1WorkoutFinishEndpoint,
+  postV1WorkoutFinishHandler,
+  getV1SettingsEndpoint,
+  getV1SettingsHandler,
 } from "./api/v1";
 import {
   getMcpEndpoint,
@@ -3964,6 +3980,14 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postV1MeasurementEndpoint, postV1MeasurementHandler)
       .put(putV1MeasurementEndpoint, putV1MeasurementHandler)
       .delete(deleteV1MeasurementEndpoint, deleteV1MeasurementHandler)
+      .get(getV1WorkoutNextEndpoint, getV1WorkoutNextHandler)
+      .post(postV1WorkoutStartEndpoint, postV1WorkoutStartHandler)
+      .get(getV1WorkoutCurrentEndpoint, getV1WorkoutCurrentHandler)
+      .delete(deleteV1WorkoutCurrentEndpoint, deleteV1WorkoutCurrentHandler)
+      .post(postV1WorkoutSetEndpoint, postV1WorkoutSetHandler)
+      .post(postV1WorkoutSetsEndpoint, postV1WorkoutSetsHandler)
+      .post(postV1WorkoutFinishEndpoint, postV1WorkoutFinishHandler)
+      .get(getV1SettingsEndpoint, getV1SettingsHandler)
       .get(getMcpEndpoint, getMcpHandler)
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)

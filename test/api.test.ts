@@ -1112,6 +1112,627 @@ Squat / 3x5 / 100lb`;
     });
   });
 
+  describe("workout endpoints", () => {
+    let apiKey: string;
+    let programId: string;
+    const ctx = { getRemainingTimeInMillis: () => 10000 };
+
+    const PROGRAM_TEXT = `# Week 1
+## Day 1
+Squat / 3x5 / 100lb / progress: lp(5lb)
+Bench Press / 2x8 / 50lb
+
+## Day 2
+Deadlift / 1x5 / 200lb`;
+
+    async function req(
+      method: string,
+      path: string,
+      body?: unknown,
+      headers?: Record<string, string>
+    ): Promise<{ status: number; data: any }> {
+      const result = await handler(
+        buildEvent(method, path, { headers: { ...apiHeaders(apiKey), ...(headers || {}) }, body }),
+        ctx
+      );
+      return { status: result.statusCode, data: parseBody(result) };
+    }
+
+    const clientHeaders = { "X-Liftosaur-Client": "test-client/1.2.0", "X-Liftosaur-Device-Id": "test-device-abc123" };
+
+    async function startWorkout(body?: unknown): Promise<{ status: number; data: any }> {
+      return req("POST", "/api/v1/workout/start", { programId, ...(body || {}) }, clientHeaders);
+    }
+
+    function firstWorkingSet(workout: any): { entryId: string; setId: string } {
+      const entry = workout.entries[0];
+      return { entryId: entry.entryId, setId: entry.sets[0].setId };
+    }
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Workout Key");
+      apiKey = created!.key;
+      const program = await req("POST", "/api/v1/programs", { name: "Test Program", text: PROGRAM_TEXT });
+      programId = program.data.data.id;
+    });
+
+    // Guards docs/content/api.md: the published example payload is what a third-party client codes against,
+    // so a field renamed or dropped here should fail loudly rather than silently invalidate the docs.
+    it("returns exactly the documented payload shape", async () => {
+      const next = await req("GET", `/api/v1/workout/next?programId=${programId}`);
+      const workout = next.data.data.workout;
+      expect(Object.keys(workout).sort()).to.deep.equal(
+        ["dayData", "dayName", "entries", "programId", "programName", "startTime"].sort()
+      );
+      expect(Object.keys(workout.dayData).sort()).to.deep.equal(["day", "dayInWeek", "week"].sort());
+      expect(Object.keys(workout.entries[0]).sort()).to.deep.equal(
+        [
+          "description",
+          "equipment",
+          "entryId",
+          "exerciseId",
+          "hasUpdateScript",
+          "imageUrl",
+          "name",
+          "notes",
+          "promptedVars",
+          "sets",
+          "superset",
+          "warmupSets",
+        ].sort()
+      );
+      expect(Object.keys(workout.entries[0].sets[0]).sort()).to.deep.equal(
+        [
+          "askWeight",
+          "completed",
+          "index",
+          "isAmrap",
+          "isUnilateral",
+          "isWarmup",
+          "logRpe",
+          "minReps",
+          "originalWeight",
+          "plates",
+          "reps",
+          "rpe",
+          "setId",
+          "setTimer",
+          "timer",
+          "weight",
+        ].sort()
+      );
+      // entryId is the exercise key plus any label — the docs say so, because it isn't unique.
+      expect(workout.entries[0].entryId).to.equal("squat_barbell");
+      expect(workout.entries[0].exerciseId).to.equal("squat_barbell");
+      // A path, not an absolute URL.
+      expect(workout.entries[0].imageUrl).to.match(/^\/externalimages\//);
+    });
+
+    it("previews the next workout without creating one", async () => {
+      const next = await req("GET", `/api/v1/workout/next?programId=${programId}`);
+      expect(next.status).to.equal(200);
+      expect(next.data.data.workout.dayName).to.equal("Day 1");
+      expect(next.data.data.workout.entries.length).to.equal(2);
+
+      const squat = next.data.data.workout.entries[0];
+      expect(squat.name).to.equal("Squat");
+      expect(squat.sets.length).to.equal(3);
+      expect(squat.sets[0].reps).to.equal(5);
+      expect(squat.sets[0].weight).to.equal("100lb");
+      expect(squat.sets[0].completed).to.equal(null);
+      expect(squat.hasUpdateScript).to.equal(false);
+
+      // Preview creates nothing.
+      const current = await req("GET", "/api/v1/workout/current");
+      expect(current.data.data.workout).to.equal(null);
+    });
+
+    // When a program leaves a rest timer blank, the payload has to carry the user's own default rather than an
+    // empty field for the client to guess at. Returning the raw set.timer gives null for every program that
+    // doesn't set one explicitly.
+    it("resolves rest timers against the user's defaults", async () => {
+      const withTimer = await req("POST", "/api/v1/programs", {
+        name: "Timers",
+        text: `# Week 1\n## Day 1\nSquat / 3x5 / 100lb 240s\nBench Press / 2x8 / 50lb`,
+      });
+      const pid = withTimer.data.data.id;
+      const next = await req("GET", `/api/v1/workout/next?programId=${pid}`);
+      const [squat, bench] = next.data.data.workout.entries;
+
+      // An explicit program timer wins.
+      expect(squat.sets[0].timer).to.equal(240);
+      // A blank one falls back to settings.timers.workout, never null.
+      expect(bench.sets[0].timer).to.equal(180);
+      // Warmups take the warmup default, never the working-set timer.
+      for (const entry of [squat, bench]) {
+        for (const w of entry.warmupSets) {
+          expect(w.timer).to.equal(90);
+        }
+      }
+    });
+
+    it("404s for a week/day not in the program", async () => {
+      const next = await req("GET", `/api/v1/workout/next?programId=${programId}&week=3&dayInWeek=1`);
+      expect(next.status).to.equal(404);
+      expect(next.data.error.code).to.equal("day_not_found");
+    });
+
+    it("runs a whole workout: start, log sets, finish", async () => {
+      const started = await startWorkout();
+      expect(started.status).to.equal(200);
+      const startTime = started.data.data.workout.startTime;
+      const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+
+      const logged = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { entryId, setId, completed: { reps: 5, weight: "100lb" } },
+        clientHeaders
+      );
+      expect(logged.status).to.equal(200);
+      const set = logged.data.data.workout.entries[0].sets[0];
+      expect(set.completed.reps).to.equal(5);
+      expect(set.completed.weight).to.equal("100lb");
+
+      const finished = await req(
+        "POST",
+        "/api/v1/workout/finish",
+        { startTime, endTime: startTime + 3600000 },
+        clientHeaders
+      );
+      expect(finished.status).to.equal(200);
+      // startTime becomes the finished record's id.
+      expect(finished.data.data.workout.id).to.equal(startTime);
+      expect(finished.data.data.workout.endTime).to.equal(startTime + 3600000);
+      // The day pointer advanced, so the next workout is Day 2.
+      expect(finished.data.data.workout.nextDay.dayName).to.equal("Day 2");
+
+      const after = await req("GET", "/api/v1/workout/current");
+      expect(after.data.data.workout).to.equal(null);
+
+      const history = await req("GET", "/api/v1/history");
+      expect(history.data.data.records.length).to.equal(1);
+
+      const next = await req("GET", `/api/v1/workout/next?programId=${programId}`);
+      expect(next.data.data.workout.dayName).to.equal("Day 2");
+    });
+
+    it("records the client as the record's source", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+      await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+
+      const record = di.dynamo.data[userTableNames.prod.historyRecords][
+        JSON.stringify({ id: startTime, userId })
+      ] as any;
+      expect(record.source).to.equal("test-client/1.2.0");
+    });
+
+    it("treats a replayed finish as idempotent", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+
+      const first = await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+      expect(first.status).to.equal(200);
+      const second = await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+      expect(second.status).to.equal(200);
+      expect(second.data.data.workout.id).to.equal(first.data.data.workout.id);
+
+      // No second record, and the pointer advanced exactly once.
+      const history = await req("GET", "/api/v1/history");
+      expect(history.data.data.records.length).to.equal(1);
+      const next = await req("GET", `/api/v1/workout/next?programId=${programId}`);
+      expect(next.data.data.workout.dayName).to.equal("Day 2");
+    });
+
+    it("returns the live workout when start is retried for the same day", async () => {
+      const first = await startWorkout();
+      const retry = await startWorkout();
+      expect(retry.status).to.equal(200);
+      expect(retry.data.data.workout.startTime).to.equal(first.data.data.workout.startTime);
+    });
+
+    it("409s when a different workout is already live", async () => {
+      await startWorkout();
+      const other = await req("POST", "/api/v1/workout/start", { programId, week: 1, dayInWeek: 2 }, clientHeaders);
+      expect(other.status).to.equal(409);
+      expect(other.data.error.code).to.equal("workout_already_active");
+    });
+
+    it("409s when the supplied startTime is already a history record's id", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+      await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+
+      const again = await startWorkout({ startTime });
+      expect(again.status).to.equal(409);
+      expect(again.data.error.code).to.equal("workout_start_time_taken");
+    });
+
+    it("accepts client-supplied offline timestamps", async () => {
+      const realStart = 1600000000000;
+      const started = await startWorkout({ startTime: realStart });
+      expect(started.data.data.workout.startTime).to.equal(realStart);
+
+      const finished = await req(
+        "POST",
+        "/api/v1/workout/finish",
+        {
+          startTime: realStart,
+          endTime: realStart + 3600000,
+          intervals: [[realStart, realStart + 3600000]],
+        },
+        clientHeaders
+      );
+      expect(finished.status).to.equal(200);
+      expect(finished.data.data.workout.endTime).to.equal(realStart + 3600000);
+    });
+
+    it("rejects intervals that disagree with startTime", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+      const finished = await req(
+        "POST",
+        "/api/v1/workout/finish",
+        { startTime, intervals: [[startTime + 5, startTime + 100]] },
+        clientHeaders
+      );
+      expect(finished.status).to.equal(400);
+      expect(finished.data.error.code).to.equal("invalid_input");
+    });
+
+    it("appends a set with a client-minted id, and a replayed append is a no-op", async () => {
+      const started = await startWorkout();
+      const { entryId } = firstWorkingSet(started.data.data.workout);
+
+      const appended = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { entryId, setId: "qwertz", append: true, completed: { reps: 8, weight: "105lb" } },
+        clientHeaders
+      );
+      expect(appended.status).to.equal(200);
+      const sets = appended.data.data.workout.entries[0].sets;
+      expect(sets.length).to.equal(4);
+      expect(sets[3].setId).to.equal("qwertz");
+      expect(sets[3].completed.reps).to.equal(8);
+
+      const replay = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { entryId, setId: "qwertz", append: true, completed: { reps: 8, weight: "105lb" } },
+        clientHeaders
+      );
+      expect(replay.data.data.workout.entries[0].sets.length).to.equal(4);
+    });
+
+    it("rejects an appended setId that isn't the app's uid format", async () => {
+      const started = await startWorkout();
+      const { entryId } = firstWorkingSet(started.data.data.workout);
+      const bad = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { entryId, setId: "NOT-A-UID-123", append: true, completed: { reps: 8 } },
+        clientHeaders
+      );
+      expect(bad.status).to.equal(400);
+      expect(bad.data.error.message).to.include("6 lowercase letters");
+    });
+
+    it("applies a batch in order in one call", async () => {
+      const started = await startWorkout();
+      const entry = started.data.data.workout.entries[0];
+      const writes = entry.sets.map((s: any, i: number) => ({
+        entryId: entry.entryId,
+        setId: s.setId,
+        completed: { reps: 5 - i, weight: "100lb" },
+      }));
+
+      const batch = await req("POST", "/api/v1/workout/sets", { sets: writes }, clientHeaders);
+      expect(batch.status).to.equal(200);
+      const sets = batch.data.data.workout.entries[0].sets;
+      expect(sets.map((s: any) => s.completed.reps)).to.deep.equal([5, 4, 3]);
+    });
+
+    it("rejects a set write whose entryId disagrees with the set", async () => {
+      const started = await startWorkout();
+      const { setId } = firstWorkingSet(started.data.data.workout);
+      const bad = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { entryId: "not_the_right_entry", setId, completed: { reps: 5 } },
+        clientHeaders
+      );
+      expect(bad.status).to.equal(400);
+      expect(bad.data.error.code).to.equal("invalid_input");
+    });
+
+    it("404s for an unknown setId", async () => {
+      await startWorkout();
+      const missing = await req(
+        "POST",
+        "/api/v1/workout/set",
+        { setId: "zzzzzz", completed: { reps: 5 } },
+        clientHeaders
+      );
+      expect(missing.status).to.equal(404);
+      expect(missing.data.error.code).to.equal("set_not_found");
+    });
+
+    it("un-completes a set when completed is null", async () => {
+      const started = await startWorkout();
+      const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+      await req("POST", "/api/v1/workout/set", { entryId, setId, completed: { reps: 5 } }, clientHeaders);
+
+      const uncompleted = await req("POST", "/api/v1/workout/set", { entryId, setId, completed: null }, clientHeaders);
+      expect(uncompleted.status).to.equal(200);
+      expect(uncompleted.data.data.workout.entries[0].sets[0].completed).to.equal(null);
+    });
+
+    it("discards only the workout the client names", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+
+      const wrong = await req("DELETE", "/api/v1/workout/current", { startTime: startTime + 1 }, clientHeaders);
+      expect(wrong.status).to.equal(409);
+      const stillLive = await req("GET", "/api/v1/workout/current");
+      expect(stillLive.data.data.workout).to.not.equal(null);
+
+      const right = await req("DELETE", "/api/v1/workout/current", { startTime }, clientHeaders);
+      expect(right.status).to.equal(200);
+      const gone = await req("GET", "/api/v1/workout/current");
+      expect(gone.data.data.workout).to.equal(null);
+      // Discarding writes no history.
+      const history = await req("GET", "/api/v1/history");
+      expect(history.data.data.records.length).to.equal(0);
+    });
+
+    it("404s writing a set with no workout in progress", async () => {
+      const noop = await req("POST", "/api/v1/workout/set", { setId: "abcdef", completed: { reps: 5 } }, clientHeaders);
+      expect(noop.status).to.equal(404);
+      expect(noop.data.error.code).to.equal("no_active_workout");
+    });
+
+    // Device id is the VersionTracker node identity (without it merges degrade to bare timestamps); the client
+    // string is the record's only provenance and can't be backfilled. Both are required on writes.
+    it("refuses writes missing either identity header", async () => {
+      const noDevice = await req(
+        "POST",
+        "/api/v1/workout/start",
+        { programId },
+        {
+          "X-Liftosaur-Client": "test-client/1.2.0",
+        }
+      );
+      expect(noDevice.status).to.equal(400);
+      expect(noDevice.data.error.message).to.include("X-Liftosaur-Device-Id");
+
+      const noClient = await req(
+        "POST",
+        "/api/v1/workout/start",
+        { programId },
+        {
+          "X-Liftosaur-Device-Id": "test-device-abc123",
+        }
+      );
+      expect(noClient.status).to.equal(400);
+      expect(noClient.data.error.message).to.include("X-Liftosaur-Client");
+
+      const neither = await req("POST", "/api/v1/workout/start", { programId });
+      expect(neither.status).to.equal(400);
+      expect(neither.data.error.message).to.include("X-Liftosaur-Device-Id");
+      expect(neither.data.error.message).to.include("X-Liftosaur-Client");
+
+      // Reads are unaffected.
+      expect((await req("GET", `/api/v1/workout/next?programId=${programId}`)).status).to.equal(200);
+    });
+
+    it("treats a different startTime on the same day as a different session", async () => {
+      await startWorkout({ startTime: 1600000000000 });
+      const other = await startWorkout({ startTime: 1600000999999 });
+      expect(other.status).to.equal(409);
+      expect(other.data.error.code).to.equal("workout_already_active");
+    });
+
+    it("returns settings a client would otherwise guess at", async () => {
+      const settings = await req("GET", "/api/v1/settings");
+      expect(settings.status).to.equal(200);
+      expect(settings.data.data.units).to.be.oneOf(["kg", "lb"]);
+      expect(settings.data.data).to.have.property("timers");
+    });
+
+    describe("engine-driven behaviour", () => {
+      async function programWith(text: string): Promise<string> {
+        const created = await req("POST", "/api/v1/programs", { name: `P${Date.now()}`, text });
+        expect(created.status, JSON.stringify(created.data)).to.equal(201);
+        return created.data.data.id;
+      }
+
+      it("resolves an AMRAP set with the reps the client reports", async () => {
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 1x5+ / 100lb`);
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        expect(started.status).to.equal(200);
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+        expect(started.data.data.workout.entries[0].sets[0].isAmrap).to.equal(true);
+
+        // On the phone this opens the AMRAP prompt and waits. The API has to answer it and finish the set.
+        const logged = await req(
+          "POST",
+          "/api/v1/workout/set",
+          { entryId, setId, completed: { reps: 9, weight: "100lb" } },
+          clientHeaders
+        );
+        expect(logged.status).to.equal(200);
+        expect(logged.data.data.workout.entries[0].sets[0].completed.reps).to.equal(9);
+      });
+
+      it("reports hasUpdateScript and returns the rewritten sets", async () => {
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 3x5 / 100lb / update: custom() {~ weights = 123lb ~}`);
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        expect(started.data.data.workout.entries[0].hasUpdateScript).to.equal(true);
+
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+        const logged = await req(
+          "POST",
+          "/api/v1/workout/set",
+          { entryId, setId, completed: { reps: 5, weight: "100lb" } },
+          clientHeaders
+        );
+        expect(logged.status).to.equal(200);
+        // The update script rewrote the remaining sets, which is why the client must adopt the response.
+        // 123lb comes back as 122.5lb because the server rounds to what's actually loadable.
+        expect(logged.data.data.workout.entries[0].sets[2].weight).to.equal("122.5lb");
+      });
+
+      // Parse-time errors are already rejected when the program is created, so this needs a script that parses
+      // and throws at runtime — reading a set that doesn't exist yields undefined, which Weight_op refuses.
+      // `store()` strips stats from the user row, so these have to be fetched separately — otherwise
+      // `bodyweight` evaluates as 0 and the progression silently writes the wrong number.
+      it("evaluates bodyweight in scripts against the user's real weight", async () => {
+        const weighIn = await req("POST", "/api/v1/measurements/weight", { value: "200lb" });
+        expect(weighIn.status, JSON.stringify(weighIn.data)).to.equal(201);
+
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 1x5 / 100lb / progress: custom() {~ rm1 = bodyweight ~}`);
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        const startTime = started.data.data.workout.startTime;
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+        await req("POST", "/api/v1/workout/set", { entryId, setId, completed: { reps: 5 } }, clientHeaders);
+        expect((await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders)).status).to.equal(200);
+
+        const data = await req("GET", "/api/v1/exercise-data/squat_barbell");
+        expect(data.data.data.rm1).to.equal("200lb");
+      });
+
+      it("keeps other exercise data when a finish-day script updates 1RM", async () => {
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 1x5 / 100lb / progress: custom() {~ rm1 = 250lb ~}`);
+        // Finish-day scripts emit only { rm1 }, so a shallow merge here would drop the user's rounding.
+        const put = await req("PUT", "/api/v1/exercise-data/squat_barbell", { rounding: 2.5 });
+        expect(put.status, JSON.stringify(put.data)).to.equal(200);
+
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        const startTime = started.data.data.workout.startTime;
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+        await req("POST", "/api/v1/workout/set", { entryId, setId, completed: { reps: 5 } }, clientHeaders);
+        const finished = await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+        expect(finished.status).to.equal(200);
+
+        const data = await req("GET", "/api/v1/exercise-data/squat_barbell");
+        expect(data.data.data.rm1).to.equal("250lb");
+        expect(data.data.data.rounding).to.equal(2.5);
+      });
+
+      // Some programs prompt the lifter for state vars, so the API has to carry them. The payload
+      // advertises which ones; a write completing such a set has to supply each.
+      describe("user-prompted state vars", () => {
+        const PROMPTED = `# Week 1
+## Day 1
+Squat / 1x5 / 100lb / progress: custom(rpe+: 8, target+: 225lb) {~ weights = state.target ~}`;
+
+        it("advertises the prompted vars on the entry", async () => {
+          const pid = await programWith(PROMPTED);
+          const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+          expect(started.status, JSON.stringify(started.data)).to.equal(200);
+          // Types are inferable from the value: a number stays a number, a weight is a string.
+          expect(started.data.data.workout.entries[0].promptedVars).to.deep.equal([
+            { name: "rpe", value: 8 },
+            { name: "target", value: "225lb" },
+          ]);
+        });
+
+        it("accepts them and feeds them to the progression", async () => {
+          const pid = await programWith(PROMPTED);
+          const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+          const startTime = started.data.data.workout.startTime;
+          const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+
+          const logged = await req(
+            "POST",
+            "/api/v1/workout/set",
+            { entryId, setId, completed: { reps: 5, weight: "100lb", userVars: { rpe: 9, target: "245lb" } } },
+            clientHeaders
+          );
+          expect(logged.status, JSON.stringify(logged.data)).to.equal(200);
+          expect(logged.data.data.workout.entries[0].sets[0].completed.reps).to.equal(5);
+
+          // The finish-day script reads state.target, so the supplied value has to have landed.
+          expect((await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders)).status).to.equal(200);
+          const program = await req("GET", `/api/v1/programs/${pid}`);
+          expect(program.data.data.text).to.include("245lb");
+        });
+
+        it("400s naming every value the set asks for but the write omitted", async () => {
+          const pid = await programWith(PROMPTED);
+          const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+          const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+
+          const logged = await req(
+            "POST",
+            "/api/v1/workout/set",
+            { entryId, setId, completed: { reps: 5, weight: "100lb", userVars: { rpe: 9 } } },
+            clientHeaders
+          );
+          expect(logged.status).to.equal(400);
+          expect(logged.data.error.code).to.equal("missing_set_input");
+          expect(logged.data.error.message).to.include("userVars.target");
+        });
+
+        it("400s on an unparseable var value", async () => {
+          const pid = await programWith(PROMPTED);
+          const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+          const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+
+          const logged = await req(
+            "POST",
+            "/api/v1/workout/set",
+            { entryId, setId, completed: { reps: 5, weight: "100lb", userVars: { rpe: 9, target: "heavy" } } },
+            clientHeaders
+          );
+          expect(logged.status).to.equal(400);
+          expect(logged.data.error.message).to.include("225lb");
+        });
+      });
+
+      // Guessing here is how a 0lb set gets recorded, so the write has to supply what the set asks for.
+      it("400s when an askWeight set is completed without a weight", async () => {
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 1x5 / 100lb / progress: lp(5lb)`);
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+        // A set with a programmed weight doesn't ask, so this one just completes.
+        const ok1 = await req("POST", "/api/v1/workout/set", { entryId, setId, completed: { reps: 5 } }, clientHeaders);
+        expect(ok1.status).to.equal(200);
+        expect(ok1.data.data.workout.entries[0].sets[0].completed.weight).to.equal("100lb");
+      });
+
+      it("surfaces a failing update script as 422 instead of a silent 200", async () => {
+        const pid = await programWith(`# Week 1
+## Day 1
+Squat / 3x5 / 100lb / update: custom() {~ weights = weights[99] + 1lb ~}`);
+        const started = await req("POST", "/api/v1/workout/start", { programId: pid }, clientHeaders);
+        expect(started.status).to.equal(200);
+        const { entryId, setId } = firstWorkingSet(started.data.data.workout);
+
+        const logged = await req(
+          "POST",
+          "/api/v1/workout/set",
+          { entryId, setId, completed: { reps: 5, weight: "100lb" } },
+          clientHeaders
+        );
+        expect(logged.status).to.equal(422);
+        expect(logged.data.error.code).to.equal("program_error");
+      });
+    });
+  });
+
   describe("CORS", () => {
     it("returns CORS headers on OPTIONS", async () => {
       const result = await handler(buildEvent("OPTIONS", "/api/v1/history"), { getRemainingTimeInMillis: () => 10000 });

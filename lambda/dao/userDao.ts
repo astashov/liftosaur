@@ -723,12 +723,13 @@ export class UserDao {
   public async applyStorageUpdate(
     user: ILimitedUserDao,
     buildNewStorage: (oldStorage: IPartialStorage) => IPartialStorage,
-    sideEffects?: Promise<unknown>[]
+    sideEffects?: Promise<unknown>[],
+    deviceId?: string
   ): Promise<void> {
     const oldStorage = user.storage;
     const newStorage = buildNewStorage(oldStorage);
     newStorage.originalId = Date.now();
-    newStorage._versions = Storage_updateVersions(oldStorage, newStorage);
+    newStorage._versions = Storage_updateVersions(oldStorage, newStorage, deviceId);
     user.storage = newStorage;
     await Promise.all([this.store(user), ...(sideEffects || [])]);
   }

@@ -796,6 +796,337 @@ DELETE /api/v1/measurements/:key/:timestamp
 
 Deletes a single recorded value. Returns `{ "data": { "deleted": true } }`, or `404` if no value exists at that timestamp.
 
+## Running a Workout
+
+These endpoints let an external app - a watch app, for instance - run a Liftosaur workout from start to finish. The server runs the program engine, so finishing a workout here advances your next-workout pointer, runs your progressions, updates your 1RMs and writes history exactly as if you had done it in the app.
+
+The rule to keep in mind: **you report what the lifter did; the server decides what that means.** You never send a computed next day, a progression result or an updated 1RM.
+
+A whole workout looks like this:
+
+```
+GET  /api/v1/workout/next      # what's next (creates nothing)
+POST /api/v1/workout/start     # start it
+POST /api/v1/workout/set       # log a set - repeat as the lifter goes
+POST /api/v1/workout/finish    # save it, run progressions, advance the day
+```
+
+### Headers for writes
+
+Every write (`start`, `set`, `sets`, `finish`, `DELETE current`) needs **both** of these headers. A write missing either gets a `400` naming what's absent. Reads don't need them.
+
+```
+X-Liftosaur-Device-Id: <stable id, generated once at install>
+X-Liftosaur-Client: my-watch-app/1.2.0
+```
+
+`X-Liftosaur-Device-Id` identifies your install to the sync engine, so changes from your app can be ordered correctly against changes made on the phone. Generate it once at install and keep it: it must be stable across restarts and unique per install. A regenerated or shared id degrades merge correctness, not just attribution.
+
+`X-Liftosaur-Client` is your app's name and version. It's recorded on every workout your app writes, so a support report can be traced back to the client that produced it. This can't be reconstructed after the fact, which is why it's required rather than optional.
+
+### Offline clients
+
+Everything is designed for an app that loses connectivity mid-workout:
+
+- **Set writes are last-writer-wins.** A write always applies. There's no revision to track and no conflict to resolve, so a queue drain is just "send everything, adopt the response."
+- **You name your own sets.** Set ids come from you, not the server, so you can log a set you appended while offline.
+- **Every write is safely repeatable.** If a reply is lost, send it again - see *Repeating a request* below.
+- **You supply the real times.** A workout done at 10:00 and synced at 14:00 must be told when it happened, or it reads as a four-hour session.
+
+### Get the Next Workout
+
+Previews what's next without creating anything. Safe to call repeatedly.
+
+```
+GET /api/v1/workout/next
+GET /api/v1/workout/next?programId=abc123&week=2&dayInWeek=1
+```
+
+With no parameters it uses your current program and its next day. `week` and `dayInWeek` must be given together, and pick a specific day instead.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "workout": {
+      "programId": "abc123",
+      "programName": "GZCLP",
+      "dayName": "A1",
+      "dayData": { "day": 1, "week": 1, "dayInWeek": 1 },
+      "startTime": 1738274512000,
+      "entries": [
+        {
+          "entryId": "squat_barbell",
+          "exerciseId": "squat_barbell",
+          "equipment": "barbell",
+          "name": "Squat",
+          "imageUrl": "/externalimages/exercises/single/small/squat_barbell_single_small.png",
+          "superset": null,
+          "notes": null,
+          "description": "T1 - work up to a 5RM",
+          "hasUpdateScript": false,
+          "promptedVars": [],
+          "warmupSets": [],
+          "sets": [
+            {
+              "setId": "qwertz",
+              "index": 0,
+              "isWarmup": false,
+              "reps": 5,
+              "minReps": null,
+              "isAmrap": false,
+              "weight": "100kg",
+              "originalWeight": "80%",
+              "plates": [
+                { "weight": "20kg", "num": 2 },
+                { "weight": "5kg", "num": 2 }
+              ],
+              "rpe": null,
+              "logRpe": false,
+              "askWeight": false,
+              "isUnilateral": false,
+              "timer": 180,
+              "setTimer": null,
+              "completed": null
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+Fields shown as `null` are always present, so you can read them without guarding.
+
+A couple of notes on those fields:
+
+- `entryId` is the exercise plus its label, so it matches `exerciseId` unless the program labelled the exercise (then it's `"mylabel_squat_barbell"`). It is **not** guaranteed unique within a workout, which is why sets are addressed by `setId` - see *Log a Set*.
+- `imageUrl` is a path relative to `https://www.liftosaur.com`, not an absolute URL, and is `null` for exercises with no image.
+
+**Everything is already resolved for you**, so your app needs no rules of its own:
+
+- `timer` - rest time in seconds, with your defaults already applied. When a program leaves a rest timer blank, this is your own default, not an empty field to guess at.
+- `weight` - already rounded to the equipment in your current gym.
+- `plates` - the per-side plate breakdown for that weight.
+- `originalWeight` - the expression as written (e.g. `"80%"`), for display only.
+- `hasUpdateScript` - when `true`, completing a set may rewrite the *remaining* sets of that exercise. Take the set list from the response rather than updating optimistically.
+
+### Start a Workout
+
+```
+POST /api/v1/workout/start
+Content-Type: application/json
+
+{}
+```
+
+Same body options as `next` (`programId`, `week`, `dayInWeek`), plus an optional `startTime`. Returns the same shape as `next`, but the workout now exists.
+
+```json
+{ "startTime": 1738274512000 }
+```
+
+Send `startTime` when the lifter began while you were offline and you're only calling `start` now. Omit it and the server stamps the current time. **It can't be changed afterwards** - it identifies the workout for `finish` and `DELETE`, and becomes the history record's id.
+
+- Same program/week/day already live → `200` with that workout (so a retry is harmless).
+- A *different* workout already live → `409 workout_already_active`.
+- `startTime` already used by a past workout → `409 workout_start_time_taken`.
+
+### Get the Current Workout
+
+```
+GET /api/v1/workout/current
+```
+
+Returns the live workout in the same shape as `next`, or `{ "data": { "workout": null } }` if there isn't one. Poll this to pick up sets logged on the phone; no faster than every 10 seconds, and stop when there's no workout.
+
+Note that targets can change under you: editing a set on the phone, or an `update:` script, rewrites what's programmed. Adopt what the response says rather than merging into your own copy.
+
+### Log a Set
+
+```
+POST /api/v1/workout/set
+Content-Type: application/json
+
+{
+  "entryId": "squat",
+  "setId": "qwertz",
+  "completed": { "reps": 8, "weight": "100kg", "rpe": 8 }
+}
+```
+
+Sets are addressed by `setId`. `entryId` is optional and checked if you send it - a mismatch is a `400` rather than a write to the wrong exercise. The response is always the whole updated workout.
+
+Fields inside `completed`: `reps`, `repsLeft` (unilateral exercises), `weight`, `rpe`, `setTimer` (seconds held, for timed sets), `userVars` (see below). Send `"completed": null` to un-complete a set.
+
+**Sets that ask for a value.** Some sets can't be completed from the target alone, and the payload tells you which:
+
+| Flag | You must send |
+|---|---|
+| `isAmrap: true` | `completed.reps` (and `completed.repsLeft` if `isUnilateral`) |
+| `askWeight: true` | `completed.weight` |
+| `logRpe: true` | `completed.rpe` |
+| `promptedVars` non-empty | `completed.userVars` - a value for each |
+
+Omit one and you get `400 missing_set_input` naming everything that's missing. The server won't guess: an AMRAP set defaulted to its target would silently record the minimum, and a weight defaulted to nothing would record 0.
+
+**Timed sets.** A set with `setTimer` is held for time. Run your own clock and report the held seconds as `completed.setTimer` along with the reps - one call, no second request.
+
+**Prompted state variables.** Some programs ask the lifter for a value that feeds the progression. The entry advertises them:
+
+```json
+"promptedVars": [
+  { "name": "rpe", "value": 8 },
+  { "name": "target", "value": "225lb" }
+]
+```
+
+Ask the lifter, and send the answers back in the same shapes - numbers stay numbers, weights and percentages are strings:
+
+```json
+{
+  "entryId": "squat",
+  "setId": "qwertz",
+  "completed": {
+    "reps": 5,
+    "weight": "100lb",
+    "userVars": { "rpe": 9, "target": "245lb" }
+  }
+}
+```
+
+### Add a Set
+
+Same endpoint with `"append": true`. **You generate the id** - six lowercase letters, like `qwertz`. That's what lets you add a set while offline and log reps against it in the same call.
+
+```json
+{
+  "entryId": "squat",
+  "setId": "kdmwpa",
+  "append": true,
+  "completed": { "reps": 8, "weight": "100kg" }
+}
+```
+
+The new set copies the last set of that exercise. Repeating the call with the same id does nothing, so a lost reply is safe to retry. Removing sets, reordering, and adding or removing exercises stay in the app.
+
+### Log Several Sets at Once
+
+```
+POST /api/v1/workout/sets
+Content-Type: application/json
+
+{
+  "sets": [
+    { "entryId": "squat", "setId": "qwertz", "completed": { "reps": 5, "weight": "100kg" } },
+    { "entryId": "squat", "setId": "kdmwpa", "completed": { "reps": 5, "weight": "100kg" } }
+  ]
+}
+```
+
+Applied in order, in one transaction, returning one workout. This is how you drain an offline queue: one call, then adopt the response.
+
+### Finish a Workout
+
+```
+POST /api/v1/workout/finish
+Content-Type: application/json
+
+{
+  "startTime": 1738274512000,
+  "endTime": 1738278112000,
+  "notes": "felt heavy"
+}
+```
+
+Saves it to history, runs your progressions, updates 1RMs and advances the next-workout pointer - all in one step. `startTime` says which workout; it's the value you got from `start`.
+
+`endTime` defaults to now, so an online app can send just the `startTime`. If the session had pauses, send `intervals` instead - an array of `[start, end]` pairs whose first start must equal `startTime`:
+
+```json
+{
+  "startTime": 1738274512000,
+  "endTime": 1738278112000,
+  "intervals": [[1738274512000, 1738276000000], [1738276600000, 1738278112000]]
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "workout": {
+      "id": 1738274512000,
+      "startTime": 1738274512000,
+      "endTime": 1738278112000,
+      "programId": "abc123",
+      "programName": "GZCLP",
+      "dayName": "A1",
+      "nextDay": { "day": 2, "week": 1, "dayInWeek": 2, "dayName": "A2" }
+    }
+  }
+}
+```
+
+### Discard a Workout
+
+```
+DELETE /api/v1/workout/current
+Content-Type: application/json
+
+{ "startTime": 1738274512000 }
+```
+
+Throws the live workout away without saving it. **This can't be undone** - confirm with the lifter first. The `startTime` must match the live workout, so you can't discard one you didn't know about (`409 workout_mismatch`).
+
+### Get Settings
+
+```
+GET /api/v1/settings
+```
+
+```json
+{
+  "data": {
+    "units": "kg",
+    "timers": { "warmup": 90, "workout": 180, "superset": 60 }
+  }
+}
+```
+
+Rest timers and plates already arrive resolved on each set, so you rarely need this - it's here for display.
+
+### Repeating a request
+
+Every write is safe to send again if you didn't get a reply. There's no idempotency key, because every write is addressed by something you already have:
+
+| Write | What a repeat does |
+|---|---|
+| `set`, `sets` | Same values applied again - identical result |
+| `set` with `append` | The id already exists - nothing happens |
+| `start` | Returns the workout you asked for |
+| `finish` | Returns the original summary - no second record, no double-advance |
+| `DELETE current` | `404`, and the workout is already gone |
+
+### Workout error codes
+
+| Status | Code | Means |
+|---|---|---|
+| 400 | `invalid_input` | Malformed body, or a missing `X-Liftosaur-Device-Id` / `X-Liftosaur-Client` |
+| 400 | `missing_set_input` | The set asks for values you didn't send |
+| 404 | `no_active_workout` | No workout in progress |
+| 404 | `set_not_found` | That `setId` isn't in the workout - refetch |
+| 404 | `entry_not_found` | That `entryId` isn't in the workout |
+| 404 | `day_not_found` | That week/day isn't in the program |
+| 409 | `ambiguous_entry` | That `entryId` matches more than one exercise; can't append |
+| 409 | `workout_already_active` | A different workout is already in progress |
+| 409 | `workout_start_time_taken` | That `startTime` belongs to a past workout |
+| 409 | `workout_mismatch` | The live workout isn't the one you asked to discard |
+| 422 | `program_error` | A script in the program failed - not your fault; surface it and stop |
+
 ## Liftoscript and Liftoscript Workouts
 
 Programs use Liftoscript - a custom DSL for defining workout programs. It's not a standard format, so you'll need to learn the syntax to write valid programs. Check out the built-in program library for examples, or use the [MCP server](/docs/mcp) to let an AI assistant write programs for you.
@@ -830,4 +1161,5 @@ Common status codes:
 - `403` - no active subscription
 - `400` - invalid input (wrong program name, can't delete active program, etc.)
 - `404` - record or program not found
-- `422` - parse error (invalid Liftoscript or Liftoscript Workouts syntax)
+- `409` - conflict (a duplicate measurement, or a workout state that doesn't match what you sent)
+- `422` - parse error (invalid Liftoscript or Liftoscript Workouts syntax), or a program script that failed at runtime
