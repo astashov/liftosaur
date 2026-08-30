@@ -73,8 +73,18 @@
         <strong>Body measurements</strong> — body weight, body fat, and any length measurements you choose to enter,
         such as chest, waist, or limb circumference. These are optional and may be left empty.
       </li>
+      <li>
+        <strong>Subscription information</strong> — whether you have an active subscription, and the records we need to
+        keep it in sync with the App Store or Google Play. Payment details go to Apple or Google, never to us.
+      </li>
       <li><strong>Correspondence</strong> — the contents of any message you send us.</li>
     </ul>
+    <p>
+      You can use Liftosaur without creating an account. In that case your programs, workouts and measurements stay on
+      your device — they are not sent to or stored on our servers, and we cannot see them. What does reach us is the
+      usage information described below, recorded against a randomly generated identifier rather than a name or email
+      address. If you later create an account, the data on your device is then synced to it.
+    </p>
     <p>
       Your training data is the core of the Services, and we store it so that it stays available to you across your
       devices. See section 3 for how we use it.
@@ -209,10 +219,45 @@
 
     <h2 id="infoshare">4. WILL YOUR INFORMATION BE SHARED WITH ANYONE?</h2>
     <p>
-      We rely on service providers that process data on our behalf. Our infrastructure provider is Amazon Web Services,
-      which hosts our servers, databases and file storage; see section 8 for where that data is held. We may also share
-      limited, anonymized data with analytics and advertising providers to measure usage and ad performance (for
-      example, with Google Analytics 4, Reddit Pixel, and AppsFlyer). We do not sell personal information.
+      We rely on service providers that process data on our behalf:
+    </p>
+    <ul>
+      <li>
+        <strong>Amazon Web Services</strong> — hosts our servers, databases and file storage. See section 8 for where
+        that data is held.
+      </li>
+      <li>
+        <strong>Rollbar</strong> — collects crash and error reports from the app so that we can find and fix problems. An
+        error report can include your account identifier and the state the app was in when it failed.
+      </li>
+      <li>
+        <strong>Apple and Google</strong> — process purchases and subscriptions made through the App Store and Google
+        Play. We never see your payment details; the stores tell us only whether a subscription is active.
+      </li>
+      <li>
+        <strong>Anthropic</strong> — when you create a custom exercise, we send the exercise name you typed to
+        Anthropic's Claude model, which suggests which muscles that exercise works, so that you do not have to pick them
+        by hand. Only the name is sent. Nothing else about you, your account or your workouts goes with it, and the
+        result is cached so that the same name is not sent twice.
+      </li>
+    </ul>
+    <p>
+      We may also share limited, anonymized data with analytics and advertising providers to measure usage and ad
+      performance (for example, with Google Analytics 4, Reddit Pixel, and AppsFlyer). We do not sell personal
+      information.
+    </p>
+
+    <h3>Programs you choose to share</h3>
+    <p>
+      Sharing a program is the one case where you publish your own data. When you create a share link, the program's
+      contents are stored on our servers and become readable by anyone who has the link — no account or sign-in is
+      required, and search engines may index it if the link is posted publicly. Only the program is shared. Your
+      workout history, measurements, email address and account details are never included.
+    </p>
+    <p>
+      Share links are meant to stay working, so that a link you gave someone a year ago still opens. That means they
+      are not automatically removed when you delete your account. If you want a link taken down, email
+      <a href="mailto:info@liftosaur.com">info@liftosaur.com</a> with the link and we will remove it.
     </p>
 
     <h2 id="cookies">5. DO WE USE COOKIES AND OTHER TRACKING TECHNOLOGIES?</h2>
@@ -291,6 +336,19 @@
         <strong>Aggregated, de-identified statistics</strong> — these no longer identify anyone, and may be kept and
         published indefinitely. They are not affected by deleting your account, and cannot be traced back to you.
       </li>
+      <li>
+        <strong>Programs you shared with a link</strong> — kept indefinitely, so that links you have given out keep
+        working. Deleting your account does not remove them; email us and we will.
+      </li>
+      <li>
+        <strong>Usage records</strong> — counts of how often features are used, along with the platform and app version
+        and the referrer you first arrived from. These are aggregate counters rather than a record of what you did, and
+        we keep them indefinitely to track how the app is used over time. Deleting your account removes yours.
+      </li>
+      <li>
+        <strong>App events</strong> — short-lived diagnostic records of app activity, kept for 30 days and then deleted
+        automatically.
+      </li>
       <li><strong>Cookies and similar storage</strong> — for the periods listed in section 5.</li>
       <li>
         <strong>Records held by analytics and advertising providers</strong> — retained according to those providers'
@@ -317,8 +375,10 @@
 
     <h2 id="infominors">9. DO WE COLLECT INFORMATION FROM MINORS?</h2>
     <p>
-      We do not knowingly collect or market to children under 18. If you believe we have collected such data, please
-      contact us at info@liftosaur.com.
+      Liftosaur is not directed at children, and we do not knowingly collect personal information from children under
+      13, or under the minimum age of digital consent in your country where that age is higher. If you believe a child
+      has given us personal information, please contact us at
+      <a href="mailto:info@liftosaur.com">info@liftosaur.com</a> and we will delete it.
     </p>
 
     <h2 id="privacyrights">10. WHAT ARE YOUR PRIVACY RIGHTS?</h2>
@@ -333,14 +393,17 @@
       or use backup copies for any other purpose in the meantime.
     </p>
     <p>
-      Two things are not affected by deleting your account: aggregated statistics that no longer identify you (see
-      section 3), and records held by the analytics and advertising providers listed in section 6, which you can opt out
-      of separately.
+      Three things are not affected by deleting your account: programs you published with a share link, which stay
+      readable so that the links keep working (see section 4 — email us to have one removed); aggregated statistics that
+      no longer identify you (see section 3); and records held by the analytics and advertising providers listed in
+      section 6, which you can opt out of separately.
     </p>
     <p>
       Depending on where you live, you may also have the right to request a copy of your data, correct it, object to or
       restrict how we process it, or lodge a complaint with your local data protection authority. Email
-      <a href="mailto:info@liftosaur.com">info@liftosaur.com</a> to exercise any of these.
+      <a href="mailto:info@liftosaur.com">info@liftosaur.com</a> to exercise any of these. We answer within 30 days. We
+      may need to ask you something that confirms the request came from the account holder, and if we cannot establish
+      that, we may not be able to act on it.
     </p>
 
     <h2 id="DNT">11. DO-NOT-TRACK AND GLOBAL PRIVACY CONTROL</h2>
@@ -363,7 +426,8 @@
     <h2 id="policyupdates">13. DO WE MAKE UPDATES TO THIS POLICY?</h2>
     <p>
       We may update this privacy notice from time to time. The updated version will be indicated by a new “Last updated”
-      date.
+      date. If a change materially affects how we use your information, we will tell you in the app or by email before
+      it takes effect, rather than relying on you to re-read this page.
     </p>
 
     <h2 id="contact">14. HOW CAN YOU CONTACT US ABOUT THIS POLICY?</h2>
