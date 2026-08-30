@@ -38,7 +38,7 @@ interface Window {
   gtag(...args: any[]): void;
   rdt(command: "init", pixelId: string): void;
   rdt(command: "track", eventName: IRedditPixelStandardEvent | string, customData?: IRedditPixelCustomData): void;
-  loadRollbar: (item: string | number, token: string) => Promise<void>;
+  loadRollbar: (item: string | number, token: string, key: string) => Promise<void>;
   isUndoing?: boolean;
   webeditor?: boolean;
   lftAndroidAppVersion?: string;

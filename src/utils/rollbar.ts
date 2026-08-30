@@ -50,7 +50,7 @@ export const exceptionIgnores = [
   "chrome-extension://",
 ];
 
-export async function RollbarUtils_load(item: string | number, token: string): Promise<void> {
+export async function RollbarUtils_load(item: string | number, token: string, key: string): Promise<void> {
   const result = await fetch(`https://api.rollbar.com/api/1/instance/${item}`, {
     headers: {
       accept: "application/json",
@@ -61,7 +61,7 @@ export async function RollbarUtils_load(item: string | number, token: string): P
   if (json.err === 0) {
     const id = json.result.data.liftosaur_exception_id;
     const service = new Service(window.fetch.bind(window));
-    const data = await service.getExceptionData(id);
+    const data = await service.getExceptionData(id, key);
     if (data == null) {
       console.error("No exception info");
       return;

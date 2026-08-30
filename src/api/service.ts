@@ -755,8 +755,9 @@ export class Service {
     return JSON.parse(await Encoder_decode(json.storage));
   }
 
-  public async getExceptionData(id: string): Promise<string | undefined> {
+  public async getExceptionData(id: string, key: string): Promise<string | undefined> {
     const apiUrl = UrlUtils_build(`${__API_HOST__}/api/exception/${id}`);
+    apiUrl.searchParams.set("key", key);
     try {
       const result = await this.client(apiUrl.toString(), { credentials: "include" });
       const json = await result.json();

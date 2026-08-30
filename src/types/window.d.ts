@@ -59,7 +59,7 @@ interface Window {
   lftIosAppVersion?: string;
   lftSystemDarkMode?: boolean;
 
-  loadRollbar: (item: string | number, token: string) => Promise<void>;
+  loadRollbar: (item: string | number, token: string, key: string) => Promise<void>;
 
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;

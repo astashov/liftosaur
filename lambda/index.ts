@@ -859,6 +859,10 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
 }) => {
   const { event, di } = payload;
   const { id, data } = getBodyJson(event);
+  const idStr = typeof id === "number" ? `${id}` : id;
+  if (typeof idStr !== "string" || !/^[a-zA-Z0-9_.-]{1,128}$/.test(idStr)) {
+    return ResponseUtils_json(400, event, { error: "Invalid id" });
+  }
   const debugDao = new DebugDao(di);
   let debugData: string;
   if (typeof data === "string") {
@@ -866,7 +870,7 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   } else {
     debugData = JSON.stringify(data);
   }
-  await debugDao.store(id, debugData);
+  await debugDao.store(idStr, debugData);
   return ResponseUtils_json(200, event, { data: "ok" });
 };
 
@@ -3408,6 +3412,10 @@ const postStoreExceptionDataHandler: RouteHandler<
   const { di, event } = payload;
   const bodyJson = getBodyJson(event);
   const { id, data } = bodyJson;
+  const idStr = typeof id === "number" ? `${id}` : id;
+  if (typeof idStr !== "string" || !/^[a-zA-Z0-9_.-]{1,128}$/.test(idStr)) {
+    return ResponseUtils_json(400, event, { error: "Invalid id" });
+  }
   const exceptionDao = new ExceptionDao(di);
   let exceptionData: string;
   if (typeof data === "string") {
@@ -3415,17 +3423,22 @@ const postStoreExceptionDataHandler: RouteHandler<
   } else {
     exceptionData = JSON.stringify(data);
   }
-  await exceptionDao.store(id, exceptionData);
+  await exceptionDao.store(idStr, exceptionData);
   return ResponseUtils_json(200, event, { data: { id } });
 };
 
-const getStoreExceptionDataEndpoint = Endpoint.build("/api/exception/:id");
+const getStoreExceptionDataEndpoint = Endpoint.build("/api/exception/:id", { key: "string" });
 const getStoreExceptionDataHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
   typeof getStoreExceptionDataEndpoint
 > = async ({ payload, match: { params } }) => {
   const { di, event } = payload;
+  // The dump contains full user storage, so this admin-only debug read must not be reachable by id
+  // alone. The anonymous write path (POST /api/exception) stays open for crash reports.
+  if (params.key !== (await di.secrets.getApiKey())) {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
   const id = params.id;
   const env = Utils_getEnv();
   const bucket = env === "dev" ? `${LftS3Buckets.exceptions}dev` : LftS3Buckets.exceptions;
