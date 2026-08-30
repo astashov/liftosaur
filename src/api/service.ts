@@ -167,7 +167,6 @@ const cachePromises: Partial<Record<string, unknown>> = {};
 declare let __API_HOST__: string;
 declare let __HOST__: string;
 declare let __COMMIT_HASH__: string;
-declare let __STREAMING_API_HOST__: string;
 
 export interface IRecordResponse {
   history: IHistoryRecord[];
@@ -951,66 +950,6 @@ export class Service {
 
     const json = await response.json();
     return json;
-  }
-
-  public async *streamAiLiftoscriptProgram(
-    input: string
-  ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
-    try {
-      const url = `${__STREAMING_API_HOST__}/stream/ai/liftoscript`;
-
-      const response = await this.client(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input }),
-        credentials: "include",
-      });
-
-      if (!response.ok && response.status !== 402) {
-        yield { type: "error", data: `HTTP ${response.status}: ${response.statusText}` };
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        yield { type: "error", data: "No response body" };
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          break;
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (line.trim() === "") {
-            continue;
-          }
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") {
-              return;
-            }
-            try {
-              const json = JSON.parse(data);
-              yield json;
-            } catch (e) {
-              console.error("Failed to parse SSE data:", e, data);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
-    }
   }
 
   public async getUserContext(): Promise<{ account?: IAccount; units?: IUnit }> {

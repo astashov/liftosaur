@@ -1,29 +1,19 @@
 import * as fs from "fs";
 import * as path from "path";
-import {
-  localdomain,
-  localapidomain,
-  localstreamingapidomain,
-  localport,
-  localapiport,
-  localstreamingapiport,
-} from "../src/localdomain";
+import { localdomain, localapidomain, localport, localapiport } from "../src/localdomain";
 
 const HOSTS = {
   prod: {
     host: "https://www.liftosaur.com",
     apiHost: "https://api3.liftosaur.com",
-    streamingApiHost: "https://streaming-api.liftosaur.com",
   },
   dev: {
     host: "https://stage.liftosaur.com",
     apiHost: "https://api3-dev.liftosaur.com",
-    streamingApiHost: "https://streaming-api-dev.liftosaur.com",
   },
   local: {
     host: `https://${localdomain}.liftosaur.com:${localport}`,
     apiHost: `https://${localapidomain}.liftosaur.com:${localapiport}`,
-    streamingApiHost: `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`,
   },
 } as const;
 
@@ -58,11 +48,7 @@ function syncFile<T>(filePath: string, replacer: (contents: string, v: T) => str
 function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): string {
   return contents
     .replace(/(const nativeHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.host}$2`)
-    .replace(/(const nativeApiHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.apiHost}$2`)
-    .replace(
-      /(const nativeStreamingApiHost = useLocal\s*\?\s*"[^"]+"\s*:\s*")[^"]+(";)/,
-      `$1${hosts.streamingApiHost}$2`
-    );
+    .replace(/(const nativeApiHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.apiHost}$2`);
 }
 
 function replaceIosManifestURL(contents: string, manifestUrl: string): string {

@@ -1,59 +1,27 @@
 import { ILLMProvider } from "./llmTypes";
 import { IDI } from "../di";
-import { AiLogsDao } from "../../dao/aiLogsDao";
 import { availableMuscles, exerciseKinds } from "../../../src/types";
 
 export class LlmMuscles {
   constructor(
     private readonly di: IDI,
-    private readonly provider: ILLMProvider,
-    private readonly userId: string
+    private readonly provider: ILLMProvider
   ) {}
 
   public async *generateMuscles(
     exercise: string
   ): AsyncGenerator<{ type: "progress" | "result" | "error" | "retry" | "finish"; data: string }, void, unknown> {
-    let fullResponse = "";
-    let error: string | undefined;
-
     try {
       for await (const event of this.provider.generate(
         LlmMuscles.getSystemPrompt(),
         LlmMuscles.getUserPrompt(exercise),
         0
       )) {
-        if (event.type === "result") {
-          fullResponse += event.data;
-        } else if (event.type === "finish") {
-          fullResponse = event.data;
-        } else if (event.type === "error") {
-          error = event.data;
-        }
         yield event;
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : "Unknown error";
       this.di.log.log("Error in streaming conversion:", err);
-      yield { type: "error", data: error };
-    }
-
-    await this.logAiInteraction(this.userId, exercise, fullResponse, error);
-  }
-
-  private async logAiInteraction(userId: string, exercise: string, response: string, error?: string): Promise<void> {
-    try {
-      const aiLogsDao = new AiLogsDao(this.di);
-      await aiLogsDao.create({
-        userId: userId,
-        email: undefined,
-        input: exercise,
-        response,
-        timestamp: Date.now(),
-        model: this.provider.constructor.name.replace("Provider", ""),
-        error,
-      });
-    } catch (err) {
-      this.di.log.log("Failed to log AI interaction:", err);
+      yield { type: "error", data: err instanceof Error ? err.message : "Unknown error" };
     }
   }
 

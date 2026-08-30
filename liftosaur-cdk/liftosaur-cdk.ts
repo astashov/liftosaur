@@ -278,26 +278,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
-    const aiLogsTable = new dynamodb.Table(this, `LftAiLogs${suffix}`, {
-      tableName: `lftAiLogs${suffix}`,
-      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
-      timeToLiveAttribute: "ttl",
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
-    });
-
     const aiMuscleCaches = new dynamodb.Table(this, `LftAiMuscleCaches${suffix}`, {
       tableName: `lftAiMuscleCaches${suffix}`,
       partitionKey: { name: "key", type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
-    });
-
-    // Add GSI for querying by userId
-    aiLogsTable.addGlobalSecondaryIndex({
-      indexName: "userId-timestamp-index",
-      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "timestamp", type: dynamodb.AttributeType.NUMBER },
     });
 
     const secretArns = {
@@ -504,7 +489,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     restApi.root.addProxy();
 
-    aiLogsTable.grantReadWriteData(lambdaFunction);
     aiMuscleCaches.grantReadWriteData(lambdaFunction);
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
@@ -552,95 +536,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
       })
     );
-
-    // Streaming Lambda for AI conversion
-    const streamingLambdaFunction = new lambda.Function(this, `LftStreamingLambda${suffix}`, {
-      runtime: lambda.Runtime.NODEJS_24_X,
-      functionName: `LftStreamingLambda${suffix}`,
-      code: lambda.Code.fromAsset("dist-lambda"),
-      memorySize: 1024,
-      layers: [depsLayer],
-      timeout: cdk.Duration.seconds(300),
-      handler: "lambda/run.streamingHandler",
-      environment: {
-        IS_LOCAL: "false",
-        IS_DEV: `${isDev}`,
-        COMMIT_HASH: commitHash,
-        FULL_COMMIT_HASH: fullCommitHash,
-      },
-    });
-
-    // Grant necessary permissions
-    allSecrets.grantRead(streamingLambdaFunction);
-    usersTable.grantReadWriteData(streamingLambdaFunction);
-    aiLogsTable.grantReadWriteData(streamingLambdaFunction);
-
-    // Add Lambda Function URL with streaming response
-    const functionUrl = streamingLambdaFunction.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE, // Public access
-      cors: {
-        allowedOrigins: isDev
-          ? [
-              `https://${localdomain.main}.liftosaur.com:8080`,
-              "https://stage.liftosaur.com",
-              "https://www.liftosaur.com",
-            ]
-          : ["https://www.liftosaur.com"],
-        allowedMethods: [lambda.HttpMethod.POST],
-        allowedHeaders: ["Content-Type", "Cookie"],
-        allowCredentials: true,
-        maxAge: cdk.Duration.days(1),
-      },
-      invokeMode: lambda.InvokeMode.RESPONSE_STREAM, // Enable streaming
-    });
-
-    // Extract the Lambda Function URL domain
-    const functionUrlDomain = cdk.Fn.select(2, cdk.Fn.split("/", functionUrl.url));
-
-    // Create a response headers policy for CORS
-    const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftStreamingResponseHeaders${suffix}`, {
-      corsBehavior: {
-        accessControlAllowOrigins: isDev
-          ? [
-              `https://${localdomain.main}.liftosaur.com:8080`,
-              "https://stage.liftosaur.com",
-              "https://www.liftosaur.com",
-            ]
-          : ["https://www.liftosaur.com"],
-        accessControlAllowHeaders: ["Content-Type", "Cookie"],
-        accessControlAllowMethods: ["POST", "OPTIONS"],
-        accessControlAllowCredentials: true,
-        originOverride: true,
-      },
-    });
-
-    // Create CloudFront distribution for custom domain
-    const streamingDistribution = new cloudfront.Distribution(this, `LftStreamingDistribution${suffix}`, {
-      defaultBehavior: {
-        origin: new origins.HttpOrigin(functionUrlDomain, {
-          protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
-        }),
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        responseHeadersPolicy,
-      },
-      domainNames: [`streaming-api${isDev ? "-dev" : ""}.liftosaur.com`],
-      certificate: streamingCert,
-    });
-
-    // Output the CloudFront distribution domain
-    new cdk.CfnOutput(this, `StreamingDistributionDomain${suffix}`, {
-      value: streamingDistribution.distributionDomainName,
-      description: "CloudFront distribution for streaming endpoint",
-    });
-
-    // Output the custom domain
-    new cdk.CfnOutput(this, `StreamingCustomDomain${suffix}`, {
-      value: `https://streaming-api${isDev ? "-dev" : ""}.liftosaur.com`,
-      description: "Custom domain for streaming endpoint (requires DNS setup)",
-    });
 
     // --- Static assets S3 bucket + CloudFront distribution ---
 

@@ -217,7 +217,6 @@ import {
   postOauthTokenEndpoint,
   postOauthTokenHandler,
 } from "./mcp/oauth";
-import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
 import { ClaudeProvider } from "./utils/llms/claude";
@@ -3164,7 +3163,7 @@ const getMusclesForExerciseHandler: RouteHandler<
     di.log.log("Missed cached response for muscles for exercise:", exerciseName);
     const anthropicKey = await di.secrets.getAnthropicKey();
     const llmProvider = new ClaudeProvider(anthropicKey);
-    const llmMuscles = new LlmMuscles(di, llmProvider, userId);
+    const llmMuscles = new LlmMuscles(di, llmProvider);
     const muscleGenerator = new MuscleGenerator(di, llmMuscles);
     const musclesResponse = await muscleGenerator.generateMuscles(match.params.exercise);
     di.log.log("Generated muscles response for ", exerciseName, musclesResponse);
@@ -3182,25 +3181,6 @@ const getMusclesForExerciseHandler: RouteHandler<
   }
 };
 
-// const getAiEndpoint = Endpoint.build("/ai");
-// const getAiHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAiEndpoint> = async ({
-//   payload,
-//   match,
-// }) => {
-//   const di = payload.di;
-//   const userResult = await getUserAccount(payload);
-//   if (!userResult.success) {
-//     return userResult.error;
-//   } else {
-//     const account = userResult.data.account;
-//     return {
-//       statusCode: 200,
-//       body: renderAiHtml(di.fetch, account),
-//       headers: { "content-type": "text/html" },
-//     };
-//   }
-// };
-
 const postAiPromptEndpoint = Endpoint.build("/api/ai/prompt");
 const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiPromptEndpoint> = async ({
   payload,
@@ -3215,18 +3195,6 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   try {
     const urlFetcher = new UrlContentFetcher(di);
     let content = input;
-
-    const userId = await getCurrentUserId(event, di);
-    try {
-      const aiLogsDao = new AiLogsDao(di);
-      await aiLogsDao.create({
-        userId: userId || "anonymous",
-        input,
-        timestamp: Date.now(),
-      });
-    } catch (err) {
-      di.log.log("Failed to log prompt:", err);
-    }
 
     // If it's a URL, fetch the content
     if (urlFetcher.isUrl(input)) {

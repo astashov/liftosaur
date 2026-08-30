@@ -8,14 +8,7 @@ import { RollbarUtils_config } from "./utils/rollbar";
 import { AppAttribution_get } from "./utils/appAttribution";
 import { Ota_init, Ota_activeBundleIdSync } from "./utils/ota";
 import { RN_COMMIT_HASH, RN_FULL_COMMIT_HASH } from "./rnBuildInfo";
-import {
-  localdomain,
-  localapidomain,
-  localstreamingapidomain,
-  localport,
-  localapiport,
-  localstreamingapiport,
-} from "./localdomain";
+import { localdomain, localapidomain, localport, localapiport } from "./localdomain";
 
 declare let Rollbar: RB;
 
@@ -31,14 +24,9 @@ const nativeHost = useLocal ? `https://${localdomain}.liftosaur.com:${localport}
 const nativeApiHost = useLocal
   ? `https://${localapidomain}.liftosaur.com:${localapiport}`
   : "https://api3.liftosaur.com";
-const nativeStreamingApiHost = useLocal
-  ? `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`
-  : "https://streaming-api.liftosaur.com";
-
 const globalAny = globalThis as unknown as {
   __HOST__: string;
   __API_HOST__: string;
-  __STREAMING_API_HOST__: string;
   __ENV__: string;
   __COMMIT_HASH__: string;
   __FULL_COMMIT_HASH__: string;
@@ -47,7 +35,6 @@ const globalAny = globalThis as unknown as {
 };
 globalAny.__HOST__ = nativeHost;
 globalAny.__API_HOST__ = nativeApiHost;
-globalAny.__STREAMING_API_HOST__ = nativeStreamingApiHost;
 globalAny.__ENV__ = Platform.OS === "ios" ? "ios-rn" : "android-rn";
 globalAny.__COMMIT_HASH__ = RN_COMMIT_HASH;
 globalAny.__FULL_COMMIT_HASH__ = RN_FULL_COMMIT_HASH;
