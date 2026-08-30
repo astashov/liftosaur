@@ -4,9 +4,11 @@
     <p>
       Our app integrates with Health Connect to access and store specific health-related data. You can track your body
       weight and body fat in the app (Me -> Measurements), and that data may be synced both to and from Health Connect.
-      The app also reads sleep duration and nutrition data (dietary calories and protein) from Health Connect as
-      read-only, to display alongside your workouts on the Me -> Sleep &amp; Nutrition screen; the app never writes sleep
-      or nutrition data back to Health Connect. Here's how we handle this data:
+      When you finish a workout, the app writes it to Health Connect as an exercise session, together with an estimate
+      of active calories burned; it does not read exercise sessions back. The app also reads sleep duration and
+      nutrition data (dietary calories and protein) from Health Connect as read-only, to display alongside your workouts
+      on the Me -> Sleep &amp; Nutrition screen; the app never writes sleep or nutrition data back to Health Connect.
+      Here's how we handle this data:
     </p>
 
     <h3>1. Data Collection</h3>

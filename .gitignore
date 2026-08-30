@@ -69,3 +69,31 @@ logs/
 
 # Dev-only perf instrumentation data (streamed from RN app to devserver)
 /perfdata/*.jsonl
+
+# Data extracts from lambda/scripts land in the repo root by default (all_users.json,
+# <userid>_storage.json, logs-*.txt, scan_*.json ...) and this repo is public, so root-level
+# data files are denied by default and config files are allowed back in individually.
+# A new root .json/.txt that should be committed needs its own "!" line below.
+/*.json
+/*.txt
+/*.ndjson
+/*.jsonl
+!/app.json
+!/assetlinks.json
+!/babel.config.web.json
+!/cdk.json
+!/logic.txt
+!/package-lock.json
+!/package.json
+!/robots_prod.txt
+!/robots_stage.txt
+!/tailwind.colors.json
+!/tailwind.semantic.generated.json
+!/tailwind.semantic.json
+!/tsconfig.build.json
+!/tsconfig.json
+!/tsconfig.lambda.json
+
+# Dynamo scan caches and price-point dumps
+/lambda/scripts/.cache
+/pricepoints
