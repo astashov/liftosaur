@@ -154,6 +154,7 @@ const mainConfig = {
     login: ["./src/login.tsx", "./src/index.css"],
     resetpassword: ["./src/resetPassword.tsx", "./src/index.css"],
     verifyemail: ["./src/verifyEmail.tsx", "./src/index.css"],
+    oauthconsent: ["./src/index.css"],
     exercise: ["./src/exercise.tsx", "./src/index.css"],
     repmax: ["./src/repmax.tsx", "./src/index.css"],
     allexercises: ["./src/allExercises.tsx", "./src/index.css"],

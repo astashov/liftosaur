@@ -214,6 +214,8 @@ import {
   postOauthRegisterHandler,
   getOauthAuthorizeEndpoint,
   getOauthAuthorizeHandler,
+  postOauthAuthorizeEndpoint,
+  postOauthAuthorizeHandler,
   postOauthTokenEndpoint,
   postOauthTokenHandler,
 } from "./mcp/oauth";
@@ -3963,6 +3965,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAuthServerMetadataEndpoint, getAuthServerMetadataHandler)
       .post(postOauthRegisterEndpoint, postOauthRegisterHandler)
       .get(getOauthAuthorizeEndpoint, getOauthAuthorizeHandler)
+      .post(postOauthAuthorizeEndpoint, postOauthAuthorizeHandler)
       .post(postOauthTokenEndpoint, postOauthTokenHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);

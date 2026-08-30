@@ -5,11 +5,48 @@ import { OauthDao } from "../dao/oauthDao";
 import { UserDao } from "../dao/userDao";
 import { Utils_getEnv, Utils_isLocal } from "../utils";
 import * as Cookie from "cookie";
+import JWT from "jsonwebtoken";
+import * as crypto from "crypto";
+import { renderOauthConsentHtml } from "../oauthConsent";
 
 interface IPayload {
   event: APIGatewayProxyEvent;
   di: IDI;
 }
+
+// The signed consent token is what makes /oauth/authorize CSRF-safe: the code is
+// only minted by the POST, and the POST needs a token that can only be read out
+// of the GET's HTML (blocked cross-origin) and can't be forged. userId is bound
+// in so a logged-in attacker can't pre-mint a token and submit it inside a
+// victim's session.
+const CONSENT_TOKEN_TYPE = "oauth_consent";
+
+interface IConsentToken {
+  type: string;
+  userId: string;
+  clientId: string;
+  redirectUri: string;
+  codeChallenge: string;
+  codeChallengeMethod: string;
+  state?: string;
+}
+
+// The consent token MUST NOT be signed with the raw cookie secret: a session
+// cookie is just JWT.sign({ userId }, cookieSecret), so a token signed with the
+// same key and carrying userId would validate as a live session (and vice
+// versa) - letting a leaked consent token be replayed as its own session. Derive
+// a distinct key so the two token types are cryptographically separate.
+async function getConsentSigningKey(di: IDI): Promise<string> {
+  const secret = await di.secrets.getCookieSecret();
+  return crypto.createHmac("sha256", secret).update("oauth-consent-v1").digest("hex");
+}
+
+// Consent page is the only framable content here; block embedding so a client
+// can't clickjack the Allow button.
+const antiFramingHeaders = {
+  "x-frame-options": "DENY",
+  "content-security-policy": "frame-ancestors 'none'",
+};
 
 function oauthJson(status: number, body: object, extraHeaders?: Record<string, string>): APIGatewayProxyResult {
   return {
@@ -161,25 +198,98 @@ export const getOauthAuthorizeHandler: RouteHandler<
     };
   }
 
-  const authCode = await oauthDao.createAuthCode(
-    params.client_id,
+  // Don't mint the code here. Minting on GET is what let an attacker force a
+  // silent top-level navigation to /authorize and harvest the victim's code.
+  // Instead show a consent page whose Allow button POSTs a signed token back.
+  const consentPayload: IConsentToken = {
+    type: CONSENT_TOKEN_TYPE,
     userId,
-    params.redirect_uri,
-    params.code_challenge,
-    params.code_challenge_method || "S256"
-  );
-
-  const redirectUrl = new URL(params.redirect_uri);
-  redirectUrl.searchParams.set("code", authCode.code);
-  if (params.state) {
-    redirectUrl.searchParams.set("state", params.state);
-  }
+    clientId: params.client_id,
+    redirectUri: params.redirect_uri,
+    codeChallenge: params.code_challenge,
+    codeChallengeMethod: params.code_challenge_method || "S256",
+    state: params.state,
+  };
+  const consentToken = JWT.sign(consentPayload, await getConsentSigningKey(di), { expiresIn: "10m" });
 
   return {
-    statusCode: 302,
-    body: "",
-    headers: { location: redirectUrl.toString() },
+    statusCode: 200,
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "no-store",
+      ...antiFramingHeaders,
+    },
+    body: renderOauthConsentHtml(client.clientName || "An application", params.redirect_uri, consentToken),
   };
+};
+
+// --- POST /oauth/authorize (consent decision) ---
+
+export const postOauthAuthorizeEndpoint = Endpoint.build("/oauth/authorize");
+export const postOauthAuthorizeHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postOauthAuthorizeEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+
+  const raw = event.body
+    ? event.isBase64Encoded
+      ? Buffer.from(event.body, "base64").toString("utf8")
+      : event.body
+    : "";
+  const form = Object.fromEntries(new URLSearchParams(raw));
+  const consentTokenRaw = form.consent_token;
+  const decision = form.decision;
+  if (!consentTokenRaw) {
+    return oauthError(400, "invalid_request", "Missing consent_token");
+  }
+
+  let consent: IConsentToken;
+  try {
+    consent = JWT.verify(consentTokenRaw, await getConsentSigningKey(di)) as IConsentToken;
+  } catch {
+    return oauthError(400, "invalid_request", "Invalid or expired consent token");
+  }
+  if (consent.type !== CONSENT_TOKEN_TYPE) {
+    return oauthError(400, "invalid_request", "Wrong token type");
+  }
+
+  // The token is signed, but re-check the live session: it binds the decision to
+  // whoever is actually driving this browser, so a stolen/pre-minted token can't
+  // be replayed inside another user's session. The distinct signing key means
+  // the consent token itself can't stand in as that session cookie.
+  const sessionUserId = await getCurrentUserId(event, di);
+  if (!sessionUserId || sessionUserId !== consent.userId) {
+    return oauthError(401, "access_denied", "Session does not match consent token");
+  }
+
+  const oauthDao = new OauthDao(di);
+  const client = await oauthDao.getClient(consent.clientId);
+  if (!client || !client.redirectUris.includes(consent.redirectUri)) {
+    return oauthError(400, "invalid_request", "Invalid client or redirect_uri");
+  }
+
+  const redirectUrl = new URL(consent.redirectUri);
+  if (consent.state) {
+    redirectUrl.searchParams.set("state", consent.state);
+  }
+
+  if (decision !== "allow") {
+    redirectUrl.searchParams.set("error", "access_denied");
+    return { statusCode: 302, body: "", headers: { location: redirectUrl.toString(), "cache-control": "no-store" } };
+  }
+
+  const authCode = await oauthDao.createAuthCode(
+    consent.clientId,
+    consent.userId,
+    consent.redirectUri,
+    consent.codeChallenge,
+    consent.codeChallengeMethod
+  );
+  redirectUrl.searchParams.set("code", authCode.code);
+
+  return { statusCode: 302, body: "", headers: { location: redirectUrl.toString(), "cache-control": "no-store" } };
 };
 
 // --- POST /oauth/token ---
