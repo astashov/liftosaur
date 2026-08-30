@@ -3266,8 +3266,22 @@ const postImageUploadUrlHandler: RouteHandler<
     return ResponseUtils_json(400, event, { error: "fileName and contentType are required" });
   }
 
+  // These images are served from the app origin, so the presigned Content-Type (S3 signs and enforces
+  // it) must never be something a browser would execute - no text/html, and no image/svg+xml, which
+  // can carry script. The app only ever uploads the raster types below.
+  const allowedContentTypes = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+  if (!allowedContentTypes.includes(contentType)) {
+    return ResponseUtils_json(400, event, { error: "Unsupported content type" });
+  }
+
   try {
-    const key = `user-uploads/${userId}/${UidFactory_generateUid(8)}-${fileName}`;
+    const safeFileName =
+      `${fileName}`
+        .split("/")
+        .pop()!
+        .replace(/[^a-zA-Z0-9._-]/g, "_")
+        .slice(-64) || "image";
+    const key = `user-uploads/${userId}/${UidFactory_generateUid(8)}-${safeFileName}`;
     const env = Utils_getEnv();
     const bucketname = `${LftS3Buckets.userimages}${env === "dev" ? "dev" : ""}`;
     const uploadUrl = await di.s3.getPresignedUploadUrl({

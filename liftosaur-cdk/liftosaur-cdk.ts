@@ -605,6 +605,18 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
+    // user-uploaded images are served from the app origin, so a file whose bytes are HTML must never
+    // render as a document there. nosniff stops content-type sniffing; attachment stops direct
+    // navigation from rendering it (both are inert for the <img> tags the app actually uses).
+    const userImagesPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftUserImages${suffix}`, {
+      securityHeadersBehavior: {
+        contentTypeOptions: { override: true },
+      },
+      customHeadersBehavior: {
+        customHeaders: [{ header: "Content-Disposition", value: "attachment", override: true }],
+      },
+    });
+
     const s3CachedBehavior: cloudfront.BehaviorOptions = {
       origin: s3Origin,
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -1008,6 +1020,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
           origin: userImagesOrigin,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          responseHeadersPolicy: userImagesPolicy,
           functionAssociations: [
             {
               function: stripPathPrefix,
