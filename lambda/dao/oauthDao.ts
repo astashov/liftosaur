@@ -1,6 +1,6 @@
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory_generateUid } from "../utils/generator";
+import { UidFactory_generateSecureToken, UidFactory_generateUid } from "../utils/generator";
 import * as crypto from "crypto";
 
 export const oauthTableNames = {
@@ -78,7 +78,7 @@ export class OauthDao {
     const env = Utils_getEnv();
     const expiresAt = Date.now() + 10 * 60 * 1000;
     const authCode: IOauthAuthCode = {
-      code: UidFactory_generateUid(32),
+      code: UidFactory_generateSecureToken(32),
       clientId,
       userId,
       redirectUri,
@@ -108,10 +108,10 @@ export class OauthDao {
     const env = Utils_getEnv();
     const expiresAt = Date.now() + 60 * 60 * 1000;
     const oauthToken: IOauthToken = {
-      token: `lftot_${UidFactory_generateUid(32)}`,
+      token: `lftot_${UidFactory_generateSecureToken(32)}`,
       userId,
       clientId,
-      refreshToken: `lftrr_${UidFactory_generateUid(32)}`,
+      refreshToken: `lftrr_${UidFactory_generateSecureToken(32)}`,
       expiresAt,
       ttl: Math.floor((Date.now() + 90 * 24 * 60 * 60 * 1000) / 1000),
     };

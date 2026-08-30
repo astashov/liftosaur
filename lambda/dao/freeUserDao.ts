@@ -1,6 +1,6 @@
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory_generateUid } from "../utils/generator";
+import { UidFactory_generateSecureToken } from "../utils/generator";
 
 export const freeUsersTableNames = {
   dev: {
@@ -74,7 +74,7 @@ export class FreeUserDao {
       id,
       expires,
       isClaimed,
-      key: `key-${UidFactory_generateUid(6)}`,
+      key: `key-${UidFactory_generateSecureToken(6)}`,
       coupon,
     };
     await this.di.dynamo.put({
