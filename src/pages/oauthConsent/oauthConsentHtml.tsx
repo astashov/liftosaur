@@ -32,6 +32,8 @@ export function OauthConsentHtml(props: IProps): JSX.Element {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex" />
         <title>{`Authorize ${clientName} | Liftosaur`}</title>
+        <link rel="shortcut icon" type="image/x-icon" href="/icons/favicon.ico" />
+        <link rel="apple-touch-icon" href="/icons/icon512.png" />
         <link rel="stylesheet" type="text/css" href={`/oauthconsent.css?version=${version}`} />
       </head>
       <body>
