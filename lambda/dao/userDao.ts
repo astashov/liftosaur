@@ -41,6 +41,8 @@ import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
 import * as path from "path";
 import { ICollectionVersions, isCollectionVersions, VersionTracker } from "../../src/models/versionTracker";
 import { DebugDao } from "./debugDao";
+import { StorageDao } from "./storageDao";
+import { ApiKeyDao } from "./apiKeyDao";
 import { EventDao } from "./eventDao";
 
 export const userTableNames = {
@@ -974,6 +976,10 @@ export class UserDao {
     }
   }
 
+  // Payments and affiliate rows deliberately survive: tax law requires us to keep transaction
+  // records (GDPR art. 17(3)(b)), and affiliate payouts are computed by joining those payments
+  // through the affiliate row, so dropping it would silently shrink an affiliate's past earnings.
+  // Both are disclosed in the privacy policy - keep them in sync if this changes.
   public async removeUser(userId: string): Promise<void> {
     const env = Utils_getEnv();
     const programs = await this.getProgramsByUserId(userId);
@@ -1054,6 +1060,13 @@ export class UserDao {
         })
       );
     }
+
+    await new StorageDao(this.di).removeAll(userId);
+    await new DebugDao(this.di).removeAll(userId);
+
+    const apiKeyDao = new ApiKeyDao(this.di);
+    const apiKeys = await apiKeyDao.listByUserId(userId);
+    await Promise.all(apiKeys.map((apiKey) => apiKeyDao.deleteKey(apiKey.key)));
   }
 
   public async getImages(userId: string): Promise<string[]> {

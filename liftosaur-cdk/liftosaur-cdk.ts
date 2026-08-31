@@ -313,7 +313,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const debugbucket = new s3.Bucket(this, `LftS3Debugs${suffix}`, {
       bucketName: `${LftS3Buckets.debugs}${suffix.toLowerCase()}`,
-      lifecycleRules: [{ expiration: cdk.Duration.days(365) }],
+      lifecycleRules: [{ expiration: cdk.Duration.days(30) }],
     });
 
     const exceptionsbucket = new s3.Bucket(this, `LftS3Exceptions${suffix}`, {

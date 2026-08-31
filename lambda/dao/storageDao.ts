@@ -1,4 +1,5 @@
 import { IPartialStorage, IStorage } from "../../src/types";
+import { CollectionUtils_inGroupsOf } from "../../src/utils/collection";
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { UidFactory_generateUid } from "../utils/generator";
@@ -60,5 +61,14 @@ export class StorageDao {
       opts: { contentType: "application/json" },
     });
     return id;
+  }
+
+  public async removeAll(userid: string): Promise<void> {
+    const env = Utils_getEnv();
+    const bucket = bucketNames[env].storages;
+    const keys = await this.di.s3.listObjects({ bucket, prefix: `storages/${userid}/` });
+    for (const group of CollectionUtils_inGroupsOf(30, keys)) {
+      await Promise.all(group.map((key) => this.di.s3.deleteObject({ bucket, key })));
+    }
   }
 }

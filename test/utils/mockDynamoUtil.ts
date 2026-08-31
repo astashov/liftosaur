@@ -22,6 +22,7 @@ const idKeys: Partial<Record<string, string[]>> = {
   [freeUsersTableNames.prod.freeUsers]: ["id"],
   lftSubscriptionDetails: ["userId"],
   lftPayments: ["userId", "transactionId"],
+  lftAffiliates: ["affiliateId", "userId"],
   lftEmailAuthTokens: ["token"],
 };
 

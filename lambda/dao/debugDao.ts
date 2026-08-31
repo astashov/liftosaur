@@ -1,4 +1,5 @@
 import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
+import { CollectionUtils_inGroupsOf } from "../../src/utils/collection";
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { LftS3Buckets } from "./buckets";
@@ -65,5 +66,18 @@ export class DebugDao {
       body: state,
       opts: { contentType: "text/plain" },
     });
+  }
+
+  public async removeAll(id: string): Promise<void> {
+    const env = Utils_getEnv();
+    const bucket = bucketNames[env].debug;
+    const keys = (
+      await Promise.all(
+        ["debuginfo", "errorinfo"].map((prefix) => this.di.s3.listObjects({ bucket, prefix: `${prefix}/${id}/` }))
+      )
+    ).flat();
+    for (const group of CollectionUtils_inGroupsOf(30, keys)) {
+      await Promise.all(group.map((key) => this.di.s3.deleteObject({ bucket, key })));
+    }
   }
 }
