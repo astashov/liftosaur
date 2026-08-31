@@ -1058,6 +1058,55 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     deployStatic.node.addDependency(deployChunks);
 
+    // The bare apex liftosaur.com only ever redirects to www. Route 53/DNS can't return an HTTP
+    // redirect, so a tiny CloudFront distribution does it: a viewer-request function 301s every
+    // request to www (preserving path + query) before the placeholder origin is ever contacted.
+    // Prod-only - there is no apex in dev (stage uses a subdomain covered by the wildcard cert).
+    if (!isDev) {
+      const apexCert = acm.Certificate.fromCertificateArn(
+        this,
+        "LftApexCert",
+        "arn:aws:acm:us-east-1:366191129585:certificate/6e0f15b7-bf3e-42a9-abe6-6daad6a95d69"
+      );
+      const apexRedirect = new cloudfront.Function(this, "LftApexRedirect", {
+        functionName: "LftApexRedirect",
+        code: cloudfront.FunctionCode.fromInline(`
+          function handler(event) {
+            var req = event.request;
+            var qs = req.querystring;
+            var query = '';
+            for (var k in qs) {
+              query += (query ? '&' : '?') + k + (qs[k].value ? '=' + qs[k].value : '');
+            }
+            return {
+              statusCode: 301,
+              statusDescription: 'Moved Permanently',
+              headers: { location: { value: 'https://www.liftosaur.com' + req.uri + query } },
+            };
+          }
+        `),
+      });
+      const apexDistribution = new cloudfront.Distribution(this, "LftApexRedirectDistribution", {
+        certificate: apexCert,
+        domainNames: ["liftosaur.com"],
+        defaultBehavior: {
+          origin: new origins.HttpOrigin("www.liftosaur.com"),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          functionAssociations: [
+            {
+              function: apexRedirect,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+      });
+      new cdk.CfnOutput(this, "ApexRedirectDistributionDomain", {
+        value: apexDistribution.distributionDomainName,
+        description: "CloudFront domain for the liftosaur.com apex -> www redirect (point apex DNS here)",
+      });
+    }
+
     new cdk.CfnOutput(this, `MainDistributionDomain${suffix}`, {
       value: mainDistribution.distributionDomainName,
       description: "CloudFront distribution domain for main site",
