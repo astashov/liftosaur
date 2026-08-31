@@ -16,30 +16,20 @@ import { aws_s3_notifications } from "aws-cdk-lib";
 import { aws_codepipeline as codepipeline } from "aws-cdk-lib";
 import { aws_codepipeline_actions as codepipeline_actions } from "aws-cdk-lib";
 import { aws_codebuild as codebuild } from "aws-cdk-lib";
+import { aws_cloudwatch as cloudwatch } from "aws-cdk-lib";
+import { aws_cloudwatch_actions as cloudwatch_actions } from "aws-cdk-lib";
+import { aws_sns as sns } from "aws-cdk-lib";
+import { aws_sns_subscriptions as sns_subscriptions } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 import localdomain from "../localdomain";
 
-// ARN of the CLOUDFRONT WebACL created by LiftosaurWafStack (us-east-1). A CloudFront WebACL can
-// only live in us-east-1, so it is a separate stack and its ARN is referenced here as a string
-// rather than a cross-region CDK reference. Empty until that stack is first deployed - deploy
-// LiftosaurWaf, copy its WafWebAclArn output here, then redeploy LiftosaurStack to attach it.
 const PROD_WAF_WEB_ACL_ARN =
   "arn:aws:wafv2:us-east-1:366191129585:global/webacl/LiftosaurWebAcl/a8602227-4a8f-49be-8e8c-b3f6073551ce";
 
-// CloudFront stamps this header on every origin request, and the REGIONAL WebACL on the API Gateway
-// stage rejects anything without it. That is what makes CloudFront (and so the CloudFront WebACL)
-// the only way in: the execute-api endpoint and the api3 regional custom domain are both reachable
-// from the open internet and neither can be turned off - the former is the CloudFront origin itself,
-// and the latter answers to any client willing to send a matching Host header.
 const ORIGIN_VERIFY_HEADER = "x-origin-verify";
 
-// Read at synth time, never committed. In CodeBuild it arrives from Secrets Manager (see the
-// pipeline's environmentVariables); locally, export it before `cdk deploy`. Missing is a hard error
-// rather than a warning - a warning is invisible in CDK output next to the logRetention deprecation
-// noise, and silently synthesising a stack with no origin verification is the exact failure this is
-// meant to prevent.
 const ORIGIN_VERIFY_SECRET = process.env.LFT_ORIGIN_VERIFY_SECRET;
 if (!ORIGIN_VERIFY_SECRET) {
   throw new Error(
@@ -51,11 +41,11 @@ if (!ORIGIN_VERIFY_SECRET) {
   );
 }
 
-// Counts non-CloudFront requests without blocking them. Flip to true only after the OriginVerify
-// metric has sat at ~zero for a few days: anything still arriving direct - an Apple App Store Server
-// Notification URL pointing at execute-api, say - shows up as a count first instead of silently
-// breaking.
 const ORIGIN_VERIFY_ENFORCE = false;
+
+const ALARM_EMAIL = "info@liftosaur.com";
+
+const LAMBDA_RESERVED_CONCURRENCY = 300;
 
 function getCommitHashes(): { commitHash: string; fullCommitHash: string } {
   const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
@@ -429,9 +419,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(60),
       handler: "lambda/imageResizer.handler",
-      // Deprecated in favor of `logGroup`, but these functions already have live log groups -
-      // declaring them as CDK resources would fail the deploy on "already exists". This attaches a
-      // retention policy to the existing group instead. Without it the default is INFINITE.
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_DEV: `${isDev}`,
@@ -453,6 +440,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(isDev ? 240 : 300),
       handler: "lambda/run.handler",
+      reservedConcurrentExecutions: LAMBDA_RESERVED_CONCURRENCY,
       logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_LOCAL: "false",
@@ -534,15 +522,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     restApi.root.addProxy();
 
-    // REGIONAL WebACL on the API Gateway stage. The CloudFront WebACL cannot cover this: it only
-    // sees traffic that chose to go through CloudFront, and both the execute-api endpoint and the
-    // api3 regional custom domain answer the open internet directly.
-    //
-    // Deliberately no rate-based rules here. At this layer every allowed request arrives from a
-    // CloudFront IP, so aggregating on IP would pool all real users behind a handful of edge
-    // addresses, and aggregating on X-Forwarded-For is trivially spoofed by exactly the direct
-    // caller this is meant to stop. Rate limiting belongs on the CloudFront WebACL, where the real
-    // viewer IP is available.
     if (ORIGIN_VERIFY_SECRET) {
       const originVerifyWebAcl = new wafv2.CfnWebACL(this, `LftRegionalWebAcl${suffix}`, {
         name: `LiftosaurRegionalWebAcl${suffix}`,
@@ -584,6 +563,91 @@ export class LiftosaurCdkStack extends cdk.Stack {
         webAclArn: originVerifyWebAcl.attrArn,
       });
     }
+
+    const alarmTopic = new sns.Topic(this, `LftAlarmTopic${suffix}`, {
+      topicName: `LiftosaurAlarms${suffix}`,
+      displayName: "Liftosaur alarms",
+    });
+    alarmTopic.addSubscription(new sns_subscriptions.EmailSubscription(ALARM_EMAIL));
+
+    const addAlarm = (
+      alarmId: string,
+      metric: cloudwatch.Metric,
+      threshold: number,
+      evaluationPeriods: number,
+      alarmDescription: string
+    ): void => {
+      const alarm = new cloudwatch.Alarm(this, `${alarmId}${suffix}`, {
+        alarmName: `Liftosaur${alarmId}${suffix}`,
+        metric,
+        threshold,
+        evaluationPeriods,
+        comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+        alarmDescription,
+      });
+      alarm.addAlarmAction(new cloudwatch_actions.SnsAction(alarmTopic));
+    };
+
+    const fiveMin = cdk.Duration.minutes(5);
+
+    addAlarm(
+      "LambdaConcurrency",
+      lambdaFunction.metric("ConcurrentExecutions", { statistic: "Maximum", period: fiveMin }),
+      200,
+      2,
+      `Lambda concurrency >= 200. Approaching the ${LAMBDA_RESERVED_CONCURRENCY} cap, past which requests are throttled.`
+    );
+
+    addAlarm(
+      "LambdaErrors",
+      lambdaFunction.metricErrors({ statistic: "Sum", period: fiveMin }),
+      10,
+      1,
+      "Lambda errors >= 10 in 5 minutes."
+    );
+
+    addAlarm(
+      "AiMuscleCacheWrites",
+      aiMuscleCaches.metricConsumedWriteCapacityUnits({ statistic: "Sum", period: fiveMin }),
+      100,
+      1,
+      "Writes to the AI muscle cache >= 100 in 5 minutes."
+    );
+
+    addAlarm(
+      "ShorturlWrites",
+      urlsTable.metricConsumedWriteCapacityUnits({ statistic: "Sum", period: fiveMin }),
+      500,
+      1,
+      "Writes to the shorturl table >= 500 in 5 minutes"
+    );
+
+    addAlarm(
+      "EventWrites",
+      eventsTable.metricConsumedWriteCapacityUnits({ statistic: "Sum", period: fiveMin }),
+      20000,
+      1,
+      "Writes to the events table >= 20000 in 5 minutes"
+    );
+
+    addAlarm(
+      "OriginVerify",
+      new cloudwatch.Metric({
+        namespace: "AWS/WAFV2",
+        metricName: ORIGIN_VERIFY_ENFORCE ? "BlockedRequests" : "CountedRequests",
+        dimensionsMap: {
+          WebACL: `LiftosaurRegionalWebAcl${suffix}`,
+          Rule: "OriginVerify",
+          Region: cdk.Stack.of(this).region,
+        },
+        statistic: "Sum",
+        period: fiveMin,
+      }),
+      50,
+      1,
+      "50+ requests in 5 minutes reached the API Gateway origin without the CloudFront header, bypassing the CloudFront WAF."
+    );
 
     aiMuscleCaches.grantReadWriteData(lambdaFunction);
     bucket.grantReadWrite(lambdaFunction);
@@ -632,8 +696,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
       })
     );
-
-    // --- Static assets S3 bucket + CloudFront distribution ---
 
     const staticBucket = new s3.Bucket(this, `LftS3Static${suffix}`, {
       bucketName: `${LftS3Buckets.static}${suffix.toLowerCase()}`,
@@ -701,9 +763,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
-    // user-uploaded images are served from the app origin, so a file whose bytes are HTML must never
-    // render as a document there. nosniff stops content-type sniffing; attachment stops direct
-    // navigation from rendering it (both are inert for the <img> tags the app actually uses).
     const userImagesPolicy = new cloudfront.ResponseHeadersPolicy(this, `LftUserImages${suffix}`, {
       securityHeadersBehavior: {
         contentTypeOptions: { override: true },
@@ -727,11 +786,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
     };
 
     const mainDomain = isDev ? "stage.liftosaur.com" : "www.liftosaur.com";
-    // The apps' __API_HOST__. It resolves to Cloudflare today, which bypasses this distribution and
-    // therefore the WebACL entirely - every /api/* call is unprotected. Serving it from here lets the
-    // DNS record move to CloudFront without changing the hostname baked into shipped mobile builds.
-    // The API Gateway custom domain of the same name is REGIONAL, so it registers no CloudFront alias
-    // and does not conflict; it stays in place as the rollback target.
     const apiDomain = isDev ? "api3-dev.liftosaur.com" : "api3.liftosaur.com";
 
     const rewriteUrls = new cloudfront.Function(this, `LftRewriteUrls${suffix}`, {
@@ -872,8 +926,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       }
     );
 
-    // CloudFront replaces any same-named header from the viewer, so a client cannot forge its way
-    // past the regional WebACL by sending this itself.
     const apiOrigin = new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
       originPath: `/${restApi.deploymentStage.stageName}`,
       originShieldEnabled: true,
@@ -909,9 +961,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       ],
     };
 
-    // Forwards CloudFront's synthetic viewer-country header to the origin (the managed AllViewer
-    // policies don't include CloudFront-generated headers). Scoped to the uncached /api/geo behavior
-    // so it never affects edge caching of the SSR pages.
     const geoOriginRequestPolicy = new cloudfront.OriginRequestPolicy(this, `LftGeoOriginRequestPolicy${suffix}`, {
       originRequestPolicyName: `LftGeoOriginRequestPolicy${suffix}`,
       headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList("CloudFront-Viewer-Country", "Origin"),
@@ -1164,10 +1213,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     deployStatic.node.addDependency(deployChunks);
 
-    // The bare apex liftosaur.com only ever redirects to www. Route 53/DNS can't return an HTTP
-    // redirect, so a tiny CloudFront distribution does it: a viewer-request function 301s every
-    // request to www (preserving path + query) before the placeholder origin is ever contacted.
-    // Prod-only - there is no apex in dev (stage uses a subdomain covered by the wildcard cert).
     if (!isDev) {
       const apexCert = acm.Certificate.fromCertificateArn(
         this,
@@ -1269,20 +1314,6 @@ class LiftosaurPipelineStack extends cdk.Stack {
                 : "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1"
             }:rollbarPostServerItem`,
           },
-          // Its own secret rather than a key in lftAppSecrets: Secrets Manager has no per-key
-          // update, so every write there replaces all 16 credentials at once - including
-          // cookieSecret, whose loss would log out every user with no way to revoke, and
-          // updatesPrivateKey, which signs the OTA manifests. This one is infrastructure, not
-          // application state (no Lambda reads it), and it rotates on a CloudFront/WAF redeploy
-          // rather than with the app. Referenced by name so there is no generated ARN suffix to
-          // chase. Must exist before this stack is deployed - CodeBuild fails the build outright
-          // if a SECRETS_MANAGER variable cannot be resolved.
-          //
-          // Shared by dev and prod on purpose. It only proves a request arrived through our
-          // CloudFront, grants no data access, and both environments live in the same account
-          // with the same deploy roles - so there is no trust boundary for separate values to
-          // defend. Synth bakes it into both CloudFormation templates in plaintext anyway, and
-          // those sit side by side in the same CDK asset bucket.
           LFT_ORIGIN_VERIFY_SECRET: {
             type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
             value: "lftOriginVerifySecret",
@@ -1364,13 +1395,6 @@ class LiftosaurPipelineStack extends cdk.Stack {
   }
 }
 
-// CloudFront WebACL - must live in us-east-1, so it is its own stack. Its ARN is wired into the www
-// distribution via PROD_WAF_WEB_ACL_ARN after the first deploy of this stack.
-//
-// Rules start in COUNT mode: they record matches in the WAF logs/metrics without blocking anything.
-// After watching the metrics and confirming no legitimate (NAT-shared) IP trips a limit, flip to
-// enforcement: change `{ count: {} }` to `{ block: {} }` on the two rate rules, and the managed
-// group's overrideAction from `{ count: {} }` to `{ none: {} }`.
 class LiftosaurWafStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -1440,6 +1464,47 @@ class LiftosaurWafStack extends cdk.Stack {
       value: webAcl.attrArn,
       description: "CloudFront WebACL ARN - set PROD_WAF_WEB_ACL_ARN to this, then redeploy LiftosaurStack",
     });
+
+    const wafAlarmTopic = new sns.Topic(this, "LftWafAlarmTopic", {
+      topicName: "LiftosaurWafAlarms",
+      displayName: "Liftosaur WAF and billing alarms",
+    });
+    wafAlarmTopic.addSubscription(new sns_subscriptions.EmailSubscription(ALARM_EMAIL));
+
+    const musclesAlarm = new cloudwatch.Alarm(this, "LftMusclesRateLimitAlarm", {
+      alarmName: "LiftosaurMusclesRateLimit",
+      metric: new cloudwatch.Metric({
+        namespace: "AWS/WAFV2",
+        metricName: "CountedRequests",
+        dimensionsMap: { WebACL: "LiftosaurWebAcl", Rule: "MusclesRateLimit", Region: "CloudFront" },
+        statistic: "Sum",
+        period: cdk.Duration.minutes(5),
+      }),
+      threshold: 100,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      alarmDescription:
+        "An IP tripped the /api/muscles rate limit 100+ times in 5 minutes. Each uncached call is a paid Claude call.",
+    });
+    musclesAlarm.addAlarmAction(new cloudwatch_actions.SnsAction(wafAlarmTopic));
+
+    const billingAlarm = new cloudwatch.Alarm(this, "LftBillingAlarm", {
+      alarmName: "LiftosaurEstimatedCharges",
+      metric: new cloudwatch.Metric({
+        namespace: "AWS/Billing",
+        metricName: "EstimatedCharges",
+        dimensionsMap: { Currency: "USD" },
+        statistic: "Maximum",
+        period: cdk.Duration.hours(6),
+      }),
+      threshold: 1000,
+      evaluationPeriods: 1,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      alarmDescription: "Month-to-date AWS charges exceeded the alarm threshold.",
+    });
+    billingAlarm.addAlarmAction(new cloudwatch_actions.SnsAction(wafAlarmTopic));
   }
 }
 
