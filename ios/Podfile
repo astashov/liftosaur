@@ -5,6 +5,8 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
+require 'shellwords'
+
 platform :ios, '17.0'
 prepare_react_native_project!
 
@@ -109,6 +111,21 @@ target 'Liftosaur' do
         File.write(rollbar_file, patched)
         Pod::UI.puts "Patched RollbarReachability.m for iOS 26 SDK compatibility".yellow
       end
+    end
+
+    # RN's prebuilt React core ships as separate Debug/Release xcframeworks, swapped at
+    # build time by replace-rncore-version.js based on the .last_build_configuration
+    # marker. Pod cleaning deletes that dotfile (the podspec's preserve_paths '**/*.*'
+    # doesn't match it) but keeps whatever flavor the previous build left behind, and the
+    # script then assumes a missing marker means Debug. So a Debug build after an archive
+    # links the release core and fails on the NDEBUG-guarded Sealable/getDebugProps
+    # symbols. Restore the marker from what's actually on disk.
+    prebuilt_dir = File.join(installer.sandbox.root, 'React-Core-prebuilt')
+    slice = Dir.glob(File.join(prebuilt_dir, 'React.xcframework', '*', 'React.framework', 'React')).first
+    if slice
+      flavor = system("nm -g #{Shellwords.escape(slice)} 2>/dev/null | grep -q Sealable") ? 'Debug' : 'Release'
+      File.write(File.join(prebuilt_dir, '.last_build_configuration'), flavor)
+      Pod::UI.puts "React-Core-prebuilt on disk is the #{flavor} flavor; wrote .last_build_configuration".yellow
     end
   end
 end

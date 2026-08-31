@@ -3084,7 +3084,7 @@ SPEC CHECKSUMS:
   React-utils: 7ace4a70a287291541c646e3f02688ba439ed743
   React-webperformancenativemodule: 4b56d01c3a3f403231c3756ac7031db8ab64f504
   ReactAppDependencyProvider: e96e93b493d8d86eeaee3e590ba0be53f6abe46f
-  ReactCodegen: d25d5d7963a1b4bd87a6fc3a9d243b224f7b1f95
+  ReactCodegen: d3b332c711ce428128c992bbc8bc8faa5ed8538a
   ReactCommon: 07572bf9e687c8a52fbe4a3641e9e3a1a477c78e
   ReactNativeDependencies: 05329dd44c0aab3047e366c1088ee3b83bde33af
   ReactNativeHealthkit: b81525b73d998c228ac466f2a0c8e0aa0fbcce8f
@@ -3113,6 +3113,6 @@ SPEC CHECKSUMS:
   TikTokOpenShareSDK: a7da017bc66c28d0aefea9342c0cfcc7e52ea2b7
   Yoga: 846fbe6f595136be802ad81d05688ff748839764
 
-PODFILE CHECKSUM: 6a134dd5b33e13fc97281b04c99305fdd74bd02b
+PODFILE CHECKSUM: f0cd8acb430bb3af319f25e144320104ba652ea1
 
 COCOAPODS: 1.16.2
