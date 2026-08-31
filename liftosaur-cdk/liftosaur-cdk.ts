@@ -9,6 +9,7 @@ import { aws_iam as iam } from "aws-cdk-lib";
 import { aws_events, aws_events_targets } from "aws-cdk-lib";
 import { aws_cloudfront as cloudfront } from "aws-cdk-lib";
 import { aws_cloudfront_origins as origins } from "aws-cdk-lib";
+import { aws_wafv2 as wafv2 } from "aws-cdk-lib";
 import { aws_s3_deployment as s3Deployment } from "aws-cdk-lib";
 import { aws_s3_notifications } from "aws-cdk-lib";
 import { aws_codepipeline as codepipeline } from "aws-cdk-lib";
@@ -18,6 +19,13 @@ import { Construct } from "constructs";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import childProcess from "child_process";
 import localdomain from "../localdomain";
+
+// ARN of the CLOUDFRONT WebACL created by LiftosaurWafStack (us-east-1). A CloudFront WebACL can
+// only live in us-east-1, so it is a separate stack and its ARN is referenced here as a string
+// rather than a cross-region CDK reference. Empty until that stack is first deployed - deploy
+// LiftosaurWaf, copy its WafWebAclArn output here, then redeploy LiftosaurStack to attach it.
+const PROD_WAF_WEB_ACL_ARN =
+  "arn:aws:wafv2:us-east-1:366191129585:global/webacl/LiftosaurWebAcl/a8602227-4a8f-49be-8e8c-b3f6073551ce";
 
 function getCommitHashes(): { commitHash: string; fullCommitHash: string } {
   const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
@@ -817,6 +825,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
       certificate: streamingCert,
       domainNames: [mainDomain],
+      webAclId: isDev ? undefined : PROD_WAF_WEB_ACL_ARN || undefined,
       defaultBehavior: {
         origin: apiOrigin,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -1239,8 +1248,88 @@ class LiftosaurPipelineStack extends cdk.Stack {
   }
 }
 
+// CloudFront WebACL - must live in us-east-1, so it is its own stack. Its ARN is wired into the www
+// distribution via PROD_WAF_WEB_ACL_ARN after the first deploy of this stack.
+//
+// Rules start in COUNT mode: they record matches in the WAF logs/metrics without blocking anything.
+// After watching the metrics and confirming no legitimate (NAT-shared) IP trips a limit, flip to
+// enforcement: change `{ count: {} }` to `{ block: {} }` on the two rate rules, and the managed
+// group's overrideAction from `{ count: {} }` to `{ none: {} }`.
+class LiftosaurWafStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    const webAcl = new wafv2.CfnWebACL(this, "LftWebAcl", {
+      name: "LiftosaurWebAcl",
+      scope: "CLOUDFRONT",
+      defaultAction: { allow: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: "LiftosaurWebAcl",
+        sampledRequestsEnabled: true,
+      },
+      rules: [
+        {
+          name: "BlanketRateLimit",
+          priority: 1,
+          action: { count: {} },
+          statement: { rateBasedStatement: { limit: 2000, aggregateKeyType: "IP" } },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "BlanketRateLimit",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "MusclesRateLimit",
+          priority: 2,
+          action: { count: {} },
+          statement: {
+            rateBasedStatement: {
+              limit: 100,
+              aggregateKeyType: "IP",
+              scopeDownStatement: {
+                byteMatchStatement: {
+                  fieldToMatch: { uriPath: {} },
+                  positionalConstraint: "STARTS_WITH",
+                  searchString: "/api/muscles",
+                  textTransformations: [{ priority: 0, type: "NONE" }],
+                },
+              },
+            },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "MusclesRateLimit",
+            sampledRequestsEnabled: true,
+          },
+        },
+        {
+          name: "AmazonIpReputation",
+          priority: 3,
+          overrideAction: { count: {} },
+          statement: {
+            managedRuleGroupStatement: { vendorName: "AWS", name: "AWSManagedRulesAmazonIpReputationList" },
+          },
+          visibilityConfig: {
+            cloudWatchMetricsEnabled: true,
+            metricName: "AmazonIpReputation",
+            sampledRequestsEnabled: true,
+          },
+        },
+      ],
+    });
+
+    new cdk.CfnOutput(this, "WafWebAclArn", {
+      value: webAcl.attrArn,
+      description: "CloudFront WebACL ARN - set PROD_WAF_WEB_ACL_ARN to this, then redeploy LiftosaurStack",
+    });
+  }
+}
+
 const app = new cdk.App();
 new LiftosaurCdkStack(app, "LiftosaurStackDev", true);
 new LiftosaurCdkStack(app, "LiftosaurStack", false);
 new LiftosaurPipelineStack(app, "LiftosaurPipelineDev", true);
 new LiftosaurPipelineStack(app, "LiftosaurPipeline", false);
+new LiftosaurWafStack(app, "LiftosaurWaf", { env: { account: "366191129585", region: "us-east-1" } });
