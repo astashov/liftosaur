@@ -25,11 +25,31 @@ npm run playwright # Run Playwright E2E tests
 npm run lint       # ESLint for TypeScript files
 ```
 
-### AWS Lambda Development
+### Backend / Lambda Development
+There is **no local Lambda emulation**. The backend runs locally through `devserver.ts` —
+use `npm run start:server` (above). The `start:lambda` / `sam-start-api` / `cdk-synth`
+scripts are dead leftovers from the old SAM setup; `sam local start-api` is not used.
+
+`npm run build:lambda` builds the deployable bundle. Deploys run in CodeBuild: pushing
+`redesign` deploys the dev/stage stack, `master` deploys prod.
+
+### Infrastructure (CDK)
 ```bash
-npm run start:lambda  # Local Lambda API
-npm run watch:lambda  # Watch & rebuild Lambda
+# REQUIRED - every cdk command throws without it
+export LFT_ORIGIN_VERIFY_SECRET=$(aws secretsmanager get-secret-value \
+  --secret-id lftOriginVerifySecret --query SecretString --output text)
+npx cdk diff LiftosaurStackDev
+npx cdk deploy LiftosaurStack
 ```
+`LFT_ORIGIN_VERIFY_SECRET` is the shared secret CloudFront stamps onto every origin request
+so the regional WAF on the API Gateway stage can reject anything that did not arrive through
+CloudFront. It lives in its own `lftOriginVerifySecret` — one value shared by dev and prod,
+and deliberately *not* a key in `lftAppSecrets`: Secrets Manager has no per-key update, so
+every write there rewrites all 16 credentials at once, and `cookieSecret` and
+`updatesPrivateKey` are not things to risk for an unrelated change.
+
+Any `cdk` command fails fast without the variable, by design, so a stack can never be
+synthesized with the origin left open.
 
 ### iOS/watchOS Development
 ```bash

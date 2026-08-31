@@ -28,6 +28,35 @@ import localdomain from "../localdomain";
 const PROD_WAF_WEB_ACL_ARN =
   "arn:aws:wafv2:us-east-1:366191129585:global/webacl/LiftosaurWebAcl/a8602227-4a8f-49be-8e8c-b3f6073551ce";
 
+// CloudFront stamps this header on every origin request, and the REGIONAL WebACL on the API Gateway
+// stage rejects anything without it. That is what makes CloudFront (and so the CloudFront WebACL)
+// the only way in: the execute-api endpoint and the api3 regional custom domain are both reachable
+// from the open internet and neither can be turned off - the former is the CloudFront origin itself,
+// and the latter answers to any client willing to send a matching Host header.
+const ORIGIN_VERIFY_HEADER = "x-origin-verify";
+
+// Read at synth time, never committed. In CodeBuild it arrives from Secrets Manager (see the
+// pipeline's environmentVariables); locally, export it before `cdk deploy`. Missing is a hard error
+// rather than a warning - a warning is invisible in CDK output next to the logRetention deprecation
+// noise, and silently synthesising a stack with no origin verification is the exact failure this is
+// meant to prevent.
+const ORIGIN_VERIFY_SECRET = process.env.LFT_ORIGIN_VERIFY_SECRET;
+if (!ORIGIN_VERIFY_SECRET) {
+  throw new Error(
+    "LFT_ORIGIN_VERIFY_SECRET is not set. Without it the API Gateway origin stays reachable directly, " +
+      "bypassing the CloudFront WAF. CodeBuild reads it from the lftOriginVerifySecret secret " +
+      "(shared by dev and prod); export it before running cdk locally:\n" +
+      "  export LFT_ORIGIN_VERIFY_SECRET=$(aws secretsmanager get-secret-value " +
+      "--secret-id lftOriginVerifySecret --query SecretString --output text)"
+  );
+}
+
+// Counts non-CloudFront requests without blocking them. Flip to true only after the OriginVerify
+// metric has sat at ~zero for a few days: anything still arriving direct - an Apple App Store Server
+// Notification URL pointing at execute-api, say - shows up as a count first instead of silently
+// breaking.
+const ORIGIN_VERIFY_ENFORCE = false;
+
 function getCommitHashes(): { commitHash: string; fullCommitHash: string } {
   const commitHash = childProcess.execSync("git rev-parse --short HEAD").toString().trim();
   const fullCommitHash = childProcess.execSync("git rev-parse HEAD").toString().trim();
@@ -505,6 +534,57 @@ export class LiftosaurCdkStack extends cdk.Stack {
     });
     restApi.root.addProxy();
 
+    // REGIONAL WebACL on the API Gateway stage. The CloudFront WebACL cannot cover this: it only
+    // sees traffic that chose to go through CloudFront, and both the execute-api endpoint and the
+    // api3 regional custom domain answer the open internet directly.
+    //
+    // Deliberately no rate-based rules here. At this layer every allowed request arrives from a
+    // CloudFront IP, so aggregating on IP would pool all real users behind a handful of edge
+    // addresses, and aggregating on X-Forwarded-For is trivially spoofed by exactly the direct
+    // caller this is meant to stop. Rate limiting belongs on the CloudFront WebACL, where the real
+    // viewer IP is available.
+    if (ORIGIN_VERIFY_SECRET) {
+      const originVerifyWebAcl = new wafv2.CfnWebACL(this, `LftRegionalWebAcl${suffix}`, {
+        name: `LiftosaurRegionalWebAcl${suffix}`,
+        scope: "REGIONAL",
+        defaultAction: { allow: {} },
+        visibilityConfig: {
+          cloudWatchMetricsEnabled: true,
+          metricName: `LiftosaurRegionalWebAcl${suffix}`,
+          sampledRequestsEnabled: true,
+        },
+        rules: [
+          {
+            name: "OriginVerify",
+            priority: 1,
+            action: ORIGIN_VERIFY_ENFORCE ? { block: {} } : { count: {} },
+            statement: {
+              notStatement: {
+                statement: {
+                  byteMatchStatement: {
+                    fieldToMatch: { singleHeader: { Name: ORIGIN_VERIFY_HEADER } },
+                    positionalConstraint: "EXACTLY",
+                    searchString: ORIGIN_VERIFY_SECRET,
+                    textTransformations: [{ priority: 0, type: "NONE" }],
+                  },
+                },
+              },
+            },
+            visibilityConfig: {
+              cloudWatchMetricsEnabled: true,
+              metricName: `OriginVerify${suffix}`,
+              sampledRequestsEnabled: true,
+            },
+          },
+        ],
+      });
+
+      new wafv2.CfnWebACLAssociation(this, `LftRegionalWebAclAssoc${suffix}`, {
+        resourceArn: restApi.deploymentStage.stageArn,
+        webAclArn: originVerifyWebAcl.attrArn,
+      });
+    }
+
     aiMuscleCaches.grantReadWriteData(lambdaFunction);
     bucket.grantReadWrite(lambdaFunction);
     debugbucket.grantReadWrite(lambdaFunction);
@@ -792,10 +872,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
       }
     );
 
+    // CloudFront replaces any same-named header from the viewer, so a client cannot forge its way
+    // past the regional WebACL by sending this itself.
     const apiOrigin = new origins.HttpOrigin(cdk.Fn.parseDomainName(restApi.url), {
       originPath: `/${restApi.deploymentStage.stageName}`,
       originShieldEnabled: true,
       originShieldRegion: "us-west-2",
+      ...(ORIGIN_VERIFY_SECRET ? { customHeaders: { [ORIGIN_VERIFY_HEADER]: ORIGIN_VERIFY_SECRET } } : {}),
     });
 
     const cachedPageWithDeviceBehavior: cloudfront.BehaviorOptions = {
@@ -1186,6 +1269,24 @@ class LiftosaurPipelineStack extends cdk.Stack {
                 : "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1"
             }:rollbarPostServerItem`,
           },
+          // Its own secret rather than a key in lftAppSecrets: Secrets Manager has no per-key
+          // update, so every write there replaces all 16 credentials at once - including
+          // cookieSecret, whose loss would log out every user with no way to revoke, and
+          // updatesPrivateKey, which signs the OTA manifests. This one is infrastructure, not
+          // application state (no Lambda reads it), and it rotates on a CloudFront/WAF redeploy
+          // rather than with the app. Referenced by name so there is no generated ARN suffix to
+          // chase. Must exist before this stack is deployed - CodeBuild fails the build outright
+          // if a SECRETS_MANAGER variable cannot be resolved.
+          //
+          // Shared by dev and prod on purpose. It only proves a request arrived through our
+          // CloudFront, grants no data access, and both environments live in the same account
+          // with the same deploy roles - so there is no trust boundary for separate values to
+          // defend. Synth bakes it into both CloudFormation templates in plaintext anyway, and
+          // those sit side by side in the same CDK asset bucket.
+          LFT_ORIGIN_VERIFY_SECRET: {
+            type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+            value: "lftOriginVerifySecret",
+          },
         },
       },
       timeout: cdk.Duration.minutes(60),
@@ -1214,6 +1315,7 @@ class LiftosaurPipelineStack extends cdk.Stack {
           "ssm:GetParameter",
           "ecr:*",
           "logs:*",
+          "wafv2:*",
         ],
         resources: ["*"],
       })
