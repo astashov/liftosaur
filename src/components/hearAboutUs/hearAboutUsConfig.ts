@@ -1,3 +1,5 @@
+import { StoreRuntime_storeName } from "../../utils/storeRuntime";
+
 export type IHearAboutUsSource =
   | "reddit"
   | "ai"
@@ -152,4 +154,11 @@ export const HEAR_ABOUT_US_OPTIONS: IHearAboutUsOption[] = [
 
 export function HearAboutUs_option(source: IHearAboutUsSource): IHearAboutUsOption | undefined {
   return HEAR_ABOUT_US_OPTIONS.find((o) => o.source === source);
+}
+
+// The store option names only the store this runtime came from — App Review rejects a binary that
+// mentions a competing store (guideline 2.3.10). Resolved here rather than baked into the option so
+// it tracks the runtime, the same way sourceIcon() picks the Apple or Play glyph.
+export function HearAboutUs_label(option: IHearAboutUsOption): string {
+  return option.source === "appstore" ? StoreRuntime_storeName() : option.label;
 }

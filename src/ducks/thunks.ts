@@ -99,6 +99,7 @@ import {
   IapHelpers_getSkus,
   IapHelpers_readReceiptOrJwsIOS,
 } from "../utils/iapHelpers";
+import { StoreRuntime_storeName } from "../utils/storeRuntime";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
@@ -2906,7 +2907,7 @@ export function Thunk_switchSubscription(target: "monthly" | "yearly"): IThunk {
 export function Thunk_openManageSubscriptions(): IThunk {
   return async (_dispatch, _getState, env) => {
     if (!env.iap) {
-      Dialog_alert("Manage your subscription from your App Store / Play Store account settings.");
+      Dialog_alert(`Manage your subscription from your ${StoreRuntime_storeName()} account settings.`);
       return;
     }
     try {

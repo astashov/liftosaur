@@ -19,7 +19,13 @@ import { IconKebab } from "../icons/iconKebab";
 import { IconBack } from "../icons/iconBack";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { useNavOptions } from "../../navigation/useNavOptions";
-import { HEAR_ABOUT_US_OPTIONS, HearAboutUs_option, IHearAboutUsChip, IHearAboutUsSource } from "./hearAboutUsConfig";
+import {
+  HEAR_ABOUT_US_OPTIONS,
+  HearAboutUs_option,
+  HearAboutUs_label,
+  IHearAboutUsChip,
+  IHearAboutUsSource,
+} from "./hearAboutUsConfig";
 
 export interface IHearAboutUsAnswer {
   source: string;
@@ -205,7 +211,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
               >
                 {sourceIcon(opt.source, Tailwind_semantic().text.secondary)}
               </View>
-              <Text className="flex-1 ml-3 text-base font-bold text-text-primary">{opt.label}</Text>
+              <Text className="flex-1 ml-3 text-base font-bold text-text-primary">{HearAboutUs_label(opt)}</Text>
               <View className="pl-2">
                 <IconArrowRight />
               </View>

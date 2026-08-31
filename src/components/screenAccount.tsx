@@ -37,6 +37,7 @@ import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { IIapActiveSubscription } from "../utils/iapAdapter";
 import { SubscriptionPlan_derive, ISubscriptionPlanKind, IDerivedSubscriptionPlan } from "../utils/subscriptionPlan";
 import { DateUtils_format } from "../utils/date";
+import { StoreRuntime_isIos } from "../utils/storeRuntime";
 
 declare let __HOST__: string;
 
@@ -443,7 +444,9 @@ function buildPremiumCard(plan: IDerivedSubscriptionPlan): IPremiumCard {
         subtitle:
           plan.managedOn === "apple"
             ? "Bought on the App Store — manage it on an Apple device"
-            : "Bought on Google Play — manage it on an Android device",
+            : StoreRuntime_isIos()
+              ? "Bought on another device — manage it there"
+              : "Bought on Google Play — manage it on an Android device",
         actionLabel: "View",
         showCancel: false,
       };
