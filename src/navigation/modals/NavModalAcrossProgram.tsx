@@ -1,10 +1,8 @@
 import { JSX, useMemo, useRef, useState } from "react";
-import { Animated, Platform, View } from "react-native";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
-import { FormSheet } from "../FormSheet";
-import { CustomKeyboardProvider, useCustomKeyboardAnimatedHeight } from "../CustomKeyboardContext";
+import { KeyboardSheet } from "../KeyboardSheet";
 import { Modal_clear, Modal_setResult, useModalData, useModalDispatch } from "../ModalStateContext";
 import { Program_evaluatePlannerWeeks } from "../../models/program";
 import { FocusedInputFlush_flush } from "../../utils/focusedInputFlush";
@@ -85,43 +83,26 @@ export function NavModalAcrossProgram(): JSX.Element {
   }
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet header={data.exerciseFullName} noPadding>
-        <CustomKeyboardProvider applySafeAreaBottom={false} inline noShadow>
-          {weeks == null || plannerExercise == null ? (
-            <View className="px-gutter py-6">
-              <Text className="text-sm text-center text-text-secondary">
-                Couldn't find this exercise in the program.
-              </Text>
-            </View>
-          ) : (
-            <EditProgramExerciseAcrossAllWeeks
-              weeks={weeks}
-              plannerExercise={plannerExercise}
-              settings={settings}
-              tabIndex={tabIndex}
-              onChangeTabIndex={setTabIndex}
-              onChange={applyChange}
-            />
-          )}
-          <View className="items-center pt-4 pb-2">
-            <Button kind="purple" name="across-program-save" onClick={onSave}>
-              Save
-            </Button>
-          </View>
-          <KeyboardSpacer />
-        </CustomKeyboardProvider>
-      </FormSheet>
-    </SheetScreenContainer>
+    <KeyboardSheet header={data.exerciseFullName} onClose={onClose}>
+      {weeks == null || plannerExercise == null ? (
+        <View className="px-gutter py-6">
+          <Text className="text-sm text-center text-text-secondary">Couldn't find this exercise in the program.</Text>
+        </View>
+      ) : (
+        <EditProgramExerciseAcrossAllWeeks
+          weeks={weeks}
+          plannerExercise={plannerExercise}
+          settings={settings}
+          tabIndex={tabIndex}
+          onChangeTabIndex={setTabIndex}
+          onChange={applyChange}
+        />
+      )}
+      <View className="items-center pt-4 pb-2">
+        <Button kind="purple" name="across-program-save" onClick={onSave}>
+          Save
+        </Button>
+      </View>
+    </KeyboardSheet>
   );
-}
-
-// The keypad slides in over the sheet rather than pushing it, so without something occupying its
-// height the rows it covers are simply hidden. Android's keyboard resizes the window itself.
-function KeyboardSpacer(): JSX.Element {
-  const animatedHeight = useCustomKeyboardAnimatedHeight();
-  if (Platform.OS === "android") {
-    return <></>;
-  }
-  return <Animated.View style={{ height: animatedHeight }} />;
 }

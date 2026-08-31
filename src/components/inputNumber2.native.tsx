@@ -216,14 +216,28 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         : measuredKeyboardHeightRef.current > 0
           ? measuredKeyboardHeightRef.current
           : 260;
-    const visibleBottom = windowHeight - kh - 16;
-    pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
-      const pressBottom = pressPageY + pressH;
-      if (pressBottom <= visibleBottom) {
-        return;
-      }
-      const delta = pressBottom - visibleBottom;
-      scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
+    const revealAbove = (visibleBottom: number): void => {
+      pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
+        const pressBottom = pressPageY + pressH;
+        if (pressBottom <= visibleBottom) {
+          return;
+        }
+        const delta = pressBottom - visibleBottom;
+        scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
+      });
+    };
+    // Where the keyboard starts, for a host that lets it overlay the scroll area — a screen.
+    const overlaidBottom = windowHeight - kh;
+    const viewport = scrollCtx.viewportRef.current;
+    if (viewport == null) {
+      revealAbove(overlaidBottom - 16);
+      return;
+    }
+    // A host can instead dock the keyboard below its scroll area and shorten the area to fit it —
+    // a sheet. There the area already ends above the keyboard, and its own bottom is the limit,
+    // which is lower than the window's by whatever the sheet draws under the keyboard.
+    viewport.measureInWindow((_x, viewportY, _w, viewportH) => {
+      revealAbove(Math.min(viewportY + viewportH, overlaidBottom) - 16);
     });
   }, [scrollCtx, windowHeight, keyboardHeight, measuredKeyboardHeightRef]);
 
@@ -406,6 +420,12 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       return;
     }
     scrollIntoView();
+    // Again once the keypad has finished opening. On a host that docks it above a scroll area
+    // rather than over one, the area shortens as it opens, and a scroll issued before that lands
+    // is clamped to the shorter scrollable range the old size allowed — leaving the field the
+    // reveal was for still under the keypad.
+    const timeout = setTimeout(scrollIntoView, 300);
+    return () => clearTimeout(timeout);
   }, [isFocused, keyboardHeight, scrollIntoView]);
 
   useEffect(() => {

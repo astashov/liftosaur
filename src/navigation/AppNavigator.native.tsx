@@ -417,6 +417,12 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
           <RootStack.Screen name="liftoEditorExercisePickerModal" component={NavModalLiftoEditorExercisePicker} />
+          {/* Sheets that host the custom keypad. Not formSheets: that sheet takes its height when
+              it is first laid out and never grows, so on Android the keypad landed below the
+              bottom of the screen. These draw their own sheet, which can grow. */}
+          <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
+          <RootStack.Screen name="acrossProgramModal" component={NavModalAcrossProgram} />
+          <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
         </RootStack.Group>
         <RootStack.Group
           screenLayout={renderFormSheetScreen}
@@ -440,16 +446,9 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
-          <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
-          <RootStack.Screen name="acrossProgramModal" component={NavModalAcrossProgram} />
           <RootStack.Screen name="createStateVarModal" component={NavModalCreateStateVar} />
           <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
           <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
-          <RootStack.Screen
-            name="editSetTargetModal"
-            component={NavModalEditTarget}
-            options={{ sheetResizeAnimationEnabled: false }}
-          />
           <RootStack.Screen
             name="setTimerModal"
             component={NavModalSetTimer}

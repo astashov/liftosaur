@@ -178,7 +178,10 @@ export function CustomKeyboardProvider(props: {
   return (
     <CustomKeyboardContext.Provider value={value}>
       <View
-        style={inlineLayout ? undefined : { flex: 1 }}
+        // flexShrink so a host that caps its own height can shrink what is above the keyboard:
+        // this wrapper sits between the two, and a child that cannot shrink pins the whole chain.
+        // Inert unless the host constrains the height, since nothing else here shrinks.
+        style={inlineLayout ? { flexShrink: 1 } : { flex: 1 }}
         onTouchStart={(e) => {
           if (activeConfig == null) {
             return;

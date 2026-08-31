@@ -26,6 +26,10 @@ interface IProps {
   // changes?" confirmation must happen here, while the sheet is still visible.
   shouldClose?: () => boolean | Promise<boolean>;
   fitContent?: boolean;
+  // Ceiling for a fitContent sheet, covering everything it draws — the grabber and the safe-area
+  // band included. Content past it shrinks the sheet's scroll area rather than pushing the sheet
+  // up off the top of the screen.
+  maxHeight?: number;
   // Rendered inside the bottom safe-area band (normally empty padding). The band keeps
   // at least the inset height so the content sits in it rather than pushing the sheet up;
   // on devices without a bottom inset it grows to fit the content instead.
@@ -200,7 +204,9 @@ export function TransparentModal(props: IProps): JSX.Element {
           <Animated.View
             className="overflow-hidden bg-background-default"
             style={{
-              ...(props.fitContent ? null : { height: sheetHeight + insets.bottom + keyboardHeight }),
+              ...(props.fitContent
+                ? { maxHeight: props.maxHeight }
+                : { height: sheetHeight + insets.bottom + keyboardHeight }),
               paddingBottom: props.safeAreaContent != null ? 0 : insets.bottom + keyboardHeight,
               borderTopLeftRadius: SHEET_CORNER_RADIUS,
               borderTopRightRadius: SHEET_CORNER_RADIUS,

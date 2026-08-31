@@ -1,5 +1,5 @@
 import { JSX, useEffect } from "react";
-import { View, Animated, Platform } from "react-native";
+import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { BottomSheetEditTargetContent } from "../../components/bottomSheetEditTarget";
@@ -8,9 +8,7 @@ import { IHistoryRecord } from "../../types";
 import { IState, updateState } from "../../models/state";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import type { IRootStackParamList } from "../types";
-import { CustomKeyboardProvider, useCustomKeyboardAnimatedHeight } from "../CustomKeyboardContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
-import { FormSheet } from "../FormSheet";
+import { KeyboardSheet } from "../KeyboardSheet";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
 
 export function NavModalEditTarget(): JSX.Element {
@@ -84,8 +82,8 @@ export function NavModalEditTarget(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <CustomKeyboardProvider applySafeAreaBottom={false} inline noShadow>
+  return (
+    <KeyboardSheet onClose={onClose}>
       <View className="bg-background-default">
         <BottomSheetEditTargetContent
           editSetModal={editSetModal}
@@ -95,22 +93,7 @@ export function NavModalEditTarget(): JSX.Element {
           dispatch={modalDispatch}
           onClose={onClose}
         />
-        <KeyboardSpacer />
       </View>
-    </CustomKeyboardProvider>
+    </KeyboardSheet>
   );
-
-  return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet noPadding>{content}</FormSheet>
-    </SheetScreenContainer>
-  );
-}
-
-function KeyboardSpacer(): JSX.Element {
-  const animatedHeight = useCustomKeyboardAnimatedHeight();
-  if (Platform.OS === "android") {
-    return <></>;
-  }
-  return <Animated.View style={{ height: animatedHeight }} />;
 }
