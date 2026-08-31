@@ -1063,6 +1063,7 @@ export class UserDao {
 
     await new StorageDao(this.di).removeAll(userId);
     await new DebugDao(this.di).removeAll(userId);
+    await new EventDao(this.di).removeAllForUser(userId);
 
     const apiKeyDao = new ApiKeyDao(this.di);
     const apiKeys = await apiKeyDao.listByUserId(userId);

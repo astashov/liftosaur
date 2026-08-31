@@ -1,5 +1,4 @@
 import { ILogUtil } from "../../lambda/utils/log";
-import Rollbar from "rollbar";
 import { UidFactory_generateUid } from "../../src/utils/generator";
 
 export class MockLogUtil implements ILogUtil {
@@ -19,6 +18,4 @@ export class MockLogUtil implements ILogUtil {
   public setUser(userid: string): void {
     this.userid = userid;
   }
-
-  public setRollbar(rollbar: Rollbar): void {}
 }

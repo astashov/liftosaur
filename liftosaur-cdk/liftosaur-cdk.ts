@@ -1,6 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { aws_dynamodb as dynamodb } from "aws-cdk-lib";
 import { aws_lambda as lambda } from "aws-cdk-lib";
+import { aws_logs as logs } from "aws-cdk-lib";
 import { aws_apigateway as apigw } from "aws-cdk-lib";
 import { aws_secretsmanager as sm } from "aws-cdk-lib";
 import { aws_s3 as s3 } from "aws-cdk-lib";
@@ -399,6 +400,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(60),
       handler: "lambda/imageResizer.handler",
+      // Deprecated in favor of `logGroup`, but these functions already have live log groups -
+      // declaring them as CDK resources would fail the deploy on "already exists". This attaches a
+      // retention policy to the existing group instead. Without it the default is INFINITE.
+      logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_DEV: `${isDev}`,
       },
@@ -419,6 +424,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(isDev ? 240 : 300),
       handler: "lambda/run.handler",
+      logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_LOCAL: "false",
         IS_DEV: `${isDev}`,
@@ -436,6 +442,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(900),
       handler: `lambda/run.LftStatsLambda${suffix}`,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_DEV: `${isDev}`,
       },
@@ -460,6 +467,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       layers: [depsLayer],
       timeout: cdk.Duration.seconds(900),
       handler: `lambda/run.LftReconcilePaymentsLambda${suffix}`,
+      logRetention: logs.RetentionDays.ONE_MONTH,
       environment: {
         IS_DEV: `${isDev}`,
       },

@@ -62,6 +62,20 @@ export class EventDao {
     });
   }
 
+  public async removeAllForUser(userId: string): Promise<void> {
+    const env = Utils_getEnv();
+    const events = await this.getByUserId(userId);
+    // (userId, timestamp) is the primary key, and DynamoDB rejects a batch containing duplicate keys.
+    const timestamps = Array.from(new Set(events.map((e) => e.timestamp)));
+    if (timestamps.length === 0) {
+      return;
+    }
+    await this.di.dynamo.batchDelete({
+      tableName: eventsTableNames[env].events,
+      keys: timestamps.map((timestamp) => ({ userId, timestamp })),
+    });
+  }
+
   public getByUserId(userid: string): Promise<IEventPayload[]> {
     const env = Utils_getEnv();
     return this.di.dynamo.query<IEventPayload>({

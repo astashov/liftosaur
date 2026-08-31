@@ -457,8 +457,6 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
 }) => {
   const { event, di } = payload;
   const body = event.body;
-  di.log.log("Received body", body);
-
   const appleWebhookHandler = new AppleWebhookHandler(di);
   const result = await appleWebhookHandler.handleWebhook(body);
 
@@ -478,7 +476,6 @@ const postGoogleWebhookHandler: RouteHandler<
   const { event, di } = payload;
   const handler = new GoogleWebhookHandler(di);
   const authorizationHeader = event.headers?.authorization || event.headers?.Authorization;
-  di.log.log("Received headers", event.headers);
   const result = await handler.handleWebhook(event.body || "", authorizationHeader);
 
   return ResponseUtils_json(200, event, { status: result.success ? "ok" : "error", message: result.message });
@@ -583,7 +580,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
-        di.log.log(JSON.stringify(storageUpdate, null, 2));
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate, deviceId);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
@@ -616,7 +612,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         }
       } else {
         di.log.log("Fetch: Merging update");
-        di.log.log(JSON.stringify(storageUpdate, null, 2));
         storageUpdate.originalId = Date.now();
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate, deviceId);
         if (result.success) {
@@ -714,10 +709,8 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
       storageUpdate.tempUserId = userId;
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
-        di.log.log(storageUpdate);
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
-          di.log.log("New original id", result.data);
           const [storageId] = await Promise.all([
             storageDao.store(limitedUser.id, result.data.newStorage, undefined),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
@@ -747,7 +740,6 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
         }
       } else {
         di.log.log("Fetch: Merging update");
-        di.log.log(storageUpdate);
         storageUpdate.originalId = Date.now();
         const result = await userDao.applySafeSync(limitedUser, storageUpdate);
         if (result.success) {
@@ -3833,12 +3825,13 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     di.log.id = UidFactory_generateUid(4);
     const time = Date.now();
     const userid = await getCurrentUserId(event, di);
+    // Lambda containers are reused across users, so anything Rollbar accumulated in telemetry during
+    // a previous invocation would otherwise ride along on this user's error report.
     // @ts-ignore
     if (rollbar?.client?.telemeter?.queue) {
       // @ts-ignore
       rollbar.client.telemeter.queue = [];
     }
-    di.log.setRollbar(rollbar);
     if (userid) {
       di.log.setUser(userid);
     } else {

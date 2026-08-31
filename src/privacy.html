@@ -346,13 +346,22 @@
         we keep them indefinitely to track how the app is used over time. Deleting your account removes yours.
       </li>
       <li>
-        <strong>App events</strong> — short-lived diagnostic records of app activity, kept for 30 days and then deleted
-        automatically.
+        <strong>App events and recovery copies</strong> — each time the app syncs, we record that it happened and keep
+        a copy of what was sent, which includes the programs and workouts in that sync. We keep these so that if your
+        data ever ends up in a broken state we can put it back. They are deleted automatically after 30 days, and
+        deleting your account removes them.
       </li>
       <li>
-        <strong>Diagnostic copies of your data</strong> — to investigate sync problems and crashes we keep short-lived
-        snapshots of what the app sent us, which can include your programs and workout history. These are deleted
-        automatically after 30 days, and deleting your account removes the ones we can still link to you.
+        <strong>Crash and sync diagnostics</strong> — when something goes wrong we keep a snapshot of what the app was
+        holding at the time, which can include your programs and workout history. These are deleted automatically after
+        30 days at the latest, and deleting your account removes the ones that are still linked to you. A crash report
+        is filed under a random reference rather than your account, so those we cannot look up by person — they expire
+        on their own.
+      </li>
+      <li>
+        <strong>Server logs</strong> — a record of the requests our servers handled: the time, the address requested,
+        which account made it, and the app version and device type it came from. They do not contain your programs,
+        workouts or measurements. Kept for 30 days, then deleted automatically.
       </li>
       <li>
         <strong>Payment records</strong> — the date, amount and store transaction id of each purchase. Tax and
@@ -403,10 +412,10 @@
     </p>
     <p>
       When you delete your account, we immediately remove your programs, workout history, body measurements, uploaded
-      images, subscription records, API keys, account details and the diagnostic snapshots described in section 7 from
-      our live systems. Residual copies remain in our encrypted database backups for up to 35 days, after which they are
-      overwritten on our normal backup cycle. We do not access or use backup copies for any other purpose in the
-      meantime.
+      images, subscription records, API keys, account details, and the app events, recovery copies and diagnostic
+      snapshots described in section 7 from our live systems. Residual copies remain in our encrypted database backups
+      for up to 35 days, after which they are overwritten on our normal backup cycle. We do not access or use backup
+      copies for any other purpose in the meantime.
     </p>
     <p>
       These are not affected by deleting your account: programs you published with a share link, which stay readable so
