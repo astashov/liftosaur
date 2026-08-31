@@ -647,6 +647,12 @@ export class LiftosaurCdkStack extends cdk.Stack {
     };
 
     const mainDomain = isDev ? "stage.liftosaur.com" : "www.liftosaur.com";
+    // The apps' __API_HOST__. It resolves to Cloudflare today, which bypasses this distribution and
+    // therefore the WebACL entirely - every /api/* call is unprotected. Serving it from here lets the
+    // DNS record move to CloudFront without changing the hostname baked into shipped mobile builds.
+    // The API Gateway custom domain of the same name is REGIONAL, so it registers no CloudFront alias
+    // and does not conflict; it stays in place as the rollback target.
+    const apiDomain = isDev ? "api3-dev.liftosaur.com" : "api3.liftosaur.com";
 
     const rewriteUrls = new cloudfront.Function(this, `LftRewriteUrls${suffix}`, {
       functionName: `LftRewriteUrls${suffix}`,
@@ -832,7 +838,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
       certificate: streamingCert,
-      domainNames: [mainDomain],
+      domainNames: [mainDomain, apiDomain],
       webAclId: isDev ? undefined : PROD_WAF_WEB_ACL_ARN || undefined,
       defaultBehavior: {
         origin: apiOrigin,
