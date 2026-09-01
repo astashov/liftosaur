@@ -41,7 +41,7 @@ if (!ORIGIN_VERIFY_SECRET) {
   );
 }
 
-const ORIGIN_VERIFY_ENFORCE = false;
+const ORIGIN_VERIFY_ENFORCE = true;
 
 const ALARM_EMAIL = "info@liftosaur.com";
 
@@ -1413,7 +1413,7 @@ class LiftosaurWafStack extends cdk.Stack {
         {
           name: "BlanketRateLimit",
           priority: 1,
-          action: { count: {} },
+          action: { block: {} },
           statement: { rateBasedStatement: { limit: 2000, aggregateKeyType: "IP" } },
           visibilityConfig: {
             cloudWatchMetricsEnabled: true,
@@ -1424,7 +1424,7 @@ class LiftosaurWafStack extends cdk.Stack {
         {
           name: "MusclesRateLimit",
           priority: 2,
-          action: { count: {} },
+          action: { block: {} },
           statement: {
             rateBasedStatement: {
               limit: 100,
@@ -1448,7 +1448,7 @@ class LiftosaurWafStack extends cdk.Stack {
         {
           name: "AmazonIpReputation",
           priority: 3,
-          overrideAction: { count: {} },
+          overrideAction: { none: {} },
           statement: {
             managedRuleGroupStatement: { vendorName: "AWS", name: "AWSManagedRulesAmazonIpReputationList" },
           },
