@@ -32,10 +32,10 @@ import { VersionTrackerMergeVersions } from "./versionTrackerMergeVersions";
 
 export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
-  private readonly deviceId?: string;
+  private readonly deviceId: string;
   private readonly mergeVersions: VersionTrackerMergeVersions<TAtomicType, TControlledType>;
 
-  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, deviceId?: string) {
+  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, deviceId: string) {
     this.versionTypes = versionTypes;
     this.deviceId = deviceId;
     this.mergeVersions = new VersionTrackerMergeVersions(versionTypes);

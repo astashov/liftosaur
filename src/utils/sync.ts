@@ -45,7 +45,7 @@ export interface IStorageUpdate2 {
 export function Sync_getStorageUpdate2(
   currentStorage: IStorage,
   lastStorage: IStorage,
-  deviceId?: string
+  deviceId: string
 ): IStorageUpdate2 {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
   const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});

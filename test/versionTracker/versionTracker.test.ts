@@ -10,11 +10,13 @@ import {
   IVectorClock,
 } from "../../src/models/versionTracker";
 import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../../src/types";
-import { Storage_applyStorageUpdate2, Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
+import { Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
 import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
 import { ObjectUtils_clone } from "../../src/utils/object";
 import { Sync_getStorageUpdate2 } from "../../src/utils/sync";
 import { UidFactory_generateUid } from "../../src/utils/generator";
+
+const DEVICE = "web_test";
 
 describe("VersionTracker", () => {
   describe("vector clocks", () => {
@@ -31,26 +33,24 @@ describe("VersionTracker", () => {
       expect((versions.currentProgramId as any).t).to.equal(timestamp);
     });
 
-    it("should create plain timestamp versions when deviceId is not provided", () => {
-      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES);
-      const oldStorage = Storage_getDefault();
-      const newStorage = { ...oldStorage, currentProgramId: "program-123" };
-      const timestamp = 1000;
-
-      const versions = trackerNoDevice.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
-
-      expect(versions.currentProgramId).to.equal(timestamp);
+    it("cannot construct a tracker without naming the writer", () => {
+      // The assertion is that tsc rejects the construction below - there is no runtime path left
+      // that mints a bare timestamp - so the body deliberately never runs.
+      const construct = (): VersionTracker<IAtomicType, IControlledType> =>
+        // @ts-expect-error - deviceId is required
+        new VersionTracker(STORAGE_VERSION_TYPES);
+      expect(construct).to.be.a("function");
     });
 
-    it("should not collapse an existing vector clock into a plain timestamp when deviceId is missing", () => {
+    it("should keep every device's counters when another device writes", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
-      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES);
+      const serverTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "srv_api" });
       const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const storage3 = { ...storage2, currentProgramId: "program-2" };
 
       const versions1 = trackerWithDevice.updateVersions(storage1, storage2, {}, {}, 1000);
-      const versions2 = trackerNoDevice.updateVersions(storage2, storage3, versions1, {}, 2000);
+      const versions2 = serverTracker.updateVersions(storage2, storage3, versions1, {}, 2000);
 
       expect(versions2.currentProgramId).to.be.an("object");
       expect((versions2.currentProgramId as any).vc).to.deep.equal({ web_abc123: 1, srv_api: 1 });
@@ -59,7 +59,7 @@ describe("VersionTracker", () => {
     it("should not let a device dormant since before a server write win a later merge", () => {
       const device = "web_jlhvfvus";
       const deviceTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: device });
-      const serverTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const serverTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "srv_api" });
 
       // The device edits three times, then a copy of that storage goes dormant.
       const s0 = Storage_getDefault();
@@ -76,7 +76,10 @@ describe("VersionTracker", () => {
       const serverVersions = deviceTracker.updateVersions(s2, s3, afterServer, {}, 3000);
 
       // The dormant copy comes back and syncs.
-      const merged = new VersionTracker(STORAGE_VERSION_TYPES).mergeVersions(dormantVersions, serverVersions);
+      const merged = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE }).mergeVersions(
+        dormantVersions,
+        serverVersions
+      );
       const winner = merged.currentProgramId as IVectorClock;
 
       expect(winner.t).to.equal(3000);
@@ -371,13 +374,11 @@ describe("VersionTracker", () => {
 
     it("should not lose data when mixing vector clocks with plain timestamps (migration safety)", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
-      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES); // Old client
 
-      // Old client (no vector clocks) makes a change at time 5000
+      // An old client (no vector clocks) changed the field at time 5000. No tracker can mint a bare
+      // timestamp any more, but stored data from those clients still carries them, so write it here.
       const storage1 = Storage_getDefault();
-      const storage2Old = { ...storage1, currentProgramId: "Latest Change" };
-      const versionsOld = trackerNoDevice.updateVersions(storage1, storage2Old, {}, {}, 5000);
-      // versionsOld.currentProgramId = 5000 (plain timestamp)
+      const versionsOld: IVersions<IStorage> = { currentProgramId: 5000 };
 
       // New client (with vector clocks) has an older change from time 1000
       const storage2New = { ...storage1, currentProgramId: "Old Change" };
@@ -767,7 +768,7 @@ describe("VersionTracker", () => {
           "subscription.google": 14 * 24 * 60 * 60 * 1000,
         },
       };
-      const tracker = new VersionTracker(versionTypes);
+      const tracker = new VersionTracker(versionTypes, { deviceId: DEVICE });
 
       const now = Date.now();
       const oldTimestamp = now - 15 * 24 * 60 * 60 * 1000;
@@ -807,7 +808,7 @@ describe("VersionTracker", () => {
         ...STORAGE_VERSION_TYPES,
         compactionThresholds: undefined,
       };
-      const tracker = new VersionTracker(versionTypes);
+      const tracker = new VersionTracker(versionTypes, { deviceId: DEVICE });
 
       const now = Date.now();
       const oldTimestamp = now - 30 * 24 * 60 * 60 * 1000;
@@ -845,7 +846,7 @@ describe("VersionTracker", () => {
           "subscription.google": 14 * 24 * 60 * 60 * 1000,
         },
       };
-      const tracker = new VersionTracker(versionTypes);
+      const tracker = new VersionTracker(versionTypes, { deviceId: DEVICE });
 
       const now = Date.now();
       const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000;
@@ -887,7 +888,7 @@ describe("VersionTracker", () => {
           "subscription.apple": 14 * 24 * 60 * 60 * 1000, // 14 days
         },
       };
-      const tracker = new VersionTracker(versionTypes);
+      const tracker = new VersionTracker(versionTypes, { deviceId: DEVICE });
 
       const now = Date.now();
       const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000; // 20 days ago
@@ -939,7 +940,7 @@ describe("VersionTracker", () => {
           "subscription.google": 14 * 24 * 60 * 60 * 1000, // 14 days
         },
       };
-      const tracker = new VersionTracker(versionTypes);
+      const tracker = new VersionTracker(versionTypes, { deviceId: DEVICE });
 
       const now = Date.now();
       const oldTimestamp = now - 20 * 24 * 60 * 60 * 1000; // 20 days ago
@@ -1053,7 +1054,7 @@ describe("VersionTracker", () => {
     });
 
     it("should pick newer ID version in mergeVersions when IDs differ", () => {
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
       // Device A has progress with startTime=1000, created at t=1500
       const deviceAVersions = {
@@ -1080,7 +1081,7 @@ describe("VersionTracker", () => {
     });
 
     it("should keep older ID version in mergeVersions when diff is older", () => {
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
       // Device A has progress with startTime=1000, created at t=2500 (newer)
       const deviceAVersions = {
@@ -1107,7 +1108,7 @@ describe("VersionTracker", () => {
     });
 
     it("should discard losing variant in mergeByVersions when IDs differ", () => {
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
       // Full object (Device A's progress)
       const fullObj = {
@@ -1166,7 +1167,7 @@ describe("VersionTracker", () => {
     });
 
     it("should accept winning variant in mergeByVersions when diff ID wins", () => {
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
       // Full object (Device A's progress)
       const fullObj = {
@@ -1224,7 +1225,7 @@ describe("VersionTracker", () => {
     });
 
     it("should merge controlled fields normally when IDs match", () => {
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES);
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
       // Valid entry structure with required fields
       const validEntryA: IHistoryEntry = {
@@ -1682,34 +1683,6 @@ describe("VersionTracker", () => {
       expect(phone.progress[0].entries).to.equal(phoneEntriesRef);
       // Returned merged storage should still be sorted (s-first before s-second by index)
       expect(merged.progress[0].entries[0].sets.map((s) => s.id)).to.deep.equal(["s-first", "s-second"]);
-    });
-
-    it("Storage_applyStorageUpdate2 leaves input progress arrays untouched when update loses by version", () => {
-      const phone = buildStorageWithUnsortedSets();
-
-      const phoneSetsRef = phone.progress[0].entries[0].sets;
-      const snapshotSetIds = phoneSetsRef.map((s) => s.id);
-
-      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "watch" });
-      // Build an update whose only field is settings.units, with a version older than phone's.
-      // mergeByVersions should keep phone's settings → no real change.
-      const olderUnitsVersions = tracker.fillVersions(
-        { settings: { units: "lb" } } as Partial<IStorage> as IStorage,
-        {},
-        500
-      );
-      Storage_applyStorageUpdate2(
-        phone,
-        {
-          version: phone.version,
-          storage: { settings: { ...phone.settings, units: "lb" } },
-          versions: olderUnitsVersions,
-        },
-        "phone"
-      );
-
-      expect(phoneSetsRef.map((s) => s.id)).to.deep.equal(snapshotSetIds);
-      expect(phone.progress[0].entries[0].sets).to.equal(phoneSetsRef);
     });
   });
 

@@ -26,9 +26,9 @@ import {
 
 export class VersionTrackerFillVersions<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
-  private readonly deviceId?: string;
+  private readonly deviceId: string;
 
-  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, deviceId?: string) {
+  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, deviceId: string) {
     this.versionTypes = versionTypes;
     this.deviceId = deviceId;
   }
@@ -137,7 +137,9 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
       } else if (VersionTrackerUtils_isControlledType(value, this.versionTypes)) {
         return this.fillControlledObjectVersion(value, currentVersion, timestamp, path);
       } else if (VersionTrackerUtils_isAtomicType(value, this.versionTypes)) {
-        return currentVersion !== undefined ? currentVersion : timestamp;
+        return currentVersion !== undefined
+          ? currentVersion
+          : VersionTrackerUtils_createVersion(timestamp, undefined, this.deviceId);
       } else {
         const nestedVersions = this.fillNestedVersions(
           value,

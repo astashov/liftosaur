@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
+import { VersionsFixture_timestamps } from "./versionsFixture";
 import { expect } from "chai";
 import { ICollectionVersions, IVersions, VersionTracker } from "../../src/models/versionTracker";
 import { Storage_getDefault } from "../../src/models/storage";
 import { ICustomExercise, IGym, IHistoryRecord, IProgram, STORAGE_VERSION_TYPES } from "../../src/types";
 
+const DEVICE = "web_test";
+
 describe("fillVersions", () => {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
   it("should add timestamps for missing primitive fields", () => {
     const storage = Storage_getDefault();
     const fullObj = {
@@ -19,7 +22,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled.currentProgramId).to.equal(1000); // Existing version preserved
     expect(filled.email).to.equal(timestamp); // Missing version added
@@ -40,7 +43,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled.settings).to.deep.equal({
       theme: 1000, // Existing version preserved
@@ -87,7 +90,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.items!["1"]).to.deep.equal({
@@ -141,7 +144,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const exerciseVersions = (filled.settings as any).exercises as ICollectionVersions;
 
     expect(exerciseVersions.items!.ex1).to.equal(1000); // Existing preserved
@@ -174,7 +177,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const historyVersions = filled.history as ICollectionVersions;
 
     expect(historyVersions.items!["123"]).to.equal(timestamp); // Atomic object gets single timestamp
@@ -215,7 +218,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const gymVersions = (filled.settings as any).gyms as ICollectionVersions;
 
     expect(gymVersions.items!.gym1).to.deep.equal({
@@ -248,7 +251,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled).to.deep.equal({
       level1: {
@@ -275,7 +278,7 @@ describe("fillVersions", () => {
     const existingVersions: IVersions<typeof fullObj> = {};
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled).to.deep.equal({
       name: timestamp,
@@ -297,7 +300,7 @@ describe("fillVersions", () => {
     const existingVersions: IVersions<typeof fullObj> = {};
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled).to.deep.equal({
       name: timestamp,
@@ -317,7 +320,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
 
     expect(filled).to.deep.equal({
       tags: 1000, // Existing preserved
@@ -354,7 +357,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.deleted).to.deep.equal({ prog2: 1500 });
@@ -397,7 +400,7 @@ describe("fillVersions", () => {
     };
     const timestamp = 2000;
 
-    const filled = versionTracker.fillVersions(fullObj, existingVersions, timestamp);
+    const filled = VersionsFixture_timestamps(versionTracker.fillVersions(fullObj, existingVersions, timestamp));
     const programVersions = filled.programs as ICollectionVersions;
 
     expect(programVersions.deleted).to.deep.equal({ 4: 1500 });
@@ -411,4 +414,63 @@ describe("fillVersions", () => {
       3: 3000,
     });
   });
+
+  // Deliberately NOT wrapped in VersionsFixture_timestamps: the clock-vs-bare-number distinction is
+  // the behavior under test, and the fixture erases exactly that. A direct atomic field - one whose
+  // vtype is atomic and which sits on an object rather than inside a collection - used to be
+  // backfilled with a raw timestamp, which is the erasure that rolled a user's program back.
+  describe("minting (raw, unnormalized)", () => {
+    it("mints a vector clock for a direct atomic field, not a bare timestamp", () => {
+      const fullObj = {
+        settings: {
+          graphs: { vtype: "graphs", graphs: [] },
+          muscleGroups: { vtype: "muscle_groups_settings", data: {} },
+        },
+      };
+
+      const filled = versionTracker.fillVersions(fullObj as any, {}, 2000);
+      const settings = (filled as any).settings;
+
+      expect(settings.graphs).to.deep.equal({ vc: { [DEVICE]: 1 }, t: 2000 });
+      expect(settings.muscleGroups).to.deep.equal({ vc: { [DEVICE]: 1 }, t: 2000 });
+    });
+
+    it("mints a vector clock for every field of a real default storage backfill", () => {
+      const filled = versionTracker.fillVersions(Storage_getDefault(), {}, 2000);
+      const bare: string[] = [];
+      collectBareVersions(filled, "", bare);
+
+      expect(bare).to.deep.equal([]);
+    });
+
+    it("leaves an existing bare version alone rather than re-minting it", () => {
+      const fullObj = { settings: { graphs: { vtype: "graphs", graphs: [] } } };
+      const existing = { settings: { graphs: 1000 } };
+
+      const filled = versionTracker.fillVersions(fullObj as any, existing as any, 2000);
+
+      expect((filled as any).settings.graphs).to.equal(1000);
+    });
+  });
 });
+
+// `deleted` maps are Record<string, number> by design - deletions merge by max timestamp and never
+// carry a clock - so they are not a bare-version violation.
+function collectBareVersions(node: unknown, path: string, out: string[]): void {
+  if (typeof node === "number") {
+    out.push(path);
+    return;
+  }
+  if (typeof node !== "object" || node == null) {
+    return;
+  }
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "deleted" || key === "nukedeleted") {
+      continue;
+    }
+    if (key === "vc" || key === "t") {
+      return;
+    }
+    collectBareVersions(value, path ? `${path}.${key}` : key, out);
+  }
+}

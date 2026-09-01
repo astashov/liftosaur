@@ -79,16 +79,14 @@ export function VersionTrackerUtils_ensureCollectionVersions(version: IVersionVa
 export function VersionTrackerUtils_createVersion(
   timestamp: number,
   currentVersion: IFieldVersion | undefined,
-  deviceId?: string
+  deviceId: string
 ): IFieldVersion {
-  // Downgrading an existing clock to a bare timestamp zeroes every device's counter, so the next write
-  // restarts that device at 1 while a replica that went dormant before the reset still holds a higher
-  // count for the same device - and then wins every future merge outright, however old its data is.
-  const node = deviceId || (isVectorClock(currentVersion) ? VersionTrackerUtils_SERVER_DEVICE_ID : undefined);
-  if (!node) {
-    return timestamp;
-  }
-
+  // This helper can no longer emit a bare timestamp, and that is the point: minting one zeroed every
+  // device's counter, so the next write restarted that device at 1 while a replica dormant since
+  // before the reset still held a higher count for the same node - and then won every later merge
+  // outright. Only an empty string reaches the fallback, and a node named "" would collide across
+  // writers.
+  const node = deviceId || VersionTrackerUtils_SERVER_DEVICE_ID;
   const current = VersionTrackerUtils_normalizeVersion(currentVersion);
   const newClock = { ...current.vc };
   newClock[node] = (newClock[node] || 0) + 1;
@@ -240,20 +238,11 @@ export function VersionTrackerUtils_createIdVersion(
   timestamp: number,
   value: string,
   currentVersion: IIdVersion | undefined,
-  deviceId?: string
+  deviceId: string
 ): IIdVersion {
-  // Reusing the current clock unchanged makes this write compare "equal" to the one it replaces, so a
-  // merge keeps the other side and the change is silently dropped. Claim a node instead.
-  const hasClock = Object.keys(currentVersion?.vc || {}).length > 0;
-  const node = deviceId || (hasClock ? VersionTrackerUtils_SERVER_DEVICE_ID : undefined);
-  if (!node) {
-    return {
-      vc: currentVersion?.vc || {},
-      t: timestamp,
-      value,
-    };
-  }
-
+  // Reusing the current clock unchanged made this write compare "equal" to the one it replaces, so a
+  // merge kept the other side and the change was silently dropped. Always claim a node instead.
+  const node = deviceId || VersionTrackerUtils_SERVER_DEVICE_ID;
   const current = currentVersion ? { vc: currentVersion.vc, t: currentVersion.t } : { vc: {}, t: 0 };
   const newClock = { ...current.vc };
   newClock[node] = (newClock[node] || 0) + 1;

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
+import { VersionsFixture_timestamps } from "./versionsFixture";
 import { expect } from "chai";
 import { Storage_getDefault } from "../../src/models/storage";
 import { Settings_build } from "../../src/models/settings";
@@ -17,15 +18,19 @@ import {
 } from "../../src/types";
 import { ObjectUtils_clone } from "../../src/utils/object";
 
+const DEVICE = "web_test";
+
 describe("updateVersions", () => {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
 
   it("should track version for primitive field changes", () => {
     const oldStorage = Storage_getDefault();
     const newStorage = { ...oldStorage, currentProgramId: "program-123" };
     const timestamp = 1000;
 
-    const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+    const versions = VersionsFixture_timestamps(
+      versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+    );
 
     expect(versions.currentProgramId).to.equal(timestamp);
   });
@@ -34,7 +39,7 @@ describe("updateVersions", () => {
     const storage = Storage_getDefault();
     const timestamp = 1000;
 
-    const versions = versionTracker.updateVersions(storage, storage, {}, {}, timestamp);
+    const versions = VersionsFixture_timestamps(versionTracker.updateVersions(storage, storage, {}, {}, timestamp));
 
     expect(versions).to.deep.equal({});
   });
@@ -45,7 +50,9 @@ describe("updateVersions", () => {
     oldStorage.email = undefined;
     const timestamp = 1000;
 
-    const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+    const versions = VersionsFixture_timestamps(
+      versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+    );
 
     expect(versions.email).to.equal(timestamp);
   });
@@ -61,7 +68,9 @@ describe("updateVersions", () => {
     };
     const timestamp = 1000;
 
-    const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+    const versions = VersionsFixture_timestamps(
+      versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+    );
 
     expect(versions.settings).to.deep.equal({ volume: timestamp });
   });
@@ -78,7 +87,9 @@ describe("updateVersions", () => {
     };
     const timestamp = 1000;
 
-    const versions = versionTracker.updateVersions(oldStorage, newStorage, existingVersions, {}, timestamp);
+    const versions = VersionsFixture_timestamps(
+      versionTracker.updateVersions(oldStorage, newStorage, existingVersions, {}, timestamp)
+    );
 
     expect(versions).to.deep.equal({
       email: 500,
@@ -125,7 +136,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions.items!["2"]).to.deep.equal({
@@ -169,7 +182,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions.items!["1"]).to.deep.equal({
@@ -214,7 +229,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
@@ -251,7 +268,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
@@ -305,7 +324,7 @@ describe("updateVersions", () => {
       },
     };
 
-    const versionTracker2 = new VersionTracker(STORAGE_VERSION_TYPES);
+    const versionTracker2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
     const merged = versionTracker2.mergeByVersions(
       storage,
       {},
@@ -359,7 +378,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const historyVersions = versions.history as ICollectionVersions;
       expect(historyVersions.items!["1"]).to.equal(timestamp);
@@ -401,7 +422,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
@@ -445,7 +468,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
@@ -477,13 +502,17 @@ describe("updateVersions", () => {
       const withTimer = { ...Storage_getDefault(), progress: [progress] };
       const withoutTimer = { ...withTimer, progress: [progressCleared] };
 
-      const baseVersions = versionTracker.updateVersions(emptyStorage, withTimer, {}, {}, 1000);
+      const baseVersions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(emptyStorage, withTimer, {}, {}, 1000)
+      );
       const baseItem = (baseVersions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
       const baseSetTimer = (baseItem as any).setTimer;
       expect(baseSetTimer, "setTimer should be versioned when first set").to.exist;
       expect(typeof baseSetTimer === "number" ? baseSetTimer : baseSetTimer.t).to.equal(1000);
 
-      const versions = versionTracker.updateVersions(withTimer, withoutTimer, baseVersions, {}, 2000);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(withTimer, withoutTimer, baseVersions, {}, 2000)
+      );
       const itemVersion = (versions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
       const clearedSetTimer = (itemVersion as any).setTimer;
       expect(clearedSetTimer, "clearing setTimer must keep a version so the deletion propagates").to.exist;
@@ -532,7 +561,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       const itemVersion = programVersions!.items!["1"] as IVersions<IProgram>;
@@ -578,7 +609,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings.gyms as ICollectionVersions;
@@ -637,7 +670,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
@@ -683,7 +718,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
@@ -724,7 +761,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
       const exerciseVersions = settingsVersions.exercises as ICollectionVersions;
@@ -779,7 +818,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings?.gyms as ICollectionVersions;
@@ -806,7 +847,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       expect(settings?.graphsSettings).to.deep.equal({
@@ -849,7 +892,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const settings = versions.settings as IVersions<typeof oldStorage.settings>;
       const gymVersions = settings?.gyms as ICollectionVersions;
@@ -873,7 +918,9 @@ describe("updateVersions", () => {
       };
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       expect(versions).to.deep.equal({});
     });
@@ -906,7 +953,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       expect(versions).to.deep.equal({});
     });
@@ -940,7 +989,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       expect(versions).to.deep.equal({
         programs: {
@@ -965,7 +1016,9 @@ describe("updateVersions", () => {
       };
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       expect(versions).to.deep.equal({
         settings: {
@@ -990,7 +1043,9 @@ describe("updateVersions", () => {
       };
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, existingVersions, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, existingVersions, {}, timestamp)
+      );
 
       expect(versions).to.deep.equal({
         settings: {
@@ -1035,7 +1090,9 @@ describe("updateVersions", () => {
 
       const timestamp = 1000;
 
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions!, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, oldStorage._versions!, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
@@ -1085,7 +1142,9 @@ describe("updateVersions", () => {
       };
 
       const timestamp = 1000;
-      const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+      );
 
       const programVersions = versions.programs as ICollectionVersions;
       expect(programVersions).to.deep.equal({
@@ -1111,7 +1170,9 @@ describe("updateVersions", () => {
       };
 
       const timestamp1 = 1000;
-      const versions1 = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp1);
+      const versions1 = VersionsFixture_timestamps(
+        versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp1)
+      );
 
       const storageWithEmptyDict = {
         ...newStorage,
@@ -1122,7 +1183,9 @@ describe("updateVersions", () => {
       };
 
       const timestamp2 = 2000;
-      const versions2 = versionTracker.updateVersions(newStorage, storageWithEmptyDict, versions1, {}, timestamp2);
+      const versions2 = VersionsFixture_timestamps(
+        versionTracker.updateVersions(newStorage, storageWithEmptyDict, versions1, {}, timestamp2)
+      );
 
       const exercisesVersions = (versions2.settings as IVersions<any>).exerciseData as ICollectionVersions;
       expect(exercisesVersions).to.deep.equal({
@@ -1148,7 +1211,9 @@ describe("updateVersions", () => {
 
         const timestamp = 1000;
 
-        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+        const versions = VersionsFixture_timestamps(
+          versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+        );
 
         expect(versions.currentProgramId).to.equal(timestamp);
       });
@@ -1166,7 +1231,9 @@ describe("updateVersions", () => {
 
         const timestamp = 1000;
 
-        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+        const versions = VersionsFixture_timestamps(
+          versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+        );
 
         expect(versions.currentProgramId).to.equal(timestamp);
       });
@@ -1184,7 +1251,9 @@ describe("updateVersions", () => {
 
         const timestamp = 1000;
 
-        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+        const versions = VersionsFixture_timestamps(
+          versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+        );
 
         expect(versions.reviewRequests).to.equal(timestamp);
       });
@@ -1213,7 +1282,9 @@ describe("updateVersions", () => {
 
         const timestamp = 1000;
 
-        const versions = versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp);
+        const versions = VersionsFixture_timestamps(
+          versionTracker.updateVersions(oldStorage, newStorage, {}, {}, timestamp)
+        );
 
         const settingsVersions = versions.settings as IVersions<typeof oldStorage.settings>;
         const exerciseVersions = settingsVersions.exercises as unknown as ICollectionVersions;

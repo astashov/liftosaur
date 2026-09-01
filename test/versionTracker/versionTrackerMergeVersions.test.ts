@@ -4,8 +4,10 @@ import { expect } from "chai";
 import { IVersions, VersionTracker } from "../../src/models/versionTracker";
 import { STORAGE_VERSION_TYPES } from "../../src/types";
 
+const DEVICE = "web_test";
+
 describe("mergeVersions", () => {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
   it("should merge simple timestamp fields taking higher values", () => {
     const fullVersions: IVersions<any> = {
       name: 1000,

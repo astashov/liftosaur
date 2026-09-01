@@ -87,11 +87,14 @@ export * from "./versionTracker/types";
 
 export class VersionTracker<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
-  private readonly deviceId?: string;
+  private readonly deviceId: string;
 
-  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, options?: { deviceId?: string }) {
+  // A tracker acts on behalf of exactly one writer, and it has to be told which. When this was
+  // optional, any construction that left it out minted bare timestamps instead of vector clocks -
+  // which zeroed every device's counter and silently rolled a user's program back seven weeks.
+  constructor(versionTypes: IVersionTypes<TAtomicType, TControlledType>, options: { deviceId: string }) {
     this.versionTypes = versionTypes;
-    this.deviceId = options?.deviceId;
+    this.deviceId = options.deviceId;
   }
 
   public updateVersions<T extends Record<string, unknown>>(

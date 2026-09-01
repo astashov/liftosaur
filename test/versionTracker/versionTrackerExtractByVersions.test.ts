@@ -4,8 +4,10 @@ import { expect } from "chai";
 import { IVersions, IVersionTypes, VersionTracker } from "../../src/models/versionTracker";
 import { STORAGE_VERSION_TYPES, IProgram, IHistoryRecord } from "../../src/types";
 
+const DEVICE = "web_test";
+
 describe("extractByVersions", () => {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
   it("should extract only fields present in versions", () => {
     const obj = {
       name: "John",
@@ -448,7 +450,7 @@ describe("extractByVersions", () => {
         dictionaryFields: [],
       };
 
-      const tracker = new VersionTracker(customVersionTypes);
+      const tracker = new VersionTracker(customVersionTypes, { deviceId: DEVICE });
 
       const obj = {
         items: [

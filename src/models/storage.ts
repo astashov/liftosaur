@@ -10,7 +10,7 @@ import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
-import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
+import { IStorageUpdate } from "../utils/sync";
 import {
   IHistoryRecord,
   IStorage,
@@ -279,7 +279,7 @@ export function Storage_updateVersions(
   }
 }
 
-export function Storage_mergeStorage(oldStorage: IStorage, newStorage: IStorage, deviceId?: string): IStorage {
+export function Storage_mergeStorage(oldStorage: IStorage, newStorage: IStorage, deviceId: string): IStorage {
   const migratedOldStorage = runMigrations(oldStorage);
   const migratedNewStorage = runMigrations(newStorage);
   const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = migratedOldStorage;
@@ -333,32 +333,6 @@ function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRe
     return progress;
   }
   return [{ ...head, entries: sortedEntries }, ...progress.slice(1)];
-}
-
-export function Storage_applyStorageUpdate2(storage: IStorage, update: IStorageUpdate2, deviceId?: string): IStorage {
-  if (!update.storage || Object.keys(update.storage).length === 0) {
-    return storage;
-  }
-
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
-  const currentVersions = storage._versions || {};
-  const incomingVersions = update.versions || {};
-
-  const mergedVersions = versionTracker.mergeVersions(currentVersions, incomingVersions);
-  const mergedStorage = versionTracker.mergeByVersions(
-    storage,
-    currentVersions,
-    incomingVersions,
-    update.storage as Partial<IStorage>
-  );
-
-  const updatedStorage: IStorage = {
-    ...mergedStorage,
-    _versions: mergedVersions,
-  };
-
-  const sortedProgress = sortProgressByIndex(updatedStorage.progress);
-  return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
 }
 
 function mergeHearAboutUs(a?: IHearAboutUs, b?: IHearAboutUs): IHearAboutUs | undefined {

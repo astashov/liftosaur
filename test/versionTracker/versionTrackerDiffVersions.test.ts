@@ -4,8 +4,10 @@ import { expect } from "chai";
 import { IVersions, VersionTracker } from "../../src/models/versionTracker";
 import { STORAGE_VERSION_TYPES } from "../../src/types";
 
+const DEVICE = "web_test";
+
 describe("diffVersions", () => {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
   it("should return undefined when no changes", () => {
     const oldVersions: IVersions<any> = {
       name: 1000,
