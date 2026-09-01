@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "strength_and_hypertrophy"
 ---
 
-A good next step after GZCLP. It's a twelve-week strength and hypertrophy training regimen that focuses on a higher volume and intensity approach, employing varying rep ranges and periodization to maximize muscle growth and strength gains.
+A good next step after GZCLP. It's a twelve-week hypertrophy and strength regimen that uses high volume, varied rep ranges, and periodization to prioritize muscle growth and work capacity while also building strength.
 
 Before starting the program, please read the [program explanation](https://swoleateveryheight.blogspot.com/2016/07/jacked-tan-20.html) first!
 
@@ -20,7 +20,7 @@ Before starting the program, please read the [program explanation](https://swole
 
 Jacked & Tan 2.0 is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a 12-week weightlifting program, following GZCL principles, and offering quite a lot of volume. It's designed both for hypertrophy and strength. It starts with lower intensity / higher volume, then progresses to higher intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes, with testing for different RMs each workout.
 
-It's an intermediate program, so you're going to find it most useful after your newbie gains are over. There's good variety in exercises, and a lot of people reported getting serious gains and new PRs after running this program.
+The program is primarily aimed at intermediates, who are likely to benefit most from its exercise variety, volume, and frequent hard efforts. Cody notes that lifters from novice to elite can benefit, provided they can manage the workload and autoregulate their rep-max attempts.
 
 You can run it after beginner [GZCLP](/programs/gzclp) program, or after beginner/intermediate [GZCL: The Rippler](/programs/gzcl-the-rippler) program.
 
@@ -34,7 +34,7 @@ Now, let's talk about exercises. Exercises in GZCL programs are split into **3 t
 
 - **T1**: These are main compound exercises (e.g., [{Squat}], [{Deadlift}], [{Bench Press}], [{Overhead Press}]). These exercises involve the highest intensity (i.e., the largest weights, about **85-100%** of your 2-3 rep max), but with lower volume (fewer reps and sets). Typically, you will perform 10-15 total reps, usually within **1-3 reps** per set.
 - **T2**: These are secondary compound exercises (e.g., [{Front Squat}], [{Romanian Deadlift}], [{Incline Bench Press}], etc). These exercises have lower intensity (lower weights), but higher volume (more reps and sets). You should pick exercises that will assist with your T1 exercises. These exercises are performed with **65-85%** of your 2-3 rep max, usually within **5-8 reps** per set.
-- **T3**: These are isolation exercises (e.g., [{Leg Press}], [{Seated Leg Curl}], [{Triceps Extension}], [{Lateral Raise}]). These exercises have the lowest intensity (lightest weights), but highest volume (most reps and sets). These are performed with less than **65%** of your 2-3 rep max, usually with **8 or more reps** per set.
+- **T3**: These are lighter accessory exercises (e.g., [{Leg Press}], [{Seated Leg Curl}], [{Triceps Extension}], [{Lateral Raise}], or rows). They often isolate smaller muscle groups, but bodyweight and lighter compound movements are also valid. T3 has the lowest intensity (lightest weights) and highest volume (most reps and sets), usually using **8 or more reps** per set.
 
 A useful rule of thumb is the **1:2:3 rule** - for every rep you perform in T1, do 2 reps in T2, and 3 in T3.
 
@@ -78,11 +78,13 @@ Note that first RM sets are approximate in this example
 
 ### T2a Exercise
 
-The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is [{Front Squat}], which uses its own TM. Unlike the converted T1 load suggestions, the T2a percentages are literal TM percentages. Set each T2a exercise's 1RM in Exercise Stats to the TM it should use.
+Each T2a exercise needs an appropriate movement-specific Training Max. Cody defines that TM as a recent or reasonably estimated 2RM that you could lift on any given day. In the author workbook, close variations such as close-grip bench and deficit deadlift borrow the related main lift's TM, while movements with meaningfully different strength levels, including [{Front Squat}] and [{Incline Bench Press}], use their own TMs.
+
+Unlike the converted T1 load suggestions, the T2a percentages below are literal TM percentages. Liftoscript applies them to the selected exercise's 1RM field, so set each T2a exercise's 1RM in Exercise Stats to the TM or reference TM it should use.
 
 The weight/volume is also changing week over week in a wave pattern, adding sets on lower weights, to compensate drop in volume.
 
-Before week 7, update related T2a reference maxes from the 1RMs found in week 6 where applicable. Reassess movement-specific TMs, such as Front Squat, separately.
+Before week 7, update borrowed T2a reference maxes from the T1 results found in week 6 where applicable. Reassess separate movement-specific TMs, such as Front Squat and Incline Bench Press, independently.
 
 Skip T2a in weeks 6 and 12, when you test the T1 1RM.
 
@@ -108,7 +110,7 @@ You can run the GZCL: Jacked And Tan 2.0 program in the Liftosaur app.
 
 ### Is Jacked and Tan 2.0 good for beginners?
 
-No, Jacked and Tan 2.0 is an intermediate program best suited for lifters who have exhausted beginner linear progression. You should have at least a year of training experience and be comfortable estimating rep maxes. Run [GZCLP](/programs/gzclp) first if you're still making session-to-session progress.
+Cody says lifters from novice to elite can benefit from Jacked and Tan 2.0, but its high volume and autoregulated rep-max work make it most useful for intermediates who can estimate rep maxes and manage fatigue. If you're still making straightforward session-to-session progress, [GZCLP](/programs/gzclp) is usually the simpler place to start.
 
 ### How many days a week is Jacked and Tan 2.0?
 
@@ -136,6 +138,9 @@ Yes, especially T2b and T3 exercises. Pick movements that support your T1 lifts 
 // **T1**. Warm up to **10 RM** for the first set, then try a 10RM, tap the first
 // set and enter the 10RM weight you get. Then, do the drop sets (based on TM)
 t1 / used: none / 1x10 75%+ (10RM), 2x6 65% (TM 70%), 1x6+ 65% (TM 70%) / update: custom() {~
+  if (setIndex == 0) {
+    askweights[1] = 1
+  }
   if (week >= 7 && week <= 11 && setIndex == 1) {
     weights = completedWeights[1] * (week >= 10 ? 0.9 : 0.85)
   }
