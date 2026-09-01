@@ -78,7 +78,7 @@ Note that first RM sets are approximate in this example
 
 ### T2a Exercise
 
-Each T2a exercise needs an appropriate movement-specific Training Max. Cody defines that TM as a recent or reasonably estimated 2RM that you could lift on any given day. In the author workbook, close variations such as close-grip bench and deficit deadlift borrow the related main lift's TM, while movements with meaningfully different strength levels, including [{Front Squat}] and [{Incline Bench Press}], use their own TMs.
+Each T2a exercise needs an appropriate movement-specific Training Max. Cody defines that TM as a recent or reasonably estimated 2RM that you could lift on any given day. In the author workbook, close variations such as close-grip bench and deficit deadlift borrow the related main lift's TM, Front Squat uses a separate TM, and an independent Incline Bench TM field is provided. This Liftosaur variant programs both [{Front Squat}] and [{Incline Bench Press}] as T2a movements, so use their movement-specific TMs.
 
 Unlike the converted T1 load suggestions, the T2a percentages below are literal TM percentages. Liftoscript applies them to the selected exercise's 1RM field, so set each T2a exercise's 1RM in Exercise Stats to the TM or reference TM it should use.
 
