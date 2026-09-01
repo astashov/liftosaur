@@ -57,7 +57,7 @@ The first set is a Rep Max set, where you have to work up to your Rep Max. For t
 
 If you missed, and chose the weight that is too heavy, and let's say you only could do 8 reps. Or too light, and you did 12 reps. That's okay! You'll get better at this later on, just record your weight/reps, and move to the drop sets.
 
-Drop sets are sets that are based on the Training Max. E.g. for week 1 it's 50% of TM, 10 reps each. Last set is As Many Reps As Possible (AMRAP) - try to do as many reps as possible (leaving 1-2 reps in the tan). It's a good way to push yourself, and also to see if you need to adjust TM - if you can get more than 12 reps there, you may want to consider increasing TM.
+Drop sets are sets that are based on the Training Max. For example, in week 1 you do 3 sets of 6 at 70% of TM. The last set is As Many Reps As Possible (AMRAP) - try to do as many reps as possible (leaving 1-2 reps in the tank). It's a good way to push yourself, and also to see if you need to adjust TM - if you can get more than 12 reps there, you may want to consider increasing TM.
 
 On week 6, you measure your 1RM. You don't do any T1 drop sets (and any T2 exercises).
 
@@ -76,20 +76,22 @@ Note that first RM sets are approximate in this example
 
 ### T2a Exercise
 
-The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is [{Front Squat}], which is using its own TM.
+The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is [{Front Squat}], which is using its own TM. Liftoscript calculates percentages from each selected exercise's 1RM field, so set each T2a exercise's 1RM in Exercise Stats to the TM it should use.
 
 The weight/volume is also changing week over week in a wave pattern, adding sets on lower weights, to compensate drop in volume.
 
-You skip the exercise on the Week 6 and Week 12, when you measure your 1RM for T1 exercise.
+Before week 7, update related T2a reference maxes from the 1RMs found in week 6 where applicable. Reassess movement-specific TMs, such as Front Squat, separately.
+
+Skip T2a in weeks 6 and 12, when you test the T1 1RM.
 
 :::exercise-example{exercise="deficitDeadlift" equipment="barbell" key="deficitdeadlift_barbell"}
 
 
 ### T2b and T3 Exercises
 
-T2b and T3 exercises are pretty similar to each other, they just use different first set RM value. So, for the first set, you attempt to do RM for the reps of that set (similar to T1), record the weight, and then you do the so-called Max Rep Sets (MRS). Simply, try to do as many reps as possible with the same weight as you did for the first set. For the 2nd, 3rd, etc Max Reps Set you likely will be able to do less and less reps, but that's okay and expected, as you're accumulating fatigue.
+T2b and T3 exercises are pretty similar to each other, they just use different first set RM value. So, for the first set, you attempt to do RM for the reps of that set (similar to T1), record the weight, and then you do the so-called Max Rep Sets (MRS). Simply, try to do as many reps as possible with the same weight as you did for the first set, leaving 1-2 reps in the tank and resting 30-60 seconds between sets. For the 2nd, 3rd, etc Max Reps Set you likely will be able to do less and less reps, but that's okay and expected, as you're accumulating fatigue.
 
-You skip these exercises on the Week 7 and Week 12
+T2b rests in weeks 6, 11, and 12. T3 rests in weeks 7 and 12.
 
 :::exercise-example{exercise="tricepsPushdown" equipment="cable" key="tricepspushdown_cable"}
 
@@ -130,7 +132,7 @@ Yes, especially T2b and T3 exercises. Pick movements that support your T1 lifts 
 # Week 1
 ## Day 1
 // **T1**. Warmup up to **10 RM** for the first set, then try a 10RM, tap the first
-// set and enter the 10RM weight you get. Then, do the drop sets (based on 1RM)
+// set and enter the 10RM weight you get. Then, do the drop sets (based on TM)
 t1 / used: none / 1x10 75%+ (10RM), 2x6 65% (TM 70%), 1x6+ 65% (TM 70%) / update: custom() {~
   if (week >= 7 && week <= 11 && setIndex == 1) {
     weights = completedWeights[1] * (week >= 10 ? 0.9 : 0.85)
@@ -142,14 +144,15 @@ t1 / used: none / 1x10 75%+ (10RM), 2x6 65% (TM 70%), 1x6+ 65% (TM 70%) / update
 ~}
 
 // **T2a.**
+// Set each T2a exercise's 1RM to the TM it should reference, and reassess it before week 7.
 t2a / used: none / 4x10 50% (TM 50%)
 
 // **T2b.** Same as in T1 - work up to 15RM, then record the weight.
 // Then, do MRS (Max Rep Sets) - i.e. AMRAP, as many reps as possible
-t2b / used: none / 1x15 60%+ (15RM), 3x10+ 60% (MRS) / update: custom() {~ if (setIndex == 1) { weights = completedWeights[1] } ~}
+t2b / used: none / 1x15 60%+ (15RM), 3x1+ 60% (MRS) / 60s / update: custom() {~ if (setIndex == 1) { weights = completedWeights[1] } ~}
 
-// **T3.**. Similar to T2b, but different first set 1RM weight
-t3 / used: none / 1x20 50%+ (20RM), 3x10+ 50% (MRS) / update: custom() {~ if (setIndex == 1) { weights = completedWeights[1] } ~}
+// **T3.** Similar to T2b, but with a different first-set RM target.
+t3 / used: none / 1x20 50%+ (20RM), 3x1+ 50% (MRS) / 60s / update: custom() {~ if (setIndex == 1) { weights = completedWeights[1] } ~}
 
 // ...t1
 Squat[1,1-12] / ...t1
@@ -215,14 +218,14 @@ Incline Curl[4,1-6] / ...t3
 # Week 2
 ## Day 1
 // **T1**. Warmup up to **8 RM** for the first set, then try a 8RM, tap the first
-// set and enter the 8RM weight you get. Then, do the drop sets (based on 1RM)
-t1 / 1x8 80%+ (8RM), 2x6 70% (TM 75%), 1x6+ 70% (TM 75%)
+// set and enter the 8RM weight you get. Then, do the drop sets (based on TM)
+t1 / 1x8 80%+ (8RM), 2x5 70% (TM 75%), 1x5+ 70% (TM 75%)
 t2a / 4x8 60% (TM 60%)
 // **T2b.** Same as in T1 - work up to 12RM, then record the weight.
 // Then, do MRS (Max Rep Sets) - i.e. AMRAP, as many reps as possible
-t2b / 1x12 68%+ (12RM), 3x8+ 68% (MRS)
+t2b / 1x12 68%+ (12RM), 3x1+ 68% (MRS) / 60s
 // **T3.** Same as **T2b**, just 18RM
-t3 / 1x18 50%+ (18RM), 3x10+ 50% (MRS)
+t3 / 1x18 50%+ (18RM), 3x1+ 50% (MRS) / 60s
 
 ## Day 2
 
@@ -237,14 +240,14 @@ t3 / 1x18 50%+ (18RM), 3x10+ 50% (MRS)
 # Week 3
 ## Day 1
 // **T1**. Warmup up to **6 RM** for the first set, then try a 6RM, tap the first
-// set and enter the 6RM weight you get. Then, do the drop sets (based on 1RM)
+// set and enter the 6RM weight you get. Then, do the drop sets (based on TM)
 t1 / 1x6 85%+ (6RM), 2x4 75% (TM 80%), 1x4+ 75% (TM 80%)
 t2a / 4x6 70% (TM 70%)
 // **T2b.** Same as in T1 - work up to 10RM, then record the weight.
 // Then, do MRS (Max Rep Sets) - i.e. AMRAP, as many reps as possible
-t2b / 1x10 73%+ (10RM), 3x6+ 73% (MRS)
+t2b / 1x10 73%+ (10RM), 3x1+ 73% (MRS) / 60s
 // **T3.** Same as **T2b**, just 16RM
-t3 / 1x16 55%+ (16RM), 3x8+ 55% (MRS)
+t3 / 1x16 55%+ (16RM), 3x1+ 55% (MRS) / 60s
 
 ## Day 2
 
@@ -259,13 +262,13 @@ t3 / 1x16 55%+ (16RM), 3x8+ 55% (MRS)
 # Week 4
 ## Day 1
 // **T1**.
-t1 / 1x4 90%+ (4RM), 2x4 75% (TM 80%), 1x4+ 75% (TM 80%)
+t1 / 1x4 90%+ (4RM), 2x3 77.5% (TM 82.5%), 1x3+ 77.5% (TM 82.5%)
 // **T2a.**
-t2a / 5x4 70% (TM 70%)
+t2a / 5x4 75% (TM 75%)
 // **T2b.**
-t2b / 1x8 73%+ (8RM), 3x5+ 73% (MRS)
+t2b / 1x8 78%+ (8RM), 3x1+ 78% (MRS) / 60s
 // **T3.** Same as **T2b**, just 14RM
-t3 / 1x14 65%+ (14RM), 3x8+ 65% (MRS)
+t3 / 1x14 65%+ (14RM), 3x1+ 65% (MRS) / 60s
 
 ## Day 2
 
@@ -281,9 +284,9 @@ t3 / 1x14 65%+ (14RM), 3x8+ 65% (MRS)
 ## Day 1
 t1 / 1x2 95%+ (2RM), 3x2 80% (TM 85%), 1x2+ 80% (TM 85%)
 t2a / 7x2 80% (TM 80%)
-t2b / 1x6 83%+ (6RM), 3x3+ 83% (MRS)
+t2b / 1x6 83%+ (6RM), 3x1+ 83% (MRS) / 60s
 // **T3.** Same as **T2b**, just 12RM
-t3 / 1x12 70%+ (12RM), 3x7+ 70% (MRS)
+t3 / 1x12 70%+ (12RM), 3x1+ 70% (MRS) / 60s
 
 ## Day 2
 
@@ -300,7 +303,7 @@ t3 / 1x12 70%+ (12RM), 3x7+ 70% (MRS)
 // **T1**. Testing your 1RM! This set will update 1RM of this exercise.
 t1 / 1x1 100%+ (1RM)
 // **T3.** Same as **T2b**, just 10RM
-t3 / 1x10 75%+ (10RM), 3x5+ 75% (MRS)
+t3 / 1x10 75%+ (10RM), 3x1+ 75% (MRS) / 60s
 
 ## Day 2
 
@@ -317,22 +320,22 @@ t3 / 1x10 75%+ (10RM), 3x5+ 75% (MRS)
 // **T1**. It's start of the next cycle, where drop sets are based on your first set.
 // Work up to your 6RM, after that, do the drop sets, that are 85% of your new 6RM.
 t1 / 1x6 85%+ (6RM), 4x3 72.5% (6RM 85%), 1x3+ 72.5% (6RM 85%)
-t2a/ 6x5 70% (TM 70%)
-t2b / 1x12 68%+ (12RM), 3x8+ 68% (MRS)
+t2a / 5x6 70% (TM 70%)
+t2b / 1x12 68%+ (12RM), 3x1+ 68% (MRS) / 60s
 
-Deficit Deadlift[2,7-10] / ...t2a
+Deficit Deadlift[2,7-11] / ...t2a
 Incline Row[3,7-10] / ...t2b
 
 ## Day 2
-Bench Press Close Grip[2,7-10] / ...t2a
+Bench Press Close Grip[2,7-11] / ...t2a
 Shoulder Press[3,7-10] / ...t2b
 
 ## Day 3
-Front Squat[2,7-10] / ...t2a
+Front Squat[2,7-11] / ...t2a
 Lat Pulldown[3,7-10] / ...t2b
 
 ## Day 4
-Incline Bench Press[2,7-10] / ...t2a
+Incline Bench Press[2,7-11] / ...t2a
 Push Press[3,7-10] / ...t2b
 
 
@@ -343,48 +346,48 @@ t1 / 1x4 90%+ (4RM), 4x2 75% (4RM 85%), 1x2+ 75% (4RM 85%)
 // **T2a**.
 t2a / 5x5 75% (TM 75%)
 // **T2b**.
-t2b / 1x10 73%+ (10RM), 3x6+ 73% (MRS)
+t2b / 1x10 73%+ (10RM), 3x1+ 73% (MRS) / 60s
 // **T3.**
-t3 / 1x18 50%+ (18RM), 3x10+ 50% (MRS)
+t3 / 1x18 50%+ (18RM), 3x1+ 50% (MRS) / 60s
 
 // ...t3
-Triceps Pushdown[4,8-10] / ...t3
+Triceps Pushdown[4,8-11] / ...t3
 // ...t3
-Bent Over Row, Cable[4,8-10] / ...t3
+Bent Over Row, Cable[4,8-11] / ...t3
 // ...t3
-Hammer Curl, Dumbbell[4,8-10] / ...t3
+Hammer Curl, Dumbbell[4,8-11] / ...t3
 
 ## Day 2
 // ...t3
-Shrug[4,8-10] / ...t3
+Shrug[4,8-11] / ...t3
 // ...t3
-Pec Deck[4,8-10] / ...t3
+Pec Deck[4,8-11] / ...t3
 // ...t3
-Face Pull, Cable[4,8-10] / ...t3
+Face Pull, Cable[4,8-11] / ...t3
 
 ## Day 3
 // ...t3
-Leg Extension[4,8-10] / ...t3
+Leg Extension[4,8-11] / ...t3
 // ...t3
-Bent Over One Arm Row[4,8-10] / ...t3
+Bent Over One Arm Row[4,8-11] / ...t3
 // ...t3
-Bicep Curl, EZ Bar[4,8-10] / ...t3
+Bicep Curl, EZ Bar[4,8-11] / ...t3
 
 ## Day 4
 // ...t3
-Triceps Pushdown[4,8-10] / ...t3
+Triceps Pushdown[4,8-11] / ...t3
 // ...t3
-Shrug[4,8-10] / ...t3
+Shrug[4,8-11] / ...t3
 // ...t3
-Incline Curl[4,8-10] / ...t3
+Incline Curl[4,8-11] / ...t3
 
 
 # Week 9
 ## Day 1
 t1 / 1x2 95%+ (2RM), 4x1 80% (2RM 85%), 1x1+ 80% (2RM 85%)
 t2a / 5x4 80% (TM 80%)
-t2b / 1x8 78%+ (8RM), 3x4+ 78% (MRS)
-t3 / 1x16 55%+ (16RM), 3x8+ 55% (MRS)
+t2b / 1x8 78%+ (8RM), 3x1+ 78% (MRS) / 60s
+t3 / 1x16 55%+ (16RM), 3x1+ 55% (MRS) / 60s
 
 ## Day 2
 
@@ -400,8 +403,8 @@ t3 / 1x16 55%+ (16RM), 3x8+ 55% (MRS)
 ## Day 1
 t1 / 1x5 85%+ (5RM), 2x2 75% (5RM 90%), 1x2+ 75% (5RM 90%)
 t2a / 6x3 82.5% (TM 82.5%)
-t2b / 1x6 83%+ (6RM), 3x3+ 83% (MRS)
-t3 / 1x14 65%+ (14RM), 3x8+ 65% (MRS)
+t2b / 1x6 83%+ (6RM), 3x1+ 83% (MRS) / 60s
+t3 / 1x14 65%+ (14RM), 3x1+ 65% (MRS) / 60s
 
 ## Day 2
 
@@ -416,6 +419,8 @@ t3 / 1x14 65%+ (14RM), 3x8+ 65% (MRS)
 # Week 11
 ## Day 1
 t1 / 1x3 92%+ (3RM), 2x1 82% (3RM 90%), 1x1+ 82% (3RM 90%)
+t2a / 7x2 85% (TM 85%)
+t3 / 1x12 70%+ (12RM), 3x1+ 70% (MRS) / 60s
 
 ## Day 2
 
