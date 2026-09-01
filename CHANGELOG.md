@@ -16,6 +16,14 @@
 -->
 
 ---
+date: 2026-09-01
+title: Autocompletion suggestions in freeform mode in Liftoscript editor
+---
+
+Now if in the freeform mode in Liftoscript editor you have autocompletion. It'll suggest the exercise names,
+variable names in `progress`/`update` blocks, the template names when you add reusing, etc etc.
+
+---
 date: 2026-08-28
 title: New grid view for structuring the program
 ---
