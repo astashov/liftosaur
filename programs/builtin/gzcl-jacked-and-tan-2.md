@@ -18,7 +18,7 @@ Before starting the program, please read the [program explanation](https://swole
 
 <!-- more -->
 
-Jacked & Tan 2.0 is a weightlifting program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a 12-week weightlifting program, following GZCL principles, and offering quite a lot of volume. It's designed both for hypertrophy and strength. It starts with lower intensity / higher volume, then progresses to higher intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes, with testing for different RMs each workout.
+Jacked & Tan 2.0 is a strength-and-hypertrophy program based on the **GZCL principle**, created by [Cody Lefever](https://www.gainzfever.com/). The GZCL name comes from his Reddit username - [u/gzcl](https://www.reddit.com/u/gzcl). It's a 12-week program following GZCL principles and offering quite a lot of volume. It starts with lower intensity / higher volume, then progresses to higher intensity / lower volume. It's a fun program to run, offering somewhat unusual and interesting rep schemes, with testing for different RMs each workout.
 
 The program is primarily aimed at intermediates, who are likely to benefit most from its exercise variety, volume, and frequent hard efforts. Cody notes that lifters from novice to elite can benefit, provided they can manage the workload and autoregulate their rep-max attempts.
 
@@ -84,9 +84,11 @@ Unlike the converted T1 load suggestions, the T2a percentages below are literal 
 
 The weight/volume is also changing week over week in a wave pattern, adding sets on lower weights, to compensate drop in volume.
 
+T2a is planned reps-across work, not an AMRAP. You should be able to complete every prescribed rep, including the final set. If you miss the planned volume, reduce that movement's load or Training Max rather than forcing reps to failure.
+
 Before week 7, update borrowed T2a reference maxes from the T1 results found in week 6 where applicable. Reassess separate movement-specific TMs, such as Front Squat and Incline Bench Press, independently.
 
-Skip T2a in weeks 6 and 12, when you test the T1 1RM.
+Skip T2a in weeks 6 and 12; the program omits all T2 work during those T1 test weeks.
 
 :::exercise-example{exercise="deficitDeadlift" equipment="barbell" key="deficitdeadlift_barbell"}
 
@@ -152,6 +154,7 @@ t1 / used: none / 1x10 75%+ (10RM), 2x6 65% (TM 70%), 1x6+ 65% (TM 70%) / update
 
 // **T2a.**
 // Set each T2a exercise's 1RM to the TM it should reference, and reassess it before week 7.
+// Complete all prescribed reps; reduce this movement's load or TM if you miss them.
 t2a / used: none / 4x10 50% (TM 50%)
 
 // **T2b.** Same as in T1 - work up to 15RM, then record the weight.
@@ -307,8 +310,9 @@ t3 / 1x12 70%+ (12RM), 3x1+ 70% (MRS) / 60s
 
 # Week 6
 ## Day 1
-// **T1**. Work up to a conservative single you could confidently double. This set updates the exercise 1RM.
-t1 / 1x1 100%+ (1RM)
+// **T1**. Work up to a conservative single you could confidently double.
+// Liftosaur stores it as the exercise's working 1RM reference; do not grind an all-out max.
+t1 / 1x1 100%+ (single)
 // **T3.** Same as **T2b**, just 10RM
 t3 / 1x10 75%+ (10RM), 3x1+ 75% (MRS) / 60s
 
