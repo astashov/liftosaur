@@ -28,7 +28,7 @@ You can run it after beginner [GZCLP](/programs/gzclp) program, or after beginne
 
 Before diving in, here's some basic terminology:
 
-- **Rep Max**: This refers to the maximum weight you can lift for a given number of reps. For instance, if you can do 5 reps (and no more) with 100 kg, then your 5 rep max is 100 kg. When measuring this, you should not go to full failure, but stop when you can't maintain good form for another rep.
+- **Rep Max (RM)**: In this program, this is the heaviest weight you can lift for the target reps with clean form while keeping **1-2 reps in reserve**. It is not a failure set. If you reach the target and judge that one or two more clean reps were possible, you found the intended RM.
 
 Now, let's talk about exercises. Exercises in GZCL programs are split into **3 tiers**:
 
@@ -46,7 +46,9 @@ This is a very short description of the GZCL principle. For more information, an
 
 For the T1 exercise, we start with high volume and low intensity (high reps, lower weight), and progress to lower volume and higher intensity (lower reps, higher weight) - so called Linear Periodization.
 
-First, you need to define your training max (TM), which is approximately equal to your 2RM (2 Rep Max). It'll be the basis for your "drop sets" for T1 exercise. Drop sets are the sets that you do after the Rep Max set, which are based on percentage of TM.
+The official program uses a training max (TM), approximately equal to your 2RM (2 Rep Max), as the basis for the T1 "drop sets" performed after the Rep Max set.
+
+Liftoscript calculates percentages from an exercise's 1RM field. For **T1**, enter your true current 1RM, not your TM. This implementation estimates Cody's TM - an estimated daily 2RM - as 93.75% of true 1RM using the Epley formula, then rounds the converted percentages to the nearest 2.5 percentage points. The set labels show Cody's original TM percentages. If you know your personal TM, you can edit a drop-set weight to match the labeled percentage exactly.
 
 The first set is a Rep Max set, where you have to work up to your Rep Max. For the first week it's 10RM, for the second - 8RM, etc. So, to work up your 10RM, you need to guess your approximate 10RM weight, and then do "warmup" sets, that are not fatiguing, slowly increasing the weight. Like, let's say you guessed your 10RM for [{Bench Press}] is 185lb. So, you do:
 
@@ -55,11 +57,11 @@ The first set is a Rep Max set, where you have to work up to your Rep Max. For t
 - 3 reps with 135lb
 - 10 reps with 185lb
 
-If you missed, and chose the weight that is too heavy, and let's say you only could do 8 reps. Or too light, and you did 12 reps. That's okay! You'll get better at this later on, just record your weight/reps, and move to the drop sets.
+If you chose a weight that was too heavy and could only do 8 reps, or too light and reached 10 reps with more than two reps still in reserve, that's okay. Record what you did, adjust the later work if needed, and move to the drop sets.
 
-Drop sets are sets that are based on the Training Max. For example, in week 1 you do 3 sets of 6 at 70% of TM. The last set is As Many Reps As Possible (AMRAP) - try to do as many reps as possible (leaving 1-2 reps in the tank). It's a good way to push yourself, and also to see if you need to adjust TM - if you can get more than 12 reps there, you may want to consider increasing TM.
+Drop sets are sets that are based on the Training Max. For example, in week 1 you do 3 sets of 6 at 70% of TM. The last set is As Many Reps As Possible (AMRAP) - try to do as many reps as possible while leaving 1-2 reps in the tank. It's a good way to push yourself and gauge the drop-set intensity. If you get more than 12 reps on this set during the first mesocycle, Cody recommends increasing the later drop-set intensity.
 
-On week 6, you measure your 1RM. You don't do any T1 drop sets (and any T2 exercises).
+In week 6, work up to a conservative single that you could confidently double. Cody expects this to be within about 5% of your actual 1RM. You don't do any T1 drop sets or T2 exercises.
 
 After that, for the next 5 weeks, instead of %TM for the drop sets, you use percentage of your Rep Max for that week. E.g. on Week 7 you do your 6RM set first, and then the drop sets would be 85% of 6RM.
 
@@ -76,7 +78,7 @@ Note that first RM sets are approximate in this example
 
 ### T2a Exercise
 
-The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is [{Front Squat}], which is using its own TM. Liftoscript calculates percentages from each selected exercise's 1RM field, so set each T2a exercise's 1RM in Exercise Stats to the TM it should use.
+The T2a exercise weight is usually based on the T1 Training Max weight (since T2a exercises are auxiliary exercises to T1 ones). The exception is [{Front Squat}], which uses its own TM. Unlike the converted T1 load suggestions, the T2a percentages are literal TM percentages. Set each T2a exercise's 1RM in Exercise Stats to the TM it should use.
 
 The weight/volume is also changing week over week in a wave pattern, adding sets on lower weights, to compensate drop in volume.
 
@@ -114,7 +116,7 @@ Jacked and Tan 2.0 is a 4-day program. Each day has a different T1 main lift (Sq
 
 ### How long is the Jacked and Tan 2.0 program?
 
-The program runs for 12 weeks. Weeks 1-5 build volume at increasing intensity, week 6 tests your 1RM, weeks 7-11 shift to intensity-focused work with drop sets based on your rep max, and week 12 is a final 1RM test.
+The program runs for 12 weeks. Weeks 1-5 build volume at increasing intensity, week 6 takes a conservative single you could confidently double, weeks 7-11 shift to intensity-focused work with drop sets based on your rep max, and week 12 is a final 1RM test.
 
 ### What should I run after Jacked and Tan 2.0?
 
@@ -122,23 +124,23 @@ You can run it again with updated maxes, or switch to [The Rippler](/programs/gz
 
 ### How do the Rep Max sets work in Jacked and Tan 2.0?
 
-For the T1 first set each week, you warm up to a target rep max (10RM in week 1, 8RM in week 2, etc.) and record the weight you hit. Don't worry if you overshoot or undershoot the target reps by a couple — just record what you did and move to the drop sets.
+For the T1 first set each week, warm up to the target rep max (10RM in week 1, 8RM in week 2, etc.), stop with 1-2 clean reps in reserve, and record the weight you hit. Don't worry if you overshoot or undershoot the target — record what you did, adjust later work if needed, and move to the drop sets.
 
 ### Can I swap exercises in Jacked and Tan 2.0?
 
-Yes, especially T2b and T3 exercises. Pick movements that support your T1 lifts and address your weak points. T1 exercises should stay as the main competition lifts, and T2a exercises should remain close variations of your T1 movements.
+Yes, especially T2b and T3 exercises. Pick movements that support your T1 lifts and address your weak points. Keep T1 exercises as safe, heavily loadable compound movements and preserve the alternating lower/upper structure; T2a exercises should remain close variations of the relevant T1 movements.
 
 ```liftoscript
 # Week 1
 ## Day 1
-// **T1**. Warmup up to **10 RM** for the first set, then try a 10RM, tap the first
+// **T1**. Warm up to **10 RM** for the first set, then try a 10RM, tap the first
 // set and enter the 10RM weight you get. Then, do the drop sets (based on TM)
 t1 / used: none / 1x10 75%+ (10RM), 2x6 65% (TM 70%), 1x6+ 65% (TM 70%) / update: custom() {~
   if (week >= 7 && week <= 11 && setIndex == 1) {
     weights = completedWeights[1] * (week >= 10 ? 0.9 : 0.85)
   }
 ~} / progress: custom() {~
-  if (week == 6 || week == 12) {
+  if ((week == 6 || week == 12) && completedReps[1] >= reps[1]) {
     rm1 = completedWeights[1]
   }
 ~}
@@ -206,7 +208,7 @@ Overhead Press[1,1-12] / ...t1
 // ...t2a
 Incline Bench Press[2,1-5] / ...t2a
 // ...t2b
-Push Press[3,1-5] / ...t2b
+Push Press, Barbell[3,1-5] / ...t2b
 // ...t3
 Triceps Pushdown[4,1-6] / ...t3
 // ...t3
@@ -217,7 +219,7 @@ Incline Curl[4,1-6] / ...t3
 
 # Week 2
 ## Day 1
-// **T1**. Warmup up to **8 RM** for the first set, then try a 8RM, tap the first
+// **T1**. Warm up to **8 RM** for the first set, then try an 8RM, tap the first
 // set and enter the 8RM weight you get. Then, do the drop sets (based on TM)
 t1 / 1x8 80%+ (8RM), 2x5 70% (TM 75%), 1x5+ 70% (TM 75%)
 t2a / 4x8 60% (TM 60%)
@@ -239,7 +241,7 @@ t3 / 1x18 50%+ (18RM), 3x1+ 50% (MRS) / 60s
 
 # Week 3
 ## Day 1
-// **T1**. Warmup up to **6 RM** for the first set, then try a 6RM, tap the first
+// **T1**. Warm up to **6 RM** for the first set, then try a 6RM, tap the first
 // set and enter the 6RM weight you get. Then, do the drop sets (based on TM)
 t1 / 1x6 85%+ (6RM), 2x4 75% (TM 80%), 1x4+ 75% (TM 80%)
 t2a / 4x6 70% (TM 70%)
@@ -300,7 +302,7 @@ t3 / 1x12 70%+ (12RM), 3x1+ 70% (MRS) / 60s
 
 # Week 6
 ## Day 1
-// **T1**. Testing your 1RM! This set will update 1RM of this exercise.
+// **T1**. Work up to a conservative single you could confidently double. This set updates the exercise 1RM.
 t1 / 1x1 100%+ (1RM)
 // **T3.** Same as **T2b**, just 10RM
 t3 / 1x10 75%+ (10RM), 3x1+ 75% (MRS) / 60s
@@ -336,7 +338,7 @@ Lat Pulldown[3,7-10] / ...t2b
 
 ## Day 4
 Incline Bench Press[2,7-11] / ...t2a
-Push Press[3,7-10] / ...t2b
+Push Press, Barbell[3,7-10] / ...t2b
 
 
 # Week 8
