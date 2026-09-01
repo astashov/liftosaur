@@ -56,8 +56,10 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { runMigrations, unrunMigrations } from "../migrations/runner";
 import { ExerciseImageUtils_url } from "../models/exerciseImage";
 import {
+  IWeightPlatesResult,
   Weight_calculatePlates,
-  Weight_formatOneSide,
+  Weight_calculatePlatesForSets,
+  Weight_formatOneSideOrdered,
   Weight_increment,
   Weight_decrement,
   Weight_round,
@@ -234,15 +236,16 @@ function setToWatchSet(
   exerciseType: IExerciseType,
   settings: ISettings,
   isWarmup: boolean,
-  isUnilateral: boolean
+  isUnilateral: boolean,
+  plateResult?: IWeightPlatesResult
 ): IWatchSet {
   let plates: string | undefined;
   const weightForPlates = set.completedWeight ?? set.weight;
   if (weightForPlates) {
     const unit = weightForPlates.unit;
-    const { plates: platesArr } = Weight_calculatePlates(weightForPlates, settings, unit, exerciseType);
+    const { plates: platesArr } = plateResult ?? Weight_calculatePlates(weightForPlates, settings, unit, exerciseType);
     if (platesArr.length > 0) {
-      plates = Weight_formatOneSide(settings, platesArr, exerciseType);
+      plates = Weight_formatOneSideOrdered(settings, platesArr, exerciseType);
     }
   }
   return {
@@ -464,10 +467,14 @@ class LiftosaurWatch {
     const exercise = Exercise_get(entry.exercise, settings.exercises);
     const imageUrl = ExerciseImageUtils_url(exercise, "small", settings);
     const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+    const allSets = [...(entry.warmupSets || []), ...entry.sets];
+    const plateResults = Weight_calculatePlatesForSets(allSets, settings, entry.exercise);
     const warmupSets = (entry.warmupSets || []).map((set) =>
-      setToWatchSet(set, entry.exercise, settings, true, isUnilateral)
+      setToWatchSet(set, entry.exercise, settings, true, isUnilateral, plateResults.get(set.id))
     );
-    const workoutSets = entry.sets.map((set) => setToWatchSet(set, entry.exercise, settings, false, isUnilateral));
+    const workoutSets = entry.sets.map((set) =>
+      setToWatchSet(set, entry.exercise, settings, false, isUnilateral, plateResults.get(set.id))
+    );
     return {
       id: Exercise_toKey(entry.exercise),
       name: exercise.name,

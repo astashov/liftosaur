@@ -43,9 +43,10 @@ import {
   Weight_rpeMultiplier,
   Weight_multiply,
   Weight_calculatePlates,
-  Weight_formatOneSide,
   Weight_isPct,
   Weight_getOneRepMax,
+  IWeightPlatesResult,
+  Weight_formatOneSideOrdered,
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
@@ -117,6 +118,7 @@ interface IWorkoutExerciseSet {
   columnWidths: ISetColumnWidths;
   settings: ISettings;
   dispatch: IDispatch;
+  plateResult?: IWeightPlatesResult;
 }
 
 function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
@@ -311,6 +313,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                 settings={props.settings}
                 exerciseType={props.exerciseType}
                 underlineRounded={isRoundedWeight}
+                plateResult={props.plateResult}
               />
             </Pressable>
 
@@ -710,6 +713,7 @@ interface IWorkoutExerciseSetTargetFieldProps {
   settings: ISettings;
   exerciseType: IExerciseType;
   underlineRounded?: boolean;
+  plateResult?: IWeightPlatesResult;
 }
 
 function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProps): JSX.Element {
@@ -724,7 +728,12 @@ function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProp
     }
     case "platescalculator": {
       return (
-        <WorkoutExercisePlatesCalculator set={props.set} settings={props.settings} exerciseType={props.exerciseType} />
+        <WorkoutExercisePlatesCalculator
+          set={props.set}
+          settings={props.settings}
+          exerciseType={props.exerciseType}
+          plateResult={props.plateResult}
+        />
       );
     }
     case "e1rm": {
@@ -738,6 +747,7 @@ interface IWorkoutExercisePlatesCalculatorProps {
   set: ISet;
   settings: ISettings;
   exerciseType: IExerciseType;
+  plateResult?: IWeightPlatesResult;
 }
 
 function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
@@ -750,13 +760,11 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
     );
   }
 
-  const { plates, totalWeight: weight } = Weight_calculatePlates(
-    props.set.completedWeight ?? setWeight,
-    props.settings,
-    setWeight.unit,
-    props.exerciseType
-  );
-  const formattedPlates = plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None";
+  const { plates, totalWeight: weight } =
+    props.plateResult ??
+    Weight_calculatePlates(props.set.completedWeight ?? setWeight, props.settings, setWeight.unit, props.exerciseType);
+  const formattedPlates =
+    plates.length > 0 ? Weight_formatOneSideOrdered(props.settings, plates, props.exerciseType) : "None";
   return (
     <Text
       className={`text-sm font-semibold ${Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}`}

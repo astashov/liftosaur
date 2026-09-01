@@ -27,7 +27,8 @@ import {
   Weight_convertToWeight,
   Weight_display,
   Weight_calculatePlates,
-  Weight_formatOneSide,
+  Weight_calculatePlatesForSets,
+  Weight_formatOneSideOrdered,
   Weight_rpePct,
   Weight_evaluateWeight,
   Weight_op,
@@ -398,8 +399,11 @@ export function Progress_scheduleTimerNotification(
         aSet.weight != null ? Weight_display(aSet.weight) : undefined,
       ]).join(", ");
       if (aSet.weight != null) {
-        const { plates } = Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
-        const formattedPlates = plates.length > 0 ? Weight_formatOneSide(settings, plates, exercise) : "None";
+        const allSets = [...nextEntry.warmupSets, ...nextEntry.sets];
+        const { plates } =
+          Weight_calculatePlatesForSets(allSets, settings, nextEntry.exercise).get(aSet.id) ??
+          Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
+        const formattedPlates = plates.length > 0 ? Weight_formatOneSideOrdered(settings, plates, exercise) : "None";
         bodyHeader = "Plates per side";
         body = formattedPlates;
       }
