@@ -1,36 +1,26 @@
-import { JSX, memo, ReactNode } from "react";
+import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { IDayData, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
-import { IconHandle } from "../icons/iconHandle";
 import { IconMusclesD } from "../icons/iconMusclesD";
-import { IconDuplicate2 } from "../icons/iconDuplicate2";
-import { IconTrash } from "../icons/iconTrash";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
-import { StringUtils_nextName, StringUtils_pluralize } from "../../utils/string";
+import { StringUtils_pluralize } from "../../utils/string";
 import { IconTimerSmall } from "../icons/iconTimerSmall";
 import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
-import { DraggableList2 } from "../draggableList2";
 import { EditProgramUiExerciseView } from "./editProgramUiExercise";
-import { applyChangesInEditor, pickerStateFromPlannerExercise } from "./editProgramUtils";
-import { CollectionUtils_removeAt } from "../../utils/collection";
+import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { LinkButton } from "../linkButton";
-import { UidFactory_generateUid } from "../../utils/generator";
 import { EditProgramV2TextExercises } from "./editProgramV2TextExercises";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
-import {
-  EditProgramUiHelpers_onDaysChange,
-  EditProgramUiHelpers_changeCurrentInstancePosition,
-} from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
 import { IEvaluatedProgram } from "../../models/program";
 import { useProgressiveItems } from "../../utils/useProgressiveItems";
@@ -44,7 +34,6 @@ interface IEditProgramDayViewProps {
   evaluatedProgram: IEvaluatedProgram;
   evaluatedDay: IPlannerEvalResult;
   lbPlannerWeek: LensBuilder<IPlannerState, IPlannerProgramWeek, {}, undefined>;
-  showDelete: boolean;
   weekIndex: number;
   dayInWeekIndex: number;
   settings: ISettings;
@@ -52,15 +41,12 @@ interface IEditProgramDayViewProps {
   programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  dragHandle?: (children: ReactNode) => JSX.Element;
 }
 
 export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
   const lbPlannerDay = props.lbPlannerWeek.p("days").i(props.dayInWeekIndex);
   const ui = props.state.ui;
   const isCollapsed = ui.dayUi.collapsed.has(`${props.weekIndex}-${props.dayInWeekIndex}`);
-  const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
-  const days = props.state.current.program.planner!.weeks[props.weekIndex].days;
 
   return (
     <View
@@ -70,18 +56,7 @@ export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IE
       testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <View className="flex-row items-center">
-        {props.dragHandle ? (
-          props.dragHandle(
-            <View className="p-2">
-              <IconHandle />
-            </View>
-          )
-        ) : (
-          <View className="p-2">
-            <IconHandle />
-          </View>
-        )}
-        <View className="flex-1">
+        <View className="flex-1 pl-2">
           <ContentGrowingTextarea
             className="text-base font-bold"
             value={props.day.name}
@@ -109,79 +84,6 @@ export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IE
               <IconMusclesD size={20} />
             </Pressable>
           </View>
-          <View>
-            <Pressable
-              data-testid="edit-day-clone"
-              testID="edit-day-clone"
-              className="px-2 nm-clone-day"
-              onPress={() => {
-                const newName = StringUtils_nextName(props.day.name);
-                const newDay = { name: newName, exerciseText: props.day.exerciseText, id: UidFactory_generateUid(8) };
-                applyChangesInEditor(props.plannerDispatch, () => {
-                  EditProgramUiHelpers_onDaysChange(
-                    props.plannerDispatch,
-                    props.state.ui,
-                    props.weekIndex,
-                    days,
-                    (order) => {
-                      props.plannerDispatch(
-                        lbPlanner
-                          .p("weeks")
-                          .i(props.weekIndex)
-                          .p("days")
-                          .recordModify((days2) => {
-                            const newDays = [
-                              ...days2.slice(0, props.dayInWeekIndex + 1),
-                              newDay,
-                              ...days2.slice(props.dayInWeekIndex + 1),
-                            ];
-                            return newDays;
-                          }),
-                        "Clone day"
-                      );
-                      order.splice(props.dayInWeekIndex + 1, 0, order[props.dayInWeekIndex]);
-                    }
-                  );
-                });
-              }}
-            >
-              <IconDuplicate2 />
-            </Pressable>
-          </View>
-          {props.showDelete && (
-            <View>
-              <Pressable
-                data-testid="edit-day-delete"
-                testID="edit-day-delete"
-                className="px-2 nm-delete-day"
-                onPress={() => {
-                  applyChangesInEditor(props.plannerDispatch, () => {
-                    EditProgramUiHelpers_onDaysChange(
-                      props.plannerDispatch,
-                      props.state.ui,
-                      props.weekIndex,
-                      days,
-                      (order) => {
-                        props.plannerDispatch(
-                          lbPlanner
-                            .p("weeks")
-                            .i(props.weekIndex)
-                            .p("days")
-                            .recordModify((days2) => {
-                              return CollectionUtils_removeAt(days2, props.dayInWeekIndex);
-                            }),
-                          "Delete day"
-                        );
-                        order.splice(props.dayInWeekIndex, 1);
-                      }
-                    );
-                  });
-                }}
-              >
-                <IconTrash />
-              </Pressable>
-            </View>
-          )}
           <View>
             <Pressable
               className="w-scaled-8 pl-1 pr-2 items-center nm-edit-day-expand-collapse-day"
@@ -341,44 +243,25 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
       <View className="pt-2">
         {props.ui.mode === "ui" && props.isValidProgram && evaluatedDay.success ? (
           <View>
-            <DraggableList2
-              items={visibleUsedExercises}
-              mode="vertical"
-              onDragEnd={(startIndex, endIndex) => {
-                props.plannerDispatch(
-                  lbPlanner.recordModify((program) => {
-                    const fullName = usedExercises[startIndex].fullName;
-                    return EditProgramUiHelpers_changeCurrentInstancePosition(
-                      program,
-                      props.dayData,
-                      fullName,
-                      startIndex,
-                      endIndex,
-                      props.settings
-                    );
-                  }),
-                  "Reorder exercise"
-                );
-              }}
-              element={(exercise, exerciseIndex, dragHandle) => {
-                const exCollapseKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
-                return (
-                  <EditProgramUiExerciseView
-                    isCollapsed={props.ui.exerciseUi.collapsed.has(exCollapseKey)}
-                    plannerExercise={exercise}
-                    evaluatedProgram={props.evaluatedProgram}
-                    dispatch={props.dispatch}
-                    programId={props.programId}
-                    plannerDispatch={props.plannerDispatch}
-                    weekIndex={props.weekIndex}
-                    dayIndex={props.dayIndex}
-                    exerciseIndex={exerciseIndex}
-                    settings={props.settings}
-                    dragHandle={dragHandle}
-                  />
-                );
-              }}
-            />
+            {visibleUsedExercises.map((exercise, exerciseIndex) => {
+              const exCollapseKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
+              return (
+                <EditProgramUiExerciseView
+                  key={exercise.fullName || exerciseIndex}
+                  isCollapsed={props.ui.exerciseUi.collapsed.has(exCollapseKey)}
+                  plannerExercise={exercise}
+                  evaluatedProgram={props.evaluatedProgram}
+                  dispatch={props.dispatch}
+                  programId={props.programId}
+                  plannerDispatch={props.plannerDispatch}
+                  weekIndex={props.weekIndex}
+                  dayIndex={props.dayIndex}
+                  exerciseIndex={exerciseIndex}
+                  settings={props.settings}
+                  showNumber={true}
+                />
+              );
+            })}
             {notUsedExercises.map((exercise, exerciseIndex) => {
               const exCollapseKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
               return (

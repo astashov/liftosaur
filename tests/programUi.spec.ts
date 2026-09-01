@@ -61,7 +61,9 @@ test("Change exercise", async ({ page }) => {
   await page.getByTestId("exercise-filter-by-name").fill("arnold press");
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
-  await page.getByTestId("add-day").click();
+  await page.getByTestId("editor-v2-grid-program").click();
+  await page.getByTestId("grid-add-day-0").click();
+  await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-exercise").nth(1).click();
   await page.getByTestId("exercise-filter-by-name").fill("arnold press");
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
@@ -101,8 +103,9 @@ test("Reuse without overwrite", async ({ page }) => {
 Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
   );
 
+  await page.getByTestId("editor-v2-grid-program").click();
+  await page.getByTestId("grid-add-day-0").click();
   await page.getByTestId("editor-v2-ui-program").click();
-  await page.getByTestId("add-day").click();
   await page.getByTestId("add-exercise").nth(1).click();
   await page.getByTestId("exercise-filter-by-name").click();
   await page.getByTestId("exercise-filter-by-name").fill("bench");

@@ -7,20 +7,13 @@ import { lb } from "lens-shmens";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
 import { StringUtils_pluralize } from "../../utils/string";
 import { IconMusclesW } from "../icons/iconMusclesW";
-import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils_removeAt } from "../../utils/collection";
 import { EditProgramUiDayView } from "./editProgramUiDay";
-import { DraggableList2 } from "../draggableList2";
 import { ISettings } from "../../types";
 import { LinkButton } from "../linkButton";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
-import { Button } from "../button";
-import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
-import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
-import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
 import { navigateToModal } from "../../navigation/navigationService";
 import { useProgressiveItems } from "../../utils/useProgressiveItems";
 
@@ -37,18 +30,22 @@ interface IEditProgramViewProps {
 
 export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element {
   const ui = props.state.ui;
-  const currentWeekIndex = ui.weekIndex;
-
   const program = props.state.current.program;
   const planner = program.planner!;
 
+  const currentWeekIndex = ui.weekIndex;
   const currentWeek = planner.weeks[currentWeekIndex];
   if (!currentWeek) {
     return <View />;
   }
+  const visibleDays = useProgressiveItems(currentWeek.days, {
+    initialBatch: 1,
+    batchSize: 1,
+    debugLabel: `Edit/week-${currentWeekIndex}-days`,
+    resetKey: currentWeekIndex,
+  });
 
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
-  const lbUi = lb<IPlannerState>().p("ui");
   const lbPlannerWeek = lbPlanner.p("weeks").i(currentWeekIndex);
 
   const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
@@ -56,12 +53,6 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
   const dayIndexOffset = Program_getDayNumber(planner, currentWeekIndex + 1, 1);
   const allDaysCollapsed = Array.from(currentWeek.days).every((d, i) => {
     return ui.dayUi.collapsed.has(`${currentWeekIndex}-${i}`);
-  });
-  const visibleDays = useProgressiveItems(currentWeek.days, {
-    initialBatch: 1,
-    batchSize: 1,
-    debugLabel: `Edit/week-${currentWeekIndex}-days`,
-    resetKey: currentWeekIndex,
   });
 
   return (
@@ -95,28 +86,6 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
               <IconMusclesW size={20} />
             </Pressable>
           </View>
-          {props.evaluatedWeeks.length > 1 && (
-            <View>
-              <Pressable
-                className="px-2"
-                onPress={() => {
-                  props.plannerDispatch(
-                    [
-                      lbPlanner.p("weeks").recordModify((weeks) => {
-                        return CollectionUtils_removeAt(weeks, currentWeekIndex);
-                      }),
-                      lbUi.p("weekIndex").recordModify((wi) => {
-                        return wi > 0 ? wi - 1 : 0;
-                      }),
-                    ],
-                    "Delete week"
-                  );
-                }}
-              >
-                <IconTrash />
-              </Pressable>
-            </View>
-          )}
         </View>
       </View>
       <View className="px-3 py-1">
@@ -172,97 +141,33 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
           </LinkButton>
         </View>
       </View>
-      <DraggableList2
-        items={visibleDays}
-        mode="vertical"
-        onDragEnd={(startIndex, endIndex) => {
-          applyChangesInEditor(props.plannerDispatch, () => {
-            EditProgramUiHelpers_onDaysChange(
-              props.plannerDispatch,
-              props.state.ui,
-              currentWeekIndex,
-              currentWeek.days,
-              (order) => {
-                props.plannerDispatch(
-                  [
-                    lbPlanner
-                      .p("weeks")
-                      .i(currentWeekIndex)
-                      .p("days")
-                      .recordModify((days) => {
-                        const newDays = [...days];
-                        const [daysToMove] = newDays.splice(startIndex, 1);
-                        newDays.splice(endIndex, 0, daysToMove);
-                        return newDays;
-                      }),
-                  ],
-                  "Reorder days"
-                );
-                const [daysToMove] = order.splice(startIndex, 1);
-                order.splice(endIndex, 0, daysToMove);
-              }
-            );
-          });
-        }}
-        element={(plannerDay, dayInWeekIndex, dragHandle) => {
-          const evaluatedDay = evaluatedCurrentWeek[dayInWeekIndex];
-          const dayData = {
-            week: currentWeekIndex + 1,
-            dayInWeek: dayInWeekIndex + 1,
-            day: dayInWeekIndex + dayIndexOffset,
-          };
-          return (
-            <EditProgramUiDayView
-              key={plannerDay.id}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              programId={props.programId}
-              evaluatedProgram={props.evaluatedProgram}
-              isValidProgram={isValidProgram}
-              evaluatedDay={evaluatedDay}
-              exerciseFullNames={props.exerciseFullNames}
-              dayData={dayData}
-              lbPlannerWeek={lbPlannerWeek}
-              showDelete={currentWeek.days.length > 1}
-              day={plannerDay}
-              weekIndex={currentWeekIndex}
-              dayInWeekIndex={dayInWeekIndex}
-              plannerDispatch={props.plannerDispatch}
-              state={props.state}
-              dragHandle={dragHandle}
-            />
-          );
-        }}
-      />
-      <View className="py-1 mx-2">
-        <Button
-          kind="lightgrayv3"
-          buttonSize="md"
-          name="add-day"
-          data-testid="add-day"
-          testID="add-day"
-          className="flex-row items-center justify-center w-full"
-          onClick={() => {
-            props.plannerDispatch(
-              lbPlanner
-                .p("weeks")
-                .i(currentWeekIndex)
-                .p("days")
-                .recordModify((days) => [
-                  ...days,
-                  {
-                    name: `Day ${days.length + 1}`,
-                    exerciseText: "",
-                  },
-                ]),
-              "Add new day"
-            );
-          }}
-        >
-          <IconPlus2 size={12} />
-          <Text className="ml-2 text-sm text-text-link font-semibold">Add Day</Text>
-        </Button>
-      </View>
+      {visibleDays.map((plannerDay, dayInWeekIndex) => {
+        const evaluatedDay = evaluatedCurrentWeek[dayInWeekIndex];
+        const dayData = {
+          week: currentWeekIndex + 1,
+          dayInWeek: dayInWeekIndex + 1,
+          day: dayInWeekIndex + dayIndexOffset,
+        };
+        return (
+          <EditProgramUiDayView
+            key={plannerDay.id ?? dayInWeekIndex}
+            settings={props.settings}
+            dispatch={props.dispatch}
+            programId={props.programId}
+            evaluatedProgram={props.evaluatedProgram}
+            isValidProgram={isValidProgram}
+            evaluatedDay={evaluatedDay}
+            exerciseFullNames={props.exerciseFullNames}
+            dayData={dayData}
+            lbPlannerWeek={lbPlannerWeek}
+            day={plannerDay}
+            weekIndex={currentWeekIndex}
+            dayInWeekIndex={dayInWeekIndex}
+            plannerDispatch={props.plannerDispatch}
+            state={props.state}
+          />
+        );
+      })}
     </View>
   );
 });

@@ -1,4 +1,4 @@
-import { JSX, memo, ReactNode } from "react";
+import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
 import { PerfEnabled_tier2 } from "../../utils/perfEnabled";
@@ -10,7 +10,6 @@ import { useRem } from "../../utils/useRem";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ISettings } from "../../types";
-import { IconHandle } from "../icons/iconHandle";
 import { SetNumber } from "./editProgramSets";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
@@ -79,7 +78,7 @@ interface IEditProgramUiExerciseViewProps {
   programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  dragHandle?: (children: ReactNode) => JSX.Element;
+  showNumber?: boolean;
 }
 
 export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView(
@@ -100,19 +99,12 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
         className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
       >
         <View className="flex-row items-center">
-          {props.dragHandle ? (
-            <>
-              {props.dragHandle(
-                <View className="p-2">
-                  <IconHandle />
-                </View>
-              )}
-              <View className="mr-2">
-                <SetNumber size="sm" setIndex={props.exerciseIndex} />
-              </View>
-            </>
+          {props.showNumber ? (
+            <View className="mx-2">
+              <SetNumber size="sm" setIndex={props.exerciseIndex} />
+            </View>
           ) : (
-            <View className="w-scaled-16" />
+            <View className="w-scaled-9" />
           )}
           <View
             className="flex-row items-center flex-1"
