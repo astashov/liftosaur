@@ -1,151 +1,60 @@
-import { JSX, useEffect, useRef, useState } from "react";
-import { Button } from "../../components/button";
-import { Dialog_alert } from "../../utils/dialog";
-import { Service } from "../../api/service";
-import { IconDoc } from "../../components/icons/iconDoc";
-import { IAccount } from "../../models/account";
+import type { JSX } from "react";
 
-interface IAiPromptContentProps {
-  client: Window["fetch"];
-  account?: IAccount;
-}
-
-export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
-  const [input, setInput] = useState("");
-  const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const service = new Service(props.client);
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const scrollHeight = textareaRef.current.scrollHeight;
-      textareaRef.current.style.height = Math.min(scrollHeight, 500) + "px";
-    }
-  }, [input]);
-
-  const generatePrompt = async (): Promise<void> => {
-    if (!input.trim()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setGeneratedPrompt("");
-
-    try {
-      const response = await service.generateAiPrompt(input.trim());
-      if (response.prompt) {
-        setGeneratedPrompt(response.prompt);
-      } else if (response.error) {
-        setError(response.error);
-      } else {
-        setError("Failed to generate prompt");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate prompt");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const copyPrompt = (): void => {
-    if (generatedPrompt) {
-      navigator.clipboard.writeText(generatedPrompt);
-      Dialog_alert("Prompt copied to clipboard!");
-    }
-  };
-
+export function AiPromptContent(): JSX.Element {
   return (
-    <section className="flex flex-col max-w-full mx-auto">
-      <div className="px-4 py-6 border-b border-border-neutral">
-        <h1 className="text-2xl font-bold">Liftoscript Prompt Generator</h1>
-        <p className="mt-2 text-text-secondary">
-          Generate a prompt to convert workout programs to Liftoscript using any LLM
-        </p>
-        <p className="mt-1 text-sm text-text-secondary">
-          Copy the generated prompt and paste it into ChatGPT, Claude, or any other LLM
-        </p>
-        <p className="mt-1 text-sm text-text-secondary">Currently, Claude Opus 4.6 works the best.</p>
-        <p className="mt-3 text-sm text-text-secondary">
-          Or use the{" "}
-          <a className="font-bold underline text-text-link" href="/docs/mcp">
-            Liftosaur MCP server
-          </a>{" "}
-          - connect Claude, ChatGPT, or Gemini directly to your account. They'll be able to create and edit programs,
-          log workouts, and analyze your training without any copy-pasting.
-        </p>
-      </div>
+    <section className="flex flex-col max-w-2xl px-4 py-6 mx-auto">
+      <h1 className="text-2xl font-bold">The Liftoscript Prompt Generator is retired</h1>
+      <p className="mt-4 text-text-secondary">
+        This page used to generate a big prompt you'd copy into ChatGPT, Claude or Gemini to convert a workout program
+        into Liftoscript, then copy the result back into the web editor. There's a much better way to do that now.
+      </p>
 
-      <div className="flex flex-col flex-1 overflow-hidden md:flex-row">
-        <div className="flex flex-col flex-1 p-4 overflow-y-auto border-b border-border-neutral md:border-r md:border-b-0 md:overflow-hidden">
-          <label className="mb-2 font-semibold">Input Program (paste text or provide URL)</label>
-          <textarea
-            ref={textareaRef}
-            className="w-full p-3 font-mono text-base border rounded-lg resize-none border-border-neutral min-h-[150px] max-h-[500px] overflow-y-auto"
-            placeholder="Enter your workout program in plain text, or paste a link to a spreadsheet or website..."
-            value={input}
-            onInput={(e) => setInput((e.target as HTMLTextAreaElement).value)}
-            disabled={isLoading}
-          />
-          {input.trim().match(/^https?:\/\//) && (
-            <div className="mt-2 text-sm text-text-link">
-              URL detected - will fetch content from: {input.trim().split(/[?#]/)[0]}
-            </div>
-          )}
-          <div className="flex gap-2 mt-4">
-            <Button
-              name="generate-prompt"
-              kind="purple"
-              buttonSize="md"
-              onClick={generatePrompt}
-              disabled={isLoading || !input.trim()}
-            >
-              {isLoading ? "Generating..." : "Generate Prompt"}
-            </Button>
-          </div>
-        </div>
+      <h2 className="mt-8 text-xl font-bold">Use the MCP server instead</h2>
+      <p className="mt-4 text-text-secondary">
+        The{" "}
+        <a className="font-bold underline text-text-link" href="/doc/mcp">
+          Liftosaur MCP server
+        </a>{" "}
+        connects Claude, ChatGPT or Gemini directly to Liftosaur, so there's no copy-pasting - you just ask, and the
+        assistant does the work.
+      </p>
+      <p className="mt-4 text-text-secondary">
+        <strong>Free, no account needed.</strong> The reference tools are open to everyone: the Liftoscript language
+        reference, complete program examples, the program design guide, the built-in program sources, and the exercise
+        list. That's enough for an assistant to write valid Liftoscript for you, which you can then paste into the{" "}
+        <a className="font-bold underline text-text-link" href="/planner">
+          Web Editor
+        </a>{" "}
+        yourself - the same thing this page used to help with, only better.
+      </p>
+      <p className="mt-4 text-text-secondary">
+        <strong>Premium.</strong> Anything that touches your account needs an active subscription: creating and editing
+        your programs, logging workouts, reading your history, testing progressions in the playground, and managing
+        exercises, gyms and measurements.
+      </p>
 
-        <div className="flex flex-col flex-1 p-4 overflow-y-auto">
-          <label className="flex-shrink-0 mb-2 font-semibold">Generated Prompt for LLM</label>
-          {error && (
-            <div className="p-3 mb-4 border rounded text-text-error bg-background-lighterror border-color-red200">
-              <div>{error}</div>
-            </div>
-          )}
-          <pre
-            className="flex-1 w-full p-3 overflow-auto font-mono text-sm whitespace-pre-wrap border rounded-lg border-border-neutral bg-background-subtle"
-            style={{ maxHeight: "400px" }}
-          >
-            {generatedPrompt || (!isLoading ? "Your prompt will appear here..." : "")}
-          </pre>
-          {generatedPrompt && (
-            <div className="mt-4 space-y-2">
-              <Button name="copy-prompt" kind="purple" buttonSize="md" className="w-full" onClick={copyPrompt}>
-                Copy Prompt to Clipboard
-              </Button>
-              <div className="text-sm text-text-secondary">
-                <p className="font-semibold">How to use:</p>
-                <ol className="ml-4 list-decimal">
-                  <li>Copy the prompt above</li>
-                  <li>Go to your preferred LLM (ChatGPT, Claude, etc.)</li>
-                  <li>Paste the prompt and send it</li>
-                  <li>
-                    Copy the Liftoscript output and paste it to{" "}
-                    <a className="font-bold underline text-text-link" href="/planner" target="_blank">
-                      Web Editor
-                    </a>{" "}
-                    (to the full mode, <IconDoc className="inline-block" /> icon)
-                  </li>
-                </ol>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <h2 className="mt-8 text-xl font-bold">Some history</h2>
+      <p className="mt-4 text-text-secondary">
+        This generator shipped in June 2025, back when LLMs had no way to reach into an app. Handing you a
+        carefully-built prompt to paste elsewhere was the best available option, and it worked well enough for a while.
+      </p>
+      <p className="mt-4 text-text-secondary">
+        The Liftosaur MCP server arrived in March 2026 and made the whole round trip unnecessary. On top of that, the
+        generator could fetch arbitrary URLs on Liftosaur's behalf to read your program from a spreadsheet or a webpage
+        - convenient, but not something worth keeping around for a feature that has a better replacement.
+      </p>
+
+      <p className="mt-8 text-text-secondary">
+        See the{" "}
+        <a className="font-bold underline text-text-link" href="/doc/mcp">
+          MCP server docs
+        </a>{" "}
+        for setup instructions, or the{" "}
+        <a className="font-bold underline text-text-link" href="/doc">
+          Liftoscript docs
+        </a>{" "}
+        if you'd rather write programs by hand.
+      </p>
     </section>
   );
 }

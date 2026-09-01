@@ -125,8 +125,6 @@ import {
 } from "./paymentsDashboard";
 import { computePaymentsSummary } from "../src/pages/paymentsDashboard/paymentsDashboardContent";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
-import { UrlContentFetcher } from "./utils/urlContentFetcher";
-import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
 import {
   getV1HistoryEndpoint,
   getV1HistoryHandler,
@@ -3191,50 +3189,6 @@ const getMusclesForExerciseHandler: RouteHandler<
   }
 };
 
-const postAiPromptEndpoint = Endpoint.build("/api/ai/prompt");
-const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAiPromptEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const { input } = getBodyJson(event);
-
-  if (!input) {
-    return ResponseUtils_json(400, event, { error: "Input is required" });
-  }
-
-  try {
-    const urlFetcher = new UrlContentFetcher(di);
-    let content = input;
-
-    // If it's a URL, fetch the content
-    if (urlFetcher.isUrl(input)) {
-      const fetched = await urlFetcher.fetchUrlContent(input);
-      content = fetched.content;
-
-      if (fetched.type === "csv") {
-        if (content.includes("with Formulas:")) {
-          content = `[This is Google Sheets data with formulas. Cells show both formulas (e.g., =B2*0.8) and their calculated values. Use the formulas to understand the program structure and progressions]:\n\n${content}`;
-        } else {
-          content = `[This is CSV data from a spreadsheet]:\n\n${content}`;
-        }
-      } else if (fetched.type === "html") {
-        const markdownContent = urlFetcher.convertHtmlToMarkdown(content);
-        content = `[This content was extracted from a webpage and converted to Markdown format. Tables are preserved in HTML format between [TABLE] tags. Extract the workout program information]:\n\n${markdownContent}`;
-      }
-    }
-
-    // Generate the full prompt
-    const systemPrompt = LlmPrompt_getSystemPrompt();
-    const userPrompt = LlmPrompt_getUserPrompt(content);
-    const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
-
-    return ResponseUtils_json(200, event, { prompt: fullPrompt });
-  } catch (error) {
-    di.log.log("Error generating prompt:", error);
-    return ResponseUtils_json(400, event, { error: `Failed to generate prompt: ${error}` });
-  }
-};
-
 const getUploadedImagesEndpoint = Endpoint.build("/api/uploadedimages");
 const getUploadedImagesHandler: RouteHandler<
   IPayload,
@@ -3886,7 +3840,6 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAdminCheckEndpoint, getAdminCheckHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
-      .post(postAiPromptEndpoint, postAiPromptHandler)
       .post(postImageUploadUrlEndpoint, postImageUploadUrlHandler)
       .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)

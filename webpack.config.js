@@ -448,6 +448,10 @@ const mainConfig = {
         target: localapi,
         secure: false,
       },
+      "/ai/*": {
+        target: localapi,
+        secure: false,
+      },
       "/doc": {
         target: localapi,
         secure: false,

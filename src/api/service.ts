@@ -937,22 +937,6 @@ export class Service {
     }
   }
 
-  public async generateAiPrompt(input: string): Promise<{ prompt?: string; error?: string }> {
-    const response = await this.client(`${__API_HOST__}/api/ai/prompt`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input }),
-      credentials: "include",
-    });
-
-    if (!response.ok && response.status !== 200) {
-      return { error: `HTTP ${response.status}: ${response.statusText}` };
-    }
-
-    const json = await response.json();
-    return json;
-  }
-
   public async getUserContext(): Promise<{ account?: IAccount; units?: IUnit }> {
     const result = await this.client(`${__API_HOST__}/api/usercontext`, {
       method: "GET",
