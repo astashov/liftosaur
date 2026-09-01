@@ -78,7 +78,7 @@ export function PlannerEvaluator_fillInMetadata(
   if (metadata.byWeekDayExercise[dayData.week - 1]?.[dayData.dayInWeek - 1]?.[exercise.key] != null) {
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,
-      `Exercise ${exercise.key} is already used in this day. Combine them together, or add a label to separate out.`,
+      `Another exercise with the same name is already used in this day. Combine them together, or add a label to separate out.`,
       exercise.points.fullName,
       { type: "duplicateExerciseInDay", data: { key: exercise.key } }
     );
