@@ -172,7 +172,7 @@ export interface IState {
   selectedGymId?: string;
   appleOffer?: IAppleOffer;
   googleOffer?: IGoogleOffer;
-  deviceId?: string;
+  deviceId: string;
   editProgramStates: Record<string, IPlannerState>;
   editProgramExerciseStates: Record<string, IPlannerExerciseState>;
   playgroundState?: IProgramPreviewPlaygroundState;
@@ -195,7 +195,7 @@ export function buildState(args: {
   notification?: INotification;
   userId?: string;
   nosync?: boolean;
-  deviceId?: string;
+  deviceId: string;
 }): IState {
   return {
     progress: {},

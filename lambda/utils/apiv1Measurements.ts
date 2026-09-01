@@ -261,6 +261,7 @@ export async function ApiV1_getMeasurement(
   user: ILimitedUserDao,
   key: string,
   params: { limit?: string; cursor?: string },
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IMeasurementPageResponse>> {
   const category = categoryForKey(key);
@@ -309,6 +310,7 @@ export async function ApiV1_getMeasurement(
 async function writeStatChange(
   userId: string,
   user: ILimitedUserDao,
+  deviceId: string,
   di: IDI,
   buildNewStats: (stats: IStats) => IStats,
   sideEffects: (userDao: UserDao) => Promise<unknown>[]
@@ -317,7 +319,7 @@ async function writeStatChange(
   const stats = await userDao.getStatsByUserId(userId);
   user.storage = { ...user.storage, stats };
   const newStats = buildNewStats(stats);
-  await userDao.applyStorageUpdate(user, (old) => ({ ...old, stats: newStats }), sideEffects(userDao));
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, stats: newStats }), deviceId, sideEffects(userDao));
 }
 
 function setValuesForKey(
@@ -341,6 +343,7 @@ export async function ApiV1_addMeasurement(
   user: ILimitedUserDao,
   key: string,
   input: IMeasurementWriteInput,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IMeasurementValueResponse>> {
   const category = categoryForKey(key);
@@ -379,6 +382,7 @@ export async function ApiV1_addMeasurement(
   await writeStatChange(
     userId,
     user,
+    deviceId,
     di,
     (stats) => setValuesForKey(stats, key, category, [stat, ...valuesForKey(stats, key, category)]),
     (dao) => [dao.saveStat(userId, key, category, stat)]
@@ -392,6 +396,7 @@ export async function ApiV1_updateMeasurement(
   key: string,
   timestampRaw: string | number,
   input: IMeasurementWriteInput,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IMeasurementValueResponse>> {
   const category = categoryForKey(key);
@@ -423,6 +428,7 @@ export async function ApiV1_updateMeasurement(
   await writeStatChange(
     userId,
     user,
+    deviceId,
     di,
     (st) =>
       setValuesForKey(
@@ -442,6 +448,7 @@ export async function ApiV1_deleteMeasurement(
   user: ILimitedUserDao,
   key: string,
   timestampRaw: string | number,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   const category = categoryForKey(key);
@@ -468,6 +475,7 @@ export async function ApiV1_deleteMeasurement(
     await writeStatChange(
       userId,
       user,
+      deviceId,
       di,
       (st) => ({
         ...st,
@@ -486,6 +494,7 @@ export async function ApiV1_deleteMeasurement(
   await writeStatChange(
     userId,
     user,
+    deviceId,
     di,
     (st) =>
       setValuesForKey(

@@ -3,6 +3,7 @@ import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IStorage } from "../../types";
 import { ProgramsListContent } from "./programsListContent";
+import { VersionTrackerUtils_SERVER_DEVICE_ID } from "../../models/versionTracker/utils";
 
 interface IProps {
   account: IAccount;
@@ -30,7 +31,7 @@ export function ProgramsListHtml(props: IProps): JSX.Element {
       client={client}
       url="/user/programs"
     >
-      <ProgramsListContent client={client} {...data} />
+      <ProgramsListContent client={client} {...data} deviceId={VersionTrackerUtils_SERVER_DEVICE_ID} />
     </Page>
   );
 }

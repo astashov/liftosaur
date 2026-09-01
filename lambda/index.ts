@@ -91,6 +91,10 @@ import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
 import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
 import { IAccount, Account_getFromStorage } from "../src/models/account";
 import { Storage_get, Storage_updateVersions } from "../src/models/storage";
+import {
+  VersionTrackerUtils_SERVER_DEVICE_ID,
+  VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID,
+} from "../src/models/versionTracker/utils";
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
@@ -558,7 +562,11 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   } else {
     bodyJson = rawBodyJson;
   }
-  const deviceId = bodyJson.deviceId as string | undefined;
+  const rawDeviceId = bodyJson.deviceId as string | undefined;
+  if (!rawDeviceId) {
+    di.log.log("sync2: request without a device id, falling back to the shared unidentified node");
+  }
+  const deviceId = rawDeviceId || VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID;
   const timestamp: number = (bodyJson.timestamp as number) || Date.now();
   const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;
@@ -1658,7 +1666,11 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       originalId: Date.now(),
     };
     di.log.log("Device id", deviceId);
-    const newVersions = Storage_updateVersions(oldStorage, newStorage, deviceId);
+    const newVersions = Storage_updateVersions(
+      oldStorage,
+      newStorage,
+      deviceId || VersionTrackerUtils_SERVER_DEVICE_ID
+    );
     const saveVersions = eventDao.post({
       type: "event",
       name: "save-program-www-versions",

@@ -154,6 +154,7 @@ export async function ApiV1_createHistory(
   userId: string,
   user: ILimitedUserDao,
   text: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ id: number; text: string }>> {
   const settings = user.storage.settings;
@@ -177,7 +178,7 @@ export async function ApiV1_createHistory(
 
   const history = await userDao.getHistoryByUserId(userId);
   user.storage = { ...user.storage, history };
-  await userDao.applyStorageUpdate(user, (old) => ({ ...old, history: [...(old.history || []), record] }), [
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, history: [...(old.history || []), record] }), deviceId, [
     userDao.saveHistoryRecord(userId, record),
   ]);
 
@@ -235,6 +236,7 @@ export async function ApiV1_updateHistory(
   user: ILimitedUserDao,
   recordId: number,
   text: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ id: number; text: string }>> {
   const settings = user.storage.settings;
@@ -266,6 +268,7 @@ export async function ApiV1_updateHistory(
   await userDao.applyStorageUpdate(
     user,
     (old) => ({ ...old, history: (old.history || []).map((h) => (h.id === recordId ? record : h)) }),
+    deviceId,
     [userDao.saveHistoryRecord(userId, record)]
   );
 
@@ -276,6 +279,7 @@ export async function ApiV1_deleteHistory(
   userId: string,
   user: ILimitedUserDao,
   recordId: number,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   const userDao = new UserDao(di);
@@ -289,6 +293,7 @@ export async function ApiV1_deleteHistory(
   await userDao.applyStorageUpdate(
     user,
     (old) => ({ ...old, history: (old.history || []).filter((h) => h.id !== recordId) }),
+    deviceId,
     [userDao.deleteHistoryRecord(userId, recordId)]
   );
 
@@ -338,6 +343,7 @@ export async function ApiV1_createProgram(
   user: ILimitedUserDao,
   name: string,
   text: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ id: string; name: string; text: string }>> {
   const settings = user.storage.settings;
@@ -368,9 +374,12 @@ export async function ApiV1_createProgram(
   const userDao = new UserDao(di);
   const programs = await userDao.getProgramsByUserId(userId);
   user.storage = { ...user.storage, programs };
-  await userDao.applyStorageUpdate(user, (old) => ({ ...old, programs: [...(old.programs || []), program] }), [
-    userDao.saveProgram(userId, program),
-  ]);
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({ ...old, programs: [...(old.programs || []), program] }),
+    deviceId,
+    [userDao.saveProgram(userId, program)]
+  );
 
   return ok({ id: program.id, name: program.name, text });
 }
@@ -381,6 +390,7 @@ export async function ApiV1_updateProgram(
   programId: string,
   text: string,
   name: string | undefined,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ id: string; name: string; text: string; isCurrent: boolean }>> {
   const settings = user.storage.settings;
@@ -415,6 +425,7 @@ export async function ApiV1_updateProgram(
   await userDao.applyStorageUpdate(
     user,
     (old) => ({ ...old, programs: (old.programs || []).map((p) => (p.id === resolvedId ? updatedProgram : p)) }),
+    deviceId,
     [userDao.saveProgram(userId, updatedProgram)]
   );
 
@@ -432,6 +443,7 @@ export async function ApiV1_deleteProgram(
   userId: string,
   user: ILimitedUserDao,
   programId: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   if (programId === user.storage.currentProgramId) {
@@ -448,6 +460,7 @@ export async function ApiV1_deleteProgram(
   await userDao.applyStorageUpdate(
     user,
     (old) => ({ ...old, programs: (old.programs || []).filter((p) => p.id !== programId) }),
+    deviceId,
     [userDao.deleteProgram(userId, programId)]
   );
 
@@ -651,6 +664,7 @@ export async function ApiV1_createCustomExercise(
   targetMuscles: IMuscle[],
   synergistMuscles: IMuscle[],
   types: IExerciseKind[],
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<ICustomExerciseResponse>> {
   const nameError = Exercise_nameError(name);
@@ -679,26 +693,34 @@ export async function ApiV1_createCustomExercise(
       existing.largeImageUrl
     );
     const userDao = new UserDao(di);
-    await userDao.applyStorageUpdate(user, (old) => ({
-      ...old,
-      settings: {
-        ...old.settings,
-        exercises: { ...(old.settings?.exercises || {}), [existing.id]: updated },
-      },
-    }));
+    await userDao.applyStorageUpdate(
+      user,
+      (old) => ({
+        ...old,
+        settings: {
+          ...old.settings,
+          exercises: { ...(old.settings?.exercises || {}), [existing.id]: updated },
+        },
+      }),
+      deviceId
+    );
     return ok(formatCustomExercise(updated));
   }
 
   const exercise = Exercise_createCustomExercise(trimmedName, targetMuscles, synergistMuscles, types);
   const userDao = new UserDao(di);
 
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      exercises: { ...(old.settings?.exercises || {}), [exercise.id]: exercise },
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        exercises: { ...(old.settings?.exercises || {}), [exercise.id]: exercise },
+      },
+    }),
+    deviceId
+  );
 
   return ok(formatCustomExercise(exercise));
 }
@@ -708,6 +730,7 @@ export async function ApiV1_updateCustomExercise(
   user: ILimitedUserDao,
   exerciseId: string,
   fields: { name?: string; targetMuscles?: IMuscle[]; synergistMuscles?: IMuscle[]; types?: IExerciseKind[] },
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<ICustomExerciseResponse>> {
   const exercises = user.storage.settings.exercises || {};
@@ -746,13 +769,17 @@ export async function ApiV1_updateCustomExercise(
   );
 
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      exercises: { ...(old.settings?.exercises || {}), [exerciseId]: updated },
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        exercises: { ...(old.settings?.exercises || {}), [exerciseId]: updated },
+      },
+    }),
+    deviceId
+  );
 
   return ok(formatCustomExercise(updated));
 }
@@ -761,6 +788,7 @@ export async function ApiV1_deleteCustomExercise(
   userId: string,
   user: ILimitedUserDao,
   exerciseId: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   const exercises = user.storage.settings.exercises || {};
@@ -771,13 +799,17 @@ export async function ApiV1_deleteCustomExercise(
 
   const updated = Exercise_deleteCustomExercise(exercises, exerciseId);
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      exercises: updated,
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        exercises: updated,
+      },
+    }),
+    deviceId
+  );
 
   return ok({ deleted: true as const });
 }

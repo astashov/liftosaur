@@ -106,7 +106,7 @@ declare let __HOST__: string;
 
 export async function getInitialState(
   client: Window["fetch"],
-  args?: { url?: URL; rawStorage?: string; localStorage?: ILocalStorage; storage?: IStorage; deviceId?: string }
+  args: { url?: URL; rawStorage?: string; localStorage?: ILocalStorage; storage?: IStorage; deviceId: string }
 ): Promise<IState> {
   const url =
     args?.url ||
@@ -134,7 +134,7 @@ export async function getInitialState(
         }
       : undefined;
 
-  const deviceId = args?.deviceId;
+  const deviceId = args.deviceId;
   if (storage != null && storage.storage != null) {
     const hasUnrunMigrations = unrunMigrations(storage.storage).length > 0;
     const maybeStorage = Storage_get(storage.storage, true);

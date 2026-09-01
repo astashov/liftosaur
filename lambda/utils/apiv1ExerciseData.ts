@@ -325,15 +325,25 @@ function isEmptyExerciseData(d: IExerciseDataValue): boolean {
   return Object.keys(d).length === 0;
 }
 
-async function writeExerciseData(user: ILimitedUserDao, key: string, data: IExerciseDataValue, di: IDI): Promise<void> {
+async function writeExerciseData(
+  user: ILimitedUserDao,
+  key: string,
+  data: IExerciseDataValue,
+  deviceId: string,
+  di: IDI
+): Promise<void> {
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      exerciseData: { ...old.settings.exerciseData, [key]: data },
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        exerciseData: { ...old.settings.exerciseData, [key]: data },
+      },
+    }),
+    deviceId
+  );
 }
 
 // Upserts exercise data (rm1, rounding, equipment overrides, etc.) for an exercise key like
@@ -344,6 +354,7 @@ export async function ApiV1_setExerciseData(
   user: ILimitedUserDao,
   key: string,
   input: unknown,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IExerciseDataResponse>> {
   const settings = user.storage.settings;
@@ -376,7 +387,7 @@ export async function ApiV1_setExerciseData(
     return applied;
   }
 
-  await writeExerciseData(user, trimmedKey, applied.data, di);
+  await writeExerciseData(user, trimmedKey, applied.data, deviceId, di);
   return ok(formatExerciseData(trimmedKey, applied.data, user.storage.settings));
 }
 
@@ -384,6 +395,7 @@ export async function ApiV1_deleteExerciseData(
   userId: string,
   user: ILimitedUserDao,
   key: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   const existing = user.storage.settings.exerciseData[key];
@@ -393,6 +405,6 @@ export async function ApiV1_deleteExerciseData(
 
   // Empty the customization rather than removing the key — see writeExerciseData for why we never delete
   // keys (avoids a dictionary-field version tombstone). The emptied entry is hidden from list/get.
-  await writeExerciseData(user, key, {}, di);
+  await writeExerciseData(user, key, {}, deviceId, di);
   return ok({ deleted: true as const });
 }

@@ -582,6 +582,30 @@ describe("MCP", () => {
       expect(updateData.stats).to.not.be.undefined;
     });
 
+    it("keeps a vector clock on the planner after an update, attributed to the MCP client", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_program", { name: "Test Program", text: programText }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const updatedText = "# Week 1\n## Day 1\nSquat / 5x5 / 185lb / progress: lp(10lb)";
+      await handler(
+        buildMcpEvent(toolCall("update_program", { id: createData.id, text: updatedText }), authHeaders(token)),
+        ctx
+      );
+
+      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      const programVersions = user.storage._versions.programs.items;
+      const planner = Object.values(programVersions)[0] as any;
+      // A bare timestamp here means the clock was destroyed: every device's counter resets to 0, and a
+      // replica holding a pre-reset count then outranks the server forever.
+      expect(planner.planner.vc).to.be.an("object");
+      expect(Object.keys(planner.planner.vc)).to.have.length(1);
+      expect(Object.keys(planner.planner.vc)[0]).to.match(/^mcp_|^api_/);
+    });
+
     it("deletes a program", async () => {
       const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
       const createResult = await handler(

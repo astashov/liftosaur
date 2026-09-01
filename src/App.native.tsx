@@ -213,6 +213,7 @@ import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanu
 import { navigateToModal } from "./navigation/navigationService";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
+import { DeviceId_get } from "./utils/deviceId";
 import { Persistence } from "./utils/persistence";
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply, TextSize_resolve, useAppliedTextSize } from "./utils/textSize";
@@ -745,7 +746,8 @@ export function App(): React.JSX.Element {
       const key = await getIdbKey();
       const localStorage = await persistence.load(key);
       const url = new URL(`${__HOST__}/app/`);
-      const state = await getInitialState(fetch, { localStorage, url });
+      const deviceId = await DeviceId_get();
+      const state = await getInitialState(fetch, { localStorage, url, deviceId });
       Settings_applyTheme(Settings_getTheme(state.storage.settings));
       TextSize_apply(TextSize_resolve(state.storage.settings));
       if (state.storage.history.length > 0) {

@@ -227,14 +227,14 @@ export class UserDao {
   public async applySafeSync2(
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate2,
-    deviceId?: string
+    deviceId: string
   ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
     const env = Utils_getEnv();
     if (limitedUser.storage.version !== getLatestMigrationVersion()) {
       const fullUser = await this.getById(limitedUser.id);
       const storage = Storage_get(fullUser!.storage);
       if (storage.success) {
-        await this.saveStorage(fullUser!, storage.data);
+        await this.saveStorage(fullUser!, storage.data, deviceId);
       } else {
         this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
         return { success: false, error: "corrupted_server_storage" };
@@ -296,7 +296,7 @@ export class UserDao {
       originalId,
       _versions: newVersions,
     };
-    const newStorage = Storage_fillVersions(preNewStorage);
+    const newStorage = Storage_fillVersions(preNewStorage, deviceId);
 
     const versionsHistory = newStorage._versions?.history as ICollectionVersions | undefined;
     const deletedVersionsHistory = ObjectUtils_keys(versionsHistory?.deleted || {}).map((v) => Number(v));
@@ -725,8 +725,8 @@ export class UserDao {
   public async applyStorageUpdate(
     user: ILimitedUserDao,
     buildNewStorage: (oldStorage: IPartialStorage) => IPartialStorage,
-    sideEffects?: Promise<unknown>[],
-    deviceId?: string
+    deviceId: string,
+    sideEffects?: Promise<unknown>[]
   ): Promise<void> {
     const oldStorage = user.storage;
     const newStorage = buildNewStorage(oldStorage);
@@ -1158,8 +1158,8 @@ export class UserDao {
     return JSON.parse(programRevision.toString());
   }
 
-  public async saveStorage(user: ILimitedUserDao, aStorage: IPartialStorage): Promise<void> {
-    const storage = Storage_fillVersions(aStorage);
+  public async saveStorage(user: ILimitedUserDao, aStorage: IPartialStorage, deviceId: string): Promise<void> {
+    const storage = Storage_fillVersions(aStorage, deviceId);
     const { history, programs, stats, ...userStorage } = storage;
     const statsObj: IStats = stats || { length: {}, weight: {}, percentage: {} };
     const env = Utils_getEnv();

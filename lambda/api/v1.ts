@@ -135,7 +135,10 @@ export const postV1HistoryHandler: RouteHandler<
     if (!body.text) {
       return apiError(400, "invalid_input", "Missing 'text' field");
     }
-    return resultToResponse(await ApiV1_createHistory(auth.userId, auth.user, body.text as string, di), 201);
+    return resultToResponse(
+      await ApiV1_createHistory(auth.userId, auth.user, body.text as string, auth.deviceId, di),
+      201
+    );
   });
 };
 
@@ -151,7 +154,7 @@ export const putV1HistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
       return apiError(400, "invalid_input", "Missing 'text' field");
     }
     return resultToResponse(
-      await ApiV1_updateHistory(auth.userId, auth.user, parseInt(params.id, 10), body.text as string, di)
+      await ApiV1_updateHistory(auth.userId, auth.user, parseInt(params.id, 10), body.text as string, auth.deviceId, di)
     );
   });
 };
@@ -164,7 +167,9 @@ export const deleteV1HistoryHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-history", async (auth) => {
-    return resultToResponse(await ApiV1_deleteHistory(auth.userId, auth.user, parseInt(params.id, 10), di));
+    return resultToResponse(
+      await ApiV1_deleteHistory(auth.userId, auth.user, parseInt(params.id, 10), auth.deviceId, di)
+    );
   });
 };
 
@@ -211,6 +216,7 @@ export const postV1ProgramHandler: RouteHandler<
         auth.user,
         (body.name as string) || "New Program",
         body.text as string,
+        auth.deviceId,
         di
       ),
       201
@@ -236,6 +242,7 @@ export const putV1ProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
         params.id,
         body.text as string,
         body.name as string | undefined,
+        auth.deviceId,
         di
       )
     );
@@ -250,7 +257,7 @@ export const deleteV1ProgramHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-program", async (auth) => {
-    return resultToResponse(await ApiV1_deleteProgram(auth.userId, auth.user, params.id, di));
+    return resultToResponse(await ApiV1_deleteProgram(auth.userId, auth.user, params.id, auth.deviceId, di));
   });
 };
 
@@ -319,7 +326,7 @@ export const postV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     if (!body.name) {
       return apiError(400, "invalid_input", "Missing 'name' field");
     }
-    return resultToResponse(await ApiV1_createGym(auth.userId, auth.user, body.name as string, di), 201);
+    return resultToResponse(await ApiV1_createGym(auth.userId, auth.user, body.name as string, auth.deviceId, di), 201);
   });
 };
 
@@ -331,7 +338,7 @@ export const putV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-update-gym", async (auth) => {
     const body = getBodyJson(event);
-    return resultToResponse(await ApiV1_updateGym(auth.userId, auth.user, params.id, body, di));
+    return resultToResponse(await ApiV1_updateGym(auth.userId, auth.user, params.id, body, auth.deviceId, di));
   });
 };
 
@@ -342,7 +349,7 @@ export const deleteV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, t
 }) => {
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-gym", async (auth) => {
-    return resultToResponse(await ApiV1_deleteGym(auth.userId, auth.user, params.id, di));
+    return resultToResponse(await ApiV1_deleteGym(auth.userId, auth.user, params.id, auth.deviceId, di));
   });
 };
 
@@ -385,7 +392,15 @@ export const postV1EquipmentHandler: RouteHandler<
       return apiError(400, "invalid_input", "Missing 'name' field");
     }
     return resultToResponse(
-      await ApiV1_createCustomEquipment(auth.userId, auth.user, params.gymId, body.name as string, body, di),
+      await ApiV1_createCustomEquipment(
+        auth.userId,
+        auth.user,
+        params.gymId,
+        body.name as string,
+        body,
+        auth.deviceId,
+        di
+      ),
       201
     );
   });
@@ -400,7 +415,9 @@ export const putV1EquipmentHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-update-equipment", async (auth) => {
     const body = getBodyJson(event);
-    return resultToResponse(await ApiV1_updateEquipment(auth.userId, auth.user, params.gymId, params.id, body, di));
+    return resultToResponse(
+      await ApiV1_updateEquipment(auth.userId, auth.user, params.gymId, params.id, body, auth.deviceId, di)
+    );
   });
 };
 
@@ -439,7 +456,7 @@ export const putV1ExerciseDataHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-set-exercise-data", async (auth) => {
     const body = getBodyJson(event);
-    return resultToResponse(await ApiV1_setExerciseData(auth.userId, auth.user, params.key, body, di));
+    return resultToResponse(await ApiV1_setExerciseData(auth.userId, auth.user, params.key, body, auth.deviceId, di));
   });
 };
 
@@ -451,7 +468,7 @@ export const deleteV1ExerciseDataHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-exercise-data", async (auth) => {
-    return resultToResponse(await ApiV1_deleteExerciseData(auth.userId, auth.user, params.key, di));
+    return resultToResponse(await ApiV1_deleteExerciseData(auth.userId, auth.user, params.key, auth.deviceId, di));
   });
 };
 
@@ -481,7 +498,14 @@ export const getV1MeasurementHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-get-measurement", async (auth) => {
     return resultToResponse(
-      await ApiV1_getMeasurement(auth.userId, auth.user, params.key, { limit: params.limit, cursor: params.cursor }, di)
+      await ApiV1_getMeasurement(
+        auth.userId,
+        auth.user,
+        params.key,
+        { limit: params.limit, cursor: params.cursor },
+        auth.deviceId,
+        di
+      )
     );
   });
 };
@@ -501,6 +525,7 @@ export const postV1MeasurementHandler: RouteHandler<
         auth.user,
         params.key,
         { value: body.value, timestamp: body.timestamp },
+        auth.deviceId,
         di
       ),
       201
@@ -518,7 +543,15 @@ export const putV1MeasurementHandler: RouteHandler<
   return withApiAuthAndEvent(event, di, "api-v1-update-measurement", async (auth) => {
     const body = getBodyJson(event);
     return resultToResponse(
-      await ApiV1_updateMeasurement(auth.userId, auth.user, params.key, params.timestamp, { value: body.value }, di)
+      await ApiV1_updateMeasurement(
+        auth.userId,
+        auth.user,
+        params.key,
+        params.timestamp,
+        { value: body.value },
+        auth.deviceId,
+        di
+      )
     );
   });
 };
@@ -531,7 +564,9 @@ export const deleteV1MeasurementHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-measurement", async (auth) => {
-    return resultToResponse(await ApiV1_deleteMeasurement(auth.userId, auth.user, params.key, params.timestamp, di));
+    return resultToResponse(
+      await ApiV1_deleteMeasurement(auth.userId, auth.user, params.key, params.timestamp, auth.deviceId, di)
+    );
   });
 };
 

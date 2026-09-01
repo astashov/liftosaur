@@ -167,6 +167,7 @@ export async function McpToolExecutor_execute(
   args: Record<string, unknown>,
   userId: string,
   user: ILimitedUserDao,
+  deviceId: string,
   di: IDI
 ): Promise<IToolResult> {
   switch (toolName) {
@@ -197,13 +198,13 @@ export async function McpToolExecutor_execute(
     }
 
     case "create_history_record":
-      return ApiV1_createHistory(userId, user, args.text as string, di);
+      return ApiV1_createHistory(userId, user, args.text as string, deviceId, di);
 
     case "update_history_record":
-      return ApiV1_updateHistory(userId, user, parseInt(args.id as string, 10), args.text as string, di);
+      return ApiV1_updateHistory(userId, user, parseInt(args.id as string, 10), args.text as string, deviceId, di);
 
     case "delete_history_record":
-      return ApiV1_deleteHistory(userId, user, parseInt(args.id as string, 10), di);
+      return ApiV1_deleteHistory(userId, user, parseInt(args.id as string, 10), deviceId, di);
 
     case "list_programs":
       return ApiV1_listPrograms(userId, user, di);
@@ -212,7 +213,14 @@ export async function McpToolExecutor_execute(
       return ApiV1_getProgram(userId, user, args.id as string, di);
 
     case "create_program": {
-      const createResult = await ApiV1_createProgram(userId, user, args.name as string, args.text as string, di);
+      const createResult = await ApiV1_createProgram(
+        userId,
+        user,
+        args.name as string,
+        args.text as string,
+        deviceId,
+        di
+      );
       if (!createResult.success) {
         return createResult;
       }
@@ -230,6 +238,7 @@ export async function McpToolExecutor_execute(
         args.id as string,
         args.text as string,
         args.name as string | undefined,
+        deviceId,
         di
       );
       if (!updateResult.success) {
@@ -243,7 +252,7 @@ export async function McpToolExecutor_execute(
     }
 
     case "delete_program":
-      return ApiV1_deleteProgram(userId, user, args.id as string, di);
+      return ApiV1_deleteProgram(userId, user, args.id as string, deviceId, di);
 
     case "run_playground": {
       const programText = args.programText as string | undefined;
@@ -312,6 +321,7 @@ export async function McpToolExecutor_execute(
         (createTargetMuscles.data ?? []) as IMuscle[],
         (createSynergistMuscles.data ?? []) as IMuscle[],
         (createTypes.data ?? []) as IExerciseKind[],
+        deviceId,
         di
       );
     }
@@ -356,17 +366,17 @@ export async function McpToolExecutor_execute(
       if (updateTypes.data != null) {
         updateFields.types = updateTypes.data as IExerciseKind[];
       }
-      return ApiV1_updateCustomExercise(userId, user, args.id as string, updateFields, di);
+      return ApiV1_updateCustomExercise(userId, user, args.id as string, updateFields, deviceId, di);
     }
 
     case "delete_custom_exercise":
-      return ApiV1_deleteCustomExercise(userId, user, args.id as string, di);
+      return ApiV1_deleteCustomExercise(userId, user, args.id as string, deviceId, di);
 
     case "list_gyms":
       return ApiV1_listGyms(user);
 
     case "create_gym":
-      return ApiV1_createGym(userId, user, args.name as string, di);
+      return ApiV1_createGym(userId, user, args.name as string, deviceId, di);
 
     case "update_gym":
       return ApiV1_updateGym(
@@ -377,11 +387,12 @@ export async function McpToolExecutor_execute(
           name: args.name,
           setCurrent: args.setCurrent != null ? asBool(args.setCurrent) : undefined,
         },
+        deviceId,
         di
       );
 
     case "delete_gym":
-      return ApiV1_deleteGym(userId, user, args.gymId as string, di);
+      return ApiV1_deleteGym(userId, user, args.gymId as string, deviceId, di);
 
     case "list_equipment":
       return ApiV1_listEquipment(user, args.gymId as string);
@@ -394,7 +405,7 @@ export async function McpToolExecutor_execute(
       if (parsed.error) {
         return parsed.error;
       }
-      return ApiV1_updateEquipment(userId, user, args.gymId as string, args.id as string, parsed.input, di);
+      return ApiV1_updateEquipment(userId, user, args.gymId as string, args.id as string, parsed.input, deviceId, di);
     }
 
     case "create_custom_equipment": {
@@ -402,7 +413,15 @@ export async function McpToolExecutor_execute(
       if (parsed.error) {
         return parsed.error;
       }
-      return ApiV1_createCustomEquipment(userId, user, args.gymId as string, args.name as string, parsed.input, di);
+      return ApiV1_createCustomEquipment(
+        userId,
+        user,
+        args.gymId as string,
+        args.name as string,
+        parsed.input,
+        deviceId,
+        di
+      );
     }
 
     case "list_exercise_data":
@@ -416,11 +435,11 @@ export async function McpToolExecutor_execute(
       if (parsed.error) {
         return parsed.error;
       }
-      return ApiV1_setExerciseData(userId, user, args.key as string, parsed.input, di);
+      return ApiV1_setExerciseData(userId, user, args.key as string, parsed.input, deviceId, di);
     }
 
     case "delete_exercise_data":
-      return ApiV1_deleteExerciseData(userId, user, args.key as string, di);
+      return ApiV1_deleteExerciseData(userId, user, args.key as string, deviceId, di);
 
     case "list_measurements":
       return ApiV1_listMeasurements(userId, user, di);
@@ -434,6 +453,7 @@ export async function McpToolExecutor_execute(
           limit: args.limit != null ? String(args.limit) : undefined,
           cursor: args.cursor != null ? String(args.cursor) : undefined,
         },
+        deviceId,
         di
       );
 
@@ -443,6 +463,7 @@ export async function McpToolExecutor_execute(
         user,
         args.key as string,
         { value: args.value != null ? String(args.value) : undefined, timestamp: args.timestamp },
+        deviceId,
         di
       );
 
@@ -453,11 +474,12 @@ export async function McpToolExecutor_execute(
         args.key as string,
         args.timestamp as string | number,
         { value: args.value != null ? String(args.value) : undefined },
+        deviceId,
         di
       );
 
     case "delete_measurement":
-      return ApiV1_deleteMeasurement(userId, user, args.key as string, args.timestamp as string | number, di);
+      return ApiV1_deleteMeasurement(userId, user, args.key as string, args.timestamp as string | number, deviceId, di);
 
     case "get_program_stats":
       return ApiV1_programStats(user, args.programText as string);

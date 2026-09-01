@@ -3,6 +3,7 @@ import { IProgram, ISettings } from "../../../types";
 import { Dialog_alert, Dialog_confirm } from "../../../utils/dialog";
 import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";
+import { DeviceId_get } from "../../../utils/deviceId";
 import {
   PlannerProgram_hasNonSelectedWeightUnit,
   PlannerProgram_switchToUnit,
@@ -58,7 +59,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         }
         setIsLoading(true);
         const service = new Service(props.client);
-        const result = await service.postSaveProgram(exportProgram, undefined, "program-details");
+        const result = await service.postSaveProgram(exportProgram, await DeviceId_get(), "program-details");
         if (result.success) {
           window.location.href = `${__HOST__}/user/p/${result.data}`;
         } else {

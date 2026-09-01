@@ -180,19 +180,30 @@ type ISetWrite = v.InferOutput<typeof VSetWrite>;
 // The client string is recorded as `source` on the resulting history record. Provenance cannot be reconstructed
 // after the fact, so a workout written without it is permanently unattributable — which is exactly the workout a
 // support report will be about.
-function requireIdentityHeaders(apiCtx: IApiWorkoutContext): IApiError | undefined {
+// Returns the validated identity rather than just an error, so the caller carries a `deviceId: string`
+// into the write instead of re-asserting a value this check already guaranteed.
+function requireIdentityHeaders(
+  apiCtx: IApiWorkoutContext
+): { error: IApiError; identity?: undefined } | { error?: undefined; identity: IWorkoutIdentity } {
   const missing = [
     ...(apiCtx.deviceId ? [] : ["X-Liftosaur-Device-Id"]),
     ...(apiCtx.client ? [] : ["X-Liftosaur-Client"]),
   ];
   if (missing.length > 0) {
     return {
-      status: 400,
-      code: "invalid_input",
-      message: `${missing.join(" and ")} ${missing.length > 1 ? "headers are" : "header is"} required for writes`,
+      error: {
+        status: 400,
+        code: "invalid_input",
+        message: `${missing.join(" and ")} ${missing.length > 1 ? "headers are" : "header is"} required for writes`,
+      },
     };
   }
-  return undefined;
+  return { identity: { deviceId: apiCtx.deviceId!, client: apiCtx.client! } };
+}
+
+interface IWorkoutIdentity {
+  deviceId: string;
+  client: string;
 }
 
 interface IWorkoutCtx {
@@ -723,10 +734,11 @@ export async function ApiV1_startWorkout(
   ctx: IApiWorkoutContext,
   di: IDI
 ): Promise<IApiResult<{ workout: IWorkoutPayload }>> {
-  const missingHeaders = requireIdentityHeaders(ctx);
-  if (missingHeaders) {
-    return { success: false, error: missingHeaders };
+  const identityResult = requireIdentityHeaders(ctx);
+  if (identityResult.error) {
+    return { success: false, error: identityResult.error };
   }
+  const identity = identityResult.identity;
   const parsed = v.safeParse(VStartInput, input ?? {});
   if (!parsed.success) {
     return err(400, "invalid_input", issuesToMessage(parsed.issues));
@@ -771,7 +783,7 @@ export async function ApiV1_startWorkout(
   }
 
   const toStore = progress;
-  await userDao.applyStorageUpdate(user, (old) => ({ ...old, progress: [toStore] }), undefined, ctx.deviceId);
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, progress: [toStore] }), identity.deviceId);
   return ok({ workout: serializeWorkout(toStore, requested.evaluated, requested.settings) });
 }
 
@@ -799,10 +811,11 @@ export async function ApiV1_writeSets(
   apiCtx: IApiWorkoutContext,
   di: IDI
 ): Promise<IApiResult<{ workout: IWorkoutPayload }>> {
-  const missingHeaders = requireIdentityHeaders(apiCtx);
-  if (missingHeaders) {
-    return { success: false, error: missingHeaders };
+  const identityResult = requireIdentityHeaders(apiCtx);
+  if (identityResult.error) {
+    return { success: false, error: identityResult.error };
   }
+  const identity = identityResult.identity;
   const parsed = v.safeParse(VSetsInput, input ?? {});
   if (!parsed.success) {
     return err(400, "invalid_input", issuesToMessage(parsed.issues));
@@ -838,7 +851,7 @@ export async function ApiV1_writeSets(
   }
 
   const next = progress;
-  await new UserDao(di).applyStorageUpdate(user, (old) => ({ ...old, progress: [next] }), undefined, apiCtx.deviceId);
+  await new UserDao(di).applyStorageUpdate(user, (old) => ({ ...old, progress: [next] }), identity.deviceId);
   return ok({ workout: serializeWorkout(next, ctx.evaluated, ctx.settings) });
 }
 
@@ -873,10 +886,11 @@ export async function ApiV1_finishWorkout(
   apiCtx: IApiWorkoutContext,
   di: IDI
 ): Promise<IApiResult<{ workout: IFinishedWorkoutSummary }>> {
-  const missingHeaders = requireIdentityHeaders(apiCtx);
-  if (missingHeaders) {
-    return { success: false, error: missingHeaders };
+  const identityResult = requireIdentityHeaders(apiCtx);
+  if (identityResult.error) {
+    return { success: false, error: identityResult.error };
   }
+  const identity = identityResult.identity;
   const parsed = v.safeParse(VFinishInput, input ?? {});
   if (!parsed.success) {
     return err(400, "invalid_input", issuesToMessage(parsed.issues));
@@ -953,10 +967,10 @@ export async function ApiV1_finishWorkout(
         exerciseData: deepmerge(old.settings.exerciseData || {}, exerciseData),
       },
     }),
+    identity.deviceId,
     // An ad-hoc workout's program is synthesised, not stored — persisting it would add a phantom "Ad-Hoc Workout"
     // to the user's program list.
-    newProgram.id === emptyProgramId ? undefined : [userDao.saveProgram(userId, newProgram)],
-    apiCtx.deviceId
+    newProgram.id === emptyProgramId ? undefined : [userDao.saveProgram(userId, newProgram)]
   );
 
   return ok({ workout: summarize(record, newProgram, ctx.settings) });
@@ -969,10 +983,11 @@ export async function ApiV1_discardWorkout(
   apiCtx: IApiWorkoutContext,
   di: IDI
 ): Promise<IApiResult<{ discarded: true }>> {
-  const missingHeaders = requireIdentityHeaders(apiCtx);
-  if (missingHeaders) {
-    return { success: false, error: missingHeaders };
+  const identityResult = requireIdentityHeaders(apiCtx);
+  if (identityResult.error) {
+    return { success: false, error: identityResult.error };
   }
+  const identity = identityResult.identity;
   const parsed = v.safeParse(VDiscardInput, input ?? {});
   if (!parsed.success) {
     return err(400, "invalid_input", issuesToMessage(parsed.issues));
@@ -984,7 +999,7 @@ export async function ApiV1_discardWorkout(
   if (live.startTime !== parsed.output.startTime) {
     return err(409, "workout_mismatch", "The workout in progress is not the one you asked to discard");
   }
-  await new UserDao(di).applyStorageUpdate(user, (old) => ({ ...old, progress: [] }), undefined, apiCtx.deviceId);
+  await new UserDao(di).applyStorageUpdate(user, (old) => ({ ...old, progress: [] }), identity.deviceId);
   return ok({ discarded: true });
 }
 

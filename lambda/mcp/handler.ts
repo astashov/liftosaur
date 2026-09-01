@@ -17,6 +17,7 @@ import {
 } from "./reference";
 import { McpToolExecutor_execute } from "./executor";
 import { Subscriptions } from "../utils/subscriptions";
+import { ApiKeyAuth_deviceIdForKey } from "../utils/apiKeyAuth";
 import { EventDao } from "../dao/eventDao";
 
 const SERVER_NAME = "liftosaur-mcp";
@@ -267,18 +268,24 @@ async function handleToolCall(
 
   const accessToken = authHeader.substring(7);
   let userId: string | undefined;
+  // Each MCP client gets its own node in the vector clock: an API key hashes to a stable id, and an
+  // OAuth client already has one. Sharing a single server node across clients would make two of the
+  // user's assistants indistinguishable, and their concurrent edits unorderable.
+  let deviceId: string | undefined;
   if (accessToken.startsWith("lftsk_")) {
     const apiKeyDao = new ApiKeyDao(di);
     const keyRecord = await apiKeyDao.getByKey(accessToken);
     userId = keyRecord?.userId;
+    deviceId = keyRecord ? ApiKeyAuth_deviceIdForKey(accessToken) : undefined;
   } else {
     const oauthDao = new OauthDao(di);
     const tokenRecord = await oauthDao.getByToken(accessToken);
     if (tokenRecord && tokenRecord.expiresAt >= Date.now()) {
       userId = tokenRecord.userId;
+      deviceId = `mcp_${tokenRecord.clientId.replace(/^lftcl_/, "")}`;
     }
   }
-  if (!userId) {
+  if (!userId || !deviceId) {
     di.log.log(`[MCP] ${toolName} -> 401: invalid/expired token`);
     const baseUrl = Utils_isLocal()
       ? "https://local.liftosaur.com:8080"
@@ -314,7 +321,7 @@ async function handleToolCall(
   // No try/catch here on purpose: the executor returns tool errors for all anticipated argument
   // problems, so anything that still throws is a genuine server bug — let it propagate to the router,
   // which reports it to Rollbar and responds with a sanitized 500 (no internal exception text leaks).
-  const result = await McpToolExecutor_execute(toolName, args, userId, user, di);
+  const result = await McpToolExecutor_execute(toolName, args, userId, user, deviceId, di);
   if (!result.success) {
     di.log.log(`[MCP] ${toolName} -> error: ${result.error.message}`);
     let errorText = result.error.message;

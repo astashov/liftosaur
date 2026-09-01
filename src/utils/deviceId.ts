@@ -1,6 +1,6 @@
 import { IndexedDBUtils_get, IndexedDBUtils_set } from "./indexeddb";
 import { UidFactory_generateUid } from "./generator";
-import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
+import { StoreRuntime_isIos, StoreRuntime_isAndroid } from "./storeRuntime";
 
 export async function DeviceId_get(): Promise<string> {
   if (DeviceId_cachedId) {
@@ -27,14 +27,17 @@ export function DeviceId_generate(): string {
   return `${type}_${uid}`;
 }
 
+// Platform detection goes through StoreRuntime, not SendMessage: the latter only probes the old
+// WebView bridge, so on bare React Native it reports neither platform and every phone would end up
+// claiming a "web" node.
 export function DeviceId_getDeviceType(): string {
   if (typeof window === "undefined") {
     return "srv";
   } else if (window.webeditor) {
     return "edt";
-  } else if (SendMessage_isIos()) {
+  } else if (StoreRuntime_isIos()) {
     return "ios";
-  } else if (SendMessage_isAndroid()) {
+  } else if (StoreRuntime_isAndroid()) {
     return "and";
   } else {
     return "web";

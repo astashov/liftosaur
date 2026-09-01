@@ -10,6 +10,7 @@ import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { Storage_getDefault } from "../src/models/storage";
 import { Service } from "../src/api/service";
 import { MockFetch } from "./utils/mockFetch";
+import { ApiKeyAuth_deviceIdForKey } from "../lambda/utils/apiKeyAuth";
 import sinon from "sinon";
 
 function buildEvent(
@@ -1730,6 +1731,35 @@ Squat / 3x5 / 100lb / update: custom() {~ weights = weights[99] + 1lb ~}`);
         expect(logged.status).to.equal(422);
         expect(logged.data.error.code).to.equal("program_error");
       });
+    });
+  });
+
+  describe("writer identity", () => {
+    it("namespaces the caller-supplied instance id under the credential", () => {
+      const withInstance = ApiKeyAuth_deviceIdForKey("lftsk_secret", "Claude-Desktop");
+      const withoutInstance = ApiKeyAuth_deviceIdForKey("lftsk_secret");
+
+      expect(withInstance).to.match(/^api_[0-9a-f]{12}_claudedesktop$/);
+      expect(withInstance.startsWith(`${withoutInstance}_`)).to.equal(true);
+    });
+
+    it("does not let a caller claim another writer's vector-clock node", () => {
+      // Sending a real device's id must not produce that device's node, or the caller's writes would
+      // land on its counters while it is offline with its own - a false causal ordering.
+      const impersonating = ApiKeyAuth_deviceIdForKey("lftsk_secret", "web_jlhvfvus");
+      expect(impersonating).to.not.equal("web_jlhvfvus");
+      expect(impersonating.startsWith("api_")).to.equal(true);
+    });
+
+    it("keeps distinct keys on distinct nodes and one key stable", () => {
+      expect(ApiKeyAuth_deviceIdForKey("lftsk_a")).to.not.equal(ApiKeyAuth_deviceIdForKey("lftsk_b"));
+      expect(ApiKeyAuth_deviceIdForKey("lftsk_a")).to.equal(ApiKeyAuth_deviceIdForKey("lftsk_a"));
+    });
+
+    it("falls back to the credential node when the instance id is empty or unusable", () => {
+      const base = ApiKeyAuth_deviceIdForKey("lftsk_secret");
+      expect(ApiKeyAuth_deviceIdForKey("lftsk_secret", "")).to.equal(base);
+      expect(ApiKeyAuth_deviceIdForKey("lftsk_secret", "!!!")).to.equal(base);
     });
   });
 

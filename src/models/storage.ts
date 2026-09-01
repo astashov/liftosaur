@@ -84,7 +84,7 @@ export function Storage_validateAndReportStorage(data: Record<string, unknown>):
   return result;
 }
 
-export function Storage_fillVersions<T extends IPartialStorage | IStorage>(storage: T, deviceId?: string): T {
+export function Storage_fillVersions<T extends IPartialStorage | IStorage>(storage: T, deviceId: string): T {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
   const timestamp = Date.now();
   const filledVersions = versionTracker.fillVersions(storage, storage._versions || {}, timestamp);
@@ -257,7 +257,7 @@ export function Storage_partialStorageToStorage(partialStorage: IPartialStorage)
 export function Storage_updateVersions(
   oldStorage: IPartialStorage,
   newStorage: IPartialStorage,
-  deviceId?: string
+  deviceId: string
 ): IVersions<IStorage> {
   const { id: oldId, originalId: oldOriginalId, _versions: oldVersions, ...oldCleanedStorage } = oldStorage;
   const { id: newId, originalId: newOriginalId, _versions: newVersions, ...newCleanedStorage } = newStorage;

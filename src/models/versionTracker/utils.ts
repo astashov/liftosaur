@@ -81,13 +81,17 @@ export function VersionTrackerUtils_createVersion(
   currentVersion: IFieldVersion | undefined,
   deviceId?: string
 ): IFieldVersion {
-  if (!deviceId) {
+  // Downgrading an existing clock to a bare timestamp zeroes every device's counter, so the next write
+  // restarts that device at 1 while a replica that went dormant before the reset still holds a higher
+  // count for the same device - and then wins every future merge outright, however old its data is.
+  const node = deviceId || (isVectorClock(currentVersion) ? VersionTrackerUtils_SERVER_DEVICE_ID : undefined);
+  if (!node) {
     return timestamp;
   }
 
   const current = VersionTrackerUtils_normalizeVersion(currentVersion);
   const newClock = { ...current.vc };
-  newClock[deviceId] = (newClock[deviceId] || 0) + 1;
+  newClock[node] = (newClock[node] || 0) + 1;
 
   return {
     vc: newClock,
@@ -238,7 +242,11 @@ export function VersionTrackerUtils_createIdVersion(
   currentVersion: IIdVersion | undefined,
   deviceId?: string
 ): IIdVersion {
-  if (!deviceId) {
+  // Reusing the current clock unchanged makes this write compare "equal" to the one it replaces, so a
+  // merge keeps the other side and the change is silently dropped. Claim a node instead.
+  const hasClock = Object.keys(currentVersion?.vc || {}).length > 0;
+  const node = deviceId || (hasClock ? VersionTrackerUtils_SERVER_DEVICE_ID : undefined);
+  if (!node) {
     return {
       vc: currentVersion?.vc || {},
       t: timestamp,
@@ -248,7 +256,7 @@ export function VersionTrackerUtils_createIdVersion(
 
   const current = currentVersion ? { vc: currentVersion.vc, t: currentVersion.t } : { vc: {}, t: 0 };
   const newClock = { ...current.vc };
-  newClock[deviceId] = (newClock[deviceId] || 0) + 1;
+  newClock[node] = (newClock[node] || 0) + 1;
 
   return {
     vc: newClock,
@@ -304,3 +312,13 @@ export function VersionTrackerUtils_getIdVersionFromVersions<
 }
 
 export const VersionTrackerUtils_NUKEDELETED_THRESHOLD = 3;
+
+// Server-side writes have no client device to attribute to, but they still have to claim a node in the
+// vector clock rather than erase it. One shared id is correct here: every server write serializes through
+// a read-modify-write of the user's stored storage, so the server behaves as a single replica.
+export const VersionTrackerUtils_SERVER_DEVICE_ID = "srv_api";
+
+// A sync from a client that sent no device id. Rejecting it would break installs that predate the
+// client-side fix, so they share one node - no worse than the bare timestamps they write today, and it
+// at least preserves the clock. The server logs every use, so this can become a hard 400 once it drains.
+export const VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID = "unk_client";

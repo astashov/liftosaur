@@ -13,6 +13,7 @@ export interface IProgramsListContentProps {
   storage: IStorage;
   isMobile: boolean;
   client: Window["fetch"];
+  deviceId: string;
 }
 
 export function ProgramsListContent(props: IProgramsListContentProps): JSX.Element {
@@ -26,6 +27,7 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
       isMobile={props.isMobile}
       account={props.account}
       storage={props.storage}
+      deviceId={props.deviceId}
       env={env}
     />
   );

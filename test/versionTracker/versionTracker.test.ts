@@ -42,6 +42,46 @@ describe("VersionTracker", () => {
       expect(versions.currentProgramId).to.equal(timestamp);
     });
 
+    it("should not collapse an existing vector clock into a plain timestamp when deviceId is missing", () => {
+      const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
+      const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES);
+      const storage1 = Storage_getDefault();
+      const storage2 = { ...storage1, currentProgramId: "program-1" };
+      const storage3 = { ...storage2, currentProgramId: "program-2" };
+
+      const versions1 = trackerWithDevice.updateVersions(storage1, storage2, {}, {}, 1000);
+      const versions2 = trackerNoDevice.updateVersions(storage2, storage3, versions1, {}, 2000);
+
+      expect(versions2.currentProgramId).to.be.an("object");
+      expect((versions2.currentProgramId as any).vc).to.deep.equal({ web_abc123: 1, srv_api: 1 });
+    });
+
+    it("should not let a device dormant since before a server write win a later merge", () => {
+      const device = "web_jlhvfvus";
+      const deviceTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: device });
+      const serverTracker = new VersionTracker(STORAGE_VERSION_TYPES);
+
+      // The device edits three times, then a copy of that storage goes dormant.
+      const s0 = Storage_getDefault();
+      const s1 = { ...s0, currentProgramId: "july-3" };
+      let dormantVersions = deviceTracker.updateVersions(s0, s1, {}, {}, 1000);
+      for (let i = 0; i < 2; i += 1) {
+        dormantVersions = deviceTracker.updateVersions(s1, s1, dormantVersions, {}, 1000);
+      }
+
+      // A server-side write (MCP / API) lands, then the same device keeps working online.
+      const s2 = { ...s1, currentProgramId: "july-15" };
+      const afterServer = serverTracker.updateVersions(s1, s2, dormantVersions, {}, 2000);
+      const s3 = { ...s2, currentProgramId: "aug-29" };
+      const serverVersions = deviceTracker.updateVersions(s2, s3, afterServer, {}, 3000);
+
+      // The dormant copy comes back and syncs.
+      const merged = new VersionTracker(STORAGE_VERSION_TYPES).mergeVersions(dormantVersions, serverVersions);
+      const winner = merged.currentProgramId as IVectorClock;
+
+      expect(winner.t).to.equal(3000);
+    });
+
     it("should increment vector clock counter for same device", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
       const storage1 = Storage_getDefault();

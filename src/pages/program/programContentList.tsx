@@ -41,16 +41,17 @@ export interface IProgramContentListProps {
   storage: IStorage;
   account: IAccount;
   isMobile: boolean;
+  deviceId: string;
 }
 
-async function saveProgram(newProgram: IProgram, service: Service): Promise<void> {
+async function saveProgram(newProgram: IProgram, service: Service, deviceId: string): Promise<void> {
   const exportedProgram: IExportedProgram = {
     program: newProgram,
     customExercises: {},
     settings: {},
     version: getLatestMigrationVersion(),
   };
-  const result = await service.postSaveProgram(exportedProgram);
+  const result = await service.postSaveProgram(exportedProgram, deviceId);
   if (result.success) {
     window.location.href = UrlUtils_build(
       `/user/p/${encodeURIComponent(result.data)}`,
@@ -75,7 +76,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
   const { storage } = props;
 
   const [showCreateProgramModal, setShowCreateProgramModal] = useState(false);
-  const initialState = buildState({ storage, userId: props.account.id });
+  const initialState = buildState({ storage, userId: props.account.id, deviceId: props.deviceId });
   const [state, dispatch] = useThunkReducer(reducerWrapper(false, props.env.persistence), initialState, props.env, []);
   const [isCreating, setIsCreating] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | undefined>(undefined);
@@ -141,7 +142,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                         planner: program.planner ? { ...program.planner, name: newName } : undefined,
                       };
                       try {
-                        await saveProgram(newProgram, props.service);
+                        await saveProgram(newProgram, props.service, props.deviceId);
                       } finally {
                         setIsDuplicating(undefined);
                       }
@@ -229,7 +230,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
             };
             setIsCreating(true);
             try {
-              await saveProgram(newProgram, props.service);
+              await saveProgram(newProgram, props.service, props.deviceId);
             } finally {
               setIsCreating(false);
             }

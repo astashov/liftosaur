@@ -230,12 +230,14 @@ describe("adminDebug", () => {
     const debugLocalStorage: ILocalStorage = { storage: result.data };
     const debugState = await getInitialState((() => undefined) as any, {
       rawStorage: JSON.stringify(debugLocalStorage),
+      deviceId: "web_test",
     });
     expect(debugState.nosync).to.equal(true);
 
     const normalLocalStorage: ILocalStorage = { storage: target };
     const normalState = await getInitialState((() => undefined) as any, {
       rawStorage: JSON.stringify(normalLocalStorage),
+      deviceId: "web_test",
     });
     expect(normalState.nosync).to.equal(false);
   });

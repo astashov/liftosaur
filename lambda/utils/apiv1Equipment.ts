@@ -251,6 +251,7 @@ export async function ApiV1_createGym(
   userId: string,
   user: ILimitedUserDao,
   name: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IGymResponse>> {
   const parsedName = v.safeParse(VGymName, name);
@@ -268,10 +269,14 @@ export async function ApiV1_createGym(
   };
 
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: { ...old.settings, gyms: [...old.settings.gyms, newGym] },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: { ...old.settings, gyms: [...old.settings.gyms, newGym] },
+    }),
+    deviceId
+  );
 
   return ok(formatGym(newGym, user.storage.settings));
 }
@@ -281,6 +286,7 @@ export async function ApiV1_updateGym(
   user: ILimitedUserDao,
   gymId: string,
   input: unknown,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IGymResponse>> {
   const gym = getGym(user.storage.settings, gymId);
@@ -296,14 +302,18 @@ export async function ApiV1_updateGym(
   const newName = name ?? gym.name;
 
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      gyms: old.settings.gyms.map((g) => (g.id === gymId ? { ...g, name: newName } : g)),
-      currentGymId: setCurrent ? gymId : old.settings.currentGymId,
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        gyms: old.settings.gyms.map((g) => (g.id === gymId ? { ...g, name: newName } : g)),
+        currentGymId: setCurrent ? gymId : old.settings.currentGymId,
+      },
+    }),
+    deviceId
+  );
 
   return ok(formatGym({ ...gym, name: newName }, user.storage.settings));
 }
@@ -312,6 +322,7 @@ export async function ApiV1_deleteGym(
   userId: string,
   user: ILimitedUserDao,
   gymId: string,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<{ deleted: true }>> {
   const settings = user.storage.settings;
@@ -324,19 +335,23 @@ export async function ApiV1_deleteGym(
   }
 
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => {
-    const remaining = old.settings.gyms.filter((g) => g.id !== gymId);
-    const currentGymId = old.settings.currentGymId === gymId ? remaining[0]?.id : old.settings.currentGymId;
-    return {
-      ...old,
-      settings: {
-        ...old.settings,
-        gyms: remaining,
-        currentGymId,
-        deletedGyms: Array.from(new Set([...(old.settings.deletedGyms ?? []), gymId])),
-      },
-    };
-  });
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => {
+      const remaining = old.settings.gyms.filter((g) => g.id !== gymId);
+      const currentGymId = old.settings.currentGymId === gymId ? remaining[0]?.id : old.settings.currentGymId;
+      return {
+        ...old,
+        settings: {
+          ...old.settings,
+          gyms: remaining,
+          currentGymId,
+          deletedGyms: Array.from(new Set([...(old.settings.deletedGyms ?? []), gymId])),
+        },
+      };
+    },
+    deviceId
+  );
 
   return ok({ deleted: true });
 }
@@ -384,18 +399,23 @@ async function writeEquipment(
   gymId: string,
   equipmentId: string,
   data: IEquipmentData,
+  deviceId: string,
   di: IDI
 ): Promise<void> {
   const userDao = new UserDao(di);
-  await userDao.applyStorageUpdate(user, (old) => ({
-    ...old,
-    settings: {
-      ...old.settings,
-      gyms: old.settings.gyms.map((g) =>
-        g.id === gymId ? { ...g, equipment: { ...g.equipment, [equipmentId]: data } } : g
-      ),
-    },
-  }));
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        gyms: old.settings.gyms.map((g) =>
+          g.id === gymId ? { ...g, equipment: { ...g.equipment, [equipmentId]: data } } : g
+        ),
+      },
+    }),
+    deviceId
+  );
 }
 
 export async function ApiV1_updateEquipment(
@@ -404,6 +424,7 @@ export async function ApiV1_updateEquipment(
   gymId: string,
   equipmentId: string,
   input: unknown,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IEquipmentResponse>> {
   const gym = getGym(user.storage.settings, gymId);
@@ -424,7 +445,7 @@ export async function ApiV1_updateEquipment(
     return applied;
   }
 
-  await writeEquipment(user, gymId, equipmentId, applied.data, di);
+  await writeEquipment(user, gymId, equipmentId, applied.data, deviceId, di);
   return ok(formatEquipment(equipmentId, applied.data));
 }
 
@@ -434,6 +455,7 @@ export async function ApiV1_createCustomEquipment(
   gymId: string,
   name: string,
   input: unknown,
+  deviceId: string,
   di: IDI
 ): Promise<IApiResult<IEquipmentResponse>> {
   const gym = getGym(user.storage.settings, gymId);
@@ -456,6 +478,6 @@ export async function ApiV1_createCustomEquipment(
   }
 
   const equipmentId = `equipment-${UidFactory_generateUid(8)}`;
-  await writeEquipment(user, gymId, equipmentId, applied.data, di);
+  await writeEquipment(user, gymId, equipmentId, applied.data, deviceId, di);
   return ok(formatEquipment(equipmentId, applied.data));
 }
