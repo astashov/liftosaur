@@ -262,7 +262,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
 
   const [previewWeekIndex, setPreviewWeekIndex] = useState(0);
   const [playgroundWeekIndex, setPlaygroundWeekIndex] = useState(0);
-  const editWeekIndex = ui.weekIndex ?? 0;
+  const editWeekIndex = Math.min(ui.weekIndex ?? 0, Math.max(0, planner.weeks.length - 1));
   const setEditWeekIndex = useCallback(
     (newIndex: number): void => {
       plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(newIndex), `Change week index to ${newIndex}`);

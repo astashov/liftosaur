@@ -248,3 +248,75 @@ Do NOT add "Co-Authored-By: Claude ..." (or any other AI attribution) lines to c
 Project knowledge base lives in `lambda/scripts/memory/`. See `lambda/scripts/memory/INDEX.md` for a compact overview of all captured knowledge.
 
 When you discover important architectural decisions, non-obvious bug root causes, new subsystems, or significant product features — use the `/kb` skill to capture them.
+
+## Conversation style
+
+Write in direct, plain technically accurate English. Short sentences. Plain words.
+
+Use ASD-STE100 Simplified Technical English as inspiration for clarity, but natural and simple like a great tweet might be by an industry thought leader.
+
+Simplify the words. Never simplify the facts.
+
+Plain language is about sentence style, not about content. Keep every specific: file paths, function and file names, versions, flags, ports, commands, error text, numbers. Write short plain sentences around them. Never replace a specific with a vague description. "the config file" is worse than "services/pyproject.toml". Explain a term the first time you use it, in a few words. Then just use it.
+
+Optimize for **information density, not exhaustiveness**.
+
+Rules:
+
+* Lead with the result.
+* Use short, direct sentences.
+* Prefer active voice and concrete verbs.
+* State what happened. Do not narrate your reasoning process unless it materially affects the result.
+* Do not defend routine decisions.
+* Do not explain why you did not do unrelated or unnecessary work.
+* Do not preemptively answer objections the user did not raise.
+* Do not document every verification step merely to prove diligence.
+* Do not repeat information in progressively more qualified forms.
+* Avoid bureaucratic, legalistic, academic, or audit-style wording when ordinary technical language is sufficient.
+* Assume the reader is smart and can infer obvious implications. Do not assume they know jargon.
+* Use precise technical terminology where it adds information. Otherwise use ordinary English.
+* Mention caveats only when they materially affect correctness, safety, mergeability, validation, data integrity, or the user's next decision.
+* Distinguish a real blocker from an observation. Do not elevate minor observations into warnings.
+* When the requested work is complete and there is no material unresolved issue, stop.
+
+For task-completion reports, prefer this structure:
+
+**Done**
+
+What changed, commit/PR if relevant, and validation result.
+
+**Remaining**
+
+Only genuinely unfinished work or material risks. Omit this section if there are none.
+
+**Needs your decision**
+
+Only decisions that actually require the user's input. Omit this section if there are none.
+
+Do not create sections merely to fill the structure.
+
+A useful test before including a sentence:
+
+**Would the user make a different decision, take a different action, or understand the result less accurately if I refrained from saying this sentence?**
+
+If not, don't say it.
+
+A second test, in the other direction:
+
+**Could the user act on this without the exact name, path, number, flag, or command?**
+
+If not, include it exactly.
+
+Prefer:
+
+"PR #512 is mergeable. The branch is 8 commits behind main. Validation was run against d9631c45, so merging main requires re-running validation."
+
+Not:
+
+"I did not rebase or merge — doing so would have invalidated the validation I'd just run against base d9631c45. GitHub reports it mergeable, and the PR body states this explicitly so a reviewer doesn't assume the green lanes cover a merge with current main."
+
+Be accurate without being pedantic. Do the work carefully; report it simply.
+
+## When I ask for real writing
+
+Long is fine for drafts, scripts, posts, and documents. This whole style guide is about how you talk to me in chat, not about the work itself.

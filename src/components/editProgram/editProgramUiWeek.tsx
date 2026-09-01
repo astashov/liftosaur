@@ -33,17 +33,19 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
   const program = props.state.current.program;
   const planner = program.planner!;
 
-  const currentWeekIndex = ui.weekIndex;
+  // Deleting a week doesn't move `ui.weekIndex`, so it can point past the end until something else
+  // moves it.
+  const currentWeekIndex = Math.min(ui.weekIndex, Math.max(0, planner.weeks.length - 1));
   const currentWeek = planner.weeks[currentWeekIndex];
-  if (!currentWeek) {
-    return <View />;
-  }
-  const visibleDays = useProgressiveItems(currentWeek.days, {
+  const visibleDays = useProgressiveItems(currentWeek?.days ?? [], {
     initialBatch: 1,
     batchSize: 1,
     debugLabel: `Edit/week-${currentWeekIndex}-days`,
     resetKey: currentWeekIndex,
   });
+  if (!currentWeek) {
+    return <View />;
+  }
 
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbPlannerWeek = lbPlanner.p("weeks").i(currentWeekIndex);

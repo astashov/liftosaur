@@ -49,7 +49,7 @@ export const EditProgramView = memo(function EditProgramView(
   const program = props.state.current.program;
   const planner = program.planner!;
   const { evaluatedWeeks, exerciseFullNames, plannerDispatch } = props;
-  const weekIndex = ui.weekIndex ?? 0;
+  const weekIndex = Math.min(ui.weekIndex ?? 0, Math.max(0, planner.weeks.length - 1));
 
   const onWeekTabChange = useCallback(
     (newWeekIndex: number) =>
@@ -110,7 +110,7 @@ export const EditProgramView = memo(function EditProgramView(
           className="gap-2 px-4"
           nonSticky={true}
           shouldNotExpand={true}
-          defaultIndex={ui.weekIndex ?? 0}
+          defaultIndex={weekIndex}
           type="squares"
           onChange={onWeekTabChange}
           tabs={planner.weeks.map((week, wi) => {
