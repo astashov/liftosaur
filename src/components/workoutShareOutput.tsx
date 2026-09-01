@@ -16,6 +16,7 @@ import { ObjectUtils_keys } from "../utils/object";
 import { StringUtils_pluralize } from "../utils/string";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { n } from "../utils/math";
 
 interface IWorkoutShareOutputProps {
   record?: IHistoryRecord;
@@ -60,7 +61,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
         <Text className="text-base">{record.dayName}</Text>
         <View className="flex-row justify-between mt-1">
           <Property name="Time" value={time} />
-          <Property name="Volume" value={totalWeight.value} unit={totalWeight.unit} />
+          <Property name="Volume" value={n(totalWeight.value)} unit={totalWeight.unit} />
           <Property name="Sets" value={totalSets} />
           <Property name="Reps" value={totalReps} />
         </View>

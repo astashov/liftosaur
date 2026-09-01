@@ -19,6 +19,7 @@ import { ProgramQrCode } from "./programQrCode";
 import { Equipment_currentEquipment } from "../models/equipment";
 import { Text } from "./primitives/text";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { n } from "../utils/math";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
@@ -292,7 +293,7 @@ function Set(props: ISetProps): JSX.Element | null {
       {set.weight ? (
         <Text className="text-base text-text-secondary">
           <Text className="text-xs text-text-secondary"> × </Text>
-          <Text className="text-base text-text-primary">{set.weight.value}</Text>
+          <Text className="text-base text-text-primary">{n(set.weight.value)}</Text>
           {set.askWeight && <Text className="text-base font-semibold text-text-primary">+</Text>}
           <Text className="text-xs text-text-secondary">{set.weight.unit}</Text>
         </Text>
