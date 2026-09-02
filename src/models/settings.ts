@@ -8,6 +8,7 @@ import {
   IProgram,
   IExerciseType,
   IWeight,
+  IProgramContentSettings,
 } from "../types";
 import { Weight_build, Weight_print } from "./weight";
 import { IExportedProgram, Program_evaluate, Program_getAllUsedProgramExercises } from "./program";
@@ -327,18 +328,53 @@ export function Settings_applyExportedProgram(settings: ISettings, exportedProgr
       ...settings.exercises,
       ...exportedProgram.customExercises,
     },
-    units: settings.units || exportedProgram.settings.units,
     timers: {
       ...settings.timers,
       workout: settings.timers.workout ?? exportedProgram.settings.timers?.workout,
       warmup: settings.timers.warmup ?? exportedProgram.settings.timers?.warmup,
     },
-    planner: settings.planner || exportedProgram.settings.planner,
-    muscleGroups: settings.muscleGroups || exportedProgram.settings.muscleGroups,
     exerciseData: { ...settings.exerciseData, ...exportedProgram.settings.exerciseData },
     workoutSettings: { ...settings.workoutSettings, ...exportedProgram.settings.workoutSettings },
   };
   return result;
+}
+
+export function Settings_applyWebEditorSettings(
+  settings: ISettings,
+  update: IProgramContentSettings,
+  deletedExerciseDataKeys?: string[]
+): ISettings {
+  // A dictionary merge cannot express a removal, so clearing an exercise override needs its keys
+  // named explicitly - otherwise the stored entry is merged straight back in and the reset is lost
+  const exerciseData =
+    update.exerciseData != null ? { ...settings.exerciseData, ...update.exerciseData } : { ...settings.exerciseData };
+  for (const key of deletedExerciseDataKeys || []) {
+    delete exerciseData[key];
+  }
+
+  return {
+    ...settings,
+    units: update.units ?? settings.units,
+    // `workout: null` means the user turned the rest timer off, so presence of the key decides, not truthiness
+    timers: update.timers != null ? { ...settings.timers, ...update.timers } : settings.timers,
+    planner: update.planner ?? settings.planner,
+    muscleGroups: update.muscleGroups ?? settings.muscleGroups,
+    exerciseData,
+    workoutSettings:
+      update.workoutSettings != null
+        ? { ...settings.workoutSettings, ...update.workoutSettings }
+        : settings.workoutSettings,
+  };
+}
+
+export function Settings_webEditorSettingsUpdate(settings: ISettings): IProgramContentSettings {
+  return {
+    units: settings.units,
+    timers: { workout: settings.timers.workout },
+    planner: settings.planner,
+    muscleGroups: settings.muscleGroups,
+    exerciseData: settings.exerciseData,
+  };
 }
 
 export function Settings_activeCustomExercises(settings: ISettings): IAllCustomExercises {

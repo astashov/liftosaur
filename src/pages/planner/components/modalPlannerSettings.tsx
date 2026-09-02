@@ -10,15 +10,30 @@ import { ISettings, IUnit, IScreenMuscle } from "../../../types";
 import { ObjectUtils_keys, ObjectUtils_fromArray } from "../../../utils/object";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { LinkButton } from "../../../components/linkButton";
+import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IEither } from "../../../utils/types";
+
+export type IPlannerSettingsSaveStatus = "saving" | "saved" | "error";
 
 interface IModalPlannerSettingsProps {
   settings: ISettings;
   inApp: boolean;
+  saveStatus?: IPlannerSettingsSaveStatus;
   onShowEditMuscleGroups: () => void;
   dispatch: ILensDispatch<ISettings>;
   onClose: () => void;
+}
+
+function SaveStatus(props: { status: IPlannerSettingsSaveStatus }): JSX.Element {
+  if (props.status === "saving") {
+    return <IconSpinner width={12} height={12} />;
+  }
+  return (
+    <Text className={`text-xs ${props.status === "error" ? "text-text-error" : "text-text-secondary"}`}>
+      {props.status === "error" ? "Failed to save" : "Saved"}
+    </Text>
+  );
 }
 
 function parseAndClamp(
@@ -224,6 +239,16 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
   return (
     <View className="pb-4">
       <GroupHeader size="large" name="Muscle Settings" />
+      <View className="flex-row items-start">
+        <Text className="flex-1 text-xs text-text-secondary">
+          These apply to your whole account, not just this program.
+        </Text>
+        {props.saveStatus != null && (
+          <View className="ml-2">
+            <SaveStatus status={props.saveStatus} />
+          </View>
+        )}
+      </View>
       <View className="mt-2" style={!props.inApp ? { minWidth: 512 } : undefined}>
         {!props.inApp && (
           <View className="mb-1">

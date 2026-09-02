@@ -7,6 +7,7 @@ import {
   IMuscleGeneratorResponse,
   IPlannerProgramWeek,
   IAffiliateData,
+  IProgramContentSettings,
 } from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
@@ -613,6 +614,31 @@ export class Service {
       if (response.status === 200) {
         const json = await response.json();
         return { success: true, data: json.data.id };
+      } else {
+        const json = await response.json();
+        return { success: false, error: json.error };
+      }
+    } catch (error) {
+      const e = error as Error;
+      return { success: false, error: e.message };
+    }
+  }
+
+  public async postSaveSettings(args: {
+    settings: IProgramContentSettings;
+    deletedExerciseDataKeys: string[];
+    version: string;
+    deviceId?: string;
+  }): Promise<IEither<undefined, string>> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/settings`);
+    try {
+      const response = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify(args),
+        credentials: "include",
+      });
+      if (response.status === 200) {
+        return { success: true, data: undefined };
       } else {
         const json = await response.json();
         return { success: false, error: json.error };

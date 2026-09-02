@@ -15,7 +15,7 @@ import { UidFactory_generateUid } from "./utils/generator";
 import { Utils_getEnv, Utils_isLocal } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IStorage } from "../src/types";
+import { IPartialStorage, IStorage, VDeletedExerciseDataKeys, VProgramContentSettings } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -90,7 +90,7 @@ import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
 import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
 import { IAccount, Account_getFromStorage } from "../src/models/account";
-import { Storage_get, Storage_updateVersions } from "../src/models/storage";
+import { Storage_get, Storage_updateVersions, Storage_validate } from "../src/models/storage";
 import {
   VersionTrackerUtils_SERVER_DEVICE_ID,
   VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID,
@@ -100,7 +100,7 @@ import { renderMainHtml } from "./main";
 import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
-import { Settings_applyExportedProgram } from "../src/models/settings";
+import { Settings_applyExportedProgram, Settings_applyWebEditorSettings } from "../src/models/settings";
 import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
 import { renderLoginHtml } from "./login";
 import { ExerciseImageUtils_exists } from "../src/models/exerciseImage";
@@ -1732,6 +1732,53 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     return ResponseUtils_json(200, event, { data: { id: exportedProgram.program.id } });
   }
   return ResponseUtils_json(400, event, { error: "Not Authorized" });
+};
+
+const postSaveSettingsEndpoint = Endpoint.build("/api/settings");
+const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSaveSettingsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user == null) {
+    return ResponseUtils_json(400, event, { error: "Not Authorized" });
+  }
+  const bodyJson = getBodyJson(event);
+  const deviceId = bodyJson.deviceId as string | undefined;
+  const version = bodyJson.version as string | undefined;
+  const updateResult = Storage_validate(bodyJson.settings, VProgramContentSettings, "settings");
+  if (!updateResult.success) {
+    di.log.log("Settings Save: Invalid payload", updateResult.error);
+    return ResponseUtils_json(400, event, { error: "Invalid settings" });
+  }
+  const deletedKeysResult = Storage_validate(
+    bodyJson.deletedExerciseDataKeys ?? [],
+    VDeletedExerciseDataKeys,
+    "deletedExerciseDataKeys"
+  );
+  if (!deletedKeysResult.success) {
+    di.log.log("Settings Save: Invalid deleted keys", deletedKeysResult.error);
+    return ResponseUtils_json(400, event, { error: "Invalid settings" });
+  }
+  const oldStorageResult = Storage_get(user.storage);
+  if (!oldStorageResult.success) {
+    di.log.log("Settings Save: Error loading old storage", oldStorageResult.error);
+    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+  }
+  if (version != null && oldStorageResult.data.version !== version) {
+    di.log.log(`Settings Save: Version mismatch! Old: ${oldStorageResult.data.version}, New: ${version}.`);
+    return ResponseUtils_json(400, event, { error: "Version mismatch! Please refresh the page." });
+  }
+  const userDao = new UserDao(di);
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      settings: Settings_applyWebEditorSettings(old.settings, updateResult.data, deletedKeysResult.data),
+    }),
+    deviceId || VersionTrackerUtils_SERVER_DEVICE_ID
+  );
+  return ResponseUtils_json(200, event, { data: {} });
 };
 
 const deleteProgramEndpoint = Endpoint.build("/api/program/:id");
@@ -3833,6 +3880,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getLoginEndpoint, getLoginHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
+      .post(postSaveSettingsEndpoint, postSaveSettingsHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .get(getAiPromptEndpoint, getAiPromptHandler)

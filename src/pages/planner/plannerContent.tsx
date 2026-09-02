@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import {
   SafeLocalStorage_getItem,
@@ -12,9 +12,10 @@ import { lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
 import { IconCog2 } from "../../components/icons/iconCog2";
-import { ModalPlannerSettings } from "./components/modalPlannerSettings";
+import { ModalPlannerSettings, IPlannerSettingsSaveStatus } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
-import { Settings_build } from "../../models/settings";
+import { Settings_build, Settings_webEditorSettingsUpdate } from "../../models/settings";
+import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { StringUtils_capitalize } from "../../utils/string";
 import { Exercise_getById, Exercise_createOrUpdateCustomExercise } from "../../models/exercise";
 import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
@@ -29,6 +30,7 @@ import {
   IPlannerProgramWeek,
   ISettings,
   IStats,
+  IUnit,
 } from "../../types";
 import { Service } from "../../api/service";
 import {
@@ -49,6 +51,7 @@ import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
 import { UidFactory_generateUid } from "../../utils/generator";
+import { ObjectUtils_keys } from "../../utils/object";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
@@ -250,9 +253,47 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       });
     }
   }, []);
+  const [settingsSaveStatus, setSettingsSaveStatus] = useState<IPlannerSettingsSaveStatus | undefined>(undefined);
+  const settingsUpdate = useMemo(
+    () => Settings_webEditorSettingsUpdate(settings),
+    [settings.units, settings.timers.workout, settings.planner, settings.muscleGroups, settings.exerciseData]
+  );
+  // The payload merges exerciseData, so an override cleared back to defaults has to be named to be removed
+  const storedExerciseData = props.partialStorage?.settings?.exerciseData;
+  const deletedExerciseDataKeys = useMemo(
+    () => ObjectUtils_keys(storedExerciseData || {}).filter((key) => settings.exerciseData[key] == null),
+    [storedExerciseData, settings.exerciseData]
+  );
+  const didSkipInitialSettingsSave = useRef(false);
+  // Settings belong to the account, not the program, so this is gated on being logged in - `shouldSync`
+  // is false on /planner even for a logged-in user, because that program is not attached to the account yet
+  const canSaveSettings = props.account != null;
+  useEffect(() => {
+    if (!canSaveSettings) {
+      return;
+    }
+    if (!didSkipInitialSettingsSave.current) {
+      didSkipInitialSettingsSave.current = true;
+      return;
+    }
+    setSettingsSaveStatus("saving");
+    const timeout = setTimeout(async () => {
+      const result = await service.postSaveSettings({
+        settings: settingsUpdate,
+        deletedExerciseDataKeys,
+        version: getLatestMigrationVersion(),
+        deviceId: props.deviceId,
+      });
+      setSettingsSaveStatus(result.success ? "saved" : "error");
+    }, 750);
+    return () => clearTimeout(timeout);
+  }, [settingsUpdate, deletedExerciseDataKeys, canSaveSettings]);
+
+  // "saving" covers both the debounce window and the request in flight; "error" means the edit never landed
+  const hasUnsavedSettings = settingsSaveStatus === "saving" || settingsSaveStatus === "error";
   useEffect(() => {
     function onBeforeUnload(e: Event): void {
-      if (isChanged(state)) {
+      if (isChanged(state) || hasUnsavedSettings) {
         e.preventDefault();
         e.returnValue = true;
       }
@@ -266,7 +307,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       window.removeEventListener("beforeunload", onBeforeUnload);
       window.removeEventListener("popstate", onPopState);
     };
-  }, [state]);
+  }, [state, hasUnsavedSettings]);
+
+  // The preview's unit switcher is a display toggle - it starts from the user's units, but must not write them back
+  const [previewUnits, setPreviewUnits] = useState<IUnit | undefined>(undefined);
+  const previewSettings =
+    previewUnits != null && previewUnits !== settings.units ? { ...settings, units: previewUnits } : settings;
 
   const [showClipboardInfo, setShowClipboardInfo] = useState<string | undefined>(undefined);
   const [showHelp, setShowHelp] = useState(false);
@@ -479,7 +525,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   setIsLoading(true);
                   try {
                     const exportProgram = Program_exportProgram(state.current.program, settings);
-                    exportProgram.settings.muscleGroups = settings.muscleGroups;
                     exportProgram.settings.exerciseData = settings.exerciseData;
                     exportProgram.settings.workoutSettings = settings.workoutSettings;
                     await saveProgram(props.client, exportProgram, props.deviceId);
@@ -618,6 +663,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {state.ui.showSettingsModal && (
         <ModalPlannerSettings
           inApp={false}
+          saveStatus={canSaveSettings ? settingsSaveStatus : undefined}
           dispatch={(recording, _desc) => {
             const recordings = Array.isArray(recording) ? recording : [recording];
             setSettings((prev) => recordings.reduce((acc, r) => r.fn(acc), prev));
@@ -653,19 +699,20 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           isFullWidth={true}
           name="program-preview"
           shouldShowClose={true}
-          onClose={() => dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false), "Close preview")}
+          onClose={() => {
+            setPreviewUnits(undefined);
+            dispatch(lb<IPlannerState>().pi("ui").p("showPreview").record(false), "Close preview");
+          }}
         >
           <GroupHeader size="large" name="Program Preview" />
           <ProgramPreviewOrPlayground
-            key={settings.units}
+            key={previewSettings.units}
             program={program}
             isMobile={false}
             hasNavbar={false}
             stats={stats}
-            settings={settings}
-            onChangeUnit={(unit) => {
-              setSettings(lf(settings).p("units").set(unit));
-            }}
+            settings={previewSettings}
+            onChangeUnit={setPreviewUnits}
           />
         </Modal>
       )}
