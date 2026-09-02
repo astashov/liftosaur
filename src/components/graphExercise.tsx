@@ -1,4 +1,4 @@
-import { JSX, memo, useMemo, useState } from "react";
+import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -40,6 +40,7 @@ interface IGraphProps {
   initialType?: IExerciseSelectedType;
   dispatch?: IDispatch;
   isInteractive?: boolean;
+  onInteract?: (reason: "manipulate" | "type") => void;
 }
 
 interface IGraphData {
@@ -190,6 +191,9 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
 
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
+  const propsOnInteract = props.onInteract;
+  const onChartInteract = useCallback(() => propsOnInteract?.("manipulate"), [propsOnInteract]);
+
   const timestamps = result.data[0];
   const cursorTimestamp = cursorIdx != null ? timestamps[cursorIdx] : null;
   const cursorRecord = cursorTimestamp != null ? result.historyRecords[cursorTimestamp] : undefined;
@@ -211,7 +215,10 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
           <View>
             <Select
               value={selectedType}
-              onChange={(v) => setSelectedType(v as IExerciseSelectedType)}
+              onChange={(v) => {
+                props.onInteract?.("type");
+                setSelectedType(v as IExerciseSelectedType);
+              }}
               options={[
                 { value: "weight", label: "Max Weight" },
                 { value: "volume", label: "Volume" },
@@ -230,6 +237,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
             xMax={xMax}
             programLines={props.isWithProgramLines ? result.changeProgramTimes : undefined}
             onCursorChange={handleCursorChange}
+            onInteract={onChartInteract}
             yAxisFormatter={(v) => `${Math.round(v)}`}
             isInteractive={props.isInteractive}
           />

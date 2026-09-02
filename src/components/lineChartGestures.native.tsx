@@ -12,6 +12,7 @@ export interface ILineChartGesturesArgs {
   setCursorAtPx: (xPx: number) => number | null;
   clearCursor: () => void;
   isInteractive?: boolean;
+  onInteract?: () => void;
 }
 
 export interface ILineChartGesturesResult {
@@ -110,12 +111,18 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
     sessionRef.current = null;
   }, []);
 
+  const onInteractStable = useCallback((): void => {
+    argsRef.current.onInteract?.();
+  }, []);
+
   const setCursorAtPxStable = useCallback((xPx: number): void => {
+    argsRef.current.onInteract?.();
     argsRef.current.setCursorAtPx(xPx);
   }, []);
 
   const resetViewportStable = useCallback((): void => {
     sessionRef.current = null;
+    argsRef.current.onInteract?.();
     argsRef.current.resetViewport();
   }, []);
 
@@ -140,6 +147,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       .maxPointers(2)
       .onStart((e) => {
         isLifting.value = false;
+        runOnJS(onInteractStable)();
         runOnJS(onPanStart)(e.x);
       })
       .onTouchesUp(() => {
@@ -163,6 +171,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       .enabled(isInteractive)
       .onStart((e) => {
         isLifting.value = false;
+        runOnJS(onInteractStable)();
         runOnJS(onPinchStart)(e.focalX);
       })
       .onTouchesUp(() => {

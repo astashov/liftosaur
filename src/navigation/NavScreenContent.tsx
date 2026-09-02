@@ -102,17 +102,17 @@ export function NavScreenContent(props: {
 
   return (
     <NavScreenScrollContext.Provider value={contextValue}>
-      {props.footer != null ? (
-        // Spans exactly the scroll area — the footer below is absolutely positioned inside it.
-        <View ref={viewportRef} className="flex-1">
-          {scrollView}
+      {/* Spans exactly the scroll area, and stays even without a footer: measuring whether a child
+          is on screen needs this box, because on Android edge-to-edge the window and
+          measureInWindow don't share an origin. */}
+      <View ref={viewportRef} className="flex-1">
+        {scrollView}
+        {props.footer != null ? (
           <View onLayout={onFooterLayout} className="absolute bottom-0 left-0 right-0" pointerEvents="box-none">
             {props.footer}
           </View>
-        </View>
-      ) : (
-        scrollView
-      )}
+        ) : null}
+      </View>
     </NavScreenScrollContext.Provider>
   );
 }

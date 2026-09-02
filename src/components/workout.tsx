@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
 import { Pressable as StickyPressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
@@ -80,6 +80,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const { width: windowWidth } = useWindowDimensions();
   const currentEntryIndex = props.progress.currentEntryIndex ?? 0;
   const [enableReorder, setEnableReorder] = useState(false);
+  const trackClick = useTrackClick();
 
   const [renderedIndices, setRenderedIndices] = useState<ReadonlySet<number>>(() => {
     const s = new Set<number>();
@@ -157,6 +158,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
 
   const onClickThumbnail = useCallback(
     (entryIndex: number) => {
+      trackClick("workout-tab-thumbnail", undefined, { from: currentEntryIndex, to: entryIndex });
       updateProgress(
         dispatch,
         [
@@ -169,8 +171,17 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
         "click-exercise-tab"
       );
     },
-    [dispatch]
+    [dispatch, trackClick, currentEntryIndex]
   );
+
+  const onPagerSettled = useCallback(
+    (settledIndex: number) => {
+      trackClick("workout-swipe-exercise", undefined, { to: settledIndex });
+    },
+    [trackClick]
+  );
+
+  const impressionsSeenRef = useRef<Set<string>>(new Set());
 
   const progressId = props.progress.id;
   const onConvertToProgram = useCallback(() => {
@@ -237,12 +248,15 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                 pageHeight={pagerHeight}
                 forceUpdateEntryIndex={forceUpdateEntryIndex}
                 onIndexChange={onPagerIndexChange}
+                onSettledIndex={onPagerSettled}
               >
                 {progressEntries.map((entry, entryIndex) => (
                   <WorkoutExercisePage
                     key={entry.id}
                     entry={entry}
                     entryIndex={entryIndex}
+                    isCurrentPage={entryIndex === currentEntryIndex}
+                    impressionsSeenRef={impressionsSeenRef}
                     shouldRender={renderedIndices.has(entryIndex)}
                     windowWidth={windowWidth}
                     onPageLayout={onPageLayout}
@@ -278,6 +292,8 @@ export const Workout = memo(WorkoutInner);
 interface IWorkoutExercisePageProps {
   entry: IHistoryEntry;
   entryIndex: number;
+  isCurrentPage: boolean;
+  impressionsSeenRef: MutableRefObject<Set<string>>;
   shouldRender: boolean;
   windowWidth: number;
   onPageLayout: (entryIndex: number, height: number) => void;
@@ -320,6 +336,8 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
             history={props.history}
             otherStates={props.otherStates}
             entryIndex={props.entryIndex}
+            isCurrentPage={props.isCurrentPage}
+            impressionsSeenRef={props.impressionsSeenRef}
             program={props.program}
             programDay={props.programDay}
             progressId={props.progressId}

@@ -1,5 +1,7 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { JSX, memo, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
+import { useWorkoutImpression } from "../utils/useWorkoutImpression";
+import { useTrackClick } from "../utils/clickTracking";
 import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
@@ -46,6 +48,8 @@ interface IWorkoutExerciseProps {
   stats: IStats;
   entryIndex: number;
   entry: IHistoryEntry;
+  isCurrentPage?: boolean;
+  impressionsSeenRef?: MutableRefObject<Set<string>>;
   subscription: ISubscription;
   settings: ISettings;
   dispatch: IDispatch;
@@ -59,6 +63,27 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   // memos — so key it on the exercise key so those stay memoized across set completions regardless of
   // any upstream reference churn.
   const exerciseType = useMemo(() => props.entry.exercise, [Exercise_toKey(props.entry.exercise)]);
+
+  const fallbackSeenRef = useRef<Set<string>>(new Set());
+  const seenRef = props.impressionsSeenRef ?? fallbackSeenRef;
+  const isCurrentPage = props.isCurrentPage ?? false;
+  const graphImpression = useWorkoutImpression({ name: "workout-graph", isCurrentPage, seenRef });
+  const historyImpression = useWorkoutImpression({ name: "workout-history", isCurrentPage, seenRef });
+  const trackClick = useTrackClick();
+  // A ref, not a closure: a new identity per page change would re-render the memoized graph.
+  const isCurrentPageRef = useRef(isCurrentPage);
+  isCurrentPageRef.current = isCurrentPage;
+  const onGraphInteract = useCallback(
+    (reason: "manipulate" | "type") => {
+      const name = reason === "type" ? "workout-graph-type" : "workout-graph-interact";
+      if (!isCurrentPageRef.current || seenRef.current.has(name)) {
+        return;
+      }
+      seenRef.current.add(name);
+      trackClick(name);
+    },
+    [seenRef, trackClick]
+  );
 
   const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
   useEffect(() => {
@@ -166,7 +191,13 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       {!props.settings.workoutSettings.shouldHideGraphs && (
         <>
           {history.length > 1 && isHeavyContentReady && (
-            <View data-testid="workout-stats-graph" testID="workout-stats-graph" className="relative mx-4 mt-2">
+            <View
+              data-testid="workout-stats-graph"
+              testID="workout-stats-graph"
+              className="relative mx-4 mt-2"
+              ref={graphImpression.ref}
+              onLayout={graphImpression.onLayout}
+            >
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
               <ActiveGraphContext.Provider value={activeGraphValue}>
                 <PerfProbeSubtree id="graph">
@@ -184,6 +215,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
                     initialType={props.settings.graphsSettings.defaultType}
                     dispatch={props.dispatch}
                     isInteractive={Subscriptions_hasSubscription(props.subscription)}
+                    onInteract={onGraphInteract}
                   />
                 </PerfProbeSubtree>
               </ActiveGraphContext.Provider>
@@ -209,6 +241,8 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
               settings={props.settings}
               dispatch={props.dispatch}
               history={history}
+              source="workout"
+              firstRecordProbe={historyImpression}
             />
           </PerfProbeSubtree>
         </View>

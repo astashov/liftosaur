@@ -22,6 +22,8 @@ export interface ILineChartGesturesArgs {
   setCursorAtPx: (xPx: number) => number | null;
   clearCursor: () => void;
   isInteractive?: boolean;
+  // Never call this from mousemove — the crosshair follows a plain hover.
+  onInteract?: () => void;
 }
 
 export interface ILineChartGesturesResult {
@@ -68,6 +70,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       if (e.button !== 0) {
         return;
       }
+      argsRef.current.onInteract?.();
       const v = argsRef.current.viewport;
       dragStart = { clientX: e.clientX, xMin: v.xMin, xMax: v.xMax, moved: false };
       e.preventDefault();
@@ -117,6 +120,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       if (!frozenRef.current) {
         return;
       }
+      argsRef.current.onInteract?.();
       e.preventDefault();
       const rect = node.getBoundingClientRect();
       const focalX = e.clientX - rect.left;
@@ -151,6 +155,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
 
     const onDblClick = (e: MouseEvent): void => {
       e.preventDefault();
+      argsRef.current.onInteract?.();
       argsRef.current.resetViewport();
       setFrozen(false);
     };
@@ -182,6 +187,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
 
     const onTouchStart = (e: TouchEvent): void => {
       if (e.touches.length === 2) {
+        argsRef.current.onInteract?.();
         e.preventDefault();
         const a = e.touches[0];
         const b = e.touches[1];
@@ -215,6 +221,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
           }
           session.active = true;
           session.timer = null;
+          argsRef.current.onInteract?.();
           const rect = node.getBoundingClientRect();
           argsRef.current.setCursorAtPx(session.startX - rect.left);
         }, SCRUB_HOLD_MS);

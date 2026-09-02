@@ -235,7 +235,13 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           <ExerciseAllTimePRs maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
         </View>
       )}
-      <ExerciseHistory exerciseType={exerciseType} settings={settings} dispatch={dispatch} history={history} />
+      <ExerciseHistory
+        exerciseType={exerciseType}
+        settings={settings}
+        dispatch={dispatch}
+        history={history}
+        source="stats"
+      />
     </View>
   );
 }

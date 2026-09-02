@@ -39,6 +39,8 @@ interface IExerciseHistoryProps {
   settings: ISettings;
   dispatch: IDispatch;
   history: IHistoryRecord[];
+  source: "workout" | "stats";
+  firstRecordProbe?: { ref: (node: View | null) => void; onLayout: () => void };
 }
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
@@ -141,17 +143,28 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           />
         </View>
       )}
-      {visibleHistory.map((historyRecord) => (
-        <ExerciseHistoryRecord
-          key={historyRecord.id}
-          historyRecord={historyRecord}
-          fullExercise={fullExercise}
-          units={props.settings.units}
-          settings={props.settings}
-          prs={allPrs[historyRecord.id]}
-          dispatch={props.dispatch}
-        />
-      ))}
+      {visibleHistory.map((historyRecord, index) => {
+        const record = (
+          <ExerciseHistoryRecord
+            key={historyRecord.id}
+            historyRecord={historyRecord}
+            fullExercise={fullExercise}
+            units={props.settings.units}
+            settings={props.settings}
+            prs={allPrs[historyRecord.id]}
+            source={props.source}
+            dispatch={props.dispatch}
+          />
+        );
+        if (index !== 0 || props.firstRecordProbe == null) {
+          return record;
+        }
+        return (
+          <View key={historyRecord.id} ref={props.firstRecordProbe.ref} onLayout={props.firstRecordProbe.onLayout}>
+            {record}
+          </View>
+        );
+      })}
     </View>
   );
 });
@@ -162,11 +175,12 @@ interface IExerciseHistoryRecordProps {
   units: IUnit;
   settings: ISettings;
   prs: IPersonalRecords[string];
+  source: "workout" | "stats";
   dispatch: IDispatch;
 }
 
 const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Element => {
-  const { historyRecord, fullExercise, units, settings, prs, dispatch } = props;
+  const { historyRecord, fullExercise, units, settings, prs, source, dispatch } = props;
   const rem = useRem();
   const secondary = Tailwind_semantic().text.secondary;
   const xs = StyledText_remToPx("xs", rem);
@@ -174,9 +188,9 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
   const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
   const trackClick = useTrackClick();
   const onClick = useCallback(() => {
-    trackClick("exercise-history-record");
+    trackClick("exercise-history-record", undefined, { source });
     dispatch(Thunk_editHistoryRecord(historyRecord));
-  }, [dispatch, historyRecord, trackClick]);
+  }, [dispatch, historyRecord, trackClick, source]);
   return (
     <MenuItemWrapper onClick={onClick} name={`${historyRecord.startTime}`}>
       <View className="py-2">
