@@ -17,6 +17,8 @@ import { LinkButton } from "./linkButton";
 import { MenuItemWrapper } from "./menuItem";
 import { MuscleGroupImage } from "./muscleGroupImage";
 import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusclePicker";
+import { BottomSheetOrModal } from "./bottomSheetOrModal";
+import { TextInputModalContent } from "./textInputModalContent";
 import { StringUtils_dashcase } from "../utils/string";
 import { useModal } from "../navigation/ModalStateContext";
 import { getNavigationRef } from "../navigation/navUtils";
@@ -34,6 +36,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
   const visibleMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
   const hiddenMuscleGroups = Muscle_getHiddenMuscleGroups(props.settings);
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
+  const [showNewGroupInput, setShowNewGroupInput] = useState(false);
 
   const openTextInput = useModal("textInputModal", (name) => {
     const trimmed = name.trim();
@@ -42,14 +45,21 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
     }
   });
 
+  const newGroupInputData = {
+    title: "Enter new group name",
+    inputLabel: "Name",
+    placeholder: "My Group Name",
+    submitLabel: "Add",
+    dataCyPrefix: "modal-new-muscle-group",
+  };
+
   const handleAddMuscleGroup = (): void => {
-    openTextInput({
-      title: "Enter new group name",
-      inputLabel: "Name",
-      placeholder: "My Group Name",
-      submitLabel: "Add",
-      dataCyPrefix: "modal-new-muscle-group",
-    });
+    // Outside the app there is no ModalStateProvider, so `openTextInput` dispatches into a noop
+    if (props.useInlineModals) {
+      setShowNewGroupInput(true);
+    } else {
+      openTextInput(newGroupInputData);
+    }
   };
 
   return (
@@ -151,6 +161,25 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
             props.onUpdate?.(showMusclePicker, newMuscles);
           }}
         />
+      )}
+      {props.useInlineModals && showNewGroupInput && Platform.OS === "web" && (
+        <BottomSheetOrModal
+          shouldShowClose={true}
+          onClose={() => setShowNewGroupInput(false)}
+          isHidden={false}
+          zIndex={70}
+        >
+          <div className="px-gutter py-2">
+            <TextInputModalContent
+              data={newGroupInputData}
+              onClose={() => setShowNewGroupInput(false)}
+              onSubmit={(name) => {
+                setShowNewGroupInput(false);
+                props.onCreate(name);
+              }}
+            />
+          </div>
+        </BottomSheetOrModal>
       )}
     </View>
   );
