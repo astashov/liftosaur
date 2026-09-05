@@ -63,12 +63,21 @@ struct LiveActivitySetTimer: Codable, Hashable {
     var restTimer: Int
 }
 
+struct LiveActivityGetReady: Codable, Hashable {
+    var getReadySince: Int
+    var getReady: Int
+    var entryIndex: Int
+    var setIndex: Int
+    var setTimer: Int
+}
+
 struct WorkoutAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         var historyEntryState: HistoryEntryState?
         var workoutStartTimestamp: Int
         var restTimer: LiveActivityRest?
         var setTimer: LiveActivitySetTimer?
+        var getReady: LiveActivityGetReady?
         var stateVersion: Int?
     }
 }

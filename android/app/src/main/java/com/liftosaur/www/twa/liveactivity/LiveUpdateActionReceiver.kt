@@ -16,6 +16,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
         const val ACTION_RECORD_SET_TIMER = "com.liftosaur.www.twa.ACTION_RECORD_SET_TIMER"
         const val ACTION_RECORD_SET_TIMER_KEEP = "com.liftosaur.www.twa.ACTION_RECORD_SET_TIMER_KEEP"
         const val ACTION_OPEN_AND_RECORD_SET_TIMER = "com.liftosaur.www.twa.ACTION_OPEN_AND_RECORD_SET_TIMER"
+        const val ACTION_START_SET_TIMER_WORK = "com.liftosaur.www.twa.ACTION_START_SET_TIMER_WORK"
 
         const val EXTRA_ENTRY_INDEX = "entryIndex"
         const val EXTRA_SET_INDEX = "setIndex"
@@ -23,6 +24,8 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
         const val EXTRA_REST_TIMER_SINCE = "restTimerSince"
         const val EXTRA_SET_TIMER_SINCE = "setTimerSince"
         const val EXTRA_KEEP_TIMING = "keepTiming"
+        const val EXTRA_TAPPED_AT = "tappedAt"
+        const val EXTRA_GET_READY_SINCE = "getReadySince"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -70,6 +73,19 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
                     putInt("setIndex", setIndex)
                     putInt("elapsedSeconds", elapsedSeconds)
                     putBoolean("keepTiming", intent.action == ACTION_RECORD_SET_TIMER_KEEP)
+                }
+                LiveActivityEventDispatcher.emit(event)
+            }
+
+            ACTION_START_SET_TIMER_WORK -> {
+                val event = Arguments.createMap().apply {
+                    putString("action", "startSetTimerWork")
+                    putInt("entryIndex", entryIndex)
+                    putInt("setIndex", setIndex)
+                    putDouble("getReadySince", intent.getLongExtra(EXTRA_GET_READY_SINCE, 0).toDouble())
+                    // The PendingIntent was built when the notification was posted, so its extra is the
+                    // countdown's start - the tap itself is now.
+                    putDouble("tappedAt", System.currentTimeMillis().toDouble())
                 }
                 LiveActivityEventDispatcher.emit(event)
             }

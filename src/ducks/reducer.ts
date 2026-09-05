@@ -14,6 +14,7 @@ import {
   Progress_changeAmrapAction,
   Progress_checkSetTimer,
   Progress_closeTimedSet,
+  Progress_startSetTimerWork,
   Progress_setProgress,
   Progress_finishWorkout,
   Progress_isCurrent,
@@ -272,6 +273,13 @@ export type ICheckSetTimerAction = {
   isPlayground?: boolean;
 };
 
+export type IStartSetTimerWorkAction = {
+  type: "StartSetTimerWorkAction";
+  // A queued native tap can arrive long after the fact, and stamping it here would start the work clock
+  // late and silently shorten the set.
+  startedAt?: number;
+};
+
 // Discard the set timer banner (no recording); starts the deferred rest if the set was already logged.
 export type ICloseSetTimerAction = {
   type: "CloseSetTimerAction";
@@ -360,7 +368,8 @@ export type ICardsAction =
   | IChangeAMRAPAction
   | IUpdateProgressAction
   | ICheckSetTimerAction
-  | ICloseSetTimerAction;
+  | ICloseSetTimerAction
+  | IStartSetTimerWorkAction;
 
 export type IAction =
   | ICardsAction
@@ -685,6 +694,9 @@ export function buildCardsReducer(
       case "CloseSetTimerAction": {
         return Progress_closeTimedSet(progress, settings, subscription, action.isPlayground);
       }
+      case "StartSetTimerWorkAction": {
+        return Progress_startSetTimerWork(progress, action.startedAt ?? Date.now());
+      }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
       }
@@ -698,6 +710,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     action.type === "ChangeAMRAPAction" ||
     action.type === "CheckSetTimerAction" ||
     action.type === "CloseSetTimerAction" ||
+    action.type === "StartSetTimerWorkAction" ||
     action.type === "UpdateProgress"
   ) {
     const progress = Progress_getProgress(state);

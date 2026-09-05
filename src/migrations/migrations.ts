@@ -442,4 +442,13 @@ export const migrations = {
     }
     return storage;
   },
+  "20260903120000_default_get_ready_to_5s": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    // Only when the key is absent: `0` is someone who deliberately turned the countdown off, and after
+    // this runs a cleared field stays cleared, so the setting is still switchable off.
+    if (storage.settings.timers.getReady == null) {
+      storage.settings.timers.getReady = 5;
+    }
+    return storage;
+  },
 };

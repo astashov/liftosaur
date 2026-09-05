@@ -59,9 +59,18 @@ export interface ILiveActivitySetTimer {
   restTimer: number;
 }
 
+export interface ILiveActivityGetReady {
+  getReadySince: number;
+  getReady: number;
+  entryIndex: number;
+  setIndex: number;
+  setTimer: number;
+}
+
 export interface ILiveActivityState {
   restTimer?: ILiveActivityRest;
   setTimer?: ILiveActivitySetTimer;
+  getReady?: ILiveActivityGetReady;
   historyEntryState?: ILiveActivityEntry;
   workoutStartTimestamp: number;
   ignoreDoNotDisturb: boolean;
@@ -221,6 +230,32 @@ export function LiveActivityManager_updateLiveActivity(
     }
   }
 
+  // setTimer wins when a merge left both fields set, matching Progress_getActiveSetTimer.
+  const getReadyModal = setTimerState == null ? progress.setTimerGetReady : undefined;
+  let getReadyState: ILiveActivityGetReady | undefined;
+  if (getReadyModal) {
+    const timedEntry = progress.entries[getReadyModal.entryIndex];
+    const timedSet = timedEntry?.sets[getReadyModal.setIndex];
+    if (timedEntry && timedSet) {
+      const absoluteSetIndex = timedEntry.warmupSets.length + getReadyModal.setIndex;
+      liveActivityEntry =
+        LiveActivityManager_getLiveActivityEntry(
+          progress,
+          getReadyModal.entryIndex,
+          absoluteSetIndex,
+          programExercise,
+          settings
+        ) ?? liveActivityEntry;
+      getReadyState = {
+        getReadySince: getReadyModal.startedAt,
+        getReady: getReadyModal.getReady,
+        entryIndex: getReadyModal.entryIndex,
+        setIndex: getReadyModal.setIndex,
+        setTimer: timedSet.setTimer ?? 0,
+      };
+    }
+  }
+
   const restingSet =
     progress.timerEntryIndex != null && progress.timerSetIndex != null
       ? progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex]
@@ -229,8 +264,9 @@ export function LiveActivityManager_updateLiveActivity(
     workoutStartTimestamp: progress.startTime,
     historyEntryState: liveActivityEntry,
     setTimer: setTimerState,
+    getReady: getReadyState,
     restTimer:
-      setTimerState == null && progress.timerSince != null && progress.timer != null
+      setTimerState == null && getReadyState == null && progress.timerSince != null && progress.timer != null
         ? {
             restTimerSince: restTimerSince ?? progress.timerSince,
             restTimer: restTimer ?? progress.timer,

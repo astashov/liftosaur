@@ -21,8 +21,8 @@ class LiveUpdateManager(private val context: Context) {
     private var currentState: LiveActivityState? = null
     private var restTimerHandler: Handler? = null
     private var restTimerRunnable: Runnable? = null
-    private var setTimerHandler: Handler? = null
-    private var setTimerRunnable: Runnable? = null
+    private var reconcileHandler: Handler? = null
+    private var reconcileRunnable: Runnable? = null
     private var isRestTimerExpired = false
     private var isForegroundServiceRunning = false
 
@@ -73,11 +73,20 @@ class LiveUpdateManager(private val context: Context) {
         val restTimer: Int
     )
 
+    data class LiveActivityGetReady(
+        val getReadySince: Long,
+        val getReady: Int,
+        val entryIndex: Int,
+        val setIndex: Int,
+        val setTimer: Int
+    )
+
     data class LiveActivityState(
         val workoutStartTimestamp: Long,
         val entry: LiveActivityEntry?,
         val restTimer: LiveActivityRest?,
         val setTimer: LiveActivitySetTimer?,
+        val getReady: LiveActivityGetReady?,
         val ignoreDoNotDisturb: Boolean
     )
 
@@ -126,7 +135,7 @@ class LiveUpdateManager(private val context: Context) {
             currentState = state
 
             cancelRestTimerCallback()
-            cancelSetTimerCallback()
+            cancelPendingReconcile()
             isRestTimerExpired = false
 
             if (state.restTimer != null) {
@@ -134,7 +143,12 @@ class LiveUpdateManager(private val context: Context) {
             }
             state.setTimer?.let { setTimer ->
                 if (!setTimer.isOverflow && setTimer.setTimer > 0) {
-                    scheduleSetTimerThreshold(setTimer)
+                    scheduleReconcileAt(setTimer.setTimerSince + (setTimer.setTimer * 1000L))
+                }
+            }
+            state.getReady?.let { getReady ->
+                if (getReady.getReady > 0) {
+                    scheduleReconcileAt(getReady.getReadySince + (getReady.getReady * 1000L))
                 }
             }
 
@@ -221,6 +235,17 @@ class LiveUpdateManager(private val context: Context) {
             )
         } else null
 
+        val getReadyMap = if (map.hasKey("getReady") && !map.isNull("getReady")) map.getMap("getReady") else null
+        val getReady = if (getReadyMap != null) {
+            LiveActivityGetReady(
+                getReadySince = getReadyMap.getDouble("getReadySince").toLong(),
+                getReady = getReadyMap.getInt("getReady"),
+                entryIndex = getReadyMap.getInt("entryIndex"),
+                setIndex = getReadyMap.getInt("setIndex"),
+                setTimer = getReadyMap.getInt("setTimer")
+            )
+        } else null
+
         val ignoreDoNotDisturb =
             map.hasKey("ignoreDoNotDisturb") && !map.isNull("ignoreDoNotDisturb") && map.getBoolean("ignoreDoNotDisturb")
 
@@ -229,6 +254,7 @@ class LiveUpdateManager(private val context: Context) {
             entry = entry,
             restTimer = restTimer,
             setTimer = setTimer,
+            getReady = getReady,
             ignoreDoNotDisturb = ignoreDoNotDisturb
         )
     }
@@ -277,29 +303,32 @@ class LiveUpdateManager(private val context: Context) {
     // When a non-overflow set timer reaches its target, the next state (rest, or the next circuit set) is
     // JS-only logic, so nudge the app to reconcile + re-push so the live update switches to the rest timer.
     // The foreground service keeps us alive, so unlike iOS this fires reliably even while backgrounded.
-    private fun scheduleSetTimerThreshold(setTimer: LiveActivitySetTimer) {
-        val targetTimestamp = setTimer.setTimerSince + (setTimer.setTimer * 1000L)
+    // Shared with the get-ready countdown, whose end (the flip to the work clock) is JS-only for the same reason.
+    private fun scheduleReconcileAt(targetTimestamp: Long) {
         val delay = targetTimestamp - System.currentTimeMillis()
         if (delay <= 0) return
 
-        setTimerHandler = Handler(Looper.getMainLooper())
-        setTimerRunnable = Runnable {
+        reconcileHandler = Handler(Looper.getMainLooper())
+        reconcileRunnable = Runnable {
             emitCheckSetTimer()
         }
-        setTimerHandler?.postDelayed(setTimerRunnable!!, delay)
+        reconcileHandler?.postDelayed(reconcileRunnable!!, delay)
     }
 
-    private fun cancelSetTimerCallback() {
-        setTimerRunnable?.let { runnable ->
-            setTimerHandler?.removeCallbacks(runnable)
+    private fun cancelPendingReconcile() {
+        reconcileRunnable?.let { runnable ->
+            reconcileHandler?.removeCallbacks(runnable)
         }
-        setTimerHandler = null
-        setTimerRunnable = null
+        reconcileHandler = null
+        reconcileRunnable = null
     }
 
     private fun showNotification(state: LiveActivityState, isTimerExpired: Boolean): android.app.Notification {
         if (state.setTimer != null) {
             return showSetTimerNotification(state, state.setTimer, isTimerExpired)
+        }
+        if (state.getReady != null) {
+            return showGetReadyNotification(state, state.getReady)
         }
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -506,6 +535,89 @@ class LiveUpdateManager(private val context: Context) {
         return notification
     }
 
+    // Only "Go" (skip the rest of the countdown) — nothing to record yet, so no record actions. The
+    // chronometer counts down to the moment work begins, which is also when scheduleReconcileAt
+    // nudges JS to flip the state.
+    private fun showGetReadyNotification(
+        state: LiveActivityState,
+        getReady: LiveActivityGetReady
+    ): android.app.Notification {
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val activityIntent = Intent(context, MainActivity::class.java)
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val pendingIntent = PendingIntent.getActivity(context, 0, activityIntent, flags)
+
+        val entry = state.entry
+
+        val nextSuffix = if (getReady.setTimer > 0) {
+            val minutes = getReady.setTimer / 60
+            val seconds = getReady.setTimer % 60
+            " (then ${minutes}:${String.format("%02d", seconds)})"
+        } else ""
+
+        val title = if (entry != null) {
+            val warmupPrefix = if (entry.isWarmup) "Warmup: " else ""
+            "$warmupPrefix${entry.exerciseName}$nextSuffix"
+        } else {
+            "Get ready$nextSuffix"
+        }
+
+        val contentParts = mutableListOf("Get ready")
+        if (entry != null) {
+            contentParts.add("Set ${entry.currentSet}/${entry.totalSets}")
+            val targetParts = mutableListOf<String>()
+            entry.targetReps?.let { targetParts.add(it) }
+            entry.targetWeight?.let { targetParts.add(it) }
+            if (targetParts.isNotEmpty()) {
+                var targetText = "Target: " + targetParts.joinToString(" × ")
+                entry.targetRPE?.let { targetText += " @$it" }
+                contentParts.add(targetText)
+            }
+        }
+
+        val channelId = if (state.ignoreDoNotDisturb) LIVE_UPDATE_CHANNEL_DND_ID else LIVE_UPDATE_CHANNEL_ID
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(contentParts.joinToString(" • "))
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setColor(Color.parseColor("#FFDD7E"))
+            .setColorized(false)
+            .setUsesChronometer(true)
+            .setChronometerCountDown(true)
+            .setWhen(getReady.getReadySince + (getReady.getReady * 1000L))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+
+        if (Build.VERSION.SDK_INT >= 36) {
+            builder.setRequestPromotedOngoing(true)
+        }
+
+        val goIntent = Intent(context, LiveUpdateActionReceiver::class.java).apply {
+            action = LiveUpdateActionReceiver.ACTION_START_SET_TIMER_WORK
+            putExtra(LiveUpdateActionReceiver.EXTRA_ENTRY_INDEX, getReady.entryIndex)
+            putExtra(LiveUpdateActionReceiver.EXTRA_SET_INDEX, getReady.setIndex)
+            putExtra(LiveUpdateActionReceiver.EXTRA_GET_READY_SINCE, getReady.getReadySince)
+        }
+        builder.addAction(
+            0,
+            "Go",
+            PendingIntent.getBroadcast(context, 6, goIntent, flags)
+        )
+
+        val notification = builder.build()
+        notificationManager.notify(LIVE_UPDATE_NOTIFICATION_ID, notification)
+        return notification
+    }
+
     private fun recordSetTimerPendingIntent(
         setTimer: LiveActivitySetTimer,
         keepTiming: Boolean,
@@ -570,7 +682,7 @@ class LiveUpdateManager(private val context: Context) {
 
     fun endLiveActivity() {
         cancelRestTimerCallback()
-        cancelSetTimerCallback()
+        cancelPendingReconcile()
         currentState = null
         isRestTimerExpired = false
 

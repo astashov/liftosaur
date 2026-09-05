@@ -270,6 +270,10 @@ class LiftosaurEngine {
         await callMutation("checkSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
     }
 
+    func startSetTimerWork(storageJson: String, deviceId: String) async -> Result<String, EngineError> {
+        await callMutation("startSetTimerWork", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
+    }
+
     func getRestTimer(storageJson: String) async -> Result<WatchRestTimer?, EngineError> {
         await callOptional("getRestTimer", globals: [("__lft_s", storageJson)])
     }

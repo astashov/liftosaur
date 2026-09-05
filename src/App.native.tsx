@@ -237,6 +237,7 @@ import {
   Thunk_updateTimer,
   Thunk_recordSetTimer,
   Thunk_checkSetTimer,
+  Thunk_startSetTimerWork,
   Thunk_refreshLiveActivity,
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
@@ -612,6 +613,15 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
         dispatch(Thunk_updateTimer(Math.max(0, timer + addSeconds), entryIndex, setIndex, false));
       } else if (event.action === "recordSetTimer") {
         dispatch(Thunk_recordSetTimer(entryIndex, setIndex, !!event.keepTiming, event.elapsedSeconds));
+      } else if (event.action === "startSetTimerWork") {
+        dispatch(
+          Thunk_startSetTimerWork({
+            entryIndex,
+            setIndex,
+            tappedAt: event.tappedAt,
+            countdownStartedAt: event.getReadySince,
+          })
+        );
       } else if (event.action === "checkSetTimer") {
         // A native task fired at the set timer's target (the app is alive but JS timers were throttled):
         // run the same reconcile the in-app poll does. Thunk_checkSetTimer re-pushes the live activity

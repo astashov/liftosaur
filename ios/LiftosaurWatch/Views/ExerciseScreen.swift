@@ -147,6 +147,10 @@ struct ExerciseScreen: View {
                     }
             }
         }
+        // The set-timer overlay covers this screen but not the navigation chrome, so the back chevron would
+        // sit on top of the overlay's own X and navigate away with the clock still running. The sheet used
+        // to hide it for us.
+        .navigationBarBackButtonHidden(workoutManager.setTimerModal != nil)
     }
 
     @ViewBuilder
@@ -231,6 +235,11 @@ struct ExerciseScreen: View {
                     .padding(.vertical, 6)
                     .background(Color.black.opacity(0.6))
                     .cornerRadius(10)
+                    // Hit slop below the pill only. The pill itself sits inside the navbar strip, where
+                    // watchOS swallows the touch and pages the TabView back to the first exercise; this
+                    // reaches down past that strip so there is somewhere tappable. Applied after the
+                    // background so the visible pill doesn't move, and before contentShape so it counts.
+                    .padding(.bottom, 16)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -310,19 +319,15 @@ struct ExerciseScreen: View {
                 )
             }
         }
-        // Bound to the published clock state, so completing a timed set, an `auto` advance, or a clock
-        // started on the phone all present this automatically; it dismisses the moment the clock clears.
-        // The dismiss chrome (X / swipe) doubles as Discard: the binding's setter only fires on a
-        // user-initiated dismiss (not when the model clears the clock itself), so we discard only then.
-        .sheet(item: Binding(
-            get: { workoutManager.setTimerModal },
-            set: { newValue in
-                if newValue == nil, workoutManager.setTimerModal != nil {
-                    Task { await onCloseSetTimer() }
-                }
-            }
-        )) { _ in
-            SetTimerScreen(
+        // An overlay rather than a sheet, and that is load-bearing: watchOS freezes a sheet's content in the
+        // Always-On dimmed state, so a countdown presented in one stops the moment the wrist drops - exactly
+        // when you need it. Inline in this hierarchy it keeps updating, because the workout session buys the
+        // whole screen ~1Hz redraws. Still bound to the published clock state, so completing a timed set, an
+        // `auto` advance, or a clock started on the phone all show it automatically, and it goes away the
+        // moment the clock clears. Discard is now the screen's own X (onDismiss) - there is no sheet chrome.
+        .overlay {
+            if workoutManager.setTimerModal != nil {
+                SetTimerScreen(
                 workoutManager: workoutManager,
                 heartRate: heartRate,
                 onRecord: { seconds in
@@ -336,14 +341,22 @@ struct ExerciseScreen: View {
                     guard let modal = workoutManager.setTimerModal else { return }
                     // The clock keeps running (set is logged but not closed). A timed AMRAP set still needs its
                     // reps/weight, so present the amrap prompt if it opened; otherwise stay on this screen (the
-                    // set-timer sheet re-presents via its binding once amrap resolves).
+                    // overlay comes back on its own once amrap resolves and the clock is set again).
                     await onRecordSetTimer(modal.entryIndex, modal.setIndex, true, seconds)
                     _ = await presentAmrapAfterSetTimer()
                 },
                 onCheck: {
                     await runCheckSetTimer()
+                },
+                onStartNow: {
+                    await workoutManager.startSetTimerWork()
+                },
+                onDismiss: {
+                    Task { await onCloseSetTimer() }
                 }
-            )
+                )
+                .background(LiftosaurColor.backgroundDefault.ignoresSafeArea())
+            }
         }
         .onAppear {
             currentExerciseIndex = initialExerciseIndex

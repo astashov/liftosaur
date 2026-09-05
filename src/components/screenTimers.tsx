@@ -58,6 +58,14 @@ export function ScreenTimers(props: IProps): JSX.Element {
         valueUnits="sec"
         onChange={onChange("superset")}
       />
+      <GroupHeader name="Timed sets" topPadding={true} />
+      <MenuItemEditable
+        name="Get ready"
+        type="number"
+        value={props.timers.getReady?.toString()}
+        valueUnits="sec"
+        onChange={onChange("getReady")}
+      />
       {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
         Platform.OS === "ios" ||
         (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19) ||

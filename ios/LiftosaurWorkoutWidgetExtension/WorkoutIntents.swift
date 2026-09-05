@@ -255,6 +255,80 @@ struct RecordSetTimerIntent: LiveActivityIntent {
     }
 }
 
+// "Go" during the get-ready countdown: skip the rest of the countdown and start the work clock now.
+// Nothing is recorded — the set has not run yet — so unlike RecordSetTimerIntent there is no AMRAP
+// variant to fall back to, and it is always safe to perform silently in the background.
+@available(iOS 16, *)
+struct StartSetTimerWorkIntent: LiveActivityIntent {
+    static var title: LocalizedStringResource = "Start Set Timer Work"
+
+    @Parameter(title: "Entry Index")
+    var entryIndex: Int
+
+    @Parameter(title: "Set Index")
+    var setIndex: Int
+
+    // Identifies which countdown was on screen, not just which set: reopening the same set makes a new one.
+    @Parameter(title: "Get Ready Since")
+    var getReadySince: Int
+
+    init() {
+        self.entryIndex = 0
+        self.setIndex = 0
+        self.getReadySince = 0
+    }
+
+    init(entryIndex: Int, setIndex: Int, getReadySince: Int) {
+        self.entryIndex = entryIndex
+        self.setIndex = setIndex
+        self.getReadySince = getReadySince
+    }
+
+    func perform() async throws -> some IntentResult {
+        if #available(iOS 16.2, *) {
+            await checkAndEndActivityIfAppKilled()
+        }
+
+        // Captured here, not when JS drains the queue: this can sit in the app group while the app is
+        // suspended, and the work clock has to start when the user actually tapped.
+        let tappedAt = Int(Date().timeIntervalSince1970 * 1000)
+        let requestId = "startwork-\(tappedAt)"
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.liftosaur.workout") {
+            sharedDefaults.removeObject(forKey: "completeSetAckRequestId")
+            sharedDefaults.set(true, forKey: "startSetTimerWork")
+            sharedDefaults.set(entryIndex, forKey: "startSetTimerWorkEntryIndex")
+            sharedDefaults.set(setIndex, forKey: "startSetTimerWorkSetIndex")
+            sharedDefaults.set(tappedAt, forKey: "startSetTimerWorkTappedAt")
+            sharedDefaults.set(getReadySince, forKey: "startSetTimerWorkGetReadySince")
+            sharedDefaults.set(requestId, forKey: "completeSetRequestId")
+            Logger.liveActivity.debug("Syncing start set timer work (\(entryIndex)/\(setIndex))")
+            sharedDefaults.synchronize()
+        }
+
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(
+            center,
+            CFNotificationName(rawValue: kCompleteSetRequestedDarwinName as CFString),
+            nil,
+            nil,
+            true
+        )
+        await Self.waitForAck(requestId: requestId, timeout: 5.0)
+        return .result()
+    }
+
+    private static func waitForAck(requestId: String, timeout: TimeInterval) async {
+        let defaults = UserDefaults(suiteName: "group.com.liftosaur.workout")
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if defaults?.string(forKey: "completeSetAckRequestId") == requestId {
+                return
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
+    }
+}
+
 // Used when recording the timed set would open the AMRAP modal (canCompleteFromLiveActivity == false):
 // it can't be done silently in the background, so this opens the app and writes the same record keys the
 // app polls — the in-app flow then records and shows the AMRAP modal (mirrors OpenWorkoutIntent).

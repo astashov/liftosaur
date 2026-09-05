@@ -14,6 +14,7 @@ const cardActionTypes: Set<ICardsAction["type"]> = new Set([
   "CompleteSetAction",
   "CheckSetTimerAction",
   "CloseSetTimerAction",
+  "StartSetTimerWorkAction",
 ]);
 
 function isCardsAction(action: unknown): action is ICardsAction {

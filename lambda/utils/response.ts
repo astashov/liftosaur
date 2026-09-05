@@ -1,12 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import * as Cookie from "cookie";
 import { UrlUtils_build } from "../../src/utils/url";
-import { localdomain } from "../../src/localdomain";
+import { localdomain, localport } from "../../src/localdomain";
 
 export const allowedHosts = [
-  `${localdomain}.liftosaur.com:8080`,
+  `${localdomain}.liftosaur.com:${localport}`,
   "www.liftosaur.com",
-  "localhost:8080",
+  `localhost:${localport}`,
   "stage.liftosaur.com",
 ];
 

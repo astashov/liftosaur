@@ -10,7 +10,7 @@ import {
   History_resumeWorkoutAction,
   History_pauseWorkoutAction,
 } from "../models/history";
-import { Progress_lbProgress, Progress_isCurrent } from "../models/progress";
+import { Progress_lbProgress, Progress_isCurrent, Progress_getActiveSetTimer } from "../models/progress";
 import { INavCommon, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
@@ -119,7 +119,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
-  const setTimerModal = progress.setTimer;
+  const setTimerModal = Progress_getActiveSetTimer(progress);
   const prevSetTimerNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (setTimerModal && setTimerModal.nonce !== prevSetTimerNonce.current) {

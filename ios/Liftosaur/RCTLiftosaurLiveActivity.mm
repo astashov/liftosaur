@@ -57,6 +57,15 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
       @"restTimer": @(setTimer->restTimer()),
     };
   }
+  if (auto getReady = state.getReady()) {
+    dict[@"getReady"] = @{
+      @"getReadySince": @(getReady->getReadySince()),
+      @"getReady": @(getReady->getReady()),
+      @"entryIndex": @(getReady->entryIndex()),
+      @"setIndex": @(getReady->setIndex()),
+      @"setTimer": @(getReady->setTimer()),
+    };
+  }
   if (auto entry = state.entry()) {
     NSMutableDictionary *e = [NSMutableDictionary dictionary];
     e[@"exerciseName"] = entry->exerciseName();

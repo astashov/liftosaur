@@ -992,6 +992,15 @@ export interface IHistoryRecord {
     nonce?: number;
     keepTiming?: boolean;
   };
+  // Must stay a sibling of setTimer, never a phase inside it: the watch, the iOS widget and the Android
+  // live update all read setTimer's presence as "the work clock is live".
+  setTimerGetReady?: {
+    entryIndex: number;
+    setIndex: number;
+    startedAt: number;
+    getReady: number;
+    nonce?: number;
+  };
   // Lives on the record (not under `ui`) so it's version-tracked and syncs across devices like setTimer — an
   // AMRAP prompt opened on the watch shows in the app and vice versa, and resolving it on either device
   // dismisses it on both. `nonce` drives re-presenting the modal.
@@ -1043,6 +1052,15 @@ const _VHistoryRecord = v.object({
       startedAt: v.number(),
       nonce: v.optional(v.number()),
       keepTiming: v.optional(v.boolean()),
+    })
+  ),
+  setTimerGetReady: v.optional(
+    v.object({
+      entryIndex: v.number(),
+      setIndex: v.number(),
+      startedAt: v.number(),
+      getReady: v.number(),
+      nonce: v.optional(v.number()),
     })
   ),
   amrapModal: v.optional(
@@ -1369,12 +1387,14 @@ export interface ISettingsTimers {
   workout?: number | null;
   reminder?: number;
   superset?: number;
+  getReady?: number;
 }
 const _VSettingsTimers = v.object({
   warmup: v.optional(v.union([v.number(), v.null()])),
   workout: v.optional(v.union([v.number(), v.null()])),
   reminder: v.optional(v.number()),
   superset: v.optional(v.number()),
+  getReady: v.optional(v.number()),
 });
 const _VSettingsTimersMatches: IEquals<v.InferOutput<typeof _VSettingsTimers>, ISettingsTimers> = true;
 void _VSettingsTimersMatches;
@@ -1962,6 +1982,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "timerEntryIndex",
     "timerSetIndex",
     "setTimer",
+    "setTimerGetReady",
     "amrapModal",
     "currentEntryIndex",
   ] as const,

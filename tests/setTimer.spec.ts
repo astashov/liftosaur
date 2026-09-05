@@ -19,6 +19,51 @@ ${exercise} / warmup: none / progress: none`
   );
 }
 
+test("set timer - get ready countdown runs before the work clock, and Start now skips it", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 3x1 100lb 30s|60s");
+
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-timers").click();
+  await page.getByTestId("menu-item-value-get-ready").clear();
+  await page.getByTestId("menu-item-value-get-ready").type("9");
+  await page.getByTestId("navbar-back").click();
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-get-ready-current")).toBeVisible();
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-stop-record")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-log-keep")).toHaveCount(0);
+
+  await page.getByTestId("set-timer-start-now").click();
+  await expect(page.getByTestId("set-timer-get-ready-current")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+  await expect(page.getByTestId("set-timer-stop-record")).toBeVisible();
+
+  await page.getByTestId("set-timer-stop-record").click();
+  await expect(page.getByTestId("start-set-timer")).toHaveCount(2);
+});
+
+test("set timer - the countdown expires on its own into the work clock", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 30s|60s");
+
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-timers").click();
+  await page.getByTestId("menu-item-value-get-ready").clear();
+  await page.getByTestId("menu-item-value-get-ready").type("1");
+  await page.getByTestId("navbar-back").click();
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-get-ready-current")).toBeVisible();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible({ timeout: 5000 });
+  await expect(page.getByTestId("set-timer-get-ready-current")).toHaveCount(0);
+});
+
 test("set timer - play, record, and show in history", async ({ page }) => {
   await createSetTimerProgram(page, "Bench Press / 3x1 100lb 30s|60s");
 

@@ -935,16 +935,21 @@ export function Thunk_checkSetTimer(): IThunk {
       return;
     }
     const hadSetTimer = progress.setTimer != null;
-    const entryIndex = progress.setTimer?.entryIndex ?? progress.timerEntryIndex;
+    const hadGetReady = progress.setTimerGetReady != null;
+    const entryIndex =
+      progress.setTimer?.entryIndex ?? progress.setTimerGetReady?.entryIndex ?? progress.timerEntryIndex;
     const { programExercise, otherStates } = resolveTimedSetProgramContext(state, progress, entryIndex);
     dispatch({ type: "CheckSetTimerAction", programExercise, otherStates });
     // The set timer just closed — into rest, into an AMRAP prompt, or ended (an EMOM that rolls straight to
     // the next set keeps setTimer, so it stays silent, matching the watch). Play the set→rest cue.
     const after = Progress_getProgress(getState());
     const setTimerClosed = hadSetTimer && (after?.setTimer == null || after?.amrapModal != null);
-    if (setTimerClosed && getState().adminKey == null) {
+    const workStarted = hadGetReady && after?.setTimerGetReady == null && after?.setTimer != null;
+    // Its own sound, not `notification`: in an `auto` circuit the shortened rest expires only seconds
+    // earlier and already chirps `notification`, so the two cues have to be tellable apart.
+    if ((setTimerClosed || workStarted) && getState().adminKey == null) {
       const settings = getState().storage.settings;
-      env.audio.play(settings.volume, !!settings.vibration, "set-timer-end");
+      env.audio.play(settings.volume, !!settings.vibration, workStarted ? "get-ready-end" : "set-timer-end");
     }
     // The predicate above guarantees the model just advanced (auto work timer hit target, or auto rest
     // expired → next set timer). Re-push so the live activity/live update follows along — otherwise an
@@ -1018,6 +1023,58 @@ export function Thunk_refreshLiveActivity(): IThunk {
         undefined
       );
     }
+  };
+}
+
+// Volume 0 with vibration on is the vibrate-without-sound path — audioInterface only bails when volume <= 0
+// AND vibration is off. Silent on purpose: both existing sounds already fire inside an `auto` rest.
+export function Thunk_playGetReadyCue(): IThunk {
+  return async (dispatch, getState, env) => {
+    if (getState().adminKey == null) {
+      const settings = getState().storage.settings;
+      if (settings.vibration) {
+        env.audio.play(0, true);
+      }
+    }
+  };
+}
+
+export interface IQueueableCountdownTap {
+  entryIndex: number;
+  setIndex: number;
+  tappedAt?: number;
+  countdownStartedAt?: number;
+}
+
+// Only the Live Activity and the Android live update pass a tap. Their events can sit in a queue while
+// the app is suspended, and Progress_checkSetTimer fast-forwards every overdue transition on wake — so
+// the countdown the user tapped may be gone and a later one live by the time this runs. The phone
+// banner and the watch dispatch in-process and cannot outlive the countdown they name.
+export function Thunk_startSetTimerWork(queuedTap?: IQueueableCountdownTap): IThunk {
+  return async (dispatch, getState, env) => {
+    const progress = Progress_getProgress(getState());
+    if (progress == null) {
+      return;
+    }
+    if (queuedTap != null) {
+      const getReady = progress.setTimerGetReady;
+      // Matching on start time as well as indices, because reopening the same set makes a new countdown.
+      const tapMatchesLiveCountdown =
+        getReady != null &&
+        getReady.entryIndex === queuedTap.entryIndex &&
+        getReady.setIndex === queuedTap.setIndex &&
+        (queuedTap.countdownStartedAt == null || getReady.startedAt === queuedTap.countdownStartedAt);
+      if (!tapMatchesLiveCountdown) {
+        dispatch(Thunk_refreshLiveActivity());
+        return;
+      }
+    }
+    dispatch({ type: "StartSetTimerWorkAction", startedAt: queuedTap?.tappedAt });
+    if (getState().adminKey == null) {
+      const settings = getState().storage.settings;
+      env.audio.play(settings.volume, !!settings.vibration, "get-ready-end");
+    }
+    dispatch(Thunk_refreshLiveActivity());
   };
 }
 

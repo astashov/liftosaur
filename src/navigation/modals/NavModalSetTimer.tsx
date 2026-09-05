@@ -7,6 +7,7 @@ import { SetTimerBannerContent } from "../../components/setTimerBanner";
 import { Program_evaluate, Program_fullProgram, Program_getProgramExercise } from "../../models/program";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
+import { Progress_getActiveSetTimer } from "../../models/progress";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalSetTimer(): JSX.Element {
@@ -41,7 +42,7 @@ export function NavModalSetTimer(): JSX.Element {
     progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   }
 
-  const setTimerModal = progress?.setTimer;
+  const setTimerModal = progress != null ? Progress_getActiveSetTimer(progress) : undefined;
 
   const evaluatedProgram = isPlayground
     ? state.playgroundState?.program
@@ -60,7 +61,11 @@ export function NavModalSetTimer(): JSX.Element {
     navigation.goBack();
   };
 
-  const shouldGoBack = !progress || !setTimerModal;
+  // Reindexing remaps entryIndex only, so the named set can be gone after a deletion; the banner then
+  // renders null and stops its own tick, stranding an empty sheet. Deliberately checks the set rather than
+  // "banner rendered null" — it also renders null under the AMRAP modal, which must stay mounted.
+  const timedSet = entry != null && setTimerModal != null ? entry.sets[setTimerModal.setIndex] : undefined;
+  const shouldGoBack = !progress || !setTimerModal || entry == null || timedSet == null;
   useEffect(() => {
     if (shouldGoBack) {
       navigation.goBack();

@@ -10,6 +10,7 @@ import { IStorage, IHistoryRecord } from "../src/types";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // The watch bundle reads its build-time version markers at module scope, so they have to exist before
 // it's loaded — hence require() here rather than a top-level import.
+(globalThis as any).__HOST__ = "https://www.liftosaur.com";
 (globalThis as any).__BUNDLE_VERSION_WATCH_IOS__ = 1;
 (globalThis as any).__BUNDLE_VERSION_WATCH_ANDROID__ = 1;
 (globalThis as any).__COMMIT_HASH__ = "test";
@@ -79,5 +80,35 @@ describe("watch completeSet", () => {
     // Untouched set records the top of the range (6), so the script sizes 6 + 1 sets off that.
     expect(entries[0].sets[0].completedReps).to.equal(6);
     expect(entries[0].sets.length).to.equal(7);
+  });
+});
+
+describe("watch checkSetTimer", () => {
+  beforeEach(() => {
+    Liftosaur.invalidateStorageCache();
+  });
+
+  // A timed set whose update script is observable: if the program context was resolved, the set count
+  // changes; if it came through as undefined, the script never ran and it stays at 3.
+  const timedProgram = `# Week 1
+## Day 1
+Plank / 3x1 20s|10s / 100lb / update: custom() {~
+  if (setIndex == 1) {
+    numberOfSets = 5
+  }
+~}
+`;
+
+  it("resolves program context from a countdown, so a wake past countdown+work still runs the script", () => {
+    const { storageJson, progress } = buildStorage(timedProgram);
+    const storage = JSON.parse(storageJson);
+    // Wrist down through the whole countdown and the whole 20s work window.
+    storage.progress[0] = {
+      ...progress,
+      setTimerGetReady: { entryIndex: 0, setIndex: 0, startedAt: Date.now() - 40000, getReady: 5, nonce: 1 },
+    };
+    const result = JSON.parse(Liftosaur.checkSetTimer(JSON.stringify(storage), "device"));
+    expect(result.success, result.error).to.equal(true);
+    expect(result.data.progress[0].entries[0].sets.length).to.equal(5);
   });
 });
