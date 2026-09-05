@@ -47,6 +47,9 @@ enum LiftosaurColor {
 
     static let yellow600 = hex("#DD8E02")
     static let yellow400 = hex("#FFD820")
+    // Mirrors the app's dark text.cardyellow / border.cardyellow.
+    static let yellow300 = hex("#FFDD7E")
+    static let yellow900 = hex("#474431")
 
     // MARK: - Semantic Colors (Dark Mode - Watch always uses dark)
 
@@ -65,6 +68,11 @@ enum LiftosaurColor {
     static let textDisabled = lightgray500
     static let textSuccess = green400
     static let textError = red400
+
+    // Get ready countdown — deliberately not the purple the work clock uses, so the two phases can't be
+    // confused at a glance.
+    static let getReadyAccent = yellow300
+    static let getReadyTrack = yellow900
 
     // Buttons
     static let buttonPrimaryBackground = purple500

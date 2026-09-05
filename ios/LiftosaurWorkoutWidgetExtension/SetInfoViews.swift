@@ -13,6 +13,8 @@ struct SetColors {
     static let weight = Color.green
     static let rpe = Color(red: 0, green: 0.75, blue: 0.85)  // cyan equivalent for iOS 14+
     static let timer = Color.purple
+    // Matches the phone banner's and the watch's countdown accent (yellow300 / #FFDD7E).
+    static let getReady = Color(red: 1.0, green: 0.867, blue: 0.494)
 }
 
 // MARK: - Formatting Helpers

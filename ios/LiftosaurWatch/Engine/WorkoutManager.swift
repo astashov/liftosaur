@@ -581,6 +581,16 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await loadActiveWorkout()
     }
 
+    func startSetTimerWork() async {
+        guard await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.startSetTimerWork(storageJson: storageJson, deviceId: deviceId)
+            },
+            operationName: "start set timer work"
+        ) != nil else { return }
+        await loadActiveWorkout()
+    }
+
     func closeSetTimer() async {
         guard await withStorageMutation(
             operation: { engine, storageJson, deviceId in
@@ -716,6 +726,22 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     private func playCompletionSound() {
         playSound(resource: "notification")
+    }
+
+    // The get-ready countdown reaching zero. Deliberately .start rather than .notification: in an `auto`
+    // circuit the shortened rest expires only a few seconds earlier and already plays .notification, so the
+    // two cues have to feel different.
+    func playGetReadyEndSound() {
+        WKInterfaceDevice.current().play(.start)
+        playSound(resource: "get-ready-end")
+    }
+
+    // One tick per remaining second of the countdown. Haptic only - a sound every second would be a drumroll.
+    // .directionUp rather than .click: click is the weakest tap watchOS has (it's the crown detent) and gets
+    // lost mid-set. The multi-part patterns (.notification, .success) are stronger still but read as buzzing
+    // when they fire every second.
+    func playGetReadyTick() {
+        WKInterfaceDevice.current().play(.directionUp)
     }
 
     func playSetTimerEndSound() {

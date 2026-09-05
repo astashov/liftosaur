@@ -122,19 +122,15 @@ interface IStatDb {
 // shape (the server re-runs all migrations on every sync, so old-format fields get relocated/re-derived
 // server-side). See rn-ota-delivery.md: releases that bump runtimeVersion strand users who haven't
 // installed the new native binary, and OTA can't reach them.
-// Both gaps below end at 20260702120000 = sanitize_pipe_bang_in_custom_exercise_names (data-only). The
-// intermediate 20260628120000 step is move_amrap_modal_to_progress (also data-only), so the older
-// versionCode-140 client (20260304084247) stays whitelisted across both migrations rather than being
-// re-stranded when the server advances past 20260628120000.
-// The two 202609 entries run the other way: the 117/150 store build in review is NEWER than this
-// server. Its extra migrations (default_get_ready_to_5s, drop_set_timer_without_id) are idempotent
-// and data-only, and Storage_validate keeps unknown keys, so the merge is safe. Delete them when the
-// native branch lands on master.
+// All gaps below end at 20260903120000 = default_get_ready_to_5s (data-only: fills settings.timers
+// .getReady when absent). The intermediate steps are move_amrap_modal_to_progress (20260628120000) and
+// sanitize_pipe_bang_in_custom_exercise_names (20260702120000), both also data-only — so every client
+// already whitelisted stays whitelisted rather than being re-stranded each time the server head moves.
+// Re-point these when adding a data-only migration; leave them alone for a shape-changing one.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20260702120000",
-  "20260628120000": "20260702120000",
-  "20260903120000": "20260702120000",
-  "20260906120000": "20260702120000",
+  "20260304084247": "20260903120000",
+  "20260628120000": "20260903120000",
+  "20260702120000": "20260903120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {

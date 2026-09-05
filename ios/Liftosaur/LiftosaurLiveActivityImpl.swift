@@ -220,6 +220,33 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
       emit(event)
     }
 
+    if sharedDefaults.bool(forKey: "startSetTimerWork") {
+      let entryIndex = sharedDefaults.integer(forKey: "startSetTimerWorkEntryIndex")
+      let setIndex = sharedDefaults.integer(forKey: "startSetTimerWorkSetIndex")
+      let tappedAt = sharedDefaults.integer(forKey: "startSetTimerWorkTappedAt")
+      let getReadySince = sharedDefaults.integer(forKey: "startSetTimerWorkGetReadySince")
+      let requestId = sharedDefaults.string(forKey: "completeSetRequestId")
+      sharedDefaults.removeObject(forKey: "startSetTimerWork")
+      sharedDefaults.removeObject(forKey: "startSetTimerWorkEntryIndex")
+      sharedDefaults.removeObject(forKey: "startSetTimerWorkSetIndex")
+      sharedDefaults.removeObject(forKey: "startSetTimerWorkTappedAt")
+      sharedDefaults.removeObject(forKey: "startSetTimerWorkGetReadySince")
+      sharedDefaults.removeObject(forKey: "completeSetRequestId")
+      var event: [String: Any] = ["action": "startSetTimerWork",
+            "entryIndex": entryIndex,
+            "setIndex": setIndex]
+      if tappedAt > 0 {
+        event["tappedAt"] = tappedAt
+      }
+      if getReadySince > 0 {
+        event["getReadySince"] = getReadySince
+      }
+      if let requestId = requestId {
+        event["completeSetRequestId"] = requestId
+      }
+      emit(event)
+    }
+
     if let action = sharedDefaults.string(forKey: "adjustRestTimerAction") {
       let entryIndex = sharedDefaults.integer(forKey: "adjustRestTimerEntryIndex")
       let setIndex = sharedDefaults.integer(forKey: "adjustRestTimerSetIndex")
@@ -268,6 +295,16 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
         restTimer: (st["restTimer"] as? NSNumber)?.intValue ?? 0
       )
     }
+    var getReady: LiveActivityGetReady?
+    if let gr = dict["getReady"] as? NSDictionary {
+      getReady = LiveActivityGetReady(
+        getReadySince: (gr["getReadySince"] as? NSNumber)?.intValue ?? 0,
+        getReady: (gr["getReady"] as? NSNumber)?.intValue ?? 0,
+        entryIndex: (gr["entryIndex"] as? NSNumber)?.intValue ?? 0,
+        setIndex: (gr["setIndex"] as? NSNumber)?.intValue ?? 0,
+        setTimer: (gr["setTimer"] as? NSNumber)?.intValue ?? 0
+      )
+    }
     var entry: HistoryEntryState?
     if let e = dict["entry"] as? NSDictionary {
       let completedSetsRaw = e["completedSets"] as? [NSDictionary] ?? []
@@ -301,6 +338,7 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
       workoutStartTimestamp: workoutStartTimestamp,
       restTimer: restTimer,
       setTimer: setTimer,
+      getReady: getReady,
       stateVersion: nil
     )
   }
@@ -372,6 +410,10 @@ actor LiveActivityManager {
       let target = Double(setTimer.setTimerSince + setTimer.setTimer * 1000) / 1000.0
       return Date(timeIntervalSince1970: target)
     }
+    if let getReady = state.getReady, getReady.getReady > 0 {
+      let target = Double(getReady.getReadySince + getReady.getReady * 1000) / 1000.0
+      return Date(timeIntervalSince1970: target)
+    }
     return Date().addingTimeInterval(60)
   }
 
@@ -438,6 +480,11 @@ actor LiveActivityManager {
                                   setTimer: setTimer.setTimer,
                                   expectedVersion: capturedVersion)
       }
+      if let getReady = contentState.getReady, getReady.getReady > 0 {
+        scheduleSetTimerReconcile(setTimerSince: getReady.getReadySince,
+                                  setTimer: getReady.getReady,
+                                  expectedVersion: capturedVersion)
+      }
       scheduleWorkoutTimeUpdates(expectedVersion: capturedVersion)
     }
     await updateTask?.value
@@ -466,6 +513,7 @@ actor LiveActivityManager {
   // JS-only logic, so we can't synthesize it natively. Instead nudge the app to reconcile + re-push so the
   // Live Activity switches to the rest timer. This only fires while the app process is alive (foreground or
   // the brief background window); a fully suspended app catches up via the on-foreground reconcile.
+  // Shared with the get-ready countdown, whose end (the flip to the work clock) is JS-only for the same reason.
   private func scheduleSetTimerReconcile(setTimerSince: Int, setTimer: Int, expectedVersion: Int) {
     let target = Double(setTimerSince + setTimer * 1000) / 1000.0
     let delay = Date(timeIntervalSince1970: target).timeIntervalSince(Date())

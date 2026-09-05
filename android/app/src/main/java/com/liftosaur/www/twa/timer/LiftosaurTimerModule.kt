@@ -191,7 +191,11 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
-                val rawId = if (sound == "set-timer-end") R.raw.set_timer_end else R.raw.notif
+                val rawId = when (sound) {
+                    "set-timer-end" -> R.raw.set_timer_end
+                    "get-ready-end" -> R.raw.get_ready_end
+                    else -> R.raw.notif
+                }
                 ctx.resources.openRawResourceFd(rawId)?.use { afd ->
                     player.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 } ?: run {

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Locator, Page, expect } from "@playwright/test";
-import { localdomain } from "../src/localdomain";
+import { localdomain, localport } from "../src/localdomain";
 
-export const startpage = `https://${localdomain}.liftosaur.com:8080/app/`;
+export const startpage = `https://${localdomain}.liftosaur.com:${localport}/app/`;
 
 export function PlaywrightUtils_activeScreen(page: Page): Locator {
   return page.getByTestId("screen").and(page.locator(":visible")).last();

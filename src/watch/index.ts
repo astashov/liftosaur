@@ -73,6 +73,8 @@ import {
   Progress_checkSetTimer,
   Progress_isSetTimerCheckDue,
   Progress_closeTimedSet,
+  Progress_getActiveSetTimer,
+  Progress_startSetTimerWork,
 } from "../models/progress";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import {
@@ -141,6 +143,8 @@ export interface IWatchSetTimerModal {
   // Work-set index (excludes warmups) — what recordSetTimer/closeSetTimer expect.
   setIndex: number;
   startedAt: number;
+  phase: "getReady" | "work";
+  getReady: number;
   setTimer: number;
   isOverflow: boolean;
   isCompleted: boolean;
@@ -855,8 +859,11 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
       const evaluatedProgram = getEvaluatedProgram(storage);
-      const stm = progress.setTimer;
-      const entryIndex = stm?.entryIndex ?? progress.timerEntryIndex;
+      // Must include the countdown, like Thunk_checkSetTimer does: a watch that wakes after both the
+      // countdown and the work window elapsed settles both in one pass, and resolving the context from
+      // setTimer alone leaves programExercise undefined - the update script never runs.
+      const entryIndex =
+        progress.setTimer?.entryIndex ?? progress.setTimerGetReady?.entryIndex ?? progress.timerEntryIndex;
       const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
       const programExercise =
         evaluatedProgram && entry
@@ -882,7 +889,7 @@ class LiftosaurWatch {
       if (!progress) {
         return { success: true, data: undefined };
       }
-      const stm = progress.setTimer;
+      const stm = Progress_getActiveSetTimer(progress);
       // A timed AMRAP set keeps progress.setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet);
       // yield to the amrap screen here like the in-app banner does, then re-present after it resolves (keep) or
       // stay gone (record).
@@ -901,6 +908,8 @@ class LiftosaurWatch {
         entryIndex: stm.entryIndex,
         setIndex: stm.setIndex,
         startedAt: stm.startedAt,
+        phase: stm.phase,
+        getReady: stm.phase === "getReady" ? stm.getReady : 0,
         setTimer: set.setTimer ?? 0,
         isOverflow: !!set.isOverflowSetTimer,
         isCompleted: !!set.isCompleted,
@@ -972,6 +981,18 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
       const newProgress = Progress_closeTimedSet(progress, storage.settings, storage.subscription);
+      return { success: true, data: { ...storage, progress: [newProgress] } };
+    });
+  }
+
+  public static startSetTimerWork(storageJson: string, deviceId: string): string {
+    lg("watch-start-set-timer-work");
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const newProgress = Progress_startSetTimerWork(progress, Date.now());
       return { success: true, data: { ...storage, progress: [newProgress] } };
     });
   }

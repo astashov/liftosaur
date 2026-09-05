@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { IState } from "../models/state";
 import { navigateToModal } from "./navigationService";
+import { Progress_getActiveSetTimer } from "../models/progress";
 
 interface IPlaygroundModalState {
   editSetModal: boolean;
@@ -27,7 +28,7 @@ function findActivePlaygroundModal(
       // Track the raw nonce (no amrap gating): a timed AMRAP keeps the same setTimer/nonce behind the amrap
       // modal, so the nonce comparison below naturally avoids re-pushing the set-timer route that's still
       // mounted underneath — gating on `amrapModal == null` here would instead read as a fresh open.
-      const setTimerNonce = progress.setTimer?.nonce;
+      const setTimerNonce = Progress_getActiveSetTimer(progress)?.nonce;
       if (
         ui?.editSetModal ||
         progress.amrapModal ||

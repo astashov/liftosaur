@@ -180,6 +180,11 @@ struct WatchSetTimerModal: Codable, Identifiable, Equatable {
     let imageUrl: String?
     let currentSet: Int  // 1-based, across warmups+work
     let totalSets: Int
+    // Optional so a Debug build still decodes an older locally-embedded bundle; absent reads as work.
+    let phase: String?
+    let getReady: Int?
+
+    var isGetReady: Bool { phase == "getReady" }
 }
 
 struct WatchSetTimerCheckDue: Codable {

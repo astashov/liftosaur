@@ -62,6 +62,8 @@ struct LiftosaurWorkoutWidget: Widget {
                 DynamicIslandExpandedRegion(.trailing, priority: 1.0) {
                     if let setTimer = context.state.setTimer {
                         DynamicIslandSetTimerClock(setTimer: setTimer)
+                    } else if let getReady = context.state.getReady {
+                        DynamicIslandGetReadyClock(getReady: getReady)
                     } else if let restTimer = context.state.restTimer {
                         DynamicIslandRestTimer(restTimer: restTimer)
                     }
@@ -76,6 +78,8 @@ struct LiftosaurWorkoutWidget: Widget {
                             text: "Stop & Record",
                             kind: .primary
                         )
+                    } else if let getReady = context.state.getReady {
+                        StartSetTimerWorkButton(getReady: getReady)
                     }
                 }
             } compactLeading: {
@@ -88,6 +92,8 @@ struct LiftosaurWorkoutWidget: Widget {
             } compactTrailing: {
                 if let setTimer = context.state.setTimer {
                     DynamicIslandSetTimerCompact(setTimer: setTimer)
+                } else if let getReady = context.state.getReady {
+                    DynamicIslandGetReadyCompact(getReady: getReady)
                 } else if let restTimer = context.state.restTimer {
                     DynamicIslandCompactTimer(
                         restTime: restTimer.restTimerSince,
@@ -107,6 +113,13 @@ struct LiftosaurWorkoutWidget: Widget {
                         .fontWeight(.bold)
                         .monospacedDigit()
                         .foregroundColor(isOvertime ? .red : SetColors.timer)
+                } else if let getReady = context.state.getReady {
+                    let start = Date(timeIntervalSince1970: TimeInterval(getReady.getReadySince) / 1000)
+                    Text(timerInterval: start...start.addingTimeInterval(TimeInterval(getReady.getReady)), countsDown: true)
+                        .font(.system(size: 10))
+                        .fontWeight(.bold)
+                        .monospacedDigit()
+                        .foregroundColor(SetColors.getReady)
                 } else if let restTimer = context.state.restTimer {
                     let isOvertime: Bool = {
                         let elapsed = Int(Date().timeIntervalSince1970) - (restTimer.restTimerSince / 1000)
@@ -246,6 +259,11 @@ struct LockScreenLiveActivityView: View {
                 entry: context.state.historyEntryState,
                 setTimer: setTimer
             )
+        } else if let getReady = context.state.getReady {
+            GetReadyActivityView(
+                entry: context.state.historyEntryState,
+                getReady: getReady
+            )
         } else {
             ActiveWorkoutView(
                 entry: context.state.historyEntryState,
@@ -286,6 +304,44 @@ struct DynamicIslandSetTimerClock: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+struct DynamicIslandGetReadyClock: View {
+    let getReady: LiveActivityGetReady
+
+    var body: some View {
+        let start = Date(timeIntervalSince1970: TimeInterval(getReady.getReadySince) / 1000)
+        VStack(alignment: .center, spacing: -2.0) {
+            Text(timerInterval: start...start.addingTimeInterval(TimeInterval(getReady.getReady)), countsDown: true)
+                .font(.title2)
+                .fontWeight(.bold)
+                .monospacedDigit()
+                .multilineTextAlignment(.center)
+                .frame(width: 80, alignment: .center)
+                .foregroundColor(SetColors.getReady)
+
+            Text("Get ready")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+struct DynamicIslandGetReadyCompact: View {
+    let getReady: LiveActivityGetReady
+
+    var body: some View {
+        let start = Date(timeIntervalSince1970: TimeInterval(getReady.getReadySince) / 1000)
+        Text(timerInterval: start...start.addingTimeInterval(TimeInterval(getReady.getReady)), countsDown: true)
+            .font(.caption2)
+            .fontWeight(.bold)
+            .monospacedDigit()
+            .foregroundColor(SetColors.getReady)
+            .multilineTextAlignment(.trailing)
+            .frame(width: 45, alignment: .trailing)
+            .padding(.trailing, 4.0)
     }
 }
 

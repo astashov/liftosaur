@@ -519,6 +519,49 @@ describe("updateVersions", () => {
       expect(typeof clearedSetTimer === "number" ? clearedSetTimer : clearedSetTimer.t).to.equal(2000);
     });
 
+    it("should version setTimerGetReady so a countdown syncs and its clearing propagates", () => {
+      const progress: IHistoryRecord = {
+        vtype: "progress",
+        id: 1,
+        date: "2023-01-01",
+        programId: "prog1",
+        programName: "Test Program",
+        day: 1,
+        dayName: "Day 1",
+        entries: [],
+        startTime: 1000,
+        setTimerGetReady: { entryIndex: 0, setIndex: 0, startedAt: 500, getReady: 5, nonce: 500 },
+      };
+      const promoted: IHistoryRecord = {
+        ...progress,
+        setTimerGetReady: undefined,
+        setTimer: { entryIndex: 0, setIndex: 0, startedAt: 5500, nonce: 500 },
+      };
+
+      const emptyStorage = { ...Storage_getDefault(), progress: [] };
+      const withGetReady = { ...Storage_getDefault(), progress: [progress] };
+      const withWork = { ...withGetReady, progress: [promoted] };
+
+      const baseVersions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(emptyStorage, withGetReady, {}, {}, 1000)
+      );
+      const baseItem = (baseVersions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
+      const baseGetReady = (baseItem as any).setTimerGetReady;
+      expect(baseGetReady, "setTimerGetReady should be versioned when first set").to.exist;
+      expect(typeof baseGetReady === "number" ? baseGetReady : baseGetReady.t).to.equal(1000);
+
+      const versions = VersionsFixture_timestamps(
+        versionTracker.updateVersions(withGetReady, withWork, baseVersions, {}, 2000)
+      );
+      const itemVersion = (versions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
+      const clearedGetReady = (itemVersion as any).setTimerGetReady;
+      const newSetTimer = (itemVersion as any).setTimer;
+      expect(clearedGetReady, "clearing setTimerGetReady must keep a version so the deletion propagates").to.exist;
+      expect(typeof clearedGetReady === "number" ? clearedGetReady : clearedGetReady.t).to.equal(2000);
+      expect(newSetTimer, "the promoted work clock must version too").to.exist;
+      expect(typeof newSetTimer === "number" ? newSetTimer : newSetTimer.t).to.equal(2000);
+    });
+
     it("should track multiple controlled fields", () => {
       const program: IProgram = {
         vtype: "program",

@@ -29,6 +29,7 @@ export function Settings_programContentBuild(): Pick<ISettings, "timers" | "unit
       warmup: 90,
       workout: 180,
       reminder: 900,
+      getReady: 5,
     },
     units: "lb",
     planner: Settings_buildPlannerSettings(),

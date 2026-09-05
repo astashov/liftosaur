@@ -16,6 +16,27 @@
 -->
 
 ---
+date: 2026-09-02
+title: A "Get ready" countdown before timed sets
+---
+
+Timed sets used to start the moment you tapped play, so a plank or a farmer's carry was already running
+while you were still getting into position.
+
+Now there's a 5 second **Get ready** countdown before every timed set. Tap play and you get those
+seconds to get into position first - with a **Start now** button if you're ready early. It shows on the
+Apple Watch, and on the lock screen and Dynamic Island too. Change it or turn it off in
+[Settings → Rest Timers](internal:/timers).
+
+In `auto` circuits the countdown comes out of the end of the rest instead of being added in front of it,
+so an EMOM or Tabata keeps its exact timing and the workout doesn't get any longer.
+
+```liftoscript
+Plank / 3x1 60s|30s
+Farmer Carry / 3x1 70lb 45s|90s
+```
+
+---
 date: 2026-09-01
 title: Autocompletion suggestions in freeform mode in Liftoscript editor
 ---

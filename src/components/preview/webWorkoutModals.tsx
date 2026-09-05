@@ -4,6 +4,7 @@ import { IDispatch } from "../../ducks/types";
 import { ModalAmrap } from "../modalAmrap";
 import { Modal } from "../modal";
 import { SetTimerBannerContent } from "../setTimerBanner";
+import { Progress_getActiveSetTimer } from "../../models/progress";
 import { SetTimerEditContent } from "../setTimerEdit";
 import { WeightRoundingInfoContent } from "../weightRoundingInfo";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
@@ -36,7 +37,7 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
     ? Program_getProgramExercise(props.day, props.program, editModalProgramExerciseId)
     : undefined;
 
-  const setTimerModal = props.progress.setTimer;
+  const setTimerModal = Progress_getActiveSetTimer(props.progress);
   // A timed AMRAP set keeps setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet) — yield to
   // the amrap modal here like SetTimerBannerContent does, so the set-timer shell doesn't show behind it.
   const showSetTimerModal = setTimerModal != null && props.progress.amrapModal == null;

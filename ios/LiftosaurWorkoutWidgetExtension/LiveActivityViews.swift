@@ -509,6 +509,121 @@ struct SetTimerActivityView: View {
     }
 }
 
+// MARK: - Get Ready Mode
+
+// The countdown before a timed set's work clock. No action buttons: the set hasn't started, so there is
+// nothing to record yet — the only thing that ends this state is the clock reaching zero.
+@available(iOS 16.1, *)
+struct GetReadyActivityView: View {
+    let entry: HistoryEntryState?
+    let getReady: LiveActivityGetReady
+
+    var body: some View {
+        VStack(spacing: 8.0) {
+            HStack(spacing: 8.0) {
+                HStack(spacing: 16.0) {
+                    Image("AppIcon2")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                        .cornerRadius(8.0)
+                    GetReadyClock(getReady: getReady)
+                }
+
+                Spacer(minLength: 8.0)
+
+                if getReady.setTimer > 0 {
+                    let minutes = getReady.setTimer / 60
+                    let seconds = getReady.setTimer % 60
+                    VStack(alignment: .trailing, spacing: 0.0) {
+                        Text("Next")
+                            .font(.custom("Poppins-Regular", size: 13))
+                            .foregroundColor(.white.opacity(0.6))
+                        Text(String(format: "%d:%02d", minutes, seconds))
+                            .font(.custom("Poppins-SemiBold", size: 16))
+                            .monospacedDigit()
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .lineLimit(1)
+                    // Without this the countdown's Text(timerInterval:) claims the whole row and compresses
+                    // this stack to zero width - it renders nothing at all rather than truncating.
+                    .fixedSize()
+                }
+            }
+
+            HStack(alignment: .center, spacing: 8.0) {
+                if let entry {
+                    if let exerciseImageUrl = entry.exerciseImageUrl {
+                        CachedImage(urlString: exerciseImageUrl, height: 44)
+                    }
+                    VStack(alignment: .leading, spacing: 1.0) {
+                        Text(entry.exerciseName)
+                            .font(.custom("Poppins-SemiBold", size: 16))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        ColoredTargetInfoView(
+                            setInfo: SetTimerTargetInfo(entry: entry, setTimerSeconds: getReady.setTimer),
+                            isWarmup: entry.isWarmup,
+                            showPrefix: false,
+                            setCountText: "\(entry.currentSet)/\(entry.totalSets)"
+                        )
+                        .font(.custom("Poppins-Regular", size: 13))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    }
+                    .layoutPriority(1)
+                }
+
+                Spacer()
+
+                StartSetTimerWorkButton(getReady: getReady)
+            }
+        }
+        .padding(.horizontal, 16.0)
+        .padding(.top, 8.0)
+        .padding(.bottom, 12.0)
+    }
+}
+
+@available(iOS 16.1, *)
+struct GetReadyClock: View {
+    let getReady: LiveActivityGetReady
+
+    var body: some View {
+        let start = Date(timeIntervalSince1970: TimeInterval(getReady.getReadySince) / 1000)
+        HStack(alignment: .center, spacing: 6.0) {
+            Text("Get Ready:")
+                .font(.custom("Poppins-SemiBold", size: 15))
+                .foregroundColor(SetColors.getReady)
+                .lineLimit(1)
+                .fixedSize()
+
+            Text(timerInterval: start...start.addingTimeInterval(TimeInterval(getReady.getReady)), countsDown: true)
+                .font(.custom("Poppins-Bold", size: 34))
+                .monospacedDigit()
+                .foregroundColor(SetColors.getReady)
+                .lineLimit(1)
+        }
+    }
+}
+
+@available(iOS 16.1, *)
+struct StartSetTimerWorkButton: View {
+    let getReady: LiveActivityGetReady
+
+    var body: some View {
+        #if WIDGET_EXTENSION
+        Button(intent: StartSetTimerWorkIntent(entryIndex: getReady.entryIndex, setIndex: getReady.setIndex, getReadySince: getReady.getReadySince)) {
+            SetTimerButtonLabel(text: "Go", kind: .primary)
+        }
+        .buttonStyle(.plain)
+        #else
+        SetTimerButtonLabel(text: "Go", kind: .primary)
+        #endif
+    }
+}
+
 @available(iOS 16.1, *)
 struct SetTimerClock: View {
     let setTimer: LiveActivitySetTimer

@@ -467,6 +467,24 @@ describe("Progress_reindexEntries", () => {
     expect(next.amrapModal?.entryIndex).to.eql(0);
   });
 
+  it("follows a running get-ready countdown, and clears it when its entry is gone", () => {
+    const base = threeEntries();
+    const progress: IHistoryRecord = {
+      ...base,
+      setTimerGetReady: { entryIndex: 1, setIndex: 0, startedAt: 123, getReady: 5 },
+    };
+    const reordered = Progress_reindexEntries(progress, [
+      progress.entries[2],
+      progress.entries[1],
+      progress.entries[0],
+    ]);
+    expect(reordered.setTimerGetReady?.entryIndex).to.eql(1);
+    expect(reordered.setTimerGetReady?.getReady).to.eql(5);
+
+    const dropped = Progress_reindexEntries(progress, [progress.entries[0], progress.entries[2]]);
+    expect(dropped.setTimerGetReady).to.eql(undefined);
+  });
+
   it("clears a timer and a prompt whose entry is gone rather than retargeting them", () => {
     const base = threeEntries();
     const progress: IHistoryRecord = {

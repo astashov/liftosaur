@@ -347,6 +347,10 @@ const mainConfig = {
         to: `set-timer-end.m4r`,
       },
       {
+        from: `src/get-ready-end.m4r`,
+        to: `get-ready-end.m4r`,
+      },
+      {
         from: "icons",
         to: "icons",
       },

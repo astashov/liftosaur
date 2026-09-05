@@ -72,6 +72,7 @@ struct LiftosaurWatch_Watch_AppApp: App {
             GeometryReader { geometry in
                 let topSafeArea = geometry.safeAreaInsets.top
                 let screenWidth = geometry.size.width + geometry.safeAreaInsets.leading + geometry.safeAreaInsets.trailing
+                let screenHeight = geometry.size.height + topSafeArea + geometry.safeAreaInsets.bottom
                 // Sync indicator: vertically centered in navbar, right of back button
                 // Back button is circular with diameter ≈ navbar height
                 let indicatorTop = topSafeArea * 0.65 - 6  // Position indicator at 40% down from top
@@ -81,6 +82,7 @@ struct LiftosaurWatch_Watch_AppApp: App {
                     .environmentObject(connectivityManager)
                     .environment(\.navbarHeight, topSafeArea)  // Pass navbar height to all child views
                     .environment(\.screenWidth, screenWidth)   // Pass screen width to all child views
+                    .environment(\.screenHeight, screenHeight) // Pass screen height to all child views
                     .overlay(alignment: .topLeading) {
                         SyncIndicatorView(status: syncManager.syncStatus)
                             .padding(.top, indicatorTop - topSafeArea)

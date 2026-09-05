@@ -1122,11 +1122,12 @@ export function Progress_completeSet(
   setIndex: number,
   mode: IProgressMode,
   hasUserPromptedVars: boolean,
-  settings: ISettings
+  settings: ISettings,
+  isPlayground?: boolean
 ): IHistoryRecord {
   const entry = progress.entries[entryIndex];
   const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
-  const setTimerModal = progress.setTimer;
+  const setTimerModal = Progress_getActiveSetTimer(progress);
   const hasOpenSetTimer =
     setTimerModal != null && setTimerModal.entryIndex === entryIndex && setTimerModal.setIndex === setIndex;
   // The first "complete" on a timed set starts its clock (opens the set-timer modal) instead of
@@ -1139,9 +1140,23 @@ export function Progress_completeSet(
     !hasOpenSetTimer &&
     set.completedSetTimer == null
   ) {
+    const now = Date.now();
+    // A countdown in the playground would stall playground.ts's shortcut, which expects setTimer immediately.
+    const getReady = isPlayground ? 0 : (settings.timers.getReady ?? 0);
+    // Each branch owns both fields. hasOpenSetTimer only guards *this* set, so tapping play on another
+    // timed set while one is running lands here - and leaving the old field behind would give the record
+    // two live timers, which every reader resolves differently.
+    if (getReady > 0) {
+      return {
+        ...progress,
+        setTimer: undefined,
+        setTimerGetReady: { entryIndex, setIndex, startedAt: now, getReady, nonce: now },
+      };
+    }
     return {
       ...progress,
-      setTimer: { entryIndex, setIndex, startedAt: Date.now(), nonce: Date.now() },
+      setTimer: { entryIndex, setIndex, startedAt: now, nonce: now },
+      setTimerGetReady: undefined,
     };
   }
   const shouldLogRpe = !!set?.logRpe;
@@ -1202,6 +1217,60 @@ export function Progress_getFirstIncompleteWorkoutSet(
   return undefined;
 }
 
+export type IActiveSetTimer =
+  | {
+      phase: "getReady";
+      entryIndex: number;
+      setIndex: number;
+      startedAt: number;
+      getReady: number;
+      nonce?: number;
+    }
+  | {
+      phase: "work";
+      entryIndex: number;
+      setIndex: number;
+      startedAt: number;
+      nonce?: number;
+      keepTiming?: boolean;
+    };
+
+// `setTimer` wins when both fields are set: version merging is field-by-field, so a merge can legally
+// produce both, and preferring the later phase is the correct recovery.
+export function Progress_getActiveSetTimer(progress: IHistoryRecord): IActiveSetTimer | undefined {
+  const stm = progress.setTimer;
+  if (stm != null) {
+    return { phase: "work", ...stm };
+  }
+  const getReady = progress.setTimerGetReady;
+  if (getReady != null) {
+    return { phase: "getReady", ...getReady };
+  }
+  return undefined;
+}
+
+export function Progress_startSetTimerWork(progress: IHistoryRecord, startedAt: number): IHistoryRecord {
+  const getReady = progress.setTimerGetReady;
+  // The setTimer != null half is not redundant: a merge can leave both fields set, and a stale "Start now"
+  // must not restart a running clock or retarget it at the countdown's set.
+  if (getReady == null || progress.setTimer != null) {
+    return progress;
+  }
+  return {
+    ...progress,
+    setTimerGetReady: undefined,
+    setTimer: {
+      entryIndex: getReady.entryIndex,
+      setIndex: getReady.setIndex,
+      startedAt,
+      // Reusing the nonce is what stops the presenter re-navigating on the flip.
+      nonce: getReady.nonce,
+    },
+  };
+}
+
+// Conditions must mirror the auto-advance branch of Progress_isSetTimerCheckDue, or the cue fires for a
+// rest that never rolls into a work window.
 export function Progress_getNextTimedSet(
   progress: IHistoryRecord
 ): { entryIndex: number; setIndex: number } | undefined {
@@ -1253,7 +1322,25 @@ function Progress_getNextTimedSetInSuperset(
 // Moves the set-timer banner to the next timed set (or closes it if there's none) and clears any rest
 // timer. `freshNonce` controls whether the workout screen re-opens the banner: keep the nonce for an
 // in-place advance (EMOM, banner already open), use a fresh one after rest (banner was closed).
-export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: boolean): IHistoryRecord {
+// An `auto` set's countdown comes OUT of its rest rather than being added in front of it, so the circuit's
+// cadence is unchanged: `45s|15s auto` with a 5s countdown rests 10s, then counts down 5. Clamping to the
+// rest is what makes a zero-rest EMOM produce no countdown at all.
+export function Progress_getAutoGetReadySeconds(set: ISet | undefined, settings: ISettings): number {
+  if (!set?.auto) {
+    return 0;
+  }
+  return Math.min(settings.timers.getReady ?? 0, set.timer ?? 0);
+}
+
+// `startedAt` is when the previous phase actually ended, not when we noticed. Reading the clock here
+// instead would hand a late reconcile a full fresh countdown and stretch the circuit past its cadence.
+export function Progress_advanceTimedSet(
+  progress: IHistoryRecord,
+  freshNonce: boolean,
+  getReadySeconds: number = 0,
+  startedAt?: number
+): IHistoryRecord {
+  const phaseStartedAt = startedAt ?? Date.now();
   const next = Progress_getNextTimedSet(progress);
   const prevNonce = progress.setTimer?.nonce;
   // Advancing ends the current (auto) rest — cancel its pending "rest is over" notification so it doesn't
@@ -1272,7 +1359,19 @@ export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: b
     timerMode: undefined,
     timerEntryIndex: undefined,
     timerSetIndex: undefined,
-    setTimer: next != null ? { ...next, startedAt: Date.now(), nonce: freshNonce ? Date.now() : prevNonce } : undefined,
+    setTimer:
+      next != null && getReadySeconds <= 0
+        ? { ...next, startedAt: phaseStartedAt, nonce: freshNonce ? Date.now() : prevNonce }
+        : undefined,
+    setTimerGetReady:
+      next != null && getReadySeconds > 0
+        ? {
+            ...next,
+            startedAt: phaseStartedAt,
+            getReady: getReadySeconds,
+            nonce: freshNonce ? Date.now() : prevNonce,
+          }
+        : undefined,
     currentEntryIndex: nextEntryIndex,
     // The pager scrolls on a forceUpdateEntryIndex flip, not on currentEntryIndex alone (so swipes aren't
     // fought). Flip it when an auto-advance crosses into another exercise so the pager scrolls to follow.
@@ -1301,25 +1400,43 @@ export function Progress_proceedAfterTimedSet(
     return { ...progress, setTimer: undefined };
   }
   const set = progress.entries[entryIndex]?.sets[setIndex];
+  // "Log & keep timing" records a set early but leaves its clock running to the target, so the recorded
+  // duration and the clock's end are different moments. Rest, the next EMOM window and any countdown all
+  // start from the clock's end, so a late reconcile resumes the cadence instead of restarting it.
+  const clockStartedAt = progress.setTimer?.startedAt;
+  const reachedTarget =
+    clockStartedAt != null &&
+    set?.setTimer != null &&
+    !set.isOverflowSetTimer &&
+    Date.now() - clockStartedAt >= set.setTimer * 1000;
+  const endedOffsetSeconds = reachedTarget ? set?.setTimer : set?.completedSetTimer;
+  const timedSetEndedAt =
+    clockStartedAt != null && endedOffsetSeconds != null ? clockStartedAt + endedOffsetSeconds * 1000 : Date.now();
   // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
   if (set?.auto && (set.timer ?? 0) === 0) {
-    return Progress_advanceTimedSet(progress, false);
+    return Progress_advanceTimedSet(progress, false, 0, timedSetEndedAt);
   }
-  // Otherwise close the banner and start the deferred rest timer. Backdate its start to when the set
-  // should have ended (clock start + recorded duration) rather than "now", so reopening the app after
-  // the screen was locked past the target reconciles to the correct rest elapsed instead of resetting it.
-  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
+  const autoGetReady = Progress_getAutoGetReadySeconds(set, settings);
+  // The countdown eats the whole rest (rest <= getReady), so there is no rest left to run - go straight into
+  // it, otherwise Progress_startTimer would clear the timer for a 0s rest and nothing would reopen the clock.
+  if (autoGetReady > 0 && (set?.timer ?? 0) - autoGetReady <= 0) {
+    return Progress_advanceTimedSet(progress, true, autoGetReady, timedSetEndedAt);
+  }
+  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined, setTimerGetReady: undefined };
   if (set?.isCompleted && set.setTimer != null) {
-    const startedAt = progress.setTimer?.startedAt;
-    // Rest begins when the timed window actually ended on the clock — not at the logged history value. A set
-    // logged early via "Log & keep timing" keeps that earlier time as its record, but its clock runs on to the
-    // target and auto-closes there. So when a non-overflow set reached its target, backdate the rest from the
-    // target; only an early "Stop & Record" (clock stopped before the target) backdates from the recorded time.
-    const reachedTarget = startedAt != null && !set.isOverflowSetTimer && Date.now() - startedAt >= set.setTimer * 1000;
-    const restOffsetSeconds = reachedTarget ? set.setTimer : set.completedSetTimer;
-    const restSince =
-      startedAt != null && restOffsetSeconds != null ? startedAt + restOffsetSeconds * 1000 : Date.now();
-    newProgress = Progress_startTimer(newProgress, restSince, "workout", entryIndex, setIndex, settings, subscription);
+    // Shortened by the countdown, so the existing "rest is over" push lands at the moment the countdown
+    // opens rather than at the moment work starts.
+    const restTimer = autoGetReady > 0 ? (set.timer ?? 0) - autoGetReady : undefined;
+    newProgress = Progress_startTimer(
+      newProgress,
+      timedSetEndedAt,
+      "workout",
+      entryIndex,
+      setIndex,
+      settings,
+      subscription,
+      restTimer
+    );
   }
   return newProgress;
 }
@@ -1333,10 +1450,11 @@ export function Progress_closeTimedSet(
   isPlayground?: boolean
 ): IHistoryRecord {
   const stm = progress.setTimer;
+  // Without the countdown branch a dismissal during it strands the field, and the banner reopens.
   if (stm == null) {
-    return progress;
+    return progress.setTimerGetReady != null ? { ...progress, setTimerGetReady: undefined } : progress;
   }
-  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
+  let newProgress: IHistoryRecord = { ...progress, setTimer: undefined, setTimerGetReady: undefined };
   const set = newProgress.entries[stm.entryIndex]?.sets[stm.setIndex];
   // The playground has no rest timers, so discarding a "Log & keep timing" set just closes the banner.
   if (!isPlayground && set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
@@ -1358,6 +1476,10 @@ export function Progress_closeTimedSet(
 export function Progress_isSetTimerCheckDue(progress: IHistoryRecord, now: number): boolean {
   if (progress.amrapModal != null) {
     return false;
+  }
+  const getReady = progress.setTimerGetReady;
+  if (progress.setTimer == null && getReady != null) {
+    return now - getReady.startedAt >= getReady.getReady * 1000;
   }
   const stm = progress.setTimer;
   if (stm != null) {
@@ -1400,9 +1522,20 @@ export function Progress_checkSetTimer(
   if (progress.amrapModal != null) {
     return progress;
   }
-  const stm = progress.setTimer;
+  let current = progress;
+  const getReady = current.setTimerGetReady;
+  if (current.setTimer == null && getReady != null) {
+    if (now - getReady.startedAt < getReady.getReady * 1000) {
+      return current;
+    }
+    // Backdated, and deliberately falling through instead of returning: a wake that slept past both the
+    // countdown and the work target has to settle in one pass, because the banner is the only in-app driver
+    // and reopening onto any other screen never sends a second tick.
+    current = Progress_startSetTimerWork(current, getReady.startedAt + getReady.getReady * 1000);
+  }
+  const stm = current.setTimer;
   if (stm != null) {
-    const set = progress.entries[stm.entryIndex]?.sets[stm.setIndex];
+    const set = current.entries[stm.entryIndex]?.sets[stm.setIndex];
     // No !isCompleted guard: a "Log & keep timing" set is already completed but keeps the clock running, and
     // must still auto-close + rest at the target. completeSetAction's already-logged branch handles it.
     if (set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000) {
@@ -1412,7 +1545,7 @@ export function Progress_checkSetTimer(
       return Progress_completeSetAction(
         settings,
         stats,
-        progress,
+        current,
         {
           type: "CompleteSetAction",
           entryIndex: stm.entryIndex,
@@ -1428,24 +1561,33 @@ export function Progress_checkSetTimer(
         subscription
       );
     }
-    return progress;
+    // `current`, not `progress`, or a promotion made above is silently discarded.
+    return current;
   }
   if (
-    progress.timer != null &&
-    progress.timerSince != null &&
-    progress.timerEntryIndex != null &&
-    progress.timerSetIndex != null
+    current.timer != null &&
+    current.timerSince != null &&
+    current.timerEntryIndex != null &&
+    current.timerSetIndex != null
   ) {
-    const restSet = progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex];
+    const restSet = current.entries[current.timerEntryIndex]?.sets[current.timerSetIndex];
     if (
       restSet?.auto &&
-      now - progress.timerSince >= progress.timer * 1000 &&
-      Progress_getNextTimedSet(progress) != null
+      now - current.timerSince >= current.timer * 1000 &&
+      Progress_getNextTimedSet(current) != null
     ) {
-      return Progress_advanceTimedSet(progress, true);
+      // The rest that just ended was already shortened by the countdown, so what follows it is the countdown
+      // itself, not the work clock. It starts at the rest's deadline, not now: a tick that lands late (a
+      // throttled timer, a wake) must not hand out a full fresh countdown and stretch the round.
+      return Progress_advanceTimedSet(
+        current,
+        true,
+        Progress_getAutoGetReadySeconds(restSet, settings),
+        current.timerSince + current.timer * 1000
+      );
     }
   }
-  return progress;
+  return current;
 }
 
 export function Progress_getIsRpeEnabled(sets: ISet[]): boolean {
@@ -1739,6 +1881,7 @@ export function Progress_reindexEntries(progress: IHistoryRecord, newEntries: IH
     currentEntryIndex,
     timerEntryIndex: remap(progress.timerEntryIndex),
     setTimer: keepAt(progress.setTimer),
+    setTimerGetReady: keepAt(progress.setTimerGetReady),
     amrapModal: keepAt(progress.amrapModal),
     ui:
       ui == null
@@ -2091,13 +2234,17 @@ export function Progress_changeAmrapAction(
   // otherwise close the banner and start the deferred rest. For non-timed sets setTimerModal is already
   // undefined, so this is just the normal rest start.
   const amrapSetTimerModal = newProgress.setTimer;
+  // Clearing the countdown too is not redundant. A field-by-field merge can legally leave both phase fields
+  // set, and Progress_getActiveSetTimer only *prefers* the work clock — it never repairs the record. Drop
+  // the work clock alone and the stale countdown becomes active again, reopening for a set just resolved.
   if (amrapSetTimerModal?.keepTiming) {
     newProgress = {
       ...newProgress,
       setTimer: { ...amrapSetTimerModal, keepTiming: undefined },
+      setTimerGetReady: undefined,
     };
   } else {
-    newProgress = { ...newProgress, setTimer: undefined };
+    newProgress = { ...newProgress, setTimer: undefined, setTimerGetReady: undefined };
     // Intentionally "now", NOT backdated to the clock end like Progress_proceedAfterTimedSet does (see
     // time-based-exercises.md §5.2). The time spent in the AMRAP modal is data entry, not rest — backdating
     // would count it as elapsed rest and a short rest could be over the instant the user submits.
@@ -2213,18 +2360,20 @@ export function Progress_completeSetAction(
     action.setIndex,
     action.mode,
     !!hasUserPromptedVars,
-    settings
+    settings,
+    action.isPlayground
   );
   const newSet =
     newProgress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
   const didFinish = !oldSet.isCompleted && newSet.isCompleted;
   // First tap on a timed set just opened its clock (see Progress_completeSet) — nothing is completed
   // yet, so skip the completion side-effects and only refresh the live activity to show the timer.
+  const startedTimer = Progress_getActiveSetTimer(newProgress);
   const justStartedSetTimer =
     !wasSetTimerOpen &&
     !newSet.isCompleted &&
-    newProgress.setTimer?.entryIndex === action.entryIndex &&
-    newProgress.setTimer?.setIndex === action.setIndex;
+    startedTimer?.entryIndex === action.entryIndex &&
+    startedTimer?.setIndex === action.setIndex;
   if (justStartedSetTimer) {
     // Starting this set's clock means the previous set's rest is over — stop it (and cancel its pending
     // "rest is over" notification) so it doesn't fire in the middle of this set's clock.

@@ -24,6 +24,10 @@ private struct ScreenWidthKey: EnvironmentKey {
     static let defaultValue: CGFloat = 180  // Reasonable default
 }
 
+private struct ScreenHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 220  // Reasonable default
+}
+
 extension EnvironmentValues {
     var navbarHeight: CGFloat {
         get { self[NavbarHeightKey.self] }
@@ -33,5 +37,10 @@ extension EnvironmentValues {
     var screenWidth: CGFloat {
         get { self[ScreenWidthKey.self] }
         set { self[ScreenWidthKey.self] = newValue }
+    }
+
+    var screenHeight: CGFloat {
+        get { self[ScreenHeightKey.self] }
+        set { self[ScreenHeightKey.self] = newValue }
     }
 }
