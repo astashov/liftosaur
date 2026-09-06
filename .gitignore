@@ -97,3 +97,5 @@ logs/
 # Dynamo scan caches and price-point dumps
 /lambda/scripts/.cache
 /pricepoints
+
+.archdoc-snapshots/

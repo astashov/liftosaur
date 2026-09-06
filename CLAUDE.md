@@ -210,30 +210,73 @@ migration), where one script beats dozens of Edits. Those go through the shell
 with `# allow-bash-edit` in the command, so the choice is visible. A single-file
 change is never that exception.
 
-## Comments
-NEVER add comments unless they explain WHY something non-obvious is done. Comments that describe WHAT the code does are forbidden - the code itself should be readable.
+<!-- prose:start -->
 
-DO NOT add comments for:
-- Function/method descriptions (use clear naming instead)
-- Variable explanations
-- Type annotations
-- "What this does" explanations
-- TODOs unless explicitly requested
+## Prose rules
 
-The ONLY acceptable comments explain:
-- Non-obvious business logic reasoning
-- Workarounds for external bugs/limitations
-- Safety-critical warnings
+Generated from `PROSE.md`. Do not edit here — edit `PROSE.md` and run `npx ts-node scripts/generate-prose-rules.ts`.
 
-If you find yourself wanting to add a comment, first try to make the code clearer instead. Assume the reader knows the programming language.
+**The line is the unit of meaning.** No hard wrap. One paragraph per line, one list item per line, blank lines between paragraphs. Never pack two checkboxes or two bullets onto one line.
 
-BAD (describes what):
+**Lists, not tables.** No pipe tables. They read as a wall of `|` in the editor and a one-word edit rewrites the whole line in the diff. The only exception is data with two real axes, as a fixed-width aligned block inside a fence, at most one per document.
+
+**Cross-references name the thing, never a number.** Strip every link from a sentence and it must still say what it points at. Never `§4`, never `section 3.2`, never a link whose text is `:1511`, never `see above`. Link the symbol name, or name the behaviour: `the fall-through`, `the 250ms tick`.
+
+**No line numbers in prose or in fences.** No `// :N` comments. A fence shows shape; the links live in the surrounding list.
+
+**Every sentence names a symbol, a file, a number, or a consequence.** A sentence naming none of those is filler. "The nonce keeps it stable" is short and useless. "The nonce survives the flip, so promoting the countdown does not re-present the banner" carries the fact.
+
+**An estimate is a number and the condition it depends on.** "Roughly a day", "a small change", `cheap` — none of those can be planned around. "Twenty minutes if the codegen is current, half a day if the pod install has to be redone" can. Effort is a number, so the sentence rule above already covers it: an estimate without one is filler.
+
+**Restate position in multi-step work.** One line at the top of a report saying where we are, every turn: "phase 5 of 8 done". The reader should never reconstruct progress from prose, and a checkbox list in a file they are not looking at does not do this job.
+
+**A reply or a plan ends with one next action, doable in under two minutes.** Not a question. "Reload VSCode, then click `IActiveSetTimer`" beats "want me to keep going?", which hands the reader the work of deciding what happens next. An archdoc has no next action and ends with its debugging map instead.
+
+### Banned outright
+
+Fake idioms, say the mechanism instead: `load-bearing`, `smoking gun`, `north star`, `lodestar`, `footgun`, `sharp edge`, `moving parts`, `the whole point`, `the entire point`.
+
+Economics metaphors for code, say the actual cost or benefit with a number: `cheap`, `expensive`, `for free`, `buys us`, `pays for itself`, `earns its keep`, `costs us`.
+
+The negation-contrast tic, state the second half and delete the first: `X is not Y, it is Z`, `not just X but Y`, `isn't about X, it's about Y`, `less a X than a Y`.
+
+Emphasis adverbs that measure nothing, delete or replace with a number: `actually`, `genuinely`, `precisely`, `crucially`, `critically`, `importantly`, `fundamentally`, `essentially`, `simply`, `merely`, `truly`, `dramatically`, `significantly`, `massively`, `wildly`.
+
+Meta-narration, say the thing instead of announcing it: `here's the thing`, `the key insight`, `worth noting`, `note that`, `to be clear`, `that said`, `in other words`, `which is to say`, `at its core`, `the real question is`.
+
+Marketing words: `robust`, `seamless`, `elegant`, `surgical`, `comprehensive`, `leverage`, `principled`, `nuanced`, `delve`.
+
+**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism.
+
+### Budgeted, not banned
+
+Per document: `deliberate` three times, `by construction` twice, `first-class` once, one em-dash per eight lines. `scar tissue` is unlimited, it is a section name in archdocs. `rather than` is ordinary English and is not restricted.
+
+### Comments in code
+
+Default: zero comments. A comment is an admission that the code failed to explain itself.
+
+Before writing one, try in this order: a better name, extracting a named function, a named constant instead of a literal, restructuring so the branch is obvious. A comment is allowed only when all four fail.
+
+A comment may only carry information that is not in the code and cannot be put there: a decision and the alternative it rejected, an external bug or limitation with a link or version, a constraint from outside this file (an old client still syncing, an App Store release cycle, a server contract), or a measured number and how it was measured.
+
+Never: restating the line, section banners like `// ---- helpers ----`, an opener from Check / Get / Set / Create / Update / Handle / Loop / Initialize / First / Then / Now we, hedges such as "this might" or "not sure but", JSDoc on a function whose name and signature already say it, or a TODO that was not asked for.
+
+Length: one line, three is the hard cap. Longer belongs in an archdoc, with the comment pointing at it.
+
+The test: delete the comment and read the code. If a reviewer would ask "why is this here?", it goes back. Otherwise it stays deleted.
+
+<!-- prose:end -->
+
+Two worked examples of the comment rule.
+
+BAD (restates the line):
 ```typescript
 // Check if user is subscribed
 if (user.subscription?.active) {
 ```
 
-GOOD (explains why):
+GOOD (carries a constraint the code cannot show):
 ```typescript
 // Stripe webhook can be delayed, so we also check local cache
 if (user.subscription?.active || cachedSubscription) {

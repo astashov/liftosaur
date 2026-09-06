@@ -17,9 +17,14 @@ Nine phases. Four of them are **gates**: stop, present, wait for the user. The r
 | 4 | **Implementation contract** | 🚦 user approval |
 | 5 | Implement | diffs |
 | 6 | Verify | lint/tsc/tests/screenshots green |
+| 6b | Comment pass | verdicts on every added comment |
 | 7 | Two codex reviews | structured findings |
 | 8 | **Triage findings** | 🚦 user arbitration, then fixes |
 | 9 | Document + walkthrough | archdoc, optional tour, optional kb |
+
+**Open every report with position.** One line, before anything else: `Phase 6 of 9 — verify. Done 0–5.` The plan file's checkboxes are the record; this restates them in the reply, because a build runs over many turns and the reader should not have to rebuild progress from prose or open the file to find it.
+
+**Close every report with one next action**, doable in under two minutes, phrased as an action rather than a question. `Run npm test -- setTimer, then I'll take phase 7.` beats `want me to continue?`.
 
 Everything durable lands in two files, both named off the feature slug:
 
@@ -88,6 +93,8 @@ The plan must be **readable in one pass, without opening the editor**. Hard rule
 - **Open with one plain paragraph** on what the user sees or can do once this ships. Before any code.
 - **Explain like the reader is smart but new here.** Define repo jargon on first use ("a *lens* is how we do immutable updates: `lb<IState>().p('x').record(v)` builds a path and returns a new state"). Short sentences. No stacked abstractions.
 - **ASCII sketches only** if they help. No mermaid, no diagrams-for-decoration.
+- **Follow the prose rules below**: no pipe tables, one paragraph per line, one list item per line, sections named and never numbered.
+- Lead with a **call tree or pseudocode** for anything whose branches matter — plain indentation in a fence, no bullets, no line numbers.
 - End with **"What we're not doing"** and **the open questions that need your call**, each with a recommendation.
 
 Save it to `lambda/scripts/plans/YYYYMMDD-<slug>.md` with the phase checkboxes, then ask for approval. Do not start editing before you get it.
@@ -119,6 +126,14 @@ Work in the order of the contract: types first, then the core module, then the c
 - **UI features get driven, not assumed** — use the `test-app` skill on the simulator or the playwright MCP on web, and screenshot the result
 
 Report failures with their output. Never claim green without running it.
+
+## Phase 6b — Comment pass
+
+Spawn the `comment-pass` agent before the codex reviews, so codex reads the code without comment noise.
+
+It judges every comment the branch added or modified against the rule in `CLAUDE.md` and hands back a verdict each: keep, delete, rename, or move to archdoc. It reports and does not edit — a rename has to land consistently across the file and its callers, and you have that context.
+
+Apply the deletes and renames yourself. Push back on any verdict you disagree with and say why in your report to the user; the agent is not the final word.
 
 ## Phase 7 — Two codex reviews
 
@@ -226,9 +241,17 @@ The plan file's checkboxes are the state. On "continue the feature" / after a co
 # <Feature> — plan
 *<date> · branch `<name>` · worktree: <yes/no>*
 
-- [ ] 0 intake  - [ ] 1 draft  - [ ] 2 codex arch  - [ ] 3 approved
-- [ ] 4 contract  - [ ] 5 implement  - [ ] 6 verify  - [ ] 7 reviews
-- [ ] 8 triage  - [ ] 9 documented
+- [ ] 0 intake
+- [ ] 1 draft
+- [ ] 2 codex arch
+- [ ] 3 approved
+- [ ] 4 contract
+- [ ] 5 implement
+- [ ] 6 verify
+- [ ] 6b comment pass
+- [ ] 7 reviews
+- [ ] 8 triage
+- [ ] 9 documented
 
 ## What the user gets
 ## How it works
@@ -238,3 +261,61 @@ The plan file's checkboxes are the state. On "continue the feature" / after a co
 ## Codex
 Transcript: `./<slug>.codex.md`. Agreed: … · Disagreed: … (resolution: …)
 ```
+
+<!-- prose:start -->
+
+## Prose rules
+
+Generated from `PROSE.md`. Do not edit here — edit `PROSE.md` and run `npx ts-node scripts/generate-prose-rules.ts`.
+
+**The line is the unit of meaning.** No hard wrap. One paragraph per line, one list item per line, blank lines between paragraphs. Never pack two checkboxes or two bullets onto one line.
+
+**Lists, not tables.** No pipe tables. They read as a wall of `|` in the editor and a one-word edit rewrites the whole line in the diff. The only exception is data with two real axes, as a fixed-width aligned block inside a fence, at most one per document.
+
+**Cross-references name the thing, never a number.** Strip every link from a sentence and it must still say what it points at. Never `§4`, never `section 3.2`, never a link whose text is `:1511`, never `see above`. Link the symbol name, or name the behaviour: `the fall-through`, `the 250ms tick`.
+
+**No line numbers in prose or in fences.** No `// :N` comments. A fence shows shape; the links live in the surrounding list.
+
+**Every sentence names a symbol, a file, a number, or a consequence.** A sentence naming none of those is filler. "The nonce keeps it stable" is short and useless. "The nonce survives the flip, so promoting the countdown does not re-present the banner" carries the fact.
+
+**An estimate is a number and the condition it depends on.** "Roughly a day", "a small change", `cheap` — none of those can be planned around. "Twenty minutes if the codegen is current, half a day if the pod install has to be redone" can. Effort is a number, so the sentence rule above already covers it: an estimate without one is filler.
+
+**Restate position in multi-step work.** One line at the top of a report saying where we are, every turn: "phase 5 of 8 done". The reader should never reconstruct progress from prose, and a checkbox list in a file they are not looking at does not do this job.
+
+**A reply or a plan ends with one next action, doable in under two minutes.** Not a question. "Reload VSCode, then click `IActiveSetTimer`" beats "want me to keep going?", which hands the reader the work of deciding what happens next. An archdoc has no next action and ends with its debugging map instead.
+
+### Banned outright
+
+Fake idioms, say the mechanism instead: `load-bearing`, `smoking gun`, `north star`, `lodestar`, `footgun`, `sharp edge`, `moving parts`, `the whole point`, `the entire point`.
+
+Economics metaphors for code, say the actual cost or benefit with a number: `cheap`, `expensive`, `for free`, `buys us`, `pays for itself`, `earns its keep`, `costs us`.
+
+The negation-contrast tic, state the second half and delete the first: `X is not Y, it is Z`, `not just X but Y`, `isn't about X, it's about Y`, `less a X than a Y`.
+
+Emphasis adverbs that measure nothing, delete or replace with a number: `actually`, `genuinely`, `precisely`, `crucially`, `critically`, `importantly`, `fundamentally`, `essentially`, `simply`, `merely`, `truly`, `dramatically`, `significantly`, `massively`, `wildly`.
+
+Meta-narration, say the thing instead of announcing it: `here's the thing`, `the key insight`, `worth noting`, `note that`, `to be clear`, `that said`, `in other words`, `which is to say`, `at its core`, `the real question is`.
+
+Marketing words: `robust`, `seamless`, `elegant`, `surgical`, `comprehensive`, `leverage`, `principled`, `nuanced`, `delve`.
+
+**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism.
+
+### Budgeted, not banned
+
+Per document: `deliberate` three times, `by construction` twice, `first-class` once, one em-dash per eight lines. `scar tissue` is unlimited, it is a section name in archdocs. `rather than` is ordinary English and is not restricted.
+
+### Comments in code
+
+Default: zero comments. A comment is an admission that the code failed to explain itself.
+
+Before writing one, try in this order: a better name, extracting a named function, a named constant instead of a literal, restructuring so the branch is obvious. A comment is allowed only when all four fail.
+
+A comment may only carry information that is not in the code and cannot be put there: a decision and the alternative it rejected, an external bug or limitation with a link or version, a constraint from outside this file (an old client still syncing, an App Store release cycle, a server contract), or a measured number and how it was measured.
+
+Never: restating the line, section banners like `// ---- helpers ----`, an opener from Check / Get / Set / Create / Update / Handle / Loop / Initialize / First / Then / Now we, hedges such as "this might" or "not sure but", JSDoc on a function whose name and signature already say it, or a TODO that was not asked for.
+
+Length: one line, three is the hard cap. Longer belongs in an archdoc, with the comment pointing at it.
+
+The test: delete the comment and read the code. If a reviewer would ask "why is this here?", it goes back. Otherwise it stays deleted.
+
+<!-- prose:end -->

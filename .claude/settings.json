@@ -1,4 +1,30 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Linting doc",
+            "timeout": 60,
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; case \"$f\" in */lambda/scripts/archdocs/*.md|*/lambda/scripts/plans/*.md) TS_NODE_TRANSPILE_ONLY=1 npx ts-node \"${CLAUDE_PROJECT_DIR:-.}/scripts/lint-docs.ts\" \"$f\" --quiet || exit 2 ;; esac; }"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 60,
+            "command": "\"${CLAUDE_PROJECT_DIR:-.}/scripts/lint-docs-changed.sh\""
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Task",

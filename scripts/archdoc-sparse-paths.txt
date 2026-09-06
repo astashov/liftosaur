@@ -1,0 +1,43 @@
+# Sparse-checkout patterns for archdoc snapshot worktrees (.archdoc-snapshots/<sha>).
+# Read by scripts/archdoc-snapshot.ts and by aireviewer's archdoc URI handler, so the two never drift.
+# git sparse-checkout --no-cone syntax: gitignore patterns, "!" excludes, last match wins.
+#
+# Goal: everything an archdoc links into, plus everything the TypeScript language service needs to
+# resolve imports from there. Nothing else — a snapshot is read in an editor, never built or run.
+# Full checkout 179MB, cone-mode on whole directories 35MB, this 18MB.
+
+/*
+!/*/
+
+/src/
+/test/
+/lambda/
+/ios/
+/android/
+
+# 205MB of codex transcripts in a submodule a worktree would not populate anyway.
+!/lambda/scripts/
+!/lambda/images/
+
+# Vendored QuickJS: one 1.8MB .c nothing links to.
+!/ios/Packages/
+
+# Binary assets. iOS asset catalogs and fonts alone are 10MB, and no archdoc has ever linked one.
+!*.png
+!*.jpg
+!*.jpeg
+!*.gif
+!*.webp
+!*.ico
+!*.pdf
+!*.ttf
+!*.otf
+!*.woff
+!*.woff2
+!*.m4r
+!*.caf
+!*.wav
+!*.mp3
+!*.mp4
+!*.mov
+!*.zip
