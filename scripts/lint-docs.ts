@@ -1,6 +1,11 @@
+// Prose and markdown style for archdocs and plans.
+//
+// Anchor checking moved to `grasp archdoc lint`, which owns dead-path, dead-anchor,
+// inline-line-number and unlinked-symbol. Those need a git revision and a snapshot, and graspcode
+// already resolves both. What stays here is the writing standard in PROSE.md, which applies to
+// plans as much as to archdocs and is this repo's taste rather than anything a tool should ship.
 import * as fs from "fs";
 import * as path from "path";
-import { execFileSync } from "child_process";
 import { ProseRules_extract, ProseRules_splice } from "./generate-prose-rules";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -100,30 +105,11 @@ function sentenceCount(text: string): number {
   return matches ? matches.length : 1;
 }
 
-function headStamp(lines: readonly string[]): string | undefined {
-  for (const raw of lines.slice(0, 12)) {
-    const explicit = raw.match(/\bhead\s+`?([0-9a-f]{7,40})`?/i);
-    if (explicit) return explicit[1];
-    const legacy = raw.match(/@\s*`([0-9a-f]{7,40})`/);
-    if (legacy) return legacy[1];
-  }
-  return undefined;
-}
-
-function gitFileLineCount(sha: string, relPath: string): number | undefined {
-  try {
-    const out = execFileSync("git", ["show", `${sha}:${relPath}`], { cwd: ROOT, maxBuffer: 64 * 1024 * 1024 });
-    return out.toString("utf8").split("\n").length;
-  } catch {
-    return undefined;
-  }
-}
-
 function checkProseBlockFresh(): IFinding[] {
   const source = fs.readFileSync(path.join(ROOT, "PROSE.md"), "utf8");
   const block = ProseRules_extract(source);
   const stale: string[] = [];
-  for (const rel of ["CLAUDE.md", ".claude/skills/archdoc/SKILL.md", ".claude/skills/feature/SKILL.md"]) {
+  for (const rel of ["CLAUDE.md", ".claude/skills/feature/SKILL.md"]) {
     const file = path.join(ROOT, rel);
     if (!fs.existsSync(file)) continue;
     const current = fs.readFileSync(file, "utf8");
@@ -155,9 +141,6 @@ export function LintDocs_check(file: string, text: string): IFinding[] {
     const n = i + 1;
     const m = masked[i];
 
-    if (/\/\/\s*:\d+/.test(notation[i])) {
-      add(n, "inline-line-number", "error", "`// :N` carries no information — link the symbol in the API list");
-    }
     if (/\[\s*`?:?\d+`?\s*\]\(/.test(notation[i])) {
       add(n, "numeric-link-text", "error", "link text is a number — use the symbol name or the behaviour");
     }
@@ -204,72 +187,6 @@ export function LintDocs_check(file: string, text: string): IFinding[] {
     add(1, "budget", "warn", `${dashes} em-dashes over ${lines.length} lines, budget is ${dashBudget}`);
   }
 
-  findings.push(...checkRunBlockSymbols(lines, inFence, text));
-  findings.push(...checkAnchors(file, lines, masked));
-  return findings;
-}
-
-/** A "How it runs" fence shows shape; every symbol in it must be linked somewhere in the same doc. */
-function checkRunBlockSymbols(lines: readonly string[], inFence: readonly boolean[], text: string): IFinding[] {
-  const findings: IFinding[] = [];
-  let underRunHeading = false;
-  const linked = new Set<string>();
-  for (const link of text.matchAll(/\[([^\]]+)\]\(/g)) {
-    for (const token of link[1].matchAll(/[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+|use[A-Z][A-Za-z0-9]{2,}/g)) {
-      linked.add(token[0]);
-    }
-  }
-  lines.forEach((raw, i) => {
-    if (/^#{2,6}\s/.test(raw)) underRunHeading = /how it runs/i.test(raw);
-    if (!underRunHeading || !inFence[i] || /^\s*(```|~~~)/.test(raw)) return;
-    for (const token of raw.matchAll(/[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+|use[A-Z][A-Za-z0-9]{2,}/g)) {
-      if (!linked.has(token[0])) {
-        findings.push({
-          line: i + 1,
-          rule: "unlinked-symbol",
-          severity: "error",
-          message: `${token[0]} appears in a How it runs block but is never linked in this doc`,
-        });
-      }
-    }
-  });
-  return findings;
-}
-
-function checkAnchors(file: string, lines: readonly string[], masked: readonly string[]): IFinding[] {
-  const sha = headStamp(lines);
-  if (!sha) return [];
-  const findings: IFinding[] = [];
-  const dir = path.dirname(file);
-  const counts = new Map<string, number | undefined>();
-  const targets = (m: string): Array<[string, string | undefined]> => {
-    const out: Array<[string, string | undefined]> = [];
-    for (const l of m.matchAll(/\]\((\.\.[^)#\s]*)(?:#L(\d+)(?:-L?(\d+))?)?\)/g)) {
-      out.push([path.relative(ROOT, path.resolve(dir, l[1])), l[3] ?? l[2]]);
-    }
-    // Archdoc routes carry the same claim as a relative link and must rot the same way.
-    for (const l of m.matchAll(/archdoc\/(?:diff|open)\?[^)\s]*?file=([^&)\s]+)(?:&line=(\d+)(?:-(\d+))?)?/g)) {
-      out.push([decodeURIComponent(l[1]), l[3] ?? l[2]]);
-    }
-    return out;
-  };
-  masked.forEach((m, i) => {
-    for (const link of targets(m)) {
-      const rel = link[0];
-      if (!counts.has(rel)) counts.set(rel, gitFileLineCount(sha, rel));
-      const total = counts.get(rel);
-      if (total == null) {
-        findings.push({ line: i + 1, rule: "dead-path", severity: "error", message: `${rel} does not exist at ${sha}` });
-      } else if (link[1] && Number(link[1]) > total) {
-        findings.push({
-          line: i + 1,
-          rule: "dead-anchor",
-          severity: "error",
-          message: `${rel}:${link[1]} is past end of file (${total} lines) at ${sha}`,
-        });
-      }
-    }
-  });
   return findings;
 }
 

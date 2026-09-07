@@ -2,7 +2,7 @@
 
 How to write, for every surface: chat replies, `lambda/scripts/archdocs/*.md`, `lambda/scripts/plans/*.md`, aireviewer answers, walkthrough steps, and `lambda/scripts/memory/` entries.
 
-The rules between the markers below are copied verbatim into `CLAUDE.md`, `.claude/skills/archdoc/SKILL.md` and `.claude/skills/feature/SKILL.md` by `scripts/generate-prose-rules.ts`. Edit them here, then run the generator. `scripts/lint-docs.ts` fails when a copy drifts.
+The rules between the markers below are copied verbatim into `CLAUDE.md` and `.claude/skills/feature/SKILL.md` by `scripts/generate-prose-rules.ts`. Edit them here, then run the generator. `scripts/lint-docs.ts` fails when a copy drifts. The archdoc skill moved to the graspcode plugin, which serves every repo and so carries no repo's writing rules; an agent writing an archdoc reads these from `CLAUDE.md`.
 
 Everything outside the markers is rationale and worked examples, read when you need to know why a rule exists.
 
@@ -127,6 +127,8 @@ The delete test is the check. Remove the comment and read the code. If a reviewe
 ## Enforcement
 
 `scripts/lint-docs.ts` checks `lambda/scripts/archdocs/*.md` and `lambda/scripts/plans/*.md`. Hard failures block; warnings report. Word checks skip fenced blocks and inline code spans, so a document that quotes a banned word in backticks passes.
+
+`grasp archdoc lint` owns the other half: dead paths, dead anchors, `// :N` line numbers, and symbols named in a How it runs fence without a link. Those need a git revision and a snapshot, so they live in graspcode rather than here. Both run on every archdoc write, from the hook in `.claude/settings.json`.
 
 `.claude/agents/prose-pass.md` rewrites what a grep cannot judge: filler sentences, restated paragraphs, the negation-contrast tic in forms the pattern misses. It runs as a separate agent because the author is anchored on their own phrasing.
 

@@ -1,0 +1,9 @@
+{
+  "archdoc": {
+    "docs": "lambda/scripts/archdocs",
+    "snapshots": ".archdoc-snapshots",
+    "sparse": "scripts/archdoc-sparse-paths.txt",
+    "link": ["node_modules"],
+    "symbolPattern": "[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+|use[A-Z][A-Za-z0-9]{2,}"
+  }
+}

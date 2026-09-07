@@ -17,12 +17,22 @@ files=$(git -C "$sub" status --porcelain -- archdocs plans 2>/dev/null \
   | while read -r f; do [ -n "$(find "$f" -newermt '-2 hours' 2>/dev/null)" ] && printf '%s\n' "$f"; done || true)
 [ -z "$files" ] && exit 0
 
+# Anchors are graspcode's half of the split, so both linters run and their counts are added.
+# Hooks do not inherit the plugin's PATH entry, hence the fallback to its installed location.
+grasp_bin=$(command -v grasp || echo "$HOME/.claude/plugins/marketplaces/graspcode/plugins/graspcode/bin/grasp")
+archdocs=$(printf '%s\n' "$files" | grep '/archdocs/' || true)
+
+out=""
 # shellcheck disable=SC2086
-if out=$(TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/lint-docs.ts $files --quiet 2>&1); then
-  exit 0
+prose=$(TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/lint-docs.ts $files --quiet 2>&1) || out="$prose"
+if [ -x "$grasp_bin" ] && [ -n "$archdocs" ]; then
+  # shellcheck disable=SC2086
+  anchors=$("$grasp_bin" archdoc lint $archdocs --quiet 2>&1) || out="$out
+$anchors"
 fi
+[ -z "$out" ] && exit 0
 
 count=$(printf '%s\n' "$out" | grep -c ERROR)
-msg="lint-docs: $count error(s) in changed docs under $sub. Run: npx ts-node scripts/lint-docs.ts <file>"
+msg="docs lint: $count error(s) in changed docs under $sub. Run: npx ts-node scripts/lint-docs.ts <file> and grasp archdoc lint <file>"
 printf '%s\n' "$msg" | python3 -c 'import json,sys; print(json.dumps({"systemMessage": sys.stdin.read().strip()}))'
 exit 0

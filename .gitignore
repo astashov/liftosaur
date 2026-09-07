@@ -1,4 +1,4 @@
-/.aireviewer
+/.grasp
 /.vscode
 /dist
 /dist-rn
@@ -82,6 +82,7 @@ logs/
 !/assetlinks.json
 !/babel.config.web.json
 !/cdk.json
+!/grasp.json
 !/logic.txt
 !/package-lock.json
 !/package.json
