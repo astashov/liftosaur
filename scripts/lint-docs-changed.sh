@@ -19,7 +19,7 @@ files=$(git -C "$sub" status --porcelain -- archdocs plans 2>/dev/null \
 
 # Anchors are graspcode's half of the split, so both linters run and their counts are added.
 # Hooks do not inherit the plugin's PATH entry, hence the fallback to its installed location.
-grasp_bin=$(command -v grasp || echo "$HOME/.claude/plugins/marketplaces/graspcode/plugins/graspcode/bin/grasp")
+grasp_bin=$(command -v grasp || ls -d "$HOME"/.claude/plugins/cache/graspcode/graspcode/*/bin/grasp 2>/dev/null | tail -1)
 archdocs=$(printf '%s\n' "$files" | grep '/archdocs/' || true)
 
 out=""
