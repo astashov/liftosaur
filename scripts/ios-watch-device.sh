@@ -5,6 +5,7 @@ set -eu
 #
 #   npm run ios-watch-device            # Debug
 #   CONFIGURATION=Release npm run ios-watch-device
+#   DISABLE_OTA=1 npm run ios-watch-device    # compile LftUpdater with OTA off
 #
 # The watch has no Metro: it launches on the bundle embedded here by ios/scripts/embed-watch-bundle.sh,
 # then asks <baseUrl>/api/updates/manifest for an OTA update and runs whatever it downloads. baseUrl lives
@@ -79,6 +80,7 @@ RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static xcodebuil
   -configuration "$CONFIGURATION" \
   -destination 'generic/platform=watchOS' \
   -derivedDataPath "$DERIVED" \
+  ${DISABLE_OTA:+SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) DISABLE_OTA'} \
   build
 
 APP="$DERIVED/Build/Products/$CONFIGURATION-watchos/LiftosaurWatch.app"
