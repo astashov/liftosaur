@@ -739,7 +739,15 @@ describe("VersionTracker", () => {
           dayName: "Day 1",
           entries: [],
           startTime: 1000,
-          setTimer: { entryIndex: 0, setIndex: 0, startedAt: 500, nonce: 500 },
+          setTimer: {
+            entryIndex: 0,
+            setIndex: 0,
+            setId: "set1",
+            id: "phase1",
+            side: "bilateral",
+            startedAt: 500,
+            nonce: 500,
+          },
         };
         storage1.progress = [progress];
         const versions1 = trackerWeb.fillVersions(storage1, {}, 1000);

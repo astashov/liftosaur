@@ -242,8 +242,8 @@ struct ContentView: View {
                                     onUpdateWeight: { entryIndex, setIndex, weight in
                                         await workoutManager.updateSetWeight(entryIndex: entryIndex, setIndex: setIndex, weight: weight)
                                     },
-                                    onUpdateCompletedSetTimer: { entryIndex, setIndex, seconds in
-                                        await workoutManager.updateCompletedSetTimer(entryIndex: entryIndex, setIndex: setIndex, seconds: seconds)
+                                    onUpdateCompletedSetTimer: { entryIndex, setIndex, seconds, secondsLeft in
+                                        await workoutManager.updateCompletedSetTimer(entryIndex: entryIndex, setIndex: setIndex, seconds: seconds, secondsLeft: secondsLeft)
                                     },
                                     onGetAmrapModal: {
                                         await workoutManager.getAmrapModal()

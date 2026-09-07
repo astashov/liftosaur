@@ -12,6 +12,21 @@ import { useRem } from "../utils/useRem";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { TimeUtils_formatMMSS } from "../utils/time";
 
+function addRecordedDuration(
+  builder: StyledText,
+  seconds: number,
+  timerColor: string,
+  xs: number,
+  testID: string
+): void {
+  if (seconds < 60) {
+    builder.add(`${seconds}`, { fontWeight: "600", color: timerColor }, testID);
+    builder.add("s", { fontSize: xs, color: timerColor });
+  } else {
+    builder.add(TimeUtils_formatMMSS(seconds * 1000), { fontWeight: "600", color: timerColor }, testID);
+  }
+}
+
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
     a.reps === b.reps &&
@@ -20,6 +35,7 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
     a.askWeight === b.askWeight &&
     a.timer === b.timer &&
     a.setTimer === b.setTimer &&
+    a.setTimerLeft === b.setTimerLeft &&
     a.isOverflowSetTimer === b.isOverflowSetTimer &&
     a.auto === b.auto
   );
@@ -132,27 +148,28 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
     builder.add(" @", { fontSize: xs, color: rpeColor });
     builder.add(`${set.rpe}`, { color: rpeColor }, "history-entry-rpe");
   }
-  if (set.setTimer != null) {
+  if (isNext && set.setTimer != null) {
     builder.add(" ");
-    if (isNext) {
-      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
-      builder.add("s", { fontSize: xs, color: timerColor });
-      builder.add(`${set.isOverflowSetTimer ? "+" : ""}|`, { fontWeight: "600", color: timerColor });
-      if (set.timer != null) {
-        builder.add(`${set.timer}`, { fontWeight: "600", color: timerColor }, "history-entry-timer");
-        builder.add("s", { fontSize: xs, color: timerColor });
-      } else {
-        builder.add("?", { fontWeight: "600", color: timerColor });
-      }
-    } else if (set.setTimer < 60) {
-      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+    builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+    builder.add("s", { fontSize: xs, color: timerColor });
+    builder.add(`${set.isOverflowSetTimer ? "+" : ""}|`, { fontWeight: "600", color: timerColor });
+    if (set.timer != null) {
+      builder.add(`${set.timer}`, { fontWeight: "600", color: timerColor }, "history-entry-timer");
       builder.add("s", { fontSize: xs, color: timerColor });
     } else {
-      builder.add(
-        TimeUtils_formatMMSS(set.setTimer * 1000),
-        { fontWeight: "600", color: timerColor },
-        "history-entry-set-timer"
-      );
+      builder.add("?", { fontWeight: "600", color: timerColor });
+    }
+  } else if (!isNext && (set.setTimer != null || set.setTimerLeft != null)) {
+    builder.add(" ");
+    if (set.setTimerLeft != null) {
+      addRecordedDuration(builder, set.setTimerLeft, timerColor, xs, "history-entry-set-timer-left");
+      builder.add("/", { fontWeight: "600", color: timerColor });
+      if (set.setTimer == null) {
+        builder.add("-", { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+      }
+    }
+    if (set.setTimer != null) {
+      addRecordedDuration(builder, set.setTimer, timerColor, xs, "history-entry-set-timer");
     }
   } else if (set.timer != null) {
     builder.add(" ");

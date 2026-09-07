@@ -203,17 +203,22 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
        let setIndex = sharedDefaults.object(forKey: "recordSetTimerSetIndex") as? Int {
       let elapsedSeconds = sharedDefaults.integer(forKey: "recordSetTimerElapsedSeconds")
       let keepTiming = sharedDefaults.bool(forKey: "recordSetTimerKeepTiming")
+      let phaseId = sharedDefaults.string(forKey: "recordSetTimerPhaseId")
       let requestId = sharedDefaults.string(forKey: "completeSetRequestId")
       sharedDefaults.removeObject(forKey: "recordSetTimerEntryIndex")
       sharedDefaults.removeObject(forKey: "recordSetTimerSetIndex")
       sharedDefaults.removeObject(forKey: "recordSetTimerElapsedSeconds")
       sharedDefaults.removeObject(forKey: "recordSetTimerKeepTiming")
+      sharedDefaults.removeObject(forKey: "recordSetTimerPhaseId")
       sharedDefaults.removeObject(forKey: "completeSetRequestId")
       var event: [String: Any] = ["action": "recordSetTimer",
             "entryIndex": entryIndex,
             "setIndex": setIndex,
             "elapsedSeconds": elapsedSeconds,
             "keepTiming": keepTiming]
+      if let phaseId = phaseId, !phaseId.isEmpty {
+        event["phaseId"] = phaseId
+      }
       if let requestId = requestId {
         event["completeSetRequestId"] = requestId
       }
@@ -225,16 +230,21 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
       let setIndex = sharedDefaults.integer(forKey: "startSetTimerWorkSetIndex")
       let tappedAt = sharedDefaults.integer(forKey: "startSetTimerWorkTappedAt")
       let getReadySince = sharedDefaults.integer(forKey: "startSetTimerWorkGetReadySince")
+      let phaseId = sharedDefaults.string(forKey: "startSetTimerWorkPhaseId")
       let requestId = sharedDefaults.string(forKey: "completeSetRequestId")
       sharedDefaults.removeObject(forKey: "startSetTimerWork")
       sharedDefaults.removeObject(forKey: "startSetTimerWorkEntryIndex")
       sharedDefaults.removeObject(forKey: "startSetTimerWorkSetIndex")
       sharedDefaults.removeObject(forKey: "startSetTimerWorkTappedAt")
       sharedDefaults.removeObject(forKey: "startSetTimerWorkGetReadySince")
+      sharedDefaults.removeObject(forKey: "startSetTimerWorkPhaseId")
       sharedDefaults.removeObject(forKey: "completeSetRequestId")
       var event: [String: Any] = ["action": "startSetTimerWork",
             "entryIndex": entryIndex,
             "setIndex": setIndex]
+      if let phaseId = phaseId, !phaseId.isEmpty {
+        event["phaseId"] = phaseId
+      }
       if tappedAt > 0 {
         event["tappedAt"] = tappedAt
       }
@@ -292,7 +302,10 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
         isCompleted: (st["isCompleted"] as? NSNumber)?.boolValue ?? false,
         entryIndex: (st["entryIndex"] as? NSNumber)?.intValue ?? 0,
         setIndex: (st["setIndex"] as? NSNumber)?.intValue ?? 0,
-        restTimer: (st["restTimer"] as? NSNumber)?.intValue ?? 0
+        restTimer: (st["restTimer"] as? NSNumber)?.intValue ?? 0,
+        phaseId: st["phaseId"] as? String,
+        side: st["side"] as? String,
+        recordedThisSide: (st["recordedThisSide"] as? NSNumber)?.boolValue
       )
     }
     var getReady: LiveActivityGetReady?
@@ -302,7 +315,9 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
         getReady: (gr["getReady"] as? NSNumber)?.intValue ?? 0,
         entryIndex: (gr["entryIndex"] as? NSNumber)?.intValue ?? 0,
         setIndex: (gr["setIndex"] as? NSNumber)?.intValue ?? 0,
-        setTimer: (gr["setTimer"] as? NSNumber)?.intValue ?? 0
+        setTimer: (gr["setTimer"] as? NSNumber)?.intValue ?? 0,
+        phaseId: gr["phaseId"] as? String,
+        side: gr["side"] as? String
       )
     }
     var entry: HistoryEntryState?

@@ -122,15 +122,12 @@ interface IStatDb {
 // shape (the server re-runs all migrations on every sync, so old-format fields get relocated/re-derived
 // server-side). See rn-ota-delivery.md: releases that bump runtimeVersion strand users who haven't
 // installed the new native binary, and OTA can't reach them.
-// All gaps below end at 20260903120000 = default_get_ready_to_5s (data-only: fills settings.timers
-// .getReady when absent). The intermediate steps are move_amrap_modal_to_progress (20260628120000) and
-// sanitize_pipe_bang_in_custom_exercise_names (20260702120000), both also data-only — so every client
-// already whitelisted stays whitelisted rather than being re-stranded each time the server head moves.
 // Re-point these when adding a data-only migration; leave them alone for a shape-changing one.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20260903120000",
-  "20260628120000": "20260903120000",
-  "20260702120000": "20260903120000",
+  "20260304084247": "20260906120000",
+  "20260628120000": "20260906120000",
+  "20260702120000": "20260906120000",
+  "20260903120000": "20260906120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {

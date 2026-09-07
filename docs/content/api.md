@@ -959,7 +959,7 @@ Content-Type: application/json
 
 Sets are addressed by `setId`. `entryId` is optional and checked if you send it - a mismatch is a `400` rather than a write to the wrong exercise. The response is always the whole updated workout.
 
-Fields inside `completed`: `reps`, `repsLeft` (unilateral exercises), `weight`, `rpe`, `setTimer` (seconds held, for timed sets), `userVars` (see below). Send `"completed": null` to un-complete a set.
+Fields inside `completed`: `reps`, `repsLeft` (unilateral exercises), `weight`, `rpe`, `setTimer` (seconds held, for timed sets), `setTimerLeft` (the left side, for timed sets on unilateral exercises), `userVars` (see below). Send `"completed": null` to un-complete a set.
 
 **Sets that ask for a value.** Some sets can't be completed from the target alone, and the payload tells you which:
 
@@ -969,10 +969,13 @@ Fields inside `completed`: `reps`, `repsLeft` (unilateral exercises), `weight`, 
 | `askWeight: true` | `completed.weight` |
 | `logRpe: true` | `completed.rpe` |
 | `promptedVars` non-empty | `completed.userVars` - a value for each |
+| `setTimer` non-null and `isUnilateral: true` | both `completed.setTimer` and `completed.setTimerLeft` |
 
 Omit one and you get `400 missing_set_input` naming everything that's missing. The server won't guess: an AMRAP set defaulted to its target would silently record the minimum, and a weight defaulted to nothing would record 0.
 
 **Timed sets.** A set with `setTimer` is held for time. Run your own clock and report the held seconds as `completed.setTimer` along with the reps - one call, no second request.
+
+On a unilateral exercise the set is held once per side, so it takes two durations: `completed.setTimerLeft` for the left and `completed.setTimer` for the right. Send both or neither - one alone is a `400 missing_set_input`, because guessing the other half would record a hold nobody did. Sending `setTimerLeft` on a bilateral exercise, or either duration on a set with no `setTimer`, is a `400 invalid_set_input`.
 
 **Prompted state variables.** Some programs ask the lifter for a value that feeds the progression. The entry advertises them:
 
@@ -1117,6 +1120,7 @@ Every write is safe to send again if you didn't get a reply. There's no idempote
 |---|---|---|
 | 400 | `invalid_input` | Malformed body, or a missing `X-Liftosaur-Device-Id` / `X-Liftosaur-Client` |
 | 400 | `missing_set_input` | The set asks for values you didn't send |
+| 400 | `invalid_set_input` | A value doesn't apply to that set - a duration on an untimed set, or `setTimerLeft` on a bilateral one |
 | 404 | `no_active_workout` | No workout in progress |
 | 404 | `set_not_found` | That `setId` isn't in the workout - refetch |
 | 404 | `entry_not_found` | That `entryId` isn't in the workout |

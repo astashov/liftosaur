@@ -92,7 +92,7 @@ struct ExerciseScreen: View {
     let onUpdateReps: (Int, Int, Int) async -> Void  // entryIndex, setIndex, reps
     let onUpdateRepsLeft: (Int, Int, Int) async -> Void  // entryIndex, setIndex, repsLeft
     let onUpdateWeight: (Int, Int, Double) async -> Void  // entryIndex, setIndex, weight
-    let onUpdateCompletedSetTimer: (Int, Int, Int) async -> Void  // entryIndex, setIndex, seconds (<0 clears)
+    let onUpdateCompletedSetTimer: (Int, Int, Int, Int?) async -> Void  // entryIndex, setIndex, seconds (<0 clears), secondsLeft
     let onGetAmrapModal: () async -> WatchAmrapModal?
     let onCompleteSetWithAmrap: (Int?, Int?, Double?, Double?, [String: Any]?) async -> Void
     let restTimer: WatchRestTimer?
@@ -201,8 +201,8 @@ struct ExerciseScreen: View {
                         onUpdateWeight: { setIndex, weight in
                             await onUpdateWeight(exerciseIndex, setIndex, weight)
                         },
-                        onUpdateCompletedSetTimer: { setIndex, seconds in
-                            await onUpdateCompletedSetTimer(exerciseIndex, setIndex, seconds)
+                        onUpdateCompletedSetTimer: { setIndex, seconds, secondsLeft in
+                            await onUpdateCompletedSetTimer(exerciseIndex, setIndex, seconds, secondsLeft)
                         },
                         onAddSet: {
                             await onAddSet(exerciseIndex)
@@ -663,7 +663,7 @@ struct ExercisePageView: View {
     let onUpdateReps: (Int, Int) async -> Void  // setIndex, reps
     let onUpdateRepsLeft: (Int, Int) async -> Void  // setIndex, repsLeft
     let onUpdateWeight: (Int, Double) async -> Void  // setIndex, weight
-    let onUpdateCompletedSetTimer: (Int, Int) async -> Void  // setIndex, seconds (<0 clears)
+    let onUpdateCompletedSetTimer: (Int, Int, Int?) async -> Void  // setIndex, seconds (<0 clears), secondsLeft
     let onAddSet: () async -> Void
     let onDeleteSet: (Int) async -> Void  // setIndex
     let onBack: () -> Void
@@ -1130,7 +1130,7 @@ struct SetContentView: View {
     let onUpdateReps: (Int, Int) async -> Void  // setIndex, reps
     let onUpdateRepsLeft: (Int, Int) async -> Void  // setIndex, repsLeft
     let onUpdateWeight: (Int, Double) async -> Void  // setIndex, weight
-    let onUpdateCompletedSetTimer: (Int, Int) async -> Void  // setIndex, seconds (<0 clears)
+    let onUpdateCompletedSetTimer: (Int, Int, Int?) async -> Void  // setIndex, seconds (<0 clears), secondsLeft
 
     @State private var showTimeEdit: Bool = false
     @State private var crownRepsValue: Double = 0
@@ -1217,8 +1217,10 @@ struct SetContentView: View {
         .sheet(isPresented: $showTimeEdit) {
             SetTimerEditScreen(
                 initialSeconds: workoutSet.completedSetTimer ?? workoutSet.setTimer ?? 0,
-                onSave: { seconds in await onUpdateCompletedSetTimer(setIndex, seconds) },
-                onClear: { await onUpdateCompletedSetTimer(setIndex, -1) }
+                initialLeftSeconds: workoutSet.completedSetTimerLeft ?? workoutSet.setTimer ?? 0,
+                isUnilateral: workoutSet.isUnilateral,
+                onSave: { seconds, secondsLeft in await onUpdateCompletedSetTimer(setIndex, seconds, secondsLeft) },
+                onClear: { await onUpdateCompletedSetTimer(setIndex, -1, nil) }
             )
         }
     }
@@ -1365,9 +1367,9 @@ struct SetContentView: View {
                 // The recorded set-timer duration rides at the trailing edge of the plates line instead of its
                 // own row, so it doesn't squish the reps/weight fields on compact watches. Tap anywhere in this
                 // area to edit it.
-                if let recorded = workoutSet.completedSetTimer {
+                if workoutSet.completedSetTimer != nil || workoutSet.completedSetTimerLeft != nil {
                     Spacer(minLength: 6)
-                    Text(formatMMSS(recorded))
+                    Text(recordedDurationText(workoutSet))
                         .foregroundColor(LiftosaurColor.purple400)
                         .fontWeight(.bold)
                 }
@@ -1380,7 +1382,7 @@ struct SetContentView: View {
         .padding(.horizontal, 2)
         .contentShape(Rectangle())
         .onTapGesture {
-            if workoutSet.setTimer != nil || workoutSet.completedSetTimer != nil {
+            if workoutSet.completedSetTimer != nil || workoutSet.completedSetTimerLeft != nil {
                 showTimeEdit = true
             }
         }
@@ -1388,6 +1390,13 @@ struct SetContentView: View {
 
     private func formatMMSS(_ seconds: Int) -> String {
         String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    private func recordedDurationText(_ set: WatchSet) -> String {
+        let right = set.completedSetTimer.map { formatMMSS($0) } ?? "-"
+        guard set.isUnilateral else { return right }
+        let left = set.completedSetTimerLeft.map { formatMMSS($0) } ?? "-"
+        return "\(left)/\(right)"
     }
 
     private func loadValidWeights() {
@@ -1719,7 +1728,7 @@ struct AddSetTabView: View {
         onUpdateReps: { _, _, _ in },
         onUpdateRepsLeft: { _, _, _ in },
         onUpdateWeight: { _, _, _ in },
-        onUpdateCompletedSetTimer: { _, _, _ in },
+        onUpdateCompletedSetTimer: { _, _, _, _ in },
         onGetAmrapModal: { nil },
         onCompleteSetWithAmrap: { _, _, _, _, _ in },
         restTimer: WatchRestTimer(timerSince: Date().timeIntervalSince1970 * 1000 - 90000, timer: 180),

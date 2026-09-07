@@ -75,7 +75,8 @@ import {
 import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
 import { SendMessage_print } from "../utils/sendMessage";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { IPercentage, IScriptErrorHandler } from "../types";
+import { IPercentage, IScriptErrorHandler, ITimedSetSide } from "../types";
+import { TimedSet_open, TimedSet_recordedFor } from "./timedSet";
 import {
   History_workoutTime,
   History_createCustomEntry,
@@ -220,6 +221,7 @@ export function Progress_createEmptyScriptBindings(
     timers: [],
     setTime: [],
     completedSetTime: [],
+    completedSetTimeLeft: [],
     w: [],
     r: [],
     cr: [],
@@ -266,6 +268,7 @@ export function Progress_createScriptBindings(
     bindings.timers.push(set.timer);
     bindings.setTime.push(set.setTimer);
     bindings.completedSetTime.push(set.completedSetTimer);
+    bindings.completedSetTimeLeft.push(set.completedSetTimerLeft);
     bindings.isCompleted.push(set.isCompleted ? 1 : 0);
   }
   bindings.w = bindings.weights;
@@ -1133,31 +1136,16 @@ export function Progress_completeSet(
   // The first "complete" on a timed set starts its clock (opens the set-timer modal) instead of
   // completing it — the actual completion happens on the second signal (Stop & record), mirroring
   // how the AMRAP modal defers completion. See Progress_completeSetAction for the recording step.
-  if (
-    mode === "workout" &&
-    set?.setTimer != null &&
-    !set.isCompleted &&
-    !hasOpenSetTimer &&
-    set.completedSetTimer == null
-  ) {
+  if (mode === "workout" && set?.setTimer != null && !set.isCompleted && !hasOpenSetTimer) {
     const now = Date.now();
-    // A countdown in the playground would stall playground.ts's shortcut, which expects setTimer immediately.
-    const getReady = isPlayground ? 0 : (settings.timers.getReady ?? 0);
-    // Each branch owns both fields. hasOpenSetTimer only guards *this* set, so tapping play on another
-    // timed set while one is running lands here - and leaving the old field behind would give the record
-    // two live timers, which every reader resolves differently.
-    if (getReady > 0) {
-      return {
-        ...progress,
-        setTimer: undefined,
-        setTimerGetReady: { entryIndex, setIndex, startedAt: now, getReady, nonce: now },
-      };
+    const opened = TimedSet_open(progress, entryIndex, setIndex, settings, {
+      getReadySeconds: isPlayground ? 0 : (settings.timers.getReady ?? 0),
+      startedAt: now,
+      nonce: now,
+    });
+    if (opened != null) {
+      return { ...progress, setTimer: undefined, setTimerGetReady: undefined, ...opened };
     }
-    return {
-      ...progress,
-      setTimer: { entryIndex, setIndex, startedAt: now, nonce: now },
-      setTimerGetReady: undefined,
-    };
   }
   const shouldLogRpe = !!set?.logRpe;
   const shouldPromptUserVars = hasUserPromptedVars && Progress_hasLastUnfinishedSet(entry);
@@ -1222,6 +1210,9 @@ export type IActiveSetTimer =
       phase: "getReady";
       entryIndex: number;
       setIndex: number;
+      setId: string;
+      id: string;
+      side: ITimedSetSide;
       startedAt: number;
       getReady: number;
       nonce?: number;
@@ -1230,21 +1221,40 @@ export type IActiveSetTimer =
       phase: "work";
       entryIndex: number;
       setIndex: number;
+      setId: string;
+      id: string;
+      side: ITimedSetSide;
       startedAt: number;
       nonce?: number;
       keepTiming?: boolean;
     };
 
+// A watch on a cached bundle writes a phase with no setId, at the same storage version, so the migration
+// never reaches it — such a phase falls back to indices rather than being rejected as unresolvable.
+export function Progress_resolveTimedSetPhase(
+  progress: IHistoryRecord,
+  phase: { entryIndex: number; setIndex: number; setId?: string } | undefined
+): ISet | undefined {
+  if (phase == null) {
+    return undefined;
+  }
+  const set = progress.entries[phase.entryIndex]?.sets[phase.setIndex];
+  if (set == null) {
+    return undefined;
+  }
+  return phase.setId == null || set.id === phase.setId ? set : undefined;
+}
+
 // `setTimer` wins when both fields are set: version merging is field-by-field, so a merge can legally
 // produce both, and preferring the later phase is the correct recovery.
 export function Progress_getActiveSetTimer(progress: IHistoryRecord): IActiveSetTimer | undefined {
   const stm = progress.setTimer;
-  if (stm != null) {
-    return { phase: "work", ...stm };
+  if (stm != null && Progress_resolveTimedSetPhase(progress, stm) != null) {
+    return { phase: "work", ...stm, side: stm.side ?? "bilateral" };
   }
   const getReady = progress.setTimerGetReady;
-  if (getReady != null) {
-    return { phase: "getReady", ...getReady };
+  if (getReady != null && Progress_resolveTimedSetPhase(progress, getReady) != null) {
+    return { phase: "getReady", ...getReady, side: getReady.side ?? "bilateral" };
   }
   return undefined;
 }
@@ -1262,6 +1272,9 @@ export function Progress_startSetTimerWork(progress: IHistoryRecord, startedAt: 
     setTimer: {
       entryIndex: getReady.entryIndex,
       setIndex: getReady.setIndex,
+      setId: getReady.setId,
+      id: getReady.id,
+      side: getReady.side,
       startedAt,
       // Reusing the nonce is what stops the presenter re-navigating on the flip.
       nonce: getReady.nonce,
@@ -1336,6 +1349,7 @@ export function Progress_getAutoGetReadySeconds(set: ISet | undefined, settings:
 // instead would hand a late reconcile a full fresh countdown and stretch the circuit past its cadence.
 export function Progress_advanceTimedSet(
   progress: IHistoryRecord,
+  settings: ISettings,
   freshNonce: boolean,
   getReadySeconds: number = 0,
   startedAt?: number
@@ -1352,6 +1366,14 @@ export function Progress_advanceTimedSet(
   // roll into a different exercise). currentEntryIndex syncs, so every client's view moves with it.
   const nextEntryIndex = next != null ? next.entryIndex : progress.currentEntryIndex;
   const entryChanged = nextEntryIndex !== (progress.currentEntryIndex ?? 0);
+  const opened =
+    next != null
+      ? TimedSet_open(progress, next.entryIndex, next.setIndex, settings, {
+          getReadySeconds,
+          startedAt: phaseStartedAt,
+          nonce: freshNonce ? Date.now() : prevNonce,
+        })
+      : undefined;
   return {
     ...progress,
     timerSince: undefined,
@@ -1359,24 +1381,38 @@ export function Progress_advanceTimedSet(
     timerMode: undefined,
     timerEntryIndex: undefined,
     timerSetIndex: undefined,
-    setTimer:
-      next != null && getReadySeconds <= 0
-        ? { ...next, startedAt: phaseStartedAt, nonce: freshNonce ? Date.now() : prevNonce }
-        : undefined,
-    setTimerGetReady:
-      next != null && getReadySeconds > 0
-        ? {
-            ...next,
-            startedAt: phaseStartedAt,
-            getReady: getReadySeconds,
-            nonce: freshNonce ? Date.now() : prevNonce,
-          }
-        : undefined,
+    setTimer: undefined,
+    setTimerGetReady: undefined,
+    ...opened,
     currentEntryIndex: nextEntryIndex,
     // The pager scrolls on a forceUpdateEntryIndex flip, not on currentEntryIndex alone (so swipes aren't
     // fought). Flip it when an auto-advance crosses into another exercise so the pager scrolls to follow.
     ui: entryChanged ? { ...progress.ui, forceUpdateEntryIndex: !progress.ui?.forceUpdateEntryIndex } : progress.ui,
   };
+}
+
+export function Progress_handOffToOtherSide(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  settings: ISettings,
+  endedAt: number,
+  nonce?: number,
+  isPlayground?: boolean
+): IHistoryRecord {
+  const set = progress.entries[entryIndex]?.sets[setIndex];
+  if (set == null) {
+    return progress;
+  }
+  const opened = TimedSet_open(progress, entryIndex, setIndex, settings, {
+    getReadySeconds: isPlayground ? 0 : (settings.timers.getReady ?? 0),
+    startedAt: set.auto ? endedAt : Date.now(),
+    nonce,
+  });
+  if (opened == null) {
+    return progress;
+  }
+  return { ...progress, setTimer: undefined, setTimerGetReady: undefined, ...opened };
 }
 
 // The single place that decides what happens after a timed set is recorded+completed from its clock.
@@ -1414,13 +1450,13 @@ export function Progress_proceedAfterTimedSet(
     clockStartedAt != null && endedOffsetSeconds != null ? clockStartedAt + endedOffsetSeconds * 1000 : Date.now();
   // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
   if (set?.auto && (set.timer ?? 0) === 0) {
-    return Progress_advanceTimedSet(progress, false, 0, timedSetEndedAt);
+    return Progress_advanceTimedSet(progress, settings, false, 0, timedSetEndedAt);
   }
   const autoGetReady = Progress_getAutoGetReadySeconds(set, settings);
   // The countdown eats the whole rest (rest <= getReady), so there is no rest left to run - go straight into
   // it, otherwise Progress_startTimer would clear the timer for a 0s rest and nothing would reopen the clock.
   if (autoGetReady > 0 && (set?.timer ?? 0) - autoGetReady <= 0) {
-    return Progress_advanceTimedSet(progress, true, autoGetReady, timedSetEndedAt);
+    return Progress_advanceTimedSet(progress, settings, true, autoGetReady, timedSetEndedAt);
   }
   let newProgress: IHistoryRecord = { ...progress, setTimer: undefined, setTimerGetReady: undefined };
   if (set?.isCompleted && set.setTimer != null) {
@@ -1469,6 +1505,14 @@ export function Progress_closeTimedSet(
     );
   }
   return newProgress;
+}
+
+export function Progress_reconcileTimedSet(progress: IHistoryRecord, now: number): IHistoryRecord {
+  const getReady = progress.setTimerGetReady;
+  if (progress.setTimer != null || getReady == null || now - getReady.startedAt < getReady.getReady * 1000) {
+    return progress;
+  }
+  return Progress_startSetTimerWork(progress, getReady.startedAt + getReady.getReady * 1000);
 }
 
 // Cheap pure predicate (no program evaluation) telling whether Progress_checkSetTimer would do anything.
@@ -1522,26 +1566,14 @@ export function Progress_checkSetTimer(
   if (progress.amrapModal != null) {
     return progress;
   }
-  let current = progress;
-  const getReady = current.setTimerGetReady;
-  if (current.setTimer == null && getReady != null) {
-    if (now - getReady.startedAt < getReady.getReady * 1000) {
-      return current;
-    }
-    // Backdated, and deliberately falling through instead of returning: a wake that slept past both the
-    // countdown and the work target has to settle in one pass, because the banner is the only in-app driver
-    // and reopening onto any other screen never sends a second tick.
-    current = Progress_startSetTimerWork(current, getReady.startedAt + getReady.getReady * 1000);
-  }
+  const current = Progress_reconcileTimedSet(progress, now);
   const stm = current.setTimer;
   if (stm != null) {
     const set = current.entries[stm.entryIndex]?.sets[stm.setIndex];
     // No !isCompleted guard: a "Log & keep timing" set is already completed but keeps the clock running, and
     // must still auto-close + rest at the target. completeSetAction's already-logged branch handles it.
     if (set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000) {
-      // A set logged via "Log & keep timing" keeps the time the user logged it at — don't overwrite it with
-      // the target. A not-yet-logged set records the target (it ran the full duration).
-      const recordedSeconds = set.isCompleted ? (set.completedSetTimer ?? set.setTimer) : set.setTimer;
+      const recordedSeconds = TimedSet_recordedFor(set, stm.side) ?? set.setTimer;
       return Progress_completeSetAction(
         settings,
         stats,
@@ -1581,6 +1613,7 @@ export function Progress_checkSetTimer(
       // throttled timer, a wake) must not hand out a full fresh countdown and stretch the round.
       return Progress_advanceTimedSet(
         current,
+        settings,
         true,
         Progress_getAutoGetReadySeconds(restSet, settings),
         current.timerSince + current.timer * 1000
@@ -2278,6 +2311,72 @@ export function Progress_changeAmrapAction(
   return { ...newProgress, amrapModal: undefined };
 }
 
+export interface ITimedSetDurations {
+  left?: number;
+  right?: number;
+}
+
+// Takes explicit durations rather than deriving them from the clock: a completed `auto` set backdates the
+// next set's clock into the future, so Date.now() against it went negative and recorded [25, -25, 0].
+export function Progress_settleTimedSet(
+  settings: ISettings,
+  stats: IStats,
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  mode: IProgressMode,
+  durations: ITimedSetDurations,
+  ctx: {
+    programExercise?: IPlannerProgramExercise;
+    otherStates?: IByExercise<IProgramState>;
+    subscription?: ISubscription;
+    isPlayground?: boolean;
+  },
+  onError?: IScriptErrorHandler
+): IHistoryRecord {
+  let current = progress;
+  for (let pass = 0; pass < 4; pass += 1) {
+    const phase = Progress_getActiveSetTimer(current);
+    if (phase == null || phase.entryIndex !== entryIndex || phase.setIndex !== setIndex) {
+      return current;
+    }
+    if (phase.phase === "getReady") {
+      current = Progress_startSetTimerWork(current, phase.startedAt);
+      continue;
+    }
+    const setsKey = mode === "warmup" ? "warmupSets" : "sets";
+    const set = current.entries[entryIndex]?.[setsKey][setIndex];
+    if (set == null) {
+      return current;
+    }
+    const reported = phase.side === "left" ? durations.left : durations.right;
+    current = Progress_completeSetAction(
+      settings,
+      stats,
+      current,
+      {
+        type: "CompleteSetAction",
+        entryIndex,
+        setIndex,
+        mode,
+        programExercise: ctx.programExercise,
+        otherStates: ctx.otherStates,
+        forceUpdateEntryIndex: false,
+        isExternal: true,
+        isPlayground: ctx.isPlayground ?? false,
+        recordedSeconds: reported ?? TimedSet_recordedFor(set, phase.side) ?? set.setTimer,
+      },
+      ctx.subscription,
+      onError
+    );
+    const after = current.entries[entryIndex]?.[setsKey][setIndex];
+    if (after == null || TimedSet_recordedFor(after, phase.side) == null) {
+      return current;
+    }
+  }
+  return current;
+}
+
 export function Progress_completeSetAction(
   settings: ISettings,
   stats: IStats,
@@ -2292,6 +2391,16 @@ export function Progress_completeSetAction(
     setTimerModal != null &&
     setTimerModal.entryIndex === action.entryIndex &&
     setTimerModal.setIndex === action.setIndex;
+  const countdown = progress.setTimerGetReady;
+  if (
+    action.mode === "workout" &&
+    !wasSetTimerOpen &&
+    countdown != null &&
+    countdown.entryIndex === action.entryIndex &&
+    countdown.setIndex === action.setIndex
+  ) {
+    return progress;
+  }
   // A Stop/Log tap from the set-timer banner (keepSetTimerRunning is set only by those) is a deferred user
   // action — if the clock already auto-completed, advanced, or closed just before the event landed, the banner
   // is stale and completing here would fall through to normal toggling and flip an already-completed set back
@@ -2301,11 +2410,61 @@ export function Progress_completeSetAction(
     return progress;
   }
   const oldSet = progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+  const timedSide = setTimerModal?.side ?? "bilateral";
+  const recordedThisSide = TimedSet_recordedFor(oldSet, timedSide);
+
+  if (wasSetTimerOpen && setTimerModal != null && timedSide === "left") {
+    const recorded =
+      recordedThisSide ?? action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    let banked = lf(progress)
+      .p("entries")
+      .i(action.entryIndex)
+      .p("sets")
+      .i(action.setIndex)
+      .p("completedSetTimerLeft")
+      .set(recorded);
+    if (!action.keepSetTimerRunning) {
+      const target = oldSet.setTimer;
+      const reachedTarget =
+        target != null && !oldSet.isOverflowSetTimer && Date.now() - setTimerModal.startedAt >= target * 1000;
+      const endedAt = reachedTarget ? setTimerModal.startedAt + target * 1000 : Date.now();
+      const handedOff = Progress_handOffToOtherSide(
+        banked,
+        action.entryIndex,
+        action.setIndex,
+        settings,
+        endedAt,
+        setTimerModal.nonce,
+        action.isPlayground
+      );
+      if (handedOff === banked) {
+        return Progress_completeSetAction(
+          settings,
+          stats,
+          { ...banked, setTimer: undefined, setTimerGetReady: undefined },
+          { ...action, keepSetTimerRunning: undefined, recordedSeconds: undefined },
+          subscription,
+          onError
+        );
+      }
+      banked = handedOff;
+    }
+    LiveActivityManager_updateLiveActivityForNextEntry(
+      banked,
+      action.entryIndex,
+      action.mode,
+      action.programExercise,
+      settings,
+      subscription
+    );
+    return banked;
+  }
 
   // Stopping the clock on a set that's already logged (e.g. after "Log & keep timing"): just update the
   // recorded time and close/keep the banner — don't run completion, which would toggle the set off.
   if (wasSetTimerOpen && setTimerModal != null && oldSet.isCompleted) {
-    const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    const recorded =
+      recordedThisSide ?? action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
     let stopped = lf(progress)
       .p("entries")
       .i(action.entryIndex)
@@ -2342,7 +2501,7 @@ export function Progress_completeSetAction(
 
   // Completing a timed set from its running clock: record the elapsed time first (derived from when the
   // clock started, unless the surface passed an explicit recordedSeconds).
-  if (wasSetTimerOpen && setTimerModal != null && !oldSet.isCompleted && oldSet.completedSetTimer == null) {
+  if (wasSetTimerOpen && setTimerModal != null && !oldSet.isCompleted && recordedThisSide == null) {
     const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
     progress = lf(progress)
       .p("entries")

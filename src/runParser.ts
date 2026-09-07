@@ -34,6 +34,7 @@ const bindings: IScriptBindings = {
   timers: [0, 0, 0],
   setTime: [0, 0, 0],
   completedSetTime: [0, 0, 0],
+  completedSetTimeLeft: [0, 0, 0],
   completedRPE: [0, 0, 0],
   completedReps: [1, 2, 3],
   completedRepsLeft: [0, 0, 0],

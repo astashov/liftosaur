@@ -16,6 +16,31 @@
 -->
 
 ---
+date: 2026-09-06
+title: Timed sets run once per side on unilateral exercises
+---
+
+A side plank or a suitcase carry is held on one side, then the other. Until now the timer ran once and
+recorded one duration for both.
+
+Now, on any exercise marked unilateral, the clock runs twice. Hold the left, a **Get ready** countdown
+gives you time to switch, then hold the right. Each side is recorded separately, and the workout shows
+them as `L 0:28` / `R 0:30` - the same split the reps already use. It works on the phone, the Apple
+Watch, the lock screen and the Dynamic Island.
+
+In `progress` and `update` blocks the left side is `completedSetTimeLeft[n]`, beside the existing
+`completedSetTime[n]`.
+
+One thing to know: a unilateral `auto` circuit takes longer than the numbers suggest, because each round
+is now two holds plus the countdown between them. `20s|10s auto` is 55 seconds a round rather than 30.
+There is no way to switch legs in zero time, and pretending otherwise would record the second side short.
+
+```liftoscript
+Side Plank / 3x1 45s|60s
+Bulgarian Split Squat / 3x1 30lb 40s|90s
+```
+
+---
 date: 2026-09-02
 title: A "Get ready" countdown before timed sets
 ---

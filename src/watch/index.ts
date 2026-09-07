@@ -50,6 +50,7 @@ import {
   IUnit,
   IPercentageUnit,
   IProgram,
+  ITimedSetSide,
 } from "../types";
 import { IEither } from "../utils/types";
 import { getLatestMigrationVersion } from "../migrations/migrations";
@@ -73,8 +74,8 @@ import {
   Progress_checkSetTimer,
   Progress_isSetTimerCheckDue,
   Progress_closeTimedSet,
-  Progress_getActiveSetTimer,
   Progress_startSetTimerWork,
+  Progress_getActiveSetTimer,
 } from "../models/progress";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import {
@@ -86,6 +87,7 @@ import { Collector } from "../utils/collector";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { SendMessage_toIos } from "../utils/sendMessage";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
+import { TimedSet_toView, TimedSet_withRecorded } from "../models/timedSet";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
 import { CollectionUtils_uniqByExpr } from "../utils/collection";
@@ -154,6 +156,9 @@ export interface IWatchSetTimerModal {
   // 1-based, counted across warmups+work (the absolute index) to match the rest timer view.
   currentSet: number;
   totalSets: number;
+  phaseId: string;
+  side: ITimedSetSide;
+  recordedThisSide: boolean;
 }
 
 export interface IWatchWorkoutStatus {
@@ -192,6 +197,7 @@ export interface IWatchSet {
   completedWeight?: IWeight;
   completedRpe?: number;
   completedSetTimer?: number;
+  completedSetTimerLeft?: number;
   status: IWatchSetStatus;
   plates?: string;
   isWarmup: boolean;
@@ -267,6 +273,7 @@ function setToWatchSet(
     completedWeight: set.completedWeight,
     completedRpe: set.completedRpe,
     completedSetTimer: set.completedSetTimer,
+    completedSetTimerLeft: isUnilateral ? set.completedSetTimerLeft : undefined,
     status: isWarmup ? Reps_setWarmupStatus([set]) : Reps_setsStatus([set]),
     plates,
     isWarmup,
@@ -889,35 +896,27 @@ class LiftosaurWatch {
       if (!progress) {
         return { success: true, data: undefined };
       }
-      const stm = Progress_getActiveSetTimer(progress);
-      // A timed AMRAP set keeps progress.setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet);
-      // yield to the amrap screen here like the in-app banner does, then re-present after it resolves (keep) or
-      // stay gone (record).
-      if (!stm || progress.amrapModal != null) {
+      const view = TimedSet_toView(progress, Progress_getActiveSetTimer(progress), storage.settings);
+      if (view == null) {
         return { success: true, data: undefined };
       }
-      const entry = progress.entries[stm.entryIndex];
-      const set = entry?.sets[stm.setIndex];
-      if (!entry || !set) {
-        return { success: true, data: undefined };
-      }
-      const settings = storage.settings;
-      const exercise = Exercise_get(entry.exercise, settings.exercises);
-      const absoluteSetIndex = entry.warmupSets.length + stm.setIndex;
       const data: IWatchSetTimerModal = {
-        entryIndex: stm.entryIndex,
-        setIndex: stm.setIndex,
-        startedAt: stm.startedAt,
-        phase: stm.phase,
-        getReady: stm.phase === "getReady" ? stm.getReady : 0,
-        setTimer: set.setTimer ?? 0,
-        isOverflow: !!set.isOverflowSetTimer,
-        isCompleted: !!set.isCompleted,
-        restTimer: set.timer ?? 0,
-        exerciseName: exercise.name,
-        imageUrl: ExerciseImageUtils_url(exercise, "small", settings),
-        currentSet: absoluteSetIndex + 1,
-        totalSets: entry.warmupSets.length + entry.sets.length,
+        entryIndex: view.entryIndex,
+        setIndex: view.setIndex,
+        startedAt: view.startedAt,
+        phase: view.stage,
+        getReady: view.getReadySeconds,
+        setTimer: view.targetSeconds,
+        isOverflow: view.isOverflow,
+        isCompleted: view.isCompleted,
+        restTimer: view.restSeconds,
+        exerciseName: view.exerciseShortName,
+        imageUrl: view.imageUrl,
+        currentSet: view.currentSet,
+        totalSets: view.totalSets,
+        phaseId: view.phaseId,
+        side: view.side,
+        recordedThisSide: view.recordedThisSide,
       };
       return { success: true, data };
     });
@@ -1091,7 +1090,8 @@ class LiftosaurWatch {
     deviceId: string,
     entryIndex: number,
     globalSetIndex: number,
-    seconds: number
+    seconds: number,
+    secondsLeft?: number
   ): string {
     lg("watch-edit-set-timer");
     return this.modifySet(storageJson, deviceId, entryIndex, globalSetIndex, (set) => {
@@ -1101,6 +1101,7 @@ class LiftosaurWatch {
         return {
           ...set,
           completedSetTimer: undefined,
+          completedSetTimerLeft: undefined,
           completedReps: undefined,
           completedRepsLeft: undefined,
           completedRpe: undefined,
@@ -1108,7 +1109,8 @@ class LiftosaurWatch {
           isCompleted: false,
         };
       }
-      return { ...set, completedSetTimer: seconds };
+      const withRight = TimedSet_withRecorded(set, "bilateral", seconds);
+      return secondsLeft != null ? TimedSet_withRecorded(withRight, "left", secondsLeft) : withRight;
     });
   }
 

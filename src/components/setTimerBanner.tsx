@@ -54,6 +54,8 @@ interface ISetTimerBannerContentProps {
 export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.Element | null {
   const { progress, dispatch, setTimerModal, settings, onClose, isPlayground } = props;
   const { entryIndex, setIndex, startedAt } = setTimerModal;
+  const sideLabel =
+    setTimerModal.side === "left" ? "Left side" : setTimerModal.side === "right" ? "Right side" : undefined;
   const isGetReady = setTimerModal.phase === "getReady";
   const entry = progress.entries[entryIndex];
   const set = entry?.sets[setIndex];
@@ -130,7 +132,10 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
     recordSetTimer(true);
   }
 
-  const isCompleted = !!set.isCompleted;
+  const isLeft = setTimerModal.side === "left";
+  const recordedThisSide = isLeft ? set.completedSetTimerLeft != null : set.completedSetTimer != null;
+  const isCompleted = isLeft ? recordedThisSide : !!set.isCompleted;
+  const stopLabel = recordedThisSide && isLeft ? "Next side" : `Stop & record · ${elapsedLabel}`;
 
   function onStartNow(): void {
     if (isPlayground) {
@@ -147,9 +152,21 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
           exerciseType={entry.exercise}
           settings={settings}
           subtitle={
-            <Text className="text-text-secondary text-sm">
-              Set {setIndex + 1} of {entry.sets.length}
-            </Text>
+            <View className="flex-row items-center flex-wrap">
+              <Text className="text-text-secondary text-sm">
+                Set {setIndex + 1} of {entry.sets.length}
+              </Text>
+              {sideLabel != null && (
+                <Text
+                  className="text-sm font-semibold text-text-cardyellow"
+                  data-testid="set-timer-side"
+                  testID="set-timer-side"
+                >
+                  {" · "}
+                  {sideLabel}
+                </Text>
+              )}
+            </View>
           }
         />
         <GetReadyRing secondsLeft={getReadyLeft} total={getReadyTotal} target={target} onPress={onStartNow} />
@@ -177,6 +194,16 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
               {" - "}
             </Text>
             <WorkoutExerciseSetTarget set={set} setType="program" />
+            {sideLabel != null && (
+              <Text
+                className="text-sm font-semibold text-text-cardyellow"
+                data-testid="set-timer-side"
+                testID="set-timer-side"
+              >
+                {" · "}
+                {sideLabel}
+              </Text>
+            )}
           </View>
         }
       />
@@ -199,15 +226,14 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
         <Text className="text-xs text-text-secondary">{TimeUtils_formatMMSS(target * 1000)}</Text>
       </View>
       <View className="mt-6 gap-2">
-        {/* Once the set is logged there's nothing left to record — only "Discard & close" remains. */}
-        {!isCompleted && (
+        {(!isCompleted || (isLeft && recordedThisSide)) && (
           <Button
             name="set-timer-stop-record"
             data-testid="set-timer-stop-record"
             kind="purple"
             onPress={onStopAndRecord}
           >
-            Stop &amp; record · {elapsedLabel}
+            {stopLabel}
           </Button>
         )}
         {!isCompleted && (

@@ -120,6 +120,8 @@ Plank / 2x1 30s|60s, 1x1 30s+|60s
 
 The target and the recorded set timer are available in `progress` and `update` blocks as the `setTime` and `completedSetTime` arrays (e.g. `setTime[1] += 5`, or `setTime[1] = completedSetTime[1] + 5`).
 
+On a unilateral exercise the clock runs once per side, and `completedSetTime[n]` is the right side. The left side is `completedSetTimeLeft[n]`, matching how `completedReps` and `completedRepsLeft` already split.
+
 There's also an `auto` keyword - when present, the workout automatically advances to the next set after the rest timer ends. Combined with set timers, this lets you build circuits like **EMOM** or **Tabata**:
 
 ```
@@ -704,7 +706,8 @@ This is the list of available variables you can get values from in your `progres
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `timers[n]` - if the exercise sets have explicit rest timer set up - value of that timer
 - `setTime[n]` - if the exercise sets have an active set timer (`60s|30s`) - the target value of that timer
-- `completedSetTime[n]` - the actual recorded duration of the set timer for an N set
+- `completedSetTime[n]` - the actual recorded duration of the set timer for an N set (the right side, on a unilateral exercise)
+- `completedSetTimeLeft[n]` - the recorded duration of the left side, on a unilateral exercise
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `bodyweight` - user's current bodyweight.
 - `day` - current day number, starting from 1.

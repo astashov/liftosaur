@@ -2,11 +2,12 @@ import { Exercise_get, Exercise_getIsUnilateral, Exercise_fullName } from "../mo
 import { ExerciseImageUtils_url } from "../models/exerciseImage";
 import { Program_evaluate, Program_getProgramExercise } from "../models/program";
 import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
-import { Progress_shouldShowAmrapModal, Progress_getNextEntry } from "../models/progress";
+import { Progress_shouldShowAmrapModal, Progress_getNextEntry, Progress_getActiveSetTimer } from "../models/progress";
 import { ISetsStatus, Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
 import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../models/weight";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
+import { IHistoryRecord, IProgram, ISettings, ISubscription, ITimedSetSide } from "../types";
+import { TimedSet_toView } from "../models/timedSet";
 import { n } from "./math";
 import { NativeWorkoutBridge_updateLiveActivity } from "./nativeWorkoutBridge";
 import { SendMessage_print } from "./sendMessage";
@@ -57,6 +58,9 @@ export interface ILiveActivitySetTimer {
   entryIndex: number;
   setIndex: number;
   restTimer: number;
+  phaseId: string;
+  side: ITimedSetSide;
+  recordedThisSide: boolean;
 }
 
 export interface ILiveActivityGetReady {
@@ -65,6 +69,8 @@ export interface ILiveActivityGetReady {
   entryIndex: number;
   setIndex: number;
   setTimer: number;
+  phaseId: string;
+  side: ITimedSetSide;
 }
 
 export interface ILiveActivityState {
@@ -199,59 +205,40 @@ export function LiveActivityManager_updateLiveActivity(
 
   // A running set timer takes over the live activity entirely: it shows the timed set's
   // count-up clock and "complete the set" buttons instead of the next-exercise/rest layout.
-  // It's driven by `progress.setTimer` so every existing update call site reflects it
-  // automatically, and reverts to the normal layout the moment the clock is cleared.
-  const setTimerModal = progress.setTimer;
+  const view = TimedSet_toView(progress, Progress_getActiveSetTimer(progress), settings);
   let setTimerState: ILiveActivitySetTimer | undefined;
-  if (setTimerModal) {
-    const timedEntry = progress.entries[setTimerModal.entryIndex];
-    const timedSet = timedEntry?.sets[setTimerModal.setIndex];
-    if (timedEntry && timedSet) {
-      const absoluteSetIndex = timedEntry.warmupSets.length + setTimerModal.setIndex;
-      const timedEntryState = LiveActivityManager_getLiveActivityEntry(
+  let getReadyState: ILiveActivityGetReady | undefined;
+  if (view != null) {
+    liveActivityEntry =
+      LiveActivityManager_getLiveActivityEntry(
         progress,
-        setTimerModal.entryIndex,
-        absoluteSetIndex,
+        view.entryIndex,
+        view.currentSet - 1,
         programExercise,
         settings
-      );
-      // Count current/total across warmups+work (the absolute index), matching the rest timer view — so a
-      // timed set after warmups reads "4/5" rather than the work-only "2/3".
-      liveActivityEntry = timedEntryState ?? liveActivityEntry;
+      ) ?? liveActivityEntry;
+    if (view.stage === "work") {
       setTimerState = {
-        setTimerSince: setTimerModal.startedAt,
-        setTimer: timedSet.setTimer ?? 0,
-        isOverflow: !!timedSet.isOverflowSetTimer,
-        isCompleted: !!timedSet.isCompleted,
-        entryIndex: setTimerModal.entryIndex,
-        setIndex: setTimerModal.setIndex,
-        restTimer: timedSet.timer ?? 0,
+        setTimerSince: view.startedAt,
+        setTimer: view.targetSeconds,
+        isOverflow: view.isOverflow,
+        isCompleted: view.isCompleted,
+        entryIndex: view.entryIndex,
+        setIndex: view.setIndex,
+        restTimer: view.restSeconds,
+        phaseId: view.phaseId,
+        side: view.side,
+        recordedThisSide: view.recordedThisSide,
       };
-    }
-  }
-
-  // setTimer wins when a merge left both fields set, matching Progress_getActiveSetTimer.
-  const getReadyModal = setTimerState == null ? progress.setTimerGetReady : undefined;
-  let getReadyState: ILiveActivityGetReady | undefined;
-  if (getReadyModal) {
-    const timedEntry = progress.entries[getReadyModal.entryIndex];
-    const timedSet = timedEntry?.sets[getReadyModal.setIndex];
-    if (timedEntry && timedSet) {
-      const absoluteSetIndex = timedEntry.warmupSets.length + getReadyModal.setIndex;
-      liveActivityEntry =
-        LiveActivityManager_getLiveActivityEntry(
-          progress,
-          getReadyModal.entryIndex,
-          absoluteSetIndex,
-          programExercise,
-          settings
-        ) ?? liveActivityEntry;
+    } else {
       getReadyState = {
-        getReadySince: getReadyModal.startedAt,
-        getReady: getReadyModal.getReady,
-        entryIndex: getReadyModal.entryIndex,
-        setIndex: getReadyModal.setIndex,
-        setTimer: timedSet.setTimer ?? 0,
+        getReadySince: view.startedAt,
+        getReady: view.getReadySeconds,
+        entryIndex: view.entryIndex,
+        setIndex: view.setIndex,
+        setTimer: view.targetSeconds,
+        phaseId: view.phaseId,
+        side: view.side,
       };
     }
   }

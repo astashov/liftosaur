@@ -490,10 +490,10 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await loadActiveWorkout()
     }
 
-    func updateCompletedSetTimer(entryIndex: Int, setIndex: Int, seconds: Int) async {
+    func updateCompletedSetTimer(entryIndex: Int, setIndex: Int, seconds: Int, secondsLeft: Int?) async {
         guard await withStorageMutation(
             operation: { engine, storageJson, deviceId in
-                await engine.updateCompletedSetTimer(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex, seconds: seconds)
+                await engine.updateCompletedSetTimer(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex, seconds: seconds, secondsLeft: secondsLeft)
             },
             operationName: "edit set timer"
         ) != nil else { return }

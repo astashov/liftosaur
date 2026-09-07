@@ -15,7 +15,7 @@ import {
 import { Weight_parse, Weight_build } from "../models/weight";
 import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
 import { IEither } from "../utils/types";
-import { Progress_completeSetAction, Progress_changeAmrapAction } from "../models/progress";
+import { Progress_completeSetAction, Progress_changeAmrapAction, Progress_settleTimedSet } from "../models/progress";
 
 export interface IPlaygroundResult {
   workout: string;
@@ -261,31 +261,16 @@ function applyCommand(
     // records the held time and finishes the set on a second "Stop & Record" signal. The playground has no
     // real clock, so immediately fire that second signal here, recording the set's programmed hold duration
     // (setTimer) as the held time. A caller can then tweak it with change_set_time to test hold progression.
-    if (
-      newProgress.setTimer != null &&
-      newProgress.setTimer.entryIndex === entryIndex &&
-      newProgress.setTimer.setIndex === setIndex
-    ) {
-      const timedSet = newProgress.entries[entryIndex].sets[setIndex];
-      newProgress = Progress_completeSetAction(
-        settings,
-        stats,
-        newProgress,
-        {
-          type: "CompleteSetAction",
-          entryIndex,
-          setIndex,
-          mode: "workout",
-          programExercise,
-          otherStates: evaluatedProgram.states,
-          isPlayground: true,
-          forceUpdateEntryIndex: false,
-          isExternal: false,
-          recordedSeconds: timedSet.setTimer,
-        },
-        undefined
-      );
-    }
+    newProgress = Progress_settleTimedSet(
+      settings,
+      stats,
+      newProgress,
+      entryIndex,
+      setIndex,
+      "workout",
+      {},
+      { programExercise, otherStates: evaluatedProgram.states, isPlayground: true }
+    );
     // Completing an AMRAP set, a set with no weight, or one that logs RPE opens the AMRAP modal instead of
     // finishing the set - the app waits for the user to fill it in. The playground has no modal, so answer it
     // with the set's programmed target values so the set finalizes. A caller can then tweak the completed set

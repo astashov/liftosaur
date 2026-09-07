@@ -109,6 +109,7 @@ import {
   Progress_getFirstIncompleteWorkoutSet,
   Progress_updateTimer,
   Progress_getCurrentProgress,
+  Progress_getProgressId,
   Progress_isCurrent,
   Progress_stop,
   Progress_scheduleTimerNotification,
@@ -888,7 +889,8 @@ export function Thunk_recordSetTimer(
   entryIndex: number,
   setIndex: number,
   keepTiming: boolean,
-  recordedSeconds?: number
+  recordedSeconds?: number,
+  phaseId?: string
 ): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
@@ -901,7 +903,12 @@ export function Thunk_recordSetTimer(
     // then gone (or points at a different set), and completing here would fall through to normal set toggling
     // and flip the already-completed set back off. Ignore it and just resync the surface that sent it.
     const setTimerModal = progress.setTimer;
-    if (setTimerModal == null || setTimerModal.entryIndex !== entryIndex || setTimerModal.setIndex !== setIndex) {
+    if (
+      setTimerModal == null ||
+      setTimerModal.entryIndex !== entryIndex ||
+      setTimerModal.setIndex !== setIndex ||
+      (phaseId != null && setTimerModal.id !== phaseId)
+    ) {
       dispatch(Thunk_refreshLiveActivity());
       return;
     }
@@ -930,7 +937,10 @@ export function Thunk_recordSetTimer(
 export function Thunk_checkSetTimer(): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
-    const progress = Progress_getProgress(state);
+    if (Progress_getProgressId(state) !== 0) {
+      return;
+    }
+    const progress = Progress_getCurrentProgress(state);
     if (!progress || !Progress_isSetTimerCheckDue(progress, Date.now())) {
       return;
     }
@@ -1044,6 +1054,7 @@ export interface IQueueableCountdownTap {
   setIndex: number;
   tappedAt?: number;
   countdownStartedAt?: number;
+  phaseId?: string;
 }
 
 // Only the Live Activity and the Android live update pass a tap. Their events can sit in a queue while
@@ -1063,6 +1074,7 @@ export function Thunk_startSetTimerWork(queuedTap?: IQueueableCountdownTap): ITh
         getReady != null &&
         getReady.entryIndex === queuedTap.entryIndex &&
         getReady.setIndex === queuedTap.setIndex &&
+        (queuedTap.phaseId == null || getReady.id === queuedTap.phaseId) &&
         (queuedTap.countdownStartedAt == null || getReady.startedAt === queuedTap.countdownStartedAt);
       if (!tapMatchesLiveCountdown) {
         dispatch(Thunk_refreshLiveActivity());

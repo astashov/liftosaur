@@ -63,20 +63,25 @@ struct SetTimerScreen: View {
                     // Nothing to record during the countdown - the work clock hasn't started - so Log & Keep /
                     // Log & Stop must stay hidden, or the set can be logged before it began. Starting early is
                     // a tap on the ring itself.
-                    if !modal.isGetReady && !modal.isCompleted {
+                    let bankedThisSide = modal.recordedThisSide ?? false
+                    let isBankedLeft = modal.isLeftSide && bankedThisSide
+                    let canRecord = !(modal.isLeftSide ? bankedThisSide : modal.isCompleted)
+                    if !modal.isGetReady && (canRecord || isBankedLeft) {
                         HStack(spacing: 6) {
-                            Button(action: { record(modal, keep: true) }) {
-                                Text("Log & Keep")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(LiftosaurColor.textPrimary)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: buttonHeight)
+                            if canRecord {
+                                Button(action: { record(modal, keep: true) }) {
+                                    Text("Log & Keep")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(LiftosaurColor.textPrimary)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: buttonHeight)
+                                }
+                                .buttonStyle(NavigationButtonStyle(backgroundColor: LiftosaurColor.backgroundSet, cornerRadius: buttonHeight / 2))
+                                .disabled(isBusy)
                             }
-                            .buttonStyle(NavigationButtonStyle(backgroundColor: LiftosaurColor.backgroundSet, cornerRadius: buttonHeight / 2))
-                            .disabled(isBusy)
 
                             Button(action: { record(modal, keep: false) }) {
-                                Text("Log & Stop")
+                                Text(isBankedLeft ? "Next side" : "Log & Stop")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(LiftosaurColor.buttonPrimaryLabel)
                                     .frame(maxWidth: .infinity)
@@ -271,9 +276,19 @@ private struct SetTimerScaffold<Phase: View, Actions: View>: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(LiftosaurColor.textPrimary)
                         .lineLimit(1)
-                    Text("Set \(modal.currentSet)/\(modal.totalSets)")
-                        .font(.system(size: 12))
-                        .foregroundColor(LiftosaurColor.textSecondary)
+                    HStack(spacing: 3) {
+                        Text("Set \(modal.currentSet)/\(modal.totalSets)")
+                            .font(.system(size: 12))
+                            .foregroundColor(LiftosaurColor.textSecondary)
+                        if modal.isUnilateral {
+                            Text("·")
+                                .font(.system(size: 12))
+                                .foregroundColor(LiftosaurColor.textSecondary)
+                            Text(modal.isLeftSide ? "Left" : "Right")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(LiftosaurColor.getReadyAccent)
+                        }
+                    }
                 }
                 Spacer(minLength: 0)
             }

@@ -612,7 +612,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
         const addSeconds = event.addSeconds ?? 0;
         dispatch(Thunk_updateTimer(Math.max(0, timer + addSeconds), entryIndex, setIndex, false));
       } else if (event.action === "recordSetTimer") {
-        dispatch(Thunk_recordSetTimer(entryIndex, setIndex, !!event.keepTiming, event.elapsedSeconds));
+        dispatch(Thunk_recordSetTimer(entryIndex, setIndex, !!event.keepTiming, event.elapsedSeconds, event.phaseId));
       } else if (event.action === "startSetTimerWork") {
         dispatch(
           Thunk_startSetTimerWork({
@@ -620,6 +620,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
             setIndex,
             tappedAt: event.tappedAt,
             countdownStartedAt: event.getReadySince,
+            phaseId: event.phaseId,
           })
         );
       } else if (event.action === "checkSetTimer") {

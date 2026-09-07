@@ -26,6 +26,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
         const val EXTRA_KEEP_TIMING = "keepTiming"
         const val EXTRA_TAPPED_AT = "tappedAt"
         const val EXTRA_GET_READY_SINCE = "getReadySince"
+        const val EXTRA_PHASE_ID = "phaseId"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -34,6 +35,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
         val restTimer = intent.getIntExtra(EXTRA_REST_TIMER, 0)
         val restTimerSince = intent.getLongExtra(EXTRA_REST_TIMER_SINCE, 0)
         val setTimerSince = intent.getLongExtra(EXTRA_SET_TIMER_SINCE, 0)
+        val phaseId = intent.getStringExtra(EXTRA_PHASE_ID) ?: ""
 
         when (intent.action) {
             ACTION_COMPLETE_SET -> {
@@ -73,6 +75,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
                     putInt("setIndex", setIndex)
                     putInt("elapsedSeconds", elapsedSeconds)
                     putBoolean("keepTiming", intent.action == ACTION_RECORD_SET_TIMER_KEEP)
+                    if (phaseId.isNotEmpty()) putString("phaseId", phaseId)
                 }
                 LiveActivityEventDispatcher.emit(event)
             }
@@ -83,6 +86,7 @@ class LiveUpdateActionReceiver : BroadcastReceiver() {
                     putInt("entryIndex", entryIndex)
                     putInt("setIndex", setIndex)
                     putDouble("getReadySince", intent.getLongExtra(EXTRA_GET_READY_SINCE, 0).toDouble())
+                    if (phaseId.isNotEmpty()) putString("phaseId", phaseId)
                     // The PendingIntent was built when the notification was posted, so its extra is the
                     // countdown's start - the tap itself is now.
                     putDouble("tappedAt", System.currentTimeMillis().toDouble())

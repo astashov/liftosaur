@@ -319,6 +319,9 @@ export type ITargetType = v.InferOutput<typeof VTargetType>;
 export const VProgressMode = v.picklist(["warmup", "workout"] as const);
 export type IProgressMode = v.InferOutput<typeof VProgressMode>;
 
+export const VTimedSetSide = v.picklist(["left", "right", "bilateral"] as const);
+export type ITimedSetSide = v.InferOutput<typeof VTimedSetSide>;
+
 // Liftoscript runtime failures are shown to the user as an alert and the offending change is dropped. Callers
 // with no UI (the public API in lambda) pass this instead, so a failed script can be surfaced as an error
 // response rather than silently no-opping.
@@ -486,6 +489,7 @@ export interface ISet {
   completedWeight?: IWeight;
   completedRpe?: number;
   completedSetTimer?: number;
+  completedSetTimerLeft?: number;
   programSetIndex?: number;
 }
 const _VSet = v.object({
@@ -513,6 +517,7 @@ const _VSet = v.object({
   completedWeight: v.optional(VWeight),
   completedRpe: v.optional(v.number()),
   completedSetTimer: v.optional(v.number()),
+  completedSetTimerLeft: v.optional(v.number()),
   programSetIndex: v.optional(v.number()),
 });
 const _VSetMatches: IEquals<v.InferOutput<typeof _VSet>, ISet> = true;
@@ -988,6 +993,9 @@ export interface IHistoryRecord {
   setTimer?: {
     entryIndex: number;
     setIndex: number;
+    setId: string;
+    id: string;
+    side: ITimedSetSide;
     startedAt: number;
     nonce?: number;
     keepTiming?: boolean;
@@ -997,6 +1005,9 @@ export interface IHistoryRecord {
   setTimerGetReady?: {
     entryIndex: number;
     setIndex: number;
+    setId: string;
+    id: string;
+    side: ITimedSetSide;
     startedAt: number;
     getReady: number;
     nonce?: number;
@@ -1049,6 +1060,9 @@ const _VHistoryRecord = v.object({
     v.object({
       entryIndex: v.number(),
       setIndex: v.number(),
+      setId: v.string(),
+      id: v.string(),
+      side: VTimedSetSide,
       startedAt: v.number(),
       nonce: v.optional(v.number()),
       keepTiming: v.optional(v.boolean()),
@@ -1058,6 +1072,9 @@ const _VHistoryRecord = v.object({
     v.object({
       entryIndex: v.number(),
       setIndex: v.number(),
+      setId: v.string(),
+      id: v.string(),
+      side: VTimedSetSide,
       startedAt: v.number(),
       getReady: v.number(),
       nonce: v.optional(v.number()),

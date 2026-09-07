@@ -26,6 +26,7 @@ import {
   Progress_getCurrentProgress,
   Progress_applyProgramDay,
   Progress_runInitialUpdateScripts,
+  Progress_isSetTimerCheckDue,
 } from "../models/progress";
 import {
   Storage_get,
@@ -65,7 +66,7 @@ import {
 import { UrlUtils_build } from "../utils/url";
 import { DateUtils_formatHHMMSS } from "../utils/date";
 import { IReducerOnAction } from "./types";
-import { Thunk_sync2 } from "./thunks";
+import { Thunk_sync2, Thunk_checkSetTimer } from "./thunks";
 import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collection";
 import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
 import { UndoingFlag_set } from "../utils/undoingFlag";
@@ -412,6 +413,17 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
       if (!isExternalStorageMerge(action) && Storage_isChanged(oldState.storage, newState.storage)) {
         dispatch(Thunk_sync2({ log: isFinishDayAction }));
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      // useThunkReducer re-runs these observers when a thunk resolves, so without skipping thunks and
+      // CheckSetTimerAction, Thunk_checkSetTimer's own dispatch retriggers this observer forever.
+      if (typeof action === "function" || action.type === "CheckSetTimerAction") {
+        return;
+      }
+      const progress = Progress_getCurrentProgress(newState);
+      if (progress != null && Progress_isSetTimerCheckDue(progress, Date.now())) {
+        dispatch(Thunk_checkSetTimer());
       }
     },
     (dispatch, action, oldState, newState) => {

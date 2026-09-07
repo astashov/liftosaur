@@ -33,6 +33,7 @@ import {
 } from "../../src/models/program";
 import {
   Progress_completeSetAction,
+  Progress_settleTimedSet,
   Progress_changeAmrapAction,
   Progress_stopTimerPure,
 } from "../../src/models/progress";
@@ -80,6 +81,7 @@ export interface IWorkoutSet {
     weight: string | null;
     rpe: number | null;
     setTimer: number | null;
+    setTimerLeft: number | null;
   } | null;
 }
 
@@ -131,6 +133,7 @@ const VCompletedInput = v.object({
   weight: v.optional(VWeightString),
   rpe: v.optional(v.number()),
   setTimer: v.optional(v.number()),
+  setTimerLeft: v.optional(v.number()),
   userVars: v.optional(v.record(v.string(), v.union([v.number(), v.string()]))),
 });
 
@@ -267,6 +270,7 @@ function serializeSet(
           weight: set.completedWeight != null ? Weight_print(set.completedWeight) : null,
           rpe: set.completedRpe ?? null,
           setTimer: set.completedSetTimer ?? null,
+          setTimerLeft: set.completedSetTimerLeft ?? null,
         }
       : null,
   };
@@ -393,6 +397,43 @@ function setsKeyFor(mode: IProgressMode): "warmupSets" | "sets" {
   return mode === "warmup" ? "warmupSets" : "sets";
 }
 
+function validateReportedDurations(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  set: ISet,
+  completed: v.InferOutput<typeof VCompletedInput>,
+  settings: ISettings
+): IEither<true, IApiError> {
+  const isUnilateral = Exercise_getIsUnilateral(progress.entries[entryIndex].exercise, settings);
+  const invalid = (message: string): IEither<true, IApiError> => ({
+    success: false,
+    error: { status: 400, code: "invalid_set_input", message },
+  });
+  if (set.setTimer == null && (completed.setTimer !== undefined || completed.setTimerLeft !== undefined)) {
+    return invalid("This set has no set timer, so completed.setTimer and completed.setTimerLeft can't be set");
+  }
+  if (!isUnilateral && completed.setTimerLeft !== undefined) {
+    return invalid("completed.setTimerLeft is only for a unilateral exercise");
+  }
+  if (isUnilateral && set.setTimer != null) {
+    const hasLeft = completed.setTimerLeft !== undefined;
+    const hasRight = completed.setTimer !== undefined;
+    if (hasLeft !== hasRight) {
+      return {
+        success: false,
+        error: {
+          status: 400,
+          code: "missing_set_input",
+          message: `A unilateral timed set is held once per side, so it needs both durations: ${
+            hasLeft ? "completed.setTimer" : "completed.setTimerLeft"
+          } is missing`,
+        },
+      };
+    }
+  }
+  return { success: true, data: true };
+}
+
 // Records what the lifter did onto the set *before* it is completed, so the `update:` script sees the actual
 // performance rather than the programmed target. Only `completed*` fields are touched — overwriting the target
 // would make progressions that compare completed-vs-target always pass.
@@ -404,6 +445,7 @@ function withCompletedValues(set: ISet, completed: v.InferOutput<typeof VComplet
     ...(completed.weight !== undefined ? { completedWeight: completed.weight } : {}),
     ...(completed.rpe !== undefined ? { completedRpe: completed.rpe } : {}),
     ...(completed.setTimer !== undefined ? { completedSetTimer: completed.setTimer } : {}),
+    ...(completed.setTimerLeft !== undefined ? { completedSetTimerLeft: completed.setTimerLeft } : {}),
   };
 }
 
@@ -520,6 +562,10 @@ function applySetWrite(
   const wasCompleted = !!existingSet.isCompleted;
 
   if (write.completed !== undefined && write.completed !== null) {
+    const durationCheck = validateReportedDurations(current, entryIndex, existingSet, write.completed, settings);
+    if (!durationCheck.success) {
+      return durationCheck;
+    }
     const updated = withCompletedValues(existingSet, write.completed);
     const entries = current.entries.map((e, i) =>
       i === entryIndex ? { ...e, [setsKey]: e[setsKey].map((s, j) => (j === setIndex ? updated : s)) } : e
@@ -555,34 +601,17 @@ function applySetWrite(
     onError
   );
 
-  // A timed set's first completion only starts its clock; the app records the held time on a second signal. There
-  // is no clock on the server, so fire that signal immediately with whatever the client reported holding.
-  if (
-    current.setTimer != null &&
-    current.setTimer.entryIndex === entryIndex &&
-    current.setTimer.setIndex === setIndex
-  ) {
-    const timedSet = current.entries[entryIndex][setsKey][setIndex];
-    current = Progress_completeSetAction(
-      settings,
-      stats,
-      current,
-      {
-        type: "CompleteSetAction",
-        entryIndex,
-        setIndex,
-        mode,
-        programExercise,
-        otherStates: evaluated.states,
-        isPlayground: false,
-        forceUpdateEntryIndex: false,
-        isExternal: true,
-        recordedSeconds: write.completed?.setTimer ?? timedSet.completedSetTimer ?? timedSet.setTimer,
-      },
-      undefined,
-      onError
-    );
-  }
+  current = Progress_settleTimedSet(
+    settings,
+    stats,
+    current,
+    entryIndex,
+    setIndex,
+    mode,
+    { left: write.completed?.setTimerLeft, right: write.completed?.setTimer },
+    { programExercise, otherStates: evaluated.states, subscription: undefined },
+    onError
+  );
 
   // AMRAP / askWeight / logRpe / user-prompted vars open a prompt instead of finishing the set. A UI waits for the
   // lifter; the API answers immediately with what the client sent, falling back to the programmed target.

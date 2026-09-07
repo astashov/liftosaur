@@ -403,15 +403,29 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                     @{n(completedRpeValue)}
                   </Text>
                 ) : null}
-                {set.completedSetTimer != null ? (
+                {set.completedSetTimer != null || set.completedSetTimerLeft != null ? (
                   <Pressable
                     data-testid="set-timer-value"
                     testID="set-timer-value"
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     onPress={props.type === "workout" ? onEditSetTimer : undefined}
                   >
+                    {isUnilateral && (
+                      <Text
+                        numberOfLines={1}
+                        data-testid="set-timer-value-left"
+                        testID="set-timer-value-left"
+                        className="text-xs font-semibold text-syntax-timer"
+                      >
+                        L{" "}
+                        {set.completedSetTimerLeft != null
+                          ? TimeUtils_formatMMSS(set.completedSetTimerLeft * 1000)
+                          : "-"}
+                      </Text>
+                    )}
                     <Text numberOfLines={1} className="text-xs font-semibold text-syntax-timer">
-                      {TimeUtils_formatMMSS(set.completedSetTimer * 1000)}
+                      {isUnilateral ? "R " : ""}
+                      {set.completedSetTimer != null ? TimeUtils_formatMMSS(set.completedSetTimer * 1000) : "-"}
                     </Text>
                   </Pressable>
                 ) : null}

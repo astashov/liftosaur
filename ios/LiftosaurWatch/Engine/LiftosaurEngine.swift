@@ -199,8 +199,9 @@ class LiftosaurEngine {
         return await callMutation("completeSet", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", valuesArg])
     }
 
-    func updateCompletedSetTimer(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, seconds: Int) async -> Result<String, EngineError> {
-        await callMutation("updateCompletedSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", "\(seconds)"])
+    func updateCompletedSetTimer(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, seconds: Int, secondsLeft: Int?) async -> Result<String, EngineError> {
+        let leftArg = secondsLeft.map { "\($0)" } ?? "undefined"
+        return await callMutation("updateCompletedSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", "\(seconds)", leftArg])
     }
 
     func setCurrentEntryIndex(storageJson: String, deviceId: String, entryIndex: Int) async -> Result<String, EngineError> {

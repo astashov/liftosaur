@@ -47,24 +47,30 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
     };
   }
   if (auto setTimer = state.setTimer()) {
-    dict[@"setTimer"] = @{
-      @"setTimerSince": @(setTimer->setTimerSince()),
-      @"setTimer": @(setTimer->setTimer()),
-      @"isOverflow": @(setTimer->isOverflow()),
-      @"isCompleted": @(setTimer->isCompleted()),
-      @"entryIndex": @(setTimer->entryIndex()),
-      @"setIndex": @(setTimer->setIndex()),
-      @"restTimer": @(setTimer->restTimer()),
-    };
+    // Mutable rather than an @{} literal: a nil NSString * in a literal raises, and these come from JS.
+    NSMutableDictionary *st = [NSMutableDictionary dictionary];
+    st[@"setTimerSince"] = @(setTimer->setTimerSince());
+    st[@"setTimer"] = @(setTimer->setTimer());
+    st[@"isOverflow"] = @(setTimer->isOverflow());
+    st[@"isCompleted"] = @(setTimer->isCompleted());
+    st[@"entryIndex"] = @(setTimer->entryIndex());
+    st[@"setIndex"] = @(setTimer->setIndex());
+    st[@"restTimer"] = @(setTimer->restTimer());
+    st[@"phaseId"] = setTimer->phaseId();
+    st[@"side"] = setTimer->side();
+    st[@"recordedThisSide"] = @(setTimer->recordedThisSide());
+    dict[@"setTimer"] = st;
   }
   if (auto getReady = state.getReady()) {
-    dict[@"getReady"] = @{
-      @"getReadySince": @(getReady->getReadySince()),
-      @"getReady": @(getReady->getReady()),
-      @"entryIndex": @(getReady->entryIndex()),
-      @"setIndex": @(getReady->setIndex()),
-      @"setTimer": @(getReady->setTimer()),
-    };
+    NSMutableDictionary *gr = [NSMutableDictionary dictionary];
+    gr[@"getReadySince"] = @(getReady->getReadySince());
+    gr[@"getReady"] = @(getReady->getReady());
+    gr[@"entryIndex"] = @(getReady->entryIndex());
+    gr[@"setIndex"] = @(getReady->setIndex());
+    gr[@"setTimer"] = @(getReady->setTimer());
+    gr[@"phaseId"] = getReady->phaseId();
+    gr[@"side"] = getReady->side();
+    dict[@"getReady"] = gr;
   }
   if (auto entry = state.entry()) {
     NSMutableDictionary *e = [NSMutableDictionary dictionary];

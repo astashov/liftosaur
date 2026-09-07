@@ -14,15 +14,19 @@ interface ISetTimerEditContentProps {
   set: ISet;
   entryIndex: number;
   setIndex: number;
+  isUnilateral: boolean;
   dispatch: IDispatch;
 }
 
 export function SetTimerEditContent(props: ISetTimerEditContentProps): JSX.Element {
-  const { set, entryIndex, setIndex, dispatch } = props;
+  const { set, entryIndex, setIndex, isUnilateral, dispatch } = props;
   const initialSeconds = set.completedSetTimer ?? set.setTimer ?? 0;
+  const initialLeftSeconds = set.completedSetTimerLeft ?? set.setTimer ?? 0;
 
   const [minutesValue, setMinutesValue] = useState(Math.floor(initialSeconds / 60).toString());
   const [secondsValue, setSecondsValue] = useState(StringUtils_pad((initialSeconds % 60).toString(), 2));
+  const [leftMinutesValue, setLeftMinutesValue] = useState(Math.floor(initialLeftSeconds / 60).toString());
+  const [leftSecondsValue, setLeftSecondsValue] = useState(StringUtils_pad((initialLeftSeconds % 60).toString(), 2));
 
   const lbSet = lb<IHistoryRecord>().p("entries").i(entryIndex).p("sets").i(setIndex);
   const lbModal = lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal");
@@ -34,66 +38,112 @@ export function SetTimerEditContent(props: ISetTimerEditContentProps): JSX.Eleme
   const onClear = (): void => {
     updateProgress(
       dispatch,
-      [lbSet.p("completedSetTimer").record(undefined), lbModal.record(undefined)],
+      [
+        lbSet.p("completedSetTimer").record(undefined),
+        lbSet.p("completedSetTimerLeft").record(undefined),
+        lbModal.record(undefined),
+      ],
       "clear-set-timer"
     );
   };
 
+  const toSeconds = (minutes: string, seconds: string, fallback: number): number => {
+    const m = Number(minutes);
+    const s = Number(seconds);
+    return isNaN(m) || isNaN(s) ? fallback : MathUtils_clamp(m, 0, 999) * 60 + MathUtils_clamp(s, 0, 59);
+  };
+
   const onSave = (): void => {
-    const minutes = Number(minutesValue);
-    const seconds = Number(secondsValue);
-    const newSeconds =
-      isNaN(minutes) || isNaN(seconds)
-        ? initialSeconds
-        : MathUtils_clamp(minutes, 0, 999) * 60 + MathUtils_clamp(seconds, 0, 59);
+    const newSeconds = toSeconds(minutesValue, secondsValue, initialSeconds);
     updateProgress(
       dispatch,
-      [lbSet.p("completedSetTimer").record(newSeconds), lbModal.record(undefined)],
+      [
+        lbSet.p("completedSetTimer").record(newSeconds),
+        ...(isUnilateral
+          ? [lbSet.p("completedSetTimerLeft").record(toSeconds(leftMinutesValue, leftSecondsValue, initialLeftSeconds))]
+          : []),
+        lbModal.record(undefined),
+      ],
       "edit-set-timer"
     );
   };
+
+  const durationRow = (
+    label: string | undefined,
+    minutes: string,
+    onMinutes: (v: string) => void,
+    seconds: string,
+    onSeconds: (v: string) => void,
+    identifierPrefix: string
+  ): JSX.Element => (
+    <View className="flex-row items-center">
+      {label != null && (
+        <View className="justify-center" style={{ width: 20 }}>
+          <Text className="text-xs text-text-secondary">{label}</Text>
+        </View>
+      )}
+      <View className="flex-1">
+        <Input
+          type="tel"
+          placeholder="00"
+          value={minutes}
+          inputSize="sm"
+          labelSize="xs"
+          changeType="oninput"
+          identifier={`${identifierPrefix}-minutes`}
+          changeHandler={(e) => {
+            if (e.success) {
+              onMinutes(e.data);
+            }
+          }}
+        />
+      </View>
+      <View className="items-center justify-center" style={{ width: 16, height: 40 }}>
+        <Text>:</Text>
+      </View>
+      <View className="flex-1">
+        <Input
+          type="tel"
+          placeholder="00"
+          value={seconds}
+          inputSize="sm"
+          labelSize="xs"
+          changeType="oninput"
+          identifier={`${identifierPrefix}-seconds`}
+          changeHandler={(e) => {
+            if (e.success) {
+              onSeconds(e.data);
+            }
+          }}
+        />
+      </View>
+    </View>
+  );
 
   return (
     <View>
       <Text className="pb-2 font-bold">Edit recorded time</Text>
       <Text className="pb-2 text-xs text-text-secondary">(in mm:ss)</Text>
-      <View className="flex-row items-center">
-        <View className="flex-1">
-          <Input
-            type="tel"
-            placeholder="00"
-            value={minutesValue}
-            inputSize="sm"
-            labelSize="xs"
-            changeType="oninput"
-            identifier="set-timer-edit-minutes"
-            changeHandler={(e) => {
-              if (e.success) {
-                setMinutesValue(e.data);
-              }
-            }}
-          />
+      {isUnilateral && (
+        <View className="pb-2">
+          {durationRow(
+            "L",
+            leftMinutesValue,
+            setLeftMinutesValue,
+            leftSecondsValue,
+            setLeftSecondsValue,
+            "set-timer-edit-left"
+          )}
         </View>
-        <View className="items-center justify-center" style={{ width: 16, height: 40 }}>
-          <Text>:</Text>
-        </View>
-        <View className="flex-1">
-          <Input
-            type="tel"
-            placeholder="00"
-            value={secondsValue}
-            inputSize="sm"
-            labelSize="xs"
-            changeType="oninput"
-            identifier="set-timer-edit-seconds"
-            changeHandler={(e) => {
-              if (e.success) {
-                setSecondsValue(e.data);
-              }
-            }}
-          />
-        </View>
-      </View>
+      )}
+      {durationRow(
+        isUnilateral ? "R" : undefined,
+        minutesValue,
+        setMinutesValue,
+        secondsValue,
+        setSecondsValue,
+        "set-timer-edit"
+      )}
       <View className="flex-row justify-between mt-4">
         <Button
           name="set-timer-edit-clear"

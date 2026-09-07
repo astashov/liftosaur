@@ -6,6 +6,7 @@ import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { SetTimerEditContent } from "../../components/setTimerEdit";
 import { Progress_getProgress } from "../../models/progress";
+import { Exercise_getIsUnilateral } from "../../models/exercise";
 import { updateProgress } from "../../models/state";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
@@ -75,6 +76,7 @@ export function NavModalSetTimerEdit(): JSX.Element {
           set={set}
           entryIndex={editModal.entryIndex}
           setIndex={editModal.setIndex}
+          isUnilateral={Exercise_getIsUnilateral(progress.entries[editModal.entryIndex].exercise, settings)}
           dispatch={modalDispatch}
         />
       </FormSheet>

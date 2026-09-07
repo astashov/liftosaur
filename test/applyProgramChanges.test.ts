@@ -11,7 +11,7 @@ import {
 import { Progress_applyProgramDay, Progress_reindexEntries } from "../src/models/progress";
 import { History_createCustomEntry } from "../src/models/history";
 import { Stats_getEmpty } from "../src/models/stats";
-import { IExercisePickerState, IExerciseType, IHistoryRecord } from "../src/types";
+import { IExercisePickerState, IExerciseType, IHistoryRecord, ITimedSetSide } from "../src/types";
 
 const settings = Settings_build();
 
@@ -422,6 +422,14 @@ describe("Progress_applyProgramDay - structure - existing behavior", () => {
   });
 });
 
+function phaseIdentity(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number
+): { setId: string; id: string; side: ITimedSetSide } {
+  return { setId: progress.entries[entryIndex].sets[setIndex].id, id: "phase1", side: "bilateral" };
+}
+
 describe("Progress_reindexEntries", () => {
   function threeEntries(): IHistoryRecord {
     return buildProgress(day(SQUAT, BENCH, CURL));
@@ -457,7 +465,7 @@ describe("Progress_reindexEntries", () => {
     const progress: IHistoryRecord = {
       ...base,
       timerEntryIndex: 1,
-      setTimer: { entryIndex: 1, setIndex: 0, startedAt: 123 },
+      setTimer: { entryIndex: 1, setIndex: 0, ...phaseIdentity(base, 1, 0), startedAt: 123 },
       amrapModal: { entryIndex: 2, setIndex: 1 },
     };
     const next = Progress_reindexEntries(progress, [progress.entries[2], progress.entries[1], progress.entries[0]]);
@@ -471,7 +479,7 @@ describe("Progress_reindexEntries", () => {
     const base = threeEntries();
     const progress: IHistoryRecord = {
       ...base,
-      setTimerGetReady: { entryIndex: 1, setIndex: 0, startedAt: 123, getReady: 5 },
+      setTimerGetReady: { entryIndex: 1, setIndex: 0, ...phaseIdentity(base, 1, 0), startedAt: 123, getReady: 5 },
     };
     const reordered = Progress_reindexEntries(progress, [
       progress.entries[2],
@@ -490,7 +498,7 @@ describe("Progress_reindexEntries", () => {
     const progress: IHistoryRecord = {
       ...base,
       timerEntryIndex: 2,
-      setTimer: { entryIndex: 2, setIndex: 0, startedAt: 123 },
+      setTimer: { entryIndex: 2, setIndex: 0, ...phaseIdentity(base, 2, 0), startedAt: 123 },
       amrapModal: { entryIndex: 2, setIndex: 1 },
     };
     const next = Progress_reindexEntries(progress, [progress.entries[0], progress.entries[1]]);
@@ -544,7 +552,7 @@ describe("Progress_reindexEntries - review findings", () => {
       ...base,
       entries: [...base.entries, adhocSquat],
       timerEntryIndex: 0,
-      setTimer: { entryIndex: 0, setIndex: 0, startedAt: 123 },
+      setTimer: { entryIndex: 0, setIndex: 0, ...phaseIdentity(base, 0, 0), startedAt: 123 },
     };
     const next = Progress_reindexEntries(progress, [adhocSquat, ...base.entries]);
     expect(next.timerEntryIndex).to.eql(1);

@@ -1435,6 +1435,86 @@ Deadlift / 1x5 / 200lb`;
       expect(sets.map((s: any) => s.completed.reps)).to.deep.equal([5, 4, 3]);
     });
 
+    it("records what an EMOM client reports instead of measuring against a server-side clock", async () => {
+      const emom = await req("POST", "/api/v1/programs", {
+        name: "Emom",
+        text: `# Week 1\n## Day 1\nPlank / 3x1 10lb 30s|0s auto`,
+      });
+      const started = await req("POST", "/api/v1/workout/start", { programId: emom.data.data.id }, clientHeaders);
+      const sets = started.data.data.workout.entries[0].sets;
+      let last;
+      for (const set of sets) {
+        last = await req(
+          "POST",
+          "/api/v1/workout/sets",
+          { sets: [{ setId: set.setId, completed: { reps: 1, setTimer: 25 } }] },
+          clientHeaders
+        );
+        expect(last.status).to.equal(200);
+      }
+      expect(last!.data.data.workout.entries[0].sets.map((s: any) => s.completed.setTimer)).to.deep.equal([25, 25, 25]);
+    });
+
+    it("rejects a duration on a set that has no set timer", async () => {
+      const started = await startWorkout();
+      const { setId } = firstWorkingSet(started.data.data.workout);
+      const bad = await req(
+        "POST",
+        "/api/v1/workout/sets",
+        { sets: [{ setId, completed: { reps: 5, setTimer: 30 } }] },
+        clientHeaders
+      );
+      expect(bad.status).to.equal(400);
+      expect(bad.data.error.code).to.equal("invalid_set_input");
+    });
+
+    it("rejects a left-side duration on a bilateral exercise", async () => {
+      const timed = await req("POST", "/api/v1/programs", {
+        name: "Timed",
+        text: `# Week 1\n## Day 1\nPlank / 1x1 10lb 30s|60s`,
+      });
+      const started = await req("POST", "/api/v1/workout/start", { programId: timed.data.data.id }, clientHeaders);
+      const { setId } = firstWorkingSet(started.data.data.workout);
+      const bad = await req(
+        "POST",
+        "/api/v1/workout/sets",
+        { sets: [{ setId, completed: { reps: 1, setTimer: 30, setTimerLeft: 28 } }] },
+        clientHeaders
+      );
+      expect(bad.status).to.equal(400);
+      expect(bad.data.error.code).to.equal("invalid_set_input");
+    });
+
+    it("needs both durations on a unilateral timed set, and records them per side", async () => {
+      const uni = await req("POST", "/api/v1/programs", {
+        name: "Uni",
+        text: `# Week 1\n## Day 1\nBulgarian Split Squat / 1x1 20lb 30s|60s`,
+      });
+      const started = await req("POST", "/api/v1/workout/start", { programId: uni.data.data.id }, clientHeaders);
+      const { setId } = firstWorkingSet(started.data.data.workout);
+
+      const half = await req(
+        "POST",
+        "/api/v1/workout/sets",
+        { sets: [{ setId, completed: { reps: 1, setTimer: 30 } }] },
+        clientHeaders
+      );
+      expect(half.status).to.equal(400);
+      expect(half.data.error.code).to.equal("missing_set_input");
+      expect(half.data.error.message).to.contain("completed.setTimerLeft");
+
+      const both = await req(
+        "POST",
+        "/api/v1/workout/sets",
+        { sets: [{ setId, completed: { reps: 1, repsLeft: 1, setTimer: 31, setTimerLeft: 28 } }] },
+        clientHeaders
+      );
+      expect(both.status).to.equal(200);
+      const set = both.data.data.workout.entries[0].sets[0];
+      expect(set.completed.setTimerLeft).to.equal(28);
+      expect(set.completed.setTimer).to.equal(31);
+    });
+
     it("rejects a set write whose entryId disagrees with the set", async () => {
       const started = await startWorkout();
       const { setId } = firstWorkingSet(started.data.data.workout);

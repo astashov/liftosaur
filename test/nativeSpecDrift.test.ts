@@ -3,18 +3,10 @@ import { expect } from "chai";
 import fs from "fs";
 import path from "path";
 
-// DictFromState hand-copies each codegen field into an NSDictionary, so adding a field to the TurboModule
-// spec and forgetting the copy line drops it with no compile error and no runtime warning. `side` was lost
-// that way once already. Reading the spec source rather than ios/build/generated keeps this working on a
-// fresh checkout, where the codegen header does not exist yet and the test would otherwise skip in silence.
 const SPEC = path.join(__dirname, "..", "src", "specs", "NativeLiftosaurLiveActivity.ts");
 const BRIDGE = path.join(__dirname, "..", "ios", "Liftosaur", "RCTLiftosaurLiveActivity.mm");
 
-// Android reads the same payload as a ReadableMap straight off the RN bridge, so a field only its
-// notification needs never reaches DictFromState. Keep this list to fields with an Android-only consumer,
-// and name that consumer — anything else here is drift being waved through.
 const ANDROID_ONLY: Record<string, string> = {
-  // LiveUpdateManager.kt picks "▶ Start" over "✓ Done" from it; no iOS view reads it.
   isSetTimer: "LiveUpdateManager.kt",
 };
 

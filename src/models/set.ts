@@ -34,6 +34,7 @@ export interface IDisplaySet {
   isInRange?: boolean;
   timer?: number;
   setTimer?: number;
+  setTimerLeft?: number;
   isOverflowSetTimer?: boolean;
   auto?: boolean;
 }
@@ -56,6 +57,7 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
     a.askWeight === b.askWeight &&
     a.timer === b.timer &&
     a.setTimer === b.setTimer &&
+    a.setTimerLeft === b.setTimerLeft &&
     a.isOverflowSetTimer === b.isOverflowSetTimer &&
     a.auto === b.auto
   );
@@ -84,7 +86,8 @@ export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): 
     isCompleted: Reps_isCompletedSet(set),
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
     isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
-    setTimer: isNext ? set.setTimer : (set.completedSetTimer ?? set.setTimer),
+    setTimer: isNext ? set.setTimer : set.completedSetTimer,
+    setTimerLeft: isNext ? undefined : set.completedSetTimerLeft,
     isOverflowSetTimer: isNext ? set.isOverflowSetTimer : undefined,
     timer: isNext ? set.timer : undefined,
     auto: set.auto,
@@ -113,6 +116,7 @@ export function Reps_addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet,
         completedWeight: undefined,
         completedRpe: undefined,
         completedSetTimer: undefined,
+        completedSetTimerLeft: undefined,
       };
     }
   }
@@ -236,7 +240,7 @@ export function Reps_isFinishedSet(s: ISet): boolean {
 }
 
 export function Reps_toKey(set: ISet): string {
-  return `${Weight_printNull(set.weight)}-${Weight_printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRepsLeft}-${set.completedRpe}-${set.isCompleted}`;
+  return `${Weight_printNull(set.weight)}-${Weight_printNull(set.completedWeight)}-${set.reps}-${set.minReps}-${set.isAmrap}-${set.rpe}-${set.askWeight}-${set.completedReps}-${set.completedRepsLeft}-${set.completedRpe}-${set.isCompleted}-${set.completedSetTimer}-${set.completedSetTimerLeft}`;
 }
 
 export function Reps_isInRangeCompleted(sets: ISet[]): boolean {
@@ -295,7 +299,8 @@ export function Reps_group(sets: ISet[], isNext?: boolean): ISet[][] {
           (isNext && last.timer !== set.timer) ||
           (isNext && last.isOverflowSetTimer !== set.isOverflowSetTimer) ||
           last.auto !== set.auto ||
-          (!isNext && last.completedSetTimer !== set.completedSetTimer))
+          (!isNext && last.completedSetTimer !== set.completedSetTimer) ||
+          (!isNext && last.completedSetTimerLeft !== set.completedSetTimerLeft))
       ) {
         memo.push([]);
         lastGroup = memo[memo.length - 1];

@@ -38,6 +38,7 @@ struct WatchSet: Codable, SetInfoProvider, Equatable {
     let completedWeight: WatchWeight?
     let completedRpe: Double?
     let completedSetTimer: Int?
+    var completedSetTimerLeft: Int?
     let status: String
     let plates: String?
     let isWarmup: Bool
@@ -183,8 +184,14 @@ struct WatchSetTimerModal: Codable, Identifiable, Equatable {
     // Optional so a Debug build still decodes an older locally-embedded bundle; absent reads as work.
     let phase: String?
     let getReady: Int?
+    let phaseId: String?
+    let side: String?
+    let recordedThisSide: Bool?
 
     var isGetReady: Bool { phase == "getReady" }
+    var isLeftSide: Bool { side == "left" }
+    var isRightSide: Bool { side == "right" }
+    var isUnilateral: Bool { isLeftSide || isRightSide }
 }
 
 struct WatchSetTimerCheckDue: Codable {

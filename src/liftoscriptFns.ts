@@ -21,6 +21,7 @@ export const VScriptBindings = v.object({
   timers: optionalNumbers,
   setTime: optionalNumbers,
   completedSetTime: optionalNumbers,
+  completedSetTimeLeft: optionalNumbers,
   RPE: optionalNumbers,
   completedRPE: optionalNumbers,
   completedReps: optionalNumbers,

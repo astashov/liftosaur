@@ -488,6 +488,7 @@ export class LiftoscriptEvaluator {
             "timers",
             "setTime",
             "completedSetTime",
+            "completedSetTimeLeft",
             "w",
             "r",
             "cr",

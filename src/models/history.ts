@@ -173,6 +173,8 @@ export function History_finishProgramDay(
     updatedAt: updatedAt,
     timerSince: undefined,
     timerMode: undefined,
+    setTimer: undefined,
+    setTimerGetReady: undefined,
     intervals: History_pauseWorkout(progress.intervals),
     ...(Progress_isCurrent(progress) ? { endTime } : {}),
   };

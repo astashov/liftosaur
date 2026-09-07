@@ -196,18 +196,23 @@ struct RecordSetTimerIntent: LiveActivityIntent {
     @Parameter(title: "Keep Timing")
     var keepTiming: Bool
 
+    @Parameter(title: "Phase Id")
+    var phaseId: String
+
     init() {
         self.entryIndex = 0
         self.setIndex = 0
         self.setTimerSince = 0
         self.keepTiming = false
+        self.phaseId = ""
     }
 
-    init(entryIndex: Int, setIndex: Int, setTimerSince: Int, keepTiming: Bool) {
+    init(entryIndex: Int, setIndex: Int, setTimerSince: Int, keepTiming: Bool, phaseId: String) {
         self.entryIndex = entryIndex
         self.setIndex = setIndex
         self.setTimerSince = setTimerSince
         self.keepTiming = keepTiming
+        self.phaseId = phaseId
     }
 
     func perform() async throws -> some IntentResult {
@@ -223,6 +228,7 @@ struct RecordSetTimerIntent: LiveActivityIntent {
             sharedDefaults.set(setIndex, forKey: "recordSetTimerSetIndex")
             sharedDefaults.set(elapsedSeconds, forKey: "recordSetTimerElapsedSeconds")
             sharedDefaults.set(keepTiming, forKey: "recordSetTimerKeepTiming")
+            sharedDefaults.set(phaseId, forKey: "recordSetTimerPhaseId")
             sharedDefaults.set(requestId, forKey: "completeSetRequestId")
             Logger.liveActivity.debug("Syncing record set timer (\(entryIndex)/\(setIndex), \(elapsedSeconds)s, keep: \(keepTiming))")
             sharedDefaults.synchronize()
@@ -272,16 +278,21 @@ struct StartSetTimerWorkIntent: LiveActivityIntent {
     @Parameter(title: "Get Ready Since")
     var getReadySince: Int
 
+    @Parameter(title: "Phase Id")
+    var phaseId: String
+
     init() {
         self.entryIndex = 0
         self.setIndex = 0
         self.getReadySince = 0
+        self.phaseId = ""
     }
 
-    init(entryIndex: Int, setIndex: Int, getReadySince: Int) {
+    init(entryIndex: Int, setIndex: Int, getReadySince: Int, phaseId: String) {
         self.entryIndex = entryIndex
         self.setIndex = setIndex
         self.getReadySince = getReadySince
+        self.phaseId = phaseId
     }
 
     func perform() async throws -> some IntentResult {
@@ -300,6 +311,7 @@ struct StartSetTimerWorkIntent: LiveActivityIntent {
             sharedDefaults.set(setIndex, forKey: "startSetTimerWorkSetIndex")
             sharedDefaults.set(tappedAt, forKey: "startSetTimerWorkTappedAt")
             sharedDefaults.set(getReadySince, forKey: "startSetTimerWorkGetReadySince")
+            sharedDefaults.set(phaseId, forKey: "startSetTimerWorkPhaseId")
             sharedDefaults.set(requestId, forKey: "completeSetRequestId")
             Logger.liveActivity.debug("Syncing start set timer work (\(entryIndex)/\(setIndex))")
             sharedDefaults.synchronize()
@@ -349,18 +361,23 @@ struct OpenWorkoutRecordSetTimerIntent: AppIntent {
     @Parameter(title: "Keep Timing")
     var keepTiming: Bool
 
+    @Parameter(title: "Phase Id")
+    var phaseId: String
+
     init() {
         self.entryIndex = 0
         self.setIndex = 0
         self.setTimerSince = 0
         self.keepTiming = false
+        self.phaseId = ""
     }
 
-    init(entryIndex: Int, setIndex: Int, setTimerSince: Int, keepTiming: Bool) {
+    init(entryIndex: Int, setIndex: Int, setTimerSince: Int, keepTiming: Bool, phaseId: String) {
         self.entryIndex = entryIndex
         self.setIndex = setIndex
         self.setTimerSince = setTimerSince
         self.keepTiming = keepTiming
+        self.phaseId = phaseId
     }
 
     func perform() async throws -> some IntentResult {
@@ -370,6 +387,7 @@ struct OpenWorkoutRecordSetTimerIntent: AppIntent {
             sharedDefaults.set(setIndex, forKey: "recordSetTimerSetIndex")
             sharedDefaults.set(elapsedSeconds, forKey: "recordSetTimerElapsedSeconds")
             sharedDefaults.set(keepTiming, forKey: "recordSetTimerKeepTiming")
+            sharedDefaults.set(phaseId, forKey: "recordSetTimerPhaseId")
             sharedDefaults.synchronize()
         }
         return .result()

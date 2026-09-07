@@ -61,6 +61,13 @@ struct LiveActivitySetTimer: Codable, Hashable {
     var entryIndex: Int
     var setIndex: Int
     var restTimer: Int
+    var phaseId: String?
+    var side: String?
+    var recordedThisSide: Bool?
+
+    var isLeftSide: Bool { side == "left" }
+    var isRightSide: Bool { side == "right" }
+    var isUnilateral: Bool { isLeftSide || isRightSide }
 }
 
 struct LiveActivityGetReady: Codable, Hashable {
@@ -69,6 +76,12 @@ struct LiveActivityGetReady: Codable, Hashable {
     var entryIndex: Int
     var setIndex: Int
     var setTimer: Int
+    var phaseId: String?
+    var side: String?
+
+    var isLeftSide: Bool { side == "left" }
+    var isRightSide: Bool { side == "right" }
+    var isUnilateral: Bool { isLeftSide || isRightSide }
 }
 
 struct WorkoutAttributes: ActivityAttributes {

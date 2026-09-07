@@ -451,4 +451,14 @@ export const migrations = {
     }
     return storage;
   },
+  "20260906120000_drop_set_timer_without_id": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of [...(storage.progress || []), ...(storage.history || [])]) {
+      const setTimer = record.setTimer as { id?: string } | undefined;
+      if (setTimer != null && setTimer.id == null) {
+        record.setTimer = undefined;
+      }
+    }
+    return storage;
+  },
 };

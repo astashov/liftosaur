@@ -70,7 +70,10 @@ class LiveUpdateManager(private val context: Context) {
         val isCompleted: Boolean,
         val entryIndex: Int,
         val setIndex: Int,
-        val restTimer: Int
+        val restTimer: Int,
+        val phaseId: String,
+        val side: String,
+        val recordedThisSide: Boolean
     )
 
     data class LiveActivityGetReady(
@@ -78,7 +81,9 @@ class LiveUpdateManager(private val context: Context) {
         val getReady: Int,
         val entryIndex: Int,
         val setIndex: Int,
-        val setTimer: Int
+        val setTimer: Int,
+        val phaseId: String,
+        val side: String
     )
 
     data class LiveActivityState(
@@ -231,7 +236,10 @@ class LiveUpdateManager(private val context: Context) {
                 isCompleted = setTimerMap.getBoolean("isCompleted"),
                 entryIndex = setTimerMap.getInt("entryIndex"),
                 setIndex = setTimerMap.getInt("setIndex"),
-                restTimer = setTimerMap.getInt("restTimer")
+                restTimer = setTimerMap.getInt("restTimer"),
+                phaseId = if (setTimerMap.hasKey("phaseId")) setTimerMap.getString("phaseId") ?: "" else "",
+                side = if (setTimerMap.hasKey("side")) setTimerMap.getString("side") ?: "bilateral" else "bilateral",
+                recordedThisSide = setTimerMap.hasKey("recordedThisSide") && setTimerMap.getBoolean("recordedThisSide")
             )
         } else null
 
@@ -242,7 +250,9 @@ class LiveUpdateManager(private val context: Context) {
                 getReady = getReadyMap.getInt("getReady"),
                 entryIndex = getReadyMap.getInt("entryIndex"),
                 setIndex = getReadyMap.getInt("setIndex"),
-                setTimer = getReadyMap.getInt("setTimer")
+                setTimer = getReadyMap.getInt("setTimer"),
+                phaseId = if (getReadyMap.hasKey("phaseId")) getReadyMap.getString("phaseId") ?: "" else "",
+                side = if (getReadyMap.hasKey("side")) getReadyMap.getString("side") ?: "bilateral" else "bilateral"
             )
         } else null
 
@@ -482,6 +492,9 @@ class LiveUpdateManager(private val context: Context) {
         }
 
         val contentParts = mutableListOf<String>()
+        if (setTimer.side == "left" || setTimer.side == "right") {
+            contentParts.add(if (setTimer.side == "left") "Left side" else "Right side")
+        }
         if (entry != null) {
             contentParts.add("Set ${entry.currentSet}/${entry.totalSets}")
             val targetParts = mutableListOf<String>()
@@ -524,10 +537,16 @@ class LiveUpdateManager(private val context: Context) {
 
         // Once the set is logged (via "Log & keep"), "Stop & record" would just overwrite the kept time with a
         // later one, so hide it too — only "Log & keep" and "Stop & record" exist while the set is unlogged.
-        if (!setTimer.isCompleted) {
+        val isLeftSide = setTimer.side == "left"
+        val isBankedLeft = isLeftSide && setTimer.recordedThisSide
+        val canRecord = !(if (isLeftSide) setTimer.recordedThisSide else setTimer.isCompleted)
+        if (canRecord || isBankedLeft) {
             val canComplete = state.entry?.canCompleteFromLiveActivity ?: true
-            builder.addAction(0, "Stop & record", recordSetTimerPendingIntent(setTimer, false, canComplete, 4))
-            builder.addAction(0, "Log & keep", recordSetTimerPendingIntent(setTimer, true, canComplete, 5))
+            val stopLabel = if (isBankedLeft) "Next side" else "Stop & record"
+            builder.addAction(0, stopLabel, recordSetTimerPendingIntent(setTimer, false, canComplete, 4))
+            if (canRecord) {
+                builder.addAction(0, "Log & keep", recordSetTimerPendingIntent(setTimer, true, canComplete, 5))
+            }
         }
 
         val notification = builder.build()
@@ -550,6 +569,7 @@ class LiveUpdateManager(private val context: Context) {
 
         val entry = state.entry
 
+        val sidePrefix = if (getReady.side == "left") "Left side · " else if (getReady.side == "right") "Right side · " else ""
         val nextSuffix = if (getReady.setTimer > 0) {
             val minutes = getReady.setTimer / 60
             val seconds = getReady.setTimer % 60
@@ -563,7 +583,7 @@ class LiveUpdateManager(private val context: Context) {
             "Get ready$nextSuffix"
         }
 
-        val contentParts = mutableListOf("Get ready")
+        val contentParts = mutableListOf("${sidePrefix}Get ready")
         if (entry != null) {
             contentParts.add("Set ${entry.currentSet}/${entry.totalSets}")
             val targetParts = mutableListOf<String>()
@@ -606,6 +626,7 @@ class LiveUpdateManager(private val context: Context) {
             putExtra(LiveUpdateActionReceiver.EXTRA_ENTRY_INDEX, getReady.entryIndex)
             putExtra(LiveUpdateActionReceiver.EXTRA_SET_INDEX, getReady.setIndex)
             putExtra(LiveUpdateActionReceiver.EXTRA_GET_READY_SINCE, getReady.getReadySince)
+            putExtra(LiveUpdateActionReceiver.EXTRA_PHASE_ID, getReady.phaseId)
         }
         builder.addAction(
             0,
@@ -635,6 +656,7 @@ class LiveUpdateManager(private val context: Context) {
                 putExtra(LiveUpdateActionReceiver.EXTRA_ENTRY_INDEX, setTimer.entryIndex)
                 putExtra(LiveUpdateActionReceiver.EXTRA_SET_INDEX, setTimer.setIndex)
                 putExtra(LiveUpdateActionReceiver.EXTRA_SET_TIMER_SINCE, setTimer.setTimerSince)
+                putExtra(LiveUpdateActionReceiver.EXTRA_PHASE_ID, setTimer.phaseId)
             }
             PendingIntent.getBroadcast(context, requestCode, intent, flags)
         } else {
@@ -648,6 +670,7 @@ class LiveUpdateManager(private val context: Context) {
                 putExtra(LiveUpdateActionReceiver.EXTRA_SET_INDEX, setTimer.setIndex)
                 putExtra(LiveUpdateActionReceiver.EXTRA_SET_TIMER_SINCE, setTimer.setTimerSince)
                 putExtra(LiveUpdateActionReceiver.EXTRA_KEEP_TIMING, keepTiming)
+                putExtra(LiveUpdateActionReceiver.EXTRA_PHASE_ID, setTimer.phaseId)
             }
             PendingIntent.getActivity(context, requestCode, intent, flags)
         }

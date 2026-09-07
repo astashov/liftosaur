@@ -492,7 +492,15 @@ describe("updateVersions", () => {
         dayName: "Day 1",
         entries: [],
         startTime: 1000,
-        setTimer: { entryIndex: 0, setIndex: 0, startedAt: 500, nonce: 500 },
+        setTimer: {
+          entryIndex: 0,
+          setIndex: 0,
+          setId: "set1",
+          id: "phase1",
+          side: "bilateral" as const,
+          startedAt: 500,
+          nonce: 500,
+        },
       };
 
       const progressCleared: IHistoryRecord = { ...progress };
@@ -530,12 +538,29 @@ describe("updateVersions", () => {
         dayName: "Day 1",
         entries: [],
         startTime: 1000,
-        setTimerGetReady: { entryIndex: 0, setIndex: 0, startedAt: 500, getReady: 5, nonce: 500 },
+        setTimerGetReady: {
+          entryIndex: 0,
+          setIndex: 0,
+          setId: "set1",
+          id: "phase1",
+          side: "bilateral" as const,
+          startedAt: 500,
+          getReady: 5,
+          nonce: 500,
+        },
       };
       const promoted: IHistoryRecord = {
         ...progress,
         setTimerGetReady: undefined,
-        setTimer: { entryIndex: 0, setIndex: 0, startedAt: 5500, nonce: 500 },
+        setTimer: {
+          entryIndex: 0,
+          setIndex: 0,
+          setId: "set1",
+          id: "phase1",
+          side: "bilateral" as const,
+          startedAt: 5500,
+          nonce: 500,
+        },
       };
 
       const emptyStorage = { ...Storage_getDefault(), progress: [] };

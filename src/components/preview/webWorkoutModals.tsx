@@ -17,7 +17,7 @@ import {
   Program_getDayData,
   Program_stateValue,
 } from "../../models/program";
-import { Exercise_toKey } from "../../models/exercise";
+import { Exercise_toKey, Exercise_getIsUnilateral } from "../../models/exercise";
 import { Weight_build } from "../../models/weight";
 import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 
@@ -100,6 +100,10 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
             set={setTimerEditSet}
             entryIndex={setTimerEditModal.entryIndex}
             setIndex={setTimerEditModal.setIndex}
+            isUnilateral={Exercise_getIsUnilateral(
+              props.progress.entries[setTimerEditModal.entryIndex].exercise,
+              props.settings
+            )}
             dispatch={props.dispatch}
           />
         </Modal>
