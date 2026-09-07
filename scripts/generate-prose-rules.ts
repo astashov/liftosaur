@@ -8,10 +8,7 @@ const ROOT = path.resolve(__dirname, "..");
 const SOURCE = path.join(ROOT, "PROSE.md");
 // The archdoc skill left this repo for the graspcode plugin, which serves every repo and cannot
 // carry one repo's writing rules. CLAUDE.md is where an agent writing an archdoc reads them now.
-const TARGETS = [
-  "CLAUDE.md",
-  ".claude/skills/feature/SKILL.md",
-];
+const TARGETS = ["CLAUDE.md", ".claude/skills/feature/SKILL.md"];
 
 export function ProseRules_extract(source: string): string {
   const start = source.indexOf(START);

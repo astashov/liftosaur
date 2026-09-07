@@ -58,7 +58,9 @@ function maskCode(lines: readonly string[]): string[] {
       inFence = !inFence;
       return "";
     }
-    if (inFence) return "";
+    if (inFence) {
+      return "";
+    }
     return raw.replace(/``[\s\S]*?``/g, " ").replace(/`[^`]*`/g, " ");
   });
 }
@@ -84,15 +86,33 @@ function fenceMask(lines: readonly string[]): boolean[] {
 }
 
 function isProseLine(raw: string): boolean {
-  if (raw.trim() === "") return false;
-  if (/^\s/.test(raw)) return false;
-  if (/^[-*+]\s/.test(raw)) return false;
-  if (/^\d+[.)]\s/.test(raw)) return false;
-  if (/^#{1,6}\s/.test(raw)) return false;
-  if (/^>/.test(raw)) return false;
-  if (/^\|/.test(raw)) return false;
-  if (/^<!--/.test(raw)) return false;
-  if (/^\s*(```|~~~)/.test(raw)) return false;
+  if (raw.trim() === "") {
+    return false;
+  }
+  if (/^\s/.test(raw)) {
+    return false;
+  }
+  if (/^[-*+]\s/.test(raw)) {
+    return false;
+  }
+  if (/^\d+[.)]\s/.test(raw)) {
+    return false;
+  }
+  if (/^#{1,6}\s/.test(raw)) {
+    return false;
+  }
+  if (/^>/.test(raw)) {
+    return false;
+  }
+  if (/^\|/.test(raw)) {
+    return false;
+  }
+  if (/^<!--/.test(raw)) {
+    return false;
+  }
+  if (/^\s*(```|~~~)/.test(raw)) {
+    return false;
+  }
   return true;
 }
 
@@ -111,12 +131,18 @@ function checkProseBlockFresh(): IFinding[] {
   const stale: string[] = [];
   for (const rel of ["CLAUDE.md", ".claude/skills/feature/SKILL.md"]) {
     const file = path.join(ROOT, rel);
-    if (!fs.existsSync(file)) continue;
+    if (!fs.existsSync(file)) {
+      continue;
+    }
     const current = fs.readFileSync(file, "utf8");
     const next = ProseRules_splice(current, block);
-    if (next == null || next !== current) stale.push(rel);
+    if (next == null || next !== current) {
+      stale.push(rel);
+    }
   }
-  if (stale.length === 0) return [];
+  if (stale.length === 0) {
+    return [];
+  }
   return [
     {
       line: 1,
@@ -161,7 +187,9 @@ export function LintDocs_check(file: string, text: string): IFinding[] {
     }
     for (const [pattern, fix] of BANNED) {
       const hit = m.match(pattern);
-      if (hit) add(n, "banned-word", "error", `"${hit[0].trim()}" — ${fix}`);
+      if (hit) {
+        add(n, "banned-word", "error", `"${hit[0].trim()}" — ${fix}`);
+      }
     }
     if (isProseLine(raw) && sentenceCount(m) > 6) {
       add(n, "long-paragraph", "warn", `${sentenceCount(m)} sentences — split it`);
@@ -169,7 +197,9 @@ export function LintDocs_check(file: string, text: string): IFinding[] {
     if (isProseLine(raw)) {
       for (const sentence of m.split(SENTENCE_END)) {
         const words = sentence.trim().split(/\s+/).filter(Boolean).length;
-        if (words > 45) add(n, "long-sentence", "warn", `${words}-word sentence`);
+        if (words > 45) {
+          add(n, "long-sentence", "warn", `${words}-word sentence`);
+        }
       }
     }
   });
@@ -207,20 +237,29 @@ function main(): void {
   }
 
   for (const file of files) {
-    if (!fs.existsSync(file)) continue;
+    if (!fs.existsSync(file)) {
+      continue;
+    }
     const findings = LintDocs_check(path.resolve(file), fs.readFileSync(file, "utf8"));
     const rel = path.relative(ROOT, path.resolve(file));
     for (const f of findings.sort((a, b) => a.line - b.line)) {
-      if (f.severity === "error") errors += 1;
-      else warnings += 1;
-      if (f.severity === "warn" && quiet) continue;
+      if (f.severity === "error") {
+        errors += 1;
+      } else {
+        warnings += 1;
+      }
+      if (f.severity === "warn" && quiet) {
+        continue;
+      }
       const tag = f.severity === "error" ? "ERROR" : " warn";
       console.error(`${rel}:${f.line}  ${tag}  ${f.rule}  ${f.message}`);
     }
   }
 
   console.error(`\n${errors} error(s), ${warnings} warning(s)`);
-  if (errors > 0) process.exit(1);
+  if (errors > 0) {
+    process.exit(1);
+  }
 }
 
 if (require.main === module) {

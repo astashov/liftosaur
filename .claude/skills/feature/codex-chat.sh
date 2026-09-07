@@ -4,7 +4,7 @@
 #
 #   codex-chat.sh --transcript <file.md> --title "Architecture · round 1" \
 #                 --prompt-file <file> [--resume] [--schema <file.json>] \
-#                 [--model gpt-5.4] [--effort high] [--timeout 900]
+#                 [--model gpt-5.6-sol] [--effort high] [--timeout 900]
 #
 # Side files, all derived from --transcript <base>.md:
 #   <base>.thread    codex thread id (used by --resume)
@@ -14,7 +14,7 @@
 set -uo pipefail
 
 TRANSCRIPT=""; TITLE="Codex"; PROMPT_FILE=""; SCHEMA=""; RESUME=0
-MODEL="gpt-5.4"; EFFORT="high"; TIMEOUT=900
+MODEL="gpt-5.6-sol"; EFFORT="high"; TIMEOUT=900
 
 while [ $# -gt 0 ]; do
   case "$1" in

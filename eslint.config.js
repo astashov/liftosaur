@@ -208,6 +208,7 @@ module.exports = defineConfig([
     "test-results",
     "**/node_modules",
     "**/worktrees",
+    ".archdoc-snapshots",
     "codemods",
     "nativewind-env.d.ts",
     "uniwind-types.d.ts",

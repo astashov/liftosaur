@@ -135,6 +135,8 @@ It judges every comment the branch added or modified against the rule in `CLAUDE
 
 Apply the deletes and renames yourself. Push back on any verdict you disagree with and say why in your report to the user; the agent is not the final word.
 
+Push back hardest on its keeps. A feature ends with four or five comments, so a report keeping more than that has rubber-stamped the author's own justifications — read each keep against the delete test yourself and cut the rest before you apply anything. The rationale for a deleted comment belongs in the archdoc from Phase 8, not back in the source.
+
 ## Phase 7 — Two codex reviews
 
 Run both against the branch diff, in parallel, each in its own transcript section. Give codex the diff scope (`git diff $(git merge-base master HEAD)..HEAD --stat` plus the paths), not file dumps. Both use `--schema schemas/review.schema.json`.
@@ -211,7 +213,7 @@ Mechanical checks, every time; each one is a bug class that has actually bitten 
   --title "Architecture · round 1" \
   --prompt-file /tmp/.../prompt.md \
   [--resume] [--schema .claude/skills/feature/schemas/review.schema.json] \
-  [--effort high] [--model gpt-5.4] [--timeout 900]
+  [--effort high] [--model gpt-5.6-sol] [--timeout 900]
 ```
 
 - Always `run_in_background: true` — a real consult takes 2–5 minutes. Poll the output file every 20–30s.
