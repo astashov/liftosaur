@@ -1,6 +1,6 @@
 # PROSE.md
 
-How to write, for every surface: chat replies, `lambda/scripts/archdocs/*.md`, `lambda/scripts/plans/*.md`, aireviewer answers, walkthrough steps, and `lambda/scripts/memory/` entries.
+How to write, for every surface: chat replies, `lambda/scripts/archdocs/*.md`, `lambda/scripts/plans/*.md`, graspcode review answers, walkthrough steps, and `lambda/scripts/memory/` entries.
 
 The rules between the markers below are copied verbatim into `CLAUDE.md` and `.claude/skills/feature/SKILL.md` by `scripts/generate-prose-rules.ts`. Edit them here, then run the generator. `scripts/lint-docs.ts` fails when a copy drifts. The archdoc skill moved to the graspcode plugin, which serves every repo and so carries no repo's writing rules; an agent writing an archdoc reads these from `CLAUDE.md`.
 

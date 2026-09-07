@@ -1,5 +1,5 @@
 # Sparse-checkout patterns for archdoc snapshot worktrees (.archdoc-snapshots/<sha>).
-# Read by scripts/archdoc-snapshot.ts and by aireviewer's archdoc URI handler, so the two never drift.
+# Read by graspcode's archdoc snapshot script and its URI handler, so the two never drift.
 # git sparse-checkout --no-cone syntax: gitignore patterns, "!" excludes, last match wins.
 #
 # Goal: everything an archdoc links into, plus everything the TypeScript language service needs to
