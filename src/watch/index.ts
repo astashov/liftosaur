@@ -1727,18 +1727,14 @@ class LiftosaurWatch {
   }
 
   // Must not run through modifyStorage: Storage_updateVersions would write a deletion timestamp for
-  // every dropped record, and the phone and server both honour those.
+  // every dropped record, and the phone and server both honour those. Cache-neutral because the
+  // caller prunes two storages, and seeding here would leave the cache holding whichever came last.
   public static pruneHistory(storageJson: string, confirmedIdsJson: string): string {
     try {
       const storage = JSON.parse(storageJson) as IStorage;
       const confirmedIds = new Set(JSON.parse(confirmedIdsJson) as string[]);
       const pruned = WatchHistoryPrune_prune(storage, confirmedIds);
-      if (pruned === storage) {
-        return storageJson;
-      }
-      cachedStorage = pruned;
-      cachedStorageVersion += 1;
-      return JSON.stringify(pruned);
+      return pruned === storage ? storageJson : JSON.stringify(pruned);
     } catch (e) {
       return storageJson;
     }

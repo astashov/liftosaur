@@ -466,6 +466,9 @@ class WatchSyncManager: ObservableObject {
            ) {
             lastSyncedStorage = prunedBaseline
         }
+        // parseStorageSync returns cachedStorage and ignores its argument, so the next read has to
+        // re-parse from disk rather than inherit whichever of the two storages was pruned last.
+        await engine.invalidateStorageCache()
     }
 
     private func jsonArray(_ values: [String]) -> String {
