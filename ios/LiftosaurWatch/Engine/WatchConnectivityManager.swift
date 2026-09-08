@@ -53,7 +53,7 @@ class WatchConnectivityManager: NSObject, ObservableObject {
     }
 
     /// Send full storage to phone for merging (simpler than deltas, self-healing)
-    func sendStorage(_ storageJson: String, deviceId: String) {
+    func sendStorage(_ storageJson: String, deviceId: String, onSendError: (() -> Void)? = nil) {
         guard let session = session else {
             return
         }
@@ -73,6 +73,7 @@ class WatchConnectivityManager: NSObject, ObservableObject {
             session.sendMessage(message, replyHandler: nil, errorHandler: { error in
                 Logger.wc.info(" failed to send storage: \(error)")
                 Self.logPayloadTooLarge(error: error, storageJson: storageJson, path: "sendMessage")
+                onSendError?()
             })
         } else {
             // Use updateApplicationContext to keep only the latest (not transferUserInfo which queues all)
@@ -199,6 +200,11 @@ extension WatchConnectivityManager: WCSessionDelegate {
             authRetryCount = 0
             requestAuth()
             requestStorage()
+            // The phone drops its reply to requestStorage when its own storage is unchanged, so a
+            // pull alone leaves a set completed out of range sitting on the watch.
+            Task { @MainActor in
+                WatchSyncManager.shared.retryPhoneSync()
+            }
         }
     }
 
@@ -305,6 +311,13 @@ extension WatchConnectivityManager: WCSessionDelegate {
             DispatchQueue.main.async {
                 WatchSyncManager.shared.clearAllStorage()
                 WorkoutManager.shared.reloadAfterStorageClear()
+            }
+        }
+
+        if data["type"] as? String == "watchStorageAck", let ids = data["ids"] as? [String] {
+            Logger.wc.info(" received storage ack for \(ids.count) history records")
+            Task { @MainActor in
+                WatchSyncManager.shared.confirmHistorySynced(ids)
             }
         }
 

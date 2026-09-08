@@ -32,6 +32,8 @@ export function NativeWatchBridge_sendStorageToWatch(_filteredStorageJson: strin
 
 export function NativeWatchBridge_sendAuthToWatch(_auth: INativeWatchAuth): void {}
 
+export function NativeWatchBridge_sendStorageAckToWatch(_historyIds: string[]): void {}
+
 export function NativeWatchBridge_sendNoAuthToWatch(): void {}
 
 export function NativeWatchBridge_sendClearAuthToWatch(): void {}

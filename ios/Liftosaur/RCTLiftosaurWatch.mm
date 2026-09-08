@@ -51,6 +51,13 @@ RCT_EXPORT_MODULE(LiftosaurWatch)
   resolve(nil);
 }
 
+- (void)sendStorageAckToWatch:(NSArray *)historyIds
+                      resolve:(RCTPromiseResolveBlock)resolve
+                       reject:(RCTPromiseRejectBlock)reject {
+  [[LiftosaurWatchImpl shared] sendStorageAck:historyIds];
+  resolve(nil);
+}
+
 - (void)sendNoAuthToWatch:(RCTPromiseResolveBlock)resolve
                    reject:(RCTPromiseRejectBlock)reject {
   [[LiftosaurWatchImpl shared] sendNoAuth];

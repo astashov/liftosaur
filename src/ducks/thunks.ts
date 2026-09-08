@@ -149,7 +149,11 @@ import {
   LiveActivityManager_updateLiveActivityForNextEntry,
 } from "../utils/liveActivityManager";
 import { KeychainStore_setAuthToken, KeychainStore_clearAuthToken, IAuthToken } from "../utils/keychainStore";
-import { NativeWatchBridge_sendAuthToWatch, NativeWatchBridge_sendClearAuthToWatch } from "../utils/nativeWatchBridge";
+import {
+  NativeWatchBridge_sendAuthToWatch,
+  NativeWatchBridge_sendClearAuthToWatch,
+  NativeWatchBridge_sendStorageAckToWatch,
+} from "../utils/nativeWatchBridge";
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
 
 declare let Rollbar: RB;
@@ -1226,6 +1230,14 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
         }
       } else {
         SendMessage_print("handleWatchStorageMerge: no changes after merge");
+      }
+
+      // Sent whether or not the merge changed anything: a record the phone already holds still has to
+      // be confirmed, or the watch would keep it forever waiting for an acknowledgement.
+      const mergedIds = new Set((mergedStorage.history ?? []).map((r) => `${r.id}`));
+      const ackedIds = (watchStorage.history ?? []).map((r) => `${r.id}`).filter((id) => mergedIds.has(id));
+      if (ackedIds.length > 0) {
+        NativeWatchBridge_sendStorageAckToWatch(ackedIds);
       }
     } catch (error) {
       SendMessage_print(`handleWatchStorageMerge: failed to merge storage: ${error}`);

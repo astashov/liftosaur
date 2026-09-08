@@ -315,6 +315,21 @@ class LiftosaurEngine {
         await callRaw("mergeStorage", globals: [("__lft_s0", currentStorageJson), ("__lft_s1", incomingStorageJson)], args: [str(deviceId)])
     }
 
+    func pruneHistory(storageJson: String, confirmedIdsJson: String) async -> String? {
+        await callRaw(
+            "pruneHistory",
+            globals: [("__lft_s0", storageJson), ("__lft_s1", confirmedIdsJson)]
+        )
+    }
+
+    func filterStorageForPhone(storageJson: String, maxJsonLength: Int, maxRecords: Int) async -> String? {
+        await callRaw(
+            "filterStorageForPhone",
+            globals: [("__lft_s", storageJson)],
+            args: ["\(maxJsonLength)", "\(maxRecords)"]
+        )
+    }
+
     func getLatestMigrationVersion() async -> String? {
         await callRaw("getLatestMigrationVersion")
     }

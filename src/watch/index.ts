@@ -91,6 +91,8 @@ import { TimedSet_toView, TimedSet_withRecorded } from "../models/timedSet";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
 import { CollectionUtils_uniqByExpr } from "../utils/collection";
+import { WatchStorageFilter_filterForPhone } from "../utils/watchStorageFilter";
+import { WatchHistoryPrune_prune } from "../utils/watchHistoryPrune";
 
 export interface IWatchHistoryRecord {
   dayName: string;
@@ -1710,6 +1712,35 @@ class LiftosaurWatch {
       return JSON.stringify({ success: true });
     } catch (e) {
       return JSON.stringify({ success: false, error: String(e) });
+    }
+  }
+
+  // Deliberately bypasses parseStorageSync: this is a structural transform that must not touch
+  // cachedStorage, or the next mutation would run against a storage with truncated history.
+  public static filterStorageForPhone(storageJson: string, maxJsonLength: number, maxRecords: number): string {
+    try {
+      const storage = JSON.parse(storageJson) as IStorage;
+      return JSON.stringify(WatchStorageFilter_filterForPhone(storage, maxJsonLength, maxRecords));
+    } catch (e) {
+      return storageJson;
+    }
+  }
+
+  // Must not run through modifyStorage: Storage_updateVersions would write a deletion timestamp for
+  // every dropped record, and the phone and server both honour those.
+  public static pruneHistory(storageJson: string, confirmedIdsJson: string): string {
+    try {
+      const storage = JSON.parse(storageJson) as IStorage;
+      const confirmedIds = new Set(JSON.parse(confirmedIdsJson) as string[]);
+      const pruned = WatchHistoryPrune_prune(storage, confirmedIds);
+      if (pruned === storage) {
+        return storageJson;
+      }
+      cachedStorage = pruned;
+      cachedStorageVersion += 1;
+      return JSON.stringify(pruned);
+    } catch (e) {
+      return storageJson;
     }
   }
 }

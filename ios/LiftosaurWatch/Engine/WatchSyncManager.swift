@@ -33,6 +33,21 @@ class WatchSyncManager: ObservableObject {
     // We track what we SENT (not received) because after merging phone storage,
     // watch's _versions differ from phone's even if content is identical.
     private var lastStorageSentToPhone: String?
+    private var sendAttempt = 0
+    private var reportedPayloadOverCap = false
+
+    // Measured storage compressed 6.15:1 (440757 -> 71619); this assumes a worse 4:1, so it lands
+    // near maxWireBytes in the bad case.
+    private static let phonePayloadMaxJsonLength = 240_000
+
+    private let confirmedHistoryIdsKey = "liftosaur_confirmed_history_ids"
+
+    // Only records the phone has said it holds are droppable, so an unreachable phone means storage
+    // grows rather than a workout disappearing.
+    private var confirmedHistoryIds: Set<String> {
+        get { Set(UserDefaults.standard.stringArray(forKey: confirmedHistoryIdsKey) ?? []) }
+        set { UserDefaults.standard.set(Array(newValue), forKey: confirmedHistoryIdsKey) }
+    }
 
     enum SyncStatus: Equatable {
         case synced
@@ -419,17 +434,119 @@ class WatchSyncManager: ObservableObject {
                     }
                 }
 
-                // Has changes, send to phone
-                Logger.sync.info(" sending full storage to phone")
-                WatchConnectivityManager.shared.sendStorage(storage, deviceId: self.deviceId)
-                self.lastStorageSentToPhone = storage
+                await self.sendToPhone(storage)
             }
         } else {
-            // No last sent storage or no engine, just send
-            Logger.sync.info(" sending full storage to phone")
-            WatchConnectivityManager.shared.sendStorage(storage, deviceId: deviceId)
-            lastStorageSentToPhone = storage
+            Task { await self.sendToPhone(storage) }
         }
+    }
+
+    func confirmHistorySynced(_ ids: [String]) {
+        var confirmed = confirmedHistoryIds
+        confirmed.formUnion(ids)
+        confirmedHistoryIds = confirmed
+    }
+
+    // Both baselines move together: diffVersions emits an entry for a version present in current and
+    // absent from the baseline, so pruning one harder than the other re-sends the dropped records.
+    func pruneStoredHistory() async {
+        guard let engine = WorkoutManager.shared.engine, let storage = currentStorage else { return }
+        let confirmed = Array(confirmedHistoryIds)
+        guard !confirmed.isEmpty else { return }
+        guard let pruned = await engine.pruneHistory(storageJson: storage, confirmedIdsJson: jsonArray(confirmed)),
+              pruned != storage else {
+            return
+        }
+        Logger.sync.info(" pruned stored history (\(storage.count) -> \(pruned.count) bytes)")
+        currentStorage = pruned
+        if let baseline = lastSyncedStorage,
+           let prunedBaseline = await engine.pruneHistory(
+            storageJson: baseline,
+            confirmedIdsJson: jsonArray(confirmed)
+           ) {
+            lastSyncedStorage = prunedBaseline
+        }
+    }
+
+    private func jsonArray(_ values: [String]) -> String {
+        guard let data = try? JSONSerialization.data(withJSONObject: values),
+              let json = String(data: data, encoding: .utf8) else {
+            return "[]"
+        }
+        return json
+    }
+
+    func retryPhoneSync() {
+        guard let storage = currentStorage else { return }
+        Logger.sync.info(" forced phone sync retry")
+        Task { await self.sendToPhone(storage) }
+    }
+
+    private func sendToPhone(_ storage: String) async {
+        sendAttempt += 1
+        let attempt = sendAttempt
+        lastStorageSentToPhone = storage
+        let payload = await payloadForPhone(storage)
+        Logger.sync.info(" sending storage to phone (\(payload.count) bytes from \(storage.count))")
+        WatchConnectivityManager.shared.sendStorage(payload, deviceId: deviceId) { [weak self] in
+            Task { @MainActor in
+                // Two attempts can carry the same snapshot, so string equality would let a late failure
+                // from the older one clear a baseline the newer one already committed.
+                guard let self = self, self.sendAttempt == attempt else { return }
+                Logger.sync.info(" send failed, clearing sent baseline so the next attempt retries")
+                self.lastStorageSentToPhone = nil
+            }
+        }
+    }
+
+    // Compression is content-dependent, so the length budget alone cannot keep the wire payload under
+    // the cap. Each rung drops less than the one before it, and only the last gives up the workout
+    // the user just finished.
+    private static let phoneHistoryLadder = [Int.max, 1, 0]
+
+    private func payloadForPhone(_ storage: String) async -> String {
+        guard let engine = WorkoutManager.shared.engine else { return storage }
+
+        var lastFiltered: String?
+        var newestOnly: String?
+        for maxRecords in Self.phoneHistoryLadder {
+            guard let filtered = await engine.filterStorageForPhone(
+                storageJson: storage,
+                maxJsonLength: Self.phonePayloadMaxJsonLength,
+                maxRecords: maxRecords
+            ) else {
+                return lastFiltered ?? storage
+            }
+            lastFiltered = filtered
+            if maxRecords == 1 {
+                newestOnly = filtered
+            }
+            let size = StoragePayloadCompression.wireByteCount(filtered)
+            if size <= StoragePayloadCompression.maxWireBytes {
+                return filtered
+            }
+            if maxRecords == 0 {
+                reportPayloadOverCap(historyFree: filtered, newestOnly: newestOnly, size: size)
+            }
+        }
+        return lastFiltered ?? storage
+    }
+
+    // notifyPhone runs on every set tap, so an affected watch would otherwise bill hundreds of
+    // identical events per workout. One per launch is enough to find it.
+    private func reportPayloadOverCap(historyFree: String, newestOnly: String?, size: Int) {
+        Logger.sync.info(" payload over cap with no history: \(size) bytes")
+        guard !reportedPayloadOverCap else { return }
+        reportedPayloadOverCap = true
+        if let newestOnly = newestOnly, newestOnly != historyFree {
+            WatchEventManager.shared.logNativeEvent(name: "watch-payload-latest-excluded", extra: [
+                "size": String(StoragePayloadCompression.wireByteCount(newestOnly)),
+            ])
+        }
+        WatchEventManager.shared.logNativeEvent(name: "watch-base-payload-too-large", extra: [
+            "size": String(size),
+            "breakdown": StoragePayloadCompression.sizeBreakdown(historyFree),
+        ])
     }
 
     // Fetch full storage from server using sync2 (for initial sync when phone unavailable)

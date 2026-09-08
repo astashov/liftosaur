@@ -13,10 +13,21 @@ import OSLog
 enum StoragePayloadCompression {
     static let compressionThreshold = 60_000
 
+    private static let wcSessionDictionaryCap = 65_536
+    private static let dictionaryOverheadBytes = 5_536
+    static let maxWireBytes = wcSessionDictionaryCap - dictionaryOverheadBytes
+
     static func compressIfLarge(_ json: String) -> Data? {
         let data = Data(json.utf8)
         guard data.count > compressionThreshold else { return nil }
         return try? (data as NSData).compressed(using: .zlib) as Data
+    }
+
+    static func wireByteCount(_ json: String) -> Int {
+        if let compressed = compressIfLarge(json) {
+            return compressed.count
+        }
+        return Data(json.utf8).count
     }
 
     static func decompress(_ data: Data) -> String? {

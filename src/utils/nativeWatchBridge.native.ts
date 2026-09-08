@@ -31,6 +31,13 @@ export function NativeWatchBridge_sendAuthToWatch(auth: WatchAuth): void {
   NativeLiftosaurWatch!.sendAuthToWatch(auth).catch(() => {});
 }
 
+export function NativeWatchBridge_sendStorageAckToWatch(historyIds: string[]): void {
+  if (Platform.OS !== "ios") {
+    return;
+  }
+  NativeLiftosaurWatch!.sendStorageAckToWatch(historyIds).catch(() => {});
+}
+
 export function NativeWatchBridge_sendNoAuthToWatch(): void {
   if (Platform.OS !== "ios") {
     return;

@@ -441,6 +441,9 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         // new next workout instead of the one that was just finished.
         await loadNextWorkout()
 
+        // After the summary has read history[0], never before it.
+        await WatchSyncManager.shared.pruneStoredHistory()
+
         Task {
             let result = await finishHealthSession(save: saveToHealth)
             var extra = ["saved": String(result.saved), "trigger": "watch"]

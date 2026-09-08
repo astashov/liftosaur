@@ -38,6 +38,7 @@ export type WatchAuth = {
 
 export interface Spec extends TurboModule {
   sendStorageToWatch(filteredStorageJson: string): Promise<void>;
+  sendStorageAckToWatch(historyIds: string[]): Promise<void>;
   sendAuthToWatch(auth: WatchAuth): Promise<void>;
   sendNoAuthToWatch(): Promise<void>;
   sendClearAuthToWatch(): Promise<void>;

@@ -128,6 +128,21 @@ import WatchConnectivity
     }
   }
 
+  // transferUserInfo as well as sendMessage: a lost acknowledgement leaves the watch holding records
+  // forever, and the queued transport survives the phone going unreachable straight after the merge.
+  @objc public func sendStorageAck(_ historyIds: NSArray) {
+    guard let session = session, session.activationState == .activated else { return }
+    guard session.isPaired && session.isWatchAppInstalled else { return }
+    let ids = historyIds.compactMap { $0 as? String }
+    guard !ids.isEmpty else { return }
+    let payload: [String: Any] = ["type": "watchStorageAck", "ids": ids]
+    if session.isReachable {
+      session.sendMessage(payload, replyHandler: nil)
+    } else {
+      session.transferUserInfo(payload)
+    }
+  }
+
   @objc public func sendNoAuth() {
     guard let session = session, session.activationState == .activated, session.isReachable else { return }
     session.sendMessage(["type": "noAuth"], replyHandler: nil)
