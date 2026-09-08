@@ -31,6 +31,20 @@ Everything durable lands in two files, both named off the feature slug:
 - `lambda/scripts/plans/YYYYMMDD-<slug>.md` — the plan, with phase checkboxes. Written at phase 3 and updated as you go, so a compacted or crashed session can resume from disk.
 - `lambda/scripts/plans/YYYYMMDD-<slug>.codex.md` — the full Claude↔Codex conversation, appended live.
 
+## The reader
+
+Every plan, contract, triage and report in this loop is written for Anton, the sole author of this app. Calibrate depth to what he knows, in both directions.
+
+**Skip the explanation.** React, TypeScript and Node he knows at expert level. `lens-shmens` and `yatro` are his own libraries, so never define what a lens is or how a `lb<IState>()` path resolves; show the lens path and move on. The same goes for the reducer/thunk shape, `IState` vs `IStorage`, the Liftoscript parser and planner, and the lambda router. Redux-style state, `useEffect` ordering, TS generics and Node streams need no gloss.
+
+**Remind, briefly.** He designed the architecture and knows it well, but the codebase is now large enough that he forgets parts. When a plan leans on a specific mechanism (`reducerWrapper` merge detection, `screenRemovalCleanup`, the watch filtering in `filterStorageForWatch`, the storage-version migration chain), one or two sentences on what that piece does and why it is shaped that way is welcome. Inline the 5–20 lines of the code involved, as the plan rules require. A reminder names the mechanism and its consequence; a tutorial explains the concept from zero. Write reminders.
+
+**Explain more.** React Native he knows at working level, below his browser React. Anything that is RN-specific rather than React-specific gets a sentence: why Fabric matters here, what `formSheet` does to the layout chain, why a `Pressable` behaves differently from a `<button>`, what Metro does with a given import. Spell out platform differences instead of assuming he has hit them before.
+
+**Explain fully.** Swift, Kotlin, Xcode, Gradle, iOS and Android SDKs he knows least. Any change under `ios/` or `android/`, any Turbo Module, codegen spec, `Info.plist` or `AndroidManifest.xml` entry, entitlement, pod, or build phase gets the treatment a strong web engineer new to native needs: what the file is for, what each changed line does, how it gets picked up by the build, what breaks if it is wrong, and how to see it working (the exact `xcodebuild` or `./gradlew` command, or the simulator step). Name the lifecycle or threading rule involved when there is one, such as WatchConnectivity delivery guarantees or a main-thread requirement.
+
+**Anchor native in the browser world when there is a clear analogue.** He learns a native concept fastest through the web concept he already owns, so lead with the analogue and then name where it differs. `UICollectionView` / `RecyclerView` cell reuse is a virtualized list with recycled DOM nodes. `Info.plist` and `AndroidManifest.xml` are the app's `manifest.json` plus permissions policy. `DispatchQueue.main.async` is `queueMicrotask` on the UI thread. An `NSUserDefaults` / `SharedPreferences` read is `localStorage`. A Turbo Module is a native addon exposed through a typed binding, the way a Node N-API module is. `viewDidAppear` / `onResume` is the `visibilitychange` event for one screen. Use the analogue only where it holds; when the native behaviour diverges (cell reuse resets state the way a recycled DOM node would not, `onResume` fires on every foreground return where `visibilitychange` does not on a new push), say so in the same sentence, or the analogue misleads instead of helping. When no analogue fits, explain it from scratch instead of forcing one.
+
 ---
 
 ## Phase 0 — Intake
@@ -91,7 +105,7 @@ The plan must be **readable in one pass, without opening the editor**. Hard rule
 
 - **Every symbol, function, or file you mention comes with its code inlined**, right there, 5–20 lines. Writing "like we do in `app.tsx:234`" or "using the helper in `program.ts:324`" *without the snippet* is banned — that's the failure mode this rule exists to kill.
 - **Open with one plain paragraph** on what the user sees or can do once this ships. Before any code.
-- **Explain like the reader is smart but new here.** Define repo jargon on first use ("a *lens* is how we do immutable updates: `lb<IState>().p('x').record(v)` builds a path and returns a new state"). Short sentences. No stacked abstractions.
+- **Pitch the depth per *The reader* above.** No definitions of lenses, `yatro`, or the reducer shape. A one-line reminder for the app mechanism the plan leans on. A full walkthrough for anything under `ios/` or `android/`. Short sentences. No stacked abstractions.
 - **ASCII sketches only** if they help. No mermaid, no diagrams-for-decoration.
 - **Follow the prose rules below**: no pipe tables, one paragraph per line, one list item per line, sections named and never numbered.
 - Lead with a **call tree or pseudocode** for anything whose branches matter — plain indentation in a fence, no bullets, no line numbers.
