@@ -450,25 +450,38 @@ class WatchSyncManager: ObservableObject {
     // Both baselines move together: diffVersions emits an entry for a version present in current and
     // absent from the baseline, so pruning one harder than the other re-sends the dropped records.
     func pruneStoredHistory() async {
-        guard let engine = WorkoutManager.shared.engine, let storage = currentStorage else { return }
+        guard let engine = WorkoutManager.shared.engine else { return }
         let confirmed = Array(confirmedHistoryIds)
         guard !confirmed.isEmpty else { return }
-        guard let pruned = await engine.pruneHistory(storageJson: storage, confirmedIdsJson: jsonArray(confirmed)),
-              pruned != storage else {
-            return
-        }
-        Logger.sync.info(" pruned stored history (\(storage.count) -> \(pruned.count) bytes)")
-        currentStorage = pruned
-        if let baseline = lastSyncedStorage,
-           let prunedBaseline = await engine.pruneHistory(
-            storageJson: baseline,
-            confirmedIdsJson: jsonArray(confirmed)
-           ) {
-            lastSyncedStorage = prunedBaseline
-        }
+        let confirmedJson = jsonArray(confirmed)
+
+        await prunePersisted(\.currentStorage, engine: engine, confirmedJson: confirmedJson)
+        await prunePersisted(\.lastSyncedStorage, engine: engine, confirmedJson: confirmedJson)
         // parseStorageSync returns cachedStorage and ignores its argument, so the next read has to
         // re-parse from disk rather than inherit whichever of the two storages was pruned last.
         await engine.invalidateStorageCache()
+    }
+
+    // @MainActor methods are reentrant across await, so handleIncomingStorage can commit a merge
+    // while the JS prune runs. Assigning unconditionally would replace it with a pre-merge snapshot.
+    private func prunePersisted(
+        _ keyPath: ReferenceWritableKeyPath<WatchSyncManager, String?>,
+        engine: LiftosaurEngine,
+        confirmedJson: String
+    ) async {
+        for _ in 0..<3 {
+            guard let storage = self[keyPath: keyPath] else { return }
+            guard let pruned = await engine.pruneHistory(storageJson: storage, confirmedIdsJson: confirmedJson),
+                  pruned != storage else {
+                return
+            }
+            if self[keyPath: keyPath] == storage {
+                Logger.sync.info(" pruned stored history (\(storage.count) -> \(pruned.count) bytes)")
+                self[keyPath: keyPath] = pruned
+                return
+            }
+        }
+        Logger.sync.info(" skipped prune, storage kept changing underneath")
     }
 
     private func jsonArray(_ values: [String]) -> String {
