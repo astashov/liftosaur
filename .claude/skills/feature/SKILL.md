@@ -65,6 +65,8 @@ Then draft **one recommended design plus at most one serious alternative**. For 
 
 Codex is read-only. It analyzes; we implement. It gets the repo, so hand it **paths and a problem**, never pasted file bodies.
 
+Codex advises the user, not you. Whatever it says, in this phase or in the phase 7 reviews, reaches the user as a list with your verdict on each item, and nothing changes in the tree until the user picks. In this phase that means its pushback reshapes the draft the user approves at phase 3; it never triggers an edit on its own.
+
 Round 1 prompt shape — write it to a file, then send it (see *Talking to codex* below):
 
 ```
@@ -194,7 +196,9 @@ For each finding: **open the code and check it** before believing it. Then sort 
 - **Rejected** — with the concrete reason it doesn't apply
 - **Your call** — genuine tradeoffs, presented with a recommendation
 
-Drop findings under 0.3 confidence. Present the three buckets, get the user's decisions, then fix the confirmed ones (Edit only), and re-verify.
+Drop findings under 0.3 confidence. Present the three buckets and **stop**.
+
+**Never act on a codex finding without the user's explicit go-ahead.** Not the confirmed ones, not the one-line "obvious" ones, not a rename. A finding you verified as real is still a finding, and the reply that presents it contains zero edits. The user reads the list and says which to fix: "fix all confirmed", "fix 1 and 3, skip 2", or "none". Only then apply those fixes (Edit only) and re-verify. If the user's answer is silence or a new topic, the findings stay unfixed and the plan file records them as open.
 
 ## Phase 9 — Document
 

@@ -462,6 +462,10 @@ class WatchSyncManager: ObservableObject {
         await engine.invalidateStorageCache()
     }
 
+    // One inbound merge is expected during the prune window: the phone echoes filtered storage back
+    // right after the finish. A second concurrent write means the next finished workout can prune.
+    private static let pruneCommitAttempts = 2
+
     // @MainActor methods are reentrant across await, so handleIncomingStorage can commit a merge
     // while the JS prune runs. Assigning unconditionally would replace it with a pre-merge snapshot.
     private func prunePersisted(
@@ -469,7 +473,7 @@ class WatchSyncManager: ObservableObject {
         engine: LiftosaurEngine,
         confirmedJson: String
     ) async {
-        for _ in 0..<3 {
+        for _ in 0..<Self.pruneCommitAttempts {
             guard let storage = self[keyPath: keyPath] else { return }
             guard let pruned = await engine.pruneHistory(storageJson: storage, confirmedIdsJson: confirmedJson),
                   pruned != storage else {
