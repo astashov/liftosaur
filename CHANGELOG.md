@@ -16,6 +16,20 @@
 -->
 
 ---
+date: 2026-09-09
+title: Time-based exercises: Countdown and unilateral exercises support
+---
+
+There's now a countdown timer for the time-based exercises. It starts when you approach the end of rest time.
+You can set it in **Me -> Timers**.
+
+Also, now the unilateral exercises will present 2 set timers one after another - for the left, and the for right side. With the countdown in-between as well.
+
+Countdown is extracted from the rest time:
+* With `30s|60s`, and countdown == 5s, your rest time would be `55s`, and then `5s` countdown would start. If you want to disable countdown completely on specific exercise.
+* With `30s|0s` there will be no countdown (and if it's unilateral - no countdown between sides)
+
+---
 date: 2026-09-01
 title: Autocompletion suggestions in freeform mode in Liftoscript editor
 ---
