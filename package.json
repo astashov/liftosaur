@@ -29,6 +29,8 @@
     "android-device2-release": "react-native run-android --mode=release --device 58060DLAQ003M0",
     "build:android-aab": "cd android && ./gradlew bundleRelease && echo '\\nAAB: android/app/build/outputs/bundle/release/app-release.aab'",
     "release:android:internal": "./scripts/release-android-internal.sh",
+    "release:android:production": "./scripts/release-android-production.sh",
+    "release:ios:production": "./scripts/release-ios-production.sh",
     "rn:start": "npm run build:theme && react-native start --port $(./scripts/metro-port.sh)",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:theme && npm run build:markdown && npm run build:programs && npm run build:exercises && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev && npm run build:licenses",

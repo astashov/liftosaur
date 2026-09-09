@@ -1,0 +1,4 @@
+Improvements for time-based exercises (like Plank):
+
+* Added a countdown timer (configurable in Me -> Timers)
+* Added support of unilateral time-based exercises (like Side Plank) - you'll get 2 timers one after another - for left and right sides. With countdown in-between.
