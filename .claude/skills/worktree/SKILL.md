@@ -110,6 +110,24 @@ Kills whatever is bound to its four ports, deletes the DNS records (guarded: ref
 - **`git worktree add -b <name>` fails if the branch already exists.** Create it from a fresh name,
   or `git worktree add` manually and write `localdomain.js` by hand.
 
+## Plans and archdocs for a worktree branch
+
+`lambda/scripts` is a git submodule and `worktree-create.sh` does not initialise it, so inside a
+worktree that directory is empty. Plans, codex transcripts and archdocs for the branch go in the
+**base repo's** `lambda/scripts/plans/` and `lambda/scripts/archdocs/`, as usual.
+
+An archdoc's code links then have to reach into the worktree, because the base checkout does not
+have the feature and the lint hook (`grasp archdoc lint` + `scripts/lint-docs.ts`, on every write
+under `lambda/scripts/archdocs/`) reports a dead path for `../../../ios/Foo.swift`. Write every
+link as `../../../worktrees/<name>/ios/Foo.swift#L12` (relative to the doc's own directory), stamp
+the header `base <worktree HEAD sha> - head working`, and lint resolves against the files on disk.
+`grasp` finds the repo root through `git rev-parse --git-common-dir`, so `lint` and `relink` work
+from either checkout. `worktrees/` is git-ignored in the base repo, so `relink` routes every link to
+the file view (no diff route) until the branch is committed.
+
+After the branch is committed and merged, remove `worktrees/<name>/` from every link, replace
+`working` with the commit sha, and run `grasp archdoc relink <doc> --write` again.
+
 ## Not per-worktree (known sharp edges)
 
 - **`liftosaur-local` MCP is pinned to `https://local.liftosaur.com:8080/mcp`** (in `~/.claude.json`).

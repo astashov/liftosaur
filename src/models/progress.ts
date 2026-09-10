@@ -2620,7 +2620,12 @@ export function Progress_completeSetAction(
     settings,
     subscription
   );
-  if (action.forceUpdateEntryIndex) {
+  // The pager scrolls only on a flip of this flag; the superset advance above moves currentEntryIndex
+  // without one, and timed-set completions dispatch with the flag off, so the thumbnail moved while the
+  // card stayed. An EMOM advance already flipped it — flip exactly once.
+  const entryChanged = (newProgress.currentEntryIndex ?? 0) !== (progress.currentEntryIndex ?? 0);
+  const alreadyFlipped = !!newProgress.ui?.forceUpdateEntryIndex !== !!progress.ui?.forceUpdateEntryIndex;
+  if ((action.forceUpdateEntryIndex || entryChanged) && !alreadyFlipped) {
     newProgress = {
       ...newProgress,
       ui: { ...newProgress.ui, forceUpdateEntryIndex: !newProgress.ui?.forceUpdateEntryIndex },

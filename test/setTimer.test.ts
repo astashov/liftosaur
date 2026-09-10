@@ -144,6 +144,70 @@ describe("Set timer triggering", () => {
     expect(Progress_getNextTimedSet(withRestAfter(1, 1))).to.eql(undefined);
   });
 
+  describe("recording a timed set in a superset scrolls the pager with the thumbnail", () => {
+    const noCountdown: ISettings = { ...Settings_build(), timers: { ...Settings_build().timers, getReady: undefined } };
+
+    function recordFromClock(progress: IHistoryRecord, entryIndex: number, setIndex: number): IHistoryRecord {
+      return Progress_completeSetAction(
+        noCountdown,
+        Stats_getEmpty(),
+        progress,
+        {
+          type: "CompleteSetAction",
+          entryIndex,
+          setIndex,
+          mode: "workout",
+          forceUpdateEntryIndex: false,
+          isExternal: false,
+          isPlayground: false,
+          keepSetTimerRunning: false,
+        },
+        undefined
+      );
+    }
+
+    it("flips forceUpdateEntryIndex when Stop & record moves to the paired exercise", () => {
+      const progress = buildProgress(
+        `# Week 1\n## Day 1\n` +
+          `Plank / 3x1 0lb 20s|60s / superset: D\n` +
+          `Pallof Press / 3x8 0lb 60s / superset: D\n`
+      );
+      const opened = Progress_completeSet(progress, 0, 0, "workout", false, noCountdown);
+      expect(opened.setTimer?.entryIndex).to.equal(0);
+      const before = !!opened.ui?.forceUpdateEntryIndex;
+
+      const recorded = recordFromClock(opened, 0, 0);
+      expect(recorded.entries[0].sets[0].isCompleted).to.equal(true);
+      expect(recorded.currentEntryIndex).to.equal(1);
+      expect(!!recorded.ui?.forceUpdateEntryIndex).to.equal(!before);
+    });
+
+    it("flips it once, not twice, when an EMOM advance already followed the clock to the paired exercise", () => {
+      const progress = buildProgress(
+        `# Week 1\n## Day 1\n` +
+          `Plank / 2x1 0lb 20s|0s auto / superset: D\n` +
+          `Side Plank / 2x1 0lb 20s|0s auto / superset: D\n`
+      );
+      const opened = Progress_completeSet(progress, 0, 0, "workout", false, noCountdown);
+      const before = !!opened.ui?.forceUpdateEntryIndex;
+
+      const recorded = recordFromClock(opened, 0, 0);
+      expect(recorded.currentEntryIndex).to.equal(1);
+      expect(recorded.setTimer?.entryIndex).to.equal(1);
+      expect(!!recorded.ui?.forceUpdateEntryIndex).to.equal(!before);
+    });
+
+    it("leaves the flag alone when the recorded set stays on the same exercise", () => {
+      const progress = buildProgress(`# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s\n`);
+      const opened = Progress_completeSet(progress, 0, 0, "workout", false, noCountdown);
+      const before = !!opened.ui?.forceUpdateEntryIndex;
+
+      const recorded = recordFromClock(opened, 0, 0);
+      expect(recorded.currentEntryIndex ?? 0).to.equal(0);
+      expect(!!recorded.ui?.forceUpdateEntryIndex).to.equal(before);
+    });
+  });
+
   it("opens immediately when the very first set is timed", () => {
     const progress = buildProgress(`# Week 1\n## Day 1\nPower Clean / 5x5 135lb 60s|0s auto\n`);
     expect(Progress_getNextTimedSet(progress)).to.eql({ entryIndex: 0, setIndex: 0 });
