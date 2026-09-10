@@ -28,6 +28,10 @@ export const APPLE_BUNDLE_ID = "com.liftosaur.www";
 export const GOOGLE_TRIAL_OFFER_TAGS: string[] = ["freetrial"];
 export const GOOGLE_PROMO_OFFER_TAGS: string[] = ["promo"];
 
+export function Subscriptions_isTransientGoogleStatus(status: number): boolean {
+  return status >= 500 || status === 429;
+}
+
 export function Subscriptions_isAppleJws(value: string): boolean {
   if (!value) {
     return false;
@@ -503,21 +507,27 @@ export class Subscriptions {
     }
   }
 
-  // Returns the parsed body for ANY HTTP response (a 4xx error body has no lineItems, so mappers treat it as
-  // not-entitled). Returns undefined ONLY on a transport/parse failure, which entitlement callers treat as
-  // fail-open (matching the old v1 getGooglePurchaseTokenJson semantics).
+  // Returns the parsed body for a 2xx or a 4xx response (a 4xx error body has no lineItems, so mappers treat
+  // it as not-entitled). Returns undefined on a transport/parse failure and on a 5xx/429, which entitlement
+  // callers treat as fail-open: a Google backendError once made a web client delete a lifetime receipt.
   public async getGoogleSubscriptionV2(token: string): Promise<ISubscriptionPurchaseV2 | undefined> {
-    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptionsv2/tokens/${token}`;
+    return this.fetchAndroidPublisherJson<ISubscriptionPurchaseV2>(
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptionsv2/tokens/${token}`,
+      "subscriptionsv2.get"
+    );
+  }
+
+  private async fetchAndroidPublisherJson<T>(url: string, label: string): Promise<T | undefined> {
     try {
       const jwttoken = await this.signAndroidPublisherJwt();
       const result = await fetch(url, { method: "GET", headers: { Authorization: `Bearer ${jwttoken}` } });
-      const json = (await result.json()) as ISubscriptionPurchaseV2;
+      const json = (await result.json()) as T;
       if (!result.ok) {
-        this.log.log(`subscriptionsv2.get non-ok: ${result.status} ${JSON.stringify(json)}`);
+        this.log.log(`${label} non-ok: ${result.status} ${JSON.stringify(json)}`);
       }
-      return json;
+      return Subscriptions_isTransientGoogleStatus(result.status) ? undefined : json;
     } catch (error) {
-      this.log.log("subscriptionsv2.get error: ", error);
+      this.log.log(`${label} error: `, error);
       return undefined;
     }
   }
@@ -714,22 +724,13 @@ export class Subscriptions {
     );
   }
 
-  // Same response contract as getGoogleSubscriptionV2: parsed body on any HTTP response, undefined only on
-  // transport/parse failure (fail-open for entitlement).
+  // Same response contract as getGoogleSubscriptionV2: parsed body on 2xx/4xx, undefined on transport
+  // failure or 5xx/429 (fail-open for entitlement).
   public async getGoogleProductV2(token: string): Promise<IProductPurchaseV2 | undefined> {
-    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/productsv2/tokens/${token}`;
-    try {
-      const jwttoken = await this.signAndroidPublisherJwt();
-      const result = await fetch(url, { method: "GET", headers: { Authorization: `Bearer ${jwttoken}` } });
-      const json = (await result.json()) as IProductPurchaseV2;
-      if (!result.ok) {
-        this.log.log(`productsv2.getproductpurchasev2 non-ok: ${result.status} ${JSON.stringify(json)}`);
-      }
-      return json;
-    } catch (error) {
-      this.log.log("productsv2.getproductpurchasev2 error: ", error);
-      return undefined;
-    }
+    return this.fetchAndroidPublisherJson<IProductPurchaseV2>(
+      `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/productsv2/tokens/${token}`,
+      "productsv2.getproductpurchasev2"
+    );
   }
 
   public getGoogleProductVerificationInfoV2(

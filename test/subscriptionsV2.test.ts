@@ -376,6 +376,40 @@ describe("isGoogleProductV2Active", () => {
   });
 });
 
+describe("getGoogleProductV2 on non-ok responses", () => {
+  const googleError = { error: { code: 500, message: "Internal error encountered.", status: "INTERNAL" } };
+  const nodeFetchModule = require("node-fetch");
+  const originalFetch = nodeFetchModule.default;
+
+  function makeSubsWithStatus(status: number): Subscriptions {
+    const subs = makeSubscriptions();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (subs as any).signAndroidPublisherJwt = async (): Promise<string> => "jwt";
+    nodeFetchModule.default = async () => ({ ok: status < 400, status, json: async () => googleError });
+    return subs;
+  }
+
+  afterEach(() => {
+    nodeFetchModule.default = originalFetch;
+  });
+
+  it("returns undefined on a 5xx so the lifetime token fails open", async () => {
+    const subs = makeSubsWithStatus(500);
+    expect(await subs.getGoogleProductV2("tok")).to.equal(undefined);
+    expect(await subs.verifyGooglePurchaseTokenV2("tok", "com.liftosaur.subscription.and_lifetime")).to.equal(true);
+  });
+
+  it("returns undefined on 429", async () => {
+    expect(await makeSubsWithStatus(429).getGoogleProductV2("tok")).to.equal(undefined);
+  });
+
+  it("returns the error body on a 4xx so a gone token fails closed", async () => {
+    const subs = makeSubsWithStatus(410);
+    expect(await subs.getGoogleProductV2("tok")).to.deep.equal(googleError);
+    expect(await subs.verifyGooglePurchaseTokenV2("tok", "com.liftosaur.subscription.and_lifetime")).to.equal(false);
+  });
+});
+
 describe("buildGoogleSubscriptionPaymentInfoV2", () => {
   const subs = makeSubscriptions();
 

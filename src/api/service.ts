@@ -163,7 +163,7 @@ export type IEventPayload =
       isMobile?: boolean;
     };
 
-const cachePromises: Partial<Record<string, unknown>> = {};
+const cachePromises: Partial<Record<string, Promise<{ result: boolean }>>> = {};
 
 declare let __API_HOST__: string;
 declare let __HOST__: string;
@@ -794,11 +794,17 @@ export class Service {
     }
   }
 
-  private async cache(key: string, fn: () => Promise<unknown>): Promise<unknown> {
+  // A negative verdict is not cached: the phone re-adds the same receipt after a cleanup, and a page-lifetime
+  // `false` would delete it again on every sync.
+  private async cacheVerdict(key: string, fn: () => Promise<{ result: boolean }>): Promise<boolean> {
     if (cachePromises[key] == null) {
       cachePromises[key] = fn();
     }
-    return cachePromises[key];
+    const result = !!(await cachePromises[key]).result;
+    if (!result) {
+      delete cachePromises[key];
+    }
+    return result;
   }
 
   public async postEvent(event: IEventPayload): Promise<void> {
@@ -849,7 +855,7 @@ export class Service {
   }
 
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
-    const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
+    return this.cacheVerdict(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
         const url = UrlUtils_build(`${__API_HOST__}/api/verifyapplereceipt`);
         const result = await this.client(url.toString(), {
@@ -862,11 +868,10 @@ export class Service {
         return { result: true };
       }
     });
-    return !!(json as { result: boolean }).result;
   }
 
   public async verifyGooglePurchaseToken(userId: string, googlePurchaseToken: string): Promise<boolean> {
-    const json = await this.cache(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
+    return this.cacheVerdict(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
       try {
         const url = UrlUtils_build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
         const result = await this.client(url.toString(), {
@@ -879,7 +884,6 @@ export class Service {
         return { result: true };
       }
     });
-    return !!(json as { result: boolean }).result;
   }
 
   public async verifySubscriptionKey(userId: string, key: string): Promise<{ clear: boolean }> {

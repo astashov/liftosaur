@@ -394,7 +394,9 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
   const isLifetime = productId.indexOf("lifetime") !== -1;
-  let verifiedGooglePurchaseToken = false;
+  // A client deletes the receipt on `result: false`, so an unanswered lookup (transport failure, Google 5xx)
+  // must fail open. Only a real Google verdict may fail closed.
+  let verifiedGooglePurchaseToken = true;
   // Returned to the caller keyed by possession of the purchase token (a real secret), so the client can read
   // its live subscription status — incl. a queued deferred plan switch — without a userId-based lookup.
   let subscription:
@@ -450,7 +452,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       }
     }
   }
-  return ResponseUtils_json(200, event, { result: !!verifiedGooglePurchaseToken, subscription });
+  return ResponseUtils_json(200, event, { result: verifiedGooglePurchaseToken, subscription });
 };
 
 const postAppleWebhookEndpoint = Endpoint.build("/api/apple-payment-webhook");
