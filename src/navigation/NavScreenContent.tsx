@@ -5,19 +5,10 @@ import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 import { NavScreenScrollContext } from "./NavScreenScrollContext";
 import { useNavScreenScroll } from "./useNavScreenScroll";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
-import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
+import { SystemKeyboardSpacer } from "../components/systemKeyboardSpacer";
 
 export { NavScreenScrollContext } from "./NavScreenScrollContext";
 export type { INavScreenScrollListener, INavScreenScrollContextValue } from "./NavScreenScrollContext";
-
-// Android has no automaticallyAdjustKeyboardInsets, and under edge-to-edge the window doesn't
-// shrink for the IME either — so without this the content can't be scrolled past the keyboard
-// at all, and anything trying to reveal a focused line just hits the end of the scroll range.
-// Its own component so opening the keyboard re-renders the spacer, not the whole screen.
-function SystemKeyboardSpacer(): JSX.Element {
-  const height = useSystemKeyboardHeight();
-  return <View style={{ height }} />;
-}
 
 export function NavScreenContent(props: {
   children: ReactNode;
