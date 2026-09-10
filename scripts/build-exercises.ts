@@ -98,5 +98,8 @@ for (const { key, content, video, description, howto } of entries) {
 ts += `};\n`;
 
 fs.writeFileSync(outputFile, ts);
-execSync(`npx eslint --fix ${outputFile}`, { stdio: "inherit" });
+execSync(`npx eslint --fix ${outputFile}`, {
+  stdio: "inherit",
+  env: { ...process.env, NODE_OPTIONS: "--max-old-space-size=4096" },
+});
 console.log(`Generated ${outputFile} with ${entries.length} exercises`);
