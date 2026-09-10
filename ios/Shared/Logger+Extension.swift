@@ -104,6 +104,47 @@ class LogFileManager {
         return content
     }
 
+    struct Chunk {
+        let compressed: Data
+        let rawCount: Int
+        let next: Int
+        let done: Bool
+    }
+
+    static let chunkWireLimit = 55_000
+    private static let chunkRawStart = 512 * 1024
+    private static let chunkRawFloor = 32 * 1024
+
+    /// One zlib-compressed slice of the log from `offset`, sized to fit a WCSession reply. The file
+    /// only appends between rotations, so raw offsets stay valid across the phone's successive requests.
+    func readChunk(from offset: Int) -> Chunk {
+        queue.sync {
+            fileHandle?.synchronizeFile()
+        }
+        let empty = Chunk(compressed: Data(), rawCount: 0, next: offset, done: true)
+        guard let logURL = logFileURL,
+              let attributes = try? FileManager.default.attributesOfItem(atPath: logURL.path),
+              let fileSize = (attributes[.size] as? NSNumber)?.intValue,
+              offset < fileSize,
+              let handle = try? FileHandle(forReadingFrom: logURL) else {
+            return empty
+        }
+        defer { try? handle.close() }
+        var window = min(LogFileManager.chunkRawStart, fileSize - offset)
+        while true {
+            guard (try? handle.seek(toOffset: UInt64(offset))) != nil,
+                  let raw = try? handle.read(upToCount: window),
+                  let compressed = try? (raw as NSData).compressed(using: .zlib) as Data else {
+                return empty
+            }
+            if compressed.count <= LogFileManager.chunkWireLimit || window <= LogFileManager.chunkRawFloor {
+                let next = offset + raw.count
+                return Chunk(compressed: compressed, rawCount: raw.count, next: next, done: next >= fileSize)
+            }
+            window /= 2
+        }
+    }
+
     /// Reads only the last `maxBytes` of the log file. Used in memory-sensitive
     /// paths (e.g. crash reporting on watchOS) where loading the full 1MB log
     /// would create excessive transient memory pressure.

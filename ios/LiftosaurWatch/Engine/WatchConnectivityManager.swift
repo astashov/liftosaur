@@ -221,11 +221,10 @@ extension WatchConnectivityManager: WCSessionDelegate {
     func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
         Logger.wc.info(" didReceiveMessage (with reply): \(message.keys)")
         if message["type"] as? String == "requestLogs" {
-            Task { @MainActor in
-                let logs = LogFileManager.shared.readLogs()
-                Logger.wc.info(" sending logs to phone (\(logs.count) bytes)")
-                replyHandler(["logs": logs])
-            }
+            let offset = message["offset"] as? Int ?? 0
+            let chunk = LogFileManager.shared.readChunk(from: offset)
+            Logger.wc.info(" sending logs to phone: offset \(offset), \(chunk.rawCount) -> \(chunk.compressed.count) bytes, done \(chunk.done)")
+            replyHandler(["logsZ": chunk.compressed, "next": chunk.next, "done": chunk.done])
             return
         }
         if message["type"] as? String == "finishWorkout" {

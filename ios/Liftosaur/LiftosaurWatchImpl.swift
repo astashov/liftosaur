@@ -241,12 +241,37 @@ import WatchConnectivity
 
   @objc public func requestLogs(completion: @escaping (String?) -> Void) {
     guard let session = session, session.activationState == .activated, session.isReachable else {
+      Logger.wc.info("requestLogs skipped: activation \(self.session?.activationState.rawValue ?? -1), reachable \(self.session?.isReachable ?? false)")
       completion(nil); return
     }
-    session.sendMessage(["type": "requestLogs"], replyHandler: { reply in
-      completion(reply["logs"] as? String)
-    }, errorHandler: { _ in
-      completion(nil)
+    fetchLogChunk(session: session, offset: 0, collected: Data(), completion: completion)
+  }
+
+  private func fetchLogChunk(session: WCSession, offset: Int, collected: Data, completion: @escaping (String?) -> Void) {
+    let partial: () -> String? = { collected.isEmpty ? nil : String(data: collected, encoding: .utf8) }
+    session.sendMessage(["type": "requestLogs", "offset": offset], replyHandler: { reply in
+      if let legacy = reply["logs"] as? String {
+        completion(legacy); return
+      }
+      guard let compressed = reply["logsZ"] as? Data,
+            let raw = try? (compressed as NSData).decompressed(using: .zlib) as Data else {
+        Logger.wc.error("requestLogs: undecodable chunk at offset \(offset), keys \(reply.keys)")
+        completion(partial()); return
+      }
+      var next = collected
+      next.append(raw)
+      let done = reply["done"] as? Bool ?? true
+      let nextOffset = reply["next"] as? Int ?? 0
+      if done || nextOffset <= offset {
+        Logger.wc.info("requestLogs: received \(next.count) bytes from the watch")
+        completion(String(data: next, encoding: .utf8))
+      } else {
+        self.fetchLogChunk(session: session, offset: nextOffset, collected: next, completion: completion)
+      }
+    }, errorHandler: { error in
+      let code = (error as? WCError)?.code.rawValue ?? -1
+      Logger.wc.error("requestLogs failed at offset \(offset), WCError \(code): \(error.localizedDescription)")
+      completion(partial())
     })
   }
 
