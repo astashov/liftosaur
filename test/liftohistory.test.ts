@@ -9,6 +9,7 @@ import {
 } from "../src/liftohistory/liftohistoryDeserializer";
 import { IHistoryRecord, IHistoryEntry, ISet, ISettings } from "../src/types";
 import { UidFactory_generateUid } from "../src/utils/generator";
+import { History_workoutTime } from "../src/models/history";
 
 function buildSettings(): ISettings {
   return Settings_build();
@@ -430,6 +431,19 @@ describe("Liftohistory", () => {
       }
       const record = result.data.historyRecords[0];
       expect(record.endTime! - record.startTime).to.equal(3600000);
+    });
+
+    it("finishes the workout at start time when duration is missing", () => {
+      const settings = buildSettings();
+      const text = `2026-02-28T10:30:00.000Z / exercises: {\n}`;
+      const result = LiftohistoryDeserializer_deserialize(text, settings);
+      expect(result.success).to.be.true;
+      if (!result.success) {
+        return;
+      }
+      const record = result.data.historyRecords[0];
+      expect(record.endTime).to.equal(record.startTime);
+      expect(History_workoutTime(record)).to.equal(0);
     });
 
     it("parses completed sets", () => {

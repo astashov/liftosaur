@@ -211,7 +211,7 @@ function deserializeWorkoutRecord(
   }
 
   const startTime = parsedDate.getTime();
-  const endTime = durationSec != null ? startTime + durationSec * 1000 : undefined;
+  const endTime = startTime + (durationSec ?? 0) * 1000;
 
   return {
     vtype: "history_record",
