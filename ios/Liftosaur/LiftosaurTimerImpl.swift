@@ -1,6 +1,7 @@
 import Foundation
 import AVFoundation
 import AudioToolbox
+import OSLog
 import UIKit
 import UserNotifications
 
@@ -22,17 +23,17 @@ import UserNotifications
                         vibration: Bool,
                         ignoreDoNotDisturb: Bool,
                         completion: @escaping (Bool, String?) -> Void) {
-    NSLog("[LftTimer] iOS startTimer duration=%.1f volume=%.2f vibration=%@", duration, volume, vibration ? "true" : "false")
+    Logger.notifications.info("startTimer duration=\(duration) volume=\(volume) vibration=\(vibration)")
     center.getNotificationSettings { settings in
-      NSLog("[LftTimer] iOS authorizationStatus=%ld", settings.authorizationStatus.rawValue)
+      Logger.notifications.info("authorizationStatus=\(settings.authorizationStatus.rawValue)")
       switch settings.authorizationStatus {
       case .authorized, .provisional, .ephemeral:
         self.scheduleTimer(duration: duration, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
                            bodyHeader: bodyHeader, body: body, volume: volume, completion: completion)
       case .notDetermined:
-        NSLog("[LftTimer] iOS notDetermined — requesting authorization inline")
+        Logger.notifications.info("notDetermined, requesting authorization inline")
         self.center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-          NSLog("[LftTimer] iOS authorization request granted=%@ error=%@", granted ? "true" : "false", error?.localizedDescription ?? "nil")
+          Logger.notifications.info("authorization request granted=\(granted) error=\(error?.localizedDescription ?? "nil")")
           if granted {
             self.scheduleTimer(duration: duration, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
                                bodyHeader: bodyHeader, body: body, volume: volume, completion: completion)
@@ -41,7 +42,7 @@ import UserNotifications
           }
         }
       case .denied:
-        NSLog("[LftTimer] iOS notifications permission denied")
+        Logger.notifications.error("notifications permission denied")
         completion(false, "notifications")
       @unknown default:
         completion(false, "notifications")
@@ -74,7 +75,7 @@ import UserNotifications
     // UNTimeIntervalNotificationTrigger aborts the process on a non-positive interval, so an already-expired
     // timer has nothing to schedule.
     guard duration > 0 else {
-      NSLog("[LftTimer] iOS schedule skipped, duration=%.1f already elapsed", duration)
+      Logger.notifications.info("schedule skipped, duration=\(duration) already elapsed")
       completion(true, nil)
       return
     }
@@ -83,10 +84,10 @@ import UserNotifications
     let request = UNNotificationRequest(identifier: timerIdentifier, content: content, trigger: trigger)
     center.add(request) { error in
       if let error = error {
-        NSLog("[LftTimer] iOS schedule failed: %@", error.localizedDescription)
+        Logger.notifications.error("schedule failed: \(error.localizedDescription)")
         completion(false, "notifications")
       } else {
-        NSLog("[LftTimer] iOS schedule ok, id=%@ fires in %.1fs", self.timerIdentifier, duration)
+        Logger.notifications.info("schedule ok, id=\(self.timerIdentifier) fires in \(duration)s")
         completion(true, nil)
       }
     }
@@ -100,7 +101,7 @@ import UserNotifications
                               title: String,
                               body: String,
                               completion: @escaping (Bool, String?) -> Void) {
-    NSLog("[LftTimer] iOS scheduleReminder duration=%.1f", duration)
+    Logger.notifications.info("scheduleReminder duration=\(duration)")
     center.getNotificationSettings { settings in
       switch settings.authorizationStatus {
       case .authorized, .provisional, .ephemeral:
@@ -134,17 +135,17 @@ import UserNotifications
     let request = UNNotificationRequest(identifier: reminderIdentifier, content: content, trigger: trigger)
     center.add(request) { error in
       if let error = error {
-        NSLog("[LftTimer] iOS reminder schedule failed: %@", error.localizedDescription)
+        Logger.notifications.error("reminder schedule failed: \(error.localizedDescription)")
         completion(false, "notifications")
       } else {
-        NSLog("[LftTimer] iOS reminder scheduled, fires in %.1fs", duration)
+        Logger.notifications.info("reminder scheduled, fires in \(duration)s")
         completion(true, nil)
       }
     }
   }
 
   @objc func cancelReminder() {
-    NSLog("[LftTimer] iOS cancelReminder")
+    Logger.notifications.info("cancelReminder")
     center.removePendingNotificationRequests(withIdentifiers: [reminderIdentifier])
   }
 
@@ -169,7 +170,7 @@ import UserNotifications
         player.play()
         self.audioPlayer = player
       } catch {
-        NSLog("LiftosaurTimerImpl: audio failed: \(error)")
+        Logger.notifications.error("audio failed: \(error)")
       }
     }
   }
