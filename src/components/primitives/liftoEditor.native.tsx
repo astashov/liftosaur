@@ -65,6 +65,9 @@ export interface ILiftoEditorBaseProps {
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   style?: StyleProp<ViewStyle>;
+  // The height to hold until the native side measures the text (autoHeight only). A remounted
+  // editor otherwise renders at zero height for a frame, and a fit-content sheet collapses with it.
+  initialContentHeight?: number;
   // Defaults to the rem, which is what makes the editor follow the Appearance size slider;
   // pass a value only to hold a different ratio to it (see liftoEditorMetrics).
   fontSize?: number;
@@ -104,7 +107,7 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
   // round trip. Pushing ranges computed from it in the same command batch as the replace
   // (and never from the then-stale mirror) is what prevents a one-frame highlight flash.
   const predictedTextRef = useRef<string | undefined>(undefined);
-  const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
+  const [contentHeight, setContentHeight] = useState<number | undefined>(props.initialContentHeight);
   const {
     onTextChange,
     onSelectionChange,

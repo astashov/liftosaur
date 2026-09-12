@@ -157,7 +157,7 @@ export function LiftoEditorPillRail(props: {
             />
           </Pressable>
         ) : null}
-        {(props.canRemove ?? true) && (controller.context?.levels ?? []).length > 0 ? (
+        {controller.canRemove && (props.canRemove ?? true) && (controller.context?.levels ?? []).length > 0 ? (
           <Pressable
             className="items-center w-scaled-10 py-2"
             // Left slop stays small so it doesn't swallow taps meant for the last pill.

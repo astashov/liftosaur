@@ -20,7 +20,23 @@ export type ILiftoEditorAcrossField = "reps" | "weight" | "rpe" | "timer";
 // like "Make rep range" or progression type switches). Pills with an `action` are not text
 // edits — the hosting surface intercepts them (exercise picker, rename prompt) and uses
 // start/end as the target range, text as the current content.
+type IPillDefKey = keyof typeof LiftoEditorActions_pillDefs;
+
+export type ILiftoEditorPillKind =
+  | IPillDefKey
+  | "makeSetVariationCurrent"
+  | "makeExerciseVariationCurrent"
+  | "makeDescriptionCurrent"
+  | "switchProgression"
+  | "changeExercise"
+  | "changeReuse"
+  | "editReuse"
+  | "rename"
+  | "editStateVars"
+  | "editAcrossProgram";
+
 export interface ILiftoEditorPill {
+  kind: ILiftoEditorPillKind;
   label: string;
   // Pills wear the syntax color of what they insert, so the chip previews the code (design).
   category: ILiftoEditorPillCategory;
@@ -127,14 +143,31 @@ export const LiftoEditorActions_pillDefs = {
   enableSuperset: { label: "Enable superset", category: "neutral", template: " / superset: A" },
 } satisfies Record<string, IPillDef>;
 
-const defs = LiftoEditorActions_pillDefs;
+type IPillDefsWithKinds = { [K in IPillDefKey]: (typeof LiftoEditorActions_pillDefs)[K] & { kind: K } };
 
-function insertPill(def: IPillDef, at: number, text?: string): ILiftoEditorPill {
-  return { label: def.label, category: def.category, start: at, end: at, text: text ?? def.template ?? "" };
+function stampKinds(table: typeof LiftoEditorActions_pillDefs): IPillDefsWithKinds {
+  const stamped: Partial<Record<IPillDefKey, IPillDef & { kind: IPillDefKey }>> = {};
+  for (const key of Object.keys(table) as IPillDefKey[]) {
+    stamped[key] = { ...table[key], kind: key };
+  }
+  return stamped as IPillDefsWithKinds;
 }
 
-function replacePill(def: IPillDef, node: SyntaxNode, text: string): ILiftoEditorPill {
-  return { label: def.label, category: def.category, start: node.from, end: node.to, text };
+const defs = stampKinds(LiftoEditorActions_pillDefs);
+
+function insertPill(def: IPillDef & { kind: IPillDefKey }, at: number, text?: string): ILiftoEditorPill {
+  return {
+    kind: def.kind,
+    label: def.label,
+    category: def.category,
+    start: at,
+    end: at,
+    text: text ?? def.template ?? "",
+  };
+}
+
+function replacePill(def: IPillDef & { kind: IPillDefKey }, node: SyntaxNode, text: string): ILiftoEditorPill {
+  return { kind: def.kind, label: def.label, category: def.category, start: node.from, end: node.to, text };
 }
 
 function renamePill(
@@ -143,7 +176,16 @@ function renamePill(
   end: number,
   kind: "label" | "stateVar" = "label"
 ): ILiftoEditorPill {
-  return { label: "Rename…", category: "neutral", start, end, text: current, action: "rename", renameKind: kind };
+  return {
+    kind: "rename",
+    label: "Rename…",
+    category: "neutral",
+    start,
+    end,
+    text: current,
+    action: "rename",
+    renameKind: kind,
+  };
 }
 
 function nodeText(text: string, node: SyntaxNode): string {
@@ -215,10 +257,13 @@ function descriptionPills(text: string, node: SyntaxNode, tree?: Tree): ILiftoEd
   // The first run is current whenever nothing is marked, so making it current is only taking the
   // other run's marker away — the text never carries a redundant `!` on the first one.
   if (found.index === 0) {
-    return markerRemoval != null ? [{ label: "Make current", category: "neutral", ...markerRemoval }] : [];
+    return markerRemoval != null
+      ? [{ kind: "makeDescriptionCurrent", label: "Make current", category: "neutral", ...markerRemoval }]
+      : [];
   }
   return [
     {
+      kind: "makeDescriptionCurrent",
       label: "Make current",
       category: "neutral",
       start: target.markerAt,
@@ -237,7 +282,8 @@ function makeCurrentPill(
   text: string,
   target: SyntaxNode,
   siblings: SyntaxNode[],
-  category: ILiftoEditorPillCategory
+  category: ILiftoEditorPillCategory,
+  kind: "makeSetVariationCurrent" | "makeExerciseVariationCurrent"
 ): ILiftoEditorPill | undefined {
   const index = siblings.findIndex((s) => s.from === target.from);
   if (siblings.length < 2 || index === -1) {
@@ -257,9 +303,10 @@ function makeCurrentPill(
     markerRemoval = { start: marker.from, end, text: "" };
   }
   if (index === 0 && markerRemoval != null) {
-    return { label: "Make current", category, ...markerRemoval };
+    return { kind, label: "Make current", category, ...markerRemoval };
   }
   return {
+    kind,
     label: "Make current",
     category,
     start: target.from,
@@ -313,7 +360,13 @@ function setsPills(text: string, sets: SyntaxNode): ILiftoEditorPill[] {
   const pills = [insertPill(defs.addSetGroup, at), insertPill(defs.addSetVariation, at)];
   const exercise = LiftoEditorActions_enclosingExercise(sets);
   if (exercise != null) {
-    const current = makeCurrentPill(text, sets, LiftoEditorActions_setVariationSections(exercise), "sets");
+    const current = makeCurrentPill(
+      text,
+      sets,
+      LiftoEditorActions_setVariationSections(exercise),
+      "sets",
+      "makeSetVariationCurrent"
+    );
     if (current != null) {
       pills.unshift(current);
     }
@@ -324,13 +377,14 @@ function setsPills(text: string, sets: SyntaxNode): ILiftoEditorPill[] {
 function exerciseVariationPills(text: string, variation: SyntaxNode): ILiftoEditorPill[] {
   const pills: ILiftoEditorPill[] = [];
   const siblings = variation.parent?.getChildren(PlannerNodeName.ExerciseVariation) ?? [];
-  const current = makeCurrentPill(text, variation, siblings, "neutral");
+  const current = makeCurrentPill(text, variation, siblings, "neutral", "makeExerciseVariationCurrent");
   if (current != null) {
     pills.push(current);
   }
   const nameNode = variation.getChild(PlannerNodeName.ExerciseName);
   if (nameNode != null) {
     pills.push({
+      kind: "changeExercise",
       label: "Change exercise…",
       category: "neutral",
       start: nameNode.from,
@@ -403,6 +457,7 @@ function warmupSetsPills(text: string, warmupSets: SyntaxNode): ILiftoEditorPill
   return [
     insertPill(defs.addWarmupSetGroup, trimmedEnd(text, warmupSets)),
     {
+      kind: "removeWarmups",
       label: defs.removeWarmups.label,
       category: defs.removeWarmups.category,
       start: warmupSets.from,
@@ -583,6 +638,7 @@ export function LiftoEditorActions_stateVarsPill(text: string, fn: SyntaxNode): 
   const progress = propertyScript(text, exercise, "progress");
   const update = propertyScript(text, exercise, "update");
   return {
+    kind: "editStateVars",
     label: "State vars…",
     category: "logic",
     action: "editStateVars",
@@ -630,6 +686,7 @@ function customFnPills(text: string, fn: SyntaxNode): ILiftoEditorPill[] {
     // With a body the pill swaps it for the reuse form (`{~ ... ~}` → `{ ...Name }`).
     const bodyEnd = trimmedEnd(text, body);
     pills.push({
+      kind: "reuseScript",
       label: defs.reuseScript.label,
       category: defs.reuseScript.category,
       start: body.from,
@@ -682,6 +739,7 @@ function progressSwitchPills(value: SyntaxNode, current: string): ILiftoEditorPi
   return Object.keys(progressionDefaults)
     .filter((name) => name !== current)
     .map((name) => ({
+      kind: "switchProgression" as const,
       label: `Switch to ${name}`,
       category: "progress" as const,
       start: value.from,
@@ -727,6 +785,7 @@ function reuseSectionPills(text: string, reuse: SyntaxNode): ILiftoEditorPill[] 
   const weekDay = reuse.parent?.getChild(PlannerNodeName.WeekDay);
   const changeEnd = weekDay != null ? weekDay.to : trimmedEnd(text, reuse);
   pills.push({
+    kind: "changeReuse",
     label: "Change…",
     category: "neutral",
     start: reuse.from,
@@ -743,6 +802,7 @@ function reuseSectionPills(text: string, reuse: SyntaxNode): ILiftoEditorPill[] 
   const targetName = reuse.getChild(PlannerNodeName.ExerciseName);
   if (targetName != null) {
     pills.push({
+      kind: "editReuse",
       label: "Edit reused exercise…",
       category: "neutral",
       start: targetName.from,
@@ -783,6 +843,7 @@ function exercisePills(text: string, exercise: SyntaxNode): ILiftoEditorPill[] {
   const nameNode = variations?.getChild(PlannerNodeName.ExerciseVariation)?.getChild(PlannerNodeName.ExerciseName);
   if (nameNode != null) {
     pills.push({
+      kind: "changeExercise",
       label: "Change exercise…",
       category: "neutral",
       start: nameNode.from,
@@ -1009,6 +1070,7 @@ export function LiftoEditorActions_railForNode(text: string, node: SyntaxNode, t
   // token only so that the pill has one.
   const def = acrossPillDefs[acrossField];
   const acrossPill: ILiftoEditorPill = {
+    kind: "editAcrossProgram",
     label: def.label,
     category: def.category,
     start: node.from,

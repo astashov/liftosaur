@@ -1,4 +1,10 @@
 import { PP_iterate2 } from "../../../models/pp";
+import {
+  IProgramRewriteResult,
+  ProgramRewrite_instances,
+  ProgramRewrite_repeatWeeks,
+  ProgramRewrite_validate,
+} from "../../../models/programRewrite";
 import { Dialog_alert } from "../../../utils/dialog";
 import { PlannerProgram_evaluate } from "../../../pages/planner/models/plannerProgram";
 import {
@@ -9,7 +15,6 @@ import {
   IPlannerState,
   IPlannerUi,
 } from "../../../pages/planner/models/types";
-import { PlannerEvaluator_evaluate, PlannerEvaluator_getFirstError } from "../../../pages/planner/plannerEvaluator";
 import { PlannerKey_fromFullName, PlannerKey_fromLabelNameAndEquipment } from "../../../pages/planner/plannerKey";
 import { PlannerStructure_normalizeOrdersInDay } from "../../../pages/planner/models/plannerStructure";
 import {
@@ -44,23 +49,43 @@ export function EditProgramUiHelpers_changeFirstInstance(
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
   const key = PlannerKey_fromFullName(plannerExercise.fullName, settings.exercises);
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-  PP_iterate2(evaluatedProgram.weeks, (e) => {
-    const aKey = PlannerKey_fromFullName(e.fullName, settings.exercises);
-    if (key === aKey) {
-      cb(e);
-      return true;
-    }
-    return false;
-  });
-  return EditProgramUiHelpers_validate(
-    shouldValidate,
+  const result = ProgramRewrite_instances(
     planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
-    settings
+    settings,
+    (evaluated) => {
+      PP_iterate2(evaluated.weeks, (e) => {
+        const aKey = PlannerKey_fromFullName(e.fullName, settings.exercises);
+        if (key === aKey) {
+          cb(e);
+          return true;
+        }
+        return false;
+      });
+    },
+    { validate: shouldValidate }
   );
+  return plannerOrAlert(result, planner);
+}
+
+function plannerOrAlert(result: IProgramRewriteResult, oldPlanner: IPlannerProgram): IPlannerProgram {
+  if ("error" in result) {
+    Dialog_alert(result.error.message);
+    return oldPlanner;
+  }
+  return result.planner;
+}
+
+export function EditProgramUiHelpers_validate(
+  shouldValidate: boolean,
+  oldPlanner: IPlannerProgram,
+  newPlanner: IPlannerProgram,
+  settings: ISettings
+): IPlannerProgram {
+  if (!shouldValidate) {
+    return newPlanner;
+  }
+  const error = ProgramRewrite_validate(newPlanner, settings);
+  return plannerOrAlert(error != null ? { error } : { planner: newPlanner }, oldPlanner);
 }
 
 export function EditProgramUiHelpers_changeLabel(
@@ -155,36 +180,28 @@ export function EditProgramUiHelpers_changeSets(
   settings: ISettings,
   cb: (set: IPlannerProgramExerciseEvaluatedSet) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-
-  PP_iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-    if (e.key !== key) {
-      return;
-    }
-    for (const daySet of daySets) {
-      if (daySet.week === weekIndex + 1 && daySet.dayInWeek === dayInWeekIndex + 1) {
-        for (let setVariationIndex = 0; setVariationIndex < e.evaluatedSetVariations.length; setVariationIndex++) {
-          if (daySet.setVariation === setVariationIndex + 1) {
-            const sets = e.evaluatedSetVariations[setVariationIndex].sets;
-            for (let setIndex = 0; setIndex < sets.length; setIndex++) {
-              if (daySet.set === setIndex + 1) {
-                cb(sets[setIndex]);
+  const result = ProgramRewrite_instances(planner, settings, (evaluated) => {
+    PP_iterate2(evaluated.weeks, (e, weekIndex, dayInWeekIndex) => {
+      if (e.key !== key) {
+        return;
+      }
+      for (const daySet of daySets) {
+        if (daySet.week === weekIndex + 1 && daySet.dayInWeek === dayInWeekIndex + 1) {
+          for (let setVariationIndex = 0; setVariationIndex < e.evaluatedSetVariations.length; setVariationIndex++) {
+            if (daySet.setVariation === setVariationIndex + 1) {
+              const sets = e.evaluatedSetVariations[setVariationIndex].sets;
+              for (let setIndex = 0; setIndex < sets.length; setIndex++) {
+                if (daySet.set === setIndex + 1) {
+                  cb(sets[setIndex]);
+                }
               }
             }
           }
         }
       }
-    }
+    });
   });
-
-  return EditProgramUiHelpers_validate(
-    true,
-    planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
-    settings
-  );
+  return plannerOrAlert(result, planner);
 }
 
 export function EditProgramUiHelpers_changeCurrentInstance2(
@@ -217,46 +234,23 @@ export function EditProgramUiHelpers_changeCurrentInstance3(
   shouldValidate: boolean,
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-
-  const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName, isRepeat);
-  for (const week of weeks) {
-    PP_iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
-      const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
-      if (current) {
-        cb(e);
-      }
-    });
-  }
-
-  return EditProgramUiHelpers_validate(
-    shouldValidate,
+  const result = ProgramRewrite_instances(
     planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
-    settings
+    settings,
+    (evaluated) => {
+      const weeks = EditProgramUiHelpers_getWeeks2(evaluated, dayData, fullName, isRepeat);
+      for (const week of weeks) {
+        PP_iterate2(evaluated.weeks, (e, weekIndex, dayInWeekIndex) => {
+          const current = week === weekIndex + 1 && dayData.dayInWeek === dayInWeekIndex + 1 && e.fullName === fullName;
+          if (current) {
+            cb(e);
+          }
+        });
+      }
+    },
+    { validate: shouldValidate }
   );
-}
-
-export function EditProgramUiHelpers_validate(
-  shouldValidate: boolean,
-  oldPlanner: IPlannerProgram,
-  newPlanner: IPlannerProgram,
-  settings: ISettings
-): IPlannerProgram {
-  if (shouldValidate) {
-    const { evaluatedWeeks } = PlannerEvaluator_evaluate(newPlanner, settings);
-    const error = PlannerEvaluator_getFirstError(evaluatedWeeks);
-    if (error) {
-      Dialog_alert(error.message);
-      return oldPlanner;
-    } else {
-      return newPlanner;
-    }
-  } else {
-    return newPlanner;
-  }
+  return plannerOrAlert(result, planner);
 }
 
 export function EditProgramUiHelpers_getWeeks2(
@@ -265,16 +259,7 @@ export function EditProgramUiHelpers_getWeeks2(
   fullName: string,
   ignoreRepeats: boolean = false
 ): number[] {
-  const day = evaluatedProgram.weeks[dayData.week - 1].days[dayData.dayInWeek - 1];
-  const weeks: Set<number> = new Set();
-  weeks.add(dayData.week);
-  const exercise = day.exercises.find((e) => e.fullName === fullName);
-  if (!ignoreRepeats && exercise != null) {
-    for (const repeating of exercise.repeating) {
-      weeks.add(repeating);
-    }
-  }
-  return Array.from(weeks);
+  return ProgramRewrite_repeatWeeks(evaluatedProgram, dayData, fullName, ignoreRepeats);
 }
 
 // A label the copy can carry without landing on top of something already in the day. The caller's is
@@ -584,20 +569,19 @@ export function EditProgramUiHelpers_changeAllInstances(
   shouldValidate: boolean,
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-  PP_iterate2(evaluatedProgram.weeks, (e) => {
-    if (e.key === key) {
-      cb(e);
-    }
-  });
-  return EditProgramUiHelpers_validate(
-    shouldValidate,
+  const result = ProgramRewrite_instances(
     planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
-    settings
+    settings,
+    (evaluated) => {
+      PP_iterate2(evaluated.weeks, (e) => {
+        if (e.key === key) {
+          cb(e);
+        }
+      });
+    },
+    { validate: shouldValidate }
   );
+  return plannerOrAlert(result, planner);
 }
 
 export function EditProgramUiHelpers_getChangedKeys(

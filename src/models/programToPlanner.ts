@@ -891,7 +891,10 @@ export class ProgramToPlanner {
     if (progress.type === "custom") {
       // Resolved, every variable is spelled out: the ones inherited from the reuse target are
       // exactly the ones the reader can't see from here.
-      const argsState = resolveReuse ? state : PlannerProgramExercise_getOnlyChangedState(programExercise);
+      // Only a `{ ...Name }` script merges the target's state back in at evaluation. An own script
+      // on a reuse line evaluates with its own state alone, so it has to declare all of it.
+      const argsState =
+        resolveReuse || progress.reuse == null ? state : PlannerProgramExercise_getOnlyChangedState(programExercise);
       progressStr += `(${ObjectUtils_entries(argsState)
         .map(([k, v]) => {
           return `${k}${stateMetadata[k]?.userPrompted ? "+" : ""}: ${Weight_print(v)}`;

@@ -11,7 +11,8 @@ import {
   LiftoEditorBrain_tokens,
   LiftoEditorParseCache,
 } from "./liftoEditorBrain";
-import { ILiftoEditorPill } from "./liftoEditorActions";
+import { SyntaxNode } from "@lezer/common";
+import { ILiftoEditorPill, ILiftoEditorPillKind } from "./liftoEditorActions";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
 import { PlannerDocument_descriptionAt } from "../../pages/planner/models/plannerDocument";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
@@ -51,7 +52,7 @@ export interface IActiveNumber {
 // How much of the program the document holds — one exercise's declaration, or a whole day.
 // Not about where the editor is embedded: a day is edited both inline on the Program screen
 // and in its own sheet, and both want the same actions (see scopePills).
-export type ILiftoEditorScope = "exercise" | "day";
+export type ILiftoEditorScope = "exercise" | "day" | "preview";
 
 export interface ILiftoEditorSession {
   mode: ILiftoEditorMode;
@@ -189,11 +190,14 @@ export function LiftoEditorSession_tap(
   // punctuation produce no token at all). Two quick taps count as a double tap when they
   // land on the same token, or — in token-free space — within a couple of characters;
   // quick taps on two different tokens are fast navigation, not a double tap.
+  if (session.scope === "preview" && index < previewLockedEnd(session)) {
+    return { session, effects: {} };
+  }
   const sinceLastTap = now - session.lastTapTime;
   const tapped: ILiftoEditorSession = { ...session, lastTapTime: now, lastTapIndex: index };
   const tokens = LiftoEditorBrain_tokens(session.cache, session.text);
   const tokenAt = (i: number): IEditorToken | undefined => tokens.find((t) => i >= t.start && i <= t.end);
-  if (sinceLastTap < 300 && session.lastTapIndex != null) {
+  if (sinceLastTap < 300 && session.lastTapIndex != null && session.scope !== "preview") {
     const prevToken = tokenAt(session.lastTapIndex);
     const thisToken = tokenAt(index);
     const isSamePlace =
@@ -465,7 +469,7 @@ export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): 
   const levelIndex = focusedLevelIndex(session);
   const levels = session.context?.levels ?? [];
   const level = levelIndex != null ? levels[levelIndex] : undefined;
-  if (level == null) {
+  if (level == null || !LiftoEditorSession_canRemove(session)) {
     return { session, effects: {} };
   }
   const text = session.text;
@@ -585,6 +589,9 @@ export function LiftoEditorSession_blur(session: ILiftoEditorSession): ILiftoEdi
 }
 
 export function LiftoEditorSession_switchToFreeform(session: ILiftoEditorSession): ILiftoEditorSessionResult {
+  if (session.scope === "preview") {
+    return { session, effects: {} };
+  }
   return {
     session: {
       ...session,
@@ -651,10 +658,98 @@ export function LiftoEditorSession_focusedExerciseFullName(session: ILiftoEditor
   return session.context?.levels.find((level) => level.nodeName === PlannerNodeName.ExerciseExpression)?.fullName;
 }
 
+function previewExerciseNode(session: ILiftoEditorSession): SyntaxNode | null {
+  return session.cache.parse(session.text).topNode.getChild(PlannerNodeName.ExerciseExpression);
+}
+
+function previewLockedEnd(session: ILiftoEditorSession): number {
+  const exercise = previewExerciseNode(session);
+  const variations = exercise?.getChild(PlannerNodeName.ExerciseVariations);
+  const repeat = exercise?.getChild(PlannerNodeName.Repeat);
+  return repeat?.to ?? variations?.to ?? 0;
+}
+
+type IPreviewGlobalField = "weight" | "rpe" | "timer" | "setTimer";
+
+function previewGlobalFields(session: ILiftoEditorSession): Set<IPreviewGlobalField> {
+  const fields = new Set<IPreviewGlobalField>();
+  const exercise = previewExerciseNode(session);
+  for (const section of exercise?.getChildren(PlannerNodeName.ExerciseSection) ?? []) {
+    for (const set of section.getChild(PlannerNodeName.ExerciseSets)?.getChildren(PlannerNodeName.ExerciseSet) ?? []) {
+      if (set.getChild(PlannerNodeName.SetPart) != null) {
+        continue;
+      }
+      if (
+        set.getChild(PlannerNodeName.WeightWithPlus) != null ||
+        set.getChild(PlannerNodeName.PercentageWithPlus) != null ||
+        set.getChild(PlannerNodeName.AskWeight) != null
+      ) {
+        fields.add("weight");
+      }
+      if (set.getChild(PlannerNodeName.Rpe) != null) {
+        fields.add("rpe");
+      }
+      if (set.getChild(PlannerNodeName.Timer) != null) {
+        fields.add("timer");
+      }
+      // `30s|60s` sets both timers; `30s|?` leaves the rest timer to the per-set values.
+      const setTimer = set.getChild(PlannerNodeName.SetTimer);
+      if (setTimer != null) {
+        fields.add("setTimer");
+        if (!session.text.slice(setTimer.from, setTimer.to).endsWith("?")) {
+          fields.add("timer");
+        }
+      }
+    }
+  }
+  return fields;
+}
+
+const previewDeniedKinds: ReadonlySet<ILiftoEditorPillKind> = new Set<ILiftoEditorPillKind>([
+  "reuse",
+  "reuseScript",
+  "fromWeekDay",
+  "repeat",
+  "forcedOrder",
+  "addLabel",
+]);
+
+const previewGlobalFieldOfKind: Partial<Record<ILiftoEditorPillKind, IPreviewGlobalField>> = {
+  addWeight: "weight",
+  addRpe: "rpe",
+  addSetTimer: "setTimer",
+  addRestTimer: "timer",
+};
+
 // "Edit reused exercise…" opens a second editor on the reuse target. Inline that's noise:
 // the whole day is already on screen, so the target is a few lines up in this very editor.
-function scopePills(pills: ILiftoEditorPill[], scope: ILiftoEditorScope): ILiftoEditorPill[] {
-  return scope === "day" ? pills.filter((pill) => pill.action !== "editReuse") : pills;
+// PlannerProgramExercise_sets lets an own global override the set, so a per-set weight, RPE or
+// timer pill under one would insert dead text.
+function scopePills(pills: ILiftoEditorPill[], session: ILiftoEditorSession): ILiftoEditorPill[] {
+  if (session.scope === "day") {
+    return pills.filter((pill) => pill.action !== "editReuse");
+  }
+  if (session.scope !== "preview") {
+    return pills;
+  }
+  const lockedEnd = previewLockedEnd(session);
+  const globalFields = previewGlobalFields(session);
+  return pills.filter((pill) => {
+    if (pill.action != null || previewDeniedKinds.has(pill.kind) || pill.start < lockedEnd) {
+      return false;
+    }
+    const field = previewGlobalFieldOfKind[pill.kind];
+    return field == null || !globalFields.has(field);
+  });
+}
+
+export function LiftoEditorSession_canRemove(session: ILiftoEditorSession): boolean {
+  const levelIndex = focusedLevelIndex(session);
+  const level = levelIndex != null ? session.context?.levels[levelIndex] : undefined;
+  if (level == null) {
+    return false;
+  }
+  return session.scope !== "preview" || level.start >= previewLockedEnd(session);
 }
 
 // Levels that own no rail (a set group's `auto`, a reuse target's week/day) are transparent —
@@ -666,7 +761,7 @@ export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEd
   for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
     const level = levels[i];
     if (level?.ownsRail) {
-      return scopePills(level.pills, session.scope);
+      return scopePills(level.pills, session);
     }
   }
   return [];
