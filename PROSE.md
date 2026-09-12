@@ -21,6 +21,8 @@ Generated from `PROSE.md`. Do not edit here — edit `PROSE.md` and run `npx ts-
 
 **Every sentence names a symbol, a file, a number, or a consequence.** A sentence naming none of those is filler. "The nonce keeps it stable" is short and useless. "The nonce survives the flip, so promoting the countdown does not re-present the banner" carries the fact.
 
+**Short sentences in plain words.** One idea per sentence, under 20 words. No colon or semicolon that joins two thoughts; write two sentences. Common words first, then the platform term once in brackets: "asleep (suspended)". Say who does what: "the watch asks the phone", never "the phone is asked". The reader is not a native English speaker, and every idiom or 40-word sentence makes them read it twice.
+
 **An estimate is a number and the condition it depends on.** "Roughly a day", "a small change", `cheap` — none of those can be planned around. "Twenty minutes if the codegen is current, half a day if the pod install has to be redone" can. Effort is a number, so the sentence rule above already covers it: an estimate without one is filler.
 
 **Restate position in multi-step work.** One line at the top of a report saying where we are, every turn: "phase 5 of 8 done". The reader should never reconstruct progress from prose, and a checkbox list in a file they are not looking at does not do this job.
@@ -41,7 +43,7 @@ Meta-narration, say the thing instead of announcing it: `here's the thing`, `the
 
 Marketing words: `robust`, `seamless`, `elegant`, `surgical`, `comprehensive`, `leverage`, `principled`, `nuanced`, `delve`.
 
-**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism.
+**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism. This includes the mild ones: `armed`, `fires`, `wins`, `trusted to`, `on its own clock`. Use the API's own word or say what happens: "the timer already scheduled", "the OS delivers it". Fences are prose too; a call tree's annotations follow the same rule.
 
 ### Budgeted, not banned
 
@@ -63,6 +65,12 @@ The test: delete the comment and read the code. If a reviewer would ask "why is 
 <!-- prose:end -->
 
 ## Why these rules
+
+### Why sentences are short
+
+The reader is not a native English speaker. A 40-word sentence with two clauses and an idiom takes a second read, and an archdoc has two hundred of them. This one from the cue routing archdoc took a second read: "the one-shot timer armed in `scheduleRestCue` is the only in-process timer that can be trusted to fire, and the phone never decides on its own clock: it answers `playCueNow` when asked and accepts `cueOwned` when told." The same facts in four sentences: "When a rest ends, the phone app is usually asleep. Only the watch has a timer that will run at that moment, the one `scheduleRestCue` starts. So the phone never decides anything by itself. The watch asks it (`playCueNow`) or tells it (`cueOwned`), and the phone only answers."
+
+`scripts/lint-docs.ts` warns on any sentence over 25 words. The rule says 20; the five words of slack are for a sentence that carries two links.
 
 ### Why the line is the unit of meaning
 
@@ -126,7 +134,7 @@ The delete test is the check. Remove the comment and read the code. If a reviewe
 
 ## Enforcement
 
-`scripts/lint-docs.ts` checks `lambda/scripts/archdocs/*.md` and `lambda/scripts/plans/*.md`. Hard failures block; warnings report. Word checks skip fenced blocks and inline code spans, so a document that quotes a banned word in backticks passes.
+`scripts/lint-docs.ts` checks `lambda/scripts/archdocs/*.md` and `lambda/scripts/plans/*.md`. Hard failures block; warnings report, including any sentence over 25 words. Word checks skip fenced blocks and inline code spans, so a document that quotes a banned word in backticks passes.
 
 `grasp archdoc lint` owns the other half: dead paths, dead anchors, `// :N` line numbers, and symbols named in a How it runs fence without a link. Those need a git revision and a snapshot, so they live in graspcode rather than here. Both run on every archdoc write, from the hook in `.claude/settings.json`.
 

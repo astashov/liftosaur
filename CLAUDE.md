@@ -226,6 +226,8 @@ Generated from `PROSE.md`. Do not edit here — edit `PROSE.md` and run `npx ts-
 
 **Every sentence names a symbol, a file, a number, or a consequence.** A sentence naming none of those is filler. "The nonce keeps it stable" is short and useless. "The nonce survives the flip, so promoting the countdown does not re-present the banner" carries the fact.
 
+**Short sentences in plain words.** One idea per sentence, under 20 words. No colon or semicolon that joins two thoughts; write two sentences. Common words first, then the platform term once in brackets: "asleep (suspended)". Say who does what: "the watch asks the phone", never "the phone is asked". The reader is not a native English speaker, and every idiom or 40-word sentence makes them read it twice.
+
 **An estimate is a number and the condition it depends on.** "Roughly a day", "a small change", `cheap` — none of those can be planned around. "Twenty minutes if the codegen is current, half a day if the pod install has to be redone" can. Effort is a number, so the sentence rule above already covers it: an estimate without one is filler.
 
 **Restate position in multi-step work.** One line at the top of a report saying where we are, every turn: "phase 5 of 8 done". The reader should never reconstruct progress from prose, and a checkbox list in a file they are not looking at does not do this job.
@@ -246,7 +248,7 @@ Meta-narration, say the thing instead of announcing it: `here's the thing`, `the
 
 Marketing words: `robust`, `seamless`, `elegant`, `surgical`, `comprehensive`, `leverage`, `principled`, `nuanced`, `delve`.
 
-**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism.
+**The catch-all:** a metaphor is banned unless it is a term of art in this codebase. Describe the mechanism. This includes the mild ones: `armed`, `fires`, `wins`, `trusted to`, `on its own clock`. Use the API's own word or say what happens: "the timer already scheduled", "the OS delivers it". Fences are prose too; a call tree's annotations follow the same rule.
 
 ### Budgeted, not banned
 

@@ -197,7 +197,7 @@ export function LintDocs_check(file: string, text: string): IFinding[] {
     if (isProseLine(raw)) {
       for (const sentence of m.split(SENTENCE_END)) {
         const words = sentence.trim().split(/\s+/).filter(Boolean).length;
-        if (words > 45) {
+        if (words > 25) {
           add(n, "long-sentence", "warn", `${words}-word sentence`);
         }
       }
