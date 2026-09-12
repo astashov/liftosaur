@@ -175,6 +175,63 @@ import UserNotifications
     }
   }
 
+  // The watch asks at the deadline. Declining when the app is active leaves the JS foreground cue
+  // and the watch chirp both playing, which is the behaviour on every screen-on case today.
+  func tryPlayWatchCue(volume: Double, completion: @escaping (Bool) -> Void) {
+    DispatchQueue.main.async {
+      guard UIApplication.shared.applicationState != .active else {
+        Logger.notifications.info("watch cue declined, phone is in the foreground")
+        completion(false)
+        return
+      }
+      guard LiftosaurTimerImpl.hasHeadphoneRoute() else {
+        Logger.notifications.info("watch cue declined, phone has no headphones")
+        completion(false)
+        return
+      }
+      guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r") else {
+        completion(false)
+        return
+      }
+      do {
+        // Build and prepare before activating. An active session with nothing playing keeps the
+        // process awake under UIBackgroundModes=audio, and only a successful finish deactivates it.
+        let player = try AVAudioPlayer(contentsOf: url)
+        player.delegate = TimerAudioSessionDeactivator.shared
+        // Scales the cue by the app's rest-timer setting. The AirPods' own output level still
+        // applies on top, so both the setting and the device volume are honoured.
+        player.volume = Float(min(max(volume, 0), 1))
+        guard player.prepareToPlay() else {
+          Logger.notifications.error("watch cue could not prepare")
+          completion(false)
+          return
+        }
+        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
+        try AVAudioSession.sharedInstance().setActive(true, options: [])
+        guard player.play() else {
+          Logger.notifications.error("watch cue could not start")
+          try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+          completion(false)
+          return
+        }
+        self.audioPlayer = player
+        Logger.notifications.info("watch cue played through headphones at volume \(volume)")
+        completion(true)
+      } catch {
+        Logger.notifications.error("watch cue failed: \(error)")
+        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        completion(false)
+      }
+    }
+  }
+
+  private static func hasHeadphoneRoute() -> Bool {
+    let ports: Set<AVAudioSession.Port> = [
+      .bluetoothA2DP, .bluetoothHFP, .bluetoothLE, .headphones, .airPlay, .usbAudio,
+    ]
+    return AVAudioSession.sharedInstance().currentRoute.outputs.contains { ports.contains($0.portType) }
+  }
+
   @objc func getNotificationPermission(completion: @escaping (String) -> Void) {
     center.getNotificationSettings { settings in
       switch settings.authorizationStatus {

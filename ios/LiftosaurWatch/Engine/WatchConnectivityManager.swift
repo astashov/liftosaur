@@ -44,6 +44,34 @@ class WatchConnectivityManager: NSObject, ObservableObject {
         }
     }
 
+    func askPhoneToPlayCue(volume: Double, completion: @escaping (Bool) -> Void) {
+        let timeout: TimeInterval = 1.5
+        guard let session = session, isReachable else {
+            Logger.wc.info(" playCueNow skipped, phone unreachable")
+            completion(false)
+            return
+        }
+        var settled = false
+        let sentAt = Date()
+        let settle: (Bool, String) -> Void = { played, outcome in
+            DispatchQueue.main.async {
+                guard !settled else { return }
+                settled = true
+                let ms = Int(Date().timeIntervalSince(sentAt) * 1000)
+                Logger.wc.info(" playCueNow \(outcome) after \(ms)ms, played=\(played)")
+                completion(played)
+            }
+        }
+        Logger.wc.info(" playCueNow asking phone")
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { settle(false, "timed out") }
+        session.sendMessage(["type": "playCueNow", "volume": volume], replyHandler: { reply in
+            settle((reply["played"] as? Bool) ?? false, "replied")
+        }, errorHandler: { error in
+            Logger.wc.info(" playCueNow errored: \(error.localizedDescription)")
+            settle(false, "errored")
+        })
+    }
+
     func requestAuth() {
         guard let session = session else { return }
         Logger.wc.info(" requesting auth from phone (reachable: \(session.isReachable))")

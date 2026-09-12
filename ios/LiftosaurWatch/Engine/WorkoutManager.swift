@@ -719,8 +719,30 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         let maxChirpWindow = 5
         if elapsed >= timer.timer && elapsed <= timer.timer + maxChirpWindow {
             hasPlayedRestTimerHaptic = true
+            // The wrist tap lands at the deadline, before the phone answers, so a 400ms round trip
+            // never delays it. Only the audible chirp waits on the answer.
             WKInterfaceDevice.current().play(.notification)
-            playCompletionSound()
+            guard cachedVolume > 0 else {
+                Logger.workout.info("rest cue: muted, haptic only")
+                return
+            }
+            Logger.workout.info("rest cue deadline reached, asking phone")
+            let asked = timer
+            WatchConnectivityManager.shared.askPhoneToPlayCue(volume: cachedVolume) { [weak self] playedOnPhone in
+                guard let self = self else { return }
+                // The rest can be stopped, extended or replaced while the phone answers. Chirping
+                // then would be for a rest that no longer exists.
+                guard self.restTimer == asked else {
+                    Logger.workout.info("rest cue: rest changed while asking, not chirping")
+                    return
+                }
+                if playedOnPhone {
+                    Logger.workout.info("rest cue: phone played, haptic only on the watch")
+                    return
+                }
+                Logger.workout.info("rest cue: chirping on the watch")
+                self.playCompletionSound()
+            }
         } else if elapsed > timer.timer + maxChirpWindow {
             // Timer is past the window, mark as played to stop monitoring
             hasPlayedRestTimerHaptic = true
