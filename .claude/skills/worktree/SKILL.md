@@ -133,8 +133,12 @@ After the branch is committed and merged, remove `worktrees/<name>/` from every 
 - **`liftosaur-local` MCP is pinned to `https://local.liftosaur.com:8080/mcp`** (in `~/.claude.json`).
   From a worktree it still talks to the **base repo's** server. Either run the base repo's
   `npm start`/`start:server` too, or repoint the MCP URL at the worktree's port for the session.
-- **Playwright hardcodes 8080** (`playwright.config.ts:29`, `tests/playwrightUtils.ts:5`) — the domain
-  is per-worktree but the port isn't, so E2E runs from a worktree hit the base repo's web server.
+- **Playwright needs `npm run build:dev` once per worktree.** Its start page is `/app/`, and the dev
+  server serves that directory index only from a physical `dist/app/index.html` (`static:` in
+  `webpack.config.js`); the in-memory bundle answers `/app/index.html` but not `/app/`. A fresh
+  worktree has no `dist/app/`, so every spec fails on the first `page.waitForFunction` with
+  "Refused to evaluate a string as JavaScript" — the 404 page's CSP, not the app. `build:dev` writes
+  the file; after that `npx playwright test --reporter=line` runs against the worktree's own port.
 - **API CORS allow-list hardcodes 8080** (`lambda/utils/response.ts:7`), as do the OAuth/MCP redirect
   fallbacks (`lambda/mcp/handler.ts`, `lambda/mcp/oauth.ts`) and the dev CDK stack
   (`liftosaur-cdk/liftosaur-cdk.ts`). Cross-origin/OAuth flows may need the base ports.
