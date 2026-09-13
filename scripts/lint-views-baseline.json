@@ -28,7 +28,6 @@
     "decision-in-view:useMemo#1": "predates the rule"
   },
   "src/components/editProgram/dayLiftoEditorInline.tsx": {
-    "decision-in-view:useEffect#1": "predates the rule",
     "long-view": "predates the rule"
   },
   "src/components/editProgram/editProgramCustomErrorCta.tsx": {
@@ -257,7 +256,8 @@
     "decision-in-view:revealCaret": "predates the rule"
   },
   "src/navigation/modals/ExerciseLiftoEditorSheet.native.tsx": {
-    "long-view": "predates the rule"
+    "decision-in-view:stepPass": "the effect runner for exercisePreviewPass.ts: a timer, the editor handle, the host's apply. No decision in it",
+    "long-view": "one sheet's JSX; the logic is in exercisePreviewPass.ts and exerciseLiftoEditorAnalysis.ts"
   },
   "src/navigation/modals/NavModal1RM.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"
@@ -291,12 +291,9 @@
     "decision-in-view:upload": "predates the rule"
   },
   "src/navigation/modals/NavModalExerciseLiftoEditor.tsx": {
-    "decision-in-view:analyzeText": "predates the rule",
-    "decision-in-view:applyDraft": "predates the rule",
-    "decision-in-view:onDone": "predates the rule",
-    "decision-in-view:onEditAcrossProgram": "predates the rule",
-    "decision-in-view:requestSwapScope": "predates the rule",
-    "long-view": "predates the rule"
+    "decision-in-view:onDone": "runs the dialogs and the write that exerciseLiftoEditorSave.ts decided, in its order",
+    "decision-in-view:onEditAcrossProgram": "a state machine in refs (foldedKeyRef, needsReprojectRef) around two dialogs and a modal, plus the scope, fold-failure and target decisions. Pre-existing; extract as exerciseAcrossProgramEdit.ts in its own branch",
+    "long-view": "one modal's wiring: props for the sheet, dialogs, navigation. The decisions are in exerciseDraftToProgram.ts and exerciseLiftoEditorSave.ts"
   },
   "src/navigation/modals/NavModalExercisePicker.tsx": {
     "decision-in-view:useCallback#1": "predates the rule"

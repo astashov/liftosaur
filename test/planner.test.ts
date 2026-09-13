@@ -24,8 +24,8 @@ import { Stats_getEmpty } from "../src/models/stats";
 import {
   EditProgramUiHelpers_changeCurrentInstancePosition,
   EditProgramUiHelpers_changeFirstInstance,
-  EditProgramUiHelpers_getChangedKeys,
 } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys } from "../src/models/programRewrite";
 import { PlannerProgramExercise_buildProgress } from "../src/pages/planner/models/plannerProgramExercise";
 
 describe("Planner", () => {
@@ -1326,7 +1326,7 @@ Bench Press / 3x5 / 50lb
       "Mystery Move",
       settings
     );
-    expect(EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings)).to.eql({
+    expect(ProgramRewrite_changedKeys(planner, newPlanner, settings)).to.eql({
       benchpress_barbell: "mystery move",
     });
   });

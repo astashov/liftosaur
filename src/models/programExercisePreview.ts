@@ -60,6 +60,23 @@ export interface IProgramExercisePreviewTarget {
   tappedDayData: Required<IDayData>;
 }
 
+export function ProgramExercisePreview_target(
+  declaration: IPlannerProgramExercise,
+  programExercise: IPlannerProgramExercise | undefined,
+  selectedDayData: Required<IDayData> | undefined,
+  key: string = declaration.key
+): IProgramExercisePreviewTarget {
+  const isTappedRepeat =
+    selectedDayData == null &&
+    programExercise?.isRepeat === true &&
+    declaration.repeating.includes(programExercise.dayData.week);
+  return {
+    key,
+    dayData: declaration.dayData,
+    tappedDayData: isTappedRepeat && programExercise != null ? programExercise.dayData : declaration.dayData,
+  };
+}
+
 export interface IProgramExercisePreviewApplied {
   planner: IPlannerProgram;
   blurb: string;

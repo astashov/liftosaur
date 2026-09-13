@@ -4,6 +4,7 @@ import { Animated, Keyboard, LayoutChangeEvent, Platform, View } from "react-nat
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { Text } from "../primitives/text";
+import { TextDiff_minimalEdit } from "../../utils/textDiff";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { PlannerSyntaxError } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, IExerciseType, ISettings } from "../../types";
@@ -406,16 +407,9 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
     if (externalText === committedRef.current || externalText === textRef.current) {
       return;
     }
-    const live = textRef.current;
-    let start = 0;
-    while (start < live.length && start < externalText.length && live[start] === externalText[start]) {
-      start += 1;
-    }
-    let liveEnd = live.length;
-    let externalEnd = externalText.length;
-    while (liveEnd > start && externalEnd > start && live[liveEnd - 1] === externalText[externalEnd - 1]) {
-      liveEnd -= 1;
-      externalEnd -= 1;
+    const edit = TextDiff_minimalEdit(textRef.current, externalText);
+    if (edit == null) {
+      return;
     }
     // A commit still on the debounce is about the document this rewrite supersedes, and
     // `replaceRange` is asynchronous, so letting it fire would dispatch the pre-rewrite text back
@@ -427,7 +421,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
     }
     committedRef.current = externalText;
     blurRef.current();
-    handleRef?.current?.replaceRange(start, liveEnd, externalText.slice(start, externalEnd));
+    handleRef?.current?.replaceRange(edit.start, edit.end, edit.text);
   }, [externalText, handleRef]);
 
   const onLineChangeRef = useRef(props.onLineChange);

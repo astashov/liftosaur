@@ -6,7 +6,6 @@ import {
   ProgramRewrite_validate,
 } from "../../../models/programRewrite";
 import { Dialog_alert } from "../../../utils/dialog";
-import { PlannerProgram_evaluate } from "../../../pages/planner/models/plannerProgram";
 import {
   IModalExerciseUi,
   IPlannerExerciseState,
@@ -582,44 +581,4 @@ export function EditProgramUiHelpers_changeAllInstances(
     { validate: shouldValidate }
   );
   return plannerOrAlert(result, planner);
-}
-
-export function EditProgramUiHelpers_getChangedKeys(
-  oldPlanner: IPlannerProgram,
-  newPlanner: IPlannerProgram,
-  settings: ISettings
-): Partial<Record<string, string>> {
-  const { evaluatedWeeks: oldEvaluatedWeeks } = PlannerProgram_evaluate(oldPlanner, settings);
-  const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram_evaluate(newPlanner, settings);
-  const changedKeys: Partial<Record<string, string>> = {};
-  for (let weekIndex = 0; weekIndex < oldEvaluatedWeeks.length; weekIndex++) {
-    const oldWeek = oldEvaluatedWeeks[weekIndex];
-    const newWeek = newEvaluatedWeeks[weekIndex];
-    if (oldWeek && newWeek) {
-      for (let dayInWeekIndex = 0; dayInWeekIndex < oldWeek.length; dayInWeekIndex++) {
-        const oldDay = oldWeek[dayInWeekIndex];
-        const newDay = newWeek[dayInWeekIndex];
-        if (oldDay && newDay) {
-          if (oldDay.success && newDay.success) {
-            // A key that survives the edit is its own match wherever it moved to, so it's paired
-            // first and only what's left over is paired by position. Pairing everything by array
-            // index instead reports a rename for every exercise a reorder shifted - and the day's
-            // order does shift on its own: `used: none` and repeat-materialized exercises sort
-            // ahead of local ones, so turning an exercise into a template moves it.
-            const newKeys = new Set(newDay.data.map((e) => e.key));
-            const oldKeys = new Set(oldDay.data.map((e) => e.key));
-            const removed = oldDay.data.filter((e) => !newKeys.has(e.key));
-            const added = newDay.data.filter((e) => !oldKeys.has(e.key));
-            for (let i = 0; i < removed.length; i++) {
-              const newExercise = added[i];
-              if (newExercise != null) {
-                changedKeys[removed[i].key] = newExercise.key;
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  return changedKeys;
 }

@@ -13,6 +13,20 @@ import { EditProgramUiHelpers_changeAllInstances } from "../components/editProgr
 
 export type IProgramExerciseSwapScope = "one" | "all";
 
+// With one declaration "this day" and "everywhere" are the same edit, and scoping to a day
+// would break a declaration that repeats into other weeks. A ladder change reaches every
+// instance too, the rungs being the exercise's identity, so asking would ignore the answer.
+export function ProgramExerciseSwap_scope(
+  isLadder: boolean,
+  declarations: number,
+  cached: IProgramExerciseSwapScope | undefined
+): IProgramExerciseSwapScope | "ask" {
+  if (isLadder || declarations < 2) {
+    return "all";
+  }
+  return cached ?? "ask";
+}
+
 // The syntactic half of a name, produced by the editor's parser (LiftoEditorBrain). Kept as a
 // structural type so the model layer doesn't depend on the editor.
 export interface IProgramExerciseParsedName {

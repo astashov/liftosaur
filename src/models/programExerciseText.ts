@@ -24,6 +24,17 @@ export interface IProgramExerciseTextError {
   to?: number;
 }
 
+export function ProgramExerciseText_rebaseError(
+  error: IProgramExerciseTextError,
+  text: string
+): IProgramExerciseTextError {
+  if (error.from == null || error.to == null) {
+    return error;
+  }
+  const leading = text.length - text.trimStart().length;
+  return { ...error, from: error.from + leading, to: error.to + leading };
+}
+
 // Where the exercise's source text physically lives: repeat instances carry the
 // declaration's text/line but their own dayData, so anchor edits to the non-repeat
 // declaration that repeats into the opened week.

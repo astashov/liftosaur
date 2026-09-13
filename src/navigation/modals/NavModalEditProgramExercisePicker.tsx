@@ -21,11 +21,8 @@ import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plann
 import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ObjectUtils_clone } from "../../utils/object";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
-import {
-  EditProgramUiHelpers_duplicateCurrentInstance,
-  EditProgramUiHelpers_getChangedKeys,
-  EditProgramUiHelpers_changeAllInstances,
-} from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_duplicateCurrentInstance, EditProgramUiHelpers_changeAllInstances } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys } from "../../models/programRewrite";
 import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import type { IRootStackParamList } from "../types";
 import type {
@@ -86,7 +83,7 @@ function onChangeExercise(
       });
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Change exercise variation");
       if (onNewKey) {
-        const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
+        const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
         const newKey = changedKeys[plannerExercise.key];
         if (newKey != null) {
           onNewKey(newKey);
@@ -122,7 +119,7 @@ function onChangeExercise(
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
       if (onNewKey) {
-        const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
+        const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
         const newKey = changedKeys[plannerExercise.key];
         if (newKey != null) {
           onNewKey(newKey);

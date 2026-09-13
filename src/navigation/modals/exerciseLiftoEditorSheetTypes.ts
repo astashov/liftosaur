@@ -3,6 +3,10 @@ import type { ILiftoEditorExercisePickerModalData } from "../ModalStateContext";
 import type { ILiftoEditorReuseCandidates } from "../../components/liftoEditorReuse";
 import type { IProgramExerciseIdentity } from "../../models/programExerciseSwap";
 import type { IProgramExerciseTextError } from "../../models/programExerciseText";
+import type {
+  IExerciseDraftToProgramAnalysis,
+  IExerciseDraftToProgramPreview,
+} from "../../models/exerciseDraftToProgram";
 import type { ILiftoEditorStateVarsContext } from "../../components/primitives/liftoEditorStateVars";
 import type {
   ILiftoEditorAcrossField,
@@ -46,13 +50,9 @@ export function ExerciseLiftoEditorSheetTypes_sharedLabels(
 // The exercise with its reuses resolved and the properties declared elsewhere folded in, or why
 // it couldn't be resolved. Read-only — it is an answer to "what does this line mean", not
 // another way to write one.
-export type IExerciseLiftoEditorSheetPreview = { text: string } | { error: string };
+export type IExerciseLiftoEditorSheetPreview = IExerciseDraftToProgramPreview;
 
-export interface IExerciseLiftoEditorSheetAnalysis {
-  error?: IExerciseLiftoEditorSheetLiveError;
-  // Only when asked for: resolving the exercise costs a pass the banner doesn't need.
-  preview?: IExerciseLiftoEditorSheetPreview;
-}
+export type IExerciseLiftoEditorSheetAnalysis = IExerciseDraftToProgramAnalysis;
 
 export interface IExerciseLiftoEditorSheetInstanceOption {
   dayData: Required<IDayData>;

@@ -31,7 +31,28 @@ import { IconHelp } from "../../components/icons/iconHelp";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
-import { ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
+import { IProgramExerciseTextError, ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
+import { TextDiff_minimalEdit } from "../../utils/textDiff";
+import {
+  ExercisePreviewPass_applied,
+  ExercisePreviewPass_close,
+  ExercisePreviewPass_error,
+  ExercisePreviewPass_flush,
+  ExercisePreviewPass_initial,
+  ExercisePreviewPass_isPending,
+  ExercisePreviewPass_materialized,
+  ExercisePreviewPass_textChanged,
+  ExercisePreviewPass_timerElapsed,
+  IExercisePreviewPassApplyResult,
+  IExercisePreviewPassState,
+  IExercisePreviewPassStep,
+} from "../../models/exercisePreviewPass";
+import {
+  ExerciseLiftoEditorAnalysis_initial,
+  ExerciseLiftoEditorAnalysis_key,
+  ExerciseLiftoEditorAnalysis_ran,
+  ExerciseLiftoEditorAnalysis_shouldRun,
+} from "../../models/exerciseLiftoEditorAnalysis";
 import {
   ExerciseLiftoEditorSheetTypes_sharedLabels,
   IExerciseLiftoEditorSheetProps,
@@ -120,7 +141,8 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   const getFocusedController = useLiftoEditorFocusedControllerGetter();
   const closeKeyboard = useCloseCustomKeyboard();
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
-  const [liveError, setLiveError] = useState<IExerciseLiftoEditorSheetLiveError | undefined>(undefined);
+  const [analysisError, setAnalysisError] = useState<IExerciseLiftoEditorSheetLiveError | undefined>(undefined);
+  const [passError, setPassError] = useState<IProgramExerciseTextError | undefined>(undefined);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [preview, setPreview] = useState<IExerciseLiftoEditorSheetPreview | undefined>(undefined);
   const analyzeTextRef = useRef(props.analyzeText);
@@ -133,121 +155,90 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   }, [liveErrorText]);
   // The banner's error and the open panel's contents come out of one pass over the draft, so a
   // keystroke splices and evaluates the program once rather than once per question asked of it.
-  // What that pass last covered is remembered, so opening the panel — which resolves straight
-  // away, rather than leaving an empty box up for a third of a second — doesn't then repeat
-  // itself when the debounce fires.
-  //
-  // The program is half of what a pass reads, so the host's revision is part of what identifies
-  // one: an exercise this one resolves through can be edited and saved by a sheet stacked on top,
-  // and neither this text nor the panel's own state moves when that happens.
+  const analysisRef = useRef(ExerciseLiftoEditorAnalysis_initial());
   const analysisKey = (text: string, withPreview: boolean): string =>
-    `${props.analysisRevision ?? 0}:${withPreview}:${text}`;
-  const analyzedRef = useRef<string | undefined>(undefined);
-  const panelTextRef = useRef<string | undefined>(undefined);
+    ExerciseLiftoEditorAnalysis_key(props.analysisRevision ?? 0, withPreview, text);
   const panelHeightRef = useRef<number | undefined>(undefined);
+  const passRef = useRef<IExercisePreviewPassState>(ExercisePreviewPass_initial());
+  const passTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const applyPreviewRef = useRef(props.applyPreview);
+  applyPreviewRef.current = props.applyPreview;
+  const onPanelPendingChangeRef = useRef(props.onPanelPendingChange);
+  onPanelPendingChangeRef.current = props.onPanelPendingChange;
+  const stepPass = (
+    transition: (state: IExercisePreviewPassState) => IExercisePreviewPassStep
+  ): IExercisePreviewPassApplyResult | undefined => {
+    const wasPending = ExercisePreviewPass_isPending(passRef.current);
+    const step = transition(passRef.current);
+    passRef.current = step.state;
+    const isPending = ExercisePreviewPass_isPending(step.state);
+    if (isPending !== wasPending) {
+      onPanelPendingChangeRef.current?.(isPending);
+    }
+    setPassError(ExercisePreviewPass_error(step.state));
+    let result = step.result;
+    for (const effect of step.effects) {
+      if (effect.type === "schedule") {
+        passTimerRef.current = setTimeout(() => {
+          passTimerRef.current = undefined;
+          stepPass((state) => ExercisePreviewPass_timerElapsed(state, effect.token));
+        }, KEYPAD_WRITE_DEBOUNCE_MS);
+      } else if (effect.type === "cancel") {
+        if (passTimerRef.current != null) {
+          clearTimeout(passTimerRef.current);
+          passTimerRef.current = undefined;
+        }
+      } else if (effect.type === "applyPreview") {
+        const applied = applyPreviewRef.current?.(effect.panelText) ?? {
+          error: { message: "There's nothing to write here yet." },
+        };
+        result = stepPass((state) => ExercisePreviewPass_applied(state, effect.token, applied)) ?? result;
+      } else {
+        const handle = controller.editorProps.handleRef?.current;
+        const edit = handle != null ? TextDiff_minimalEdit(handle.getText(), effect.blurb) : undefined;
+        if (handle != null && edit != null) {
+          handle.replaceRange(edit.start, edit.end, edit.text);
+        }
+        onTextChangeRef.current?.(effect.blurb);
+      }
+    }
+    return result;
+  };
   const analyze = (text: string, withPreview: boolean): void => {
-    analyzedRef.current = analysisKey(text, withPreview);
+    analysisRef.current = ExerciseLiftoEditorAnalysis_ran(analysisRef.current, analysisKey(text, withPreview));
     const analysis = analyzeTextRef.current?.(text, { withPreview }) ?? {};
-    setLiveError(analysis.error);
+    setAnalysisError(analysis.error);
     if (withPreview) {
       const resolved = analysis.preview;
-      if (resolved == null || !("text" in resolved) || resolved.text !== panelTextRef.current) {
-        panelTextRef.current = resolved != null && "text" in resolved ? resolved.text : undefined;
+      const before = passRef.current;
+      stepPass((state) =>
+        ExercisePreviewPass_materialized(state, resolved != null && "text" in resolved ? resolved.text : undefined)
+      );
+      if (passRef.current !== before) {
         setPreview(resolved);
       }
     }
   };
-  const applyPreviewRef = useRef(props.applyPreview);
-  applyPreviewRef.current = props.applyPreview;
-  const previewPassTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  type IPreviewPassResult = { blurb: string } | { error: IExerciseLiftoEditorSheetLiveError } | undefined;
-  const onPanelPendingChangeRef = useRef(props.onPanelPendingChange);
-  onPanelPendingChangeRef.current = props.onPanelPendingChange;
-  // A failed apply stays pending: the panel still holds text the program does not have, so
-  // Save stops at the banner and closing asks, the same as the main line's failed Save.
-  const previewErrorRef = useRef<{ error: IExerciseLiftoEditorSheetLiveError } | undefined>(undefined);
-  const runPreviewPass = (): IPreviewPassResult => {
-    previewPassTimerRef.current = undefined;
-    previewErrorRef.current = undefined;
-    const panelText = panelTextRef.current;
-    if (panelText == null || applyPreviewRef.current == null) {
-      onPanelPendingChangeRef.current?.(false);
-      return undefined;
-    }
-    const result = applyPreviewRef.current(panelText);
-    if ("error" in result) {
-      previewErrorRef.current = result;
-      onPanelPendingChangeRef.current?.(true);
-      setLiveError(result.error);
-      return result;
-    }
-    onPanelPendingChangeRef.current?.(false);
-    const handle = controller.editorProps.handleRef?.current;
-    if (handle == null) {
-      return result;
-    }
-    const current = handle.getText();
-    let prefix = 0;
-    while (prefix < current.length && prefix < result.blurb.length && current[prefix] === result.blurb[prefix]) {
-      prefix += 1;
-    }
-    let suffix = 0;
-    while (
-      suffix < current.length - prefix &&
-      suffix < result.blurb.length - prefix &&
-      current[current.length - 1 - suffix] === result.blurb[result.blurb.length - 1 - suffix]
-    ) {
-      suffix += 1;
-    }
-    if (prefix + suffix < current.length || prefix + suffix < result.blurb.length) {
-      handle.replaceRange(prefix, current.length - suffix, result.blurb.slice(prefix, result.blurb.length - suffix));
-    }
-    onTextChangeRef.current?.(result.blurb);
-    return result;
-  };
-  // Keypad keys wait on the timer; Save, the panel toggle and the instance chips must not.
-  const flushPreviewPass = (): IPreviewPassResult => {
-    if (previewPassTimerRef.current == null) {
-      return previewErrorRef.current;
-    }
-    clearTimeout(previewPassTimerRef.current);
-    return runPreviewPass();
-  };
+  const flushPreviewPass = (): IExercisePreviewPassApplyResult | undefined => stepPass(ExercisePreviewPass_flush);
   const onPanelTextChange = (text: string, isKeypadActive: boolean): void => {
-    panelTextRef.current = text;
-    if (previewPassTimerRef.current != null) {
-      clearTimeout(previewPassTimerRef.current);
-      previewPassTimerRef.current = undefined;
-    }
-    if (isKeypadActive) {
-      previewPassTimerRef.current = setTimeout(runPreviewPass, KEYPAD_WRITE_DEBOUNCE_MS);
-      onPanelPendingChangeRef.current?.(true);
-    } else {
-      runPreviewPass();
-    }
+    stepPass((state) => ExercisePreviewPass_textChanged(state, text, isKeypadActive));
   };
   const closePanel = (): void => {
-    panelTextRef.current = undefined;
-    previewErrorRef.current = undefined;
-    if (previewPassTimerRef.current != null) {
-      clearTimeout(previewPassTimerRef.current);
-      previewPassTimerRef.current = undefined;
-    }
-    onPanelPendingChangeRef.current?.(false);
+    stepPass(ExercisePreviewPass_close);
     closeKeyboard();
     setPreview(undefined);
   };
   useEffect(() => {
     return () => {
-      if (previewPassTimerRef.current != null) {
-        clearTimeout(previewPassTimerRef.current);
+      if (passTimerRef.current != null) {
+        clearTimeout(passTimerRef.current);
       }
     };
   }, []);
   // Debounced: it evaluates the whole program, too heavy per keystroke.
   const pendingAnalysisKey = analysisKey(liveErrorText, isPreviewing);
   useEffect(() => {
-    if (analyzedRef.current === pendingAnalysisKey) {
+    if (!ExerciseLiftoEditorAnalysis_shouldRun(analysisRef.current, pendingAnalysisKey)) {
       return;
     }
     const timer = setTimeout(() => analyze(liveErrorText, isPreviewing), 300);
@@ -260,11 +251,12 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
       analyze(controller.text, true);
     } else {
       // Closing asks nothing new — the banner already reflects this text.
-      analyzedRef.current = analysisKey(controller.text, false);
+      analysisRef.current = ExerciseLiftoEditorAnalysis_ran(analysisRef.current, analysisKey(controller.text, false));
       flushPreviewPass();
       closePanel();
     }
   };
+  const bannerError = passError ?? analysisError;
   // Faded rather than tinted: both editor background slots are already affordances (gray is
   // the focused level, purple the active token), so a wash here reads as selection.
   //
@@ -310,10 +302,10 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     activeLevel != null && sharedRanges.some((r) => activeLevel.start >= r.start && activeLevel.end <= r.end);
   // Clamp against the current text: between debounce ticks the error range can be stale.
   const errorStyledRanges: ILiftoEditorStyledRange[] = [];
-  if (liveError?.from != null && liveError.to != null && liveError.from < controller.text.length) {
+  if (bannerError?.from != null && bannerError.to != null && bannerError.from < controller.text.length) {
     errorStyledRanges.push({
-      start: liveError.from,
-      end: Math.min(Math.max(liveError.to, liveError.from + 1), controller.text.length),
+      start: bannerError.from,
+      end: Math.min(Math.max(bannerError.to, bannerError.from + 1), controller.text.length),
       backgroundColor: `${Tailwind_semantic().text.error}26`,
     });
   }
@@ -367,29 +359,24 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     requestAnimationFrame(() => railRef.current?.scrollTo({ x: Math.max(0, x - 24), animated: false }));
   };
 
-  // Freeform can rename the exercise into a different one by typing, which is the same
-  // program-level change the pill makes — so Apply is where that gets noticed.
-  // A flushed write lands in the host as state, and the host reads it back through refs and
-  // memos that only update on the next render, so the call that follows waits one tick and
-  // goes through propsRef: the callback captured at this render closes over the old program.
-  const afterFlush = (flushed: IPreviewPassResult, next: () => void): void => {
+  const flushThen = (next: () => void): void => {
+    const flushed = flushPreviewPass();
     if (flushed != null && "error" in flushed) {
       return;
     }
-    if (flushed != null) {
-      setTimeout(next, 0);
-    } else {
-      next();
-    }
+    next();
   };
 
   const save = (): void => {
     const flushed = flushPreviewPass();
-    afterFlush(flushed, () =>
-      propsRef.current.onDone(flushed != null && "blurb" in flushed ? flushed.blurb : controller.text)
-    );
+    if (flushed != null && "error" in flushed) {
+      return;
+    }
+    propsRef.current.onDone(flushed != null ? flushed.blurb : controller.text);
   };
 
+  // Freeform can rename the exercise into a different one by typing, which is the same
+  // program-level change the pill makes, so Apply is where that gets noticed.
   const applyFreeform = async (): Promise<void> => {
     if (props.onBeforeApply != null && !(await props.onBeforeApply(controller.text))) {
       return;
@@ -409,7 +396,10 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     // leaves it closed rather than orphaned.
     const flushed = flushPreviewPass();
     closeKeyboard();
-    afterFlush(flushed, () => propsRef.current.onSelectInstance(instance));
+    if (flushed != null && "error" in flushed) {
+      return;
+    }
+    propsRef.current.onSelectInstance(instance);
   };
 
   // The declaring day is always one of the instances, so the caption's link is the same switch
@@ -515,9 +505,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
             isPreviewing={isPreviewing}
           />
         ) : null}
-        {liveError != null ? (
+        {bannerError != null ? (
           <View className="px-3 py-2 border-b bg-background-lighterror border-border-neutral">
-            <Text className="text-xs font-semibold text-text-error">{liveError.message}</Text>
+            <Text className="text-xs font-semibold text-text-error">{bannerError.message}</Text>
           </View>
         ) : null}
         {!isFreeform && hint != null && !hintDismissed ? (
@@ -598,7 +588,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
                     <Text
                       className="text-xs underline text-center text-text-link"
                       testID="exercise-liftoeditor-shared-toggle"
-                      onPress={() => afterFlush(flushPreviewPass(), () => propsRef.current.onToggleShared?.())}
+                      onPress={() => flushThen(() => propsRef.current.onToggleShared?.())}
                     >
                       {showShared ? "Hide here" : "Show here"}
                     </Text>

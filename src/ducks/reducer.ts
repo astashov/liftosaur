@@ -77,7 +77,7 @@ import { NativeWatchBridge_sendDiscardWorkoutToWatch } from "../utils/nativeWatc
 import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys } from "../models/programRewrite";
 import { History_deleteRecords } from "../models/history";
 import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
@@ -505,7 +505,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
           ? newState.editProgramExerciseStates[oldExerciseStateKey]
           : undefined;
         if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
-          const changedKeys = EditProgramUiHelpers_getChangedKeys(
+          const changedKeys = ProgramRewrite_changedKeys(
             oldPlannerState.current.program.planner!,
             newPlannerState.current.program.planner!,
             newState.storage.settings

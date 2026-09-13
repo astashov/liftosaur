@@ -16,10 +16,8 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { Exercise_get, Exercise_fullName, Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
 import { lb } from "lens-shmens";
-import {
-  EditProgramUiHelpers_duplicateCurrentInstance,
-  EditProgramUiHelpers_getChangedKeys,
-} from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_duplicateCurrentInstance } from "./editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys } from "../../models/programRewrite";
 import { ObjectUtils_clone } from "../../utils/object";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
 
@@ -77,7 +75,7 @@ function onChange(
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
       if (onNewKey) {
-        const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
+        const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
         const newKey = changedKeys[plannerExercise.key];
         if (newKey != null) {
           onNewKey(newKey);

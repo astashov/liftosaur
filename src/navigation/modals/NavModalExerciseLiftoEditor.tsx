@@ -1,6 +1,5 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { StackActions, useNavigation, useRoute } from "@react-navigation/native";
-import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
 import { ILiftoEditorExercisePickerModalData, useModal } from "../ModalStateContext";
 import {
@@ -8,7 +7,6 @@ import {
   Program_evaluate,
   Program_findPlannerExercise,
   Program_getAllProgramExercises,
-  Program_getProgramExercise,
 } from "../../models/program";
 import { ILiftoEditorReuseCandidates, LiftoEditorReuse_candidates } from "../../components/liftoEditorReuse";
 import {
@@ -26,36 +24,38 @@ import {
   IProgramExerciseSwap,
   ProgramExerciseSwap_detect,
   ProgramExerciseSwap_identity,
-  ProgramExerciseSwap_workoutRemap,
+  ProgramExerciseSwap_scope,
   IProgramExerciseSwapScope,
 } from "../../models/programExerciseSwap";
-import {
-  Progress_getCurrentProgress,
-  Progress_lbProgress,
-  Progress_remapProgramExerciseId,
-} from "../../models/progress";
-import { EditProgramUiHelpers_getChangedKeys } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { Progress_getCurrentProgress } from "../../models/progress";
 import {
   ExerciseLiftoEditorDraft_create,
   ExerciseLiftoEditorDraft_fromEditor,
   ExerciseLiftoEditorDraft_isDirty,
   ExerciseLiftoEditorDraft_mountText,
-  ExerciseLiftoEditorDraft_pendingChange,
+  IExerciseLiftoEditorDraft,
 } from "../../models/exerciseLiftoEditorDraft";
 import {
+  ExerciseDraftToProgram_analyze,
+  ExerciseDraftToProgram_apply,
+  ExerciseDraftToProgram_snapshot,
+  ExerciseDraftToProgram_writePreview,
+  IExerciseDraftToProgramOptions,
+} from "../../models/exerciseDraftToProgram";
+import {
+  ExerciseLiftoEditorSave_decide,
+  ExerciseLiftoEditorSave_lenses,
+  ExerciseLiftoEditorSave_withScope,
+} from "../../models/exerciseLiftoEditorSave";
+import {
   IProgramExerciseSharedSection,
-  ProgramExerciseText_apply,
   ProgramExerciseText_blurb,
-  ProgramExerciseText_findDeclaration,
   ProgramExerciseText_sharedSections,
   ProgramExerciseText_split,
 } from "../../models/programExerciseText";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { ProgramExercisePreview_apply, ProgramExercisePreview_materialize } from "../../models/programExercisePreview";
 import { LiftoEditorFocusProvider } from "../../components/liftoEditorFocus";
-import { PlannerProgram_generateFullText } from "../../pages/planner/models/plannerProgram";
-import { IState, updateState } from "../../models/state";
-import { CollectionUtils_setBy } from "../../utils/collection";
+import { updateState } from "../../models/state";
 import { Dialog_alert, Dialog_choice, Dialog_confirm } from "../../utils/dialog";
 import type { IDayData, IPlannerProgram, IProgram } from "../../types";
 import type { IRootStackParamList } from "../types";
@@ -115,7 +115,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // sheet saving it or a sync landing, is seen straight away instead of at the next save.
   //
   // The sheet holds no copy of it because it has nothing to hold: the only pending edit here is
-  // the editor's text, which lives in textDraftRef and is spliced in at save. Re-evaluating is
+  // the editor's text, which lives in editRef and is spliced in at save. Re-evaluating is
   // kept off unrelated re-renders by the memo below, which is what the snapshot this replaced
   // was really for.
   const resolved = params != null ? LiftoEditorSheetProgram_resolve(state, params.programId, isFromWorkout) : undefined;
@@ -149,67 +149,39 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     () => (program != null ? Program_evaluate(program, settings) : undefined),
     [program, settings]
   );
-  const programExercise =
-    evaluatedProgram != null && params != null
-      ? Program_getProgramExercise(params.dayData.day, evaluatedProgram, exerciseKey)
-      : undefined;
-  // One entry per declaration: repeat instances share the declaration's text, so a chip per
-  // repeated week would be several ways to edit the same source line.
-  const instances = useMemo(
+  const editTarget = useMemo(
     () =>
-      evaluatedProgram != null && exerciseKey != null
-        ? Program_getAllProgramExercises(evaluatedProgram).filter((e) => e.key === exerciseKey && !e.isRepeat)
-        : [],
-    [evaluatedProgram, exerciseKey]
+      exerciseKey != null && params != null ? { exerciseKey, day: params.dayData.day, selectedDayData } : undefined,
+    [exerciseKey, params, selectedDayData]
   );
-  // Until an instance chip is pressed, the sheet is on the declaration — which is not
-  // necessarily the day that was tapped, since a repeat instance carries another week's text.
-  const declarationDayData =
-    evaluatedProgram != null && programExercise != null
-      ? ProgramExerciseText_findDeclaration(evaluatedProgram, programExercise).dayData
-      : undefined;
-  const activeDayData = selectedDayData ?? declarationDayData;
-  // No falling back to another declaration when this one can't be found. The body still shows
-  // the text of the instance that was picked, and writing it onto a different declaration of the
-  // same exercise would be a silent edit to a day the user isn't looking at.
-  const currentExercise =
-    activeDayData != null
-      ? instances.find((e) => e.dayData.week === activeDayData.week && e.dayData.dayInWeek === activeDayData.dayInWeek)
-      : undefined;
-  const currentDeclaration =
-    evaluatedProgram != null && currentExercise != null
-      ? ProgramExerciseText_findDeclaration(evaluatedProgram, currentExercise)
-      : undefined;
-  // Parses every sibling declaration of this exercise, so it's kept off re-renders that don't
-  // change which instance is selected.
-  const sharedSections = useMemo(
+  const snapshot = useMemo(
     () =>
-      evaluatedProgram != null && currentDeclaration != null
-        ? ProgramExerciseText_sharedSections(evaluatedProgram, currentDeclaration)
-        : [],
-    [evaluatedProgram, currentDeclaration]
+      program != null && editTarget != null
+        ? ExerciseDraftToProgram_snapshot(program, editTarget, settings)
+        : undefined,
+    [program, editTarget, settings]
   );
-  // The declaration's line plus the `//` descriptions above it, which the evaluator hands to
-  // it — so the sheet edits everything this exercise says, not just its sets and properties.
+  const instances = snapshot?.instances ?? [];
+  const activeDayData = selectedDayData ?? snapshot?.declarationDayData;
+  const currentExercise = snapshot?.currentExercise;
+  const currentDeclaration = snapshot?.declaration;
+  const sharedSections = snapshot?.sharedSections ?? [];
+  const currentBlurbText = snapshot?.blurb ?? "";
   const blurbTextFor = (declaration: IPlannerProgramExercise | undefined): string =>
     program != null && declaration != null ? ProgramExerciseText_blurb(program.planner, declaration) : "";
-  // Memoized because it parses the day: cheap next to the whole-program evaluation this sheet
-  // already runs per keystroke, but it has no business running on unrelated re-renders.
-  const currentBlurbText = useMemo(
-    () =>
-      program != null && currentDeclaration != null
-        ? ProgramExerciseText_blurb(program.planner, currentDeclaration)
-        : "",
-    [program, currentDeclaration]
-  );
 
-  // What the editor holds, against the baselines it opened on. Distinct from the program draft
-  // above: this one is the text of a single declaration and is folded into the program only at
-  // save. In a ref rather than state because it changes on every keystroke and nothing in this
-  // render depends on it.
-  const textDraftRef = useRef(ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections));
+  // A ref written synchronously by every edit, so Save reads what a flushed panel write produced
+  // in the same call, without waiting for the render that carries it into `program`.
+  const editRef = useRef<{ draft: IExerciseLiftoEditorDraft; pendingPlanner: IPlannerProgram | undefined }>({
+    draft: ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections),
+    pendingPlanner: undefined,
+  });
+  const setPending = (planner: IPlannerProgram | undefined): void => {
+    editRef.current.pendingPlanner = planner;
+    setPendingPlanner(planner);
+  };
   const onDraftText = (text: string): void => {
-    textDraftRef.current = ExerciseLiftoEditorDraft_fromEditor(textDraftRef.current, text);
+    editRef.current.draft = ExerciseLiftoEditorDraft_fromEditor(editRef.current.draft, text);
   };
   // Set once a close is approved (or changes are saved), so the beforeRemove guard doesn't
   // re-prompt on the navigation pop that follows.
@@ -222,7 +194,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   const onToggleShared = (): void => {
     const isVisible = !isSharedVisible;
     setIsSharedVisible(isVisible);
-    setBodyText(ExerciseLiftoEditorDraft_mountText(textDraftRef.current, isVisible));
+    setBodyText(ExerciseLiftoEditorDraft_mountText(editRef.current.draft, isVisible));
     setRemountKey((key) => key + 1);
   };
 
@@ -239,7 +211,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     if (isDirty() && !(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
       return;
     }
-    setPendingPlanner(undefined);
+    setPending(undefined);
     const next = instances.find(
       (e) => e.dayData.week === instance.dayData.week && e.dayData.dayInWeek === instance.dayData.dayInWeek
     );
@@ -247,7 +219,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     // left, and the draft's baseline has to be the one it will be compared against.
     const nextShared =
       evaluatedProgram != null && next != null ? ProgramExerciseText_sharedSections(evaluatedProgram, next) : [];
-    textDraftRef.current = ExerciseLiftoEditorDraft_create(blurbTextFor(next), nextShared);
+    editRef.current.draft = ExerciseLiftoEditorDraft_create(blurbTextFor(next), nextShared);
     setBodyText(undefined);
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
@@ -267,7 +239,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
       return;
     }
     needsReprojectRef.current = false;
-    textDraftRef.current = ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections);
+    editRef.current.draft = ExerciseLiftoEditorDraft_create(currentBlurbText, sharedSections);
     setBodyText(undefined);
     setIsSharedVisible(false);
     setRemountKey((key) => key + 1);
@@ -277,7 +249,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // the modal and nothing was folded, so the sheet is still on the key it had.
   const foldedKeyRef = useRef<string | undefined>(undefined);
   const openAcrossProgram = useModal("acrossProgramModal", (planner) => {
-    setPendingPlanner(planner);
+    setPending(planner);
     if (foldedKeyRef.current != null) {
       setExerciseKey(foldedKeyRef.current);
     }
@@ -292,18 +264,23 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     field: ILiftoEditorAcrossField,
     exerciseFullName: string | undefined
   ): Promise<void> => {
-    if (params == null || currentExercise == null || currentDeclaration == null) {
+    if (params == null || snapshot == null) {
       return;
     }
     // A pending rename is folded in along with everything else, and folding it means choosing how
-    // far it reaches. `applyDraft` defaults that to "all" — harmless where its planner is thrown
+    // far it reaches. The fold defaults that to "all" — harmless where its planner is thrown
     // away, but here it is kept, so an unsaved one-day rename would quietly become a program-wide
     // one. Same question the save asks, asked before the fold rather than after it.
-    const swap = detectSwap(textDraftRef.current.localBlurb.trim(), currentDeclaration);
+    const swap = detectSwap(editRef.current.draft.localBlurb.trim(), snapshot.declaration);
     if (swap != null && (await requestSwapScope(swap.isLadder)) == null) {
       return;
     }
-    const folded = applyDraft(textDraftRef.current.localBlurb);
+    const folded = ExerciseDraftToProgram_apply(
+      snapshot,
+      editRef.current.draft,
+      editRef.current.draft.localBlurb,
+      foldOptions()
+    );
     if (folded == null || "error" in folded.applied) {
       Dialog_alert("Fix the error in this exercise first, then you can change it across the program.");
       return;
@@ -314,7 +291,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     const target = Program_findPlannerExercise(
       folded.applied.planner,
       settings,
-      exerciseFullName ?? currentExercise.fullName
+      exerciseFullName ?? snapshot.currentExercise.fullName
     );
     if (target == null) {
       Dialog_alert("Couldn't tell which exercise this is. Fix any errors on this line and try again.");
@@ -388,18 +365,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // Asked when the exercise changes — before the picker, or on Apply — rather than at save,
   // where the user has long moved on. Kept here because the body remounts.
   const swapScopeRef = useRef<IProgramExerciseSwapScope | undefined>(undefined);
-  const requestSwapScope = async (isLadder: boolean): Promise<IProgramExerciseSwapScope | undefined> => {
-    const declarations = Math.max(instances.length, 1);
-    // With a single declaration "this day" and "everywhere" are the same edit, and scoping to
-    // a day would break a declaration that repeats into other weeks. A ladder change always
-    // reaches every instance too — the rungs are the exercise's identity — so asking there
-    // would be asking a question whose answer is then ignored.
-    if (isLadder || declarations < 2) {
-      return "all";
-    }
-    if (swapScopeRef.current != null) {
-      return swapScopeRef.current;
-    }
+  const askSwapScope = async (declarations: number): Promise<IProgramExerciseSwapScope | undefined> => {
     const choice = await Dialog_choice(
       "Change exercise",
       `This exercise is set up separately on ${declarations} days of this program.`,
@@ -410,6 +376,11 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     }
     swapScopeRef.current = choice === 0 ? "one" : "all";
     return swapScopeRef.current;
+  };
+  const requestSwapScope = async (isLadder: boolean): Promise<IProgramExerciseSwapScope | undefined> => {
+    const declarations = Math.max(instances.length, 1);
+    const scope = ProgramExerciseSwap_scope(isLadder, declarations, swapScopeRef.current);
+    return scope === "ask" ? askSwapScope(declarations) : scope;
   };
 
   // The pill knows a swap is coming before the picker opens; freeform only knows once the
@@ -433,289 +404,84 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     return (await requestSwapScope(swap.isLadder)) != null;
   };
 
+  // The label notice comes last so it does not compete with the remap confirmation for the screen.
   const onDone = async (newText: string): Promise<void> => {
     onDraftText(newText);
-    if (params == null || !isDirty()) {
+    if (params == null) {
       onClose();
       return;
     }
-    // Guarded here rather than trusted from the render above: the program can be deleted, or
-    // removed by a sync, between the sheet opening and Save, and writing this copy back would
-    // recreate it. Checked before the exercise so a deleted program says so, rather than
-    // reporting the exercise inside it as having moved.
-    if (program == null) {
-      Dialog_alert("Couldn't find this program anymore, so the changes weren't saved.");
-      onClose();
-      return;
-    }
-    // The declaration this sheet is on is no longer in the program — renamed, swapped or deleted
-    // from somewhere else while the sheet was open. The sheet stays up rather than closing: there
-    // is unsaved text on screen, and dismissing it is the one outcome that loses it for good.
-    if (currentExercise == null) {
-      Dialog_alert(
-        "This exercise was changed somewhere else while you were editing it, so your changes weren't saved. Copy anything you want to keep, then close and reopen it."
-      );
-      return;
-    }
-    // Re-evaluated rather than reusing the render's memo: `currentExercise` may name a day the
-    // program no longer has, and the save has to answer against what it is about to write.
-    const saveEvaluatedProgram = Program_evaluate(program, settings);
-    const saveExercise = Program_getProgramExercise(currentExercise.dayData.day, saveEvaluatedProgram, exerciseKey);
-    const declaration =
-      saveExercise != null ? ProgramExerciseText_findDeclaration(saveEvaluatedProgram, saveExercise) : undefined;
-    if (declaration == null) {
-      Dialog_alert("Couldn't find this exercise in the program anymore, so the changes weren't saved.");
-      onClose();
-      return;
-    }
-    // Shared sections are re-resolved against this evaluation too — a stacked sheet may have
-    // moved which day declares one, and writing to the owner this sheet opened on would miss it.
-    const freshShared = ProgramExerciseText_sharedSections(saveEvaluatedProgram, declaration);
-    const pending = ExerciseLiftoEditorDraft_pendingChange(textDraftRef.current, freshShared);
-    const localBlurb = pending.localBlurb.trim();
-    if (localBlurb === "") {
-      Dialog_alert("The exercise text is empty. Delete the exercise from the program screen instead.");
-      return;
-    }
-    const swap = detectSwap(localBlurb, declaration);
-    // Reachable when the name was changed on a surface with no Apply step (the web body), or
-    // when the sheet was opened again on a text that already carries the change.
-    const scope = swap != null ? await requestSwapScope(swap.isLadder) : "all";
-    if (scope == null) {
-      return;
-    }
-    const applied = ProgramExerciseText_apply(
-      program.planner,
-      declaration,
-      localBlurb,
-      pending.sharedEdits,
-      swap,
-      scope,
-      settings
-    );
-    if ("error" in applied) {
-      Dialog_alert(applied.error.message);
-      return;
-    }
-    const updatedProgram = { ...program, planner: applied.planner };
-    const newKey =
-      swap != null
-        ? EditProgramUiHelpers_getChangedKeys(program.planner, applied.planner, settings)[declaration.key]
+    // From the edit ref, not the render's memo: a panel write flushed by this same Save is in the
+    // ref already and reaches `program` only on the next render.
+    const liveProgram =
+      resolved?.planner != null
+        ? { ...resolved, planner: editRef.current.pendingPlanner ?? resolved.planner }
         : undefined;
-    const updatedExercises =
-      swap != null && newKey != null ? Program_getAllProgramExercises(Program_evaluate(updatedProgram, settings)) : [];
-    const hasEditorDraft = state.editProgramStates[updatedProgram.id] != null;
-    if (!isFromWorkout && hasEditorDraft) {
-      // From the program editor the edit stays a draft — the editor's own Save commits
-      // it to storage, same as the full edit-exercise screen.
-      updateState(
-        dispatch,
-        [lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)],
-        "Update program from edit exercise"
-      );
-    } else {
-      const lensUpdates = [
-        lb<IState>()
-          .p("storage")
-          .p("programs")
-          .recordModify((programs) => CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram)),
-      ];
-      // Mirror into an open program editor so it doesn't overwrite this edit on its own save.
-      if (hasEditorDraft) {
-        lensUpdates.push(
-          lb<IState>().p("editProgramStates").p(updatedProgram.id).p("current").p("program").record(updatedProgram)
-        );
+    let decision = ExerciseLiftoEditorSave_decide({
+      program: liveProgram,
+      target: editTarget,
+      draft: editRef.current.draft,
+      hasPendingPlanner: editRef.current.pendingPlanner != null,
+      isFromWorkout,
+      hasEditorDraft: liveProgram != null && state.editProgramStates[liveProgram.id] != null,
+      progress: Progress_getCurrentProgress(state),
+      cachedScope: swapScopeRef.current,
+      settings,
+      detectSwap,
+    });
+    if (decision.kind === "askScope") {
+      const scope = await askSwapScope(decision.declarations);
+      if (scope == null) {
+        return;
       }
-      const remap = ProgramExerciseSwap_workoutRemap(
-        Progress_getCurrentProgress(state),
-        updatedProgram.id,
-        Program_getAllProgramExercises(saveEvaluatedProgram),
-        updatedExercises,
-        declaration.key,
-        newKey
-      );
-      if (remap != null) {
-        // Logged sets are the user's own data, so converting them is theirs to decide.
-        const shouldRemap =
-          !remap.needsConfirmation ||
-          (await Dialog_confirm(
-            `You've already logged sets for ${declaration.name} in this workout. Switch them to ${
-              swap?.newFullName ?? "the new exercise"
-            } too?`
-          ));
-        if (shouldRemap) {
-          lensUpdates.push(
-            Progress_lbProgress(0).recordModify((p) => Progress_remapProgramExerciseId(p, remap.oldKey, remap.newKey))
-          );
-        }
-      }
-      updateState(dispatch, lensUpdates, "Save program changes");
+      decision = ExerciseLiftoEditorSave_withScope(decision.prepared, scope);
     }
-    // Last, so it doesn't compete with the swap confirmation for the screen: a de-conflicting
-    // label appearing out of nowhere is otherwise unexplainable.
-    if (swap != null && newKey != null && newKey !== swap.newKey) {
-      const label = updatedExercises.find((e) => e.key === newKey)?.label;
-      if (label != null) {
-        Dialog_alert(
-          `This program already has a ${swap.newFullName} somewhere else, so this one is labelled "${label}" to keep the two apart.`
-        );
+    if (decision.kind === "close") {
+      onClose();
+      return;
+    }
+    if (decision.kind === "alert") {
+      Dialog_alert(decision.message);
+      if (decision.closes) {
+        onClose();
       }
+      return;
+    }
+    const plan = decision.plan;
+    const remapAccepted =
+      plan.remap != null && (!plan.remap.needsConfirmation || (await Dialog_confirm(plan.remap.question)));
+    updateState(dispatch, ExerciseLiftoEditorSave_lenses(plan, remapAccepted), plan.description);
+    if (plan.labelNotice != null) {
+      Dialog_alert(plan.labelNotice);
     }
     onClose();
   };
 
-  // Splices the editor's text into the program and evaluates. Both the planner and the
-  // declaration it targets come from the same `program`, so the splice can't miss the way it did
-  // when a declaration resolved on open was looked up in a planner re-read from state.
-  //
-  // The banner and the resolved preview are both questions about the program the save would
-  // write, so neither builds its own version of it.
-  const applyDraft = (
-    newText: string
-  ):
-    | {
-        program: IProgram & { planner: IPlannerProgram };
-        swap: IProgramExerciseSwap | undefined;
-        applied: ReturnType<typeof ProgramExerciseText_apply>;
-      }
-    | undefined => {
-    const trimmed = newText.trim();
-    if (program == null || currentDeclaration == null || trimmed === "") {
-      return undefined;
-    }
-    // Through the same call the save uses, on a draft folded up to the live text: a shared
-    // property edited and then hidden is still going to be written, so validation has to see it
-    // even though it is no longer in the text on screen.
-    const pending = ExerciseLiftoEditorDraft_pendingChange(
-      ExerciseLiftoEditorDraft_fromEditor(textDraftRef.current, trimmed),
-      sharedSections
-    );
-    const localBlurb = pending.localBlurb.trim();
-    if (localBlurb === "") {
-      return undefined;
-    }
-    // Applied the same way it will be saved, including the swap — otherwise a changed
-    // exercise name reports every `...reuse` aimed at the old one as broken, which the save
-    // then goes on to rewrite.
-    const swap = detectSwap(localBlurb, currentDeclaration);
-    return {
-      program,
-      swap,
-      applied: ProgramExerciseText_apply(
-        program.planner,
-        currentDeclaration,
-        localBlurb,
-        pending.sharedEdits,
-        swap,
-        swapScopeRef.current ?? "all",
-        settings
-      ),
-    };
-  };
+  const foldOptions = (): IExerciseDraftToProgramOptions => ({
+    swapScope: swapScopeRef.current ?? "all",
+    detectSwap,
+  });
 
-  const tappedWeekDayDataFor = (declaration: IPlannerProgramExercise): Required<IDayData> =>
-    selectedDayData == null && programExercise?.isRepeat && declaration.repeating.includes(programExercise.dayData.week)
-      ? programExercise.dayData
-      : declaration.dayData;
-
-  // The splice uses the trimmed text while the editor shows the untrimmed draft.
-  const rebaseError = (
-    error: IExerciseLiftoEditorSheetLiveError,
-    newText: string
-  ): IExerciseLiftoEditorSheetLiveError => {
-    if (error.from == null || error.to == null) {
-      return error;
-    }
-    const leading = newText.length - newText.trimStart().length;
-    return { ...error, from: error.from + leading, to: error.to + leading };
-  };
-
-  // Everything a body asks about the draft, from one splice: the banner's error, and — when the
-  // resolved panel is open — what the line actually fills in to, the reuse target's sets and the
-  // progression declared three weeks away that the reader would otherwise have to combine by hand.
-  const analyzeText = (newText: string, options: { withPreview: boolean }): IExerciseLiftoEditorSheetAnalysis => {
-    const result = applyDraft(newText);
-    if (result == null || currentDeclaration == null) {
-      return { preview: options.withPreview ? { error: "There's nothing to resolve here yet." } : undefined };
-    }
-    const applied = result.applied;
-    if ("error" in applied) {
-      return {
-        // notFound means the sheet lost track of the exercise, not that the user typed something
-        // wrong — the banner stays quiet and the save re-resolves from scratch.
-        error: applied.notFound ? undefined : rebaseError(applied.error, newText),
-        preview: options.withPreview ? { error: applied.error.message } : undefined,
-      };
-    }
-    if (!options.withPreview) {
-      return {};
-    }
-    // A swap rewrites the exercise's key, so the preview has to look for what the exercise
-    // became — same lookup the save does before it remaps logged sets.
-    const newKey =
-      result.swap != null
-        ? EditProgramUiHelpers_getChangedKeys(result.program.planner, applied.planner, settings)[currentDeclaration.key]
-        : undefined;
-    const text = ProgramExercisePreview_materialize(
-      result.program,
-      applied.planner,
-      tappedWeekDayDataFor(currentDeclaration),
-      newKey ?? currentDeclaration.key,
-      settings
-    );
-    return { preview: text != null ? { text } : { error: "Couldn't resolve this exercise." } };
-  };
+  const analyzeText = (newText: string, options: { withPreview: boolean }): IExerciseLiftoEditorSheetAnalysis =>
+    ExerciseDraftToProgram_analyze(snapshot, editRef.current.draft, newText, foldOptions(), options.withPreview);
 
   const applyPreview = (panelText: string): { blurb: string } | { error: IExerciseLiftoEditorSheetLiveError } => {
-    const folded = applyDraft(textDraftRef.current.localBlurb);
-    if (folded == null || currentDeclaration == null) {
+    if (snapshot == null) {
       return { error: { message: "There's nothing to write here yet." } };
     }
-    if ("error" in folded.applied) {
-      return { error: folded.applied.error };
-    }
-    // A rename folded into the line moved the key; the panel carries the new one.
-    const key =
-      folded.swap != null
-        ? (EditProgramUiHelpers_getChangedKeys(folded.program.planner, folded.applied.planner, settings)[
-            currentDeclaration.key
-          ] ?? currentDeclaration.key)
-        : currentDeclaration.key;
-    const result = ProgramExercisePreview_apply(
-      folded.applied.planner,
-      { key, dayData: currentDeclaration.dayData, tappedDayData: tappedWeekDayDataFor(currentDeclaration) },
-      panelText,
-      settings
-    );
-    if ("error" in result) {
-      return result;
+    const written = ExerciseDraftToProgram_writePreview(snapshot, editRef.current.draft, panelText, foldOptions());
+    if ("error" in written) {
+      return written;
     }
     // Removing an inherited value writes a program equal to the current one, and that is not
     // unsaved work.
-    if (
-      PlannerProgram_generateFullText(result.planner.weeks) ===
-      PlannerProgram_generateFullText(folded.program.planner.weeks)
-    ) {
-      return { blurb: result.blurb };
+    if (!written.unchanged) {
+      editRef.current.draft = written.draft;
+      setPending(written.planner);
+      setIsSharedVisible(false);
+      setBodyText(written.blurb);
     }
-    const writtenProgram = Program_evaluate({ ...folded.program, planner: result.planner }, settings);
-    const writtenDeclaration = Program_getAllProgramExercises(writtenProgram).find(
-      (e) =>
-        e.key === key &&
-        !e.isRepeat &&
-        e.dayData.week === result.declarationDayData.week &&
-        e.dayData.dayInWeek === result.declarationDayData.dayInWeek
-    );
-    setPendingPlanner(result.planner);
-    textDraftRef.current = ExerciseLiftoEditorDraft_create(
-      result.blurb,
-      writtenDeclaration != null
-        ? ProgramExerciseText_sharedSections(writtenProgram, writtenDeclaration)
-        : sharedSections
-    );
-    setIsSharedVisible(false);
-    setBodyText(result.blurb);
-    return { blurb: result.blurb };
+    return { blurb: written.blurb };
   };
 
   // The local line only: shared sections are noise most of the time, so the body splices them
@@ -731,11 +497,9 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // Done would take the "nothing changed" exit and drop the rewrite on the floor.
   const panelPendingRef = useRef(false);
   const isDirty = (): boolean =>
-    ExerciseLiftoEditorDraft_isDirty(textDraftRef.current) ||
-    pendingPlannerRef.current != null ||
+    ExerciseLiftoEditorDraft_isDirty(editRef.current.draft) ||
+    editRef.current.pendingPlanner != null ||
     panelPendingRef.current;
-  const pendingPlannerRef = useRef(pendingPlanner);
-  pendingPlannerRef.current = pendingPlanner;
   const isDirtyRef = useRef(isDirty);
   isDirtyRef.current = isDirty;
 

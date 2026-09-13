@@ -81,11 +81,8 @@ export class LiftoEditorParseCache {
   }
 }
 
-export interface ITextEdit {
-  start: number;
-  end: number;
-  text: string;
-}
+import type { ITextEdit } from "../../utils/textDiff";
+export type { ITextEdit };
 
 export interface ILiftoEditorStyledRange {
   start: number;

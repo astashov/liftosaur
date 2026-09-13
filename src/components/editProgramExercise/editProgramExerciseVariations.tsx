@@ -13,10 +13,8 @@ import { MenuItem } from "../menuItem";
 import { DraggableList2 } from "../draggableList2";
 import { CollectionUtils_removeAt } from "../../utils/collection";
 import { PlannerProgramExercise_currentExerciseVariationIndex } from "../../pages/planner/models/plannerProgramExercise";
-import {
-  EditProgramUiHelpers_changeAllInstances,
-  EditProgramUiHelpers_getChangedKeys,
-} from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeAllInstances } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys } from "../../models/programRewrite";
 import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import { LinkButton } from "../linkButton";
 
@@ -64,7 +62,7 @@ export function EditProgramExerciseVariations(props: IEditProgramExerciseVariati
     }
     const newPlanner = EditProgramUiHelpers_changeAllInstances(planner, plannerExercise.key, settings, true, cb);
     plannerDispatch(lbProgram.record(newPlanner), desc);
-    const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
+    const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
     const newKey = changedKeys[plannerExercise.key];
     if (newKey != null) {
       EditProgram_migrateExerciseStateKey(props.dispatch, props.programId, props.exerciseStateKey, newKey);
