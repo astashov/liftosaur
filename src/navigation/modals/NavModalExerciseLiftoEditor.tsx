@@ -51,7 +51,9 @@ import {
   ProgramExerciseText_split,
 } from "../../models/programExerciseText";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { ProgramExercisePreview_materialize } from "../../models/programExercisePreview";
+import { ProgramExercisePreview_apply, ProgramExercisePreview_materialize } from "../../models/programExercisePreview";
+import { LiftoEditorFocusProvider } from "../../components/liftoEditorFocus";
+import { PlannerProgram_generateFullText } from "../../pages/planner/models/plannerProgram";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { Dialog_alert, Dialog_choice, Dialog_confirm } from "../../utils/dialog";
@@ -237,6 +239,7 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     if (isDirty() && !(await Dialog_confirm("Discard unsaved changes to this exercise?"))) {
       return;
     }
+    setPendingPlanner(undefined);
     const next = instances.find(
       (e) => e.dayData.week === instance.dayData.week && e.dayData.dayInWeek === instance.dayData.dayInWeek
     );
@@ -610,6 +613,11 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     };
   };
 
+  const tappedWeekDayDataFor = (declaration: IPlannerProgramExercise): Required<IDayData> =>
+    selectedDayData == null && programExercise?.isRepeat && declaration.repeating.includes(programExercise.dayData.week)
+      ? programExercise.dayData
+      : declaration.dayData;
+
   // The splice uses the trimmed text while the editor shows the untrimmed draft.
   const rebaseError = (
     error: IExerciseLiftoEditorSheetLiveError,
@@ -651,11 +659,63 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
     const text = ProgramExercisePreview_materialize(
       result.program,
       applied.planner,
-      currentDeclaration.dayData,
+      tappedWeekDayDataFor(currentDeclaration),
       newKey ?? currentDeclaration.key,
       settings
     );
     return { preview: text != null ? { text } : { error: "Couldn't resolve this exercise." } };
+  };
+
+  const applyPreview = (panelText: string): { blurb: string } | { error: IExerciseLiftoEditorSheetLiveError } => {
+    const folded = applyDraft(textDraftRef.current.localBlurb);
+    if (folded == null || currentDeclaration == null) {
+      return { error: { message: "There's nothing to write here yet." } };
+    }
+    if ("error" in folded.applied) {
+      return { error: folded.applied.error };
+    }
+    // A rename folded into the line moved the key; the panel carries the new one.
+    const key =
+      folded.swap != null
+        ? (EditProgramUiHelpers_getChangedKeys(folded.program.planner, folded.applied.planner, settings)[
+            currentDeclaration.key
+          ] ?? currentDeclaration.key)
+        : currentDeclaration.key;
+    const result = ProgramExercisePreview_apply(
+      folded.applied.planner,
+      { key, dayData: currentDeclaration.dayData, tappedDayData: tappedWeekDayDataFor(currentDeclaration) },
+      panelText,
+      settings
+    );
+    if ("error" in result) {
+      return result;
+    }
+    // Removing an inherited value writes a program equal to the current one, and that is not
+    // unsaved work.
+    if (
+      PlannerProgram_generateFullText(result.planner.weeks) ===
+      PlannerProgram_generateFullText(folded.program.planner.weeks)
+    ) {
+      return { blurb: result.blurb };
+    }
+    const writtenProgram = Program_evaluate({ ...folded.program, planner: result.planner }, settings);
+    const writtenDeclaration = Program_getAllProgramExercises(writtenProgram).find(
+      (e) =>
+        e.key === key &&
+        !e.isRepeat &&
+        e.dayData.week === result.declarationDayData.week &&
+        e.dayData.dayInWeek === result.declarationDayData.dayInWeek
+    );
+    setPendingPlanner(result.planner);
+    textDraftRef.current = ExerciseLiftoEditorDraft_create(
+      result.blurb,
+      writtenDeclaration != null
+        ? ProgramExerciseText_sharedSections(writtenProgram, writtenDeclaration)
+        : sharedSections
+    );
+    setIsSharedVisible(false);
+    setBodyText(result.blurb);
+    return { blurb: result.blurb };
   };
 
   // The local line only: shared sections are noise most of the time, so the body splices them
@@ -669,8 +729,11 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
   // A pending whole-program rewrite counts: it is unsaved work even when the line on screen is
   // back to matching the program, which is exactly what re-projecting leaves behind. Without it
   // Done would take the "nothing changed" exit and drop the rewrite on the floor.
+  const panelPendingRef = useRef(false);
   const isDirty = (): boolean =>
-    ExerciseLiftoEditorDraft_isDirty(textDraftRef.current) || pendingPlannerRef.current != null;
+    ExerciseLiftoEditorDraft_isDirty(textDraftRef.current) ||
+    pendingPlannerRef.current != null ||
+    panelPendingRef.current;
   const pendingPlannerRef = useRef(pendingPlanner);
   pendingPlannerRef.current = pendingPlanner;
   const isDirtyRef = useRef(isDirty);
@@ -781,37 +844,43 @@ export function NavModalExerciseLiftoEditor(): JSX.Element {
         }
       >
         <CustomKeyboardProvider applySafeAreaBottom={false} fitContent={true} noShadow={true}>
-          <ExerciseLiftoEditorSheet
-            // The controller reads initialText only once, so switching instance or revealing the
-            // shared sections has to remount it. Keyed on nothing but the counter those two bump:
-            // the day is derived from the program now, and a program rebased underneath must
-            // never be able to remount the editor out from under what the user has typed.
-            key={remountKey}
-            initialText={initialText}
-            headerLabel={headerLabel}
-            instances={instanceOptions}
-            sharedProperties={sharedProperties(sharedSections)}
-            isSharedVisible={isSharedVisible}
-            onToggleShared={onToggleShared}
-            onSharedHidden={onSharedHidden}
-            onSelectInstance={onSelectInstance}
-            onTextChange={(text) => {
-              onDraftText(text);
-            }}
-            onModeChange={setEditorMode}
-            exerciseFullNames={exerciseFullNames}
-            pickerData={pickerData}
-            exerciseFor={exerciseFor}
-            onEditReuse={onEditReuse}
-            onEditAcrossProgram={onEditAcrossProgram}
-            reuseCandidates={reuseCandidates}
-            stateVarsFor={stateVarsFor}
-            analyzeText={analyzeText}
-            analysisRevision={analysisRevision}
-            onBeforeChangeExercise={onBeforeChangeExercise}
-            onBeforeApply={onBeforeApply}
-            onDone={onDone}
-          />
+          <LiftoEditorFocusProvider>
+            <ExerciseLiftoEditorSheet
+              // The controller reads initialText only once, so switching instance or revealing the
+              // shared sections has to remount it. Keyed on nothing but the counter those two bump:
+              // the day is derived from the program now, and a program rebased underneath must
+              // never be able to remount the editor out from under what the user has typed.
+              key={remountKey}
+              initialText={initialText}
+              headerLabel={headerLabel}
+              instances={instanceOptions}
+              sharedProperties={sharedProperties(sharedSections)}
+              isSharedVisible={isSharedVisible}
+              onToggleShared={onToggleShared}
+              onSharedHidden={onSharedHidden}
+              onSelectInstance={onSelectInstance}
+              onTextChange={(text) => {
+                onDraftText(text);
+              }}
+              onModeChange={setEditorMode}
+              exerciseFullNames={exerciseFullNames}
+              pickerData={pickerData}
+              exerciseFor={exerciseFor}
+              onEditReuse={onEditReuse}
+              onEditAcrossProgram={onEditAcrossProgram}
+              reuseCandidates={reuseCandidates}
+              stateVarsFor={stateVarsFor}
+              analyzeText={analyzeText}
+              analysisRevision={analysisRevision}
+              applyPreview={applyPreview}
+              onPanelPendingChange={(isPending) => {
+                panelPendingRef.current = isPending;
+              }}
+              onBeforeChangeExercise={onBeforeChangeExercise}
+              onBeforeApply={onBeforeApply}
+              onDone={onDone}
+            />
+          </LiftoEditorFocusProvider>
         </CustomKeyboardProvider>
       </TransparentModal>
     </SheetScreenContainer>

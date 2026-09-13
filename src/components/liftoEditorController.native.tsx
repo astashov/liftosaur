@@ -18,6 +18,7 @@ import {
   LiftoEditorSession_activeLevelIndex,
   LiftoEditorSession_applyPill,
   LiftoEditorSession_blur,
+  LiftoEditorSession_canRemove,
   LiftoEditorSession_completions,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
@@ -54,6 +55,8 @@ export interface ILiftoEditorController {
   text: string;
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
+  canRemove: boolean;
+  isKeypadActive: boolean;
   // Add-actions for the active breadcrumb level; selecting a level swaps the rail.
   pills: ILiftoEditorPill[];
   // What the freeform suggestion strip offers at the caret; undefined outside freeform.
@@ -358,6 +361,8 @@ export function useLiftoEditorController(
     text: session.text,
     context: session.context,
     activeLevelIndex: LiftoEditorSession_activeLevelIndex(session),
+    canRemove: LiftoEditorSession_canRemove(session),
+    isKeypadActive: session.active != null,
     pills: options?.mapPills?.(LiftoEditorSession_pills(session)) ?? LiftoEditorSession_pills(session),
     completions: LiftoEditorSession_completions(session, freeformCaret, {
       customExercises: settings.exercises,

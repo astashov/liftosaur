@@ -23,6 +23,7 @@ export interface ILiftoEditorBaseProps {
 
 export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   style?: StyleProp<ViewStyle>;
+  initialContentHeight?: number;
   // Defaults to the rem, which is what makes the editor follow the Appearance size slider;
   // pass a value only to hold a different ratio to it (see liftoEditorMetrics).
   fontSize?: number;

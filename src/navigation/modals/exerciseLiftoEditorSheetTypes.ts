@@ -112,6 +112,10 @@ export interface IExerciseLiftoEditorSheetProps {
   // saving this exercise's reuse target — so a body knows its last answers are stale even though
   // the text it holds hasn't changed.
   analysisRevision?: number;
+  applyPreview?: (panelText: string) => { blurb: string } | { error: IExerciseLiftoEditorSheetLiveError };
+  // A keypad edit in the panel waits on a timer before it is written; while it waits, the host's
+  // close guard has nothing else to see it by.
+  onPanelPendingChange?: (isPending: boolean) => void;
   // Changing which exercise this is affects the program beyond this blurb, so the host gets
   // to ask how far it should reach before the change is made. Both resolve to false when the
   // user backs out, which cancels the change. The host asks again at save if neither ran.

@@ -15,14 +15,15 @@ import {
   LiftoEditorBrain_hasReuse,
 } from "../../components/primitives/liftoEditorBrain";
 import { useLiftoEditorController } from "../../components/liftoEditorController";
+import { useLiftoEditorFocusClaim, useLiftoEditorFocusedControllerGetter } from "../../components/liftoEditorFocus";
 import { LiftoEditorHints_forContext } from "../../components/primitives/liftoEditorHints";
 import {
-  LiftoEditorCrumbs,
   LiftoEditorHintBar,
-  LiftoEditorPillRail,
   LiftoEditorSuggestBar,
   useLiftoEditorHintDismissed,
 } from "../../components/liftoEditorChrome";
+import { ExerciseLiftoEditorSheetCrumbs, ExerciseLiftoEditorSheetRail } from "./ExerciseLiftoEditorSheetChrome";
+import { ExerciseLiftoEditorPreview } from "./ExerciseLiftoEditorPreview";
 import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { FadeScrollView } from "../../components/fadeScrollView";
@@ -31,7 +32,6 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { ProgramExerciseText_sharedRanges } from "../../models/programExerciseText";
-import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import {
   ExerciseLiftoEditorSheetTypes_sharedLabels,
   IExerciseLiftoEditorSheetProps,
@@ -42,6 +42,7 @@ import {
 
 // Legible as a secondary layer without dropping out of the line.
 const SHARED_SECTION_ALPHA = "73";
+const KEYPAD_WRITE_DEBOUNCE_MS = 300;
 
 export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps): JSX.Element {
   const propsRef = useRef(props);
@@ -115,6 +116,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     exerciseFullNames: reuseFullNames,
     actions,
   });
+  useLiftoEditorFocusClaim("line", controller);
+  const getFocusedController = useLiftoEditorFocusedControllerGetter();
+  const closeKeyboard = useCloseCustomKeyboard();
   const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
   const [liveError, setLiveError] = useState<IExerciseLiftoEditorSheetLiveError | undefined>(undefined);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -139,14 +143,107 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   const analysisKey = (text: string, withPreview: boolean): string =>
     `${props.analysisRevision ?? 0}:${withPreview}:${text}`;
   const analyzedRef = useRef<string | undefined>(undefined);
+  const panelTextRef = useRef<string | undefined>(undefined);
+  const panelHeightRef = useRef<number | undefined>(undefined);
   const analyze = (text: string, withPreview: boolean): void => {
     analyzedRef.current = analysisKey(text, withPreview);
     const analysis = analyzeTextRef.current?.(text, { withPreview }) ?? {};
     setLiveError(analysis.error);
     if (withPreview) {
-      setPreview(analysis.preview);
+      const resolved = analysis.preview;
+      if (resolved == null || !("text" in resolved) || resolved.text !== panelTextRef.current) {
+        panelTextRef.current = resolved != null && "text" in resolved ? resolved.text : undefined;
+        setPreview(resolved);
+      }
     }
   };
+  const applyPreviewRef = useRef(props.applyPreview);
+  applyPreviewRef.current = props.applyPreview;
+  const previewPassTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  type IPreviewPassResult = { blurb: string } | { error: IExerciseLiftoEditorSheetLiveError } | undefined;
+  const onPanelPendingChangeRef = useRef(props.onPanelPendingChange);
+  onPanelPendingChangeRef.current = props.onPanelPendingChange;
+  // A failed apply stays pending: the panel still holds text the program does not have, so
+  // Save stops at the banner and closing asks, the same as the main line's failed Save.
+  const previewErrorRef = useRef<{ error: IExerciseLiftoEditorSheetLiveError } | undefined>(undefined);
+  const runPreviewPass = (): IPreviewPassResult => {
+    previewPassTimerRef.current = undefined;
+    previewErrorRef.current = undefined;
+    const panelText = panelTextRef.current;
+    if (panelText == null || applyPreviewRef.current == null) {
+      onPanelPendingChangeRef.current?.(false);
+      return undefined;
+    }
+    const result = applyPreviewRef.current(panelText);
+    if ("error" in result) {
+      previewErrorRef.current = result;
+      onPanelPendingChangeRef.current?.(true);
+      setLiveError(result.error);
+      return result;
+    }
+    onPanelPendingChangeRef.current?.(false);
+    const handle = controller.editorProps.handleRef?.current;
+    if (handle == null) {
+      return result;
+    }
+    const current = handle.getText();
+    let prefix = 0;
+    while (prefix < current.length && prefix < result.blurb.length && current[prefix] === result.blurb[prefix]) {
+      prefix += 1;
+    }
+    let suffix = 0;
+    while (
+      suffix < current.length - prefix &&
+      suffix < result.blurb.length - prefix &&
+      current[current.length - 1 - suffix] === result.blurb[result.blurb.length - 1 - suffix]
+    ) {
+      suffix += 1;
+    }
+    if (prefix + suffix < current.length || prefix + suffix < result.blurb.length) {
+      handle.replaceRange(prefix, current.length - suffix, result.blurb.slice(prefix, result.blurb.length - suffix));
+    }
+    onTextChangeRef.current?.(result.blurb);
+    return result;
+  };
+  // Keypad keys wait on the timer; Save, the panel toggle and the instance chips must not.
+  const flushPreviewPass = (): IPreviewPassResult => {
+    if (previewPassTimerRef.current == null) {
+      return previewErrorRef.current;
+    }
+    clearTimeout(previewPassTimerRef.current);
+    return runPreviewPass();
+  };
+  const onPanelTextChange = (text: string, isKeypadActive: boolean): void => {
+    panelTextRef.current = text;
+    if (previewPassTimerRef.current != null) {
+      clearTimeout(previewPassTimerRef.current);
+      previewPassTimerRef.current = undefined;
+    }
+    if (isKeypadActive) {
+      previewPassTimerRef.current = setTimeout(runPreviewPass, KEYPAD_WRITE_DEBOUNCE_MS);
+      onPanelPendingChangeRef.current?.(true);
+    } else {
+      runPreviewPass();
+    }
+  };
+  const closePanel = (): void => {
+    panelTextRef.current = undefined;
+    previewErrorRef.current = undefined;
+    if (previewPassTimerRef.current != null) {
+      clearTimeout(previewPassTimerRef.current);
+      previewPassTimerRef.current = undefined;
+    }
+    onPanelPendingChangeRef.current?.(false);
+    closeKeyboard();
+    setPreview(undefined);
+  };
+  useEffect(() => {
+    return () => {
+      if (previewPassTimerRef.current != null) {
+        clearTimeout(previewPassTimerRef.current);
+      }
+    };
+  }, []);
   // Debounced: it evaluates the whole program, too heavy per keystroke.
   const pendingAnalysisKey = analysisKey(liveErrorText, isPreviewing);
   useEffect(() => {
@@ -164,7 +261,8 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     } else {
       // Closing asks nothing new — the banner already reflects this text.
       analyzedRef.current = analysisKey(controller.text, false);
-      setPreview(undefined);
+      flushPreviewPass();
+      closePanel();
     }
   };
   // Faded rather than tinted: both editor background slots are already affordances (gray is
@@ -204,7 +302,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   useEffect(() => {
     if (!hasReuse) {
       setIsPreviewing(false);
-      setPreview(undefined);
+      closePanel();
     }
   }, [hasReuse]);
   const activeLevel = controller.context?.levels[controller.activeLevelIndex];
@@ -225,7 +323,6 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();
   const layout = useLiftoEditorSheetLayout();
-  const closeKeyboard = useCloseCustomKeyboard();
   const isFreeform = controller.mode === "freeform";
   const onModeChangeRef = useRef(props.onModeChange);
   onModeChangeRef.current = props.onModeChange;
@@ -272,6 +369,27 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
 
   // Freeform can rename the exercise into a different one by typing, which is the same
   // program-level change the pill makes — so Apply is where that gets noticed.
+  // A flushed write lands in the host as state, and the host reads it back through refs and
+  // memos that only update on the next render, so the call that follows waits one tick and
+  // goes through propsRef: the callback captured at this render closes over the old program.
+  const afterFlush = (flushed: IPreviewPassResult, next: () => void): void => {
+    if (flushed != null && "error" in flushed) {
+      return;
+    }
+    if (flushed != null) {
+      setTimeout(next, 0);
+    } else {
+      next();
+    }
+  };
+
+  const save = (): void => {
+    const flushed = flushPreviewPass();
+    afterFlush(flushed, () =>
+      propsRef.current.onDone(flushed != null && "blurb" in flushed ? flushed.blurb : controller.text)
+    );
+  };
+
   const applyFreeform = async (): Promise<void> => {
     if (props.onBeforeApply != null && !(await props.onBeforeApply(controller.text))) {
       return;
@@ -289,8 +407,9 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
     // The keypad host lives outside this component; switching remounts the body and would
     // otherwise leave an orphaned keypad open. Closed before asking, so a declined switch
     // leaves it closed rather than orphaned.
+    const flushed = flushPreviewPass();
     closeKeyboard();
-    props.onSelectInstance(instance);
+    afterFlush(flushed, () => propsRef.current.onSelectInstance(instance));
   };
 
   // The declaring day is always one of the instances, so the caption's link is the same switch
@@ -317,12 +436,12 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
       .direction(Directions.RIGHT)
       .enabled(!isFreeform)
       .runOnJS(true)
-      .onStart(() => controller.walkFocus(1)),
+      .onStart(() => (getFocusedController() ?? controller).walkFocus(1)),
     Gesture.Fling()
       .direction(Directions.LEFT)
       .enabled(!isFreeform)
       .runOnJS(true)
-      .onStart(() => controller.walkFocus(-1))
+      .onStart(() => (getFocusedController() ?? controller).walkFocus(-1))
   );
 
   return (
@@ -362,7 +481,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
             {isFreeform ? (
               <Text className="text-sm text-text-secondary">Editing as text</Text>
             ) : (
-              <LiftoEditorCrumbs controller={controller} />
+              <ExerciseLiftoEditorSheetCrumbs lineController={controller} />
             )}
           </View>
           {!isFreeform && hint != null && hintDismissed ? (
@@ -377,7 +496,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
             kind="purple"
             buttonSize="sm"
             className="text-xs"
-            onPress={isFreeform ? applyFreeform : () => props.onDone(controller.text)}
+            onPress={isFreeform ? applyFreeform : save}
           >
             {isFreeform ? "Apply" : "Save"}
           </Button>
@@ -385,13 +504,13 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
         {/* On a line that reuses something, rendered before anything is focused too, unlike the
             other hosts: filling the reuse in lives in this rail, and "what does ...t3 even mean"
             is a question the sheet gets asked on the way in, before the first token is tapped. */}
-        {!isFreeform && (hasReuse || (controller.context?.levels ?? []).length > 0) ? (
-          <LiftoEditorPillRail
-            controller={controller}
+        {!isFreeform && (hasReuse || isPreviewing || (controller.context?.levels ?? []).length > 0) ? (
+          <ExerciseLiftoEditorSheetRail
+            lineController={controller}
             className="border-b border-border-neutral"
             // Removing one here would remove it from every week; the declaring day is where that
             // belongs, and the caption links straight to it.
-            canRemove={!isFocusInsideShared}
+            canRemoveLine={!isFocusInsideShared}
             onPreview={hasReuse ? togglePreview : undefined}
             isPreviewing={isPreviewing}
           />
@@ -437,9 +556,19 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
                 <View testID="exercise-liftoeditor-preview" className="p-2 mt-3 rounded-lg bg-background-subtle">
                   <Text className="pb-1 text-xs font-bold text-text-secondary">With reuses filled in:</Text>
                   {preview != null && "text" in preview ? (
-                    // Wrapped, not side-scrolled: this panel sits inside the editor's own
-                    // scroller, and the horizontal swipe over it hops tokens.
-                    <PlannerCodeBlock script={preview.text} className="text-xs" wrap={true} />
+                    // Keyed on the text: the controller reads it once, and only a program that
+                    // resolves to something else than the panel holds remounts it.
+                    <ExerciseLiftoEditorPreview
+                      key={preview.text}
+                      text={preview.text}
+                      exerciseType={props.pickerData?.exerciseType}
+                      fontSize={layout.editorFontSize}
+                      initialHeight={panelHeightRef.current}
+                      onHeight={(height) => {
+                        panelHeightRef.current = height;
+                      }}
+                      onTextChange={onPanelTextChange}
+                    />
                   ) : (
                     <Text className="text-xs text-text-secondary">
                       {preview?.error || "Can't resolve this exercise right now."}
@@ -469,7 +598,7 @@ export function ExerciseLiftoEditorSheet(props: IExerciseLiftoEditorSheetProps):
                     <Text
                       className="text-xs underline text-center text-text-link"
                       testID="exercise-liftoeditor-shared-toggle"
-                      onPress={() => props.onToggleShared?.()}
+                      onPress={() => afterFlush(flushPreviewPass(), () => propsRef.current.onToggleShared?.())}
                     >
                       {showShared ? "Hide here" : "Show here"}
                     </Text>

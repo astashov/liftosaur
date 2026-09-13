@@ -4,6 +4,7 @@ import {
   ILiftoEditorSession,
   ILiftoEditorSessionResult,
   LiftoEditorSession_applyPill,
+  LiftoEditorSession_canRemove,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
@@ -328,11 +329,77 @@ describe("LiftoEditorSession", () => {
     });
   });
 
+  describe("preview scope", () => {
+    const text = "T1: Squat / 5x3 / 6x2 / 10x1 / 150lb / progress: lp(5lb)";
+    function previewTap(source: string, needle: string): ILiftoEditorSessionResult {
+      const session = LiftoEditorSession_create(source, "preview");
+      return LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(source, needle), 1000);
+    }
+
+    it("ignores taps inside the name", () => {
+      const result = previewTap(text, "Squat");
+      expect(result.session.context).to.equal(undefined);
+      expect(result.effects).to.deep.equal({});
+    });
+
+    it("stays structured on a double tap", () => {
+      const first = previewTap(text, "6x2");
+      const second = LiftoEditorSession_tap(first.session, LiftoEditorTestUtils_pos(text, "6x2"), 1100);
+      expect(second.session.mode).to.equal("structured");
+    });
+
+    it("refuses removal on the name and allows it on a set group", () => {
+      const onName = LiftoEditorSession_walkFocus(LiftoEditorSession_create(text, "preview"), 1);
+      expect(onName.session.context?.levels[0]?.start).to.equal(0);
+      expect(LiftoEditorSession_canRemove(onName.session)).to.equal(false);
+      expect(LiftoEditorSession_removeFocused(onName.session).effects).to.deep.equal({});
+      const onGroup = previewTap(text, "6x2");
+      expect(LiftoEditorSession_canRemove(onGroup.session)).to.equal(true);
+    });
+
+    it("drops the name-level, reuse and action pills from the exercise rail", () => {
+      const tap = previewTap(text, "6x2");
+      const exerciseLevel = LiftoEditorSession_selectLevel(tap.session, 0);
+      const pills = LiftoEditorSession_pills(exerciseLevel.session);
+      const kinds = pills.map((p) => p.kind);
+      expect(kinds).to.include("addWarmups");
+      expect(kinds).to.not.include.members(["reuse", "repeat", "forcedOrder", "addLabel", "changeExercise"]);
+      expect(pills.every((p) => p.action == null)).to.equal(true);
+    });
+
+    it("hides the per-set weight, RPE and rest timer pills under an own global", () => {
+      const tap = previewTap("T1: Squat / 5x3 / 150lb @8 60s", "5x3");
+      const kinds = LiftoEditorSession_pills(tap.session).map((p) => p.kind);
+      expect(kinds).to.not.include.members(["addWeight", "addRpe", "addRestTimer"]);
+      expect(kinds).to.include.members(["addSetGroup", "addSetTimer"]);
+    });
+
+    it("keeps the two timer pills apart under a global set timer", () => {
+      const withRest = LiftoEditorSession_pills(previewTap("T1: Squat / 5x3 / 30s|60s", "5x3").session).map(
+        (p) => p.kind
+      );
+      expect(withRest).to.not.include.members(["addSetTimer", "addRestTimer"]);
+      const withoutRest = LiftoEditorSession_pills(previewTap("T1: Squat / 5x3 / 30s|?", "5x3").session).map(
+        (p) => p.kind
+      );
+      expect(withoutRest).to.not.include("addSetTimer");
+      expect(withoutRest).to.include("addRestTimer");
+    });
+
+    it("keeps the per-set pills for fields no global defines", () => {
+      const tap = previewTap("T1: Squat / 5x3 / @8", "5x3");
+      const kinds = LiftoEditorSession_pills(tap.session).map((p) => p.kind);
+      expect(kinds).to.include.members(["addWeight", "addSetTimer", "addRestTimer"]);
+      expect(kinds).to.not.include("addRpe");
+    });
+  });
+
   describe("applyPill", () => {
     it("applies a single edit and shifts the anchor and focused token after it", () => {
       const text = "Squat / 3x8 100kg";
       const tap = tapAt(text, "100kg");
       const result = LiftoEditorSession_applyPill(tap.session, {
+        kind: "addLabel",
         label: "x",
         category: "neutral",
         start: 0,
@@ -350,6 +417,7 @@ describe("LiftoEditorSession", () => {
       const tap = tapAt(text, "100kg");
       const start = text.indexOf("100kg");
       const result = LiftoEditorSession_applyPill(tap.session, {
+        kind: "makeNumber",
         label: "x",
         category: "neutral",
         start,
@@ -370,6 +438,7 @@ describe("LiftoEditorSession", () => {
       const markerStart = text.indexOf("! ");
       const targetStart = text.indexOf("10x1");
       const result = LiftoEditorSession_applyPill(tap.session, {
+        kind: "makeSetVariationCurrent",
         label: "Make current",
         category: "sets",
         start: targetStart,
@@ -392,6 +461,7 @@ describe("LiftoEditorSession", () => {
     it("closes the keypad when a pill applies over an active number", () => {
       const tap = tapAt("Squat / 3x8 100kg", "100kg");
       const result = LiftoEditorSession_applyPill(tap.session, {
+        kind: "addLabel",
         label: "x",
         category: "neutral",
         start: 0,

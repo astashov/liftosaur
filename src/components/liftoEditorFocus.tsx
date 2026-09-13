@@ -1,4 +1,4 @@
-import { createContext, JSX, ReactNode, useContext, useEffect, useRef, useSyncExternalStore } from "react";
+import { createContext, JSX, ReactNode, useCallback, useContext, useEffect, useRef, useSyncExternalStore } from "react";
 import type { ILiftoEditorController } from "./liftoEditorController";
 
 export interface ILiftoEditorFocusEntry {
@@ -154,4 +154,9 @@ export function useLiftoEditorFreeformEntry(): ILiftoEditorFocusEntry | undefine
 export function useLiftoEditorBlurFocused(): () => void {
   const store = useContext(LiftoEditorFocusContext);
   return () => store?.blurFocused();
+}
+
+export function useLiftoEditorFocusedControllerGetter(): () => ILiftoEditorController | undefined {
+  const store = useContext(LiftoEditorFocusContext);
+  return useCallback(() => store?.getEntry()?.controller, [store]);
 }

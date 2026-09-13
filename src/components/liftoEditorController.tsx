@@ -10,13 +10,15 @@ import { ICompletionOption, ICompletionResult } from "../pages/planner/plannerCo
 import { IExercisePickerSelectedExercise, IExerciseType } from "../types";
 
 export type ILiftoEditorMode = "structured" | "freeform";
-export type ILiftoEditorScope = "exercise" | "day";
+export type ILiftoEditorScope = "exercise" | "day" | "preview";
 
 export interface ILiftoEditorController {
   mode: ILiftoEditorMode;
   text: string;
   context: ILiftoEditorContext | undefined;
   activeLevelIndex: number;
+  canRemove: boolean;
+  isKeypadActive: boolean;
   pills: ILiftoEditorPill[];
   // What the freeform suggestion strip offers at the caret; undefined outside freeform.
   completions: ICompletionResult | undefined;
