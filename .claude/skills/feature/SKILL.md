@@ -126,6 +126,7 @@ Before the first edit, show — as code, not prose:
    - `IState` — the lens path
    - `IStorage` — **flag this loudly**: persisted state needs a storage-version and sync/watch story (see the checklist below)
 4. **Tests**: which existing test files grow, or which new one appears — decided now, not after.
+5. **Logic home**: one line per behaviour the feature adds — a decision, a state machine, a text transform, a save rule — naming the pure module that owns it and the test file that covers it. A `.tsx` in this list fails the gate; see "Where logic lives" in `CLAUDE.md`. The component's line in the contract says only what it renders and which effects it runs.
 
 This gate is short. The user says "yes" or corrects a signature.
 
@@ -138,6 +139,7 @@ Work in the order of the contract: types first, then the core module, then the c
 ## Phase 6 — Verify
 
 - `npm run lint` and TypeScript on what you touched
+- `npx ts-node scripts/lint-views.ts` — answer every warning: move the decision, or add the baseline entry with its reason
 - the relevant tests (`npm run onetest` for one file)
 - **UI features get driven, not assumed** — use the `test-app` skill on the simulator or the playwright MCP on web, and screenshot the result
 
@@ -173,15 +175,21 @@ Only material findings, each defensible from code you read: what breaks, why thi
 path is vulnerable, what the impact is, what change fixes it.
 ```
 
-**Review B — architecture:**
+**Review B — architecture.** Its scope is wider than the diff: every `.tsx` the diff touched is read whole, because responsibility creep is a property of the file, and a reviewer reading hunks sees only small, justified additions. Paste the "Where logic lives" section of `CLAUDE.md` into the prompt verbatim.
 
 ```
 Architecture review of the same change.
-Scope: [paths / diff range]
+Scope: [paths / diff range]. Read each .tsx in the diff in full, not only its hunks.
+
+The rule this codebase holds views to:
+[the "Where logic lives" section of CLAUDE.md, verbatim]
 
 Judge, with reasons:
 - is the public API right — names, shapes, who is allowed to call what?
 - is every new piece of state justified, and in the right place? What could be derived instead?
+- for each function inside a touched component or hook: render, effect, or decision? List every
+  decision, the module it belongs in, and the test that module would have. A state machine kept
+  in refs is a decision.
 - could this be materially simpler or clearer? Show the simpler shape concretely.
 - does it fit how the rest of this codebase already does things, or invent a parallel way?
 

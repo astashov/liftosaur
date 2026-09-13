@@ -198,6 +198,18 @@ lambda/            # Backend Lambda functions
 
 For detailed Liftoscript documentation, see `/llms/liftoscript.md` and `/llms/liftoscript_examples.md`.
 
+## Where logic lives
+
+A `.tsx` file renders and runs effects. Nothing else. Every decision, state machine, text transform or save rule lives in a pure module with a mocha test, and the component calls it and applies what comes back.
+
+- A function inside a component or hook that returns no JSX is probably a decision. Over 20 lines, `scripts/lint-views.ts` asks about it through the PostToolUse hook. The hook never blocks. Judge it: a state machine, a save rule or a text transform moves to a module; one piece of geometry or scrolling math that reads as a unit may stay. A function that stays gets an entry in `scripts/lint-views-baseline.json` with the reason, so the question is not asked twice.
+- A view file over 400 lines gets the same question. Past that, the file usually holds more than one screen's worth of responsibility.
+- Name a module by what it does: `textDiff.ts`, `exercisePreviewPass.ts`, `exerciseLiftoEditorSave.ts`. Never by a convention suffix. A `*Session.ts` or `*Logic.ts` name says nothing about the module and invites hundreds of them.
+- State a component keeps in refs to drive a sequence of steps (a debounce, a pending write, a last error) is a state machine. The module owns the state as a plain object and returns the next state plus the effects to run. The component owns the timer and the platform calls.
+- The `/feature` contract names the module that owns each behaviour and its test file before the first edit. A view in that list fails the gate.
+
+The baseline started with every finding that predated the rule, each marked "predates the rule". Those entries are debt to pay when the file is next touched, never a licence to add to it. An entry with a real reason is a judgment already made, and stands until the function changes.
+
 ## Editing Files
 
 Change files with the Edit/Write tools, not with shell commands. A `sed -i`,

@@ -1,0 +1,384 @@
+{
+  "src/components/account.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule",
+    "decision-in-view:submit": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/actionMenu.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule"
+  },
+  "src/components/actionSheetHost.native.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/app.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/bottomSheetEditTarget.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/draggableList.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:handleTouchStart": "predates the rule"
+  },
+  "src/components/draggableList2.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/editProgram/dayLiftoEditorInline.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgram/editProgramCustomErrorCta.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgram/editProgramGrid/editProgramGrid.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgram/editProgramGrid/gridPinch.native.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/editProgram/editProgramUiExercise.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgram/editProgramV2TextExercises.native.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgram/editProgramV2TextExercises.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgram/screenProgram.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseAcrossAllWeeks.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseDay.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseNavbar.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseProgress.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseReuseDescriptions.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseReuseSets.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseSet.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseUpdate.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgramExercise/editProgramExerciseWarmups.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule"
+  },
+  "src/components/editProgramExercise/progressions/customProgressSettings.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/editProgramExercise/screenEditProgramExercise.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule"
+  },
+  "src/components/equipmentSettings.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/exercisePicker/exercisePickerCustomExerciseContent.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/exercisePicker/exercisePickerMain.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "decision-in-view:useCallback#3": "predates the rule",
+    "decision-in-view:useMemo#1": "predates the rule",
+    "decision-in-view:useMemo#2": "predates the rule",
+    "decision-in-view:useMemo#3": "predates the rule",
+    "decision-in-view:useMemo#4": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/exercisesList.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/graphExercise.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/graphStats.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule",
+    "decision-in-view:useMemo#2": "predates the rule"
+  },
+  "src/components/hearAboutUs/hearAboutUsSurvey.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/inputNumber2.native.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "decision-in-view:useCallback#3": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/inputNumber2.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "decision-in-view:useCallback#3": "predates the rule",
+    "decision-in-view:useEffect#1": "predates the rule",
+    "decision-in-view:useEffect#2": "predates the rule",
+    "decision-in-view:useEffect#3": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/liftoEditorController.native.tsx": {
+    "decision-in-view:applyCompletion": "predates the rule",
+    "decision-in-view:pressPill": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/liftoEditorReorder.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "decision-in-view:useCallback#3": "predates the rule",
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/lineChart.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/lineChartGestures.native.tsx": {
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/components/lineChartGestures.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/markdown.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/markdownEditor.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/markdownEditorBorderless.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/modalAmrap.tsx": {
+    "decision-in-view:onDone": "predates the rule"
+  },
+  "src/components/modalCoupon.tsx": {
+    "decision-in-view:onSubmit": "predates the rule"
+  },
+  "src/components/modalDayFromAdhoc.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/modalExercise.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/preview/programPreviewPlayground.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/preview/programPreviewPlaygroundExercise.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/preview/webWorkoutModals.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/components/primitives/liftoEditor.native.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/primitives/webviewEditor.native.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule"
+  },
+  "src/components/restTimer.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/screenAccount.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/screenEquipment.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/screenGraphs.tsx": {
+    "decision-in-view:useTimedMemo#1": "predates the rule",
+    "decision-in-view:useTimedMemo#2": "predates the rule"
+  },
+  "src/components/screenGyms.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule"
+  },
+  "src/components/screenSettings.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/screenStats.tsx": {
+    "decision-in-view:save": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/screenSubscription.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/components/screenWorkout.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/scrollBarrell.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/components/selectLink.tsx": {
+    "decision-in-view:onPress": "predates the rule"
+  },
+  "src/components/workout.tsx": {
+    "decision-in-view:onFinish": "predates the rule",
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/workoutExerciseCard.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useCallback#2": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/components/workoutExerciseSet.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/navigation/AppNavigator.native.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/navigation/AppNavigator.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/navigation/CustomKeyboardContext.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/navigation/modals/DayLiftoEditorSheet.native.tsx": {
+    "decision-in-view:revealCaret": "predates the rule"
+  },
+  "src/navigation/modals/ExerciseLiftoEditorSheet.native.tsx": {
+    "long-view": "predates the rule"
+  },
+  "src/navigation/modals/NavModal1RM.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalAmrap.tsx": {
+    "decision-in-view:cancelAmrap": "predates the rule"
+  },
+  "src/navigation/modals/NavModalCreateStateVariable.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalDayLiftoEditor.tsx": {
+    "decision-in-view:onDone": "predates the rule"
+  },
+  "src/navigation/modals/NavModalEditExerciseChange.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalEditProgramExercisePicker.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "decision-in-view:useMemo#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalEditProgressScript.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalEditTarget.tsx": {
+    "decision-in-view:useClearOnModalRemove#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalExerciseCloneLibrary.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalExerciseImageSource.tsx": {
+    "decision-in-view:upload": "predates the rule"
+  },
+  "src/navigation/modals/NavModalExerciseLiftoEditor.tsx": {
+    "decision-in-view:analyzeText": "predates the rule",
+    "decision-in-view:applyDraft": "predates the rule",
+    "decision-in-view:onDone": "predates the rule",
+    "decision-in-view:onEditAcrossProgram": "predates the rule",
+    "decision-in-view:requestSwapScope": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/navigation/modals/NavModalExercisePicker.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalMuscleGroupMusclePicker.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalMusclesOverride.tsx": {
+    "decision-in-view:onSave": "predates the rule"
+  },
+  "src/navigation/modals/NavModalNewEquipment.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalNewFixedWeight.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalPlates.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalPlaygroundEditExercise.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/modals/NavModalWorkoutShare.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/navigation/screens/NavScreenProgram.native.tsx": {
+    "decision-in-view:React.useEffect#1": "predates the rule",
+    "decision-in-view:React.useLayoutEffect#1": "predates the rule"
+  },
+  "src/navigation/screens/NavScreenProgram.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule",
+    "decision-in-view:useLayoutEffect#1": "predates the rule"
+  },
+  "src/pages/exercise/exerciseContent.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/pages/main/mainContent.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/pages/paymentsDashboard/paymentsDashboardContent.tsx": {
+    "decision-in-view:groupedData.map#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/pages/planner/components/modalPlannerPictureExport.tsx": {
+    "decision-in-view:save": "predates the rule"
+  },
+  "src/pages/planner/components/modalPlannerSettings.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/pages/planner/components/plannerExerciseStats.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/pages/planner/components/plannerExerciseStatsFull.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/pages/planner/plannerContent.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule",
+    "decision-in-view:anonymous#2": "predates the rule",
+    "decision-in-view:anonymous#3": "predates the rule",
+    "long-view": "predates the rule"
+  },
+  "src/pages/planner/plannerContentFull.tsx": {
+    "decision-in-view:save": "predates the rule"
+  },
+  "src/pages/program/programContentList.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/pages/programs/programDetails/programDetailsAddButton.tsx": {
+    "decision-in-view:anonymous#1": "predates the rule"
+  },
+  "src/pages/programs/programDetails/programDetailsExerciseExample.tsx": {
+    "decision-in-view:weekSetup.map#1": "predates the rule"
+  },
+  "src/pages/programs/programDetails/programDetailsExerciseExampleGraph.tsx": {
+    "decision-in-view:useEffect#1": "predates the rule"
+  },
+  "src/pages/programs/programPreviewPage.tsx": {
+    "decision-in-view:useCallback#1": "predates the rule"
+  },
+  "src/pages/resetPassword/resetPasswordContent.tsx": {
+    "decision-in-view:submit": "predates the rule"
+  }
+}
