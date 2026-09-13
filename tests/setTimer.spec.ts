@@ -7,7 +7,7 @@ import {
   PlaywrightUtils_saveExerciseInSheet,
 } from "./playwrightUtils";
 
-async function createSetTimerProgram(page: Page, exercise: string): Promise<void> {
+async function createSetTimerProgram(page: Page, exercise: string, getReadySeconds: number = 0): Promise<void> {
   await page.goto(startpage + "?skipintro=1");
   await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgramWithCode(
@@ -17,16 +17,16 @@ async function createSetTimerProgram(page: Page, exercise: string): Promise<void
 ## Day 1
 ${exercise} / warmup: none / progress: none`
   );
-}
-
-test("set timer - get ready countdown runs before the work clock, and Start now skips it", async ({ page }) => {
-  await createSetTimerProgram(page, "Bench Press / 3x1 100lb 30s|60s");
 
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-timers").click();
   await page.getByTestId("menu-item-value-get-ready").clear();
-  await page.getByTestId("menu-item-value-get-ready").type("9");
+  await page.getByTestId("menu-item-value-get-ready").type(String(getReadySeconds));
   await page.getByTestId("navbar-back").click();
+}
+
+test("set timer - get ready countdown runs before the work clock, and Start now skips it", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 3x1 100lb 30s|60s", 9);
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
@@ -47,13 +47,7 @@ test("set timer - get ready countdown runs before the work clock, and Start now 
 });
 
 test("set timer - the countdown expires on its own into the work clock", async ({ page }) => {
-  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 30s|60s");
-
-  await page.getByTestId("footer-me").click();
-  await page.getByTestId("menu-item-timers").click();
-  await page.getByTestId("menu-item-value-get-ready").clear();
-  await page.getByTestId("menu-item-value-get-ready").type("1");
-  await page.getByTestId("navbar-back").click();
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 30s|60s", 1);
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
