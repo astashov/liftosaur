@@ -382,7 +382,9 @@ export function Progress_scheduleTimerNotification(
   entryIndex: number,
   mode: IProgressMode,
   settings: ISettings,
-  duration: number
+  duration: number,
+  timerSinceMs: number,
+  timerSeconds: number
 ): void {
   const title = "It's time for the next set!";
   let subtitle = "";
@@ -419,6 +421,8 @@ export function Progress_scheduleTimerNotification(
     ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
     vibration: !!settings.vibration,
     volume: settings.volume,
+    timerSinceMs,
+    timerSeconds,
   });
 }
 
@@ -463,7 +467,7 @@ export function Progress_startTimer(
     // aborts on a non-positive interval.
     const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
     if (timerForPush > 0) {
-      Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush);
+      Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush, timestamp, timer);
     } else {
       // Backdated start that's already overrun: schedule nothing, but clear any earlier pending
       // notification so a stale one doesn't fire.

@@ -1185,7 +1185,9 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
                 afterProgress.timerEntryIndex,
                 afterProgress.timerMode,
                 mergedStorage.settings,
-                remaining
+                remaining,
+                afterProgress.timerSince,
+                afterProgress.timer
               );
             } else {
               NativeTimerBridge_stopTimer();

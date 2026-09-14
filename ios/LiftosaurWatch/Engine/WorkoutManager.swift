@@ -70,6 +70,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     private var hasPlayedRestTimerHaptic: Bool = false
     private var audioPlayer: AVAudioPlayer?
     private var cachedVolume: Double = 1.0
+    let restNotification = RestNotification()
 
     private(set) var engine: LiftosaurEngine?
     private let storageKey = "liftosaur_storage"
@@ -719,30 +720,13 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         let maxChirpWindow = 5
         if elapsed >= timer.timer && elapsed <= timer.timer + maxChirpWindow {
             hasPlayedRestTimerHaptic = true
-            // The wrist tap lands at the deadline, before the phone answers, so a 400ms round trip
-            // never delays it. Only the audible chirp waits on the answer.
             WKInterfaceDevice.current().play(.notification)
             guard cachedVolume > 0 else {
                 Logger.workout.info("rest cue: muted, haptic only")
                 return
             }
-            Logger.workout.info("rest cue deadline reached, asking phone")
-            let asked = timer
-            WatchConnectivityManager.shared.askPhoneToPlayCue(volume: cachedVolume) { [weak self] playedOnPhone in
-                guard let self = self else { return }
-                // The rest can be stopped, extended or replaced while the phone answers. Chirping
-                // then would be for a rest that no longer exists.
-                guard self.restTimer == asked else {
-                    Logger.workout.info("rest cue: rest changed while asking, not chirping")
-                    return
-                }
-                if playedOnPhone {
-                    Logger.workout.info("rest cue: phone played, haptic only on the watch")
-                    return
-                }
-                Logger.workout.info("rest cue: chirping on the watch")
-                self.playCompletionSound()
-            }
+            Logger.workout.info("rest cue: chirping on the watch")
+            playCompletionSound()
         } else if elapsed > timer.timer + maxChirpWindow {
             // Timer is past the window, mark as played to stop monitoring
             hasPlayedRestTimerHaptic = true
@@ -787,12 +771,18 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             // .playback (not .ambient) so the cue is audible over Bluetooth audio playing on another app.
             try session.setCategory(.playback, options: [.duckOthers, .mixWithOthers])
             try session.setActive(true)
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.delegate = self
-            audioPlayer?.volume = Float(cachedVolume)
-            audioPlayer?.play()
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.delegate = self
+            player.volume = Float(cachedVolume)
+            guard player.prepareToPlay(), player.play() else {
+                Logger.workout.error("\(resource): play() returned false")
+                try? session.setActive(false, options: .notifyOthersOnDeactivation)
+                return
+            }
+            audioPlayer = player
         } catch {
-            Logger.workout.error("Failed to play completion sound: \(error)")
+            Logger.workout.error("Failed to play \(resource): \(error)")
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
     }
 

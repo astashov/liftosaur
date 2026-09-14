@@ -10,6 +10,8 @@ export type INativeTimerStartParams = {
   volume: number;
   vibration: boolean;
   ignoreDoNotDisturb: boolean;
+  timerSinceMs: number;
+  timerSeconds: number;
 };
 
 const scheduledHandlers = new Set<() => void>();

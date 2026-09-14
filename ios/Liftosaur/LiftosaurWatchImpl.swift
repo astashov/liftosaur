@@ -350,12 +350,6 @@ extension LiftosaurWatchImpl {
     }
 
     switch type {
-    case "playCueNow":
-      let volume = (message["volume"] as? Double) ?? 1.0
-      LiftosaurTimerImpl.shared.tryPlayWatchCue(volume: volume) { played in
-        replyHandler?(["played": played])
-      }
-
     case "requestStorage":
       enqueueEvent(["type": "requestStorage"])
       replyHandler?(["success": true])

@@ -112,6 +112,7 @@
 		3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7422FB4B001001C68AA /* SceneDelegate.swift */; };
 		3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
+		3AACC76000000000000E0004 /* RestNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC76000000000000E0003 /* RestNotification.swift */; };
 		3ABEEF0100000000000000A2 /* SetTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000A1 /* SetTimerScreen.swift */; };
 		3ABEEF0100000000000000B2 /* SetTimerEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */; };
 		3ABEEF0100000000000000C2 /* set-timer-end.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000C1 /* set-timer-end.m4r */; };
@@ -306,6 +307,7 @@
 		3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWatch.mm; path = Liftosaur/RCTLiftosaurWatch.mm; sourceTree = "<group>"; };
 		3AACC7422FB4B001001C68AA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = Liftosaur/SceneDelegate.swift; sourceTree = "<group>"; };
 		3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePayloadCompression.swift; sourceTree = "<group>"; };
+		3AACC76000000000000E0003 /* RestNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestNotification.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000A1 /* SetTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerScreen.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerEditScreen.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000C1 /* set-timer-end.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = "set-timer-end.m4r"; sourceTree = "<group>"; };
@@ -541,6 +543,7 @@
 				3AACC5D12FB3526B001C68AA /* WatchCrashReporter.swift */,
 				3AACC5D22FB3526B001C68AA /* WatchEventManager.swift */,
 				3AACC5D32FB3526B001C68AA /* WatchMessageHandler.swift */,
+				3AACC76000000000000E0003 /* RestNotification.swift */,
 				3AACC5D42FB3526B001C68AA /* WatchStorageManager.swift */,
 				3AACC5D52FB3526B001C68AA /* WatchSyncManager.swift */,
 				3AACC5D62FB3526B001C68AA /* WorkoutManager.swift */,
@@ -1099,6 +1102,7 @@
 				3AACC6022FB3526B001C68AA /* WatchConnectivityManager.swift in Sources */,
 				3AACC6032FB3526B001C68AA /* WatchSyncManager.swift in Sources */,
 				3AACC6042FB3526B001C68AA /* WatchMessageHandler.swift in Sources */,
+				3AACC76000000000000E0004 /* RestNotification.swift in Sources */,
 				3AACC6052FB3526B001C68AA /* WorkoutCardView.swift in Sources */,
 				3AACC6062FB3526B001C68AA /* PremiumRequiredScreen.swift in Sources */,
 				3AACC6072FB3526B001C68AA /* LiftosaurColor.swift in Sources */,

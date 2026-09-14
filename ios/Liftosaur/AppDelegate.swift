@@ -33,6 +33,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     LiftosaurEventReporterImpl.shared.registerWithMetricKit()
     _ = LiftosaurWorkoutMirroringImpl.shared
+    // A launch from a watch message never reaches setEventEmitter, so the session is activated here.
+    LiftosaurWatchImpl.shared.activateIfNeeded()
 
     if let cachedUserId = UserDefaults.standard.string(forKey: "LiftosaurCachedUserId") {
       let config = Rollbar.configuration().mutableCopy()

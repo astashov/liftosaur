@@ -10,6 +10,8 @@ export type INativeTimerStartParams = {
   volume: number;
   vibration: boolean;
   ignoreDoNotDisturb: boolean;
+  timerSinceMs: number;
+  timerSeconds: number;
 };
 
 export function NativeTimerBridge_startTimer(params: INativeTimerStartParams): void {
@@ -24,6 +26,8 @@ export function NativeTimerBridge_startTimer(params: INativeTimerStartParams): v
     ignoreDoNotDisturb: params.ignoreDoNotDisturb ? "true" : "false",
     vibration: params.vibration ? "true" : "false",
     volume: params.volume.toString(),
+    timerSinceMs: params.timerSinceMs.toString(),
+    timerSeconds: params.timerSeconds.toString(),
   };
   SendMessage_toIos(obj);
   SendMessage_toAndroid(obj);

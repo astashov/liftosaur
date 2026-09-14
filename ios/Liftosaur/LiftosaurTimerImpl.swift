@@ -8,10 +8,35 @@ import UserNotifications
 @objc class LiftosaurTimerImpl: NSObject {
   @objc static let shared = LiftosaurTimerImpl()
 
+  private struct PendingRest {
+    let id: String
+    let deadline: Date
+    let vibration: Bool
+    var volume: Double
+    var content: UNMutableNotificationContent?
+    var floorApplied = false
+  }
+
   private let center = UNUserNotificationCenter.current()
   private let timerIdentifier = "timerNotification"
   private let reminderIdentifier = "reminderNotification"
+  // The notification sits after the in-process deadline so cancelling it after the cue lands in time.
+  private let notificationFloorDelay: TimeInterval = 1
   private var audioPlayer: AVAudioPlayer?
+  fileprivate var keepAlivePlayer: AVAudioPlayer?
+  private var deadlineTimer: DispatchSourceTimer?
+  private var generation = 0
+  private var pendingRest: PendingRest?
+
+  override init() {
+    super.init()
+    let notifications = NotificationCenter.default
+    notifications.addObserver(self, selector: #selector(appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+    notifications.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+    notifications.addObserver(self, selector: #selector(audioRouteChanged), name: AVAudioSession.routeChangeNotification, object: nil)
+    notifications.addObserver(self, selector: #selector(audioInterrupted(_:)), name: AVAudioSession.interruptionNotification, object: nil)
+    notifications.addObserver(self, selector: #selector(mediaServicesReset), name: AVAudioSession.mediaServicesWereResetNotification, object: nil)
+  }
 
   @objc func startTimer(duration: Double,
                         title: String,
@@ -22,21 +47,75 @@ import UserNotifications
                         volume: Double,
                         vibration: Bool,
                         ignoreDoNotDisturb: Bool,
+                        timerSinceMs: Double,
+                        timerSeconds: Double,
                         completion: @escaping (Bool, String?) -> Void) {
     Logger.notifications.info("startTimer duration=\(duration) volume=\(volume) vibration=\(vibration)")
+    let rest = PendingRest(
+      id: "\(Int64(timerSinceMs))-\(Int64(timerSeconds))",
+      deadline: Date(timeIntervalSince1970: timerSinceMs / 1000 + timerSeconds),
+      vibration: vibration,
+      volume: volume
+    )
+    DispatchQueue.main.async {
+      if self.pendingRest?.id == rest.id {
+        self.pendingRest?.volume = volume
+        Logger.notifications.info("startTimer: rest \(rest.id) already pending")
+        completion(true, nil)
+        return
+      }
+      self.generation += 1
+      self.pendingRest = rest
+      self.stopKeepAlive()
+      self.armDeadline(rest, generation: self.generation)
+      self.startKeepAliveIfNeeded()
+      self.removeTimerRequests()
+      self.scheduleNotification(rest, generation: self.generation, title: title, subtitleHeader: subtitleHeader,
+                                subtitle: subtitle, bodyHeader: bodyHeader, body: body, completion: completion)
+    }
+  }
+
+  private func notificationId(_ restId: String) -> String {
+    "\(timerIdentifier)-\(restId)"
+  }
+
+  // Ids do not survive a relaunch and builds before this one used the bare identifier, so cleanup
+  // enumerates the center and keeps only the rest that is pending when the list comes back.
+  private func removeTimerRequests() {
+    center.getPendingNotificationRequests { requests in
+      DispatchQueue.main.async {
+        let keep = self.pendingRest.map { self.notificationId($0.id) }
+        let stale = requests.map { $0.identifier }.filter { id in
+          (id == self.timerIdentifier || id.hasPrefix(self.timerIdentifier + "-")) && id != keep
+        }
+        if !stale.isEmpty {
+          self.center.removePendingNotificationRequests(withIdentifiers: stale)
+        }
+      }
+    }
+  }
+
+  private func scheduleNotification(_ rest: PendingRest,
+                                    generation gen: Int,
+                                    title: String,
+                                    subtitleHeader: String,
+                                    subtitle: String,
+                                    bodyHeader: String,
+                                    body: String,
+                                    completion: @escaping (Bool, String?) -> Void) {
     center.getNotificationSettings { settings in
       Logger.notifications.info("authorizationStatus=\(settings.authorizationStatus.rawValue)")
       switch settings.authorizationStatus {
       case .authorized, .provisional, .ephemeral:
-        self.scheduleTimer(duration: duration, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
-                           bodyHeader: bodyHeader, body: body, volume: volume, completion: completion)
+        self.scheduleTimer(rest, generation: gen, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
+                           bodyHeader: bodyHeader, body: body, completion: completion)
       case .notDetermined:
         Logger.notifications.info("notDetermined, requesting authorization inline")
         self.center.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
           Logger.notifications.info("authorization request granted=\(granted) error=\(error?.localizedDescription ?? "nil")")
           if granted {
-            self.scheduleTimer(duration: duration, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
-                               bodyHeader: bodyHeader, body: body, volume: volume, completion: completion)
+            self.scheduleTimer(rest, generation: gen, title: title, subtitleHeader: subtitleHeader, subtitle: subtitle,
+                               bodyHeader: bodyHeader, body: body, completion: completion)
           } else {
             completion(false, "notifications")
           }
@@ -50,52 +129,230 @@ import UserNotifications
     }
   }
 
-  private func scheduleTimer(duration: Double,
+  private func scheduleTimer(_ rest: PendingRest,
+                             generation gen: Int,
                              title: String,
                              subtitleHeader: String,
                              subtitle: String,
                              bodyHeader: String,
                              body: String,
-                             volume: Double,
                              completion: @escaping (Bool, String?) -> Void) {
-    let content = UNMutableNotificationContent()
-    content.title = title.isEmpty ? "Timer" : title
-    if !subtitle.isEmpty && !subtitleHeader.isEmpty {
-      content.subtitle = "\(subtitleHeader): \(subtitle)"
+    DispatchQueue.main.async {
+      guard gen == self.generation else {
+        Logger.notifications.info("schedule skipped, rest \(rest.id) was replaced during the permission lookup")
+        completion(true, nil)
+        return
+      }
+      let content = UNMutableNotificationContent()
+      content.title = title.isEmpty ? "Timer" : title
+      if !subtitle.isEmpty && !subtitleHeader.isEmpty {
+        content.subtitle = "\(subtitleHeader): \(subtitle)"
+      }
+      content.body = (body.isEmpty || bodyHeader.isEmpty)
+        ? "It's time for the next set!"
+        : "\(bodyHeader): \(body)"
+      if rest.volume > 0 {
+        // Must be a CAF/WAV/AIFF (Linear PCM) — UNNotificationSound silently falls back to the default
+        // system sound for AAC formats like .m4r, so the custom cue never plays.
+        content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.caf"))
+      }
+      self.pendingRest?.content = content
+      self.installNotification(generation: gen, completion: completion)
     }
-    content.body = (body.isEmpty || bodyHeader.isEmpty)
-      ? "It's time for the next set!"
-      : "\(bodyHeader): \(body)"
-    if volume > 0 {
-      // Must be a CAF/WAV/AIFF (Linear PCM) — UNNotificationSound silently falls back to the default
-      // system sound for AAC formats like .m4r, so the custom cue never plays.
-      content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.caf"))
-    }
+  }
 
-    // UNTimeIntervalNotificationTrigger aborts the process on a non-positive interval, so an already-expired
-    // timer has nothing to schedule.
-    guard duration > 0 else {
-      Logger.notifications.info("schedule skipped, duration=\(duration) already elapsed")
-      completion(true, nil)
+  // The floor sits after the deadline only when this phone may play the cue itself, so a phone with no
+  // watch keeps its notification exactly at the deadline. Re-adding under the same identifier replaces.
+  private func installNotification(generation gen: Int, completion: ((Bool, String?) -> Void)?) {
+    guard gen == generation, let rest = pendingRest, let content = rest.content else {
+      completion?(true, nil)
       return
     }
+    let floor = keepAlivePossible()
+    // The same deadline the in-process timer uses, read now rather than when JS computed its rounded
+    // duration. UNTimeIntervalNotificationTrigger aborts the process on a non-positive interval.
+    let fireIn = rest.deadline.timeIntervalSinceNow + (floor ? notificationFloorDelay : 0)
+    guard fireIn > 0 else {
+      Logger.notifications.info("schedule skipped, rest \(rest.id) already elapsed")
+      completion?(true, nil)
+      return
+    }
+    pendingRest?.floorApplied = floor
 
-    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: duration, repeats: false)
-    let request = UNNotificationRequest(identifier: timerIdentifier, content: content, trigger: trigger)
+    let identifier = notificationId(rest.id)
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: fireIn, repeats: false)
+    let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
     center.add(request) { error in
       if let error = error {
         Logger.notifications.error("schedule failed: \(error.localizedDescription)")
-        completion(false, "notifications")
-      } else {
-        Logger.notifications.info("schedule ok, id=\(self.timerIdentifier) fires in \(duration)s")
-        completion(true, nil)
+        completion?(false, "notifications")
+        return
+      }
+      DispatchQueue.main.async {
+        if gen != self.generation {
+          Logger.notifications.info("removing rest \(rest.id), it was stopped while its notification was added")
+          self.center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        } else {
+          Logger.notifications.info("schedule ok for rest \(rest.id), fires in \(fireIn)s, floor \(floor)")
+        }
+      }
+      completion?(true, nil)
+    }
+  }
+
+  private func keepAlivePossible() -> Bool {
+    LiftosaurWatchImpl.shared.isWatchPaired() && LiftosaurTimerImpl.hasHeadphoneRoute()
+  }
+
+  @objc func stopTimer() {
+    DispatchQueue.main.async {
+      self.generation += 1
+      let pending = self.pendingRest
+      self.pendingRest = nil
+      self.deadlineTimer?.cancel()
+      self.deadlineTimer = nil
+      self.stopKeepAlive()
+      if let pending = pending {
+        self.center.removePendingNotificationRequests(withIdentifiers: [self.notificationId(pending.id)])
+      }
+      self.removeTimerRequests()
+    }
+  }
+
+  private func armDeadline(_ rest: PendingRest, generation gen: Int) {
+    deadlineTimer?.cancel()
+    deadlineTimer = nil
+    let remaining = rest.deadline.timeIntervalSinceNow
+    guard remaining > 0 else { return }
+    let timer = DispatchSource.makeTimerSource(queue: .main)
+    timer.schedule(deadline: .now() + remaining)
+    timer.setEventHandler { [weak self] in
+      self?.deadlineTimer = nil
+      self?.deadlineReached(generation: gen)
+    }
+    deadlineTimer = timer
+    timer.resume()
+  }
+
+  // Three producers, one per state: JS in the foreground, this timer with a running keep-alive on
+  // headphones, the notification otherwise. The state is read here, not where the keep-alive started.
+  private func deadlineReached(generation gen: Int) {
+    guard gen == generation, let rest = pendingRest else { return }
+    if UIApplication.shared.applicationState == .active {
+      stopKeepAlive()
+      center.removePendingNotificationRequests(withIdentifiers: [notificationId(rest.id)])
+      Logger.notifications.info("deadline in the foreground, JS plays rest \(rest.id)")
+      return
+    }
+    guard keepAlivePlayer?.isPlaying == true, LiftosaurTimerImpl.hasHeadphoneRoute() else {
+      stopKeepAlive()
+      Logger.notifications.info("deadline without a keep-alive on headphones, the notification plays rest \(rest.id)")
+      return
+    }
+    stopKeepAlive()
+    if rest.vibration {
+      AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
+    }
+    guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r"),
+          let player = preparedCuePlayer(url: url, volume: rest.volume),
+          player.play() else {
+      Logger.notifications.error("deadline cue could not play, the notification stays")
+      return
+    }
+    audioPlayer = player
+    center.removePendingNotificationRequests(withIdentifiers: [notificationId(rest.id)])
+    let route = AVAudioSession.sharedInstance().currentRoute.outputs.map { $0.portType.rawValue }.joined(separator: ",")
+    Logger.notifications.info("deadline cue played for rest \(rest.id) on \(route)")
+  }
+
+  private func startKeepAliveIfNeeded() {
+    guard keepAlivePlayer == nil, let rest = pendingRest, rest.deadline > Date(), rest.volume > 0 else { return }
+    guard UIApplication.shared.applicationState != .active else { return }
+    guard keepAlivePossible() else { return }
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers])
+      try AVAudioSession.sharedInstance().setActive(true, options: [])
+      let player = try AVAudioPlayer(data: LiftosaurTimerImpl.silence, fileTypeHint: AVFileType.wav.rawValue)
+      player.numberOfLoops = -1
+      player.volume = 0
+      guard player.prepareToPlay(), player.play() else {
+        Logger.notifications.error("keep-alive could not start")
+        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+        return
+      }
+      keepAlivePlayer = player
+      Logger.notifications.info("keep-alive started for rest \(rest.id), \(Int(rest.deadline.timeIntervalSinceNow))s left")
+      if !rest.floorApplied {
+        Logger.notifications.info("moving the notification for rest \(rest.id) behind the deadline")
+        installNotification(generation: generation, completion: nil)
+      }
+    } catch {
+      Logger.notifications.error("keep-alive setup failed: \(error)")
+      try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    }
+  }
+
+  private func stopKeepAlive() {
+    guard let player = keepAlivePlayer else { return }
+    player.stop()
+    keepAlivePlayer = nil
+    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    Logger.notifications.info("keep-alive stopped")
+  }
+
+  @objc private func appDidEnterBackground() {
+    DispatchQueue.main.async { self.startKeepAliveIfNeeded() }
+  }
+
+  @objc private func appDidBecomeActive() {
+    DispatchQueue.main.async { self.stopKeepAlive() }
+  }
+
+  @objc private func audioRouteChanged() {
+    DispatchQueue.main.async {
+      if LiftosaurTimerImpl.hasHeadphoneRoute() {
+        self.startKeepAliveIfNeeded()
+      } else if self.keepAlivePlayer != nil {
+        Logger.notifications.info("headphones gone, the notification stays as the cue")
+        self.stopKeepAlive()
       }
     }
   }
 
-  @objc func stopTimer() {
-    center.removePendingNotificationRequests(withIdentifiers: [timerIdentifier])
+  @objc private func audioInterrupted(_ notification: Notification) {
+    guard let raw = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+          let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+    DispatchQueue.main.async {
+      switch type {
+      case .began:
+        self.keepAlivePlayer = nil
+      case .ended:
+        self.startKeepAliveIfNeeded()
+      @unknown default:
+        break
+      }
+    }
   }
+
+  @objc private func mediaServicesReset() {
+    DispatchQueue.main.async {
+      self.keepAlivePlayer = nil
+      self.startKeepAliveIfNeeded()
+    }
+  }
+
+  // One second of 16-bit mono silence as a WAV, so the keep-alive needs no bundled asset.
+  private static let silence: Data = {
+    let sampleRate: UInt32 = 44_100
+    let dataSize = sampleRate * 2
+    var wav = Data()
+    func u32(_ value: UInt32) { var le = value.littleEndian; wav.append(Data(bytes: &le, count: 4)) }
+    func u16(_ value: UInt16) { var le = value.littleEndian; wav.append(Data(bytes: &le, count: 2)) }
+    wav.append(contentsOf: Array("RIFF".utf8)); u32(36 + dataSize); wav.append(contentsOf: Array("WAVE".utf8))
+    wav.append(contentsOf: Array("fmt ".utf8)); u32(16); u16(1); u16(1); u32(sampleRate); u32(sampleRate * 2); u16(2); u16(16)
+    wav.append(contentsOf: Array("data".utf8)); u32(dataSize); wav.append(Data(count: Int(dataSize)))
+    return wav
+  }()
 
   @objc func scheduleReminder(duration: Double,
                               title: String,
@@ -158,71 +415,34 @@ import UserNotifications
       if volume <= 0 { return }
       let resource = sound.isEmpty ? "notification" : sound
       guard let url = Bundle.main.url(forResource: resource, withExtension: "m4r") else { return }
-      do {
-        // .playback (not .ambient) so the cue grabs the active output route and is audible over a
-        // podcast playing on Bluetooth/AirPods; .duckOthers lowers it briefly, restored on deactivation.
-        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
-        try AVAudioSession.sharedInstance().setActive(true, options: [])
-        let player = try AVAudioPlayer(contentsOf: url)
-        player.delegate = TimerAudioSessionDeactivator.shared
-        player.volume = Float(min(max(volume, 0), 1))
-        player.prepareToPlay()
-        player.play()
+      guard let player = self.preparedCuePlayer(url: url, volume: volume) else { return }
+      if player.play() {
         self.audioPlayer = player
-      } catch {
-        Logger.notifications.error("audio failed: \(error)")
+      } else {
+        Logger.notifications.error("\(resource): play() returned false")
+        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
       }
     }
   }
 
-  // The watch asks at the deadline. Declining when the app is active leaves the JS foreground cue
-  // and the watch chirp both playing, which is the behaviour on every screen-on case today.
-  func tryPlayWatchCue(volume: Double, completion: @escaping (Bool) -> Void) {
-    DispatchQueue.main.async {
-      guard UIApplication.shared.applicationState != .active else {
-        Logger.notifications.info("watch cue declined, phone is in the foreground")
-        completion(false)
-        return
+  // .playback so the cue is audible over a podcast on AirPods, set before prepareToPlay(): prepare
+  // opens the hardware with the current category, and a backgrounded app cannot with .soloAmbient.
+  private func preparedCuePlayer(url: URL, volume: Double) -> AVAudioPlayer? {
+    do {
+      try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
+      try AVAudioSession.sharedInstance().setActive(true, options: [])
+      let player = try AVAudioPlayer(contentsOf: url)
+      player.delegate = TimerAudioSessionDeactivator.shared
+      player.volume = Float(min(max(volume, 0), 1))
+      if player.prepareToPlay() {
+        return player
       }
-      guard LiftosaurTimerImpl.hasHeadphoneRoute() else {
-        Logger.notifications.info("watch cue declined, phone has no headphones")
-        completion(false)
-        return
-      }
-      guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r") else {
-        completion(false)
-        return
-      }
-      do {
-        // Build and prepare before activating. An active session with nothing playing keeps the
-        // process awake under UIBackgroundModes=audio, and only a successful finish deactivates it.
-        let player = try AVAudioPlayer(contentsOf: url)
-        player.delegate = TimerAudioSessionDeactivator.shared
-        // Scales the cue by the app's rest-timer setting. The AirPods' own output level still
-        // applies on top, so both the setting and the device volume are honoured.
-        player.volume = Float(min(max(volume, 0), 1))
-        guard player.prepareToPlay() else {
-          Logger.notifications.error("watch cue could not prepare")
-          completion(false)
-          return
-        }
-        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
-        try AVAudioSession.sharedInstance().setActive(true, options: [])
-        guard player.play() else {
-          Logger.notifications.error("watch cue could not start")
-          try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-          completion(false)
-          return
-        }
-        self.audioPlayer = player
-        Logger.notifications.info("watch cue played through headphones at volume \(volume)")
-        completion(true)
-      } catch {
-        Logger.notifications.error("watch cue failed: \(error)")
-        try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-        completion(false)
-      }
+      Logger.notifications.error("cue could not prepare")
+    } catch {
+      Logger.notifications.error("cue audio setup failed: \(error)")
     }
+    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    return nil
   }
 
   private static func hasHeadphoneRoute() -> Bool {
@@ -261,6 +481,8 @@ fileprivate final class TimerAudioSessionDeactivator: NSObject, AVAudioPlayerDel
   static let shared = TimerAudioSessionDeactivator()
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    // A chirp that ends after the next rest's keep-alive started must not close that session.
+    guard LiftosaurTimerImpl.shared.keepAlivePlayer == nil else { return }
     try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
   }
 }

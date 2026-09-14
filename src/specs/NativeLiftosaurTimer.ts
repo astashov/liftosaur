@@ -20,6 +20,8 @@ export type LiftosaurTimerStartParams = {
   volume: number;
   vibration: boolean;
   ignoreDoNotDisturb: boolean;
+  timerSinceMs: number;
+  timerSeconds: number;
 };
 
 export type LiftosaurTimerFiredEvent = {

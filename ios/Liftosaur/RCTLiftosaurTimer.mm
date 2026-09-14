@@ -23,6 +23,8 @@ RCT_EXPORT_MODULE(LiftosaurTimer)
                                                volume:params.volume()
                                             vibration:params.vibration()
                                    ignoreDoNotDisturb:params.ignoreDoNotDisturb()
+                                         timerSinceMs:params.timerSinceMs()
+                                         timerSeconds:params.timerSeconds()
                                            completion:^(BOOL scheduled, NSString * _Nullable missingPermission) {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
     result[@"scheduled"] = @(scheduled);
