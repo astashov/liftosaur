@@ -11,12 +11,19 @@ class WatchMessageHandler {
 
     private let sharedHandler = SharedMessageHandler.shared
 
+    // The engine calls this from its serial JS queue; main.async keeps that order, one Task per
+    // batch would not.
     func handleMessages(_ messages: [[String: String]]) {
-        for message in messages {
-            handleMessage(message)
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated {
+                for message in messages {
+                    self.handleMessage(message)
+                }
+            }
         }
     }
 
+    @MainActor
     private func handleMessage(_ message: [String: String]) {
         guard let type = message["type"] else { return }
 
@@ -25,8 +32,11 @@ class WatchMessageHandler {
             handleUpdateLiveActivity(message)
         case "event":
             handleEvent(message)
+        case "startTimer":
+            WorkoutManager.shared.restNotification.start(message)
+        case "stopTimer":
+            WorkoutManager.shared.restNotification.stop()
         default:
-            // Delegate to shared handler for common messages (startTimer, stopTimer, etc.)
             sharedHandler.handleMessage(message)
         }
     }
@@ -43,4 +53,3 @@ class WatchMessageHandler {
         WatchConnectivityManager.shared.sendLiveActivityUpdate(message)
     }
 }
-
