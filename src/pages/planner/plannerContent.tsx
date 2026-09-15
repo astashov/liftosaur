@@ -834,6 +834,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             types: IExerciseKind[],
             smallImageUrl?: string,
             largeImageUrl?: string,
+            videoUrl?: string,
             exercise?: ICustomExercise
           ) => {
             const exercises = Exercise_createOrUpdateCustomExercise(
@@ -844,6 +845,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               types,
               smallImageUrl,
               largeImageUrl,
+              videoUrl,
               exercise
             );
             setSettings(lf(settings).p("exercises").set(exercises));

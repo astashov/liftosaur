@@ -76,6 +76,7 @@ interface IModalExerciseProps {
     types: IExerciseKind[],
     smallImageUrl?: string,
     largeImageUrl?: string,
+    videoUrl?: string,
     exercise?: ICustomExercise
   ) => void;
   customExerciseName?: string;
@@ -435,6 +436,7 @@ interface IEditCustomExerciseProps {
     types: IExerciseKind[],
     smallImageUrl?: string,
     largeImageUrl?: string,
+    videoUrl?: string,
     exercise?: ICustomExercise
   ) => void;
   customExerciseName?: string;
@@ -500,6 +502,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
                 state.types || [],
                 state.smallImageUrl,
                 state.largeImageUrl,
+                state.videoUrl,
                 props.exercise
               );
               props.setIsCustomExerciseDisplayed(false);
