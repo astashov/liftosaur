@@ -13,7 +13,7 @@ const EXPECTED_FINGERPRINT =
 // Settings.swift is CRLF; the Swift side strips \r and \n before base64-decoding, so compare
 // on normalized newlines rather than raw bytes.
 function readRepoFile(relative: string): string {
-  return fs.readFileSync(path.resolve(__dirname, "..", "..", relative), "utf8").replace(/\r\n/g, "\n");
+  return fs.readFileSync(path.resolve(process.cwd(), relative), "utf8").replace(/\r\n/g, "\n");
 }
 
 function iosCertificate(): string {
