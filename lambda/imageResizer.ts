@@ -20,6 +20,11 @@ export const handler = async (event: S3Event): Promise<void> => {
       continue;
     }
 
+    if (key.endsWith(".mp4") || key.endsWith(".mov")) {
+      di.log.log("Skipping video upload:", key);
+      continue;
+    }
+
     try {
       const getObjectResult = await di.s3.getObject({ bucket, key });
 

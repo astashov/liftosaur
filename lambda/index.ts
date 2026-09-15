@@ -3277,10 +3277,18 @@ const postImageUploadUrlHandler: RouteHandler<
     return ResponseUtils_json(400, event, { error: "fileName and contentType are required" });
   }
 
-  // These images are served from the app origin, so the presigned Content-Type (S3 signs and enforces
-  // it) must never be something a browser would execute - no text/html, and no image/svg+xml, which
-  // can carry script. The app only ever uploads the raster types below.
-  const allowedContentTypes = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+  // These images and videos are served from the app origin, so the presigned Content-Type (S3 signs
+  // and enforces it) must never be something a browser would execute - no text/html, no
+  // image/svg+xml, and no JS-bearing containers. The app only uploads raster images and the inert
+  // video containers below.
+  const allowedContentTypes = [
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "video/mp4",
+    "video/quicktime",
+  ];
   if (!allowedContentTypes.includes(contentType)) {
     return ResponseUtils_json(400, event, { error: "Unsupported content type" });
   }
