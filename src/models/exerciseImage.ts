@@ -782,3 +782,11 @@ export function ExerciseImageUtils_url(
     return undefined;
   }
 }
+
+export function ExerciseImageUtils_motionUrl(type: IExerciseType, settings?: ISettings): string | undefined {
+  return settings?.exercises?.[type.id]?.videoUrl;
+}
+
+export function ExerciseImageUtils_existsMotion(type: IExerciseType, settings?: ISettings): boolean {
+  return !!ExerciseImageUtils_motionUrl(type, settings);
+}
