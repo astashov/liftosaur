@@ -247,7 +247,7 @@
     "react-native-pager-view": "^8.0.1",
     "react-native-reanimated": "^4.3.0",
     "react-native-safe-area-context": "^5.7.0",
-    "react-native-screens": "^4.24.0",
+    "react-native-screens": "^4.27.0",
     "react-native-share": "^12.2.6",
     "react-native-svg": "^15.15.4",
     "react-native-view-shot": "^5.0.1",
@@ -276,6 +276,10 @@
       "javaPackageName": "com.liftosaur.www.twa.specs"
     },
     "ios": {
+      "componentProvider": {
+        "FastText": "RCTFastTextView",
+        "LiftoEditor": "RCTLiftoEditorView"
+      },
       "modulesProvider": {
         "LiftosaurShare": "RCTLiftosaurShare",
         "LiftosaurTimer": "RCTLiftosaurTimer",
