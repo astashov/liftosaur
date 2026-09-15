@@ -2,6 +2,7 @@ import RNFS from "react-native-fs";
 import { Service } from "../api/service";
 import NativeImageResizer from "../specs/NativeLiftosaurImageResizer";
 import { ImageResizeLayout_compute } from "./imageResizeLayout";
+import { IVideoPick } from "./videoPick";
 
 // Matches the web ImageUploader canvas (MAX_WIDTH/MAX_HEIGHT) so native and web produce the same
 // 2:3-padded PNG.
@@ -38,8 +39,16 @@ export class ImageUploader {
     throw new Error("uploadImage is web-only; native uses uploadBase64Image with a file uri");
   }
 
+  public async uploadVideo(pick: IVideoPick, exerciseId: string): Promise<string> {
+    if (pick.size != null && pick.size > 100 * 1024 * 1024) {
+      throw new Error("Video is too large. The maximum size is 100 MB.");
+    }
+    const contentType = pick.type || "video/mp4";
+    return this.upload(pick.uri, exerciseId, contentType);
+  }
+
   private async upload(uri: string, exerciseId: string, contentType: string): Promise<string> {
-    const extension = contentType.split("/")[1] || "jpg";
+    const extension = contentType === "video/quicktime" ? "mov" : contentType.split("/")[1] || "jpg";
     const fileName = `${exerciseId}.${extension}`;
     const presignedUrlResponse = await this.service.postImageUploadUrl(fileName, contentType);
     const filepath = decodeURIComponent(uri.replace(/^file:\/\//, ""));
