@@ -18,6 +18,7 @@ import com.liftosaur.www.twa.imageresizer.LiftosaurImageResizerPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPath
 import com.liftosaur.www.twa.liveactivity.LiftosaurLiveActivityPackage
+import com.liftosaur.www.twa.push.LiftosaurPushPackage
 import com.liftosaur.www.twa.share.LiftosaurSharePackage
 import com.liftosaur.www.twa.timer.LiftosaurTimerPackage
 import com.rollbar.RollbarReactNative
@@ -37,6 +38,7 @@ class MainApplication : Application(), ReactApplication {
           add(FastTextPackage())
           add(LiftoEditorPackage())
           add(LiftosaurImageResizerPackage())
+          add(LiftosaurPushPackage())
         },
       jsMainModulePath = "index",
       jsBundleFilePath = if (BuildConfig.DISABLE_OTA) null else LftUpdaterPath.effectiveBundleFilePath(this),

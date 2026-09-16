@@ -364,6 +364,7 @@ export function Thunk_logOut(cb?: () => void): IThunk {
     dispatch(Thunk_postevent("log-out"));
     if (getState().user?.id) {
       const isDebugAccount = AdminDebug_isDebugAccountId(getState().storage.tempUserId);
+      await env.push?.unregisterBeforeSignout();
       await env.service.signout();
       dispatch({ type: "Logout" });
       updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
@@ -2133,6 +2134,7 @@ export function Thunk_adminLoginAsUser(
     // Sign out the admin's own session so the debug sandbox is fully anonymous: the server
     // never minted a target cookie, and clearing the admin's own cookie means no in-session
     // request can be attributed to anyone. The admin's local account stays in IndexedDB.
+    await env.push?.unregisterBeforeSignout();
     await env.service.signout();
     const localStorage: ILocalStorage = { storage: debugStorage };
     await IndexedDBUtils_set("current_account", debugStorage.tempUserId);

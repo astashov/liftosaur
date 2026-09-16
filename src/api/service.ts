@@ -991,6 +991,28 @@ export class Service {
     return [];
   }
 
+  public async postPushToken(args: { deviceId: string; platform: "ios" | "android"; token: string }): Promise<void> {
+    const result = await this.client(`${__API_HOST__}/api/pushtoken`, {
+      method: "POST",
+      body: JSON.stringify(args),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!result.ok) {
+      throw new Error(`postPushToken failed: ${result.status}`);
+    }
+  }
+
+  public async deletePushToken(deviceId: string): Promise<void> {
+    const result = await this.client(`${__API_HOST__}/api/pushtoken/${encodeURIComponent(deviceId)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!result.ok) {
+      throw new Error(`deletePushToken failed: ${result.status}`);
+    }
+  }
+
   public async createApiKey(name: string): Promise<{ key: string; name: string; createdAt: number } | undefined> {
     const result = await this.client(`${__API_HOST__}/api/apikeys`, {
       method: "POST",

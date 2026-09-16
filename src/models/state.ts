@@ -26,6 +26,7 @@ import type { IScreenData } from "./screen";
 import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
 import type { IIapActiveSubscription, IIapAdapter } from "../utils/iapAdapter";
 import type { IHealthAdapter } from "../utils/healthAdapter";
+import type { IPushSync } from "../utils/pushSyncAdapter";
 import type { Persistence } from "../utils/persistence";
 
 export type IEnv = {
@@ -37,6 +38,7 @@ export type IEnv = {
   getCurrentScreenData?: () => IScreenData | undefined;
   iap?: IIapAdapter;
   health?: IHealthAdapter;
+  push?: IPushSync;
 };
 
 export interface INotification {

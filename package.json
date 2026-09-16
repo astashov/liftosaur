@@ -288,7 +288,8 @@
         "LiftosaurEventReporter": "RCTLiftosaurEventReporter",
         "LiftosaurWorkoutMirroring": "RCTLiftosaurWorkoutMirroring",
         "LftUpdater": "RCTLftUpdater",
-        "LiftosaurImageResizer": "RCTLiftosaurImageResizer"
+        "LiftosaurImageResizer": "RCTLiftosaurImageResizer",
+        "LiftosaurPush": "RCTLiftosaurPush"
       }
     }
   }
