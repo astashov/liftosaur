@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.WritableMap
+import com.liftosaur.www.twa.eventreporter.EventReporterDispatcher
 import java.util.UUID
 
 object PushDispatcher {
@@ -36,6 +37,9 @@ object PushDispatcher {
 
     fun emitPush(data: Map<String, String>) {
         main.post {
+            if (module == null || !jsSubscribed) {
+                EventReporterDispatcher.emit("android-push-while-dead")
+            }
             pendingPush = Arguments.createMap().apply {
                 putString("reason", data["reason"] ?: "")
                 putString("originalId", data["originalId"] ?: "")

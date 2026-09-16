@@ -163,6 +163,24 @@ describe("PushSyncClient", () => {
     expect(finished).to.equal(true);
   });
 
+  it("posts again after login when a post finished only after the logout delete", async () => {
+    const { native, service, client } = build();
+    service.holdRequests = true;
+    native.emitToken("tok");
+    client.setIdentity({ userId: "u1", deviceId: "ios_a" });
+    const signout = client.unregisterBeforeSignout();
+    for (let i = 0; i < 10 && service.calls.length < 2; i++) {
+      service.release();
+      await settle();
+    }
+    await signout;
+    expect(service.calls).to.eql(["post:ios_a:ios:tok", "delete:ios_a"]);
+    service.holdRequests = false;
+    client.setIdentity({ userId: "u1", deviceId: "ios_a" });
+    await settle();
+    expect(service.calls).to.eql(["post:ios_a:ios:tok", "delete:ios_a", "post:ios_a:ios:tok"]);
+  });
+
   it("syncs on a new originalId and completes the delivery with new data only after the sync finished", () => {
     const state = build();
     state.native.emitPush({ reason: "storage", originalId: "6", deliveryId: "d1" });

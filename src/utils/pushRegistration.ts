@@ -44,8 +44,13 @@ export function PushRegistration_next(
       return withPostIfNeeded({ ...state, token: event.token });
     case "identity":
       return withPostIfNeeded({ ...state, identity: event.identity });
-    case "posted":
-      return { state: { ...state, lastPosted: event.posted }, effects: [] };
+    case "posted": {
+      const stillWanted =
+        state.identity?.userId === event.posted.userId &&
+        state.identity?.deviceId === event.posted.deviceId &&
+        state.token === event.posted.token;
+      return { state: stillWanted ? { ...state, lastPosted: event.posted } : state, effects: [] };
+    }
     case "push":
       if (event.originalId === event.localOriginalId) {
         return { state, effects: [{ type: "complete", deliveryIds: [event.deliveryId], newData: false }] };
