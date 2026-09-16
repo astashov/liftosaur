@@ -85,6 +85,18 @@ async function uploadAndUpdateVideo(
   dispatch([lb<ICustomExercise>().p("videoUrl").record(url)], "Set custom exercise video URL");
 }
 
+async function uploadVideoFile(
+  file: File,
+  exerciseId: string,
+  service: Service,
+  dispatch: ILensDispatch<ICustomExercise>
+): Promise<void> {
+  const imageUploader = new ImageUploader(service);
+  const pick: IVideoPick = { uri: URL.createObjectURL(file), type: file.type || undefined, size: file.size };
+  const url = await imageUploader.uploadVideo(pick, exerciseId);
+  dispatch([lb<ICustomExercise>().p("videoUrl").record(url)], "Set custom exercise video URL");
+}
+
 async function confirmAsync(message: string): Promise<boolean> {
   return Dialog_confirm(message);
 }
@@ -516,15 +528,16 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                     Dialog_alert("You need to be logged in to upload custom exercise videos");
                     return;
                   }
-                  const imageUploader = new ImageUploader(service);
-                  const pick: IVideoPick = {
-                    uri: URL.createObjectURL(file),
-                    type: file.type || undefined,
-                    size: file.size,
-                  };
-                  const url = await imageUploader.uploadVideo(pick, editCustomExercise.id);
-                  props.dispatch([lb<ICustomExercise>().p("videoUrl").record(url)], "Set custom exercise video URL");
-                  setShowVideoBottomSheet(false);
+                  setIsUploading(true);
+                  try {
+                    await uploadVideoFile(file, editCustomExercise.id, service, props.dispatch);
+                    setShowVideoBottomSheet(false);
+                  } catch (e) {
+                    console.error("Error uploading video", e);
+                    Dialog_alert("Failed to upload video. Please try again.");
+                  } finally {
+                    setIsUploading(false);
+                  }
                 }}
               >
                 {(onClick) => (
