@@ -180,7 +180,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           </View>
           <View>
             <LinkButton
-              name="edit-custom-exercise-stats"
+              name="delete-custom-exercise-stats"
               className="text-sm text-text-error"
               onClick={onDeleteCustomExercise}
             >
