@@ -124,6 +124,30 @@ describe("PushRegistration_next registration", () => {
   it("deletes nothing on signout when nothing was ever registered", () => {
     expect(run([{ type: "signout" }]).effects).to.eql([]);
   });
+
+  it("ignores a post that finishes after signout, so the next login posts again", () => {
+    const posted = { userId: "u1", deviceId: "ios_a", token: "t" };
+    const { state, effects } = run([
+      { type: "token", token: "t" },
+      { type: "identity", identity },
+      { type: "signout" },
+      { type: "posted", posted },
+      { type: "identity", identity },
+    ]);
+    expect(effects).to.eql(["post:ios_a:t", "delete:ios_a", "post:ios_a:t"]);
+    expect(state.lastPosted).to.equal(undefined);
+  });
+
+  it("ignores a post that finishes after the token rotated", () => {
+    const { effects } = run([
+      { type: "token", token: "t1" },
+      { type: "identity", identity },
+      { type: "token", token: "t2" },
+      { type: "posted", posted: { userId: "u1", deviceId: "ios_a", token: "t1" } },
+      { type: "identity", identity },
+    ]);
+    expect(effects).to.eql(["post:ios_a:t1", "post:ios_a:t2", "post:ios_a:t2"]);
+  });
 });
 
 describe("PushRegistration_next pushes", () => {
