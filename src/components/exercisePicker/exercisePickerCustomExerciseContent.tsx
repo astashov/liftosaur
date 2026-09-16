@@ -117,6 +117,10 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
     );
   });
 
+  const openVideoSource = useModal("exerciseVideoSourceModal", (result) => {
+    props.dispatch([lb<ICustomExercise>().p("videoUrl").record(result.videoUrl)], "Set custom exercise video URL");
+  });
+
   const openCloneLibraryModal = useModal("exerciseCloneLibraryModal", (result) => {
     props.dispatch(
       [
@@ -154,6 +158,14 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
       setShowImageBottomSheet(true);
     } else {
       openImageSource({ exerciseId: editCustomExercise.id });
+    }
+  };
+
+  const openVideoSourceAction = (): void => {
+    if (props.useInlineModals) {
+      setShowVideoBottomSheet(true);
+    } else {
+      openVideoSource({ exerciseId: editCustomExercise.id });
     }
   };
 
@@ -213,13 +225,18 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           {editCustomExercise.videoUrl ? (
             <View className="flex-row items-center gap-2">
               <ExerciseVideo uri={editCustomExercise.videoUrl} resizeMode="cover" style={{ width: 60, height: 40 }} />
-              <LinkButton name="custom-exercise-change-video" className="text-xs" onPress={() => setShowVideoBottomSheet(true)}>
+              <LinkButton name="custom-exercise-change-video" className="text-xs" onPress={openVideoSourceAction}>
                 Change video
               </LinkButton>
               <LinkButton
                 name="custom-exercise-remove-video"
                 className="text-xs"
-                onPress={() => props.dispatch(lb<ICustomExercise>().p("videoUrl").record(undefined), "Clear custom exercise video URL")}
+                onPress={() =>
+                  props.dispatch(
+                    lb<ICustomExercise>().p("videoUrl").record(undefined),
+                    "Clear custom exercise video URL"
+                  )
+                }
               >
                 Remove video
               </LinkButton>
@@ -230,7 +247,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               kind="purple"
               className="w-full"
               buttonSize="md"
-              onPress={() => setShowVideoBottomSheet(true)}
+              onPress={openVideoSourceAction}
             >
               Add demo video
             </Button>
