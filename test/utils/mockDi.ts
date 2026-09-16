@@ -6,6 +6,7 @@ import { MockLambdaUtil } from "./mockLambdaUtil";
 import { MockS3Util } from "./mockS3Util";
 import { MockSecretsUtil } from "./mockSecretsUtil";
 import { MockSesUtil } from "./mockSesUtil";
+import { MockSnsUtil } from "./mockSnsUtil";
 
 export interface IMockDI extends IDI {
   dynamo: MockDynamoUtil;
@@ -15,6 +16,7 @@ export interface IMockDI extends IDI {
   secrets: MockSecretsUtil;
   lambda: MockLambdaUtil;
   cloudwatch: MockCloudwatchUtil;
+  sns: MockSnsUtil;
   fetch: Window["fetch"];
 }
 
@@ -26,6 +28,7 @@ export function buildMockDi(log: ILogUtil, fetch: Window["fetch"]): IMockDI {
     ses: new MockSesUtil(log),
     lambda: new MockLambdaUtil(log),
     cloudwatch: new MockCloudwatchUtil(log),
+    sns: new MockSnsUtil(log),
     log,
     fetch,
   };

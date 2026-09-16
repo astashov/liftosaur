@@ -1,9 +1,10 @@
 import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
-import { IDynamoUtil } from "../../lambda/utils/dynamo";
+import { IDynamoCondition, IDynamoUtil } from "../../lambda/utils/dynamo";
 import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
 import { userTableNames } from "../../lambda/dao/userDao";
 import { apiKeyTableNames } from "../../lambda/dao/apiKeyDao";
+import { pushEndpointTableNames } from "../../lambda/dao/pushEndpointDao";
 import { oauthTableNames } from "../../lambda/dao/oauthDao";
 import { freeUsersTableNames } from "../../lambda/dao/freeUserDao";
 import { CollectionUtils_compact } from "../../src/utils/collection";
@@ -16,6 +17,7 @@ const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.programs]: ["userId", "id"],
   [userTableNames.prod.stats]: ["userId", "name"],
   [apiKeyTableNames.prod.apiKeys]: ["key"],
+  [pushEndpointTableNames.prod.pushEndpoints]: ["userId", "deviceId"],
   [oauthTableNames.prod.clients]: ["clientId"],
   [oauthTableNames.prod.authCodes]: ["code"],
   [oauthTableNames.prod.tokens]: ["token"],
@@ -284,9 +286,25 @@ export class MockDynamoUtil implements IDynamoUtil {
     return args.returnValues ? (ObjectUtils_clone(item) as Record<string, NativeAttributeValue>) : undefined;
   }
 
-  public async remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void> {
+  public async remove(args: {
+    tableName: string;
+    key: Record<string, NativeAttributeValue>;
+    condition?: IDynamoCondition;
+  }): Promise<boolean> {
     const key = this.getKey(args.key);
+    const item = this.data[args.tableName]?.[key];
+    if (item != null && args.condition != null) {
+      const matches = this.buildCondition({
+        filterExpression: args.condition.expression,
+        attrs: args.condition.attrs,
+        values: args.condition.values,
+      });
+      if (!matches(item)) {
+        return false;
+      }
+    }
     delete this.data[args.tableName]?.[key];
+    return true;
   }
 
   public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {

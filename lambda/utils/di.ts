@@ -5,6 +5,7 @@ import { IS3Util, S3Util } from "./s3";
 import { ISesUtil, SesUtil } from "./ses";
 import { ILambdaUtil, LambdaUtil } from "./lambda";
 import { CloudwatchUtil, ICloudwatchUtil } from "./cloudwatch";
+import { ISnsUtil, SnsUtil } from "./sns";
 
 export interface IDI {
   dynamo: IDynamoUtil;
@@ -14,6 +15,7 @@ export interface IDI {
   secrets: ISecretsUtil;
   lambda: ILambdaUtil;
   cloudwatch: ICloudwatchUtil;
+  sns: ISnsUtil;
   fetch: Window["fetch"];
 }
 
@@ -25,6 +27,7 @@ export function buildDi(log: ILogUtil, fetch: Window["fetch"]): IDI {
     ses: new SesUtil(log),
     lambda: new LambdaUtil(log),
     cloudwatch: new CloudwatchUtil(log),
+    sns: new SnsUtil(log),
     log: log,
     fetch,
   };

@@ -19,6 +19,12 @@ import { CollectionUtils_inGroupsOf, CollectionUtils_compact } from "../../src/u
 import { Concurrency_runWithLimit } from "../../src/utils/concurrency";
 import { ILogUtil } from "./log";
 
+export interface IDynamoCondition {
+  expression: string;
+  attrs?: Record<string, string>;
+  values?: Partial<Record<string, string | number>>;
+}
+
 export interface IDynamoUtil {
   query<T>(args: {
     tableName: string;
@@ -69,7 +75,11 @@ export interface IDynamoUtil {
     values?: Partial<Record<string, NativeAttributeValue>>;
     returnValues?: "ALL_NEW" | "UPDATED_NEW";
   }): Promise<Record<string, NativeAttributeValue> | undefined>;
-  remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void>;
+  remove(args: {
+    tableName: string;
+    key: Record<string, NativeAttributeValue>;
+    condition?: IDynamoCondition;
+  }): Promise<boolean>;
   batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]>;
   batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void>;
   batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void>;
@@ -401,20 +411,32 @@ export class DynamoUtil implements IDynamoUtil {
     return attributes;
   }
 
-  public async remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void> {
+  public async remove(args: {
+    tableName: string;
+    key: Record<string, NativeAttributeValue>;
+    condition?: IDynamoCondition;
+  }): Promise<boolean> {
     const startTime = Date.now();
     try {
       await this.dynamo.send(
         new DeleteCommand({
           TableName: args.tableName,
           Key: args.key,
+          ConditionExpression: args.condition?.expression,
+          ExpressionAttributeNames: args.condition?.attrs,
+          ExpressionAttributeValues: args.condition?.values,
         })
       );
     } catch (e) {
+      if (e instanceof Error && e.name === "ConditionalCheckFailedException") {
+        this.log.log(`Dynamo delete skipped by condition: ${args.tableName} - `, args.key);
+        return false;
+      }
       this.log.log(`FAILED Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
       throw e;
     }
     this.log.log(`Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
+    return true;
   }
 
   // DynamoDB BatchWriteItem can succeed (HTTP 200) while leaving some items unwritten in

@@ -248,6 +248,20 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const pushEndpointsTable = new dynamodb.Table(this, `LftPushEndpoints${suffix}`, {
+      tableName: `lftPushEndpoints${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "deviceId", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    pushEndpointsTable.addGlobalSecondaryIndex({
+      indexName: `lftPushEndpointsEndpointArn${suffix}`,
+      partitionKey: { name: "endpointArn", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     const oauthClientsTable = new dynamodb.Table(this, `LftOauthClients${suffix}`, {
       tableName: `lftOauthClients${suffix}`,
       partitionKey: { name: "clientId", type: dynamodb.AttributeType.STRING },
@@ -684,6 +698,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     freeUsersTable.grantReadWriteData(lambdaFunction);
     couponsTable.grantReadWriteData(lambdaFunction);
     apiKeysTable.grantReadWriteData(lambdaFunction);
+    pushEndpointsTable.grantReadWriteData(lambdaFunction);
     oauthClientsTable.grantReadWriteData(lambdaFunction);
     oauthAuthCodesTable.grantReadWriteData(lambdaFunction);
     oauthTokensTable.grantReadWriteData(lambdaFunction);
@@ -692,6 +707,15 @@ export class LiftosaurCdkStack extends cdk.Stack {
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({
         actions: ["ses:SendEmail", "SES:SendRawEmail"],
+        resources: ["*"],
+        effect: iam.Effect.ALLOW,
+      })
+    );
+    // The three endpoint actions have no resource type in the IAM reference, and Publish to an endpoint ARN has
+    // none either, so this cannot be scoped to the platform application ARNs in lambda/utils/pushPlatforms.ts.
+    lambdaFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ["sns:CreatePlatformEndpoint", "sns:SetEndpointAttributes", "sns:DeleteEndpoint", "sns:Publish"],
         resources: ["*"],
         effect: iam.Effect.ALLOW,
       })

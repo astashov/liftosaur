@@ -9,6 +9,12 @@ import { PasswordHash_hash, PasswordHash_verify } from "./utils/passwordHash";
 import { renderResetPasswordHtml } from "./resetPassword";
 import { renderVerifyEmailHtml } from "./verifyEmail";
 import { ApiKeyDao } from "./dao/apiKeyDao";
+import {
+  PushSync_notify,
+  PushSync_register,
+  PushSync_unregister,
+  PushSync_validateRegistration,
+} from "./utils/pushSync";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory_generateUid } from "./utils/generator";
@@ -595,6 +601,9 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             storageDao.store(limitedUser.id, result.data.newStorage, storageUpdate?.storage),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
+          if (result.data.newStorage != null) {
+            await PushSync_notify(di, limitedUser.id, deviceId, result.data.originalId);
+          }
           if (storageId) {
             await eventDao.post({
               type: "safesnapshot",
@@ -636,6 +645,9 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             storageDao.store(limitedUser.id, storage, storageUpdate?.storage),
             userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
           ]);
+          if (result.data.newStorage != null) {
+            await PushSync_notify(di, limitedUser.id, deviceId, result.data.originalId);
+          }
           if (key) {
             storage.subscription.key = key;
           }
@@ -1659,11 +1671,12 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     if (serverProgram != null) {
       exportedProgram.program.nextDay = serverProgram.nextDay;
     }
+    const originalId = Date.now();
     const newStorage: IPartialStorage = {
       ...oldStorage,
       programs: CollectionUtils_setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),
       settings: Settings_applyExportedProgram(oldStorage.settings, exportedProgram),
-      originalId: Date.now(),
+      originalId,
     };
     di.log.log("Device id", deviceId);
     const newVersions = Storage_updateVersions(
@@ -1728,6 +1741,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       eventPost,
       saveVersions,
     ]);
+    await PushSync_notify(di, user.id, deviceId, originalId);
     if (source === "program-details") {
       await new LogDao(di).recordAction(user.id, "ls-add-program-to-account", getLandingPageCookie(event));
     }
@@ -1824,6 +1838,7 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     };
     user.storage = newStorage;
     await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user), eventPost]);
+    await PushSync_notify(di, user.id, undefined, newStorage.originalId);
     return ResponseUtils_json(200, event, { data: { id: program.id } });
   }
   return ResponseUtils_json(400, event, { error: "Not Authorized" });
@@ -2215,6 +2230,37 @@ const deleteApiKeyHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
     return ResponseUtils_json(404, event, { error: { code: "not_found", message: "API key not found" } });
   }
   await apiKeyDao.deleteKey(params.key);
+  return ResponseUtils_json(200, event, { data: { deleted: true } });
+};
+
+const postPushTokenEndpoint = Endpoint.build("/api/pushtoken");
+const postPushTokenHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postPushTokenEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const registration = PushSync_validateRegistration(getBodyJson(event));
+  if (!registration.success) {
+    return ResponseUtils_json(400, event, { error: registration.error });
+  }
+  await PushSync_register(di, userId, registration.data);
+  return ResponseUtils_json(200, event, {});
+};
+
+const deletePushTokenEndpoint = Endpoint.build("/api/pushtoken/:deviceId");
+const deletePushTokenHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deletePushTokenEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  await PushSync_unregister(di, userId, params.deviceId);
   return ResponseUtils_json(200, event, { data: { deleted: true } });
 };
 
@@ -3957,6 +4003,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postApiKeysEndpoint, postApiKeysHandler)
       .get(getApiKeysEndpoint, getApiKeysHandler)
       .delete(deleteApiKeyEndpoint, deleteApiKeyHandler)
+      .post(postPushTokenEndpoint, postPushTokenHandler)
+      .delete(deletePushTokenEndpoint, deletePushTokenHandler)
       .get(getV1HistoryEndpoint, getV1HistoryHandler)
       .post(postV1HistoryEndpoint, postV1HistoryHandler)
       .put(putV1HistoryEndpoint, putV1HistoryHandler)

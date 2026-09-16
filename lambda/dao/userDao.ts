@@ -43,6 +43,7 @@ import { ICollectionVersions, isCollectionVersions, VersionTracker } from "../..
 import { DebugDao } from "./debugDao";
 import { StorageDao } from "./storageDao";
 import { ApiKeyDao } from "./apiKeyDao";
+import { PushSync_notify, PushSync_removeAllForUser } from "../utils/pushSync";
 import { EventDao } from "./eventDao";
 
 export const userTableNames = {
@@ -733,6 +734,7 @@ export class UserDao {
     newStorage._versions = Storage_updateVersions(oldStorage, newStorage, deviceId);
     user.storage = newStorage;
     await Promise.all([this.store(user), ...(sideEffects || [])]);
+    await PushSync_notify(this.di, user.id, deviceId, newStorage.originalId);
   }
 
   public async getLimitedById(userId: string): Promise<ILimitedUserDao | undefined> {
@@ -1067,6 +1069,7 @@ export class UserDao {
     const apiKeyDao = new ApiKeyDao(this.di);
     const apiKeys = await apiKeyDao.listByUserId(userId);
     await Promise.all(apiKeys.map((apiKey) => apiKeyDao.deleteKey(apiKey.key)));
+    await PushSync_removeAllForUser(this.di, userId);
   }
 
   public async getImages(userId: string): Promise<string[]> {
