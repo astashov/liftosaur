@@ -246,6 +246,9 @@ import {
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
+import NativeLiftosaurPush from "./specs/NativeLiftosaurPush";
+import { PushSyncClient } from "./utils/pushSyncClient";
+import { PushRegistration_identityOf } from "./utils/pushRegistration";
 import { History_getGraphsAggregates, History_getHomeAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling, PerfFrameSampler_flush } from "./utils/perfFrameCallback";
@@ -266,9 +269,10 @@ GoogleSignin.configure({
 
 function AppInner(props: { initialState: IState; persistence: Persistence }): React.JSX.Element {
   const persistence = props.persistence;
-  const env = useMemo<IEnv>(
-    () => ({
-      service: new Service(fetch),
+  const env = useMemo<IEnv>(() => {
+    const service = new Service(fetch);
+    return {
+      service,
       audio: new AudioInterface(),
       queue: new AsyncQueue(),
       persistence,
@@ -276,9 +280,9 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
       getCurrentScreenData,
       iap: new IapAdapter(),
       health: new HealthAdapter(),
-    }),
-    [persistence]
-  );
+      push: new PushSyncClient(service, NativeLiftosaurPush, Platform.OS === "ios" ? "ios" : "android"),
+    };
+  }, [persistence]);
   const service = env.service;
   const reducer = useMemo(() => reducerWrapper(true, persistence), [persistence]);
   const onActions = useMemo(() => defaultOnActions(env), [env]);
@@ -302,6 +306,14 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
   }, []);
+
+  useEffect(() => {
+    return env.push?.start({
+      identity: PushRegistration_identityOf(stateRef.current),
+      getLocalOriginalId: () => stateRef.current.storage.originalId,
+      onSync: (done) => dispatch(Thunk_sync2({ force: true, cb: done })),
+    });
+  }, [env]);
 
   useEffect(() => {
     if (__DEV__) {
@@ -441,6 +453,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
         dispatch(Thunk_postevent("wake"));
         env.queue.clearStaleOperations();
         dispatch(Thunk_sync2({ force: true }));
+        env.push?.setIdentity(PushRegistration_identityOf(stateRef.current));
         dispatch(Thunk_syncHealthKit());
         // JS is suspended while backgrounded, so a set timer can overrun its target unprocessed. On wake,
         // catch the model up (auto-complete the timed set, backdating the rest it starts), then re-push the

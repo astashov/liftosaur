@@ -15,7 +15,13 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IDispatch } from "../ducks/types";
 import { IState } from "../models/state";
-import { Thunk_googleSignIn, Thunk_appleSignIn, Thunk_emailAuth, Thunk_forgotPassword } from "../ducks/thunks";
+import {
+  Thunk_googleSignIn,
+  Thunk_appleSignIn,
+  Thunk_emailAuth,
+  Thunk_forgotPassword,
+  Thunk_logOut,
+} from "../ducks/thunks";
 import { IEmailAuthResult } from "../ducks/thunks";
 import { track } from "../utils/posthog";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -41,7 +47,7 @@ export function Account(props: IAccountProps): JSX.Element {
   return (
     <View style={{ minWidth: 256, maxWidth: 416, alignSelf: "center", width: "100%" }}>
       {props.account ? (
-        <AccountLoggedInView service={service} account={props.account} />
+        <AccountLoggedInView service={service} account={props.account} dispatch={props.dispatch} />
       ) : (
         <AccountLoggedOutView
           service={service}
@@ -177,6 +183,7 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
 interface IAccountLoggedInViewProps {
   service: Service;
   account: IAccount;
+  dispatch?: IDispatch;
 }
 
 function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
@@ -243,6 +250,10 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
               className="ls-logout"
               onClick={async () => {
                 setIsLoading(true);
+                if (props.dispatch && !isWeb) {
+                  props.dispatch(Thunk_logOut(() => setIsLoading(false)));
+                  return;
+                }
                 await service.signout();
                 if (isWeb && typeof window !== "undefined") {
                   window.location.reload();

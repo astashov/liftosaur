@@ -155,6 +155,8 @@
 		EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
 		EE0048000000000000000048 /* LftUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0043000000000000000043 /* LftUpdater.swift */; };
 		EE0049000000000000000049 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
+		EE0062000000000000000062 /* RCTLiftosaurPush.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0061000000000000000061 /* RCTLiftosaurPush.mm */; };
+		EE0064000000000000000064 /* LiftosaurPushImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0063000000000000000063 /* LiftosaurPushImpl.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -361,6 +363,9 @@
 		EE0041000000000000000041 /* RCTLftUpdater.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLftUpdater.mm; path = Liftosaur/LftUpdater/RCTLftUpdater.mm; sourceTree = "<group>"; };
 		EE0043000000000000000043 /* LftUpdater.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdater.swift; path = Shared/LftUpdater/LftUpdater.swift; sourceTree = "<group>"; };
 		EE0045000000000000000045 /* LftUpdaterPath.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdaterPath.swift; path = Shared/LftUpdater/LftUpdaterPath.swift; sourceTree = "<group>"; };
+		EE0060000000000000000060 /* RCTLiftosaurPush.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurPush.h; path = Liftosaur/RCTLiftosaurPush.h; sourceTree = "<group>"; };
+		EE0061000000000000000061 /* RCTLiftosaurPush.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurPush.mm; path = Liftosaur/RCTLiftosaurPush.mm; sourceTree = "<group>"; };
+		EE0063000000000000000063 /* LiftosaurPushImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurPushImpl.swift; path = Liftosaur/LiftosaurPushImpl.swift; sourceTree = "<group>"; };
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F34F70BF6900DDCBEC890E05 /* RCTLiftosaurImageResizer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurImageResizer.h; path = Liftosaur/RCTLiftosaurImageResizer.h; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -437,6 +442,9 @@
 				EE0001000000000000000001 /* RCTLiftosaurEventReporter.h */,
 				EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */,
 				EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */,
+				EE0060000000000000000060 /* RCTLiftosaurPush.h */,
+				EE0061000000000000000061 /* RCTLiftosaurPush.mm */,
+				EE0063000000000000000063 /* LiftosaurPushImpl.swift */,
 				EE000A00000000000000000A /* RCTLiftosaurWorkoutMirroring.h */,
 				EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */,
 				EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */,
@@ -796,8 +804,8 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
-				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
+				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -922,13 +930,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -980,13 +984,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1036,6 +1036,8 @@
 				5B4963F7D772C61DAC6997B6 /* LiftosaurLiveActivityImpl.swift in Sources */,
 				EE0003000000000000000003 /* RCTLiftosaurEventReporter.mm in Sources */,
 				EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */,
+				EE0062000000000000000062 /* RCTLiftosaurPush.mm in Sources */,
+				EE0064000000000000000064 /* LiftosaurPushImpl.swift in Sources */,
 				EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */,
 				EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */,
 				EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */,
@@ -1761,11 +1763,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};
-		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */ = {
+		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/Runestone;
 		};

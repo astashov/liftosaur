@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "585205809167",
+    "project_id": "liftosaur-2f54a",
+    "storage_bucket": "liftosaur-2f54a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:585205809167:android:07764893d283583d25237a",
+        "android_client_info": {
+          "package_name": "com.liftosaur.www.twa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDywx4SPZrSiY9ysUPd4KgpiLKio4cKUvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
