@@ -322,6 +322,14 @@ export function Settings_buildPlannerSettings(): IPlannerSettings {
   };
 }
 
+export function Settings_withWeeklyRangeSetsBound(
+  range: [number, number] | undefined,
+  bound: "min" | "max",
+  value: number
+): [number, number] {
+  return bound === "min" ? [value, range?.[1] ?? 0] : [range?.[0] ?? 0, value];
+}
+
 export function Settings_applyExportedProgram(settings: ISettings, exportedProgram: IExportedProgram): ISettings {
   const result = {
     ...settings,

@@ -9,6 +9,7 @@ import { Modal } from "../../../components/modal";
 import { ISettings, IUnit, IScreenMuscle } from "../../../types";
 import { ObjectUtils_keys, ObjectUtils_fromArray } from "../../../utils/object";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../../models/muscle";
+import { Settings_withWeeklyRangeSetsBound } from "../../../models/settings";
 import { LinkButton } from "../../../components/linkButton";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -427,7 +428,11 @@ const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps)
       const v = parseAndClamp(e, 0);
       if (v != null) {
         dispatch(
-          lb<ISettings>().p("planner").p("weeklyRangeSets").p(muscleGroup).i(0).record(v),
+          lb<ISettings>()
+            .p("planner")
+            .p("weeklyRangeSets")
+            .p(muscleGroup)
+            .recordModify((range) => Settings_withWeeklyRangeSetsBound(range, "min", v)),
           `Update ${muscleGroup} min`
         );
       }
@@ -440,7 +445,11 @@ const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps)
       const v = parseAndClamp(e, 0);
       if (v != null) {
         dispatch(
-          lb<ISettings>().p("planner").p("weeklyRangeSets").p(muscleGroup).i(1).record(v),
+          lb<ISettings>()
+            .p("planner")
+            .p("weeklyRangeSets")
+            .p(muscleGroup)
+            .recordModify((range) => Settings_withWeeklyRangeSetsBound(range, "max", v)),
           `Update ${muscleGroup} max`
         );
       }
