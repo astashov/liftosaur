@@ -100,6 +100,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
+    usersTable.addGlobalSecondaryIndex({
+      indexName: `lftUsersGoogleIdKeys${suffix}`,
+      partitionKey: { name: "googleId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
 
     const affiliatesTable = new dynamodb.Table(this, `LftAffiliates${suffix}`, {
       tableName: `lftAffiliates${suffix}`,
