@@ -151,7 +151,11 @@ export class UserDao {
 
   private async queryUserIds(attr: "googleId" | "appleId" | "email", value: string): Promise<string[]> {
     const names = userTableNames[Utils_getEnv()];
-    const indexes = { googleId: names.usersGoogleId, appleId: names.usersAppleId, email: names.usersEmail };
+    const indexes = {
+      googleId: names.usersGoogleIdKeys,
+      appleId: names.usersAppleIdKeys,
+      email: names.usersEmailKeys,
+    };
     const rows = await this.di.dynamo.query<{ id: string }>({
       tableName: names.users,
       indexName: indexes[attr],
