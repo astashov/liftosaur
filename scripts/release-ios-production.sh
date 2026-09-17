@@ -20,15 +20,18 @@ APP_STORE_NOTES_LIMIT=4000
 
 DRY_RUN=0
 SKIP_BUILD=0
+TESTFLIGHT=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=1 ;;
     --skip-build) SKIP_BUILD=1 ;;
+    --testflight) TESTFLIGHT=1 ;;
     *)
       echo "Unknown arg: $arg" >&2
-      echo "Usage: $0 [--dry-run] [--skip-build]" >&2
+      echo "Usage: $0 [--dry-run] [--skip-build] [--testflight]" >&2
       echo "  --dry-run     archive and export a signed .ipa locally, no upload, no App Store Connect changes" >&2
       echo "  --skip-build  skip the archive and upload, only submit the already uploaded build for review" >&2
+      echo "  --testflight  archive and upload, then stop: no release notes, no review submission" >&2
       exit 1
       ;;
   esac
@@ -36,6 +39,10 @@ done
 
 if [[ $DRY_RUN -eq 1 && $SKIP_BUILD -eq 1 ]]; then
   echo "ERROR: --dry-run and --skip-build together leave nothing to do." >&2
+  exit 1
+fi
+if [[ $TESTFLIGHT -eq 1 && ($DRY_RUN -eq 1 || $SKIP_BUILD -eq 1) ]]; then
+  echo "ERROR: --testflight cannot be combined with --dry-run or --skip-build." >&2
   exit 1
 fi
 
@@ -80,6 +87,7 @@ if [[ "$VERSION" -le "$MASTER_VERSION" ]]; then
 fi
 echo "iOS version $VERSION ($BUILD_NUMBER), App Store version $VERSION (> $MASTER_REF: $MASTER_VERSION)"
 
+if [[ $TESTFLIGHT -eq 0 ]]; then
 if [[ -z "${EDITOR:-}" ]]; then
   echo "ERROR: \$EDITOR is not set, cannot ask for release notes." >&2
   exit 1
@@ -126,6 +134,7 @@ echo "----------------------------------------"
 echo "$NOTES"
 echo "----------------------------------------"
 echo
+fi
 
 AUTH_FLAGS=(
   -allowProvisioningUpdates
@@ -205,6 +214,10 @@ EOF
     exit 0
   fi
   echo "Uploaded $VERSION ($BUILD_NUMBER) to App Store Connect."
+  if [[ $TESTFLIGHT -eq 1 ]]; then
+    echo "TestFlight only: App Store Connect processes the build in a few minutes, then it shows under TestFlight. Nothing submitted for review."
+    exit 0
+  fi
 fi
 
 cd "$ROOT"
