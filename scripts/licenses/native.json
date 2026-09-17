@@ -225,6 +225,16 @@
       "gradle": ["com.google.android.gms:", "com.google.android.play:", "com.android.installreferrer:"]
     },
     {
+      "id": "firebase-android",
+      "name": "Firebase Android SDK (Cloud Messaging)",
+      "url": "https://github.com/firebase/firebase-android-sdk",
+      "license": "Apache-2.0",
+      "copyright": "Copyright Google LLC",
+      "platforms": ["android"],
+      "pods": [],
+      "gradle": ["com.google.firebase:"]
+    },
+    {
       "id": "fresco",
       "name": "Fresco",
       "url": "https://github.com/facebook/fresco",
