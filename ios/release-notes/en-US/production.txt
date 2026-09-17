@@ -1,6 +1,8 @@
-Fixed the case when you listen to music through airpods connected to phone,
+Another attempt to fix the case when you listen to music through airpods connected to phone,
 and you have watch running the workout too. Then, the sound only came from
-the watch, and you could easily miss it (because you're in airpods).
+the watch, and you could easily miss it (because you're in airpods). My last
+attempt to fix it didn't work, so trying another approach.
 
-Now, the watch will send a signal to phone to play the beep if the phone is
-connected to airpods (even if it's locked), so hopefully that helps with this issue.
+Also - now the app updates live if you change e.g. program through web editor,
+API, MCP (i.e. from ChatGPT or Claude), etc - without need to reload the app
+or wake it up.
