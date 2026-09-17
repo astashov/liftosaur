@@ -16,6 +16,38 @@
 -->
 
 ---
+date: 2026-09-17
+title: Editable preview in bottom sheet Liftoscript editor
+---
+
+There's a preview icon ::icon-preview:: in the bottom sheet Liftoscript editor on the right of the pills.
+It shows how the exercise liftoscript looks with all resolved reuses. E.g. if it shows:
+
+```liftoscript
+Squat / ...t1
+```
+and t1 is defined like
+
+```liftoscript
+t1 / used: none / 3x8 100lb
+```
+
+it will show
+
+```liftoscript
+Squat / 3x8 100lb
+```
+
+Now that preview is editable. You can tap e.g. on that `100lb` in `t1` and change it to e.g. `105lb`, and the
+original exercise text will have that override - becomes:
+
+```liftoscript
+Squat / ...t1 / 105lb
+```
+
+It's useful when you need to tweak some values of the reusing exercise, but they only exist in the reused exercise.
+
+---
 date: 2026-09-09
 title: Time-based exercises: Countdown and unilateral exercises support
 ---
