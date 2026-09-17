@@ -80,7 +80,11 @@ export interface IDynamoUtil {
     key: Record<string, NativeAttributeValue>;
     condition?: IDynamoCondition;
   }): Promise<boolean>;
-  batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]>;
+  batchGet<T>(args: {
+    tableName: string;
+    keys: Record<string, NativeAttributeValue>[];
+    consistentRead?: boolean;
+  }): Promise<T[]>;
   batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void>;
   batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void>;
 }
@@ -500,7 +504,11 @@ export class DynamoUtil implements IDynamoUtil {
     );
   }
 
-  public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
+  public async batchGet<T>(args: {
+    tableName: string;
+    keys: Record<string, NativeAttributeValue>[];
+    consistentRead?: boolean;
+  }): Promise<T[]> {
     if (args.keys.length === 0) {
       return [];
     }
@@ -508,7 +516,10 @@ export class DynamoUtil implements IDynamoUtil {
     try {
       const result = await Promise.all(
         CollectionUtils_inGroupsOf(95, args.keys).map((group) => {
-          return this.sendBatchGetWithRetry({ [args.tableName]: { Keys: group } }, `get ${args.tableName}`);
+          return this.sendBatchGetWithRetry(
+            { [args.tableName]: { Keys: group, ConsistentRead: args.consistentRead } },
+            `get ${args.tableName}`
+          );
         })
       );
       this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);

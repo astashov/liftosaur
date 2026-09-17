@@ -35,6 +35,19 @@ const indexSortKeys: Partial<Record<string, string>> = {
   [userTableNames.prod.historyRecordsDate]: "date",
 };
 
+const userIndexProjectedAttributes: Partial<Record<string, string[]>> = {
+  [userTableNames.prod.usersGoogleId]: ["googleId", "id"],
+  [userTableNames.prod.usersAppleId]: ["appleId", "id"],
+  [userTableNames.prod.usersEmail]: ["email", "id"],
+  [userTableNames.prod.usersGoogleIdKeys]: ["googleId", "id"],
+  [userTableNames.prod.usersAppleIdKeys]: ["appleId", "id"],
+  [userTableNames.prod.usersEmailKeys]: ["email", "id"],
+};
+
+function pickAttributes<T>(item: T, attributes: string[]): T {
+  return Object.fromEntries(Object.entries(item as object).filter(([key]) => attributes.includes(key))) as T;
+}
+
 function compareValues(a: unknown, b: unknown): number {
   const an = typeof a === "number" ? a : Number(a);
   const bn = typeof b === "number" ? b : Number(b);
@@ -163,6 +176,11 @@ export class MockDynamoUtil implements IDynamoUtil {
 
     if (args.limit != null) {
       values = values.slice(0, args.limit);
+    }
+
+    const projectedAttributes = args.indexName ? userIndexProjectedAttributes[args.indexName] : undefined;
+    if (projectedAttributes) {
+      values = values.map((item) => pickAttributes(item, projectedAttributes));
     }
 
     return Promise.resolve(ObjectUtils_clone(values));
@@ -307,7 +325,11 @@ export class MockDynamoUtil implements IDynamoUtil {
     return true;
   }
 
-  public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
+  public async batchGet<T>(args: {
+    tableName: string;
+    keys: Record<string, NativeAttributeValue>[];
+    consistentRead?: boolean;
+  }): Promise<T[]> {
     return CollectionUtils_compact(
       await Promise.all(args.keys.map((key) => this.get<T>({ tableName: args.tableName, key })))
     );

@@ -239,7 +239,7 @@ Mechanical checks, every time; each one is a bug class that has actually bitten 
   --title "Architecture · round 1" \
   --prompt-file /tmp/.../prompt.md \
   [--resume] [--schema .claude/skills/feature/schemas/review.schema.json] \
-  [--effort high] [--model gpt-5.6-sol] [--timeout 900]
+  [--effort high] [--model gpt-6-astra] [--timeout 900]
 ```
 
 - Always `run_in_background: true` — a real consult takes 2–5 minutes. Poll the output file every 20–30s.

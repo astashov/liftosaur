@@ -52,7 +52,9 @@ export const userTableNames = {
     usersGoogleId: "lftUsersGoogleIdDev",
     usersAppleId: "lftUsersAppleIdDev",
     usersEmail: "lftUsersEmailDev",
-    usersNickname: "lftUsersNicknameDev",
+    usersGoogleIdKeys: "lftUsersGoogleIdKeysDev",
+    usersAppleIdKeys: "lftUsersAppleIdKeysDev",
+    usersEmailKeys: "lftUsersEmailKeysDev",
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
     stats: "lftStatsDev",
@@ -65,7 +67,9 @@ export const userTableNames = {
     usersGoogleId: "lftUsersGoogleId",
     usersAppleId: "lftUsersAppleId",
     usersEmail: "lftUsersEmail",
-    usersNickname: "lftUsersNickname",
+    usersGoogleIdKeys: "lftUsersGoogleIdKeys",
+    usersAppleIdKeys: "lftUsersAppleIdKeys",
+    usersEmailKeys: "lftUsersEmailKeys",
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
     stats: "lftStats",
@@ -135,26 +139,32 @@ function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string):
   return syncSafeOutdatedClientVersions[clientVersion] === serverVersion;
 }
 
+// BatchGetItem returns rows in no fixed order, and signin picks the first row with a passwordHash.
+export function UserDao_emailCandidates(rows: ILimitedUserDao[], email: string): ILimitedUserDao[] {
+  return rows
+    .filter((row) => row.email === email)
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0) || a.id.localeCompare(b.id));
+}
+
 export class UserDao {
   constructor(private readonly di: IDI) {}
 
-  public async getByGoogleId(googleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
-    const env = Utils_getEnv();
-
-    const items = await this.di.dynamo.query<IUserDao>({
-      tableName: userTableNames[env].users,
-      indexName: userTableNames[env].usersGoogleId,
-      expression: "#googleId = :googleId",
-      attrs: { "#googleId": "googleId" },
-      values: { ":googleId": googleId },
+  private async queryUserIds(attr: "googleId" | "appleId" | "email", value: string): Promise<string[]> {
+    const names = userTableNames[Utils_getEnv()];
+    const indexes = { googleId: names.usersGoogleId, appleId: names.usersAppleId, email: names.usersEmail };
+    const rows = await this.di.dynamo.query<{ id: string }>({
+      tableName: names.users,
+      indexName: indexes[attr],
+      expression: "#attr = :value",
+      attrs: { "#attr": attr },
+      values: { ":value": value },
     });
+    return Array.from(new Set(rows.map((row) => row.id)));
+  }
 
-    const id: string | undefined = items?.[0]?.id;
-    if (id != null) {
-      return this.getById(id, args);
-    } else {
-      return undefined;
-    }
+  public async getByGoogleId(googleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
+    const [id] = await this.queryUserIds("googleId", googleId);
+    return id != null ? this.getById(id, args) : undefined;
   }
 
   public async getCurrentUserIdFromCookie(cookies: { [key: string]: string }): Promise<string | undefined> {
@@ -522,54 +532,19 @@ export class UserDao {
   }
 
   public async getByAppleId(appleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
-    const env = Utils_getEnv();
-
-    const items = await this.di.dynamo.query<IUserDao>({
-      tableName: userTableNames[env].users,
-      indexName: userTableNames[env].usersAppleId,
-      expression: "#appleId = :appleId",
-      attrs: { "#appleId": "appleId" },
-      values: { ":appleId": appleId },
-    });
-
-    const id: string | undefined = items?.[0]?.id;
-    if (id != null) {
-      return this.getById(id, args);
-    } else {
-      return undefined;
-    }
+    const [id] = await this.queryUserIds("appleId", appleId);
+    return id != null ? this.getById(id, args) : undefined;
   }
 
   public async getByEmail(email: string, args?: { historyLimit?: number }): Promise<IUserDao | undefined> {
-    const env = Utils_getEnv();
-
-    const items = await this.di.dynamo.query<IUserDao>({
-      tableName: userTableNames[env].users,
-      indexName: userTableNames[env].usersEmail,
-      expression: "#email = :email",
-      attrs: { "#email": "email" },
-      values: { ":email": email },
-    });
-
-    const id: string | undefined = items?.[0]?.id;
-    if (id != null) {
-      return this.getById(id, args || {});
-    } else {
-      return undefined;
-    }
+    const [id] = await this.queryUserIds("email", email);
+    return id != null ? this.getById(id, args || {}) : undefined;
   }
 
   public async getAllByEmail(email: string): Promise<ILimitedUserDao[]> {
-    const env = Utils_getEnv();
-    return (
-      (await this.di.dynamo.query<ILimitedUserDao>({
-        tableName: userTableNames[env].users,
-        indexName: userTableNames[env].usersEmail,
-        expression: "#email = :email",
-        attrs: { "#email": "email" },
-        values: { ":email": email },
-      })) || []
-    );
+    const ids = await this.queryUserIds("email", email);
+    const rows = await this.getLimitedByIds(ids, { consistentRead: true });
+    return UserDao_emailCandidates(rows, email);
   }
 
   // History record ids are timestamp-based, so the max non-deleted key in
@@ -745,11 +720,12 @@ export class UserDao {
     });
   }
 
-  public async getLimitedByIds(userIds: string[]): Promise<ILimitedUserDao[]> {
+  public async getLimitedByIds(userIds: string[], args?: { consistentRead?: boolean }): Promise<ILimitedUserDao[]> {
     const env = Utils_getEnv();
     return this.di.dynamo.batchGet<ILimitedUserDao>({
       tableName: userTableNames[env].users,
       keys: userIds.map((ui) => ({ id: ui })),
+      consistentRead: args?.consistentRead,
     });
   }
 
