@@ -81,11 +81,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     });
     usersTable.addGlobalSecondaryIndex({
-      indexName: `lftUsersGoogleId${suffix}`,
-      partitionKey: { name: "googleId", type: dynamodb.AttributeType.STRING },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
-    usersTable.addGlobalSecondaryIndex({
       indexName: `lftUsersAppleId${suffix}`,
       partitionKey: { name: "appleId", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,
