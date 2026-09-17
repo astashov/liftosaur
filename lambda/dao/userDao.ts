@@ -49,9 +49,6 @@ import { EventDao } from "./eventDao";
 export const userTableNames = {
   dev: {
     users: "lftUsersDev",
-    usersGoogleId: "lftUsersGoogleIdDev",
-    usersAppleId: "lftUsersAppleIdDev",
-    usersEmail: "lftUsersEmailDev",
     usersGoogleIdKeys: "lftUsersGoogleIdKeysDev",
     usersAppleIdKeys: "lftUsersAppleIdKeysDev",
     usersEmailKeys: "lftUsersEmailKeysDev",
@@ -64,9 +61,6 @@ export const userTableNames = {
   },
   prod: {
     users: "lftUsers",
-    usersGoogleId: "lftUsersGoogleId",
-    usersAppleId: "lftUsersAppleId",
-    usersEmail: "lftUsersEmail",
     usersGoogleIdKeys: "lftUsersGoogleIdKeys",
     usersAppleIdKeys: "lftUsersAppleIdKeys",
     usersEmailKeys: "lftUsersEmailKeys",

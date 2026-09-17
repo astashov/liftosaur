@@ -36,9 +36,6 @@ const indexSortKeys: Partial<Record<string, string>> = {
 };
 
 const userIndexProjectedAttributes: Partial<Record<string, string[]>> = {
-  [userTableNames.prod.usersGoogleId]: ["googleId", "id"],
-  [userTableNames.prod.usersAppleId]: ["appleId", "id"],
-  [userTableNames.prod.usersEmail]: ["email", "id"],
   [userTableNames.prod.usersGoogleIdKeys]: ["googleId", "id"],
   [userTableNames.prod.usersAppleIdKeys]: ["appleId", "id"],
   [userTableNames.prod.usersEmailKeys]: ["email", "id"],

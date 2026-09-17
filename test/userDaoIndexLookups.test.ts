@@ -38,7 +38,7 @@ describe("UserDao index lookups", () => {
     await seed(di, [user("a", { passwordHash: "hash" })]);
     const rows = await di.dynamo.query<Record<string, unknown>>({
       tableName: userTableNames.prod.users,
-      indexName: userTableNames.prod.usersEmail,
+      indexName: userTableNames.prod.usersEmailKeys,
       expression: "#email = :email",
       attrs: { "#email": "email" },
       values: { ":email": "lifter@example.com" },
