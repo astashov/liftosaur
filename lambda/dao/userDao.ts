@@ -104,6 +104,18 @@ export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
   storage: IPartialStorage;
 };
 
+export interface IUserReadArgs {
+  skipPrograms?: boolean;
+  skipStats?: boolean;
+  historyLimit?: number;
+}
+
+export interface IApplySafeSync2Result {
+  originalId: number;
+  newStorage?: IPartialStorage;
+  didWrite: boolean;
+}
+
 interface IStatDb {
   name: string;
   // Plain number for "health" rows (sleep minutes / kcal / grams), unit-tagged object for the rest.
@@ -236,13 +248,15 @@ export class UserDao {
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate2,
     deviceId: string
-  ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
+  ): Promise<IEither<IApplySafeSync2Result, string>> {
     const env = Utils_getEnv();
+    let migrated = false;
     if (limitedUser.storage.version !== getLatestMigrationVersion()) {
       const fullUser = await this.getById(limitedUser.id);
       const storage = Storage_get(fullUser!.storage);
       if (storage.success) {
         await this.saveStorage(fullUser!, storage.data, deviceId);
+        migrated = true;
       } else {
         this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
         return { success: false, error: "corrupted_server_storage" };
@@ -280,7 +294,7 @@ export class UserDao {
       Object.keys(storageUpdate.storage || {}).length === 0 &&
       Object.keys(storageUpdate.versions || {}).length === 0
     ) {
-      return { success: true, data: { originalId: storageUpdate.originalId || Date.now() } };
+      return { success: true, data: { originalId: storageUpdate.originalId || Date.now(), didWrite: migrated } };
     }
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const originalId = Date.now();
@@ -419,7 +433,7 @@ export class UserDao {
       }
       throw e;
     }
-    return { data: { originalId, newStorage }, success: true };
+    return { data: { originalId, newStorage, didWrite: true }, success: true };
   }
 
   public async applySafeSync(
@@ -1053,27 +1067,20 @@ export class UserDao {
     });
   }
 
-  public async getById(
-    userId: string,
-    args?: {
-      skipPrograms?: boolean;
-      skipStats?: boolean;
-      historyLimit?: number;
-    }
-  ): Promise<IUserDao | undefined> {
+  public async getById(userId: string, args?: IUserReadArgs): Promise<IUserDao | undefined> {
     const userDao = await this.getLimitedById(userId);
-    if (userDao != null) {
-      const history =
-        args?.historyLimit == null || args.historyLimit > 0
-          ? await this.getHistoryByUserId(userId, { limit: args?.historyLimit })
-          : [];
-      const programs = !args?.skipPrograms ? await this.getProgramsByUserId(userId) : [];
-      const stats = !args?.skipStats ? await this.getStatsByUserId(userId) : { weight: {}, length: {}, percentage: {} };
-
-      return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
-    } else {
+    if (userDao == null) {
       return undefined;
     }
+    const emptyStats: IStats = { weight: {}, length: {}, percentage: {} };
+    const [history, programs, stats] = await Promise.all([
+      args?.historyLimit == null || args.historyLimit > 0
+        ? this.getHistoryByUserId(userId, { limit: args?.historyLimit })
+        : Promise.resolve<IHistoryRecord[]>([]),
+      !args?.skipPrograms ? this.getProgramsByUserId(userId) : Promise.resolve<IProgram[]>([]),
+      !args?.skipStats ? this.getStatsByUserId(userId) : Promise.resolve(emptyStats),
+    ]);
+    return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
   }
 
   public async maybeSaveProgramRevision(userId: string, storageUpdate: IStorageUpdate2): Promise<void> {

@@ -35,6 +35,10 @@ const indexSortKeys: Partial<Record<string, string>> = {
   [userTableNames.prod.historyRecordsDate]: "date",
 };
 
+const tableSortKeys: Partial<Record<string, string>> = {
+  [userTableNames.prod.historyRecords]: "id",
+};
+
 const userIndexProjectedAttributes: Partial<Record<string, string[]>> = {
   [userTableNames.prod.usersGoogleIdKeys]: ["googleId", "id"],
   [userTableNames.prod.usersAppleIdKeys]: ["appleId", "id"],
@@ -160,9 +164,7 @@ export class MockDynamoUtil implements IDynamoUtil {
       : () => true;
     values = values.filter((item) => keyCondition(item) && filterCondition(item));
 
-    // Only GSI queries get ordered here (by the index's sort key). Base-table query order is left as-is to
-    // match the mock's historical behavior — tests that care about base-table order assert insertion order.
-    const sortKey = args.indexName ? indexSortKeys[args.indexName] : undefined;
+    const sortKey = args.indexName ? indexSortKeys[args.indexName] : tableSortKeys[args.tableName];
     if (args.scanIndexForward !== undefined && sortKey) {
       values = [...values].sort((a, b) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -15,6 +15,7 @@ import {
   PushSync_unregister,
   PushSync_validateRegistration,
 } from "./utils/pushSync";
+import { DirtySyncRead_args } from "./utils/dirtySyncRead";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory_generateUid } from "./utils/generator";
@@ -633,7 +634,9 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
         const result = await userDao.applySafeSync2(limitedUser, storageUpdate, deviceId);
         if (result.success) {
           di.log.log("New original id", result.data.originalId);
-          const fullUser = (await userDao.getById(userId))!;
+          const hasMergeWrite = result.data.didWrite;
+          const readArgs = DirtySyncRead_args({ hasMergeWrite, historylimit, isWatch });
+          const fullUser = (await userDao.getById(userId, readArgs))!;
           const storage = fullUser.storage;
           if (storage.tempUserId !== userId) {
             storage.tempUserId = userId;
@@ -641,10 +644,12 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               storage._versions.tempUserId = Date.now();
             }
           }
-          const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, storage, storageUpdate?.storage),
-            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
-          ]);
+          const [storageId] = hasMergeWrite
+            ? await Promise.all([
+                storageDao.store(limitedUser.id, storage, storageUpdate?.storage),
+                userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
+              ])
+            : [undefined];
           if (result.data.newStorage != null) {
             await PushSync_notify(di, limitedUser.id, deviceId, result.data.originalId);
           }
