@@ -18,6 +18,7 @@ export interface ISyncMergeNoopArgs {
 
 export interface ISyncMergeCounts {
   noop: boolean;
+  writeReason?: ISyncMergeWriteReason;
   historyPuts: number;
   historyPutsEqualVersion: number;
   historyDeletes: number;
@@ -31,30 +32,49 @@ export function SyncMergeNoop_row(storage: IPartialStorage): Record<string, unkn
   return row;
 }
 
-export function SyncMergeNoop_isNoop(args: ISyncMergeNoopArgs): boolean {
-  if (
-    args.storedOriginalId == null ||
-    args.hasIncomingStats ||
-    args.hasIncomingTombstones ||
-    args.incomingPrograms.length > 0
-  ) {
-    return false;
+export type ISyncMergeWriteReason =
+  | "no-original-id"
+  | "stats"
+  | "tombstones"
+  | "programs"
+  | "versions"
+  | "row"
+  | "history-missing";
+
+export function SyncMergeNoop_writeReason(args: ISyncMergeNoopArgs): ISyncMergeWriteReason | undefined {
+  if (args.storedOriginalId == null) {
+    return "no-original-id";
+  }
+  if (args.hasIncomingStats) {
+    return "stats";
+  }
+  if (args.hasIncomingTombstones) {
+    return "tombstones";
+  }
+  if (args.incomingPrograms.length > 0) {
+    return "programs";
   }
   if (!ObjectUtils_isEqual(args.storedVersions || {}, args.mergedVersions || {})) {
-    return false;
+    return "versions";
   }
   if (!ObjectUtils_isEqual(args.storedRow, args.mergedRow)) {
-    return false;
+    return "row";
   }
   const loadedHistory = new Set(args.loadedHistoryIds);
-  return args.incomingHistoryIds.every((id) => loadedHistory.has(id));
+  return args.incomingHistoryIds.every((id) => loadedHistory.has(id)) ? undefined : "history-missing";
 }
+
+export function SyncMergeNoop_isNoop(args: ISyncMergeNoopArgs): boolean {
+  return SyncMergeNoop_writeReason(args) == null;
+}
+
+const COLLECTIONS_WITH_ROWS = ["history", "programs", "stats"] as const;
 
 export function SyncMergeNoop_hasTombstones(versions: IStorage["_versions"]): boolean {
   if (versions == null) {
     return false;
   }
-  return Object.values(versions).some((value) => hasTombstones(value));
+  return COLLECTIONS_WITH_ROWS.some((key) => hasTombstones(versions[key]));
 }
 
 function hasTombstones(value: unknown): boolean {
@@ -81,8 +101,10 @@ export function SyncMergeNoop_counts(
       VersionTrackerUtils_compareVersions(stored, merged) === "equal"
     );
   }).length;
+  const writeReason = SyncMergeNoop_writeReason(args);
   return {
     noop: args.noop,
+    ...(writeReason != null ? { writeReason } : {}),
     historyPuts: args.noop ? 0 : args.incomingHistoryIds.length,
     historyPutsEqualVersion,
     historyDeletes: args.noop ? 0 : args.historyDeletes,

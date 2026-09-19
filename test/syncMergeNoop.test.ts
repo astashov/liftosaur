@@ -8,6 +8,7 @@ import {
   SyncMergeNoop_hasTombstones,
   SyncMergeNoop_isNoop,
   SyncMergeNoop_row,
+  SyncMergeNoop_writeReason,
 } from "../lambda/utils/syncMergeNoop";
 
 function program(id: string, extra: Partial<IProgram> = {}): IProgram {
@@ -72,6 +73,11 @@ describe("SyncMergeNoop", () => {
     expect(SyncMergeNoop_hasTombstones({ settings: { units: { vc: { a: 1 }, t: 100 } } })).to.equal(false);
   });
 
+  it("ignores tombstones inside settings, which have no rows of their own", () => {
+    const settingsOnly = { settings: { exercises: { items: {}, deleted: { custom1: 100 } } } } as IStorage["_versions"];
+    expect(SyncMergeNoop_hasTombstones(settingsOnly)).to.equal(false);
+  });
+
   it("writes when the stored row has no originalId", () => {
     expect(SyncMergeNoop_isNoop({ ...base, storedOriginalId: undefined })).to.equal(false);
   });
@@ -92,6 +98,7 @@ describe("SyncMergeNoop", () => {
     });
     expect(counts).to.eql({
       noop: false,
+      writeReason: "programs",
       historyPuts: 2,
       historyPutsEqualVersion: 1,
       historyDeletes: 3,
@@ -108,6 +115,17 @@ describe("SyncMergeNoop", () => {
       statPuts: 0,
       statDeletes: 0,
     });
+  });
+
+  it("names the first condition that forces a write", () => {
+    expect(SyncMergeNoop_writeReason(base)).to.equal(undefined);
+    expect(SyncMergeNoop_writeReason({ ...base, storedOriginalId: undefined })).to.equal("no-original-id");
+    expect(SyncMergeNoop_writeReason({ ...base, hasIncomingStats: true })).to.equal("stats");
+    expect(SyncMergeNoop_writeReason({ ...base, hasIncomingTombstones: true })).to.equal("tombstones");
+    expect(SyncMergeNoop_writeReason({ ...base, incomingPrograms: [program("p1")] })).to.equal("programs");
+    expect(SyncMergeNoop_writeReason({ ...base, mergedVersions: { settings: { units: 1 } } })).to.equal("versions");
+    expect(SyncMergeNoop_writeReason({ ...base, mergedRow: { ...row, tempUserId: "u2" } })).to.equal("row");
+    expect(SyncMergeNoop_writeReason({ ...base, loadedHistoryIds: [] })).to.equal("history-missing");
   });
 
   it("row strips the collections, the originalId and the versions", () => {
