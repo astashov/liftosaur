@@ -11,10 +11,11 @@ import { userTableNames } from "../lambda/dao/userDao";
 import { eventsTableNames } from "../lambda/dao/eventDao";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { LftS3Buckets } from "../lambda/dao/buckets";
-import { Storage_getDefault } from "../src/models/storage";
+import { Storage_fillVersions, Storage_getDefault } from "../src/models/storage";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
-import { IStorage } from "../src/types";
+import { IHistoryRecord, IProgram, IStorage } from "../src/types";
+import { ICollectionVersions } from "../src/models/versionTracker";
 
 const STORED_WORKOUTS = 25;
 const HISTORY_LIMIT = 20;
@@ -188,5 +189,242 @@ describe("/api/sync2 dirty branch", () => {
     expect(json.storage.version).to.equal(getLatestMigrationVersion());
     expect((await snapshots()).length).to.equal(1);
     expect(mergeSnapshotEvents().length).to.equal(1);
+  });
+
+  describe("a merge that changes nothing", () => {
+    const RECORD_ID = 1;
+    let record: IHistoryRecord;
+    let program: IProgram;
+    let versioned: IStorage;
+
+    function versionOf(collection: "history" | "programs", id: string | number): unknown {
+      return (versioned._versions?.[collection] as ICollectionVersions).items?.[id];
+    }
+
+    async function seedVersioned(): Promise<void> {
+      record = {
+        vtype: "history_record",
+        id: RECORD_ID,
+        date: new Date(RECORD_ID).toISOString(),
+        programId: "current",
+        programName: "Program",
+        day: 1,
+        dayName: "Day",
+        entries: [],
+        startTime: RECORD_ID,
+        endTime: RECORD_ID + 1000,
+      };
+      const { shortDescription: _short, ...withoutShortDescription } = basicBeginnerProgram;
+      program = { ...withoutShortDescription, id: "current", clonedAt: 42 };
+      versioned = Storage_fillVersions(
+        { ...storage, history: [record], programs: [program], currentProgramId: "current" },
+        "ios_a"
+      );
+      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: { id: userId, email: "test@example.com", createdAt: 1, storage: partial },
+      });
+      await di.dynamo.put({
+        tableName: freeUsersTableNames.prod.freeUsers,
+        item: { id: userId, key: "test-sub-key", isClaimed: true, expires: Date.now() + 1e9 },
+      });
+      await di.dynamo.put({ tableName: userTableNames.prod.programs, item: { ...program, userId } });
+      await di.dynamo.put({ tableName: userTableNames.prod.historyRecords, item: { ...record, userId } });
+    }
+
+    async function registerOtherDevice(): Promise<void> {
+      const result = await handler(
+        {
+          ...syncEvent(userId, { deviceId: "and_other", platform: "android", token: "t2" }),
+          path: "/api/pushtoken",
+        },
+        {}
+      );
+      expect(result.statusCode).to.equal(200);
+    }
+
+    function resendRecord(): Record<string, unknown> {
+      return {
+        ...emptyUpdate(),
+        storage: { history: [record] },
+        versions: { history: { items: { [RECORD_ID]: versionOf("history", RECORD_ID) } } },
+      };
+    }
+
+    it("re-sending a stored record writes nothing, snapshots nothing and pushes nobody", async () => {
+      await seedVersioned();
+      await registerOtherDevice();
+      const put = sinon.spy(di.dynamo, "put");
+      const batchPut = sinon.spy(di.dynamo, "batchPut");
+      const json = await pull({ storageUpdate: resendRecord() });
+      expect(json.type).to.equal("dirty");
+      expect(json.storage.originalId).to.equal(999);
+      expect(put.getCalls().map((c) => c.args[0].tableName)).to.not.include(userTableNames.prod.users);
+      expect(batchPut.getCalls().map((c) => c.args[0].items.length)).to.eql([]);
+      expect(await snapshots()).to.eql([]);
+      expect(mergeSnapshotEvents()).to.eql([]);
+      expect(di.sns.published).to.eql([]);
+    });
+
+    it("re-sending a record whose row is missing puts it back", async () => {
+      await seedVersioned();
+      await di.dynamo.remove({ tableName: userTableNames.prod.historyRecords, key: { userId, id: RECORD_ID } });
+      const batchPut = sinon.spy(di.dynamo, "batchPut");
+      await pull({ storageUpdate: resendRecord() });
+      const historyPuts = batchPut.getCalls().filter((c) => c.args[0].tableName === userTableNames.prod.historyRecords);
+      expect(historyPuts.map((c) => c.args[0].items.map((i) => i.id))).to.eql([[RECORD_ID]]);
+    });
+
+    it("a program upload is written even when its versions are unchanged", async () => {
+      await seedVersioned();
+      const put = sinon.spy(di.dynamo, "put");
+      const batchPut = sinon.spy(di.dynamo, "batchPut");
+      const json = await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { programs: [{ ...program, shortDescription: "added later" }] },
+          versions: { programs: { items: { [program.clonedAt!]: versionOf("programs", program.clonedAt!) } } },
+        },
+      });
+      expect(json.type).to.equal("dirty");
+      expect(put.getCalls().map((c) => c.args[0].tableName)).to.include(userTableNames.prod.users);
+      const programPuts = batchPut.getCalls().filter((c) => c.args[0].tableName === userTableNames.prod.programs);
+      expect(programPuts.length).to.equal(1);
+      const stored = di.dynamo.data[userTableNames.prod.programs] as Record<string, { shortDescription?: string }>;
+      expect(Object.values(stored).map((p) => p.shortDescription)).to.eql(["added later"]);
+    });
+
+    it("a re-sent tombstone still deletes the surviving row", async () => {
+      await seedVersioned();
+      const versions = versioned._versions!;
+      const history = versions.history as ICollectionVersions;
+      const withTombstone = {
+        ...versions,
+        history: { ...history, items: {}, deleted: { [RECORD_ID]: history.items?.[RECORD_ID] } },
+      };
+      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: {
+          id: userId,
+          email: "test@example.com",
+          createdAt: 1,
+          storage: { ...partial, _versions: withTombstone },
+        },
+      });
+      const json = await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { history: [] },
+          versions: { history: { items: {}, deleted: { [RECORD_ID]: history.items?.[RECORD_ID] } } },
+        },
+      });
+      expect(json.type).to.equal("dirty");
+      const rows = await di.dynamo.query({
+        tableName: userTableNames.prod.historyRecords,
+        expression: "#userId = :userId",
+        attrs: { "#userId": "userId" },
+        values: { ":userId": userId },
+      });
+      expect(rows).to.eql([]);
+    });
+
+    it("a re-sent record still collapses two stored progress entries to one", async () => {
+      await seedVersioned();
+      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      const progress = (startTime: number): Record<string, unknown> => ({
+        ...record,
+        vtype: "progress",
+        id: 0,
+        startTime,
+        entries: [],
+      });
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: {
+          id: userId,
+          email: "test@example.com",
+          createdAt: 1,
+          storage: { ...partial, progress: [progress(10), progress(20)] },
+        },
+      });
+      const put = sinon.spy(di.dynamo, "put");
+      const json = await pull({ storageUpdate: resendRecord() });
+      expect(json.type).to.equal("dirty");
+      expect(json.storage.progress.map((p: { startTime: number }) => p.startTime)).to.eql([20]);
+      expect(put.getCalls().map((c) => c.args[0].tableName)).to.include(userTableNames.prod.users);
+    });
+
+    it("writes the user row only after the record writes, and pushes the other device", async () => {
+      await seedVersioned();
+      await registerOtherDevice();
+      const order: string[] = [];
+      sinon.stub(di.dynamo, "batchPut").callsFake(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        order.push("batchPut");
+      });
+      const put = di.dynamo.put.bind(di.dynamo);
+      sinon.stub(di.dynamo, "put").callsFake(async (args) => {
+        if (args.tableName === userTableNames.prod.users) {
+          order.push("userRow");
+        }
+        return put(args);
+      });
+      const changed = { ...record, notes: "edited" };
+      await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { history: [changed] },
+          versions: { history: { items: { [RECORD_ID]: Date.now() + 10_000 } } },
+        },
+      });
+      expect(order.indexOf("batchPut")).to.be.lessThan(order.indexOf("userRow"));
+      expect(di.sns.published.length).to.equal(1);
+    });
+
+    it("a failed record write leaves the row's versions behind, so the retry writes", async () => {
+      await seedVersioned();
+      const stub = sinon.stub(di.dynamo, "batchPut");
+      stub.onFirstCall().rejects(new Error("ProvisionedThroughputExceededException"));
+      stub.callThrough();
+      const changed = { ...record, notes: "edited" };
+      const update = {
+        ...emptyUpdate(),
+        storage: { history: [changed] },
+        versions: { history: { items: { [RECORD_ID]: Date.now() + 10_000 } } },
+      };
+      const first = await handler(
+        syncEvent(userId, { deviceId: "ios_b", historylimit: HISTORY_LIMIT, timestamp: 5, storageUpdate: update }),
+        {}
+      );
+      expect(first.statusCode).to.not.equal(200);
+      const rowBefore = (await di.dynamo.get<{ storage: IStorage }>({
+        tableName: userTableNames.prod.users,
+        key: { id: userId },
+      }))!;
+      expect((rowBefore.storage._versions?.history as ICollectionVersions).items?.[RECORD_ID]).to.eql(
+        versionOf("history", RECORD_ID)
+      );
+      const json = await pull({ storageUpdate: update });
+      expect(json.type).to.equal("dirty");
+      const stored = di.dynamo.data[userTableNames.prod.historyRecords] as Record<string, { notes?: string }>;
+      expect(Object.values(stored).map((r) => r.notes)).to.eql(["edited"]);
+    });
+
+    it("a program upload saves a revision, and a history re-send does not", async () => {
+      await seedVersioned();
+      await pull({ storageUpdate: resendRecord() });
+      const bucket = LftS3Buckets.programs;
+      expect((await di.s3.listObjects({ bucket, prefix: `programs/${userId}/` })).length).to.equal(0);
+      await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { programs: [program] },
+          versions: { programs: { items: { [program.clonedAt!]: versionOf("programs", program.clonedAt!) } } },
+        },
+      });
+      expect((await di.s3.listObjects({ bucket, prefix: `programs/${userId}/` })).length).to.equal(1);
+    });
   });
 });

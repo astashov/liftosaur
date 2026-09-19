@@ -45,6 +45,13 @@ import { StorageDao } from "./storageDao";
 import { ApiKeyDao } from "./apiKeyDao";
 import { PushSync_notify, PushSync_removeAllForUser } from "../utils/pushSync";
 import { EventDao } from "./eventDao";
+import {
+  ISyncMergeNoopArgs,
+  SyncMergeNoop_counts,
+  SyncMergeNoop_hasTombstones,
+  SyncMergeNoop_isNoop,
+  SyncMergeNoop_row,
+} from "../utils/syncMergeNoop";
 
 export const userTableNames = {
   dev: {
@@ -201,6 +208,13 @@ export class UserDao {
     return undefined;
   }
 
+  private logMergeCounts(
+    args: ISyncMergeNoopArgs,
+    written: { noop: boolean; historyDeletes: number; statPuts: number; statDeletes: number }
+  ): void {
+    this.di.log.log("sync2-merge", JSON.stringify(SyncMergeNoop_counts({ ...args, ...written })));
+  }
+
   private async augmentLimitedUser(
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate2
@@ -299,6 +313,7 @@ export class UserDao {
     const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
     const originalId = Date.now();
     const newVersions = versionTracker.mergeVersions(_versions || {}, storageUpdate.versions || {});
+    const storedRow = SyncMergeNoop_row(ObjectUtils_clone(limitedUserStorage));
     const mergedStorage = versionTracker.mergeByVersions(
       limitedUserStorage,
       _versions || {},
@@ -322,6 +337,23 @@ export class UserDao {
 
     const versionsHistory = newStorage._versions?.history as ICollectionVersions | undefined;
     const deletedVersionsHistory = ObjectUtils_keys(versionsHistory?.deleted || {}).map((v) => Number(v));
+    const noopArgs: ISyncMergeNoopArgs = {
+      storedVersions: _versions,
+      mergedVersions: newStorage._versions,
+      storedRow,
+      mergedRow: SyncMergeNoop_row(newStorage),
+      incomingHistoryIds: (storageUpdate.storage?.history || []).map((h) => h.id),
+      loadedHistoryIds: (limitedUserStorage.history || []).map((h) => h.id),
+      incomingPrograms: storageUpdate.storage?.programs || [],
+      hasIncomingStats: storageUpdate.storage?.stats != null,
+      hasIncomingTombstones: SyncMergeNoop_hasTombstones(storageUpdate.versions),
+      storedOriginalId: originalStorage.originalId,
+    };
+    const noop = SyncMergeNoop_isNoop(noopArgs);
+    if (noop) {
+      this.logMergeCounts(noopArgs, { noop, historyDeletes: 0, statPuts: 0, statDeletes: 0 });
+      return { data: { originalId: originalStorage.originalId!, didWrite: migrated }, success: true };
+    }
     const historyDeletes = this.di.dynamo.batchDelete({
       tableName: userTableNames[env].historyRecords,
       keys: deletedVersionsHistory.map((id) => ({ id, userId: limitedUser.id })),
@@ -410,16 +442,15 @@ export class UserDao {
     delete newStorage.history;
     delete newStorage.programs;
     delete newStorage.stats;
+    this.logMergeCounts(noopArgs, {
+      noop,
+      historyDeletes: deletedVersionsHistory.length,
+      statPuts: statsDb.length,
+      statDeletes: deletedVersionsStats.length,
+    });
     try {
-      await Promise.all([
-        this.store({ ...limitedUser, storage: newStorage }),
-        historyUpdates,
-        historyDeletes,
-        programUpdates,
-        programDeletes,
-        statsDeletes,
-        statsUpdates,
-      ]);
+      await Promise.all([historyUpdates, historyDeletes, programUpdates, programDeletes, statsDeletes, statsUpdates]);
+      await this.store({ ...limitedUser, storage: newStorage });
     } catch (e) {
       if (e instanceof Error && e.message.includes("Provided list of item keys contains duplicates")) {
         const data = {

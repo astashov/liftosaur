@@ -645,12 +645,12 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               storage._versions.tempUserId = Date.now();
             }
           }
-          const [storageId] = hasMergeWrite
-            ? await Promise.all([
-                storageDao.store(limitedUser.id, storage, storageUpdate?.storage),
-                userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
-              ])
-            : [undefined];
+          const [storageId] = await Promise.all([
+            hasMergeWrite ? storageDao.store(limitedUser.id, storage, storageUpdate?.storage) : undefined,
+            (storageUpdate.storage?.programs?.length ?? 0) > 0
+              ? userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate)
+              : undefined,
+          ]);
           if (result.data.newStorage != null) {
             await PushSync_notify(di, limitedUser.id, deviceId, result.data.originalId);
           }
