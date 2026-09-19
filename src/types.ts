@@ -2062,6 +2062,8 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
   compactionThresholds: {
     "subscription.apple": 14 * 24 * 60 * 60 * 1000,
     "subscription.google": 14 * 24 * 60 * 60 * 1000,
+    history: 180 * 24 * 60 * 60 * 1000,
+    progress: 30 * 24 * 60 * 60 * 1000,
   },
   typeValidators: {
     progress: vIs(VHistoryRecord),

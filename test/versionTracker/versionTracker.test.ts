@@ -768,6 +768,37 @@ describe("VersionTracker", () => {
   });
 
   describe("tombstone compaction", () => {
+    it("prunes history tombstones after 180 days and progress tombstones after 30 days", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
+      const day = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const fullVersions: IVersions<IStorage> = {
+        history: { items: {}, deleted: { 1: now - 181 * day, 2: now - 179 * day } },
+        progress: { items: {}, deleted: { 3: now - 31 * day, 4: now - 29 * day } },
+      };
+      const merged = tracker.mergeVersions(fullVersions, {
+        history: { items: {}, deleted: {} },
+        progress: { items: {}, deleted: {} },
+      });
+      expect(Object.keys((merged.history as ICollectionVersions).deleted || {})).to.eql(["2"]);
+      expect(Object.keys((merged.progress as ICollectionVersions).deleted || {})).to.eql(["4"]);
+    });
+
+    it("prunes the same way when the phone updates versions locally", () => {
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: DEVICE });
+      const day = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      const storage: IStorage = { ...Storage_getDefault(), history: [] };
+      const versions: IVersions<IStorage> = {
+        history: { items: {}, deleted: { 1: now - 181 * day, 2: now - 179 * day } },
+      };
+      const record = { id: 5, vtype: "history_record", startTime: 5, entries: [] } as unknown as IHistoryRecord;
+      const changed: IStorage = { ...storage, history: [record] };
+      const updated = tracker.updateVersions(storage, changed, versions, {}, now);
+      expect(Object.keys((updated.history as ICollectionVersions)?.deleted || {})).to.eql(["2"]);
+      expect(Object.keys((updated.history as ICollectionVersions)?.items || {})).to.eql(["5"]);
+    });
+
     it("should compact old tombstones when merging versions", () => {
       const versionTypes: IVersionTypes<IAtomicType, IControlledType> = {
         ...STORAGE_VERSION_TYPES,

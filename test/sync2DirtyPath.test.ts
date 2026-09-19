@@ -299,9 +299,10 @@ describe("/api/sync2 dirty branch", () => {
       await seedVersioned();
       const versions = versioned._versions!;
       const history = versions.history as ICollectionVersions;
+      const deletedAt = Date.now();
       const withTombstone = {
         ...versions,
-        history: { ...history, items: {}, deleted: { [RECORD_ID]: history.items?.[RECORD_ID] } },
+        history: { ...history, items: {}, deleted: { [RECORD_ID]: deletedAt } },
       };
       const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
       await di.dynamo.put({
@@ -317,7 +318,7 @@ describe("/api/sync2 dirty branch", () => {
         storageUpdate: {
           ...emptyUpdate(),
           storage: { history: [] },
-          versions: { history: { items: {}, deleted: { [RECORD_ID]: history.items?.[RECORD_ID] } } },
+          versions: { history: { items: {}, deleted: { [RECORD_ID]: deletedAt } } },
         },
       });
       expect(json.type).to.equal("dirty");
