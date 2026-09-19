@@ -16,6 +16,13 @@
 -->
 
 ---
+date: 2026-09-19
+title: Realtime sync on the phone
+---
+
+Now if you update your workouts or programs or anything outside of the app - e.g. via Claude/ChatGPT, via API, from Web Editor, etc - the phone will get the updates in real time. No need to close/open the app anymore.
+
+---
 date: 2026-09-17
 title: Editable preview in bottom sheet Liftoscript editor
 ---
