@@ -3281,14 +3281,7 @@ const postImageUploadUrlHandler: RouteHandler<
   // and enforces it) must never be something a browser would execute - no text/html, no
   // image/svg+xml, and no JS-bearing containers. The app only uploads raster images and the inert
   // video containers below.
-  const allowedContentTypes = [
-    "image/png",
-    "image/jpeg",
-    "image/webp",
-    "image/gif",
-    "video/mp4",
-    "video/quicktime",
-  ];
+  const allowedContentTypes = ["image/png", "image/jpeg", "image/webp", "image/gif", "video/mp4", "video/quicktime"];
   if (!allowedContentTypes.includes(contentType)) {
     return ResponseUtils_json(400, event, { error: "Unsupported content type" });
   }
