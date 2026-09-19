@@ -206,6 +206,15 @@ For each finding: **open the code and check it** before believing it. Then sort 
 
 Drop findings under 0.3 confidence. Present the three buckets and **stop**.
 
+**The user has not read the codex output and cannot.** The transcript is a wall of tool calls, and `.last.md` is written for you. So the triage reply is the only place a finding exists for the user, and it restates every finding in full — never "codex found two issues, both real". Each finding gets:
+
+- **What codex found**, in your words, with the file and symbol.
+- **The user scenario**: who does what, on which device, and what they see go wrong. "A user with two phones logs a set on phone A; phone B shows the old set count until the next app open." For an architecture finding, the scenario is the future edit that goes wrong: "someone changes the migration check in `applySafeSync2`, and migrations stop writing snapshots, with no failing test."
+- **The fix**, with its size in lines and files.
+- **Your verdict** and why.
+
+The same applies to the phase 2 consult: every point codex raised that changed the plan, or that you rejected, is listed for the user with its scenario. A summary sentence such as "codex agreed" hides the reasoning the user is paying for.
+
 **Never act on a codex finding without the user's explicit go-ahead.** Not the confirmed ones, not the one-line "obvious" ones, not a rename. A finding you verified as real is still a finding, and the reply that presents it contains zero edits. The user reads the list and says which to fix: "fix all confirmed", "fix 1 and 3, skip 2", or "none". Only then apply those fixes (Edit only) and re-verify. If the user's answer is silence or a new topic, the findings stay unfixed and the plan file records them as open.
 
 ## Phase 9 — Document

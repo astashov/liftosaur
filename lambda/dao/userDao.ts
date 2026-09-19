@@ -52,6 +52,7 @@ import {
   SyncMergeNoop_isNoop,
   SyncMergeNoop_row,
 } from "../utils/syncMergeNoop";
+import { ProgramRowWrites_plan } from "../utils/programRowWrites";
 
 export const userTableNames = {
   dev: {
@@ -371,19 +372,15 @@ export class UserDao {
     const versionsPrograms = newStorage._versions?.programs as ICollectionVersions | undefined;
     const deletedVersionsPrograms = ObjectUtils_keys(versionsPrograms?.deleted || {}).map((v) => Number(v));
     const userPrograms = deletedVersionsPrograms.length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
-    const programIdsToDelete = userPrograms
-      .filter((p) => p.clonedAt != null && deletedVersionsPrograms.indexOf(p.clonedAt) !== -1)
-      .map((p) => p.id);
+    const programWrites = ProgramRowWrites_plan(userPrograms, newStorage.programs || [], deletedVersionsPrograms);
     const programDeletes = this.di.dynamo.batchDelete({
       tableName: userTableNames[env].programs,
-      keys: programIdsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+      keys: programWrites.idsToDelete.map((id) => ({ id, userId: limitedUser.id })),
     });
 
     const programUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].programs,
-      items: (newStorage.programs || [])
-        .filter((p) => programIdsToDelete.indexOf(p.id) === -1)
-        .map((record) => ({ ...record, userId: limitedUser.id })),
+      items: programWrites.programsToPut.map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
     const versionsStats = storageUpdate.versions?.stats as ICollectionVersions | undefined;
@@ -515,17 +512,19 @@ export class UserDao {
 
     const userPrograms =
       (storageUpdate.deletedPrograms || []).length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
-    const programIdsToDelete = userPrograms
-      .filter((p) => p.clonedAt != null && (storageUpdate.deletedPrograms || []).indexOf(p.clonedAt) !== -1)
-      .map((p) => p.id);
+    const programWrites = ProgramRowWrites_plan(
+      userPrograms,
+      storageUpdate.programs || [],
+      storageUpdate.deletedPrograms || []
+    );
     const programDeletes = this.di.dynamo.batchDelete({
       tableName: userTableNames[env].programs,
-      keys: programIdsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+      keys: programWrites.idsToDelete.map((id) => ({ id, userId: limitedUser.id })),
     });
 
     const programUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].programs,
-      items: (storageUpdate.programs || []).map((record) => ({ ...record, userId: limitedUser.id })),
+      items: programWrites.programsToPut.map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
     const stats = storageUpdate.stats;
