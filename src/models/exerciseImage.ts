@@ -790,3 +790,10 @@ export function ExerciseImageUtils_motionUrl(type: IExerciseType, settings?: ISe
 export function ExerciseImageUtils_existsMotion(type: IExerciseType, settings?: ISettings): boolean {
   return !!ExerciseImageUtils_motionUrl(type, settings);
 }
+
+const MIN_VIDEO_ASPECT_RATIO = 3 / 4;
+
+export function ExerciseImageUtils_videoAspectRatio(width: number, height: number): number {
+  const ratio = height > 0 ? width / height : MIN_VIDEO_ASPECT_RATIO;
+  return Math.max(ratio, MIN_VIDEO_ASPECT_RATIO);
+}

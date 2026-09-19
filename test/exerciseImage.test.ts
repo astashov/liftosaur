@@ -3,6 +3,7 @@ import { expect } from "chai";
 import {
   ExerciseImageUtils_motionUrl,
   ExerciseImageUtils_existsMotion,
+  ExerciseImageUtils_videoAspectRatio,
 } from "../src/models/exerciseImage";
 import { ICustomExercise, IExerciseType, ISettings } from "../src/types";
 
@@ -47,11 +48,27 @@ describe("ExerciseImageUtils motion", () => {
   it("existsMotion is true only when videoUrl is set", () => {
     const withVideo = customExercise("mylunge", "https://www.liftosaur.com/userimages/mylunge.mp4");
     const without = customExercise("mycurl");
-    expect(
-      ExerciseImageUtils_existsMotion({ id: withVideo.id, equipment: "bodyweight" }, settingsWith(withVideo))
-    ).to.be.true;
-    expect(
-      ExerciseImageUtils_existsMotion({ id: without.id, equipment: "bodyweight" }, settingsWith(without))
-    ).to.be.false;
+    expect(ExerciseImageUtils_existsMotion({ id: withVideo.id, equipment: "bodyweight" }, settingsWith(withVideo))).to
+      .be.true;
+    expect(ExerciseImageUtils_existsMotion({ id: without.id, equipment: "bodyweight" }, settingsWith(without))).to.be
+      .false;
+  });
+});
+
+describe("ExerciseImageUtils videoAspectRatio", () => {
+  it("keeps a landscape ratio", () => {
+    expect(ExerciseImageUtils_videoAspectRatio(1280, 720)).to.equal(1280 / 720);
+  });
+
+  it("keeps a square ratio", () => {
+    expect(ExerciseImageUtils_videoAspectRatio(600, 600)).to.equal(1);
+  });
+
+  it("clamps a portrait ratio to 3/4", () => {
+    expect(ExerciseImageUtils_videoAspectRatio(592, 1280)).to.equal(0.75);
+  });
+
+  it("falls back to 3/4 when the size is unknown", () => {
+    expect(ExerciseImageUtils_videoAspectRatio(0, 0)).to.equal(0.75);
   });
 });

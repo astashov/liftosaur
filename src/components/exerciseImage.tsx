@@ -10,6 +10,7 @@ import {
   ExerciseImageUtils_existsCustom,
   ExerciseImageUtils_motionUrl,
   ExerciseImageUtils_existsMotion,
+  ExerciseImageUtils_videoAspectRatio,
 } from "../models/exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
@@ -145,38 +146,37 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
       </>
     );
   } else {
-    return doesExist ? (
-      props.motion && existsMotion && resolvedMotionUrl && !isVideoError ? (
-        <ExerciseVideo
-          uri={resolvedMotionUrl}
-          poster={remoteSrc}
-          resizeMode="contain"
+    return props.motion && existsMotion && resolvedMotionUrl && !isVideoError ? (
+      <ExerciseVideo
+        uri={resolvedMotionUrl}
+        poster={remoteSrc}
+        resizeMode="contain"
+        className={props.className}
+        style={{ width: "100%", aspectRatio }}
+        onLoad={({ width, height }) => setAspectRatio(ExerciseImageUtils_videoAspectRatio(width, height))}
+        onError={() => setIsVideoError(true)}
+      />
+    ) : doesExist ? (
+      <>
+        <Image
+          data-testid="exercise-image-large"
+          testID="exercise-image-large"
           className={props.className}
+          source={{ uri: src }}
+          resizeMode="contain"
           style={{ width: "100%", aspectRatio }}
-          onError={() => setIsVideoError(true)}
+          onLoad={(e) => {
+            onCachedLoad();
+            const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
+            if (source?.width && source?.height) {
+              setAspectRatio(source.width / source.height);
+            }
+          }}
+          onError={onCachedError}
+          accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
         />
-      ) : (
-        <>
-          <Image
-            data-testid="exercise-image-large"
-            testID="exercise-image-large"
-            className={props.className}
-            source={{ uri: src }}
-            resizeMode="contain"
-            style={{ width: "100%", aspectRatio }}
-            onLoad={(e) => {
-              onCachedLoad();
-              const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
-              if (source?.width && source?.height) {
-                setAspectRatio(source.width / source.height);
-              }
-            }}
-            onError={onCachedError}
-            accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
-          />
-          <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
-        </>
-      )
+        <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
+      </>
     ) : (
       <ExerciseNoImage size={props.size}>
         <Text>No exercise image</Text>

@@ -6,6 +6,7 @@ interface IExerciseVideoProps {
   resizeMode?: "contain" | "cover";
   className?: string;
   style?: CSSProperties;
+  onLoad?: (size: { width: number; height: number }) => void;
   onError?: () => void;
 }
 
@@ -20,6 +21,9 @@ export function ExerciseVideo(props: IExerciseVideoProps): JSX.Element {
       muted
       loop
       playsInline
+      onLoadedMetadata={(e) =>
+        props.onLoad?.({ width: e.currentTarget.videoWidth, height: e.currentTarget.videoHeight })
+      }
       onError={() => props.onError?.()}
     />
   );
