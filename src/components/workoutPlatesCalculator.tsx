@@ -4,7 +4,7 @@ import { Text } from "./primitives/text";
 import { Path } from "./primitives/svg";
 import { IconSvg } from "./icons/iconSvg";
 import { IHistoryEntry, ISettings, ISubscription, IWeight } from "../types";
-import { Weight_calculatePlates, Weight_eq, Weight_formatOneSide } from "../models/weight";
+import { IWeightPlatesResult, Weight_calculatePlates, Weight_eq, Weight_formatOneSideOrdered } from "../models/weight";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { WorkoutExerciseUtils_getBgColor100 } from "../utils/workoutExerciseUtils";
@@ -18,6 +18,7 @@ interface IWorkoutPlatesCalculatorProps {
   subscription: ISubscription;
   settings: ISettings;
   dispatch: IDispatch;
+  plateResult?: IWeightPlatesResult;
 }
 
 function BarbellIcon(): JSX.Element {
@@ -36,12 +37,8 @@ function BarbellIcon(): JSX.Element {
 
 function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX.Element {
   const isSubscribed = Subscriptions_hasSubscription(props.subscription);
-  const { plates, totalWeight: weight } = Weight_calculatePlates(
-    props.weight,
-    props.settings,
-    props.weight.unit,
-    props.entry.exercise
-  );
+  const { plates, totalWeight: weight } =
+    props.plateResult ?? Weight_calculatePlates(props.weight, props.settings, props.weight.unit, props.entry.exercise);
   const isPlatesMatch = Weight_eq(weight, props.weight);
   return (
     <View className="self-start my-1">
@@ -60,7 +57,7 @@ function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX
                 data-testid="plates-list"
                 testID="plates-list"
               >
-                {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
+                {plates.length > 0 ? Weight_formatOneSideOrdered(props.settings, plates, props.entry.exercise) : "None"}
               </Text>
             </Text>
           ) : (

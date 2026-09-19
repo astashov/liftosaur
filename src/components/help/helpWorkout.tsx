@@ -24,8 +24,9 @@ export function HelpWorkout(): JSX.Element {
         <Text className="text-sm font-bold">185lb - 45/25</Text> means that to get{" "}
         <Text className="text-sm font-bold">185lb</Text> you need to put one{" "}
         <Text className="text-sm font-bold">45lb</Text> and one <Text className="text-sm font-bold">25lb</Text> plate on
-        each side of the bar. By tapping on the weights there you can change them for that workout. It won't change the
-        weight in the program though, only for that workout.
+        each side of the bar. Plates are listed from the bar outward. Following the sets in order can reduce plate
+        changes; if you skip around, load the complete stack shown. By tapping on the weights there you can change them
+        for that workout. It won't change the weight in the program though, only for that workout.
       </Text>
       <View className="flex-row flex-wrap items-center pb-2">
         <Text className="text-sm">

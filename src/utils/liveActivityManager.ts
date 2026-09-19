@@ -4,7 +4,12 @@ import { Program_evaluate, Program_getProgramExercise } from "../models/program"
 import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
 import { Progress_shouldShowAmrapModal, Progress_getNextEntry, Progress_getActiveSetTimer } from "../models/progress";
 import { ISetsStatus, Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
-import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../models/weight";
+import {
+  Weight_calculatePlates,
+  Weight_calculatePlatesForSets,
+  Weight_print,
+  Weight_formatOneSideOrdered,
+} from "../models/weight";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, IProgram, ISettings, ISubscription, ITimedSetSide } from "../types";
 import { TimedSet_toView } from "../models/timedSet";
@@ -104,9 +109,11 @@ export function LiveActivityManager_getLiveActivityEntry(
   }
   const isNextSetWarmup = setIndex < entry.warmupSets.length;
   const weightForPlates = set.completedWeight ?? set.weight;
-  const plates = weightForPlates
-    ? Weight_calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
-    : undefined;
+  const plates =
+    Weight_calculatePlatesForSets(allSets, settings, entry.exercise).get(set.id) ??
+    (weightForPlates
+      ? Weight_calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
+      : undefined);
   let exerciseImageUrl = ExerciseImageUtils_url(exercise, "small", settings);
   if (exerciseImageUrl) {
     exerciseImageUrl = UrlUtils_build(exerciseImageUrl, __HOST__)?.toString();
@@ -144,7 +151,9 @@ export function LiveActivityManager_getLiveActivityEntry(
     targetRPE: set.rpe != null ? `${n(set.rpe)}${set.logRpe ? "+" : ""}` : undefined,
     targetTimer: set.timer != null ? set.timer.toString() : undefined,
     plates:
-      (plates?.plates || []).length > 0 ? Weight_formatOneSide(settings, plates?.plates || [], entry.exercise) : "None",
+      (plates?.plates || []).length > 0
+        ? Weight_formatOneSideOrdered(settings, plates?.plates || [], entry.exercise)
+        : "None",
     currentWeight: currentWeight != null ? Weight_print(currentWeight) : undefined,
     currentReps: currentReps != null ? currentReps.toString() : undefined,
     isWarmup: isNextSetWarmup,
