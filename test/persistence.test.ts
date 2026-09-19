@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { Storage_getDefault, Storage_fillVersions } from "../src/models/storage";
 import { IPersistenceStore, Persistence } from "../src/utils/persistence";
 import { IHistoryRecord, IStorage } from "../src/types";
-import { ILocalStorage } from "../src/models/state";
+import { ILastSynced, ILocalStorage } from "../src/models/state";
 
 class MemoryStore implements IPersistenceStore {
   public data: Map<string, string> = new Map();
@@ -47,7 +47,15 @@ function buildStorage(historyIds: number[]): IStorage {
   return Storage_fillVersions({ ...storage, history: historyIds.map(buildHistoryRecord) }, "test-device");
 }
 
+function buildBaseline(storage: IStorage, at: number = 1000): ILastSynced {
+  return { versions: storage._versions, tempUserId: storage.tempUserId, serverVersionsFetchedAt: at };
+}
+
 const BASE_KEY = "liftosaur_testuser";
+const BASELINE_KEY = `liftosaurshard:${BASE_KEY}:lastsynced`;
+const OLD_BASELINE_KEYS = ["storage", "history", "programs", "stats"].map(
+  (name) => `liftosaurshard:${BASE_KEY}:lastsynced_${name}`
+);
 
 describe("Persistence", () => {
   let store: MemoryStore;
@@ -69,17 +77,9 @@ describe("Persistence", () => {
 
   it("writes all shards and manifest on first save, only changed shards after", async () => {
     const storage = buildStorage([1]);
-    const stats1 = await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    expect(stats1.shards).to.include.members([
-      "history",
-      "programs",
-      "stats",
-      "storage",
-      "lastsynced_history",
-      "lastsynced_programs",
-      "lastsynced_stats",
-      "lastsynced_storage",
-    ]);
+    const lastSynced = buildBaseline(storage);
+    const stats1 = await persistence.save(BASE_KEY, { storage, lastSynced });
+    expect(stats1.shards).to.include.members(["history", "programs", "stats", "storage", "lastsynced"]);
     expect(store.data.has(`liftosaurshard:${BASE_KEY}:manifest`)).to.equal(true);
     // First sharded save also bootstraps the legacy-blob disaster spare...
     expect(stats1.shards).to.include("legacy");
@@ -87,7 +87,7 @@ describe("Persistence", () => {
     expect(blobAfterFirstSave).to.be.a("string");
 
     const changedStorage: IStorage = { ...storage, email: "new@example.com" };
-    const stats2 = await persistence.save(BASE_KEY, { storage: changedStorage, lastSyncedStorage: storage });
+    const stats2 = await persistence.save(BASE_KEY, { storage: changedStorage, lastSynced });
     expect(stats2.shards).to.eql(["storage"]);
     expect(stats2.bytes).to.be.lessThan(stats1.bytes / 2);
     // ...but steady-state saves never rewrite it
@@ -97,14 +97,15 @@ describe("Persistence", () => {
   it("in dual mode also writes a current legacy blob alongside shards", async () => {
     const dualPersistence = new Persistence(store, "dual");
     const storage = buildStorage([1]);
-    const stats = await dualPersistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    const lastSynced = buildBaseline(storage);
+    const stats = await dualPersistence.save(BASE_KEY, { storage, lastSynced });
     expect(stats.shards).to.include.members(["history", "storage", "legacy"]);
     const legacy = JSON.parse(store.data.get(BASE_KEY)!) as ILocalStorage;
     expect(legacy.storage?.history.map((r) => r.id)).to.eql([1]);
-    expect(legacy.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+    expect(legacy.lastSynced?.tempUserId).to.equal(storage.tempUserId);
 
     const changedStorage: IStorage = { ...storage, email: "new@example.com" };
-    await dualPersistence.save(BASE_KEY, { storage: changedStorage, lastSyncedStorage: storage });
+    await dualPersistence.save(BASE_KEY, { storage: changedStorage, lastSynced });
     const legacy2 = JSON.parse(store.data.get(BASE_KEY)!) as ILocalStorage;
     expect(legacy2.storage?.email).to.equal("new@example.com");
   });
@@ -121,39 +122,113 @@ describe("Persistence", () => {
     expect(store.writes.length).to.equal(writesBefore);
   });
 
-  it("skips lastsynced big shards when they share references with previous write", async () => {
+  it("writes the baseline shard only when the baseline reference changes", async () => {
     const storage = buildStorage([1]);
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: undefined });
+    await persistence.save(BASE_KEY, { storage, lastSynced: undefined });
     const synced: IStorage = { ...storage, email: "synced@example.com" };
-    const stats = await persistence.save(BASE_KEY, { storage: synced, lastSyncedStorage: synced });
-    expect(stats.shards).to.include.members(["storage", "lastsynced_storage"]);
-    expect(stats.shards).to.not.include.members(["history", "lastsynced_history"]);
+    const lastSynced = buildBaseline(synced);
+    const stats = await persistence.save(BASE_KEY, { storage: synced, lastSynced });
+    expect(stats.shards).to.eql(["storage", "lastsynced"]);
+    const again = await persistence.save(BASE_KEY, { storage: synced, lastSynced });
+    expect(again.shards).to.eql([]);
+  });
+
+  it("removes the baseline shard when the baseline is cleared", async () => {
+    const storage = buildStorage([1]);
+    await persistence.save(BASE_KEY, { storage, lastSynced: buildBaseline(storage) });
+    expect(store.data.has(BASELINE_KEY)).to.equal(true);
+    const stats = await persistence.save(BASE_KEY, { storage, lastSynced: undefined });
+    expect(stats.shards).to.eql(["-lastsynced"]);
+    expect(store.data.has(BASELINE_KEY)).to.equal(false);
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.lastSynced).to.equal(undefined);
   });
 
   it("round-trips through save and load", async () => {
     const storage = buildStorage([1, 2]);
-    const synced = buildStorage([1]);
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: synced });
+    const lastSynced = buildBaseline(buildStorage([1]), 4242);
+    await persistence.save(BASE_KEY, { storage, lastSynced });
     const freshBoot = new Persistence(store, "sharded");
     const loaded = await freshBoot.load(BASE_KEY);
     expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1, 2]);
     expect(loaded?.storage?.tempUserId).to.equal(storage.tempUserId);
-    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+    expect(loaded?.lastSynced).to.eql(lastSynced);
+  });
+
+  it("loads storage and no baseline when the baseline shard is corrupt", async () => {
+    const storage = buildStorage([1, 2]);
+    await persistence.save(BASE_KEY, { storage, lastSynced: buildBaseline(storage) });
+    store.data.set(BASELINE_KEY, "corrupted{{{");
+    store.data.delete(BASE_KEY);
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1, 2]);
+    expect(loaded?.lastSynced).to.equal(undefined);
+  });
+
+  it("ignores the old lastsynced_* shards on load and deletes them on the next save", async () => {
+    const storage = buildStorage([1]);
+    await persistence.save(BASE_KEY, { storage });
+    for (const key of OLD_BASELINE_KEYS) {
+      store.data.set(key, JSON.stringify({ stale: true }));
+    }
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.lastSynced).to.equal(undefined);
+    const stats = await freshBoot.save(BASE_KEY, { storage: loaded!.storage!, lastSynced: buildBaseline(storage) });
+    expect(stats.shards).to.include.members([
+      "lastsynced",
+      "-lastsynced_storage",
+      "-lastsynced_history",
+      "-lastsynced_programs",
+      "-lastsynced_stats",
+    ]);
+    for (const key of OLD_BASELINE_KEYS) {
+      expect(store.data.has(key)).to.equal(false);
+    }
+    const again = await freshBoot.save(BASE_KEY, { storage: loaded!.storage!, lastSynced: buildBaseline(storage) });
+    expect(again.shards).to.eql(["lastsynced"]);
+  });
+
+  it("deletes the old lastsynced_* shards even when the first save after load is saveFull", async () => {
+    const storage = buildStorage([1]);
+    await persistence.save(BASE_KEY, { storage });
+    for (const key of OLD_BASELINE_KEYS) {
+      store.data.set(key, JSON.stringify({ stale: true }));
+    }
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    await freshBoot.saveFull(BASE_KEY, { storage: loaded!.storage! });
+    for (const key of OLD_BASELINE_KEYS) {
+      expect(store.data.has(key)).to.equal(false);
+    }
+  });
+
+  it("ignores the old lastSyncedStorage field inside a legacy blob and keeps its other fields", async () => {
+    const storage = buildStorage([1]);
+    store.data.set(BASE_KEY, JSON.stringify({ storage, lastSyncedStorage: storage, progress: { id: 7 } }));
+    const loaded = await persistence.load(BASE_KEY);
+    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
+    expect(loaded?.lastSynced).to.equal(undefined);
+    expect((loaded as { progress?: { id: number } })?.progress?.id).to.equal(7);
+    expect("lastSyncedStorage" in (loaded || {})).to.equal(false);
   });
 
   it("migrates lazily: load only reads the legacy blob, the first save creates shards", async () => {
     const dualPersistence = new Persistence(store, "dual");
     const storage = buildStorage([1]);
-    const legacy: ILocalStorage = { storage, lastSyncedStorage: storage };
+    const legacy: ILocalStorage = { storage, lastSynced: buildBaseline(storage) };
     store.data.set(BASE_KEY, JSON.stringify(legacy));
 
     const writesBefore = store.writes.length;
     const loaded = await dualPersistence.load(BASE_KEY);
     expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
+    expect(loaded?.lastSynced).to.eql(legacy.lastSynced);
     expect(store.writes.length).to.equal(writesBefore);
     expect(store.data.has(`liftosaurshard:${BASE_KEY}:manifest`)).to.equal(false);
 
-    await dualPersistence.save(BASE_KEY, { storage: loaded!.storage!, lastSyncedStorage: loaded!.lastSyncedStorage });
+    await dualPersistence.save(BASE_KEY, { storage: loaded!.storage!, lastSynced: loaded!.lastSynced });
     expect(store.data.has(BASE_KEY)).to.equal(true);
     expect(store.data.has(`liftosaurshard:${BASE_KEY}:manifest`)).to.equal(true);
     expect(store.data.has(`liftosaurshard:${BASE_KEY}:history`)).to.equal(true);
@@ -251,81 +326,24 @@ describe("Persistence", () => {
     expect(loadedNoBlob?.storage?.history.map((r) => r.id)).to.eql([1, 2]);
   });
 
-  it("recovers lastSyncedStorage from the legacy blob when its shard group is incomplete", async () => {
+  it("does not restore a cleared baseline from the frozen blob", async () => {
     const storage = buildStorage([1]);
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
+    await persistence.save(BASE_KEY, { storage, lastSynced: buildBaseline(storage) });
+    await persistence.save(BASE_KEY, { storage, lastSynced: undefined });
+    expect((JSON.parse(store.data.get(BASE_KEY)!) as ILocalStorage).lastSynced).to.not.equal(undefined);
     const freshBoot = new Persistence(store, "sharded");
     const loaded = await freshBoot.load(BASE_KEY);
     expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
-    // A partial shard set (native saves aren't atomic) must not strand sync without a baseline -
-    // the blob still holds a valid one, so recover from it instead of returning undefined.
-    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+    expect(loaded?.lastSynced).to.equal(undefined);
   });
 
-  it("degrades lastSyncedStorage to undefined when its shard group is incomplete and no blob exists", async () => {
-    const storage = buildStorage([1]);
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
-    store.data.delete(BASE_KEY);
-    const freshBoot = new Persistence(store, "sharded");
-    const loaded = await freshBoot.load(BASE_KEY);
-    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
-    expect(loaded?.lastSyncedStorage).to.equal(undefined);
-  });
-
-  it("does not restore lastSyncedStorage from the blob when a clear removed all lastsynced shards", async () => {
-    const storage = buildStorage([1]);
-    // First save establishes the shards + a frozen bootstrap blob that still holds a baseline.
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    // A logout / not_authorized clear removes all four lastsynced_* shards; in sharded mode the
-    // frozen blob is left untouched (and thus stale).
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: undefined });
-    const freshBoot = new Persistence(store, "sharded");
-    const loaded = await freshBoot.load(BASE_KEY);
-    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
-    // "all absent" is a legitimate no-baseline state - it must NOT resurrect the stale frozen blob.
-    expect(loaded?.lastSyncedStorage).to.equal(undefined);
-  });
-
-  // Documents an ACCEPTED narrow edge case: a torn clear leaves the SAME partial-shard signature as
-  // a torn baseline write, so load() can't tell them apart and recovers from the blob - briefly
-  // undoing the intended no-baseline state. It requires a crash mid non-atomic MMKV clear loop, and
-  // the resurrected baseline is neutralized downstream (tempUserId re-fetch on account switch;
-  // idempotent version-reconciled re-sync for same-user logout / not_authorized). See discussion in
-  // withLastSyncedFallback. If this ever needs closing, order save() so the blob (which reflects the
-  // cleared lastSynced) is written before the lastsynced_* shard mutations.
-  it("resurrects the baseline on a torn clear (partial shards) - accepted edge case", async () => {
-    const storage = buildStorage([1]);
-    // Establish the shards + a frozen blob that still holds the baseline.
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    // A clear that crashed mid-loop: some lastsynced_* shards removed, the rest (and the blob) stale.
-    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
-    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_programs`);
-    const freshBoot = new Persistence(store, "sharded");
-    const loaded = await freshBoot.load(BASE_KEY);
-    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
-  });
-
-  it("heals the lastsynced shard set on the next save after a blob fallback", async () => {
-    const storage = buildStorage([1]);
-    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
-    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
-    const freshBoot = new Persistence(store, "sharded");
-    const loaded = await freshBoot.load(BASE_KEY);
-    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
-    // The next save must rewrite the full lastsynced_* group so disk stops depending on the blob.
-    await freshBoot.save(BASE_KEY, { storage, lastSyncedStorage: loaded!.lastSyncedStorage });
-    store.data.delete(BASE_KEY);
-    const reboot = new Persistence(store, "sharded");
-    const reloaded = await reboot.load(BASE_KEY);
-    expect(reloaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
-  });
-
-  it("deletes legacy blob, all shards and manifest", async () => {
+  it("deletes legacy blob, all shards, old baseline shards and manifest", async () => {
     const dualPersistence = new Persistence(store, "dual");
     const storage = buildStorage([1]);
-    await dualPersistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    await dualPersistence.save(BASE_KEY, { storage, lastSynced: buildBaseline(storage) });
+    for (const key of OLD_BASELINE_KEYS) {
+      store.data.set(key, "{}");
+    }
     await dualPersistence.delete(BASE_KEY);
     expect(store.data.size).to.equal(0);
   });

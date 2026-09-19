@@ -240,7 +240,6 @@ import {
   Thunk_startSetTimerWork,
   Thunk_refreshLiveActivity,
   Thunk_handleWatchStorageMerge,
-  Thunk_reloadStorageFromDisk,
   Thunk_postevent,
   Thunk_debugTestLogin,
 } from "./ducks/thunks";
@@ -543,8 +542,6 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
         // so the AppState listener doesn't schedule a phantom reminder later.
         // Idempotent with respect to native cleanup.
         NativeWorkoutBridge_discardWorkout();
-      } else if (event.type === "reloadStorageFromDisk") {
-        dispatch(Thunk_reloadStorageFromDisk());
       } else if (event.type === "requestStorage") {
         if (!AdminDebug_isDebugAccountId(stateRef.current.storage.tempUserId)) {
           const filtered = WatchStorageFilter_filterJson(stateRef.current.storage);

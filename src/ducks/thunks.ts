@@ -68,7 +68,7 @@ import { CSV_toString } from "../utils/csv";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
-import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
+import { IndexedDBUtils_set } from "../utils/indexeddb";
 import { Account_getAll, IAccount } from "../models/account";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { OnloadModal_getNext, OnloadModal_shouldShowHearAboutUs } from "../models/onloadModal";
@@ -126,6 +126,14 @@ import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
+import {
+  ISyncBaselineSource,
+  SyncBaseline_afterClean,
+  SyncBaseline_fromServer,
+  SyncBaseline_needsFetch,
+  SyncBaseline_withWatchVersions,
+} from "../utils/syncBaseline";
+import { runMigrations } from "../migrations/runner";
 import { HistoryDelta_sortNewestFirst } from "../utils/historyDelta";
 import { PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
 import {
@@ -368,7 +376,7 @@ export function Thunk_logOut(cb?: () => void): IThunk {
       await env.push?.unregisterBeforeSignout();
       await env.service.signout();
       dispatch({ type: "Logout" });
-      updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
+      updateState(dispatch, [lb<IState>().p("lastSynced").record(undefined)], "Clear last sync on logout");
       // A debug sandbox borrows the device's native auth, so logging out of it must only drop the
       // debug session - tearing down the keychain/Google/watch auth here would wipe the admin's own
       // real persisted login.
@@ -405,23 +413,17 @@ async function _sync2(
   signal?: AbortSignal
 ): Promise<void> {
   const state = getState();
-  function handleResponse(
-    result: IPostSyncResponse,
-    handleResponseArgs: {
-      lastSyncedStorage?: IStorage;
-      requestedLastStorage?: boolean;
-    }
-  ): boolean {
-    const { lastSyncedStorage, requestedLastStorage } = handleResponseArgs;
+  type IRequestContext = { kind: "fetch" } | { kind: "upload"; sent: ISyncBaselineSource };
+  function handleResponse(result: IPostSyncResponse, context: IRequestContext): "baseline-fetched" | "done" {
     if (result.type === "clean") {
       dispatch(Thunk_postevent("handle-response-clean"));
+      const baseline = getState().lastSynced;
       updateState(
         dispatch,
         [
           lb<IState>()
-            .p("lastSyncedStorage")
-            .record(lastSyncedStorage || getState().lastSyncedStorage),
-          lb<IState>().pi("lastSyncedStorage").p("originalId").record(result.new_original_id),
+            .p("lastSynced")
+            .record(baseline && context.kind === "upload" ? SyncBaseline_afterClean(baseline, context.sent) : baseline),
           lb<IState>().p("storage").p("originalId").record(result.new_original_id),
           lb<IState>().p("storage").p("subscription").p("key").record(result.key),
         ],
@@ -430,19 +432,20 @@ async function _sync2(
       if (getState().storage.email !== result.email || getState().user?.id !== result.user_id) {
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
       }
-      return true;
+      return "done";
     } else if (result.type === "dirty") {
       result.storage.tempUserId = result.user_id;
-      if (requestedLastStorage) {
+      if (context.kind === "fetch") {
         dispatch(Thunk_postevent("handle-response-dirty-requested-last-storage"));
         updateState(
           dispatch,
           [
-            lb<IState>().p("lastSyncedStorage").record(result.storage),
+            lb<IState>().p("lastSynced").record(SyncBaseline_fromServer(result.storage, Date.now())),
             lb<IState>().p("storage").p("tempUserId").record(result.user_id),
           ],
           "Update last synced storage"
         );
+        return "baseline-fetched";
       } else {
         dispatch(Thunk_postevent("handle-response-dirty"));
         const currentStorage = getState().storage;
@@ -485,7 +488,7 @@ async function _sync2(
         updateState(
           dispatch,
           [
-            lb<IState>().p("lastSyncedStorage").record(result.storage),
+            lb<IState>().p("lastSynced").record(SyncBaseline_fromServer(result.storage, Date.now())),
             lb<IState>().p("storage").record(newStorage),
             lb<IState>().p("storage").p("subscription").p("key").record(result.key),
           ],
@@ -495,17 +498,17 @@ async function _sync2(
           dispatch({ type: "Login", email: result.email, userId: result.user_id });
         }
       }
-      return true;
+      return "done";
     } else if (result.type === "error" && result.error === "not_authorized") {
       updateState(
         dispatch,
         [
           lb<IState>().p("storage").p("subscription").p("key").record(result.key),
-          lb<IState>().p("lastSyncedStorage").record(undefined),
+          lb<IState>().p("lastSynced").record(undefined),
         ],
         "Update subscription no storage"
       );
-      return false;
+      return "done";
     } else if (result.type === "error") {
       if (result.error === "outdated_client_storage") {
         Dialog_alert(
@@ -515,12 +518,14 @@ async function _sync2(
       }
       throw new NoRetryError(result.error);
     }
-    return false;
+    return "done";
   }
-  if (state.lastSyncedStorage == null || state.lastSyncedStorage.tempUserId !== state.storage.tempUserId) {
+  const fetchReason = SyncBaseline_needsFetch(state.lastSynced, state.storage.tempUserId, Date.now());
+  if (fetchReason != null) {
     dispatch(
       Thunk_postevent("fetch-last-synced-storage", {
-        lastUserId: state.lastSyncedStorage?.tempUserId ?? "",
+        reason: fetchReason,
+        lastUserId: state.lastSynced?.tempUserId ?? "",
         newUserId: state.storage.tempUserId ?? "",
       })
     );
@@ -536,15 +541,14 @@ async function _sync2(
     if (signal?.aborted) {
       return;
     }
-    const handled = handleResponse(result, { requestedLastStorage: true });
-    if (handled) {
-      await _sync2(dispatch, getState, env, args);
+    if (handleResponse(result, { kind: "fetch" }) === "baseline-fetched") {
+      await _sync2(dispatch, getState, env, args, signal);
     }
   } else {
     dispatch(Thunk_postevent("sync-storage-update", { force: args?.force ? "true" : "false" }));
     const probeSyncTarget = PerfProbe_isTarget();
     const probeSyncT0 = probeSyncTarget ? Date.now() : 0;
-    const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
+    const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSynced?.versions, state.deviceId);
     if (probeSyncTarget) {
       lg("perf-sync", {
         build_ms: Date.now() - probeSyncT0,
@@ -552,7 +556,7 @@ async function _sync2(
       });
     }
     if (args?.force || storageUpdate.storage) {
-      const lastSyncedStorage = state.storage;
+      const sentStorage = state.storage;
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: storageUpdate,
@@ -563,7 +567,7 @@ async function _sync2(
       if (signal?.aborted) {
         return;
       }
-      handleResponse(result, { lastSyncedStorage });
+      handleResponse(result, { kind: "upload", sent: sentStorage });
     }
   }
 }
@@ -1111,7 +1115,7 @@ export function Thunk_playAudioNotification(): IThunk {
 export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivity?: boolean): IThunk {
   return async (dispatch, getState, env) => {
     try {
-      const watchStorage: IStorage = JSON.parse(storageJson);
+      const watchStorage: IStorage = runMigrations(JSON.parse(storageJson));
       const state = getState();
 
       const phoneHistoryLen = state.storage.history?.length ?? 0;
@@ -1145,11 +1149,9 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       }
 
       if (Storage_isChanged(state.storage, mergedStorage)) {
-        // Also merge into lastSyncedStorage to preserve phone's unsent changes
-        // This ensures prepareSync won't re-detect watch's changes as new phone changes
-        const mergedLastSynced = state.lastSyncedStorage
-          ? Storage_mergeStorage(state.lastSyncedStorage, watchStorage, state.deviceId)
-          : mergedStorage;
+        const mergedLastSynced = state.lastSynced
+          ? SyncBaseline_withWatchVersions(state.lastSynced, watchStorage._versions, state.deviceId)
+          : undefined;
 
         const mergedHistoryLen = mergedStorage.history?.length ?? 0;
 
@@ -1163,10 +1165,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
 
         updateState(
           dispatch,
-          [
-            lb<IState>().p("storage").record(mergedStorage),
-            lb<IState>().p("lastSyncedStorage").record(mergedLastSynced),
-          ],
+          [lb<IState>().p("storage").record(mergedStorage), lb<IState>().p("lastSynced").record(mergedLastSynced)],
           "Merge watch storage"
         );
         SendMessage_print("handleWatchStorageMerge: successfully merged watch storage");
@@ -1248,56 +1247,6 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       }
     } catch (error) {
       SendMessage_print(`handleWatchStorageMerge: failed to merge storage: ${error}`);
-    }
-  };
-}
-
-export function Thunk_reloadStorageFromDisk(): IThunk {
-  return async (dispatch, getState, env) => {
-    try {
-      const currentAccount = (await IndexedDBUtils_get("current_account")) as string | undefined;
-      if (!currentAccount) {
-        SendMessage_print("reloadStorageFromDisk: no current_account");
-        return;
-      }
-
-      const parsed = await env.persistence.load(`liftosaur_${currentAccount}`);
-      if (parsed == null) {
-        SendMessage_print("reloadStorageFromDisk: no storage found");
-        return;
-      }
-
-      const storage: IStorage | undefined = parsed.storage;
-      const lastSyncedStorage: IStorage | undefined = parsed.lastSyncedStorage;
-
-      if (!storage) {
-        SendMessage_print("reloadStorageFromDisk: invalid storage format");
-        return;
-      }
-
-      const currentState = getState();
-      const currentHistoryLen = currentState.storage.history?.length ?? 0;
-      const diskHistoryLen = storage.history?.length ?? 0;
-
-      if (currentHistoryLen > 0 && diskHistoryLen === 0) {
-        lg("ls-history-deletion-reload-disk", {
-          currentHistoryLen,
-          diskHistoryLen,
-        });
-      }
-
-      updateState(
-        dispatch,
-        [
-          lb<IState>().p("storage").record(storage),
-          lb<IState>()
-            .p("lastSyncedStorage")
-            .record(lastSyncedStorage ?? storage),
-        ],
-        "Reload storage from disk"
-      );
-    } catch (error) {
-      SendMessage_print(`reloadStorageFromDisk: failed: ${error}`);
     }
   };
 }
@@ -2515,6 +2464,10 @@ async function handleLogin(
       dispatch(Thunk_postevent("login"));
       Rollbar.configure(RollbarUtils_config({ person: { email: result.email, id: result.user_id } }));
       let storage: IStorage;
+      const lastSynced = SyncBaseline_fromServer(
+        { _versions: result.storage._versions, tempUserId: result.user_id },
+        Date.now()
+      );
       const storageResult = Storage_get(result.storage, true);
       const service = new Service(client);
       if (storageResult.success) {
@@ -2541,7 +2494,7 @@ async function handleLogin(
       }
       if (oldUserId === result.user_id) {
         dispatch(Thunk_postevent("login-same-user"));
-        updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(storage)], "Set last synced on login");
+        updateState(dispatch, [lb<IState>().p("lastSynced").record(lastSynced)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
         if (storage.subscription.key !== result.key) {
           updateState(
@@ -2554,7 +2507,7 @@ async function handleLogin(
         dispatch(Thunk_postevent("login-different-user"));
         storage.subscription.key = result.key;
         const newState = await getInitialState(client, { storage, deviceId: await DeviceId_get() });
-        newState.lastSyncedStorage = ObjectUtils_clone(newState.storage);
+        newState.lastSynced = lastSynced;
         newState.user = { id: result.user_id, email: result.email };
         dispatch({ type: "ReplaceState", state: newState });
       }

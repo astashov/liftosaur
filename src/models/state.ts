@@ -129,10 +129,16 @@ export interface IStateTour {
   screenData?: IScreenData;
 }
 
+export interface ILastSynced {
+  versions: IStorage["_versions"];
+  tempUserId: string;
+  serverVersionsFetchedAt: number;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
-  lastSyncedStorage?: IStorage;
+  lastSynced?: ILastSynced;
   programs: IProgram[];
   programsIndex: IProgramIndexEntry[];
   notification?: INotification;
@@ -188,7 +194,7 @@ export interface IImportPreview {
 
 export interface ILocalStorage {
   storage?: IStorage;
-  lastSyncedStorage?: IStorage;
+  lastSynced?: ILastSynced;
   editDay?: IProgramDay;
 }
 

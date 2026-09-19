@@ -1,6 +1,6 @@
 import { IndexedDBUtils_get, IndexedDBUtils_getAllKeys, IndexedDBUtils_setMany } from "./indexeddb";
 import type { IStorage, IPartialStorage } from "../types";
-import type { ILocalStorage } from "../models/state";
+import type { ILastSynced, ILocalStorage } from "../models/state";
 import { lg } from "./posthog";
 
 export interface IPersistenceStore {
@@ -32,15 +32,13 @@ export interface IPersistenceSaveStats {
 
 interface IWriteCacheEntry {
   storage?: IStorage;
-  lastSyncedStorage?: IStorage;
+  lastSynced?: ILastSynced;
 }
-
-type ILastSyncedStatus = "absent" | "partial" | "complete";
 
 interface IAssembled {
   storage: IStorage;
-  lastSyncedStorage?: IStorage;
-  lastSyncedStatus: ILastSyncedStatus;
+  lastSynced?: ILastSynced;
+  oldBaselineShardsPresent: boolean;
 }
 
 // Rollout ladder: "legacy" (single blob, as before) → "dual" (shards + legacy blob on
@@ -53,16 +51,14 @@ export type IPersistenceMode = "legacy" | "dual" | "sharded";
 
 const PERSISTENCE_FORMAT_VERSION = 1;
 const BIG_FIELDS = ["history", "programs", "stats"] as const;
-const ALL_SHARD_NAMES = [
-  "storage",
-  "history",
-  "programs",
-  "stats",
+const BASELINE_SHARD = "lastsynced";
+const OLD_BASELINE_SHARD_NAMES = [
   "lastsynced_storage",
   "lastsynced_history",
   "lastsynced_programs",
   "lastsynced_stats",
 ];
+const ALL_SHARD_NAMES = ["storage", "history", "programs", "stats", BASELINE_SHARD, ...OLD_BASELINE_SHARD_NAMES];
 
 const indexedDBStore: IPersistenceStore = {
   get: (key) => IndexedDBUtils_get(key),
@@ -79,7 +75,49 @@ function manifestKey(baseKey: string): string {
 }
 
 function serializeLegacy(data: ILocalStorage): string {
-  return JSON.stringify({ storage: data.storage, lastSyncedStorage: data.lastSyncedStorage });
+  return JSON.stringify({ storage: data.storage, lastSynced: data.lastSynced });
+}
+
+function parseLegacy(raw: string): ILocalStorage | undefined {
+  try {
+    const {
+      lastSyncedStorage: _old,
+      lastSynced,
+      ...rest
+    } = JSON.parse(raw) as ILocalStorage & {
+      lastSyncedStorage?: unknown;
+    };
+    return { ...rest, lastSynced: asBaseline(lastSynced) };
+  } catch {
+    return undefined;
+  }
+}
+
+function asBaseline(value: unknown): ILastSynced | undefined {
+  const candidate = value as Partial<ILastSynced> | null | undefined;
+  if (
+    candidate != null &&
+    typeof candidate.tempUserId === "string" &&
+    typeof candidate.serverVersionsFetchedAt === "number"
+  ) {
+    return {
+      versions: candidate.versions,
+      tempUserId: candidate.tempUserId,
+      serverVersionsFetchedAt: candidate.serverVersionsFetchedAt,
+    };
+  }
+  return undefined;
+}
+
+function parseBaseline(raw: unknown): ILastSynced | undefined {
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  try {
+    return asBaseline(JSON.parse(raw));
+  } catch {
+    return undefined;
+  }
 }
 
 function extractPartial(storage: IStorage): IPartialStorage {
@@ -127,6 +165,7 @@ function assembleStorage(partialRaw: string, historyRaw: string, programsRaw: st
 
 export class Persistence {
   private writeCache: Partial<Record<string, IWriteCacheEntry>> = {};
+  private readonly oldBaselineShardsToDelete = new Set<string>();
 
   constructor(
     private readonly store: IPersistenceStore = indexedDBStore,
@@ -166,24 +205,19 @@ export class Persistence {
       pushShard("storage", extractPartial(storage));
     }
 
-    const lastSynced = data.lastSyncedStorage;
+    const lastSynced = data.lastSynced;
     if (lastSynced == null) {
-      if (prev == null || prev.lastSyncedStorage != null) {
-        for (const name of BIG_FIELDS) {
-          pairs.push([shardKey(baseKey, `lastsynced_${name}`), undefined]);
-          removed.push(`lastsynced_${name}`);
-        }
-        pairs.push([shardKey(baseKey, "lastsynced_storage"), undefined]);
-        removed.push("lastsynced_storage");
+      if (prev == null || prev.lastSynced != null) {
+        pairs.push([shardKey(baseKey, BASELINE_SHARD), undefined]);
+        removed.push(BASELINE_SHARD);
       }
-    } else {
-      for (const name of BIG_FIELDS) {
-        if (prev?.lastSyncedStorage == null || prev.lastSyncedStorage[name] !== lastSynced[name]) {
-          pushShard(`lastsynced_${name}`, lastSynced[name]);
-        }
-      }
-      if (prev?.lastSyncedStorage !== lastSynced) {
-        pushShard("lastsynced_storage", extractPartial(lastSynced));
+    } else if (prev?.lastSynced !== lastSynced) {
+      pushShard(BASELINE_SHARD, lastSynced);
+    }
+    if (this.oldBaselineShardsToDelete.has(baseKey)) {
+      for (const name of OLD_BASELINE_SHARD_NAMES) {
+        pairs.push([shardKey(baseKey, name), undefined]);
+        removed.push(name);
       }
     }
 
@@ -204,7 +238,8 @@ export class Persistence {
     pairs.push([manifestKey(baseKey), JSON.stringify(buildManifest(storage))]);
     const t1 = Date.now();
     await this.store.setMany(pairs);
-    this.writeCache[baseKey] = { storage, lastSyncedStorage: lastSynced };
+    this.writeCache[baseKey] = { storage, lastSynced };
+    this.oldBaselineShardsToDelete.delete(baseKey);
     return {
       bytes,
       stringifyMs: t1 - t0,
@@ -236,62 +271,27 @@ export class Persistence {
       const assembledWithoutManifest = await this.assemble(baseKey);
       if (assembledWithoutManifest != null) {
         lg("ls-persistence-manifest-missing");
-        return this.withLastSyncedFallback(baseKey, assembledWithoutManifest, legacy);
+        return this.seedCache(baseKey, assembledWithoutManifest);
       }
-      if (legacy == null) {
-        return undefined;
-      }
-      try {
-        return JSON.parse(legacy) as ILocalStorage;
-      } catch {
-        return undefined;
-      }
+      return legacy != null ? parseLegacy(legacy) : undefined;
     }
 
     const assembled = await this.assemble(baseKey);
     if (assembled == null) {
       lg("ls-persistence-shards-unreadable");
-      if (legacy == null) {
-        return undefined;
-      }
-      try {
-        return JSON.parse(legacy) as ILocalStorage;
-      } catch {
-        return undefined;
-      }
+      return legacy != null ? parseLegacy(legacy) : undefined;
     }
 
-    return this.withLastSyncedFallback(baseKey, assembled, legacy);
+    return this.seedCache(baseKey, assembled);
   }
 
-  // A non-atomic multi-shard save (MMKV has no transaction) can crash mid-write and leave a PARTIAL
-  // lastsynced_* shard set, which assemble() can't turn into a baseline. Sync then can't diff, so it
-  // stays in its never-synced fetch path and — if the re-fetch doesn't cleanly reseed — stops
-  // uploading entirely. The dual-mode legacy blob still carries a valid (at worst slightly stale,
-  // which sync reconciles) lastSyncedStorage, so recover it from there. Crucially, this only fires on
-  // a "partial" set: an "absent" set is a legitimate no-baseline state (logout / not_authorized clear
-  // all four shards) and must NOT resurrect the stale frozen blob. writeCache is seeded as if no
-  // lastsynced shards exist, so the next save rewrites the full set and heals disk — also lifting the
-  // dependency on the blob for the future frozen-blob "sharded" mode.
-  private withLastSyncedFallback(baseKey: string, assembled: IAssembled, legacy: string | undefined): ILocalStorage {
-    const passthrough = { storage: assembled.storage, lastSyncedStorage: assembled.lastSyncedStorage };
-    if (assembled.lastSyncedStatus !== "partial" || legacy == null) {
-      this.writeCache[baseKey] = passthrough;
-      return passthrough;
+  private seedCache(baseKey: string, assembled: IAssembled): ILocalStorage {
+    const loaded = { storage: assembled.storage, lastSynced: assembled.lastSynced };
+    this.writeCache[baseKey] = loaded;
+    if (assembled.oldBaselineShardsPresent) {
+      this.oldBaselineShardsToDelete.add(baseKey);
     }
-    let blobLastSynced: IStorage | undefined;
-    try {
-      blobLastSynced = (JSON.parse(legacy) as ILocalStorage).lastSyncedStorage;
-    } catch {
-      blobLastSynced = undefined;
-    }
-    if (blobLastSynced == null) {
-      this.writeCache[baseKey] = { storage: assembled.storage, lastSyncedStorage: undefined };
-      return { storage: assembled.storage, lastSyncedStorage: undefined };
-    }
-    lg("ls-persistence-lastsynced-blob-fallback");
-    this.writeCache[baseKey] = { storage: assembled.storage, lastSyncedStorage: undefined };
-    return { storage: assembled.storage, lastSyncedStorage: blobLastSynced };
+    return loaded;
   }
 
   public async delete(baseKey: string): Promise<void> {
@@ -350,17 +350,14 @@ export class Persistence {
   }
 
   private async assemble(baseKey: string): Promise<IAssembled | undefined> {
-    const [partialRaw, historyRaw, programsRaw, statsRaw, lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw] =
-      await Promise.all([
-        this.store.get(shardKey(baseKey, "storage")),
-        this.store.get(shardKey(baseKey, "history")),
-        this.store.get(shardKey(baseKey, "programs")),
-        this.store.get(shardKey(baseKey, "stats")),
-        this.store.get(shardKey(baseKey, "lastsynced_storage")),
-        this.store.get(shardKey(baseKey, "lastsynced_history")),
-        this.store.get(shardKey(baseKey, "lastsynced_programs")),
-        this.store.get(shardKey(baseKey, "lastsynced_stats")),
-      ]);
+    const [partialRaw, historyRaw, programsRaw, statsRaw, baselineRaw, ...oldBaselineRaws] = await Promise.all([
+      this.store.get(shardKey(baseKey, "storage")),
+      this.store.get(shardKey(baseKey, "history")),
+      this.store.get(shardKey(baseKey, "programs")),
+      this.store.get(shardKey(baseKey, "stats")),
+      this.store.get(shardKey(baseKey, BASELINE_SHARD)),
+      ...OLD_BASELINE_SHARD_NAMES.map((name) => this.store.get(shardKey(baseKey, name))),
+    ]);
     // A manifest is only ever written in the same batch as ALL four storage shards, so a
     // missing shard means corruption. Refusing to assemble (→ legacy blob fallback) beats
     // default-filling the gap, which would boot a user with silently empty history.
@@ -374,24 +371,11 @@ export class Persistence {
     }
     try {
       const storage = assembleStorage(partialRaw, historyRaw, programsRaw, statsRaw);
-      // The lastsynced_* group is tri-state: "complete" (all 4) → real baseline; "absent" (0) → a
-      // legitimate no-baseline state (logout / not_authorized deliberately clear all four); "partial"
-      // (1-3) → a crash mid non-atomic save. Only "partial" is corruption to repair from the blob -
-      // "absent" must NOT resurrect a stale frozen blob, or it'd undo those clears.
-      const presentCount = [lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw].filter(
-        (r) => typeof r === "string"
-      ).length;
-      const lastSyncedStatus: ILastSyncedStatus =
-        presentCount === 0 ? "absent" : presentCount === 4 ? "complete" : "partial";
-      const lastSyncedStorage =
-        lastSyncedStatus === "complete" &&
-        typeof lsPartialRaw === "string" &&
-        typeof lsHistoryRaw === "string" &&
-        typeof lsProgramsRaw === "string" &&
-        typeof lsStatsRaw === "string"
-          ? assembleStorage(lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw)
-          : undefined;
-      return { storage, lastSyncedStorage, lastSyncedStatus };
+      return {
+        storage,
+        lastSynced: parseBaseline(baselineRaw),
+        oldBaselineShardsPresent: oldBaselineRaws.some((raw) => raw != null),
+      };
     } catch (e) {
       lg("ls-persistence-assemble-error", { error: String(e) });
       return undefined;

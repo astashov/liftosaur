@@ -83,7 +83,7 @@ describe("WatchHistoryPrune_prune", () => {
 
     const pruned = WatchHistoryPrune_prune(storage, ids(4000, 2000));
     const versions = Storage_updateVersions(storage, pruned, "watch").history;
-    const deleted = isCollectionVersions(versions) ? versions.deleted ?? {} : {};
+    const deleted = isCollectionVersions(versions) ? (versions.deleted ?? {}) : {};
 
     expect(Object.keys(deleted).sort()).to.deep.equal(["2000", "4000"]);
   });
@@ -94,14 +94,14 @@ describe("WatchHistoryPrune_prune", () => {
 
     const versions = Storage_updateVersions(pruned, changed, "watch").history;
 
-    expect(isCollectionVersions(versions) ? versions.deleted ?? {} : {}).to.deep.equal({});
+    expect(isCollectionVersions(versions) ? (versions.deleted ?? {}) : {}).to.deep.equal({});
   });
 
   it("emits no sync update for a dropped record", () => {
     const storage = buildStorage(5);
 
     const pruned = WatchHistoryPrune_prune(storage, ids(4000, 2000));
-    const update = Sync_getStorageUpdate2(pruned, storage, "watch");
+    const update = Sync_getStorageUpdate2(pruned, storage._versions, "watch");
     const items = update.versions?.history;
 
     expect(isCollectionVersions(items) ? Object.keys(items.items ?? {}) : []).to.deep.equal([]);

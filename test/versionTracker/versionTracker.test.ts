@@ -1735,7 +1735,7 @@ describe("VersionTracker", () => {
       expect(merged.subscription.google[0].id).to.equal("receipt1");
 
       // The receipt must still show up in the next sync update against the server's storage
-      const update = Sync_getStorageUpdate2(merged, serverStorage, "and_device");
+      const update = Sync_getStorageUpdate2(merged, serverStorage._versions, "and_device");
       expect(update.storage?.subscription?.google?.[0]?.id).to.equal("receipt1");
     });
   });

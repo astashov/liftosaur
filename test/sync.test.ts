@@ -2,7 +2,8 @@
 import "mocha";
 import { expect } from "chai";
 import { MockReducer } from "./utils/mockReducer";
-import { Thunk_sync2 } from "../src/ducks/thunks";
+import { Thunk_handleWatchStorageMerge, Thunk_sync2 } from "../src/ducks/thunks";
+import { SyncBaseline_MAX_AGE_MS } from "../src/utils/syncBaseline";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { IHistoryRecord, ISettings } from "../src/types";
 import { userTableNames, IUserDao } from "../lambda/dao/userDao";
@@ -36,8 +37,10 @@ import { ICollectionVersions } from "../src/models/versionTracker";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
+  let clock = 0;
 
   beforeEach(() => {
+    clock = 0;
     // @ts-ignore
     global.__API_HOST__ = "https://www.liftosaur.com";
     // @ts-ignore
@@ -52,11 +55,10 @@ describe("sync", () => {
     global.Rollbar = {
       configure: () => undefined,
     };
-    let ts = 0;
     sandbox = sinon.createSandbox();
     sandbox.stub(Date, "now").callsFake(() => {
-      ts += 1;
-      return ts;
+      clock += 1;
+      return clock;
     });
     sandbox.stub(encoder, "Encoder_encode").callsFake((...args: [string]) => {
       return NodeEncoder_encode(...args);
@@ -512,6 +514,102 @@ describe("sync", () => {
       expect(b.state.storage.history.some((r) => r.id === victim.id)).to.equal(false);
       const deleted = (b.state.storage._versions?.history as ICollectionVersions | undefined)?.deleted || {};
       expect(Object.keys(deleted)).to.include(`${victim.id}`);
+    });
+  });
+
+  describe("sync baseline", () => {
+    async function serverUser(di: {
+      dynamo: { scan: <T>(args: { tableName: string }) => Promise<T[]> };
+    }): Promise<IUserDao> {
+      return (await di.dynamo.scan<IUserDao>({ tableName: userTableNames.prod.users }))[0];
+    }
+
+    it("keeps a phone change uploadable when a watch merge arrives with no baseline", async () => {
+      const { mockReducer: a, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [lb<IState>().p("nosync").record(true), lb<IState>().p("lastSynced").record(undefined)],
+            "offline, no baseline"
+          )
+        ),
+        {
+          type: "UpdateSettings",
+          lensRecording: lb<ISettings>().p("isPublicProfile").record(true),
+          desc: "phone change while offline",
+        },
+      ]);
+      const watchStorage = ObjectUtils_clone(a.state.storage);
+      watchStorage.settings.volume = 0.25;
+      watchStorage._versions = {
+        ...watchStorage._versions,
+        settings: { ...(watchStorage._versions?.settings as object), volume: 9_000_000 },
+      };
+      await a.run([Thunk_handleWatchStorageMerge(JSON.stringify(watchStorage))]);
+      expect(a.state.storage.settings.volume).to.equal(0.25);
+      expect(a.state.lastSynced).to.equal(undefined);
+
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) => updateState(ds, [lb<IState>().p("nosync").record(false)], "online")),
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      const user = await serverUser(di);
+      expect(user.storage.settings.isPublicProfile).to.equal(true);
+      expect(user.storage.settings.volume).to.equal(0.25);
+      expect(a.state.lastSynced?.tempUserId).to.equal(a.state.storage.tempUserId);
+    });
+
+    it("uploads a record a wrong baseline hides once the baseline is a day old", async () => {
+      const { mockReducer: a, di, log } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+      const template = a.state.storage.history[0];
+      const id = template.id + 1000;
+      const hidden = { ...template, id, startTime: id, endTime: id + 100, date: new Date(id).toISOString() };
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [
+              lb<IState>().p("nosync").record(true),
+              lb<IState>()
+                .p("storage")
+                .p("history")
+                .recordModify((h) => [hidden, ...h]),
+            ],
+            "add offline"
+          )
+        ),
+      ]);
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [
+              lb<IState>().pi("lastSynced").p("versions").record(ObjectUtils_clone(a.state.storage._versions)),
+              lb<IState>().p("nosync").record(false),
+            ],
+            "wrong baseline, online"
+          )
+        ),
+      ]);
+
+      await a.run([
+        { type: "UpdateSettings", lensRecording: lb<ISettings>().p("isPublicProfile").record(true), desc: "settings" },
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      expect((await serverUser(di)).storage.settings.isPublicProfile).to.equal(true);
+      expect(
+        (await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords })).map((r) => r.id)
+      ).to.not.include(id);
+
+      clock += SyncBaseline_MAX_AGE_MS;
+      const fetchesBefore = log.logs.filter((l) => l === "Fetch: Merging update").length;
+      await a.run([Thunk_sync2({ force: true })]);
+      expect(log.logs.filter((l) => l === "Fetch: Merging update").length).to.be.greaterThan(fetchesBefore);
+      expect(
+        (await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords })).map((r) => r.id)
+      ).to.include(id);
+      expect(a.state.storage.history.map((r) => r.id)).to.include(id);
     });
   });
 });

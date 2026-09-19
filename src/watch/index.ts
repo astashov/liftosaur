@@ -592,7 +592,7 @@ class LiftosaurWatch {
       if (lastSyncedStorage.version != null && unrunMigrations(lastSyncedStorage).length > 0) {
         lastSyncedStorage = runMigrations(lastSyncedStorage);
       }
-      const update: IStorageUpdate2 = Sync_getStorageUpdate2(currentStorage, lastSyncedStorage, deviceId);
+      const update: IStorageUpdate2 = Sync_getStorageUpdate2(currentStorage, lastSyncedStorage._versions, deviceId);
       return JSON.stringify(update);
     } catch (e) {
       return JSON.stringify({ error: String(e) });

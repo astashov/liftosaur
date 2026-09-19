@@ -18,7 +18,6 @@ import {
   Thunk_updateLiveActivity,
   Thunk_updateTimer,
   Thunk_handleWatchStorageMerge,
-  Thunk_reloadStorageFromDisk,
   Thunk_fetchInitial,
   Thunk_debugTestLogin,
 } from "../ducks/thunks";
@@ -341,8 +340,6 @@ export function AppView(props: IProps): JSX.Element | null {
         const storageJson = event.data.storage as string;
         const isLiveActivity = !!event.data.isLiveActivity;
         dispatch(Thunk_handleWatchStorageMerge(storageJson, isLiveActivity));
-      } else if (event.data?.type === "reloadStorageFromDisk") {
-        dispatch(Thunk_reloadStorageFromDisk());
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;

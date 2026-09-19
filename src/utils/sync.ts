@@ -44,11 +44,11 @@ export interface IStorageUpdate2 {
 
 export function Sync_getStorageUpdate2(
   currentStorage: IStorage,
-  lastStorage: IStorage,
+  lastVersions: IStorage["_versions"],
   deviceId: string
 ): IStorageUpdate2 {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
-  const versionsDiff = versionTracker.diffVersions(lastStorage._versions, currentStorage._versions || {});
+  const versionsDiff = versionTracker.diffVersions(lastVersions, currentStorage._versions || {});
   if (versionsDiff) {
     const storageDiff = versionTracker.extractByVersions(currentStorage, versionsDiff);
     const filledVersionsDiff = versionTracker.fillVersions(storageDiff, versionsDiff, Date.now());

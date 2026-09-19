@@ -163,7 +163,7 @@ export async function getInitialState(
       }
     }
 
-    const finalLastSyncedStorage: IStorage | undefined = storage.lastSyncedStorage;
+    const lastSynced = hasUnrunMigrations ? undefined : storage.lastSynced;
 
     // Handle migration from old localStorage format where progress was stored separately
     // Now progress is stored in storage.progress
@@ -177,7 +177,7 @@ export async function getInitialState(
 
     return {
       storage: finalStorage,
-      lastSyncedStorage: finalLastSyncedStorage,
+      lastSynced,
       progress: {},
       notification,
       loading: { items: {} },
@@ -640,7 +640,7 @@ export const reducerWrapper =
           try {
             const stats = await persistence.save(`liftosaur_${userId}`, {
               storage: newState2.storage,
-              lastSyncedStorage: newState2.lastSyncedStorage,
+              lastSynced: newState2.lastSynced,
             });
             if (probeTarget) {
               lg("perf-persist", {
