@@ -16,6 +16,7 @@ import {
   PushSync_validateRegistration,
 } from "./utils/pushSync";
 import { DirtySyncRead_args } from "./utils/dirtySyncRead";
+import { HistoryIds_parse } from "../src/utils/historyIds";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory_generateUid } from "./utils/generator";
@@ -1591,6 +1592,7 @@ const getResetPasswordPageHandler: RouteHandler<
 const getHistoryEndpoint = Endpoint.build("/api/history", {
   after: "number?",
   limit: "number?",
+  ids: "string?",
   userid: "string?",
   key: "string?",
 });
@@ -1614,6 +1616,14 @@ const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   }
   if (userId != null) {
     const userDao = new UserDao(di);
+    if (params.ids != null) {
+      const ids = HistoryIds_parse(params.ids);
+      if (!ids.success) {
+        return ResponseUtils_json(400, event, { error: ids.error });
+      }
+      const history = await userDao.getHistoryByUserId(userId, { ids: ids.data, consistentRead: true });
+      return ResponseUtils_json(200, event, { history });
+    }
     const history = await userDao.getHistoryByUserId(userId, { after: params.after, limit: params.limit });
     return ResponseUtils_json(200, event, { history });
   }

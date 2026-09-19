@@ -14,9 +14,18 @@ import { IEither } from "../utils/types";
 import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram, IProgramIndexEntry } from "../models/program";
-import { CollectionUtils_uniqBy } from "../utils/collection";
+import { CollectionUtils_inGroupsOf, CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder_encode, Encoder_decode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
+import {
+  HistoryDelta_apply,
+  HistoryDelta_missingIds,
+  HistoryDelta_unresolvedIds,
+  IHistoryDeltaLocal,
+} from "../utils/historyDelta";
+import { HistoryIds_MAX } from "../utils/historyIds";
+
+export type IPostSyncHistory = { mode: "page" } | { mode: "none" } | { mode: "delta"; local: IHistoryDeltaLocal };
 
 function Service_nativeClientHeaders(): Record<string, string> {
   if (Platform.OS === "ios") {
@@ -274,6 +283,23 @@ export class Service {
     return json.history;
   }
 
+  public async getHistoryByIds(ids: number[]): Promise<IHistoryRecord[]> {
+    const chunks = CollectionUtils_inGroupsOf(HistoryIds_MAX, ids);
+    const pages = await Promise.all(
+      chunks.map(async (chunk) => {
+        const url = UrlUtils_build(`${__API_HOST__}/api/history`);
+        url.searchParams.set("ids", chunk.join(","));
+        const response = await this.client(url.toString(), { credentials: "include" });
+        if (response.status !== 200) {
+          throw new Error(`Failed to fetch history records by ids: ${response.status}`);
+        }
+        const json: { history: IHistoryRecord[] } = await response.json();
+        return json.history;
+      })
+    );
+    return pages.flat();
+  }
+
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
     const historylimit = 20;
     const response = await this.client(`${__API_HOST__}/api/signin/apple`, {
@@ -489,6 +515,7 @@ export class Service {
     tempUserId: string | undefined;
     signal?: AbortSignal;
     deviceId?: string;
+    history?: IPostSyncHistory;
   }): Promise<IPostSyncResponse> {
     const url = UrlUtils_build(`${__API_HOST__}/api/sync2`);
     if (args.tempUserId) {
@@ -510,12 +537,23 @@ export class Service {
     });
     const json: IPostSyncResponse = await result.json();
     if (json.type === "dirty") {
-      json.storage.history = await this.getAllHistoryRecords({
-        alreadyFetchedHistory: json.storage.history,
-        historyLimit: 20,
-      });
+      json.storage = await this.completeSyncHistory(json.storage, args.history || { mode: "page" });
     }
     return json;
+  }
+
+  private async completeSyncHistory(storage: IStorage, history: IPostSyncHistory): Promise<IStorage> {
+    if (history.mode === "none") {
+      return storage;
+    }
+    const missingIds =
+      history.mode === "delta" ? HistoryDelta_missingIds(history.local, storage._versions, storage.history) : undefined;
+    const fetched = missingIds != null && missingIds.length > 0 ? await this.getHistoryByIds(missingIds) : [];
+    if (missingIds == null || HistoryDelta_unresolvedIds(missingIds, fetched).length > 0) {
+      const full = await this.getAllHistoryRecords({ alreadyFetchedHistory: storage.history, historyLimit: 20 });
+      return { ...storage, history: full };
+    }
+    return HistoryDelta_apply(storage, fetched);
   }
 
   public async createDebugSession(

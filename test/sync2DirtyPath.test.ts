@@ -145,6 +145,42 @@ describe("/api/sync2 dirty branch", () => {
     expect(mergeSnapshotEvents().length).to.equal(1);
   });
 
+  it("/api/history?ids returns only the caller's own records", async () => {
+    await seed({ workouts: 3 });
+    await di.dynamo.put({ tableName: userTableNames.prod.historyRecords, item: { id: 7, userId: "someone-else" } });
+    const result = await handler(
+      {
+        ...syncEvent(userId, {}),
+        httpMethod: "GET",
+        path: "/api/history",
+        body: null,
+        queryStringParameters: { ids: "3,7,1" },
+      },
+      {}
+    );
+    expect(result.statusCode).to.equal(200);
+    expect(
+      JSON.parse(result.body)
+        .history.map((r: { id: number }) => r.id)
+        .sort()
+    ).to.eql([1, 3]);
+  });
+
+  it("/api/history?ids rejects an admin userid with a wrong key", async () => {
+    await seed({ workouts: 1 });
+    const result = await handler(
+      {
+        ...syncEvent(userId, {}),
+        httpMethod: "GET",
+        path: "/api/history",
+        body: null,
+        queryStringParameters: { ids: "1", userid: "someone-else", key: "wrong" },
+      },
+      {}
+    );
+    expect(result.statusCode).to.equal(401);
+  });
+
   it("an empty pull that triggers a migration still snapshots", async () => {
     await seed({ workouts: 0, version: "20260903120000" });
     const json = await pull({ storageUpdate: emptyUpdate() });

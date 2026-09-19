@@ -780,7 +780,7 @@ export class UserDao {
 
   public getHistoryByUserId(
     userId: string,
-    args: { limit?: number; after?: number; ids?: number[] } = {}
+    args: { limit?: number; after?: number; ids?: number[]; consistentRead?: boolean } = {}
   ): Promise<IHistoryRecord[]> {
     const env = Utils_getEnv();
     if (args.ids != null) {
@@ -788,6 +788,7 @@ export class UserDao {
         .batchGet<IHistoryRecord & { userId?: string }>({
           tableName: userTableNames[env].historyRecords,
           keys: args.ids.map((id) => ({ id, userId })),
+          consistentRead: args.consistentRead,
         })
         .then((arr) =>
           arr.map((r) => {

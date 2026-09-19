@@ -29,6 +29,10 @@ import {
 import { Progress_getProgress } from "../src/models/progress";
 import { Program_exportProgram } from "../src/models/program";
 import { ObjectUtils_clone } from "../src/utils/object";
+import { IEnv, IState, updateState } from "../src/models/state";
+import { IAction } from "../src/ducks/reducer";
+import { History_deleteRecords } from "../src/models/history";
+import { ICollectionVersions } from "../src/models/versionTracker";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -374,6 +378,140 @@ describe("sync", () => {
       ];
       expect(completedSets1).to.eql(expectedSets);
       expect(completedSets2).to.eql(expectedSets);
+    });
+  });
+
+  describe("history after a dirty sync", () => {
+    const WORKOUTS = 22;
+
+    async function twoDevicesWithHistory(): Promise<{
+      a: MockReducer<IState, IAction, IEnv>;
+      b: MockReducer<IState, IAction, IEnv>;
+      env: IEnv;
+      historyRequestsSince: (mark: number) => string[];
+      mark: () => number;
+    }> {
+      const { mockReducer, env, mockFetch } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+      const template = mockReducer.state.storage.history[0];
+      const history = Array.from({ length: WORKOUTS }, (_, i) => {
+        const id = template.id + (WORKOUTS - i) * 1000;
+        return { ...template, id, startTime: id, endTime: id + 100, date: new Date(id).toISOString() };
+      });
+      await mockReducer.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(ds, [lb<IState>().p("storage").p("history").record(history)], "seed")
+        ),
+      ]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      const b = MockReducer.clone(mockReducer, "web_456", env);
+      return {
+        a: mockReducer,
+        b,
+        env,
+        mark: () => mockFetch.logs.length,
+        historyRequestsSince: (mark) =>
+          mockFetch.logs
+            .slice(mark)
+            .map((l) => l.request.url)
+            .filter((url) => url.includes("/api/history")),
+      };
+    }
+
+    it("fetches only an edited old workout, by id", async () => {
+      const { a, b, mark, historyRequestsSince } = await twoDevicesWithHistory();
+      const oldest = a.state.storage.history[a.state.storage.history.length - 1];
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [lb<IState>().p("storage").p("history").findBy("id", oldest.id).p("notes").record("edited on A")],
+            "edit"
+          )
+        ),
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      const start = mark();
+      await b.run([Thunk_sync2({ force: true })]);
+      const requests = historyRequestsSince(start);
+      expect(requests.length).to.equal(1);
+      expect(requests[0]).to.include(`ids=${oldest.id}`);
+      expect(requests[0]).to.not.include("after=");
+      expect(b.state.storage.history.find((r) => r.id === oldest.id)?.notes).to.equal("edited on A");
+      expect(b.state.storage.history.map((r) => r.id)).to.eql(a.state.storage.history.map((r) => r.id));
+    });
+
+    it("falls back to paging when a requested record does not come back", async () => {
+      const { a, b, env, mark, historyRequestsSince } = await twoDevicesWithHistory();
+      const oldest = a.state.storage.history[a.state.storage.history.length - 1];
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [lb<IState>().p("storage").p("history").findBy("id", oldest.id).p("notes").record("edited on A")],
+            "edit"
+          )
+        ),
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      const byIds = sandbox.stub(env.service, "getHistoryByIds").onFirstCall().resolves([]);
+      byIds.callThrough();
+      const start = mark();
+      await b.run([Thunk_sync2({ force: true })]);
+      const requests = historyRequestsSince(start);
+      expect(requests.some((url) => url.includes("limit="))).to.equal(true);
+      expect(b.state.storage.history.find((r) => r.id === oldest.id)?.notes).to.equal("edited on A");
+    });
+
+    it("makes no history request when the change is inside the newest records", async () => {
+      const { a, b, mark, historyRequestsSince } = await twoDevicesWithHistory();
+      const newest = a.state.storage.history[0];
+      const id = newest.id + 1000;
+      const added = { ...newest, id, startTime: id, endTime: id + 100, date: new Date(id).toISOString() };
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("history")
+                .recordModify((h) => [added, ...h]),
+            ],
+            "add"
+          )
+        ),
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      const start = mark();
+      await b.run([Thunk_sync2({ force: true })]);
+      expect(historyRequestsSince(start)).to.eql([]);
+      expect(b.state.storage.history.length).to.equal(WORKOUTS + 1);
+      expect(b.state.storage.history[0].id).to.equal(a.state.storage.history[0].id);
+    });
+
+    it("drops a workout the other device deleted without fetching it", async () => {
+      const { a, b, mark, historyRequestsSince } = await twoDevicesWithHistory();
+      const victim = a.state.storage.history[a.state.storage.history.length - 1];
+      await a.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [
+              lb<IState>()
+                .p("storage")
+                .recordModify((s) => History_deleteRecords(s, [victim.id])),
+            ],
+            "delete"
+          )
+        ),
+      ]);
+      await a.run([Thunk_sync2({ force: true })]);
+      const start = mark();
+      await b.run([Thunk_sync2({ force: true })]);
+      expect(historyRequestsSince(start)).to.eql([]);
+      expect(b.state.storage.history.some((r) => r.id === victim.id)).to.equal(false);
+      const deleted = (b.state.storage._versions?.history as ICollectionVersions | undefined)?.deleted || {};
+      expect(Object.keys(deleted)).to.include(`${victim.id}`);
     });
   });
 });

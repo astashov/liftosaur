@@ -126,6 +126,7 @@ import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
+import { HistoryDelta_sortNewestFirst } from "../utils/historyDelta";
 import { PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
 import {
   ObjectUtils_values,
@@ -452,7 +453,8 @@ async function _sync2(
 
         const probeMergeTarget = PerfProbe_isTarget();
         const probeMergeT0 = probeMergeTarget ? Date.now() : 0;
-        const newStorage = Storage_mergeStorage(currentStorage, result.storage, getState().deviceId);
+        const merged = Storage_mergeStorage(currentStorage, result.storage, getState().deviceId);
+        const newStorage = { ...merged, history: HistoryDelta_sortNewestFirst(merged.history) };
         if (probeMergeTarget) {
           lg("perf-sync-merge", {
             merge_ms: Date.now() - probeMergeT0,
@@ -529,6 +531,7 @@ async function _sync2(
       },
       signal,
       deviceId: state.deviceId,
+      history: { mode: "none" },
     });
     if (signal?.aborted) {
       return;
@@ -555,6 +558,7 @@ async function _sync2(
         storageUpdate: storageUpdate,
         signal,
         deviceId: state.deviceId,
+        history: { mode: "delta", local: { history: state.storage.history, versions: state.storage._versions } },
       });
       if (signal?.aborted) {
         return;
