@@ -230,9 +230,9 @@
     "decision-in-view:onPress": "predates the rule"
   },
   "src/components/workout.tsx": {
-    "decision-in-view:onFinish": "predates the rule",
     "decision-in-view:useCallback#1": "predates the rule",
     "decision-in-view:useCallback#2": "predates the rule",
+    "decision-in-view:useAnimatedStyle#1": "UI-thread worklet placing one tile; the slot and shift math is in workoutStripReorder.ts",
     "long-view": "predates the rule"
   },
   "src/components/workoutExerciseCard.tsx": {
@@ -240,8 +240,8 @@
     "decision-in-view:useCallback#2": "predates the rule",
     "long-view": "predates the rule"
   },
-  "src/components/workoutExerciseSet.tsx": {
-    "long-view": "predates the rule"
+  "src/components/workoutMenu.tsx": {
+    "decision-in-view:useMemo#1": "maps menu ids to their dispatches; which ids appear is decided in workoutMenuActions.ts"
   },
   "src/navigation/AppNavigator.native.tsx": {
     "long-view": "predates the rule"

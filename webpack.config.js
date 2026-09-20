@@ -390,6 +390,7 @@ const mainConfig = {
     ignored: [
       path.join(__dirname, "worktrees", "**"),
       path.join(__dirname, ".claude", "worktrees", "**"),
+      path.join(__dirname, "perfdata", "**"),
       "**/node_modules/**",
     ],
   },

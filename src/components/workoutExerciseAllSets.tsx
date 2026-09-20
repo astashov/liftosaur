@@ -12,7 +12,12 @@ import {
   ITargetType,
   IHistoryEntry,
   IStats,
+  IProgressMode,
 } from "../types";
+import { IPrevExerciseData } from "../models/history";
+import { IWorkoutExpandedSet } from "../utils/workoutSetExpansion";
+import { WorkoutSetPrevious_lines } from "../utils/workoutSetPrevious";
+import { WorkoutHints_isLearned } from "../utils/workoutHints";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
 import { lb, LensBuilder } from "lens-shmens";
@@ -46,7 +51,7 @@ interface IWorkoutExerciseAllSets {
   lastSets?: ISet[];
   helps?: string[];
   stats: IStats;
-  onStopShowingHint?: () => void;
+  expansion?: IWorkoutExerciseSetsExpansion;
   onTargetClick?: () => void;
   subscription?: ISubscription;
   userPromptedStateVars?: IProgramState;
@@ -55,6 +60,14 @@ interface IWorkoutExerciseAllSets {
   otherStates?: IByExercise<IProgramState>;
   settings: ISettings;
   dispatch: IDispatch;
+}
+
+export interface IWorkoutExerciseSetsExpansion {
+  expanded: IWorkoutExpandedSet | undefined;
+  onToggle: (mode: IProgressMode, setIndex: number) => void;
+  prevData: IPrevExerciseData | undefined;
+  isMultiweek: boolean;
+  onMenuOpenChange: (isOpen: boolean) => void;
 }
 
 function getTargetColumnLabel(targetType: ITargetType): string {
@@ -129,8 +142,27 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   );
   const lbSetByIndex = useMemo(() => sets.map((_, i) => props.lbSets.i(i)), [props.lbSets, sets.length]);
 
-  const { dispatch, lbWarmupSets, lbSets, lastSets, exerciseType, settings } = props;
+  const { dispatch, lbWarmupSets, lbSets, lastSets, exerciseType, settings, expansion } = props;
   const trackClick = useTrackClick();
+  const helps = props.helps ?? [];
+  const showTargetHint = expansion != null && !WorkoutHints_isLearned(helps, "workout-target-switch");
+  const showExpandHint = expansion != null && !WorkoutHints_isLearned(helps, "workout-set-expand");
+  const expanded = expansion?.expanded;
+  const expandedSet =
+    expanded != null ? (expanded.mode === "warmup" ? warmupSets : sets)[expanded.setIndex] : undefined;
+  const previousLines = useMemo(
+    () =>
+      expansion && expanded && expandedSet
+        ? WorkoutSetPrevious_lines(
+            expanded.mode,
+            expanded.setIndex,
+            expandedSet,
+            expansion.prevData,
+            expansion.isMultiweek
+          )
+        : undefined,
+    [expansion, expanded, expandedSet]
+  );
   const onAddWarmupSet = useCallback(() => {
     trackClick("workout-add-warmup-set");
     const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
@@ -163,13 +195,22 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
 
   return (
     <View className="overflow-hidden">
+      {props.onTargetClick && showTargetHint && (
+        <Text className="px-4 pb-1 text-xs text-text-secondary" testID="workout-target-hint">
+          Tap "{targetLabel}" to switch values
+        </Text>
+      )}
       <View className="flex-row items-center pb-1 border-b border-border-neutral">
         <View className="items-center" style={{ width: columnWidths.set }}>
           <Text className="text-xs text-text-secondary">Set</Text>
         </View>
-        <View className="flex-1">
-          <Pressable onPress={props.onTargetClick} className="flex-row items-center">
-            {targetLabel ? <Text className="mr-1 text-xs text-text-secondary">{targetLabel}</Text> : null}
+        <View className="flex-1 flex-row">
+          <Pressable onPress={props.onTargetClick} className="flex-row items-center py-2 pr-4 -my-2" hitSlop={8}>
+            {targetLabel ? (
+              <Text className={`mr-1 text-xs text-text-secondary ${props.onTargetClick ? "underline" : ""}`}>
+                {targetLabel}
+              </Text>
+            ) : null}
             {props.onTargetClick && <IconSwapSmall size={12} color={Tailwind_colors().lightgray[600]} />}
           </Pressable>
         </View>
@@ -207,6 +248,10 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             set={set}
             entryIndex={props.entryIndex}
             isNext={nextSetIndex === i}
+            isExpanded={expanded?.mode === "warmup" && expanded.setIndex === i}
+            onToggleExpand={expansion?.onToggle}
+            previousLines={expanded?.mode === "warmup" && expanded.setIndex === i ? previousLines : undefined}
+            onMenuOpenChange={expansion?.onMenuOpenChange}
             setIndex={i}
             columnWidths={columnWidths}
             settings={props.settings}
@@ -219,8 +264,10 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             isCurrentProgress={props.isCurrentProgress}
             type="workout"
             key={`workout-${set.id}-${i}`}
-            onStopShowingHint={props.onStopShowingHint}
-            helps={props.helps}
+            isExpanded={expanded?.mode === "workout" && expanded.setIndex === i}
+            onToggleExpand={expansion?.onToggle}
+            previousLines={expanded?.mode === "workout" && expanded.setIndex === i ? previousLines : undefined}
+            onMenuOpenChange={expansion?.onMenuOpenChange}
             isNext={nextSetIndex - warmupSets.length === i}
             programExercise={props.programExercise}
             day={props.day}
@@ -239,6 +286,11 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
           />
         ))}
       </View>
+      {showExpandHint && (
+        <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-expand-hint">
+          Tap a set to expand or collapse it
+        </Text>
+      )}
 
       {props.programExercise && props.program ? (
         <View className="mx-4 mt-2">

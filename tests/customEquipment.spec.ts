@@ -62,7 +62,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await expect(page.getByTestId("plates-list")).toHaveText("10/10");
+  await expect(page.getByTestId("set-plates-list")).toHaveText("10/10");
 
   await page.getByTestId("exercise-name").click();
   await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("Boom");

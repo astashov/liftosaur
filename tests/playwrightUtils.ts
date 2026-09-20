@@ -186,8 +186,9 @@ export async function PlaywrightUtils_forEach(locator: Locator, cb: (el: Locator
 }
 
 export async function PlaywrightUtils_clickAll(locator: Locator): Promise<void> {
-  for (const el of await locator.elementHandles()) {
-    await el.click();
+  const count = await locator.count();
+  for (let i = 0; i < count; i += 1) {
+    await locator.nth(i).click();
   }
 }
 

@@ -53,7 +53,7 @@ interface IWorkoutExerciseProps {
   subscription: ISubscription;
   settings: ISettings;
   dispatch: IDispatch;
-  hidePlatesCalculator?: boolean;
+  onTitleLayout?: (title: View) => void;
 }
 
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
@@ -178,7 +178,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           showHelp={props.showHelp}
           helps={props.helps}
           subscription={props.subscription}
-          hidePlatesCalculator={props.hidePlatesCalculator}
+          onTitleLayout={props.onTitleLayout}
         />
       </PerfProbeSubtree>
       {((props.prevData?.count ?? 0) > 1 || showPrs) && (

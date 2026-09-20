@@ -1,7 +1,6 @@
 import {
   startpage,
   PlaywrightUtils_disableSubscriptions,
-  PlaywrightUtils_swipeLeft,
   PlaywrightUtils_typeKeyboard,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
@@ -26,8 +25,8 @@ test("Empty Workout", async ({ page }) => {
 
   await page.getByTestId("add-workout-set").click();
 
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target"));
-  await page.getByTestId("entry-bench-press").getByTestId("edit-set-target").click();
+  await page.getByTestId("entry-bench-press").getByTestId("set-options").click();
+  await page.getByTestId("edit-set-target").click();
 
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-target-maxreps-field"), "5");
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-target-weight-field"), "80");
@@ -105,7 +104,8 @@ test("Empty Workout", async ({ page }) => {
   ).toHaveText("5 × 150lb");
 
   await page.getByTestId("history-record").nth(1).click();
-  await page.getByTestId("save-to-program").click();
+  await page.getByTestId("workout-menu").click();
+  await page.getByTestId("workout-menu-createProgramDay").click();
   await page.getByTestId("menu-item-next-day-picker-2").click();
 
   await page.getByTestId("footer-workout").click();
@@ -141,7 +141,8 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("bottom-sheet-close").click();
   await page.getByTestId("navbar-back").click();
   await page.getByTestId("history-record").nth(1).click();
-  await page.getByTestId("save-to-program").click();
+  await page.getByTestId("workout-menu").click();
+  await page.getByTestId("workout-menu-createProgramDay").click();
   await page.getByTestId("create-program-from-adhoc").click();
 
   await page.getByTestId("modal-create-program-input").fill("Adhoccy");

@@ -2,7 +2,6 @@ import { test, expect } from "@playwright/test";
 import {
   startpage,
   PlaywrightUtils_typeKeyboard,
-  PlaywrightUtils_swipeLeft,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
@@ -43,8 +42,9 @@ test("edits sets properly", async ({ page }) => {
     "200"
   );
 
-  await PlaywrightUtils_swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target").nth(2));
-  await page.getByTestId("entry-bench-press").getByTestId("delete-set").nth(2).click();
+  await page.getByTestId("entry-bench-press").getByTestId("workout-set-target").nth(2).click();
+  await page.getByTestId("entry-bench-press").getByTestId("set-options").click();
+  await page.getByTestId("delete-set").click();
 
   await PlaywrightUtils_typeKeyboard(
     page,

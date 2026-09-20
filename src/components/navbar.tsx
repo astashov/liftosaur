@@ -10,7 +10,8 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
-import { navigateToModal, getCurrentScreenData } from "../navigation/navigationService";
+import { navigateToModal } from "../navigation/navigationService";
+import { Tour_start } from "./tour/tourConfigs";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { useTrackClick } from "../utils/clickTracking";
 import { ITourId } from "../models/state";
@@ -49,11 +50,13 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   const numberOfLeftButtons = (showBackButton ? 1 : 0) + (isLoading ? 1 : 0);
   const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.helpKey || props.helpTourId ? 1 : 0);
   const numberOfButtons = Math.max(numberOfLeftButtons, numberOfRightButtons);
+  const [rightRailWidth, setRightRailWidth] = useState(0);
+  const railMinWidth = Math.max(numberOfButtons * 40, rightRailWidth);
 
   return (
     <>
       <View testID="navbar" className="z-30 w-full flex-row items-center justify-center px-2 bg-background-default">
-        <View className="flex-row items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
+        <View className="flex-row items-center justify-start" style={{ minWidth: railMinWidth }}>
           {showBackButton ? (
             <Pressable
               testID="navbar-back"
@@ -96,7 +99,11 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
             })
           }
         />
-        <View className="flex-row items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
+        <View
+          className="flex-row items-center justify-end"
+          style={{ minWidth: railMinWidth }}
+          onLayout={(e) => setRightRailWidth(Math.round(e.nativeEvent.layout.width))}
+        >
           {props.rightButtons}
           {(props.helpTourId || props.helpKey) && (
             <Pressable
@@ -104,15 +111,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
               onPress={() => {
                 trackClick(props.helpTourId ? `navbar-tour-${props.helpTourId}` : `navbar-help-${props.helpKey}`);
                 if (props.helpTourId) {
-                  updateState(
-                    props.dispatch,
-                    [
-                      lb<IState>()
-                        .p("tour")
-                        .record({ id: props.helpTourId, enforced: true, screenData: getCurrentScreenData() }),
-                    ],
-                    "Start tour from navbar"
-                  );
+                  Tour_start(props.dispatch, props.helpTourId);
                 } else if (props.helpKey) {
                   navigateToModal("helpModal", { helpKey: props.helpKey });
                 }

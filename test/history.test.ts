@@ -124,6 +124,49 @@ describe("History", () => {
       expect(data[Exercise_toKey(squat)].count).to.eql(2);
     });
 
+    it("keeps the heaviest set per completed rep count and the best AMRAP by estimated max", () => {
+      const heavy: ISet = {
+        vtype: "set",
+        id: "h",
+        index: 0,
+        reps: 5,
+        isCompleted: true,
+        completedReps: 5,
+        completedWeight: { value: 205, unit: "lb" },
+      };
+      const light: ISet = { ...heavy, id: "l", completedWeight: { value: 135, unit: "lb" } };
+      const heavyAgain: ISet = { ...heavy, id: "h2" };
+      const eight: ISet = { ...heavy, id: "e", completedReps: 8, completedWeight: { value: 165, unit: "lb" } };
+      const amrapLow: ISet = {
+        ...heavy,
+        id: "a1",
+        isAmrap: true,
+        completedReps: 8,
+        completedWeight: { value: 185, unit: "lb" },
+      };
+      const amrapHigh: ISet = {
+        ...heavy,
+        id: "a2",
+        isAmrap: true,
+        completedReps: 12,
+        completedWeight: { value: 185, unit: "lb" },
+      };
+      const history = [
+        buildRecord(now - 10 * day, [{ ...buildEntry(squat, true), sets: [heavy, amrapHigh] }]),
+        buildRecord(now - 5 * day, [{ ...buildEntry(squat, true), sets: [light, eight] }]),
+        buildRecord(now - 3 * day, [{ ...buildEntry(squat, true), sets: [heavyAgain, amrapLow] }]),
+        buildRecord(now + 1 * day, [
+          { ...buildEntry(squat, true), sets: [{ ...heavy, id: "f", completedWeight: { value: 300, unit: "lb" } }] },
+        ]),
+      ];
+      const data = History_buildPrevExerciseData(history, now)[Exercise_toKey(squat)];
+      expect(data.bestByReps[5]?.set.id).to.eql("h2");
+      expect(data.bestByReps[5]?.timestamp).to.eql(now - 3 * day);
+      expect(data.bestByReps[8]?.set.id).to.eql("a1");
+      expect(data.bestByReps[12]?.set.id).to.eql("a2");
+      expect(data.bestAmrap?.set.id).to.eql("a2");
+    });
+
     it("skips non-started entries when picking lastEntry", () => {
       const history = [
         buildRecord(now - 5 * day, [buildEntry(squat, true)]),
@@ -152,6 +195,30 @@ describe("History", () => {
       const history = [buildRecord(now - 5 * day, [buildEntry(squat, true), buildEntry(squat, true)])];
       const data = History_buildPrevExerciseData(history, now);
       expect(data[Exercise_toKey(squat)].count).to.eql(1);
+    });
+
+    it("picks the latest started entry from the same program day in week", () => {
+      const history = [
+        { ...buildRecord(now - 14 * day, [buildEntry(squat, true)]), day: 1, dayInWeek: 1 },
+        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 4, dayInWeek: 1 },
+        { ...buildRecord(now - 3 * day, [buildEntry(squat, true)]), day: 6, dayInWeek: 3 },
+        { ...buildRecord(now - 1 * day, [buildEntry(squat, false)]), day: 7, dayInWeek: 1 },
+      ];
+      const data = History_buildPrevExerciseData(history, now, { programId: "p", dayInWeek: 1 });
+      expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 3 * day);
+      expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 7 * day);
+    });
+
+    it("falls back to day when dayInWeek is missing and ignores other programs", () => {
+      const history = [
+        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 2 },
+        { ...buildRecord(now - 2 * day, [buildEntry(squat, true)]), day: 2, programId: "other" },
+        { ...buildRecord(now + 1 * day, [buildEntry(squat, true)]), day: 2 },
+      ];
+      const data = History_buildPrevExerciseData(history, now, { programId: "p", dayInWeek: 2 });
+      expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 7 * day);
+      const without = History_buildPrevExerciseData(history, now);
+      expect(without[Exercise_toKey(squat)].sameDayEntry).to.eql(undefined);
     });
   });
 });

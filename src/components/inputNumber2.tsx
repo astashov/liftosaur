@@ -21,6 +21,8 @@ interface IInputNumber2Props {
   value?: number;
   width?: number;
   autowidth?: boolean;
+  size?: "md" | "lg";
+  fill?: boolean;
   step?: number;
   min?: number;
   max?: number;
@@ -579,17 +581,22 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     };
   }, [isTargetOutside, maybeBlur]);
 
-  const baseFontSize = (14 * remValue) / 16;
-  const availableTextWidth = props.autowidth ? 0 : (props.width ?? 4) * remValue - 6;
+  const isLarge = props.size === "lg";
+  const baseFontSize = ((isLarge ? 32 : 14) * remValue) / 16;
+  const availableTextWidth = props.autowidth || props.fill ? 0 : (props.width ?? 4) * remValue - 6;
   const valueFontSize = FitText_fontSize(value ?? "", availableTextWidth, baseFontSize);
   const placeholderFontSize = FitText_fontSize(props.placeholder ?? "", availableTextWidth, baseFontSize);
 
   return (
-    <div ref={containerRef} className="input-number">
+    <div ref={containerRef} className={`input-number ${props.fill ? "flex-1 min-w-0" : ""}`}>
       <div
-        className="flex items-center justify-center h-scaled-6 border rounded bg-background-default border-border-prominent input-number-child"
+        className={`flex items-center justify-center ${isLarge ? "h-scaled-12 rounded-lg" : "h-scaled-6 rounded"} border bg-background-default border-border-prominent input-number-child`}
         style={
-          props.autowidth ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" } : { width: `${props.width ?? 4}rem` }
+          props.autowidth
+            ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" }
+            : props.fill
+              ? { width: "100%" }
+              : { width: `${props.width ?? 4}rem` }
         }
         tabIndex={props.tabIndex ?? 0}
         onFocus={() => {
@@ -620,14 +627,14 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         <div ref={inputRef} className="leading-none">
           {!value && !isFocused && props.placeholder ? (
             <span
-              className="text-sm text-text-secondarysubtle text-ellipsis whitespace-nowrap"
+              className={`${isLarge ? "text-3xl" : "text-sm"} text-text-secondarysubtle text-ellipsis whitespace-nowrap`}
               style={{ fontSize: `${placeholderFontSize}px` }}
             >
               {props.placeholder}
             </span>
           ) : (
             <span
-              className={`text-sm inline-block whitespace-nowrap ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
+              className={`${isLarge ? "text-3xl" : "text-sm"} inline-block whitespace-nowrap ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
               style={{ padding: value ? "1px" : "0", fontSize: `${valueFontSize}px` }}
             >
               {value}

@@ -1,4 +1,7 @@
-import { IState, ITourId } from "../../models/state";
+import { lb } from "lens-shmens";
+import { IDispatch } from "../../ducks/types";
+import { IState, ITourId, updateState } from "../../models/state";
+import { getCurrentScreenData } from "../../navigation/navigationService";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { workoutTourConfig } from "./workoutTourConfig";
 import { programTourConfig } from "./programTourConfig";
@@ -9,6 +12,14 @@ export const tourConfigs: Record<ITourId, import("./tourTypes").ITourConfig> = {
   program: programTourConfig,
   editProgramExercise: editProgramExerciseTourConfig,
 };
+
+export function Tour_start(dispatch: IDispatch, tourId: ITourId): void {
+  updateState(
+    dispatch,
+    [lb<IState>().p("tour").record({ id: tourId, enforced: true, screenData: getCurrentScreenData() })],
+    "Start tour from navbar"
+  );
+}
 
 export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): ITourId | undefined {
   for (const config of Object.values(tourConfigs)) {

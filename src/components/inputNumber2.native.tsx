@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Animated, ScrollView, useWindowDimensions } from "react-native";
+import { View, Pressable, Animated, ScrollView, useWindowDimensions, LayoutChangeEvent } from "react-native";
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
@@ -23,6 +23,10 @@ import { lg } from "../utils/posthog";
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
 const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettings: false };
+// A line height of 1.0 clips the glyph top on iOS. 0.23 measured to within one screen pixel of
+// centered digits, with the flex parent centering the margin box.
+const LARGE_LINE_HEIGHT = 1.2;
+const LARGE_DIGIT_TOP_MARGIN = 0.23;
 
 interface IInputNumber2Props {
   name: string;
@@ -30,6 +34,8 @@ interface IInputNumber2Props {
   value?: number;
   width?: number;
   autowidth?: boolean;
+  size?: "md" | "lg";
+  fill?: boolean;
   step?: number;
   min?: number;
   max?: number;
@@ -446,33 +452,51 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, [closeKeyboard, flushPendingInput]);
 
   const remValue = useRem();
-  const fieldWidth = (props.width ?? 4) * remValue;
+  const [filledWidth, setFilledWidth] = useState(0);
+  const fieldWidth = props.fill ? filledWidth : (props.width ?? 4) * remValue;
+  const isLarge = props.size === "lg";
 
   const fieldClassName = useMemo(
     () =>
-      `h-scaled-6 border rounded border-border-prominent bg-background-default flex-row justify-center items-center ${
+      `${isLarge ? "h-scaled-12 rounded-lg" : "h-scaled-6 rounded"} border border-border-prominent bg-background-default flex-row justify-center items-center ${
         props.autowidth ? "px-2" : ""
       }`,
-    [props.autowidth]
+    [props.autowidth, isLarge]
   );
   const fieldStyle = useMemo(
-    () => (props.autowidth ? undefined : { width: fieldWidth }),
-    [props.autowidth, fieldWidth]
+    () => (props.autowidth ? undefined : props.fill ? { flex: 1 } : { width: fieldWidth }),
+    [props.autowidth, props.fill, fieldWidth]
+  );
+  const onFieldLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      if (props.fill) {
+        setFilledWidth(e.nativeEvent.layout.width);
+      }
+    },
+    [props.fill]
   );
   const cursorStyle = useMemo(() => ({ opacity: cursorOpacity }), [cursorOpacity]);
-  const baseFontSize = (14 * remValue) / 16;
-  const availableTextWidth = props.autowidth ? 0 : fieldWidth - 6;
-  const valueFontStyle = useMemo(
-    () => ({ fontSize: FitText_fontSize(value ?? "", availableTextWidth, baseFontSize) }),
-    [value, availableTextWidth, baseFontSize]
+  const baseFontSize = ((isLarge ? 32 : 14) * remValue) / 16;
+  const availableTextWidth = props.autowidth || fieldWidth === 0 ? 0 : fieldWidth - 6;
+  const fontStyleFor = useCallback(
+    (text: string) => {
+      const fontSize = FitText_fontSize(text, availableTextWidth, baseFontSize);
+      return isLarge
+        ? {
+            fontSize,
+            lineHeight: Math.round(fontSize * LARGE_LINE_HEIGHT),
+            marginTop: Math.round(fontSize * LARGE_DIGIT_TOP_MARGIN),
+            includeFontPadding: false as const,
+          }
+        : { fontSize };
+    },
+    [availableTextWidth, baseFontSize, isLarge]
   );
-  const placeholderFontStyle = useMemo(
-    () => ({ fontSize: FitText_fontSize(props.placeholder ?? "", availableTextWidth, baseFontSize) }),
-    [props.placeholder, availableTextWidth, baseFontSize]
-  );
+  const valueFontStyle = useMemo(() => fontStyleFor(value ?? ""), [value, fontStyleFor]);
+  const placeholderFontStyle = useMemo(() => fontStyleFor(props.placeholder ?? ""), [props.placeholder, fontStyleFor]);
 
   return (
-    <View ref={pressableRef} collapsable={false}>
+    <View ref={pressableRef} collapsable={false} style={props.fill ? { flex: 1 } : undefined}>
       <Pressable
         onPress={focusSelf}
         hitSlop={12}
@@ -480,15 +504,20 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
         className={fieldClassName}
         style={fieldStyle}
+        onLayout={onFieldLayout}
       >
         {!value && !isFocused && props.placeholder ? (
-          <Text className="text-sm text-text-secondarysubtle" numberOfLines={1} style={placeholderFontStyle}>
+          <Text
+            className={`${isLarge ? "text-3xl" : "text-sm"} text-text-secondarysubtle`}
+            numberOfLines={1}
+            style={placeholderFontStyle}
+          >
             {props.placeholder}
           </Text>
         ) : (
           <Text
             numberOfLines={1}
-            className={`text-sm ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
+            className={`${isLarge ? "text-3xl" : "text-sm"} ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
             style={valueFontStyle}
           >
             {value}

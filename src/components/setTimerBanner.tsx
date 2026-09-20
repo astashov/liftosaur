@@ -6,7 +6,7 @@ import { Svg, Path } from "./primitives/svg";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, IProgramState, ISettings } from "../types";
 import { TimeUtils_formatMMSS } from "../utils/time";
-import { WorkoutExerciseSetTarget } from "./workoutExerciseSet";
+import { WorkoutExerciseSetTarget } from "./workoutExerciseSetFields";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import {

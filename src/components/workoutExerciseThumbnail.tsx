@@ -19,7 +19,6 @@ import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
   onSelect?: (entryIndex: number) => void;
-  disabled?: boolean;
   colorToSupersetGroup: Partial<Record<string, IHistoryEntry[]>>;
   isCurrent: boolean;
   currentSuperset?: string;
@@ -30,12 +29,8 @@ interface IWorkoutExerciseThumbnailProps {
 }
 
 function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): JSX.Element {
-  const { entry, entryIndex, isCurrent, currentSuperset, onSelect, disabled } = props;
-  const onPress = useCallback(() => {
-    if (!disabled) {
-      onSelect?.(entryIndex);
-    }
-  }, [disabled, onSelect, entryIndex]);
+  const { entry, entryIndex, isCurrent, currentSuperset, onSelect } = props;
+  const onPress = useCallback(() => onSelect?.(entryIndex), [onSelect, entryIndex]);
   const hasSupersets = Object.keys(props.colorToSupersetGroup).length > 0;
   const colorAndSupersetGroup = ObjectUtils_entries(props.colorToSupersetGroup).find(([_, entries]) => {
     return entries && entries.some((e) => e.id === entry.id);
@@ -43,59 +38,65 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
   const supersetColor = colorAndSupersetGroup ? colorAndSupersetGroup[0] : undefined;
   const setsStatus = Reps_setsStatus(entry.sets);
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
-  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
+  const borderColor = WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
+  const cornerInset = isCurrent ? 0 : 1;
   const exercise = Exercise_get(entry.exercise, props.settings.exercises);
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
+  const tile = (
+    <View
+      data-name={`workout-exercise-tab-${entryIndex}`}
+      testID={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+      data-testid={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+      dataSet={{ isSelected: isCurrent ? "true" : "false" }}
+      className="bg-background-default"
+      style={{
+        borderWidth: 1,
+        borderRadius: 9,
+        borderColor: isCurrent ? Tailwind_semantic().border.currentoutline : "transparent",
+      }}
+    >
+      <View
+        className={`items-center flex-row justify-center w-scaled-16 h-scaled-16 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
+        style={
+          isCurrent
+            ? { borderWidth: 2, borderColor: Tailwind_semantic().border.current }
+            : { borderWidth: 1, padding: 1 }
+        }
+      >
+        <ExerciseImage
+          useTextForCustomExercise={true}
+          exerciseType={entry.exercise}
+          size="small"
+          width={40}
+          settings={props.settings}
+        />
+        {setsStatus === "not-finished" ? (
+          props.shouldShowProgress && (
+            <View style={{ position: "absolute", bottom: cornerInset, right: cornerInset, padding: 2 }}>
+              <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
+              <View style={{ position: "relative", zIndex: 10 }}>
+                <SetsProgressBadge completed={completedSetsCount} total={totalSetsCount} />
+              </View>
+            </View>
+          )
+        ) : (
+          <View style={{ position: "absolute", bottom: 2 + cornerInset, right: 2 + cornerInset }}>
+            <IconCheckCircle
+              isChecked={true}
+              size={14}
+              color={WorkoutExerciseUtils_setsStatusToColor(setsStatus)}
+              checkColor={Tailwind_colors().white}
+            />
+          </View>
+        )}
+      </View>
+    </View>
+  );
   return (
     <View>
-      <Pressable
-        onPress={onPress}
-        data-name={`workout-exercise-tab-${entryIndex}`}
-        testID={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
-        data-testid={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
-        dataSet={{ isSelected: isCurrent ? "true" : "false" }}
-        className="bg-background-default"
-        style={{ paddingHorizontal: 2 }}
-      >
-        <View
-          className={`items-center flex-row justify-center w-scaled-14 h-scaled-14 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
-          style={{
-            borderWidth: isCurrent ? 2 : 1,
-            padding: !isCurrent ? 1 : 0,
-            marginVertical: isCurrent ? 1 : 0,
-          }}
-        >
-          <ExerciseImage
-            useTextForCustomExercise={true}
-            className="h-scaled-10"
-            customClassName="w-scaled-10"
-            exerciseType={entry.exercise}
-            size="small"
-            settings={props.settings}
-          />
-          {setsStatus === "not-finished" ? (
-            props.shouldShowProgress && (
-              <View style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}>
-                <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
-                <View style={{ position: "relative", zIndex: 10 }}>
-                  <SetsProgressBadge completed={completedSetsCount} total={totalSetsCount} />
-                </View>
-              </View>
-            )
-          ) : (
-            <View style={{ position: "absolute", bottom: 2, right: 2 }}>
-              <IconCheckCircle
-                isChecked={true}
-                size={14}
-                color={WorkoutExerciseUtils_setsStatusToColor(setsStatus)}
-                checkColor={Tailwind_colors().white}
-              />
-            </View>
-          )}
-        </View>
-      </Pressable>
+      {onSelect ? <Pressable onPress={onPress}>{tile}</Pressable> : tile}
       {supersetColor ? (
         <View className="mx-1">
           <View
@@ -103,12 +104,12 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
             style={{
               backgroundColor: isCurrentSuperset ? supersetColor : Tailwind_semantic().background.neutral,
               height: 2,
-              marginTop: isCurrent ? 3 : 5,
+              marginTop: 5,
             }}
           />
         </View>
       ) : hasSupersets ? (
-        <View className="w-full" style={{ backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }} />
+        <View className="w-full" style={{ backgroundColor: "transparent", height: 2, marginTop: 5 }} />
       ) : null}
     </View>
   );

@@ -18,6 +18,7 @@ import { CollectionUtils_sort, CollectionUtils_sortByExpr } from "../utils/colle
 import {
   Weight_compare,
   Weight_build,
+  Weight_convertTo,
   Weight_getOneRepMax,
   Weight_gt,
   Weight_lt,
@@ -470,7 +471,60 @@ export interface IPrevExerciseData {
   lastEntryTimestamp?: number;
   lastNote?: string;
   lastNoteTimestamp?: number;
+  sameDayEntry?: IHistoryEntry;
+  sameDayTimestamp?: number;
+  bestByReps: Partial<Record<number, IPrevBestSet>>;
+  bestAmrap?: IPrevBestSet;
   count: number;
+}
+
+export interface IPrevBestSet {
+  set: ISet;
+  timestamp: number;
+}
+
+function History_amrapScore(set: ISet, weight: IWeight, reps: number): number {
+  return Weight_convertTo(Weight_getOneRepMax(weight, reps, set.completedRpe), "lb").value;
+}
+
+function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number): void {
+  const weight = set.completedWeight;
+  const reps = set.completedReps;
+  if (!set.isCompleted || weight == null || reps == null || reps <= 0) {
+    return;
+  }
+  const byReps = data.bestByReps[reps];
+  const byRepsWeight = byReps?.set.completedWeight;
+  if (
+    byReps == null ||
+    byRepsWeight == null ||
+    Weight_gt(weight, byRepsWeight) ||
+    (Weight_eq(weight, byRepsWeight) && time > byReps.timestamp)
+  ) {
+    data.bestByReps[reps] = { set, timestamp: time };
+  }
+  if (set.isAmrap) {
+    const amrap = data.bestAmrap;
+    const amrapWeight = amrap?.set.completedWeight;
+    const amrapReps = amrap?.set.completedReps;
+    const score = History_amrapScore(set, weight, reps);
+    const amrapScore =
+      amrap != null && amrapWeight != null && amrapReps != null
+        ? History_amrapScore(amrap.set, amrapWeight, amrapReps)
+        : undefined;
+    if (amrapScore == null || score > amrapScore || (score === amrapScore && amrap != null && time > amrap.timestamp)) {
+      data.bestAmrap = { set, timestamp: time };
+    }
+  }
+}
+
+export interface IPrevExerciseSameDay {
+  programId: string;
+  dayInWeek: number;
+}
+
+function History_recordDayInWeek(record: IHistoryRecord): number {
+  return record.dayInWeek ?? record.day;
 }
 
 // One pass over the whole history producing, per exercise key, the data each workout-exercise card
@@ -481,19 +535,22 @@ export interface IPrevExerciseData {
 // mount-frame jank for users with large histories. Mirrors the semantics of those three collectors.
 export function History_buildPrevExerciseData(
   history: IHistoryRecord[],
-  beforeTime: number
+  beforeTime: number,
+  sameDay?: IPrevExerciseSameDay
 ): Record<string, IPrevExerciseData> {
   const twoMonthsAgo = beforeTime - 60 * 24 * 60 * 60 * 1000;
   const result: Record<string, IPrevExerciseData> = {};
   for (const hr of history) {
     const time = hr.endTime ?? hr.startTime;
     const isBefore = time < beforeTime;
+    const isSameDay =
+      sameDay != null && hr.programId === sameDay.programId && History_recordDayInWeek(hr) === sameDay.dayInWeek;
     const seenKeys = new Set<string>();
     for (const entry of hr.entries) {
       const key = Exercise_toKey(entry.exercise);
       let data = result[key];
       if (data == null) {
-        data = { count: 0 };
+        data = { count: 0, bestByReps: {} };
         result[key] = data;
       }
       if (!seenKeys.has(key)) {
@@ -507,6 +564,20 @@ export function History_buildPrevExerciseData(
       ) {
         data.lastEntry = entry;
         data.lastEntryTimestamp = time;
+      }
+      if (
+        isBefore &&
+        isSameDay &&
+        Reps_isStarted(entry.sets) &&
+        (data.sameDayTimestamp == null || time > data.sameDayTimestamp)
+      ) {
+        data.sameDayEntry = entry;
+        data.sameDayTimestamp = time;
+      }
+      if (isBefore) {
+        for (const set of entry.sets) {
+          History_recordBestSets(data, set, time);
+        }
       }
       if (
         isBefore &&

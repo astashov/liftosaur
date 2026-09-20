@@ -15,6 +15,11 @@ export function DateUtils_format(dateStr: string | Date | number, hideWeekday?: 
   });
 }
 
+export function DateUtils_formatDayMonth(timestamp: number, now: number = Date.now()): string {
+  const isThisYear = new Date(timestamp).getFullYear() === new Date(now).getFullYear();
+  return DateUtils_format(timestamp, true, isThisYear);
+}
+
 export function DateUtils_formatWithTime(dateStr: string | Date | number): string {
   let date;
   if (typeof dateStr === "string") {

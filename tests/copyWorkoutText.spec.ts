@@ -58,7 +58,8 @@ test("Copy Workout as Text", async ({ page }) => {
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("history-record").nth(1).click();
-  await page.locator(".nm-past-workout-share").click();
+  await page.getByTestId("workout-menu").click();
+  await page.getByTestId("workout-menu-share").click();
   await page.getByTestId("bottom-sheet-share-to-text").click();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

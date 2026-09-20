@@ -83,7 +83,9 @@
       "cardyellow": "#FFE6B4",
       "cardpurple": "#E2D9F5",
       "gridnotused": "#67EEB8",
-      "gridexercise": "#CCC1F9"
+      "gridexercise": "#CCC1F9",
+      "current": "#F97316",
+      "currentoutline": "transparent"
     },
     "text": {
       "primary": "#000000",
@@ -237,7 +239,9 @@
       "cardyellow": "#474431",
       "cardpurple": "#332D42",
       "gridnotused": "#3F7961",
-      "gridexercise": "#453D58"
+      "gridexercise": "#453D58",
+      "current": "#FB923C",
+      "currentoutline": "#FFEDD5"
     },
     "text": {
       "primary": "#FFFFFF",

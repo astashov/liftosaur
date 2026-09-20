@@ -1,7 +1,7 @@
 import { JSX, ReactNode, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { runOnJS, useSharedValue } from "react-native-reanimated";
 
 export interface IGridDragHandleProps {
   children: ReactNode;
@@ -27,6 +27,8 @@ const DRAG_LONG_PRESS_MS = 500;
 
 export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandleProps): JSX.Element {
   const { onDragStart, onDragMove, onDragEnd, onTap, axis } = props;
+  const touchesDown = useSharedValue(0);
+  const isDragging = useSharedValue(false);
   const gesture = useMemo(() => {
     const pan = Gesture.Pan()
       .activateAfterLongPress(DRAG_LONG_PRESS_MS)
@@ -36,16 +38,42 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
       // The finger leaves a small handle almost immediately once the drag is under way; without
       // this the gesture is cancelled the moment it does.
       .shouldCancelWhenOutside(false)
+      .onTouchesDown((e) => {
+        touchesDown.value = e.numberOfTouches;
+      })
+      .onTouchesUp((e) => {
+        touchesDown.value = e.numberOfTouches;
+      })
+      .onTouchesCancelled((e) => {
+        touchesDown.value = e.numberOfTouches;
+      })
+      // The long-press timer on iOS is cancelled in the recognizer's reset, which UIKit runs after
+      // the failed release has been processed. When a tap's dispatch keeps the main thread busy past
+      // the 500ms mark, the timer still activates the pan with no finger on the screen.
       .onStart((e) => {
+        if (touchesDown.value === 0) {
+          return;
+        }
+        isDragging.value = true;
         runOnJS(onDragStart)(axis === "x" ? e.absoluteX : e.absoluteY);
       })
       .onUpdate((e) => {
+        if (!isDragging.value) {
+          return;
+        }
         runOnJS(onDragMove)(axis === "x" ? e.translationX : e.translationY, axis === "x" ? e.absoluteX : e.absoluteY);
       })
       .onEnd(() => {
+        if (!isDragging.value) {
+          return;
+        }
         runOnJS(onDragEnd)(true);
       })
       .onFinalize((_e, success) => {
+        if (!isDragging.value) {
+          return;
+        }
+        isDragging.value = false;
         runOnJS(onDragEnd)(success);
       });
     if (onTap == null) {
@@ -60,7 +88,7 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
     // failed — which is what a quick release is. Racing them lets the tap cancel the pan a few
     // pixels into the drag, which killed the gesture outright.
     return Gesture.Exclusive(pan, tap);
-  }, [onDragStart, onDragMove, onDragEnd, onTap, axis]);
+  }, [onDragStart, onDragMove, onDragEnd, onTap, axis, touchesDown, isDragging]);
 
   return (
     <GestureDetector gesture={gesture}>

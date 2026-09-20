@@ -18,10 +18,14 @@ interface IInputWeightProps {
   settings: ISettings;
   "data-testid"?: string;
   testID?: string;
+  size?: "md" | "lg";
   onUpdate: (weight: IWeight | IPercentage) => void;
 }
 
 export function InputWeight(props: IInputWeightProps): JSX.Element {
+  const isLarge = props.size === "lg";
+  const buttonCn = `items-center justify-center ${isLarge ? "w-scaled-14 h-scaled-14" : "w-scaled-10 h-scaled-10"} border rounded-lg bg-background-purpledark border-border-neutral`;
+  const signCn = isLarge ? "text-3xl font-bold leading-none" : "text-xl font-bold leading-none";
   const [text, setText] = useState(String(props.value.value));
   const [unit, setUnit] = useState<IUnit | "%">(props.value.unit);
   const testId = props.testID || `input-${StringUtils_dashcase(props.label || "")}`;
@@ -57,10 +61,12 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
 
   return (
     <View className="w-full">
-      {props.label && <Text className="mb-1 text-xs text-text-secondary">{props.label}</Text>}
+      {props.label && (
+        <Text className={`mb-1 ${isLarge ? "text-sm" : "text-xs"} text-text-secondary`}>{props.label}</Text>
+      )}
       <View className="flex-row items-center gap-2">
         <Pressable
-          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className={buttonCn}
           data-testid="edit-weight-minus"
           testID="edit-weight-minus"
           onPress={() => {
@@ -78,12 +84,12 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
             }
           }}
         >
-          <Text className="text-xl font-bold leading-none">-</Text>
+          <Text className={signCn}>-</Text>
         </Pressable>
         <View className="flex-row items-center flex-1 gap-2">
           <View className="flex-1">
             <TextInput
-              className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
+              className={`w-full px-4 ${isLarge ? "py-3 text-2xl" : "py-2 text-base"} border rounded-lg bg-background-default border-border-prominent text-text-primary`}
               keyboardType="numeric"
               value={text}
               data-testid={testId}
@@ -118,16 +124,16 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         </View>
         {unit !== "%" && (
           <Pressable
-            className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
+            className={buttonCn}
             data-testid="edit-weight-calculator"
             testID="edit-weight-calculator"
             onPress={() => openCalculator({ unit: unit as IUnit })}
           >
-            <IconCalculator size={16} />
+            <IconCalculator size={isLarge ? 22 : 16} />
           </Pressable>
         )}
         <Pressable
-          className="items-center justify-center w-scaled-10 h-scaled-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          className={buttonCn}
           data-testid="edit-weight-plus"
           testID="edit-weight-plus"
           onPress={() => {
@@ -145,7 +151,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
             }
           }}
         >
-          <Text className="text-xl font-bold leading-none">+</Text>
+          <Text className={signCn}>+</Text>
         </Pressable>
       </View>
     </View>

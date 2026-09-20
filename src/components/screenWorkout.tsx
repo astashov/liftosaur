@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { Pressable, Platform, InteractionManager } from "react-native";
+import { Platform, InteractionManager } from "react-native";
 import { useTrackClick } from "../utils/clickTracking";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
@@ -14,14 +14,14 @@ import { Progress_lbProgress, Progress_isCurrent, Progress_getActiveSetTimer } f
 import { INavCommon, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
-import { IconTrash } from "./icons/iconTrash";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
 import { Workout } from "./workout";
+import { WorkoutFinishButton } from "./workoutFinishButton";
+import { WorkoutMenu } from "./workoutMenu";
 import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { workoutTourConfig } from "./tour/workoutTourConfig";
 import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
@@ -195,40 +195,56 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     );
   }, [isCurrent, progress, onPauseResume]);
 
-  const navRightButtons = useMemo(
-    () => [
-      <Pressable
-        key="delete"
-        data-testid="delete-progress"
-        testID="delete-progress"
-        className="p-2"
-        onPress={onDeletePressHandler}
-      >
-        <IconTrash />
-      </Pressable>,
-    ],
-    [onDeletePressHandler]
-  );
-
-  useNavOptions({
-    navHelpTourId: workoutTourConfig.id,
-    navTitle: isCurrent ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
-    navOnTitleClick: !isCurrent ? onTitleClick : undefined,
-    navSubtitle,
-    navRightButtons,
-  });
-
   const progressId = progress.id;
   const onShare = useCallback(() => {
     if (!isCurrent) {
       navigateToModal("workoutShareModal", { progressId });
     }
   }, [isCurrent, progressId]);
+  const onConvertToProgram = useCallback(() => {
+    navigateToModal("dayFromAdhocModal", { progressId });
+  }, [progressId]);
+
+  const navRightButtons = useMemo(
+    () => [<WorkoutFinishButton key="finish" progress={progress} settings={props.settings} dispatch={dispatch} />],
+    [progress, props.settings, dispatch]
+  );
+  const renderHeaderMenu = useCallback(
+    (onOpenChange: (isOpen: boolean) => void) => (
+      <WorkoutMenu
+        progress={progress}
+        program={evaluatedProgram}
+        allPrograms={props.allPrograms}
+        settings={settings}
+        dispatch={dispatch}
+        onShare={onShare}
+        onConvertToProgram={onConvertToProgram}
+        onDelete={onDeletePressHandler}
+        onOpenChange={onOpenChange}
+      />
+    ),
+    [
+      progress,
+      settings,
+      dispatch,
+      evaluatedProgram,
+      props.allPrograms,
+      onShare,
+      onConvertToProgram,
+      onDeletePressHandler,
+    ]
+  );
+
+  useNavOptions({
+    navTitle: isCurrent ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
+    navOnTitleClick: !isCurrent ? onTitleClick : undefined,
+    navSubtitle,
+    navRightButtons,
+  });
 
   if (progress != null) {
     return (
       <Workout
-        onShare={onShare}
         stats={props.navCommon.stats}
         allPrograms={props.allPrograms}
         subscription={props.subscription}
@@ -240,6 +256,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         programDay={programDay}
         progress={progress}
         dispatch={props.dispatch}
+        renderHeaderMenu={renderHeaderMenu}
       />
     );
   } else {

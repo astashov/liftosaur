@@ -82,7 +82,9 @@
     "cardyellow": { "light": "@colors.yellow.200", "dark": "@colors.yellowgray.800" },
     "cardpurple": { "light": "@colors.purple.150", "dark": "@colors.darkgray.800" },
     "gridnotused": { "light": "@colors.green.300", "dark": "@colors.greengray.700" },
-    "gridexercise": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" }
+    "gridexercise": { "light": "@colors.purple.300", "dark": "@colors.darkgray.600" },
+    "current": { "light": "@colors.orange.500", "dark": "@colors.orange.400" },
+    "currentoutline": { "light": "transparent", "dark": "@colors.orange.100" }
   },
   "text": {
     "primary": { "light": "@colors.black", "dark": "@colors.white" },

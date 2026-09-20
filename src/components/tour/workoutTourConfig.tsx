@@ -14,7 +14,7 @@ import {
 import { Progress_getCurrentProgress } from "../../models/progress";
 import { getCurrentScreenData } from "../../navigation/navigationService";
 import { Weight_eqNull } from "../../models/weight";
-import { IconKebab } from "../icons/iconKebab";
+import { IconCog2 } from "../icons/iconCog2";
 import { Reps_isFinished } from "../../models/set";
 import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils_isNotEmpty } from "../../utils/object";
@@ -91,8 +91,9 @@ export const workoutTourConfig: ITourConfig = {
       content: () => (
         <>
           <Text className={`mb-2 ${paraCn}`}>
-            You can <Text className="font-bold">swipe left</Text> on any set to change its{" "}
-            <Text className="font-bold">target</Text> reps and weight, or to delete it.
+            <Text className="font-bold">Tap a set</Text> to expand it, then tap the{" "}
+            <Text className="font-bold">pencil</Text> to change its <Text className="font-bold">target</Text> reps
+            and weight, or to delete it.
           </Text>
           <Text className={paraCn}>
             These changes only affect <Text className="font-bold">this workout</Text> - they won't modify your program.
@@ -172,7 +173,7 @@ export const workoutTourConfig: ITourConfig = {
             <Text className={paraCn}>Want to tweak the exercise in the program? Tap the </Text>
           </View>
           <View className="inline-block mx-1">
-            <IconKebab />
+            <IconCog2 size={18} />
           </View>
           <Text className={`${paraCn} font-bold`}>menu</Text>
           <Text className={paraCn}> and select </Text>

@@ -130,6 +130,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           {isUnilateral && (
             <View className="mb-2">
               <InputNumber
+                size="lg"
                 label="Completed reps (left)"
                 value={repsLeftInputValue ?? 0}
                 data-testid="modal-amrap-left-input"
@@ -145,6 +146,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           )}
           <View className="mb-2">
             <InputNumber
+              size="lg"
               label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
               value={repsInputValue ?? 0}
               data-testid="modal-amrap-input"
@@ -162,6 +164,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
       {askWeight && (
         <View className="mb-2">
           <InputWeight
+            size="lg"
             exerciseType={entry?.exercise || props.programExercise?.exerciseType}
             label="Weight"
             units={["kg", "lb"]}
@@ -178,6 +181,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
       {logRpe && (
         <View className="mb-2">
           <InputNumber
+            size="lg"
             label="Completed RPE"
             value={rpeInputValue ?? 0}
             data-testid="modal-rpe-input"
@@ -208,12 +212,13 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           }}
         />
       )}
-      <View className="flex-row justify-between gap-3 mt-4">
+      <View className="flex-row justify-between gap-3 mt-6 mb-6">
         <Button
           name="modal-amrap-clear"
           data-testid="modal-amrap-clear"
           testID="modal-amrap-clear"
           kind="grayv2"
+          className="flex-1 py-4 text-lg"
           onClick={() => {
             onDone();
           }}
@@ -225,7 +230,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           kind="purple"
           data-testid="modal-amrap-submit"
           testID="modal-amrap-submit"
-          className="ls-modal-set-amrap"
+          className="ls-modal-set-amrap flex-1 py-4 text-lg"
           onClick={() => {
             const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
             const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
@@ -286,6 +291,7 @@ export function UserPromptedStateVar(props: IUserPromptedStateVarProps): JSX.Ele
   return (
     <View className={props.index !== 0 ? "mt-2" : ""}>
       <InputNumber
+        size="lg"
         data-testid={`modal-state-vars-user-prompt-input-${key}`}
         testID={`modal-state-vars-user-prompt-input-${key}`}
         label={label}
