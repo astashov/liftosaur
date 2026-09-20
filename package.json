@@ -7,12 +7,12 @@
     "*.css"
   ],
   "scripts": {
-    "ios": "npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator=\"${IOS_SIM:-iPhone 17e RNW}\" --port $(./scripts/metro-port.sh)",
+    "ios": "npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static env ${SHOW_TOUCHES:+XCODE_XCCONFIG_FILE=$PWD/ios/ShowTouches.xcconfig} react-native run-ios --simulator=\"${IOS_SIM:-iPhone 17e RNW}\" --port $(./scripts/metro-port.sh)",
     "worktree:ios": "./scripts/worktree-ios.sh",
     "worktree:metro": "npm run rn:start",
     "ios-release": "NODE_ENV=production npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW' --mode Release",
-    "ios-device": "npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air' --port $(./scripts/metro-port.sh)",
-    "ios-device-release": "NODE_ENV=production npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air' ${DISABLE_OTA:+--extra-params SWIFT_ACTIVE_COMPILATION_CONDITIONS=DISABLE_OTA}",
+    "ios-device": "npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static env ${SHOW_TOUCHES:+XCODE_XCCONFIG_FILE=$PWD/ios/ShowTouches.xcconfig} react-native run-ios --device='Anton iPhone Air' --port $(./scripts/metro-port.sh)",
+    "ios-device-release": "NODE_ENV=production npm run build:watch-bundle && RCT_USE_PREBUILT_RNCORE=1 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static env ${SHOW_TOUCHES:+XCODE_XCCONFIG_FILE=$PWD/ios/ShowTouches.xcconfig} react-native run-ios --mode Release --device='Anton iPhone Air' ${DISABLE_OTA:+--extra-params SWIFT_ACTIVE_COMPILATION_CONDITIONS=DISABLE_OTA}",
     "ios-watch": "./scripts/ios-watch.sh",
     "ios-watch-release": "CONFIGURATION=Release ./scripts/ios-watch.sh",
     "ios-watch-device": "./scripts/ios-watch-device.sh",

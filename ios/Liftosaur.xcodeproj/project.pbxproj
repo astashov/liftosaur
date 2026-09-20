@@ -110,6 +110,7 @@
 		3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC62C2FB35DA3001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7422FB4B001001C68AA /* SceneDelegate.swift */; };
+		3AACC7512FB4B001001C68AB /* TouchIndicatorWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7522FB4B001001C68AB /* TouchIndicatorWindow.swift */; };
 		3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3AACC76000000000000E0004 /* RestNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC76000000000000E0003 /* RestNotification.swift */; };
@@ -308,6 +309,7 @@
 		3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWatch.h; path = Liftosaur/RCTLiftosaurWatch.h; sourceTree = "<group>"; };
 		3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWatch.mm; path = Liftosaur/RCTLiftosaurWatch.mm; sourceTree = "<group>"; };
 		3AACC7422FB4B001001C68AA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = Liftosaur/SceneDelegate.swift; sourceTree = "<group>"; };
+		3AACC7522FB4B001001C68AB /* TouchIndicatorWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TouchIndicatorWindow.swift; path = Liftosaur/TouchIndicatorWindow.swift; sourceTree = "<group>"; };
 		3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePayloadCompression.swift; sourceTree = "<group>"; };
 		3AACC76000000000000E0003 /* RestNotification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestNotification.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000A1 /* SetTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerScreen.swift; sourceTree = "<group>"; };
@@ -421,6 +423,7 @@
 				3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				3AACC7422FB4B001001C68AA /* SceneDelegate.swift */,
+				3AACC7522FB4B001001C68AB /* TouchIndicatorWindow.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				EE0020000000000000000020 /* codesigning.pem */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
@@ -1032,6 +1035,7 @@
 				3AACC6282FB35CFD001C68AA /* LiftosaurWatchImpl.swift in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */,
+				3AACC7512FB4B001001C68AB /* TouchIndicatorWindow.swift in Sources */,
 				438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */,
 				ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */,
 				6D02DF56F7CB78E851242DEC /* RCTLiftosaurImageResizer.mm in Sources */,

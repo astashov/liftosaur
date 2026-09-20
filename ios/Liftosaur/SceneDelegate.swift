@@ -29,7 +29,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       ]
     }
 
-    let window = UIWindow(windowScene: windowScene)
+    let window = TouchIndicatorWindow.isEnabled
+      ? TouchIndicatorWindow(windowScene: windowScene)
+      : UIWindow(windowScene: windowScene)
     self.window = window
     factory.startReactNative(
       withModuleName: "Liftosaur",
