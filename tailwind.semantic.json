@@ -32,6 +32,16 @@
     "yellow": { "light": "@colors.yellow.600", "dark": "@colors.yellow.400" },
     "purple": { "light": "@colors.purple.500", "dark": "@colors.purple.400" }
   },
+  "plate": {
+    "red": { "light": "#D7322E", "dark": "#E04440" },
+    "blue": { "light": "#1F55C4", "dark": "#3B6FDB" },
+    "yellow": { "light": "#F0C419", "dark": "#F5CC2E" },
+    "green": { "light": "#2E9C4B", "dark": "#3DB05C" },
+    "white": { "light": "@colors.white", "dark": "@colors.lightgray.100" },
+    "whiteoutline": { "light": "@colors.lightgray.500", "dark": "@colors.lightgray.400" },
+    "iron": { "light": "@colors.lightgray.800", "dark": "@colors.lightgray.200" },
+    "bar": { "light": "@colors.lightgray.400", "dark": "@colors.lightgray.600" }
+  },
   "graph": {
     "blue": { "light": "@colors.blue.500", "dark": "@colors.blue.400" },
     "red": { "light": "@colors.red.500", "dark": "@colors.red.400" },

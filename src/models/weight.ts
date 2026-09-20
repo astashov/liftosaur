@@ -273,22 +273,26 @@ export function Weight_platesWeight(plates: IPlate[]): IWeight {
   );
 }
 
-export function Weight_formatOneSide(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): string {
+export function Weight_oneSidePlates(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): IWeight[] {
   const equipmentSettings = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
   const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
   plates.sort((a, b) => Weight_compareReverse(a.weight, b.weight));
-  const arr: number[] = [];
+  const arr: IWeight[] = [];
   const multiplier = equipmentSettings?.multiplier ?? 1;
   while (true) {
     const plate = plates.find((p) => p.num >= multiplier);
     if (plate != null) {
-      arr.push(plate.weight.value);
+      arr.push(plate.weight);
       plate.num -= multiplier;
     } else {
       break;
     }
   }
+  return arr;
+}
 
+export function Weight_formatOneSide(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): string {
+  const arr = Weight_oneSidePlates(settings, platesArr, exerciseType).map((w) => w.value);
   return CollectionUtils_compressArray(arr, 3).join("/");
 }
 

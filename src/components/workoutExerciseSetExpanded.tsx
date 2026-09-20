@@ -7,6 +7,7 @@ import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { IconPlayCircle } from "./icons/iconPlayCircle";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { IconBarbellPlates } from "./icons/iconBarbellPlates";
+import { PlatesBar } from "./platesBar";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
@@ -252,7 +253,11 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 disabled={props.onToggleExpand == null}
                 onPress={props.onToggleExpand}
               >
-                <IconBarbellPlates size={isSubscribed ? 24 : 17} />
+                {isSubscribed && props.platesLine.isMatch ? (
+                  <PlatesBar plates={props.platesLine.sidePlates} />
+                ) : (
+                  <IconBarbellPlates size={isSubscribed ? 24 : 17} />
+                )}
                 {isSubscribed ? (
                   <Text
                     className={`text-2xl font-semibold ${props.platesLine.isMatch ? "text-text-primary" : "text-text-error"}`}

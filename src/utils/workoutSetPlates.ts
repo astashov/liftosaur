@@ -1,10 +1,11 @@
-import { IExerciseType, ISet, ISettings } from "../types";
+import { IExerciseType, ISet, ISettings, IWeight } from "../types";
 import { Equipment_getEquipmentNameForExerciseType } from "../models/equipment";
 import { Exercise_get } from "../models/exercise";
-import { Weight_calculatePlates, Weight_eq, Weight_formatOneSide } from "../models/weight";
+import { Weight_calculatePlates, Weight_eq, Weight_formatOneSide, Weight_oneSidePlates } from "../models/weight";
 
 export interface IWorkoutSetPlatesLine {
   plates: string;
+  sidePlates: IWeight[];
   isMatch: boolean;
 }
 
@@ -27,6 +28,7 @@ export function WorkoutSetPlates_line(
   }
   return {
     plates: Weight_formatOneSide(settings, plates, exerciseType),
+    sidePlates: Weight_oneSidePlates(settings, plates, exerciseType),
     isMatch: Weight_eq(totalWeight, target),
   };
 }
