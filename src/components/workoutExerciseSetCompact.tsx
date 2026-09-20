@@ -1,5 +1,7 @@
 import type { JSX } from "react";
+import { useContext } from "react";
 import { View, Pressable } from "react-native";
+import { WorkoutTabStopContext } from "./workoutTabStopContext";
 import { Text } from "./primitives/text";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { IconPlayCircle } from "./icons/iconPlayCircle";
@@ -18,6 +20,7 @@ import {
 export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): JSX.Element {
   const { set, isUnilateral, labelW, columnWidths } = props;
   const onTargetPress = props.onToggleExpand ?? (props.isRoundedWeight ? props.onOpenRoundingInfo : undefined);
+  const tabIndex = useContext(WorkoutTabStopContext);
   return (
     <View
       className={`${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
@@ -68,6 +71,8 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
               </Text>
               <InputNumber2
                 width={props.repsInputWidth}
+                tabIndex={tabIndex}
+                tabStop={true}
                 name="set-left-reps"
                 onInput={props.onInputLeftReps}
                 onBlur={props.onBlurLeftReps}
@@ -89,6 +94,8 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
             )}
             <InputNumber2
               width={props.repsInputWidth}
+              tabIndex={tabIndex}
+              tabStop={true}
               name="set-reps"
               onInput={props.onInputReps}
               onBlur={props.onBlurReps}
@@ -108,6 +115,8 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
         <View className="items-start justify-center py-2" style={{ width: columnWidths.weight }}>
           <InputWeight2
             width={props.weightInputWidth}
+            tabIndex={tabIndex}
+            tabStop={true}
             name="set-weight"
             exerciseType={props.exerciseType}
             inputCommitMode="blur"
@@ -148,6 +157,8 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
         <View className="items-end justify-center" style={{ width: columnWidths.check }}>
           {props.type === "workout" && set.setTimer != null && !set.isCompleted ? (
             <Pressable
+              tabIndex={tabIndex}
+              dataSet={{ tabStop: "1" }}
               className={columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
               data-testid="start-set-timer"
               testID="start-set-timer"
@@ -157,6 +168,8 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
             </Pressable>
           ) : (
             <Pressable
+              tabIndex={tabIndex}
+              dataSet={{ tabStop: "1" }}
               className={columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
               data-testid="complete-set"
               testID="complete-set"

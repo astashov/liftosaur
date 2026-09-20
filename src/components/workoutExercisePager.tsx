@@ -1,5 +1,6 @@
 import { Children, JSX, ReactNode, useCallback, useEffect, useRef } from "react";
 import { WorkoutPagerSettle_index } from "./workoutPagerSettle";
+import { WorkoutTabPrune_observe } from "../utils/workoutTabPrune";
 
 const WHEEL_GESTURE_MS = 300;
 
@@ -25,6 +26,11 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => () => clearTimeout(idleTimerRef.current), []);
+
+  useEffect(() => {
+    const root = scrollerRef.current;
+    return root ? WorkoutTabPrune_observe(root) : undefined;
+  }, []);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ left: currentEntryIndex * windowWidth, behavior: "instant" as ScrollBehavior });

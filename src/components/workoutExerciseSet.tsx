@@ -370,6 +370,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       {transition.leavingExpanded != null && (
         <Animated.View
           pointerEvents="none"
+          dataSet={{ leaving: "1" }}
           style={[{ position: "absolute", left: 0, right: 0, top: 0 }, transition.leavingStyle]}
         >
           {transition.leavingExpanded ? (

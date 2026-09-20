@@ -75,6 +75,7 @@ import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 import { useTrackClick } from "../utils/clickTracking";
+import { WorkoutTabStopContext } from "./workoutTabStopContext";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -296,6 +297,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                     entry={entry}
                     entryIndex={entryIndex}
                     isCurrentPage={entryIndex === currentEntryIndex}
+                    tabStopIndex={entryIndex < currentEntryIndex ? -1 : 0}
                     impressionsSeenRef={impressionsSeenRef}
                     shouldRender={renderedIndices.has(entryIndex)}
                     windowWidth={windowWidth}
@@ -334,6 +336,7 @@ interface IWorkoutExercisePageProps {
   entry: IHistoryEntry;
   entryIndex: number;
   isCurrentPage: boolean;
+  tabStopIndex: 0 | -1;
   impressionsSeenRef: MutableRefObject<Set<string>>;
   shouldRender: boolean;
   windowWidth: number;
@@ -372,30 +375,32 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
     <View style={pageStyle}>
       <View onLayout={onLayout}>
         {props.shouldRender ? (
-          <WorkoutExercise
-            day={props.day}
-            stats={props.stats}
-            history={props.history}
-            otherStates={props.otherStates}
-            entryIndex={props.entryIndex}
-            isCurrentPage={props.isCurrentPage}
-            impressionsSeenRef={props.impressionsSeenRef}
-            program={props.program}
-            programDay={props.programDay}
-            progressId={props.progressId}
-            progressStartTime={props.progressStartTime}
-            userPromptedStateVars={props.userPromptedStateVars}
-            supersetEntry={props.supersetEntry}
-            prevData={props.prevData}
-            isCurrentProgress={props.isCurrentProgress}
-            showHelp={true}
-            helps={props.helps}
-            entry={props.entry}
-            subscription={props.subscription}
-            settings={props.settings}
-            dispatch={props.dispatch}
-            onTitleLayout={props.isCurrentPage ? props.onTitleLayout : undefined}
-          />
+          <WorkoutTabStopContext.Provider value={props.tabStopIndex}>
+            <WorkoutExercise
+              day={props.day}
+              stats={props.stats}
+              history={props.history}
+              otherStates={props.otherStates}
+              entryIndex={props.entryIndex}
+              isCurrentPage={props.isCurrentPage}
+              impressionsSeenRef={props.impressionsSeenRef}
+              program={props.program}
+              programDay={props.programDay}
+              progressId={props.progressId}
+              progressStartTime={props.progressStartTime}
+              userPromptedStateVars={props.userPromptedStateVars}
+              supersetEntry={props.supersetEntry}
+              prevData={props.prevData}
+              isCurrentProgress={props.isCurrentProgress}
+              showHelp={true}
+              helps={props.helps}
+              entry={props.entry}
+              subscription={props.subscription}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              onTitleLayout={props.isCurrentPage ? props.onTitleLayout : undefined}
+            />
+          </WorkoutTabStopContext.Provider>
         ) : null}
       </View>
     </View>

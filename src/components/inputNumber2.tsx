@@ -27,6 +27,7 @@ interface IInputNumber2Props {
   min?: number;
   max?: number;
   tabIndex?: number;
+  tabStop?: boolean;
   initialValue?: number;
   onNext?: (value: number | undefined) => number;
   onPrev?: (value: number | undefined) => number;
@@ -506,7 +507,8 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       blur("maybeBlur-switch");
       switchRef.current = true;
       const nextInput = foundOtherInput.querySelector(".input-number-child") as HTMLElement | null;
-      if (nextInput) {
+      const isFocusFree = document.activeElement == null || document.activeElement === document.body;
+      if (nextInput && isFocusFree) {
         nextInput.focus();
       }
       return true;
@@ -599,6 +601,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
               : { width: `${props.width ?? 4}rem` }
         }
         tabIndex={props.tabIndex ?? 0}
+        data-tab-stop={props.tabStop ? "1" : undefined}
         onFocus={() => {
           debugSessionRef.current = Date.now();
           lg("kbd-focus", { sid: debugSessionRef.current });

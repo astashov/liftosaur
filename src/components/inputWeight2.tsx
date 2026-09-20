@@ -40,6 +40,7 @@ interface IInputWeight2Props {
   onInput?: (value: IWeight | IPercentage | undefined) => void;
   subscription?: ISubscription;
   tabIndex?: number;
+  tabStop?: boolean;
   inputCommitMode?: IInputCommitMode;
   inputDebounceMs?: number;
   "data-testid"?: string;
@@ -168,6 +169,7 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
         size={props.size}
         fill={props.fill}
         tabIndex={props.tabIndex}
+        tabStop={props.tabStop}
         placeholder={props.placeholder}
         after={props.after}
         autowidth={props.autowidth}

@@ -1,6 +1,7 @@
 import type { JSX } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
+import { WorkoutTabStopContext } from "./workoutTabStopContext";
 import { Text } from "./primitives/text";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { IconPlayCircle } from "./icons/iconPlayCircle";
@@ -48,6 +49,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
     [onMenuOpenChange]
   );
   const menuZIndex = Platform.OS === "web" && isMenuOpen ? { zIndex: 50 } : undefined;
+  const tabIndex = useContext(WorkoutTabStopContext);
 
   return (
     <View
@@ -125,6 +127,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                   <InputNumber2
                     size="lg"
                     fill={true}
+                    tabIndex={tabIndex}
+                    tabStop={true}
                     name="set-left-reps"
                     onInput={props.onInputLeftReps}
                     onBlur={props.onBlurLeftReps}
@@ -140,6 +144,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                   <InputNumber2
                     size="lg"
                     fill={true}
+                    tabIndex={tabIndex}
+                    tabStop={true}
                     name="set-reps"
                     onInput={props.onInputReps}
                     onBlur={props.onBlurReps}
@@ -156,6 +162,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 <InputNumber2
                   size="lg"
                   fill={true}
+                  tabIndex={tabIndex}
+                  tabStop={true}
                   name="set-reps"
                   onInput={props.onInputReps}
                   onBlur={props.onBlurReps}
@@ -172,6 +180,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <InputWeight2
                 size="lg"
                 fill={true}
+                tabIndex={tabIndex}
+                tabStop={true}
                 name="set-weight"
                 exerciseType={props.exerciseType}
                 inputCommitMode="blur"
@@ -208,6 +218,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               ) : null}
               {props.type === "workout" && set.setTimer != null && !set.isCompleted ? (
                 <Pressable
+                  tabIndex={tabIndex}
+                  dataSet={{ tabStop: "1" }}
                   className="py-1 pl-2"
                   data-testid="start-set-timer"
                   testID="start-set-timer"
@@ -217,6 +229,8 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 </Pressable>
               ) : (
                 <Pressable
+                  tabIndex={tabIndex}
+                  dataSet={{ tabStop: "1" }}
                   className="py-1 pl-2"
                   data-testid="complete-set"
                   testID="complete-set"

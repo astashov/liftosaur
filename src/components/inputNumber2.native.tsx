@@ -40,6 +40,7 @@ interface IInputNumber2Props {
   min?: number;
   max?: number;
   tabIndex?: number;
+  tabStop?: boolean;
   initialValue?: number;
   onNext?: (value: number | undefined) => number;
   onPrev?: (value: number | undefined) => number;
