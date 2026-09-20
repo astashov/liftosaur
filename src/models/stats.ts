@@ -1,5 +1,5 @@
 import { IPercentage, ISettings, IStats, IStatsHealthKey, IStatsKey, IWeight } from "../types";
-import { CollectionUtils_sortBy } from "../utils/collection";
+import { CollectionUtils_sort, CollectionUtils_sortBy } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_add, Weight_build, Weight_divide } from "./weight";
 
@@ -66,6 +66,10 @@ export function Stats_getCurrentMovingAverageBodyweight(stats: IStats, settings:
 export function Stats_getCurrentBodyfat(stats: IStats): IPercentage | undefined {
   const weights = CollectionUtils_sortBy(stats.percentage.bodyfat || [], "timestamp", true);
   return weights[0]?.value;
+}
+
+export function Stats_insertByTimestamp<T extends { timestamp: number }>(values: T[] | undefined, value: T): T[] {
+  return CollectionUtils_sort([value, ...(values || [])], (a, b) => b.timestamp - a.timestamp);
 }
 
 export function Stats_getEmpty(): IStats {

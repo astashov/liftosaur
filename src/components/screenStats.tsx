@@ -31,6 +31,7 @@ import { IconFilter } from "./icons/iconFilter";
 import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
+import { DatePicker } from "./datePicker";
 
 interface IProps {
   dispatch: IDispatch;
@@ -89,6 +90,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
   const [clearKey, setClearKey] = useState(0);
+  const [pickedTimestamp, setPickedTimestamp] = useState<number | undefined>(undefined);
 
   const initialValues: Partial<Record<IStatsKey, string>> = {};
   for (const key of ObjectUtils_keys(lastWeightStats)) {
@@ -174,7 +176,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   }
 
   function save(): void {
-    const timestamp = Date.now();
+    const timestamp = pickedTimestamp ?? Date.now();
     let updates: IUpdates = { ...saveWeight(timestamp) };
     updates = { ...updates, ...saveLength(timestamp) };
     updates = { ...updates, ...savePercentage(timestamp) };
@@ -245,6 +247,10 @@ export function ScreenStats(props: IProps): JSX.Element {
         >
           Clear All Fields
         </Button>
+      </View>
+      <View className="flex-row items-center justify-center my-2">
+        <Text className="mr-2 text-xs text-text-secondary">Date</Text>
+        <DatePicker testID="input-stats-add-date" value={pickedTimestamp ?? Date.now()} onChange={setPickedTimestamp} />
       </View>
       {statsEnabled.length.neck && (
         <SingleLine>
@@ -530,6 +536,7 @@ function StatInput(props: IStatInputProps): JSX.Element {
       placeholder="e.g. 10"
       min={0}
       step="0.01"
+      changeType="oninput"
       tabIndex={1}
       data-testid={`input-stats-${testName}`}
       testID={`input-stats-${testName}`}

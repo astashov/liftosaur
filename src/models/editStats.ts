@@ -22,6 +22,7 @@ import { ObjectUtils_keys } from "../utils/object";
 import { CollectionUtils_sort, CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
 import { Weight_roundTo005, Weight_convertTo } from "./weight";
 import { Length_convertTo } from "./length";
+import { Stats_insertByTimestamp } from "./stats";
 
 export interface IHealthResponse {
   added: {
@@ -78,10 +79,12 @@ export function EditStats_addWeightStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              memo[key] = [
-                { vtype: "stat", value: payload[key]!, timestamp: sharedTime, updatedAt: sharedTime },
-                ...(memo[key] || []),
-              ];
+              memo[key] = Stats_insertByTimestamp(memo[key], {
+                vtype: "stat",
+                value: payload[key]!,
+                timestamp: sharedTime,
+                updatedAt: sharedTime,
+              });
               return memo;
             },
             { ...st }
@@ -108,10 +111,12 @@ export function EditStats_addLengthStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              memo[key] = [
-                { vtype: "stat", value: payload[key]!, timestamp: sharedTime, updatedAt: sharedTime },
-                ...(memo[key] || []),
-              ];
+              memo[key] = Stats_insertByTimestamp(memo[key], {
+                vtype: "stat",
+                value: payload[key]!,
+                timestamp: sharedTime,
+                updatedAt: sharedTime,
+              });
               return memo;
             },
             { ...st }
@@ -138,15 +143,12 @@ export function EditStats_addPercentageStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              memo[key] = [
-                {
-                  vtype: "stat",
-                  value: payload[key]!,
-                  timestamp: sharedTime,
-                  updatedAt: sharedTime,
-                },
-                ...(memo[key] || []),
-              ];
+              memo[key] = Stats_insertByTimestamp(memo[key], {
+                vtype: "stat",
+                value: payload[key]!,
+                timestamp: sharedTime,
+                updatedAt: sharedTime,
+              });
               return memo;
             },
             { ...st }
