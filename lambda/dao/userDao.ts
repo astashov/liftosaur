@@ -143,10 +143,11 @@ interface IStatDb {
 // installed the new native binary, and OTA can't reach them.
 // Re-point these when adding a data-only migration; leave them alone for a shape-changing one.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20260906120000",
-  "20260628120000": "20260906120000",
-  "20260702120000": "20260906120000",
-  "20260903120000": "20260906120000",
+  "20260304084247": "20260919120000",
+  "20260628120000": "20260919120000",
+  "20260702120000": "20260919120000",
+  "20260903120000": "20260919120000",
+  "20260906120000": "20260919120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {

@@ -461,4 +461,16 @@ export const migrations = {
     }
     return storage;
   },
+  "20260919120000_hide_notes_never_used": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    const records = [...(storage.progress || []), ...(storage.history || [])];
+    const workoutSettings = storage.settings.workoutSettings;
+    if (workoutSettings.showWorkoutNotes == null) {
+      workoutSettings.showWorkoutNotes = records.some((r) => !!r.notes);
+    }
+    if (workoutSettings.showExerciseNotes == null) {
+      workoutSettings.showExerciseNotes = records.some((r) => r.entries.some((e) => !!e.notes));
+    }
+    return storage;
+  },
 };

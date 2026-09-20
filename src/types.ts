@@ -1563,6 +1563,8 @@ export interface IWorkoutSettings {
   shouldKeepProgramExerciseId?: boolean;
   shouldShowInvisibleEquipment?: boolean;
   pickerSort?: IExercisePickerSort;
+  showWorkoutNotes?: boolean;
+  showExerciseNotes?: boolean;
 }
 const _VWorkoutSettings = v.object({
   targetType: VTargetType,
@@ -1570,6 +1572,8 @@ const _VWorkoutSettings = v.object({
   shouldKeepProgramExerciseId: v.optional(v.boolean()),
   shouldShowInvisibleEquipment: v.optional(v.boolean()),
   pickerSort: v.optional(VExercisePickerSort),
+  showWorkoutNotes: v.optional(v.boolean()),
+  showExerciseNotes: v.optional(v.boolean()),
 });
 const _VWorkoutSettingsMatches: IEquals<v.InferOutput<typeof _VWorkoutSettings>, IWorkoutSettings> = true;
 void _VWorkoutSettingsMatches;
