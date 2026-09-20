@@ -315,7 +315,11 @@ async function handleToolCall(
   const hasSub = await subscriptions.hasSubscription(di, userId, user.storage.subscription);
   if (!hasSub) {
     di.log.log(`[MCP] ${toolName} -> 403: no subscription`);
-    return textResult(req.id, "Active subscription required to use MCP tools", { isError: true });
+    return textResult(
+      req.id,
+      `Active subscription required to use MCP tools (signed in as ${user.email}). If you subscribed on a different Liftosaur account, disconnect Liftosaur in your AI client and reconnect with that account.`,
+      { isError: true }
+    );
   }
 
   // No try/catch here on purpose: the executor returns tool errors for all anticipated argument
