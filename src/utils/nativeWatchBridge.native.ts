@@ -17,6 +17,19 @@ export function NativeWatchBridge_subscribeToWatchEvents(handler: (event: WatchE
   return () => subscription.remove();
 }
 
+// Paired and installed, not reachable: a watch off the wrist still gets the storage through the
+// application context when it wakes. An iPhone with no watch at all should build no payload.
+export function NativeWatchBridge_hasWatchApp(): boolean {
+  if (Platform.OS !== "ios") {
+    return false;
+  }
+  try {
+    return NativeLiftosaurWatch!.isWatchPaired() && NativeLiftosaurWatch!.isWatchAppInstalled();
+  } catch (e) {
+    return false;
+  }
+}
+
 export function NativeWatchBridge_sendStorageToWatch(filteredStorageJson: string): void {
   if (Platform.OS !== "ios") {
     return;

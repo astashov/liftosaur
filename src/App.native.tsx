@@ -182,6 +182,7 @@ import {
 } from "./utils/nativeWorkoutBridge";
 import {
   NativeWatchBridge_subscribeToWatchEvents,
+  NativeWatchBridge_hasWatchApp,
   NativeWatchBridge_sendStorageToWatch,
   NativeWatchBridge_sendNoAuthToWatch,
   NativeWatchBridge_sendAuthToWatch,
@@ -526,6 +527,9 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
     // Never mirror a debug sandbox to the paired watch - that would copy the target user's
     // data onto the admin's physical device and persist it there.
     if (AdminDebug_isDebugAccountId(state.storage.tempUserId)) {
+      return;
+    }
+    if (!NativeWatchBridge_hasWatchApp()) {
       return;
     }
     const filtered = WatchStorageFilter_filterJson(state.storage);

@@ -24,6 +24,10 @@ export function NativeWatchBridge_isAvailable(): boolean {
   return false;
 }
 
+export function NativeWatchBridge_hasWatchApp(): boolean {
+  return false;
+}
+
 export function NativeWatchBridge_subscribeToWatchEvents(_handler: (event: INativeWatchEvent) => void): () => void {
   return () => {};
 }

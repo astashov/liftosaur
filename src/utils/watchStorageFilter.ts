@@ -1,27 +1,33 @@
 import { IStorage, IStats, IHistoryRecord, STORAGE_VERSION_TYPES } from "../types";
 import { VersionTrackerUtils_getId } from "../models/versionTracker/utils";
+import { ObjectUtils_clone } from "./object";
 import { ICollectionVersions, IVersionsObject, isCollectionVersions } from "../models/versionTracker/types";
 
 export function WatchStorageFilter_filter(storage: IStorage): unknown {
-  const clone = JSON.parse(JSON.stringify(storage)) as Record<string, unknown>;
-
-  const currentProgramId = clone.currentProgramId as string | undefined;
-  const programs = (clone.programs as Array<Record<string, unknown>> | undefined) ?? [];
-
-  if (currentProgramId) {
-    clone.programs = programs.filter((p) => p.id === currentProgramId);
-  }
+  // Removed before the clone: cloning 11 MB of history just to drop it froze every set completion.
+  const currentProgramId = storage.currentProgramId;
+  const keptPrograms = currentProgramId ? storage.programs.filter((p) => p.id === currentProgramId) : storage.programs;
+  const {
+    history: _history,
+    stats: _stats,
+    programs: _programs,
+    _versions: rawVersions,
+    progress: rawProgress,
+    ...restStorage
+  } = storage;
+  const clone = ObjectUtils_clone({
+    ...restStorage,
+    programs: keptPrograms,
+    progress: (rawProgress ?? []).map(({ ui: _ui, ...rest }) => rest),
+  }) as Record<string, unknown>;
 
   clone.history = [];
   clone.stats = { weight: {}, length: {}, percentage: {} };
 
-  const progressArray = clone.progress as Array<Record<string, unknown>> | undefined;
-  if (progressArray) {
-    clone.progress = progressArray.map(({ ui: _ui, ...rest }) => rest);
-  }
-
-  const versions = clone._versions as Record<string, unknown> | undefined;
-  if (versions) {
+  if (rawVersions != null) {
+    const { history: _historyVersions, stats: _statsVersions, ...restVersions } = rawVersions;
+    const versions = ObjectUtils_clone(restVersions) as Record<string, unknown>;
+    clone._versions = versions;
     versions.history = { items: {} };
     versions.stats = { weight: {}, length: {}, percentage: {} };
 
