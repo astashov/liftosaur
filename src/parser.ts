@@ -164,6 +164,10 @@ export class ScriptRunner {
   }
 
   public static hasKeyword(script: string, name: string): boolean {
+    // A keyword node's value is a slice of the script, so a name absent from the text cannot match.
+    if (script.indexOf(name) === -1) {
+      return false;
+    }
     return hasKeywordMemoized(script, name);
   }
 
