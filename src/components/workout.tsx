@@ -76,10 +76,11 @@ import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 import { useTrackClick } from "../utils/clickTracking";
 import { WorkoutTabStopContext } from "./workoutTabStopContext";
+import { IWorkoutProgressView } from "../utils/workoutProgressView";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
-  progress: IHistoryRecord;
+  progress: IWorkoutProgressView;
   allPrograms: IProgram[];
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
@@ -96,7 +97,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   usePerfRenderCount("Workout");
   const selectedEntry = props.progress.entries[props.progress.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
-  const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
+  const forceUpdateEntryIndex = props.progress.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
   const currentEntryIndex = props.progress.currentEntryIndex ?? 0;
   const trackClick = useTrackClick();
@@ -145,7 +146,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   }, []);
 
   const dispatch = props.dispatch;
-  const isExternal = !!props.progress.ui?.isExternal;
+  const isExternal = props.progress.isExternal;
 
   const onPagerIndexChange = useCallback(
     (selectedIndex: number): void => {
@@ -410,7 +411,7 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
 const WorkoutExercisePage = memo(WorkoutExercisePageInner);
 
 interface IWorkoutHeaderProps {
-  progress: IHistoryRecord;
+  progress: IWorkoutProgressView;
   dispatch: IDispatch;
   description?: string;
   showNotes: boolean;
@@ -462,7 +463,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
 const WorkoutHeader = memo(WorkoutHeaderInner);
 
 interface IWorkoutThumbnailsStripProps {
-  progress: IHistoryRecord;
+  progress: IWorkoutProgressView;
   onClick: (index: number) => void;
   dispatch: IDispatch;
   settings: ISettings;

@@ -373,7 +373,7 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
   return fns;
 }
 
-export function Progress_isCurrent(progress: IHistoryRecord | undefined): boolean {
+export function Progress_isCurrent(progress: Pick<IHistoryRecord, "id"> | undefined): boolean {
   return progress?.id === 0;
 }
 
@@ -740,7 +740,9 @@ export function Progress_showUpdateDate(progress: IHistoryRecord, date: string, 
 // performing it, so it gets the same color in both.
 export const Progress_supersetColors = ["red", "blue", "green", "purple"];
 
-export function Progress_getColorToSupersetGroup(progress: IHistoryRecord): Partial<Record<string, IHistoryEntry[]>> {
+export function Progress_getColorToSupersetGroup(
+  progress: Pick<IHistoryRecord, "entries">
+): Partial<Record<string, IHistoryEntry[]>> {
   const groups = Progress_getSupersetGroups(progress.entries);
   let index = 0;
   return ObjectUtils_entriesNonnull(groups).reduce<Partial<Record<string, IHistoryEntry[]>>>((memo, [, group]) => {

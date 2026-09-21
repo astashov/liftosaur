@@ -25,6 +25,7 @@ import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { IWorkoutProgressView, WorkoutProgressView_next } from "../utils/workoutProgressView";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -209,10 +210,13 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     () => [<WorkoutFinishButton key="finish" progress={progress} settings={props.settings} dispatch={dispatch} />],
     [progress, props.settings, dispatch]
   );
+  // A ref, so this function survives a set completion. A new one re-renders the workout header.
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
   const renderHeaderMenu = useCallback(
     (onOpenChange: (isOpen: boolean) => void) => (
       <WorkoutMenu
-        progress={progress}
+        progress={progressRef.current}
         program={evaluatedProgram}
         allPrograms={props.allPrograms}
         settings={settings}
@@ -223,17 +227,11 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         onOpenChange={onOpenChange}
       />
     ),
-    [
-      progress,
-      settings,
-      dispatch,
-      evaluatedProgram,
-      props.allPrograms,
-      onShare,
-      onConvertToProgram,
-      onDeletePressHandler,
-    ]
+    [settings, dispatch, evaluatedProgram, props.allPrograms, onShare, onConvertToProgram, onDeletePressHandler]
   );
+  const progressViewRef = useRef<IWorkoutProgressView | undefined>(undefined);
+  const progressView = WorkoutProgressView_next(progressViewRef.current, progress);
+  progressViewRef.current = progressView;
 
   useNavOptions({
     navTitle: isCurrent ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
@@ -254,7 +252,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         program={evaluatedProgram}
         isTimerShown={true}
         programDay={programDay}
-        progress={progress}
+        progress={progressView}
         dispatch={props.dispatch}
         renderHeaderMenu={renderHeaderMenu}
       />
