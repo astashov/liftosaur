@@ -20,8 +20,8 @@ interface IProgressiveOptions {
   batchSize?: number;
   threshold?: number;
   rateLimitMs?: number;
-  // When set, idle-time revealing stops at this count. The rest is only revealed
-  // once the user scrolls near the bottom (avoids rendering long tails nobody looks at).
+  // When set, idle-time revealing stops at this count for good. Past it, only a scroll near the
+  // bottom reveals the next batch. 0 reveals on scroll only.
   idleCap?: number;
   debugLabel?: string;
   resetKey?: unknown;
@@ -38,11 +38,9 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
 
   const [count, setCount] = useState(() => Math.min(initialBatch, total));
   const [prevResetKey, setPrevResetKey] = useState<unknown>(resetKey);
-  const unlockedRef = useRef(false);
   let effectiveCount = count;
   if (resetKey !== prevResetKey) {
     setPrevResetKey(resetKey);
-    unlockedRef.current = false;
     effectiveCount = Math.min(initialBatch, total);
     setCount(effectiveCount);
     dbg(debugLabel, `reset → ${effectiveCount}/${total} (resetKey changed)`);
@@ -77,7 +75,6 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
       const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
       if (contentOffset.y + layoutMeasurement.height > contentSize.height - threshold) {
         lastBumpRef.current = now;
-        unlockedRef.current = true;
         const next = Math.min(countRef.current + batchSize, total);
         countRef.current = next;
         dbg(debugLabel, `scroll bump → ${next}/${total}`);
@@ -87,7 +84,7 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
   }, [ctx, total, batchSize, threshold, rateLimitMs, debugLabel]);
 
   useEffect(() => {
-    const idleTarget = idleCap == null || unlockedRef.current ? total : Math.min(idleCap, total);
+    const idleTarget = idleCap == null ? total : Math.min(idleCap, total);
     if (count >= idleTarget) {
       if (count > 0 && count === total) {
         dbg(debugLabel, `complete: all ${total} items revealed`);
@@ -98,7 +95,7 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
     }
     const g = globalThis as unknown as IIdleGlobal;
     const tick = (): void => {
-      const cap = idleCap == null || unlockedRef.current ? total : Math.min(idleCap, total);
+      const cap = idleCap == null ? total : Math.min(idleCap, total);
       const next = Math.min(countRef.current + batchSize, cap);
       countRef.current = next;
       dbg(debugLabel, `idle bump → ${next}/${total}`);

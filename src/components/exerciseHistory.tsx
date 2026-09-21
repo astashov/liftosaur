@@ -43,6 +43,9 @@ interface IExerciseHistoryProps {
   firstRecordProbe?: { ref: (node: View | null) => void; onLayout: () => void };
 }
 
+const WORKOUT_HISTORY_LOADING = { initialBatch: 0, batchSize: 10, idleCap: 0, threshold: 50 };
+const STATS_HISTORY_LOADING = { initialBatch: 5, batchSize: 15, idleCap: 10 };
+
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
   usePerfWhyRender("history", props as unknown as Record<string, unknown>);
   const fullExercise = useMemo(
@@ -68,9 +71,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
     });
   }, [props.history, hideWithoutExerciseNotes, hideWithoutWorkoutNotes]);
   const visibleHistory = useProgressiveItems(history, {
-    initialBatch: 5,
-    batchSize: 15,
-    idleCap: 10,
+    ...(props.source === "workout" ? WORKOUT_HISTORY_LOADING : STATS_HISTORY_LOADING),
     debugLabel: "ExerciseHistory",
     resetKey: `${Exercise_toKey(props.exerciseType)}|${hideWithoutExerciseNotes ? 1 : 0}|${
       hideWithoutWorkoutNotes ? 1 : 0
