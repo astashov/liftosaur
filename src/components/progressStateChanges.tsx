@@ -28,25 +28,27 @@ interface IProps {
 
 function ProgressStateChangesInner(props: IProps): JSX.Element | null {
   const { entry, settings, dayData } = props;
-  const changes = Program_computeProgressStateChanges(
-    entry,
-    dayData,
-    settings,
-    props.programExercise,
-    props.program,
-    props.stats,
-    props.userPromptedStateVars
-  );
-  if (!changes) {
+  const showEndOfDay = props.forceShow || Reps_isFinished(entry.sets);
+  const changes = showEndOfDay
+    ? Program_computeProgressStateChanges(
+        entry,
+        dayData,
+        settings,
+        props.programExercise,
+        props.program,
+        props.stats,
+        props.userPromptedStateVars
+      )
+    : undefined;
+  if (showEndOfDay && !changes) {
     return null;
   }
-  const showEndOfDay = props.forceShow || Reps_isFinished(entry.sets);
 
   return (
     <ProgressStateChangesView
-      diffState={showEndOfDay ? changes.diffState : undefined}
-      diffVars={showEndOfDay ? changes.diffVars : undefined}
-      prints={showEndOfDay ? changes.prints : undefined}
+      diffState={changes?.diffState}
+      diffVars={changes?.diffVars}
+      prints={changes?.prints}
       updatePrints={entry.updatePrints}
       isSuppressed={entry.isSuppressed}
       onSuppressProgress={props.onSuppressProgress}
