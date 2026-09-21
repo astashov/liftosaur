@@ -4,6 +4,7 @@ import { Screen_tab, IScreen } from "../models/screen";
 import type { ITab, IScreenData } from "../models/screen";
 import type { IAllScreenParamList, IRootStackParamList } from "./types";
 import { PerfNavTracker_recordTap } from "../utils/perfNavTracker";
+import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 
 export type IRootStack = "onboarding" | "mainTabs" | "subscription";
 
@@ -63,6 +64,11 @@ export function navigateTo<T extends IScreen>(screen: T, params?: IAllScreenPara
     return;
   }
   PerfNavTracker_recordTap(screen);
+  if (screen === "progress") {
+    // Started on the tap, not on the navigation state change, so the profiler is already running
+    // while the screen mounts. Three seconds covers the mount and the deferred graph and history.
+    HermesProfile_captureOnce("open-workout", 3000);
+  }
 
   if (opts?.stack === "subscription") {
     navigationRef.dispatch(CommonActions.navigate({ name: "subscription", params: params as object | undefined }));

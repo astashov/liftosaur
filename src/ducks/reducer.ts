@@ -87,6 +87,7 @@ import { Weight_build, Weight_eq } from "../models/weight";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
 import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
 import { PerfProbe_onAction, PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
+import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 
 declare let __COMMIT_HASH__: string;
@@ -668,6 +669,9 @@ export const reducerWrapper =
         perfActionType === "UpdateProgress"
       ) {
         PerfProbe_onAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      }
+      if (perfActionType === "CompleteSetAction") {
+        HermesProfile_captureOnce("complete-set");
       }
       if (PerfEnabled_tier2()) {
         PerfTracker_recordEvent({
