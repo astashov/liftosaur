@@ -8,7 +8,6 @@ interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
   entryCount: number;
   windowWidth: number;
-  pageHeight?: number;
   forceUpdateEntryIndex: boolean;
   onIndexChange: (next: number) => void;
   // User-driven scrolls only, and only where they came to rest.

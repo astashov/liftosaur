@@ -1,13 +1,13 @@
-import { JSX, ReactNode, useCallback, useEffect, useRef } from "react";
+import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { WorkoutPagerSettle_index } from "./workoutPagerSettle";
+import { WorkoutPagerHeightContext } from "./workoutPagerHeightContext";
 
 interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
   entryCount: number;
   windowWidth: number;
-  pageHeight?: number;
   forceUpdateEntryIndex: boolean;
   onIndexChange: (next: number) => void;
   // User-driven scrolls only, and only where they came to rest.
@@ -17,7 +17,15 @@ interface IWorkoutExercisePagerProps {
 
 export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
-  const { currentEntryIndex, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex, pageHeight } = props;
+  const { currentEntryIndex, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } = props;
+  const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
+  const onPageLayout = useCallback((entryIndex: number, height: number) => {
+    if (height <= 0) {
+      return;
+    }
+    setPageHeights((prev) => (prev[entryIndex] === height ? prev : { ...prev, [entryIndex]: height }));
+  }, []);
+  const pageHeight = pageHeights[currentEntryIndex];
   // scrollTo never fires onScrollBeginDrag, which is what stops Android's spurious
   // onMomentumScrollEnd after one from being read as a swipe.
   const isUserDraggingRef = useRef(false);
@@ -90,19 +98,21 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   );
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      pagingEnabled
-      showsHorizontalScrollIndicator={false}
-      onScroll={onScroll}
-      onScrollBeginDrag={onScrollBeginDrag}
-      onScrollEndDrag={onScrollEndDrag}
-      onMomentumScrollEnd={onMomentumScrollEnd}
-      scrollEventThrottle={16}
-      style={pageHeight != null ? { height: pageHeight } : undefined}
-    >
-      {props.children}
-    </ScrollView>
+    <WorkoutPagerHeightContext.Provider value={onPageLayout}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onScrollEndDrag={onScrollEndDrag}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        scrollEventThrottle={16}
+        style={pageHeight != null ? { height: pageHeight } : undefined}
+      >
+        {props.children}
+      </ScrollView>
+    </WorkoutPagerHeightContext.Provider>
   );
 }

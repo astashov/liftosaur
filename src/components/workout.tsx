@@ -77,6 +77,7 @@ import { NavScreenContent } from "../navigation/NavScreenContent";
 import { useTrackClick } from "../utils/clickTracking";
 import { WorkoutTabStopContext } from "./workoutTabStopContext";
 import { IWorkoutProgressView } from "../utils/workoutProgressView";
+import { WorkoutPagerHeightContext } from "./workoutPagerHeightContext";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -109,19 +110,6 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
     }
     return s;
   });
-  const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
-  const onPageLayout = useCallback((entryIndex: number, height: number) => {
-    if (height <= 0) {
-      return;
-    }
-    setPageHeights((prev) => {
-      if (prev[entryIndex] === height) {
-        return prev;
-      }
-      return { ...prev, [entryIndex]: height };
-    });
-  }, []);
-  const pagerHeight = pageHeights[currentEntryIndex];
   useEffect(() => {
     setRenderedIndices((prev) => {
       if (prev.has(currentEntryIndex - 1) && prev.has(currentEntryIndex) && prev.has(currentEntryIndex + 1)) {
@@ -287,7 +275,6 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                 currentEntryIndex={currentEntryIndex}
                 entryCount={progressEntries.length}
                 windowWidth={windowWidth}
-                pageHeight={pagerHeight}
                 forceUpdateEntryIndex={forceUpdateEntryIndex}
                 onIndexChange={onPagerIndexChange}
                 onSettledIndex={onPagerSettled}
@@ -302,7 +289,6 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                     impressionsSeenRef={impressionsSeenRef}
                     shouldRender={renderedIndices.has(entryIndex)}
                     windowWidth={windowWidth}
-                    onPageLayout={onPageLayout}
                     day={progressDay}
                     stats={props.stats}
                     history={props.history}
@@ -341,7 +327,6 @@ interface IWorkoutExercisePageProps {
   impressionsSeenRef: MutableRefObject<Set<string>>;
   shouldRender: boolean;
   windowWidth: number;
-  onPageLayout: (entryIndex: number, height: number) => void;
   day: number;
   stats: IStats;
   history: IHistoryRecord[];
@@ -363,10 +348,11 @@ interface IWorkoutExercisePageProps {
 
 function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element {
   usePerfRenderCount("WorkoutExercisePage");
-  const { entryIndex, onPageLayout } = props;
+  const { entryIndex } = props;
+  const reportPageHeight = useContext(WorkoutPagerHeightContext);
   const onLayout = useCallback(
-    (e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height),
-    [entryIndex, onPageLayout]
+    (e: LayoutChangeEvent) => reportPageHeight?.(entryIndex, e.nativeEvent.layout.height),
+    [entryIndex, reportPageHeight]
   );
   const pageStyle =
     Platform.OS === "web"
@@ -374,7 +360,7 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
       : { width: props.windowWidth };
   return (
     <View style={pageStyle}>
-      <View onLayout={onLayout}>
+      <View onLayout={reportPageHeight ? onLayout : undefined}>
         {props.shouldRender ? (
           <WorkoutTabStopContext.Provider value={props.tabStopIndex}>
             <WorkoutExercise
