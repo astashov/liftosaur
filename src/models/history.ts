@@ -239,44 +239,45 @@ export function History_getMax1RMSetFromEntry(entry: IHistoryEntry): ISet | unde
   return History_getMax1RMSet(entry.sets);
 }
 
-export function History_getMaxWeightSet(sets: ISet[]): ISet | undefined {
-  return CollectionUtils_sort(
-    sets.filter((s) => (s.completedReps || 0) > 0),
-    (a, b) => {
-      const weightDiff = Weight_compare(
-        b.completedWeight ?? b.weight ?? Weight_build(0, "lb"),
-        a.completedWeight ?? a.weight ?? Weight_build(0, "lb")
-      );
-      if (weightDiff === 0 && a.completedReps && b.completedReps) {
-        return b.completedReps - a.completedReps;
-      }
-      return weightDiff;
+// A tie goes to more reps, then to the earlier set, as in the stable sort this replaced.
+function History_maxSetBy(sets: ISet[], weightOf: (set: ISet) => IWeight): ISet | undefined {
+  let best: ISet | undefined;
+  let bestWeight: IWeight | undefined;
+  for (const set of sets) {
+    if ((set.completedReps || 0) <= 0) {
+      continue;
     }
-  )[0];
+    const weight = weightOf(set);
+    if (best == null || bestWeight == null) {
+      best = set;
+      bestWeight = weight;
+      continue;
+    }
+    const weightDiff = Weight_compare(bestWeight, weight);
+    const beats =
+      weightDiff === 0 && set.completedReps && best.completedReps
+        ? best.completedReps - set.completedReps < 0
+        : weightDiff < 0;
+    if (beats) {
+      best = set;
+      bestWeight = weight;
+    }
+  }
+  return best;
+}
+
+export function History_getMaxWeightSet(sets: ISet[]): ISet | undefined {
+  return History_maxSetBy(sets, (set) => set.completedWeight ?? set.weight ?? Weight_build(0, "lb"));
 }
 
 export function History_getMax1RMSet(sets: ISet[]): ISet | undefined {
-  return CollectionUtils_sort(
-    sets.filter((s) => (s.completedReps || 0) > 0),
-    (a, b) => {
-      const weightDiff = Weight_compare(
-        Weight_getOneRepMax(
-          b.completedWeight ?? b.weight ?? Weight_build(0, "lb"),
-          Reps_avgUnilateralCompletedReps(b) || 0,
-          b.completedRpe ?? b.rpe ?? 10
-        ),
-        Weight_getOneRepMax(
-          a.completedWeight ?? a.weight ?? Weight_build(0, "lb"),
-          Reps_avgUnilateralCompletedReps(a) || 0,
-          a.completedRpe ?? a.rpe ?? 10
-        )
-      );
-      if (weightDiff === 0 && a.completedReps && b.completedReps) {
-        return b.completedReps - a.completedReps;
-      }
-      return weightDiff;
-    }
-  )[0];
+  return History_maxSetBy(sets, (set) =>
+    Weight_getOneRepMax(
+      set.completedWeight ?? set.weight ?? Weight_build(0, "lb"),
+      Reps_avgUnilateralCompletedReps(set) || 0,
+      set.completedRpe ?? set.rpe ?? 10
+    )
+  );
 }
 
 export function History_findAllPersonalRecords(
