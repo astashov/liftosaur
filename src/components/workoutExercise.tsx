@@ -92,9 +92,12 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
     // screen uses native-stack transitions (react-native-screens) and a gesture-driven pager, neither
     // of which registers a JS interaction handle — runAfterInteractions would fire mid-transition, not
     // after it. ~350ms clears the push slide so the work lands once the screen has settled.
+    if (!isCurrentPage || isHeavyContentReady) {
+      return undefined;
+    }
     const t = setTimeout(() => setIsHeavyContentReady(true), 350);
     return () => clearTimeout(t);
-  }, []);
+  }, [isCurrentPage, isHeavyContentReady]);
 
   // The "previous workout" values shown on first paint come from props.prevData, which the parent
   // builds for the whole workout in a single pass — so the card mounts without scanning history here.
