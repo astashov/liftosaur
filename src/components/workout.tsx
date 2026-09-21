@@ -208,9 +208,12 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
     () => ({ programId: props.progress.programId, dayInWeek: props.progress.dayInWeek ?? props.progress.day }),
     [props.progress.programId, props.progress.dayInWeek, props.progress.day]
   );
+  // A string keeps its identity when a set completion rebuilds `entries` with the same exercises.
+  const exerciseKeysJoined = progressEntries.map((entry) => Exercise_toKey(entry.exercise)).join("\n");
+  const exerciseKeys = useMemo(() => new Set(exerciseKeysJoined.split("\n")), [exerciseKeysJoined]);
   const prevExerciseData = useMemo(
-    () => History_buildPrevExerciseData(props.history, props.progress.startTime, sameDay),
-    [props.history, props.progress.startTime, sameDay]
+    () => History_buildPrevExerciseData(props.history, props.progress.startTime, sameDay, exerciseKeys),
+    [props.history, props.progress.startTime, sameDay, exerciseKeys]
   );
   const isCurrentProgress = Progress_isCurrent(props.progress);
   const titleNodeRef = useRef<View | null>(null);

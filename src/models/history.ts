@@ -537,7 +537,8 @@ function History_recordDayInWeek(record: IHistoryRecord): number {
 export function History_buildPrevExerciseData(
   history: IHistoryRecord[],
   beforeTime: number,
-  sameDay?: IPrevExerciseSameDay
+  sameDay?: IPrevExerciseSameDay,
+  onlyKeys?: ReadonlySet<string>
 ): Record<string, IPrevExerciseData> {
   const twoMonthsAgo = beforeTime - 60 * 24 * 60 * 60 * 1000;
   const result: Record<string, IPrevExerciseData> = {};
@@ -549,6 +550,9 @@ export function History_buildPrevExerciseData(
     const seenKeys = new Set<string>();
     for (const entry of hr.entries) {
       const key = Exercise_toKey(entry.exercise);
+      if (onlyKeys != null && !onlyKeys.has(key)) {
+        continue;
+      }
       let data = result[key];
       if (data == null) {
         data = { count: 0, bestByReps: {} };

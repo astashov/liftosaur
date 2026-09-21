@@ -220,5 +220,25 @@ describe("History", () => {
       const without = History_buildPrevExerciseData(history, now);
       expect(without[Exercise_toKey(squat)].sameDayEntry).to.eql(undefined);
     });
+
+    it("with onlyKeys, builds just those exercises and gives them the same data as a full build", () => {
+      const deadlift: IExerciseType = { id: "deadlift", equipment: "barbell" };
+      const history = [
+        buildRecord(now - 9 * day, [buildEntry(squat, true), buildEntry(deadlift, true)]),
+        buildRecord(now - 4 * day, [buildEntry(bench, true), buildEntry(squat, true)]),
+        buildRecord(now - 2 * day, [buildEntry(deadlift, true), buildEntry(bench, true)]),
+        buildRecord(now + 1 * day, [buildEntry(squat, true)]),
+      ];
+      const sameDay = { programId: "p", dayInWeek: 1 };
+      const full = History_buildPrevExerciseData(history, now, sameDay);
+      const onlyKeys = new Set([Exercise_toKey(squat), Exercise_toKey(bench)]);
+      const limited = History_buildPrevExerciseData(history, now, sameDay, onlyKeys);
+
+      expect(Object.keys(limited).sort()).to.eql([...onlyKeys].sort());
+      expect(limited[Exercise_toKey(deadlift)]).to.eql(undefined);
+      for (const key of onlyKeys) {
+        expect(limited[key]).to.eql(full[key]);
+      }
+    });
   });
 });
