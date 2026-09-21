@@ -13,13 +13,15 @@ import { localdomain, localapidomain, localport, localapiport } from "./localdom
 declare let Rollbar: RB;
 
 declare let __HOST__: string;
+declare const __PERF__: boolean | undefined;
 
 // Inject compile-time constants that are normally provided by webpack's DefinePlugin.
 // Metro doesn't have an equivalent, so we attach them to globalThis at module init.
 // Toggle the `useLocal` flag for local development vs production.
 // Dev hosts come from localdomain.js so each git worktree's native build targets
 // its own dev/api/streaming ports (see scripts/worktree-create.sh).
-const useLocal = __DEV__;
+// A PERF=1 release build also targets local: its traces post to the devserver's /api/_dev/perf.
+const useLocal = __DEV__ || (typeof __PERF__ !== "undefined" && __PERF__ === true);
 const nativeHost = useLocal ? `https://${localdomain}.liftosaur.com:${localport}` : "https://www.liftosaur.com";
 const nativeApiHost = useLocal
   ? `https://${localapidomain}.liftosaur.com:${localapiport}`
