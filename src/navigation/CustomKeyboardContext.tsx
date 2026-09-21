@@ -14,6 +14,12 @@ import { View, Animated, StyleSheet, Platform, BackHandler } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeCustomKeyboard } from "../components/nativeCustomKeyboard.native";
 import { IPercentageUnit, IUnit } from "../types";
+import {
+  KeyboardActiveId_get,
+  KeyboardActiveId_set,
+  KeyboardActiveId_setHeight,
+  KeyboardActiveId_subscribe,
+} from "./keyboardActiveId";
 
 export interface IKeyboardConfig {
   id: string;
@@ -116,6 +122,7 @@ export function CustomKeyboardProvider(props: {
   const openKeyboard = useCallback((config: IKeyboardConfig) => {
     openGenRef.current += 1;
     setActiveConfig(config);
+    KeyboardActiveId_set(config.id);
     if (measuredHeightRef.current > 0) {
       setHeight(measuredHeightRef.current);
     }
@@ -123,6 +130,7 @@ export function CustomKeyboardProvider(props: {
 
   const closeKeyboard = useCallback(() => {
     setActiveConfig(null);
+    KeyboardActiveId_set(null);
     setHeight(0);
   }, []);
 
@@ -137,6 +145,20 @@ export function CustomKeyboardProvider(props: {
     });
     return () => subscription.remove();
   }, [isKeyboardOpen, closeKeyboard]);
+
+  useEffect(() => {
+    KeyboardActiveId_setHeight(height);
+  }, [height]);
+
+  // A focused field that unmounts clears the store. Following it here keeps the keypad from outliving it.
+  useEffect(() => {
+    return KeyboardActiveId_subscribe(() => {
+      if (KeyboardActiveId_get() == null) {
+        setActiveConfig(null);
+        setHeight(0);
+      }
+    });
+  }, []);
 
   const activeId = activeConfig?.id ?? null;
   const value = useMemo(

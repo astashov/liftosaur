@@ -1,5 +1,16 @@
-import { JSX, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Animated, ScrollView, useWindowDimensions, LayoutChangeEvent } from "react-native";
+import {
+  JSX,
+  memo,
+  MutableRefObject,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { View, Pressable, Animated, ScrollView, Dimensions, LayoutChangeEvent } from "react-native";
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
@@ -12,11 +23,15 @@ import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import {
   IKeyboardConfig,
   useCloseCustomKeyboard,
-  useCustomKeyboardActiveId,
-  useCustomKeyboardHeight,
   useMeasuredKeyboardHeightRef,
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
+import {
+  KeyboardActiveId_get,
+  KeyboardActiveId_set,
+  useIsKeyboardActive,
+  useKeyboardHeightIfActive,
+} from "../navigation/keyboardActiveId";
 import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
 import { lg } from "../utils/posthog";
 
@@ -73,6 +88,171 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   return num;
 }
 
+function InputCursor(): JSX.Element {
+  const opacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [opacity]);
+  return <Animated.View className="w-px h-scaled-3 bg-background-darkgray" style={{ opacity }} />;
+}
+
+type IRepMaxCalculatorOpener = (data: { unit: "kg" | "lb" }) => void;
+
+function RepMaxCalculatorBridge(props: {
+  openerRef: MutableRefObject<IRepMaxCalculatorOpener | undefined>;
+  onResult: (weightValue: number) => void;
+}): null {
+  const onResultRef = useRef(props.onResult);
+  onResultRef.current = props.onResult;
+  props.openerRef.current = useModal("repMaxCalculatorModal", (weightValue) => {
+    onResultRef.current(weightValue);
+  });
+  return null;
+}
+
+interface IInputKeypadControllerProps {
+  myId: string;
+  pressableRef: MutableRefObject<View | null>;
+  valueRef: MutableRefObject<string>;
+  onInput: (key: string) => void;
+  onPlus: () => void;
+  onMinus: () => void;
+  flushPendingInput: () => void;
+  openCalculatorRef: MutableRefObject<IRepMaxCalculatorOpener | undefined>;
+  allowDot?: boolean;
+  allowNegative?: boolean;
+  keyboardAddon?: ReactNode;
+  enableCalculator?: boolean;
+  enableUnits?: (IUnit | IPercentageUnit)[];
+  selectedUnit?: IUnit | IPercentageUnit;
+  onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
+}
+
+function InputKeypadController(props: IInputKeypadControllerProps): null {
+  const { myId, pressableRef, valueRef, flushPendingInput, openCalculatorRef } = props;
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const measuredKeyboardHeightRef = useMeasuredKeyboardHeightRef();
+  const keyboardHeight = useKeyboardHeightIfActive(myId);
+  const openKeyboard = useOpenCustomKeyboard();
+  const closeKeyboard = useCloseCustomKeyboard();
+
+  const scrollIntoView = useCallback(() => {
+    const scrollNode = scrollCtx?.scrollRef.current as ScrollView | null;
+    const scrollYRef = scrollCtx?.scrollYRef;
+    const pressableNode = pressableRef.current;
+    if (!scrollNode || !scrollYRef || !pressableNode) {
+      return;
+    }
+    const kh =
+      keyboardHeight > 0
+        ? keyboardHeight
+        : measuredKeyboardHeightRef.current > 0
+          ? measuredKeyboardHeightRef.current
+          : 260;
+    const revealAbove = (visibleBottom: number): void => {
+      pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
+        const pressBottom = pressPageY + pressH;
+        if (pressBottom <= visibleBottom) {
+          return;
+        }
+        const delta = pressBottom - visibleBottom;
+        scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
+      });
+    };
+    // Where the keyboard starts, for a host that lets it overlay the scroll area — a screen.
+    const overlaidBottom = Dimensions.get("window").height - kh;
+    const viewport = scrollCtx.viewportRef.current;
+    if (viewport == null) {
+      revealAbove(overlaidBottom - 16);
+      return;
+    }
+    // A host can instead dock the keyboard below its scroll area and shorten the area to fit it —
+    // a sheet. There the area already ends above the keyboard, and its own bottom is the limit,
+    // which is lower than the window's by whatever the sheet draws under the keyboard.
+    viewport.measureInWindow((_x, viewportY, _w, viewportH) => {
+      revealAbove(Math.min(viewportY + viewportH, overlaidBottom) - 16);
+    });
+  }, [scrollCtx, keyboardHeight, measuredKeyboardHeightRef, pressableRef]);
+
+  const buildKeyboardConfig = useCallback((): IKeyboardConfig => {
+    return {
+      id: myId,
+      onInput: props.onInput,
+      onBlur: closeKeyboard,
+      onPlus: props.onPlus,
+      onMinus: props.onMinus,
+      onShowCalculator: () => {
+        flushPendingInput();
+        closeKeyboard();
+        if (props.selectedUnit && props.selectedUnit !== "%") {
+          openCalculatorRef.current?.({ unit: props.selectedUnit as "kg" | "lb" });
+        }
+      },
+      onChangeUnits: props.onChangeUnits,
+      allowDot: props.allowDot,
+      allowNegative: props.allowNegative,
+      isNegative: typeof valueRef.current === "string" && valueRef.current[0] === "-",
+      withDot: typeof valueRef.current === "string" && valueRef.current.includes("."),
+      keyboardAddon: props.keyboardAddon,
+      enableCalculator: props.enableCalculator,
+      enableUnits: props.enableUnits,
+      selectedUnit: props.selectedUnit,
+    };
+  }, [
+    myId,
+    props.onInput,
+    props.onPlus,
+    props.onMinus,
+    closeKeyboard,
+    flushPendingInput,
+    openCalculatorRef,
+    valueRef,
+    props.allowDot,
+    props.allowNegative,
+    props.keyboardAddon,
+    props.enableCalculator,
+    props.enableUnits,
+    props.selectedUnit,
+    props.onChangeUnits,
+  ]);
+
+  useEffect(() => {
+    openKeyboard(buildKeyboardConfig());
+  }, [buildKeyboardConfig, openKeyboard]);
+
+  useEffect(() => {
+    if (keyboardHeight <= 0) {
+      return;
+    }
+    scrollIntoView();
+    // Again once the keypad has finished opening. On a host that docks it above a scroll area
+    // rather than over one, the area shortens as it opens, and a scroll issued before that lands
+    // is clamped to the shorter scrollable range the old size allowed — leaving the field the
+    // reveal was for still under the keypad.
+    const timeout = setTimeout(scrollIntoView, 300);
+    return () => clearTimeout(timeout);
+  }, [keyboardHeight, scrollIntoView]);
+
+  useEffect(() => {
+    return () => {
+      // Focusing a sibling unmounts this controller after the store names the sibling. Closing here
+      // would then shut the sibling's keypad.
+      if (KeyboardActiveId_get() === myId) {
+        closeKeyboard();
+      }
+    };
+  }, [closeKeyboard, myId]);
+
+  return null;
+}
+
 let nextInputId = 1;
 
 function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
@@ -107,18 +287,11 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingInputRef = useRef<number | undefined>(undefined);
   const hasPendingInputRef = useRef(false);
-  const cursorOpacity = useRef(new Animated.Value(1)).current;
   const pressableRef = useRef<View>(null);
-  const scrollCtx = useContext(NavScreenScrollContext);
-  const measuredKeyboardHeightRef = useMeasuredKeyboardHeightRef();
-  const keyboardHeight = useCustomKeyboardHeight();
-  const openKeyboard = useOpenCustomKeyboard();
-  const closeKeyboard = useCloseCustomKeyboard();
-  const activeId = useCustomKeyboardActiveId();
-  const isFocused = activeId === myId;
-  const { height: windowHeight } = useWindowDimensions();
+  const isFocused = useIsKeyboardActive(myId);
 
-  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+  const openCalculatorRef = useRef<IRepMaxCalculatorOpener | undefined>(undefined);
+  const onCalculatorResult = useCallback((weightValue: number) => {
     if (debounceTimerRef.current != null) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
@@ -132,7 +305,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     if (onBlurRef.current) {
       onBlurRef.current(newValue);
     }
-  });
+  }, []);
 
   onBlurRef.current = props.onBlur;
   onInputRef.current = props.onInput;
@@ -158,21 +331,6 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     valueRef.current = initialValue;
     setValue(initialValue);
   }, [props.value]);
-
-  useEffect(() => {
-    if (isFocused) {
-      const animation = Animated.loop(
-        Animated.sequence([
-          Animated.timing(cursorOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
-          Animated.timing(cursorOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-        ])
-      );
-      animation.start();
-      return () => animation.stop();
-    }
-    cursorOpacity.setValue(1);
-    return undefined;
-  }, [isFocused, cursorOpacity]);
 
   const commitLocalValue = useCallback(() => {
     if (debounceTimerRef.current != null) {
@@ -209,44 +367,6 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       FocusedInputFlush_unregister(commitLocalValue);
     };
   }, [isFocused, commitLocalValue]);
-
-  const scrollIntoView = useCallback(() => {
-    const scrollNode = scrollCtx?.scrollRef.current as ScrollView | null;
-    const scrollYRef = scrollCtx?.scrollYRef;
-    const pressableNode = pressableRef.current;
-    if (!scrollNode || !scrollYRef || !pressableNode) {
-      return;
-    }
-    const kh =
-      keyboardHeight > 0
-        ? keyboardHeight
-        : measuredKeyboardHeightRef.current > 0
-          ? measuredKeyboardHeightRef.current
-          : 260;
-    const revealAbove = (visibleBottom: number): void => {
-      pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
-        const pressBottom = pressPageY + pressH;
-        if (pressBottom <= visibleBottom) {
-          return;
-        }
-        const delta = pressBottom - visibleBottom;
-        scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
-      });
-    };
-    // Where the keyboard starts, for a host that lets it overlay the scroll area — a screen.
-    const overlaidBottom = windowHeight - kh;
-    const viewport = scrollCtx.viewportRef.current;
-    if (viewport == null) {
-      revealAbove(overlaidBottom - 16);
-      return;
-    }
-    // A host can instead dock the keyboard below its scroll area and shorten the area to fit it —
-    // a sheet. There the area already ends above the keyboard, and its own bottom is the limit,
-    // which is lower than the window's by whatever the sheet draws under the keyboard.
-    viewport.measureInWindow((_x, viewportY, _w, viewportH) => {
-      revealAbove(Math.min(viewportY + viewportH, overlaidBottom) - 16);
-    });
-  }, [scrollCtx, windowHeight, keyboardHeight, measuredKeyboardHeightRef]);
 
   const flushPendingInput = useCallback(() => {
     if (debounceTimerRef.current != null) {
@@ -358,52 +478,10 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     }
   }, []);
 
-  const buildKeyboardConfig = useCallback((): IKeyboardConfig => {
-    return {
-      id: myId,
-      onInput: handleInput,
-      onBlur: closeKeyboard,
-      onPlus: handlePlus,
-      onMinus: handleMinus,
-      onShowCalculator: () => {
-        flushPendingInput();
-        closeKeyboard();
-        if (props.selectedUnit && props.selectedUnit !== "%") {
-          openCalculator({ unit: props.selectedUnit as "kg" | "lb" });
-        }
-      },
-      onChangeUnits: props.onChangeUnits,
-      allowDot: props.allowDot,
-      allowNegative: props.allowNegative,
-      isNegative: typeof valueRef.current === "string" && valueRef.current[0] === "-",
-      withDot: typeof valueRef.current === "string" && valueRef.current.includes("."),
-      keyboardAddon: props.keyboardAddon,
-      enableCalculator: props.enableCalculator,
-      enableUnits: props.enableUnits,
-      selectedUnit: props.selectedUnit,
-    };
-  }, [
-    myId,
-    handleInput,
-    handlePlus,
-    handleMinus,
-    closeKeyboard,
-    openCalculator,
-    flushPendingInput,
-    props.allowDot,
-    props.allowNegative,
-    props.keyboardAddon,
-    props.enableCalculator,
-    props.enableUnits,
-    props.selectedUnit,
-    props.onChangeUnits,
-  ]);
-
   const focusSelf = useCallback(() => {
     lg(`focus-nm-${props.name}`);
-    scrollIntoView();
-    openKeyboard(buildKeyboardConfig());
-  }, [scrollIntoView, openKeyboard, buildKeyboardConfig, props.name]);
+    KeyboardActiveId_set(myId);
+  }, [myId, props.name]);
 
   useEffect(() => {
     if (!isFocused) {
@@ -414,26 +492,6 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       setValue(props.initialValue.toString());
     }
   }, [isFocused, props.initialValue]);
-
-  useEffect(() => {
-    if (!isFocused) {
-      return;
-    }
-    openKeyboard(buildKeyboardConfig());
-  }, [isFocused, buildKeyboardConfig, openKeyboard]);
-
-  useEffect(() => {
-    if (!isFocused || keyboardHeight <= 0) {
-      return;
-    }
-    scrollIntoView();
-    // Again once the keypad has finished opening. On a host that docks it above a scroll area
-    // rather than over one, the area shortens as it opens, and a scroll issued before that lands
-    // is clamped to the shorter scrollable range the old size allowed — leaving the field the
-    // reveal was for still under the keypad.
-    const timeout = setTimeout(scrollIntoView, 300);
-    return () => clearTimeout(timeout);
-  }, [isFocused, keyboardHeight, scrollIntoView]);
 
   useEffect(() => {
     return () => {
@@ -447,10 +505,10 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         if (onBlurRef.current) {
           onBlurRef.current(newValueNum);
         }
-        closeKeyboard();
+        KeyboardActiveId_set(null);
       }
     };
-  }, [closeKeyboard, flushPendingInput]);
+  }, [flushPendingInput]);
 
   const remValue = useRem();
   const [filledWidth, setFilledWidth] = useState(0);
@@ -476,7 +534,6 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     },
     [props.fill]
   );
-  const cursorStyle = useMemo(() => ({ opacity: cursorOpacity }), [cursorOpacity]);
   const baseFontSize = ((isLarge ? 32 : 14) * remValue) / 16;
   const availableTextWidth = props.autowidth || fieldWidth === 0 ? 0 : fieldWidth - 6;
   const fontStyleFor = useCallback(
@@ -497,40 +554,62 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const placeholderFontStyle = useMemo(() => fontStyleFor(props.placeholder ?? ""), [props.placeholder, fontStyleFor]);
 
   return (
-    <View ref={pressableRef} collapsable={false} style={props.fill ? { flex: 1 } : undefined}>
-      <Pressable
-        onPress={focusSelf}
-        hitSlop={12}
-        testID={`input-${StringUtils_dashcase(props.name)}-field`}
-        data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
-        className={fieldClassName}
-        style={fieldStyle}
-        onLayout={onFieldLayout}
-      >
-        {!value && !isFocused && props.placeholder ? (
-          <Text
-            className={`${isLarge ? "text-3xl" : "text-sm"} text-text-secondarysubtle`}
-            numberOfLines={1}
-            style={placeholderFontStyle}
-          >
-            {props.placeholder}
-          </Text>
-        ) : (
-          <Text
-            numberOfLines={1}
-            className={`${isLarge ? "text-3xl" : "text-sm"} ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
-            style={valueFontStyle}
-          >
-            {value}
-          </Text>
-        )}
-        {isFocused && <Animated.View className="w-px h-scaled-3 bg-background-darkgray" style={cursorStyle} />}
-        {props.showUnitInside && props.selectedUnit && props.value != null && (
-          <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
-        )}
-        {props.after && props.after()}
-      </Pressable>
-    </View>
+    <>
+      {props.enableCalculator && <RepMaxCalculatorBridge openerRef={openCalculatorRef} onResult={onCalculatorResult} />}
+      {isFocused && (
+        <InputKeypadController
+          myId={myId}
+          pressableRef={pressableRef}
+          valueRef={valueRef}
+          onInput={handleInput}
+          onPlus={handlePlus}
+          onMinus={handleMinus}
+          flushPendingInput={flushPendingInput}
+          openCalculatorRef={openCalculatorRef}
+          allowDot={props.allowDot}
+          allowNegative={props.allowNegative}
+          keyboardAddon={props.keyboardAddon}
+          enableCalculator={props.enableCalculator}
+          enableUnits={props.enableUnits}
+          selectedUnit={props.selectedUnit}
+          onChangeUnits={props.onChangeUnits}
+        />
+      )}
+      <View ref={pressableRef} collapsable={false} style={props.fill ? { flex: 1 } : undefined}>
+        <Pressable
+          onPress={focusSelf}
+          hitSlop={12}
+          testID={`input-${StringUtils_dashcase(props.name)}-field`}
+          data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
+          className={fieldClassName}
+          style={fieldStyle}
+          onLayout={onFieldLayout}
+        >
+          {!value && !isFocused && props.placeholder ? (
+            <Text
+              className={`${isLarge ? "text-3xl" : "text-sm"} text-text-secondarysubtle`}
+              numberOfLines={1}
+              style={placeholderFontStyle}
+            >
+              {props.placeholder}
+            </Text>
+          ) : (
+            <Text
+              numberOfLines={1}
+              className={`${isLarge ? "text-3xl" : "text-sm"} ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}
+              style={valueFontStyle}
+            >
+              {value}
+            </Text>
+          )}
+          {isFocused && <InputCursor />}
+          {props.showUnitInside && props.selectedUnit && props.value != null && (
+            <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
+          )}
+          {props.after && props.after()}
+        </Pressable>
+      </View>
+    </>
   );
 }
 
