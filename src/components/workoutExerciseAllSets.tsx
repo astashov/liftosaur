@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
+import Animated from "react-native-reanimated";
+import { WorkoutLayoutTransition } from "./workoutLayoutTransition";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {
@@ -286,63 +288,65 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
           />
         ))}
       </View>
-      {showExpandHint && (
-        <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-expand-hint">
-          Tap a set to expand or collapse it
-        </Text>
-      )}
+      <Animated.View layout={WorkoutLayoutTransition}>
+        {showExpandHint && (
+          <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-expand-hint">
+            Tap a set to expand or collapse it
+          </Text>
+        )}
 
-      {props.programExercise && props.program ? (
-        <View className="mx-4 mt-2">
-          <ProgressStateChanges
-            entry={props.entry}
-            settings={props.settings}
-            dayData={props.programExercise.dayData}
-            programExercise={props.programExercise}
-            stats={props.stats}
-            program={props.program}
-            userPromptedStateVars={props.userPromptedStateVars}
-            onSuppressProgress={onSuppressProgress}
-          />
-        </View>
-      ) : (
-        props.entry.progressSnapshot && (
+        {props.programExercise && props.program ? (
           <View className="mx-4 mt-2">
-            <ProgressStateChangesView
-              diffState={props.entry.progressSnapshot.diffState}
-              diffVars={props.entry.progressSnapshot.diffVars}
-              prints={props.entry.progressSnapshot.prints}
-              updatePrints={props.entry.progressSnapshot.updatePrints}
-              isSuppressed={props.entry.isSuppressed}
+            <ProgressStateChanges
+              entry={props.entry}
+              settings={props.settings}
+              dayData={props.programExercise.dayData}
+              programExercise={props.programExercise}
+              stats={props.stats}
+              program={props.program}
+              userPromptedStateVars={props.userPromptedStateVars}
+              onSuppressProgress={onSuppressProgress}
             />
           </View>
-        )
-      )}
+        ) : (
+          props.entry.progressSnapshot && (
+            <View className="mx-4 mt-2">
+              <ProgressStateChangesView
+                diffState={props.entry.progressSnapshot.diffState}
+                diffVars={props.entry.progressSnapshot.diffVars}
+                prints={props.entry.progressSnapshot.prints}
+                updatePrints={props.entry.progressSnapshot.updatePrints}
+                isSuppressed={props.entry.isSuppressed}
+              />
+            </View>
+          )
+        )}
 
-      <View className="flex-row gap-2 px-4 mt-1 mb-2">
-        <View className="flex-1">
-          <Pressable
-            className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
-            data-testid="add-warmup-set"
-            testID="add-warmup-set"
-            onPress={onAddWarmupSet}
-          >
-            <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
-            <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
-          </Pressable>
+        <View className="flex-row gap-2 px-4 mt-1 mb-2">
+          <View className="flex-1">
+            <Pressable
+              className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
+              data-testid="add-warmup-set"
+              testID="add-warmup-set"
+              onPress={onAddWarmupSet}
+            >
+              <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
+              <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
+            </Pressable>
+          </View>
+          <View className="flex-1">
+            <Pressable
+              className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
+              data-testid="add-workout-set"
+              testID="add-workout-set"
+              onPress={onAddSet}
+            >
+              <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
+              <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
+            </Pressable>
+          </View>
         </View>
-        <View className="flex-1">
-          <Pressable
-            className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
-            data-testid="add-workout-set"
-            testID="add-workout-set"
-            onPress={onAddSet}
-          >
-            <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
-            <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
-          </Pressable>
-        </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }

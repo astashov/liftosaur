@@ -1,5 +1,7 @@
 import { JSX, memo, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
+import Animated from "react-native-reanimated";
+import { WorkoutLayoutTransition } from "./workoutLayoutTransition";
 import { useWorkoutImpression } from "../utils/useWorkoutImpression";
 import { useTrackClick } from "../utils/clickTracking";
 import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
@@ -184,72 +186,74 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           onTitleLayout={props.onTitleLayout}
         />
       </PerfProbeSubtree>
-      {((props.prevData?.count ?? 0) > 1 || showPrs) && (
-        <View className="items-center mt-2">
-          <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
-            {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
-          </LinkButton>
-        </View>
-      )}
-      {!props.settings.workoutSettings.shouldHideGraphs && (
-        <>
-          {history.length > 1 && isHeavyContentReady && (
-            <View
-              data-testid="workout-stats-graph"
-              testID="workout-stats-graph"
-              className="relative mx-4 mt-2"
-              ref={graphImpression.ref}
-              onLayout={graphImpression.onLayout}
-            >
-              <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
-              <ActiveGraphContext.Provider value={activeGraphValue}>
-                <PerfProbeSubtree id="graph">
-                  <GraphExercise
-                    id={`workout-graph-${Exercise_toKey(exerciseType)}`}
-                    isSameXAxis={false}
-                    minX={Math.round(minX / 1000)}
-                    maxX={Math.round(maxX / 1000)}
-                    isWithOneRm={true}
-                    key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
-                    settings={props.settings}
-                    isWithProgramLines={true}
-                    history={props.history}
-                    exercise={exerciseType}
-                    initialType={props.settings.graphsSettings.defaultType}
-                    dispatch={props.dispatch}
-                    isInteractive={Subscriptions_hasSubscription(props.subscription)}
-                    onInteract={onGraphInteract}
-                  />
-                </PerfProbeSubtree>
-              </ActiveGraphContext.Provider>
-            </View>
-          )}
-          {showPrs && (
-            <View className="mx-4 mt-2">
-              <ExerciseAllTimePRs
-                maxWeight={maxWeightProp}
-                max1RM={max1RMProp}
+      <Animated.View layout={WorkoutLayoutTransition}>
+        {((props.prevData?.count ?? 0) > 1 || showPrs) && (
+          <View className="items-center mt-2">
+            <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
+              {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
+            </LinkButton>
+          </View>
+        )}
+        {!props.settings.workoutSettings.shouldHideGraphs && (
+          <>
+            {history.length > 1 && isHeavyContentReady && (
+              <View
+                data-testid="workout-stats-graph"
+                testID="workout-stats-graph"
+                className="relative mx-4 mt-2"
+                ref={graphImpression.ref}
+                onLayout={graphImpression.onLayout}
+              >
+                <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+                <ActiveGraphContext.Provider value={activeGraphValue}>
+                  <PerfProbeSubtree id="graph">
+                    <GraphExercise
+                      id={`workout-graph-${Exercise_toKey(exerciseType)}`}
+                      isSameXAxis={false}
+                      minX={Math.round(minX / 1000)}
+                      maxX={Math.round(maxX / 1000)}
+                      isWithOneRm={true}
+                      key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
+                      settings={props.settings}
+                      isWithProgramLines={true}
+                      history={props.history}
+                      exercise={exerciseType}
+                      initialType={props.settings.graphsSettings.defaultType}
+                      dispatch={props.dispatch}
+                      isInteractive={Subscriptions_hasSubscription(props.subscription)}
+                      onInteract={onGraphInteract}
+                    />
+                  </PerfProbeSubtree>
+                </ActiveGraphContext.Provider>
+              </View>
+            )}
+            {showPrs && (
+              <View className="mx-4 mt-2">
+                <ExerciseAllTimePRs
+                  maxWeight={maxWeightProp}
+                  max1RM={max1RMProp}
+                  settings={props.settings}
+                  dispatch={props.dispatch}
+                />
+              </View>
+            )}
+          </>
+        )}
+        {history.length > 0 && isHeavyContentReady && (
+          <View className="mx-4 mt-2">
+            <PerfProbeSubtree id="history">
+              <ExerciseHistory
+                exerciseType={exerciseType}
                 settings={props.settings}
                 dispatch={props.dispatch}
+                history={history}
+                source="workout"
+                firstRecordProbe={historyImpression}
               />
-            </View>
-          )}
-        </>
-      )}
-      {history.length > 0 && isHeavyContentReady && (
-        <View className="mx-4 mt-2">
-          <PerfProbeSubtree id="history">
-            <ExerciseHistory
-              exerciseType={exerciseType}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              history={history}
-              source="workout"
-              firstRecordProbe={historyImpression}
-            />
-          </PerfProbeSubtree>
-        </View>
-      )}
+            </PerfProbeSubtree>
+          </View>
+        )}
+      </Animated.View>
     </View>
   );
 }

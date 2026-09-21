@@ -1,8 +1,13 @@
 import type { JSX } from "react";
 import { memo, useCallback, useMemo } from "react";
-import Animated from "react-native-reanimated";
+import Animated, { LayoutAnimationConfig } from "react-native-reanimated";
 import { IDispatch } from "../ducks/types";
-import { useWorkoutSetRowTransition } from "./useWorkoutSetRowTransition";
+import {
+  WorkoutBodyEntering,
+  WorkoutBodyExiting,
+  WorkoutLayoutClip,
+  WorkoutLayoutTransition,
+} from "./workoutLayoutTransition";
 import {
   ISettings,
   ISet,
@@ -314,7 +319,6 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       "delete-set"
     );
   }, [trackClick, dispatch, lbSets, setIndex]);
-  const transition = useWorkoutSetRowTransition(!!props.isExpanded);
   const isRoundedWeight =
     props.type !== "warmup" &&
     props.settings.workoutSettings.targetType === "target" &&
@@ -363,23 +367,20 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   };
 
   return (
-    <Animated.View style={transition.isMeasured ? transition.containerStyle : undefined}>
-      <Animated.View style={transition.enteringStyle} onLayout={transition.onContentLayout}>
-        {transition.shownExpanded ? <WorkoutExerciseSetExpanded {...body} /> : <WorkoutExerciseSetCompact {...body} />}
-      </Animated.View>
-      {transition.leavingExpanded != null && (
-        <Animated.View
-          pointerEvents="none"
-          dataSet={{ leaving: "1" }}
-          style={[{ position: "absolute", left: 0, right: 0, top: 0 }, transition.leavingStyle]}
-        >
-          {transition.leavingExpanded ? (
+    <Animated.View layout={WorkoutLayoutTransition} style={WorkoutLayoutClip}>
+      {/* Only a swap between the two bodies fades, never the row mounting with the screen.
+          The distinct keys make the swap an unmount and a mount, which entering and exiting need. */}
+      <LayoutAnimationConfig skipEntering skipExiting>
+        {props.isExpanded ? (
+          <Animated.View key="expanded" entering={WorkoutBodyEntering} exiting={WorkoutBodyExiting}>
             <WorkoutExerciseSetExpanded {...body} />
-          ) : (
+          </Animated.View>
+        ) : (
+          <Animated.View key="compact" entering={WorkoutBodyEntering} exiting={WorkoutBodyExiting}>
             <WorkoutExerciseSetCompact {...body} />
-          )}
-        </Animated.View>
-      )}
+          </Animated.View>
+        )}
+      </LayoutAnimationConfig>
     </Animated.View>
   );
 }
