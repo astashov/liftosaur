@@ -1,9 +1,8 @@
-import { JSX, memo, useState } from "react";
+import { JSX, memo, MutableRefObject, useState } from "react";
 import { View } from "react-native";
 import type RB from "rollbar";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings } from "../types";
-import { Progress_isCurrent } from "../models/progress";
 import { Button } from "./button";
 import { IconSpinner } from "./icons/iconSpinner";
 import { Tailwind_colors } from "../utils/tailwindConfig";
@@ -13,13 +12,14 @@ import { WorkoutFinish_run } from "../utils/workoutFinish";
 declare let Rollbar: RB | undefined;
 
 interface IWorkoutFinishButtonProps {
-  progress: IHistoryRecord;
+  progressRef: MutableRefObject<IHistoryRecord>;
+  isCurrent: boolean;
   settings: ISettings;
   dispatch: IDispatch;
 }
 
 function WorkoutFinishButtonInner(props: IWorkoutFinishButtonProps): JSX.Element {
-  const isCurrent = Progress_isCurrent(props.progress);
+  const isCurrent = props.isCurrent;
   const [isFinishing, setIsFinishing] = useState(false);
   return (
     <Button
@@ -35,7 +35,7 @@ function WorkoutFinishButtonInner(props: IWorkoutFinishButtonProps): JSX.Element
           return;
         }
         WorkoutFinish_run({
-          progress: props.progress,
+          progress: props.progressRef.current,
           settings: props.settings,
           dispatch: props.dispatch,
           isCurrent,

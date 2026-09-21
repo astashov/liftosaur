@@ -188,13 +188,23 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     }
   }, [dispatch, props.progress, props.settings, props.subscription, trackClick]);
 
+  const progressStartTime = progress.startTime;
+  const progressEndTime = progress.endTime;
+  const progressIntervals = progress.intervals;
   const navSubtitle = useMemo(() => {
-    return !isCurrent && progress.endTime ? (
-      TimeUtils_formatHHMM(History_workoutTime(progress))
+    return !isCurrent && progressEndTime ? (
+      TimeUtils_formatHHMM(
+        History_workoutTime({ startTime: progressStartTime, endTime: progressEndTime, intervals: progressIntervals })
+      )
     ) : (
-      <Timer progress={progress} onPauseResume={onPauseResume} />
+      <Timer
+        startTime={progressStartTime}
+        endTime={progressEndTime}
+        intervals={progressIntervals}
+        onPauseResume={onPauseResume}
+      />
     );
-  }, [isCurrent, progress, onPauseResume]);
+  }, [isCurrent, progressStartTime, progressEndTime, progressIntervals, onPauseResume]);
 
   const progressId = progress.id;
   const onShare = useCallback(() => {
@@ -206,13 +216,21 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     navigateToModal("dayFromAdhocModal", { progressId });
   }, [progressId]);
 
-  const navRightButtons = useMemo(
-    () => [<WorkoutFinishButton key="finish" progress={progress} settings={props.settings} dispatch={dispatch} />],
-    [progress, props.settings, dispatch]
-  );
-  // A ref, so this function survives a set completion. A new one re-renders the workout header.
+  // A ref, so these elements survive a set completion. A new element re-renders the navbar header.
   const progressRef = useRef(progress);
   progressRef.current = progress;
+  const navRightButtons = useMemo(
+    () => [
+      <WorkoutFinishButton
+        key="finish"
+        progressRef={progressRef}
+        isCurrent={isCurrent}
+        settings={props.settings}
+        dispatch={dispatch}
+      />,
+    ],
+    [isCurrent, props.settings, dispatch]
+  );
   const renderHeaderMenu = useCallback(
     (onOpenChange: (isOpen: boolean) => void) => (
       <WorkoutMenu

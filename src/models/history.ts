@@ -1049,7 +1049,9 @@ export function History_resumeWorkout(
   }
 }
 
-export function History_workoutTime(historyRecord: IHistoryRecord): number {
+export function History_workoutTime(
+  historyRecord: Pick<IHistoryRecord, "startTime" | "endTime" | "intervals">
+): number {
   const intervals = historyRecord.intervals || [[historyRecord.startTime, historyRecord.endTime || Date.now()]];
   return intervals.reduce((memo, interval) => {
     return memo + ((interval[1] || Date.now()) - interval[0]);

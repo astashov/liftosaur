@@ -4,11 +4,13 @@ import { Text } from "./primitives/text";
 import { TimeUtils_formatHH, TimeUtils_formatMM } from "../utils/time";
 import { IconPlay } from "./icons/iconPlay";
 import { IconPause } from "./icons/iconPause";
-import { IHistoryRecord } from "../types";
+import { IIntervals } from "../types";
 import { History_workoutTime, History_isPaused } from "../models/history";
 
 interface IProps {
-  progress: IHistoryRecord;
+  startTime: number;
+  endTime?: number;
+  intervals?: IIntervals;
   onPauseResume: () => void;
 }
 
@@ -31,8 +33,12 @@ export function Timer(props: IProps): JSX.Element {
     };
   }, []);
 
-  const workoutTime = History_workoutTime(props.progress);
-  const isPaused = History_isPaused(props.progress.intervals);
+  const workoutTime = History_workoutTime({
+    startTime: props.startTime,
+    endTime: props.endTime,
+    intervals: props.intervals,
+  });
+  const isPaused = History_isPaused(props.intervals);
 
   useEffect(() => {
     if (isPaused) {
