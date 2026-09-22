@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { NavScreenScrollContext } from "../navigation/NavScreenScrollContext";
+import { ProgressiveReveal_onScroll } from "./progressiveReveal";
 
 interface IIdleGlobal {
   requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
@@ -64,23 +65,47 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
     if (!ctx) {
       return undefined;
     }
-    return ctx.addScrollListener((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (countRef.current >= total) {
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastEvent: NativeScrollEvent | undefined;
+    const check = (): void => {
+      if (lastEvent == null) {
         return;
       }
       const now = Date.now();
-      if (now - lastBumpRef.current < rateLimitMs) {
-        return;
-      }
-      const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
-      if (contentOffset.y + layoutMeasurement.height > contentSize.height - threshold) {
+      const step = ProgressiveReveal_onScroll({
+        count: countRef.current,
+        total,
+        batchSize,
+        threshold,
+        rateLimitMs,
+        lastBumpAt: lastBumpRef.current,
+        now,
+        offsetY: lastEvent.contentOffset.y,
+        viewportHeight: lastEvent.layoutMeasurement.height,
+        contentHeight: lastEvent.contentSize.height,
+      });
+      if (step.kind === "retry" && retryTimer == null) {
+        retryTimer = setTimeout(() => {
+          retryTimer = undefined;
+          check();
+        }, step.inMs);
+      } else if (step.kind === "bump") {
         lastBumpRef.current = now;
-        const next = Math.min(countRef.current + batchSize, total);
-        countRef.current = next;
-        dbg(debugLabel, `scroll bump → ${next}/${total}`);
-        setCount(next);
+        countRef.current = step.count;
+        dbg(debugLabel, `scroll bump → ${step.count}/${total}`);
+        setCount(step.count);
       }
+    };
+    const removeListener = ctx.addScrollListener((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      lastEvent = e.nativeEvent;
+      check();
     });
+    return () => {
+      removeListener();
+      if (retryTimer != null) {
+        clearTimeout(retryTimer);
+      }
+    };
   }, [ctx, total, batchSize, threshold, rateLimitMs, debugLabel]);
 
   useEffect(() => {
