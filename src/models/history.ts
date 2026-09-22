@@ -607,7 +607,7 @@ export function History_collectRepPersonalRecords(
       const entries = hr.entries.filter((e) => Exercise_eq(e.exercise, exerciseType));
       for (const set of entries.flatMap((e) => e.sets)) {
         const reps = set.completedReps ?? 0;
-        if (reps < 1 || reps > 12) {
+        if (reps < 2 || reps > 12) {
           continue;
         }
         const weight = set.completedWeight ?? set.weight ?? Weight_build(0, unit);

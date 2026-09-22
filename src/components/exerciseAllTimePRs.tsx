@@ -1,4 +1,4 @@
-import { JSX, memo } from "react";
+import { JSX, memo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -22,6 +22,7 @@ interface IExerciseAllTimePRsProps {
 function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
   const { maxWeight, max1RM } = props;
   const trackClick = useTrackClick();
+  const [areRepRecordsExpanded, setAreRepRecordsExpanded] = useState(false);
   const repRecords = Array.from({ length: 12 }, (_, index) => index + 1).flatMap((reps) => {
     const record = props.repPersonalRecords?.[reps];
     return record ? [{ reps, record }] : [];
@@ -88,33 +89,51 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           shouldShowRightArrow={true}
         />
       )}
-      {repRecords.map(({ reps, record }, index) => (
+      {repRecords.length > 0 && (
         <MenuItem
-          key={reps}
-          isBorderless={index === repRecords.length - 1}
+          isBorderless={!areRepRecordsExpanded}
           expandValue={true}
           onClick={() => {
-            trackClick("exercise-pr-record");
-            props.dispatch(Thunk_editHistoryRecord(record.historyRecord));
+            trackClick("exercise-pr-records-toggle");
+            setAreRepRecordsExpanded((isExpanded) => !isExpanded);
           }}
-          name={`Max ${reps}RM`}
+          name={`Rep PRs (${repRecords.length})`}
           value={
-            <View>
-              <Text
-                className="text-text-primary text-right"
-                data-testid={`rep-pr-${reps}-value`}
-                testID={`rep-pr-${reps}-value`}
-              >
-                {Weight_display(Weight_convertTo(record.weight, props.settings.units))}
-              </Text>
-              <Text className="text-xs text-text-secondary text-right">
-                {DateUtils_format(record.historyRecord.startTime)}
-              </Text>
-            </View>
+            <Text className="text-text-secondary text-right" data-testid="rep-prs-toggle" testID="rep-prs-toggle">
+              {areRepRecordsExpanded ? "Hide" : "Show"}
+            </Text>
           }
-          shouldShowRightArrow={true}
+          shouldShowRightArrow={false}
         />
-      ))}
+      )}
+      {areRepRecordsExpanded &&
+        repRecords.map(({ reps, record }, index) => (
+          <MenuItem
+            key={reps}
+            isBorderless={index === repRecords.length - 1}
+            expandValue={true}
+            onClick={() => {
+              trackClick("exercise-pr-record");
+              props.dispatch(Thunk_editHistoryRecord(record.historyRecord));
+            }}
+            name={`Max ${reps}RM`}
+            value={
+              <View>
+                <Text
+                  className="text-text-primary text-right"
+                  data-testid={`rep-pr-${reps}-value`}
+                  testID={`rep-pr-${reps}-value`}
+                >
+                  {Weight_display(Weight_convertTo(record.weight, props.settings.units))}
+                </Text>
+                <Text className="text-xs text-text-secondary text-right">
+                  {DateUtils_format(record.historyRecord.startTime)}
+                </Text>
+              </View>
+            }
+            shouldShowRightArrow={true}
+          />
+        ))}
     </View>
   );
 }

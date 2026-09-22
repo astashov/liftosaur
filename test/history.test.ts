@@ -180,4 +180,21 @@ describe("History_collectRepPersonalRecords", () => {
     expect(result.repPersonalRecords[4]?.set.completedReps).to.equal(4);
     expect(result.repPersonalRecords[5]).to.equal(undefined);
   });
+  it("excludes 1RM records because the existing Max 1RM covers them", () => {
+    const exercise: IExerciseType = { id: "squat" };
+    const set = buildSet(true);
+
+    set.reps = 1;
+    set.completedReps = 1;
+    set.completedWeight = { value: 120, unit: "lb" };
+
+    const entry = buildEntry(exercise, true);
+    entry.sets = [set];
+
+    const record = buildRecord(1, [entry]);
+    const collector = History_collectRepPersonalRecords(exercise, "lb");
+    const result = collector.fn(collector.initial, record);
+
+    expect(result.repPersonalRecords[1]).to.equal(undefined);
+  });
 });
