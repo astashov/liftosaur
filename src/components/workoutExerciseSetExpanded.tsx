@@ -121,7 +121,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               />
             </View>
 
-            <View className="flex-row items-center gap-2 pr-4 mt-1">
+            <View className="flex-row items-center gap-2 pr-4">
               {isUnilateral ? (
                 <View className="flex-row items-center flex-1 gap-1">
                   <Text className="text-xs text-text-secondary">L</Text>
