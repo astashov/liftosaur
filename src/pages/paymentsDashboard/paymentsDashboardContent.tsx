@@ -16,6 +16,7 @@ export interface IPaymentsDashboardContentProps {
   paymentsData: IPaymentsDashboardData[];
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
   summary: IPaymentsSummary;
+  serverTimestamp: number;
   nextBefore: number;
   hasMore: boolean;
 }
@@ -27,7 +28,7 @@ interface IPaymentsPage {
   hasMore: boolean;
 }
 
-export function computePaymentsSummary(paymentsData: IPaymentsDashboardData[]): IPaymentsSummary {
+export function computePaymentsSummary(paymentsData: IPaymentsDashboardData[], now?: number): IPaymentsSummary {
   const currencyTotals: Record<string, { total: number; refunds: number }> = {};
   const totalsByTypeAndCurrency: Record<string, { subscription: number; inapp: number }> = {};
   const totalsByPlatformAndCurrency: Record<string, { apple: number; google: number }> = {};
@@ -126,7 +127,7 @@ export function computePaymentsSummary(paymentsData: IPaymentsDashboardData[]): 
     });
   });
 
-  const cancellationData = detectCancellations(paymentsData);
+  const cancellationData = detectCancellations(paymentsData, now ?? Date.now());
 
   return {
     currencyTotals,
@@ -203,14 +204,16 @@ interface IUserSubscriptionInfo {
   wasTrialPayment: boolean;
 }
 
-function detectCancellations(paymentsData: IPaymentsDashboardData[]): {
+function detectCancellations(
+  paymentsData: IPaymentsDashboardData[],
+  now: number
+): {
   cancellations: IUserSubscriptionInfo[];
   totalCancellations: number;
   monthlyCancellations: number;
   yearlyCancellations: number;
 } {
   const userSubscriptions = new Map<string, IUserSubscriptionInfo>();
-  const now = Date.now();
 
   paymentsData.forEach((dayData) => {
     dayData.payments.forEach((payment) => {
@@ -414,7 +417,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
   const summary = props.summary;
 
-  const cancellationData = detectCancellations(paymentsData);
+  const cancellationData = detectCancellations(paymentsData, props.serverTimestamp);
   const cancellationsByPeriod = groupCancellationsByPeriod(cancellationData.cancellations, viewMode);
 
   const cancelledTrialUserIds = new Set(
