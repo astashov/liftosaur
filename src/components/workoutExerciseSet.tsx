@@ -1,7 +1,7 @@
 import type { JSX } from "react";
 import { memo, useCallback, useMemo } from "react";
 import Animated, { LayoutAnimationConfig } from "react-native-reanimated";
-import { useExpandedRowRegistration } from "./workoutCenterExpandedRow";
+import { useExpandedRowRegistration, useRefocusAfterKeyboardComplete } from "./workoutCenterExpandedRow";
 import { IDispatch } from "../ducks/types";
 import {
   WorkoutBodyEntering,
@@ -251,8 +251,10 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     },
     [dispatch, lbSet]
   );
+  const refocus = useRefocusAfterKeyboardComplete();
   const onCompleteSet = useCallback(() => {
     FocusedInputFlush_flush();
+    refocus();
     dispatch({
       type: "CompleteSetAction",
       setIndex,
@@ -264,7 +266,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       forceUpdateEntryIndex: type === "workout" && !set.isCompleted,
       isExternal: false,
     });
-  }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted]);
+  }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted, refocus]);
   const onEditSetTimer = useCallback(() => {
     trackClick("workout-set-timer-edit-open");
     updateProgress(

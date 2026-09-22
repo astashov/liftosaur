@@ -1,4 +1,4 @@
-import { createContext, RefObject, useContext, useEffect, useRef } from "react";
+import { createContext, RefObject, useCallback, useContext, useEffect, useRef } from "react";
 import { Platform, ScrollView, View } from "react-native";
 import { NavScreenScrollContext } from "../navigation/NavScreenScrollContext";
 import { WorkoutCenterScroll_targetY } from "../utils/workoutCenterScroll";
@@ -21,6 +21,37 @@ export function useExpandedRowRegistration(entryIndex: number, isExpanded: boole
     };
   }, [isExpanded, rows, entryIndex]);
   return rowRef;
+}
+
+export const WorkoutFocusExpandedSetContext = createContext<(() => void) | undefined>(undefined);
+
+export function useFocusExpandedSet(rows: Map<number, View>, currentEntryIndex: number): () => void {
+  const currentEntryIndexRef = useRef(currentEntryIndex);
+  currentEntryIndexRef.current = currentEntryIndex;
+  return useCallback(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const row: unknown = rows.get(currentEntryIndexRef.current);
+        const isFocusFree = document.activeElement == null || document.activeElement === document.body;
+        if (row instanceof HTMLElement && isFocusFree) {
+          row.querySelector<HTMLElement>("[data-tab-stop]")?.focus();
+        }
+      });
+    });
+  }, [rows]);
+}
+
+export function useRefocusAfterKeyboardComplete(): () => void {
+  const focusExpandedSet = useContext(WorkoutFocusExpandedSetContext);
+  return useCallback(() => {
+    if (Platform.OS !== "web" || focusExpandedSet == null) {
+      return;
+    }
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.matches(":focus-visible")) {
+      focusExpandedSet();
+    }
+  }, [focusExpandedSet]);
 }
 
 interface IWorkoutCenterExpandedRowProps {
