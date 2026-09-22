@@ -48,6 +48,7 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("exercise-stats-image")).toBeVisible();
   await expect(page.getByTestId("max-weight-value").and(page.locator(":visible"))).toHaveText("95 lb");
   await expect(page.getByTestId("one-rm-value").and(page.locator(":visible"))).toHaveText("109.8 lb (5 x 95 lb)");
+  await expect(page.getByTestId("rep-pr-5-value").and(page.locator(":visible"))).toHaveText("95 lb");
   await expect(page.getByTestId("history-entry-sets-completed").and(page.locator(":visible"))).toHaveText(
     "Weight, e1RM 🏆3 × 5 × 95lb"
   );
@@ -68,6 +69,7 @@ test("works", async ({ page }) => {
   await page.getByTestId("entry-bent-over-row").getByTestId("exercise-name").click();
   await expect(page.getByTestId("max-weight-value").and(page.locator(":visible"))).toHaveText("97.5 lb");
   await expect(page.getByTestId("one-rm-value").and(page.locator(":visible"))).toHaveText("112.7 lb (5 x 97.5 lb)");
+  await expect(page.getByTestId("rep-pr-5-value").and(page.locator(":visible"))).toHaveText("97.5 lb");
   await expect(page.getByTestId("history-entry-weight").nth(0)).toHaveText("97.5");
   await page.getByTestId("exercise-stats-history-filter").and(page.locator(":visible")).click();
   await page.getByTestId("menu-item-name-ascending-sort-by-date").click();

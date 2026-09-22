@@ -9,17 +9,23 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
 import { useTrackClick } from "../utils/clickTracking";
+import { IRepPersonalRecord } from "../models/history";
 
 interface IExerciseAllTimePRsProps {
   settings: ISettings;
   dispatch: IDispatch;
   maxWeight?: { weight: IWeight; historyRecord?: IHistoryRecord };
   max1RM?: { weight: IWeight; set?: ISet; historyRecord?: IHistoryRecord };
+  repPersonalRecords?: Partial<Record<number, IRepPersonalRecord>>;
 }
 
 function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
   const { maxWeight, max1RM } = props;
   const trackClick = useTrackClick();
+  const repRecords = Array.from({ length: 12 }, (_, index) => index + 1).flatMap((reps) => {
+    const record = props.repPersonalRecords?.[reps];
+    return record ? [{ reps, record }] : [];
+  });
 
   return (
     <View
@@ -55,7 +61,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
       )}
       {max1RM && (
         <MenuItem
-          isBorderless={true}
+          isBorderless={repRecords.length === 0}
           expandValue={true}
           onClick={() => {
             trackClick("exercise-pr-record");
@@ -82,6 +88,33 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           shouldShowRightArrow={true}
         />
       )}
+      {repRecords.map(({ reps, record }, index) => (
+        <MenuItem
+          key={reps}
+          isBorderless={index === repRecords.length - 1}
+          expandValue={true}
+          onClick={() => {
+            trackClick("exercise-pr-record");
+            props.dispatch(Thunk_editHistoryRecord(record.historyRecord));
+          }}
+          name={`Max ${reps}RM`}
+          value={
+            <View>
+              <Text
+                className="text-text-primary text-right"
+                data-testid={`rep-pr-${reps}-value`}
+                testID={`rep-pr-${reps}-value`}
+              >
+                {Weight_display(Weight_convertTo(record.weight, props.settings.units))}
+              </Text>
+              <Text className="text-xs text-text-secondary text-right">
+                {DateUtils_format(record.historyRecord.startTime)}
+              </Text>
+            </View>
+          }
+          shouldShowRightArrow={true}
+        />
+      ))}
     </View>
   );
 }
