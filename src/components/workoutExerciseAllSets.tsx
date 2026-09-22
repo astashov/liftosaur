@@ -152,6 +152,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const expanded = expansion?.expanded;
   const expandedSet =
     expanded != null ? (expanded.mode === "warmup" ? warmupSets : sets)[expanded.setIndex] : undefined;
+  const isLastInColumn = settings.workoutSettings.targetType === "lasttime";
   const previousLines = useMemo(
     () =>
       expansion && expanded && expandedSet
@@ -160,10 +161,11 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             expanded.setIndex,
             expandedSet,
             expansion.prevData,
-            expansion.isMultiweek
+            expansion.isMultiweek,
+            isLastInColumn
           )
         : undefined,
-    [expansion, expanded, expandedSet]
+    [expansion, expanded, expandedSet, isLastInColumn]
   );
   const onAddWarmupSet = useCallback(() => {
     trackClick("workout-add-warmup-set");

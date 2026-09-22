@@ -5,6 +5,7 @@ export interface IWorkoutProgressView {
   entries: IHistoryEntry[];
   currentEntryIndex: number;
   day: number;
+  week: number | undefined;
   dayInWeek: number | undefined;
   dayName: string;
   programName: string;
@@ -25,6 +26,7 @@ export function WorkoutProgressView_next(
     entries: progress.entries,
     currentEntryIndex: progress.currentEntryIndex ?? 0,
     day: progress.day,
+    week: progress.week,
     dayInWeek: progress.dayInWeek,
     dayName: progress.dayName,
     programName: progress.programName,

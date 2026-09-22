@@ -197,25 +197,27 @@ describe("History", () => {
       expect(data[Exercise_toKey(squat)].count).to.eql(1);
     });
 
-    it("picks the latest started entry from the same program day in week", () => {
+    it("matches the same week and day in week, from an earlier cycle, never another week", () => {
       const history = [
-        { ...buildRecord(now - 14 * day, [buildEntry(squat, true)]), day: 1, dayInWeek: 1 },
-        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 4, dayInWeek: 1 },
-        { ...buildRecord(now - 3 * day, [buildEntry(squat, true)]), day: 6, dayInWeek: 3 },
-        { ...buildRecord(now - 1 * day, [buildEntry(squat, false)]), day: 7, dayInWeek: 1 },
+        { ...buildRecord(now - 30 * day, [buildEntry(squat, true)]), day: 8, week: 3, dayInWeek: 2 },
+        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 5, week: 2, dayInWeek: 2 },
+        { ...buildRecord(now - 3 * day, [buildEntry(squat, true)]), day: 6, week: 2, dayInWeek: 3 },
+        { ...buildRecord(now - 1 * day, [buildEntry(squat, false)]), day: 8, week: 3, dayInWeek: 2 },
       ];
-      const data = History_buildPrevExerciseData(history, now, { programId: "p", dayInWeek: 1 });
+      const sameDay = { programId: "p", day: 8, week: 3, dayInWeek: 2 };
+      const data = History_buildPrevExerciseData(history, now, sameDay);
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 3 * day);
-      expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 7 * day);
+      expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 30 * day);
     });
 
-    it("falls back to day when dayInWeek is missing and ignores other programs", () => {
+    it("compares the absolute day when a record has no week, and ignores other programs", () => {
       const history = [
-        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 2 },
-        { ...buildRecord(now - 2 * day, [buildEntry(squat, true)]), day: 2, programId: "other" },
-        { ...buildRecord(now + 1 * day, [buildEntry(squat, true)]), day: 2 },
+        { ...buildRecord(now - 21 * day, [buildEntry(squat, true)]), day: 2 },
+        { ...buildRecord(now - 7 * day, [buildEntry(squat, true)]), day: 5 },
+        { ...buildRecord(now - 2 * day, [buildEntry(squat, true)]), day: 5, programId: "other" },
+        { ...buildRecord(now + 1 * day, [buildEntry(squat, true)]), day: 5 },
       ];
-      const data = History_buildPrevExerciseData(history, now, { programId: "p", dayInWeek: 2 });
+      const data = History_buildPrevExerciseData(history, now, { programId: "p", day: 5, week: 2, dayInWeek: 2 });
       expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 7 * day);
       const without = History_buildPrevExerciseData(history, now);
       expect(without[Exercise_toKey(squat)].sameDayEntry).to.eql(undefined);
@@ -229,7 +231,7 @@ describe("History", () => {
         buildRecord(now - 2 * day, [buildEntry(deadlift, true), buildEntry(bench, true)]),
         buildRecord(now + 1 * day, [buildEntry(squat, true)]),
       ];
-      const sameDay = { programId: "p", dayInWeek: 1 };
+      const sameDay = { programId: "p", day: 1 };
       const full = History_buildPrevExerciseData(history, now, sameDay);
       const onlyKeys = new Set([Exercise_toKey(squat), Exercise_toKey(bench)]);
       const limited = History_buildPrevExerciseData(history, now, sameDay, onlyKeys);

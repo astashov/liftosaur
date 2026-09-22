@@ -248,7 +248,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
 
             {props.platesLine && (
               <Pressable
-                className="flex-row items-center gap-2 pr-4 mt-2"
+                className="flex-row items-center gap-2 pr-4 mt-1"
                 testID="set-plates"
                 disabled={props.onToggleExpand == null}
                 onPress={props.onToggleExpand}
@@ -276,7 +276,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
 
             {previousLines.length > 0 && (
               <Pressable
-                className="pr-4 mt-2"
+                className="pr-4 mt-1"
                 testID="set-previous-lines"
                 disabled={props.onToggleExpand == null}
                 onPress={props.onToggleExpand}

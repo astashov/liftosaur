@@ -519,13 +519,17 @@ function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number
   }
 }
 
-export interface IPrevExerciseSameDay {
-  programId: string;
-  dayInWeek: number;
-}
+export type IPrevExerciseSameDay = Pick<IHistoryRecord, "programId" | "day" | "week" | "dayInWeek">;
 
-function History_recordDayInWeek(record: IHistoryRecord): number {
-  return record.dayInWeek ?? record.day;
+// Records written before `week` and `dayInWeek` existed carry only the absolute `day`.
+function History_isSameProgramDay(record: IHistoryRecord, sameDay: IPrevExerciseSameDay): boolean {
+  if (record.programId !== sameDay.programId) {
+    return false;
+  }
+  if (record.week != null && record.dayInWeek != null && sameDay.week != null && sameDay.dayInWeek != null) {
+    return record.week === sameDay.week && record.dayInWeek === sameDay.dayInWeek;
+  }
+  return record.day === sameDay.day;
 }
 
 // One pass over the whole history producing, per exercise key, the data each workout-exercise card
@@ -545,8 +549,7 @@ export function History_buildPrevExerciseData(
   for (const hr of history) {
     const time = hr.endTime ?? hr.startTime;
     const isBefore = time < beforeTime;
-    const isSameDay =
-      sameDay != null && hr.programId === sameDay.programId && History_recordDayInWeek(hr) === sameDay.dayInWeek;
+    const isSameDay = sameDay != null && History_isSameProgramDay(hr, sameDay);
     const seenKeys = new Set<string>();
     for (const entry of hr.entries) {
       const key = Exercise_toKey(entry.exercise);

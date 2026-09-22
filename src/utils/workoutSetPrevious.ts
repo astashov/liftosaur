@@ -3,7 +3,7 @@ import { IPrevBestSet, IPrevExerciseData } from "../models/history";
 import { Weight_eq } from "../models/weight";
 
 export interface IWorkoutSetPreviousLine {
-  label: "Best" | "Best AMRAP" | "Same day";
+  label: "Last" | "Best" | "Best AMRAP" | "Same day";
   set: ISet;
   timestamp: number;
 }
@@ -38,21 +38,34 @@ export function WorkoutSetPrevious_lines(
   setIndex: number,
   set: ISet,
   prevData: IPrevExerciseData | undefined,
-  isMultiweek: boolean
+  isMultiweek: boolean,
+  isLastInColumn: boolean
 ): IWorkoutSetPreviousLine[] {
   const lines: IWorkoutSetPreviousLine[] = [];
   const best = mode === "workout" ? bestFor(set, prevData) : undefined;
+  const sameDaySet = setAt(prevData?.sameDayEntry, mode, setIndex);
+  const sameDay =
+    isMultiweek &&
+    sameDaySet != null &&
+    prevData?.sameDayTimestamp != null &&
+    sameDaySet !== best?.set &&
+    (best == null || !sameResult(best.set, sameDaySet))
+      ? sameDaySet
+      : undefined;
+  const last = setAt(prevData?.lastEntry, mode, setIndex);
+  if (
+    last != null &&
+    prevData?.lastEntryTimestamp != null &&
+    !(isLastInColumn && mode === "workout") &&
+    last !== best?.set &&
+    last !== sameDay
+  ) {
+    lines.push({ label: "Last", set: last, timestamp: prevData.lastEntryTimestamp });
+  }
   if (best != null) {
     lines.push({ label: set.isAmrap ? "Best AMRAP" : "Best", set: best.set, timestamp: best.timestamp });
   }
-  const sameDay = setAt(prevData?.sameDayEntry, mode, setIndex);
-  if (
-    isMultiweek &&
-    sameDay != null &&
-    prevData?.sameDayTimestamp != null &&
-    sameDay !== best?.set &&
-    (best == null || !sameResult(best.set, sameDay))
-  ) {
+  if (sameDay != null && prevData?.sameDayTimestamp != null) {
     lines.push({ label: "Same day", set: sameDay, timestamp: prevData.sameDayTimestamp });
   }
   return lines;

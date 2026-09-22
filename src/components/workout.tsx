@@ -204,10 +204,8 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   // Build the "previous workout" lookup for every exercise once, here, instead of letting each
   // exercise card scan the whole history on its own mount frame (the dominant workout-screen mount
   // jank for large histories). Keyed on history identity, so it survives set completions.
-  const sameDay = useMemo(
-    () => ({ programId: props.progress.programId, dayInWeek: props.progress.dayInWeek ?? props.progress.day }),
-    [props.progress.programId, props.progress.dayInWeek, props.progress.day]
-  );
+  const { programId, day, week, dayInWeek } = props.progress;
+  const sameDay = useMemo(() => ({ programId, day, week, dayInWeek }), [programId, day, week, dayInWeek]);
   // A string keeps its identity when a set completion rebuilds `entries` with the same exercises.
   const exerciseKeysJoined = progressEntries.map((entry) => Exercise_toKey(entry.exercise)).join("\n");
   const exerciseKeys = useMemo(() => new Set(exerciseKeysJoined.split("\n")), [exerciseKeysJoined]);
@@ -810,9 +808,14 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
       </Scroller>
       <RNAnimated.View
         pointerEvents="none"
-        style={{ height: remValue + 4, paddingBottom: 4, justifyContent: "flex-start", opacity: labelOpacity }}
+        style={{
+          height: Math.round(1.25 * remValue) + 4,
+          paddingBottom: 4,
+          justifyContent: "flex-start",
+          opacity: labelOpacity,
+        }}
       >
-        <Text numberOfLines={1} className="px-4 text-xs font-bold text-center" testID="strip-current-exercise">
+        <Text numberOfLines={1} className="px-4 text-sm font-bold text-center" testID="strip-current-exercise">
           {props.label}
         </Text>
       </RNAnimated.View>
