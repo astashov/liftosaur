@@ -16,6 +16,29 @@
 -->
 
 ---
+date: 2026-09-22
+title: Redesign of the workout screen
+---
+
+Redesigned the workout screen. Main goal was to declutter it, make it easier to use with shaking hands after heavy weight, and also ability to see things in distance (e.g. when your phone is laying down on a bench).
+
+So, did the following changes. For the next set:
+
+* The next set is **expanded** now, gets a large reps/weight fields, plates, and large checkmark button.
+* It also shows the best/last/same day reps/weights underneath.
+* Swiping of a set is gone, there's ::icon-edit2:: icon to edit/delete it now
+* You can expand / collapse sets by tapping on them
+
+Also:
+
+* Workout/exercise notes are toggleable now, in the kebab or cog menus
+* Delete, help, etc also moved to the kebab menu
+* You reorder exercises now by long-tapping and dragging them
+* AMRAP modal got bigger inputs and buttons
+
+And there're also some other minor tweaks here and there.
+
+---
 date: 2026-09-19
 title: Realtime sync on the phone
 ---
