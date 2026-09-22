@@ -78,6 +78,7 @@ import { useTrackClick } from "../utils/clickTracking";
 import { WorkoutTabStopContext } from "./workoutTabStopContext";
 import { IWorkoutProgressView } from "../utils/workoutProgressView";
 import { WorkoutPagerHeightContext } from "./workoutPagerHeightContext";
+import { WorkoutCenterExpandedRow, WorkoutExpandedRowsContext } from "./workoutCenterExpandedRow";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -190,6 +191,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   );
 
   const impressionsSeenRef = useRef<Set<string>>(new Set());
+  const [expandedRows] = useState(() => new Map<number, View>());
 
   const progressId = props.progress.id;
   const otherStates = props.program?.states;
@@ -241,80 +243,88 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const showReorderHint = props.progress.entries.length > 1 && !WorkoutHints_isLearned(props.helps, "workout-reorder");
 
   return (
-    <NavScreenContent stickyHeaderIndices={[2]}>
-      <WorkoutHeader
-        description={description}
-        progress={props.progress}
-        dispatch={props.dispatch}
-        showNotes={!!props.settings.workoutSettings.showWorkoutNotes}
-        renderMenu={props.renderHeaderMenu}
-      />
-      <View>
-        {showReorderHint && (
-          <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-reorder-hint">
-            Long-tap a thumbnail to reorder
-          </Text>
-        )}
-      </View>
-      <WorkoutThumbnailsStrip
-        progress={props.progress}
-        dispatch={props.dispatch}
-        settings={props.settings}
-        subscription={props.subscription}
-        helps={props.helps}
-        onClick={onClickThumbnail}
-        label={selectedExerciseName}
-        titleNodeRef={titleNodeRef}
-        titleLayoutNonce={titleLayoutNonce}
-        pagerContainerTop={pagerContainerTop}
-      />
-      <View className="pb-8" onLayout={onPagerContainerLayout}>
-        {selectedEntry != null && (
-          <View className="mt-2">
-            <PerfProbeSubtree id="workout-list">
-              <WorkoutExercisePager
-                currentEntryIndex={currentEntryIndex}
-                entryCount={progressEntries.length}
-                windowWidth={windowWidth}
-                forceUpdateEntryIndex={forceUpdateEntryIndex}
-                onIndexChange={onPagerIndexChange}
-                onSettledIndex={onPagerSettled}
-              >
-                {progressEntries.map((entry, entryIndex) => (
-                  <WorkoutExercisePage
-                    key={entry.id}
-                    entry={entry}
-                    entryIndex={entryIndex}
-                    isCurrentPage={entryIndex === currentEntryIndex}
-                    tabStopIndex={entryIndex < currentEntryIndex ? -1 : 0}
-                    impressionsSeenRef={impressionsSeenRef}
-                    shouldRender={renderedIndices.has(entryIndex)}
-                    windowWidth={windowWidth}
-                    day={progressDay}
-                    stats={props.stats}
-                    history={props.history}
-                    otherStates={otherStates}
-                    program={props.program}
-                    programDay={props.programDay}
-                    progressId={progressId}
-                    progressStartTime={progressStartTime}
-                    userPromptedStateVars={progressUserPromptedStateVars}
-                    supersetEntry={supersetByEntryId.get(entry.id)}
-                    prevData={prevExerciseData[Exercise_toKey(entry.exercise)]}
-                    isCurrentProgress={isCurrentProgress}
-                    helps={props.helps}
-                    subscription={props.subscription}
-                    settings={props.settings}
-                    dispatch={dispatch}
-                    onTitleLayout={onTitleLayout}
-                  />
-                ))}
-              </WorkoutExercisePager>
-            </PerfProbeSubtree>
-          </View>
-        )}
-      </View>
-    </NavScreenContent>
+    <WorkoutExpandedRowsContext.Provider value={expandedRows}>
+      <NavScreenContent stickyHeaderIndices={[2]}>
+        <WorkoutHeader
+          description={description}
+          progress={props.progress}
+          dispatch={props.dispatch}
+          showNotes={!!props.settings.workoutSettings.showWorkoutNotes}
+          renderMenu={props.renderHeaderMenu}
+        />
+        <View>
+          {showReorderHint && (
+            <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-reorder-hint">
+              Long-tap a thumbnail to reorder
+            </Text>
+          )}
+        </View>
+        <WorkoutThumbnailsStrip
+          progress={props.progress}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          subscription={props.subscription}
+          helps={props.helps}
+          onClick={onClickThumbnail}
+          label={selectedExerciseName}
+          titleNodeRef={titleNodeRef}
+          titleLayoutNonce={titleLayoutNonce}
+          pagerContainerTop={pagerContainerTop}
+        />
+        <View className="pb-8" onLayout={onPagerContainerLayout}>
+          <WorkoutCenterExpandedRow
+            pageChangeToggle={forceUpdateEntryIndex}
+            entryIndex={currentEntryIndex}
+            entryId={selectedEntry?.id}
+          />
+          {selectedEntry != null && (
+            <View className="mt-2">
+              <PerfProbeSubtree id="workout-list">
+                <WorkoutExercisePager
+                  currentEntryIndex={currentEntryIndex}
+                  currentEntryId={selectedEntry.id}
+                  entryCount={progressEntries.length}
+                  windowWidth={windowWidth}
+                  forceUpdateEntryIndex={forceUpdateEntryIndex}
+                  onIndexChange={onPagerIndexChange}
+                  onSettledIndex={onPagerSettled}
+                >
+                  {progressEntries.map((entry, entryIndex) => (
+                    <WorkoutExercisePage
+                      key={entry.id}
+                      entry={entry}
+                      entryIndex={entryIndex}
+                      isCurrentPage={entryIndex === currentEntryIndex}
+                      tabStopIndex={entryIndex < currentEntryIndex ? -1 : 0}
+                      impressionsSeenRef={impressionsSeenRef}
+                      shouldRender={renderedIndices.has(entryIndex)}
+                      windowWidth={windowWidth}
+                      day={progressDay}
+                      stats={props.stats}
+                      history={props.history}
+                      otherStates={otherStates}
+                      program={props.program}
+                      programDay={props.programDay}
+                      progressId={progressId}
+                      progressStartTime={progressStartTime}
+                      userPromptedStateVars={progressUserPromptedStateVars}
+                      supersetEntry={supersetByEntryId.get(entry.id)}
+                      prevData={prevExerciseData[Exercise_toKey(entry.exercise)]}
+                      isCurrentProgress={isCurrentProgress}
+                      helps={props.helps}
+                      subscription={props.subscription}
+                      settings={props.settings}
+                      dispatch={dispatch}
+                      onTitleLayout={onTitleLayout}
+                    />
+                  ))}
+                </WorkoutExercisePager>
+              </PerfProbeSubtree>
+            </View>
+          )}
+        </View>
+      </NavScreenContent>
+    </WorkoutExpandedRowsContext.Provider>
   );
 }
 

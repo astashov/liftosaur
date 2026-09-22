@@ -6,6 +6,7 @@ export type INavScreenScrollListener = (e: NativeSyntheticEvent<NativeScrollEven
 export interface INavScreenScrollContextValue {
   scrollRef: RefObject<ScrollView | null>;
   scrollYRef: RefObject<number>;
+  contentSizeRef: RefObject<{ width: number; height: number }>;
   // The same offset, fed by the native animation driver rather than by JS. Anything whose
   // position is derived from the scroll has to interpolate this one — the ref and the
   // listeners lag by a frame or two, which shows up as the content drifting on fast scrolls.

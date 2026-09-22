@@ -3,9 +3,15 @@ import { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { WorkoutPagerSettle_index } from "./workoutPagerSettle";
 import { WorkoutPagerHeightContext } from "./workoutPagerHeightContext";
+import {
+  WorkoutPagerScroll_plan,
+  WorkoutPagerScroll_read,
+  WorkoutPagerScroll_shownIndex,
+} from "../utils/workoutPagerScroll";
 
 interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
+  currentEntryId: string;
   entryCount: number;
   windowWidth: number;
   forceUpdateEntryIndex: boolean;
@@ -17,7 +23,8 @@ interface IWorkoutExercisePagerProps {
 
 export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
-  const { currentEntryIndex, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } = props;
+  const { currentEntryIndex, currentEntryId, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } =
+    props;
   const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
   const onPageLayout = useCallback((entryIndex: number, height: number) => {
     if (height <= 0) {
@@ -33,15 +40,28 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   const currentEntryIndexRef = useRef(currentEntryIndex);
   currentEntryIndexRef.current = currentEntryIndex;
 
+  const offsetXRef = useRef(0);
+  const ownSlideTargetRef = useRef<number | undefined>(undefined);
+  const positionedWidthRef = useRef<number | undefined>(undefined);
+  const previousEntryIdRef = useRef(currentEntryId);
   useEffect(() => {
-    scrollRef.current?.scrollTo({ x: currentEntryIndex * windowWidth, animated: false });
+    const isNavigation = positionedWidthRef.current === windowWidth && previousEntryIdRef.current !== currentEntryId;
+    positionedWidthRef.current = windowWidth;
+    const shownIndex = WorkoutPagerScroll_shownIndex(offsetXRef.current, windowWidth);
+    const plan = WorkoutPagerScroll_plan(shownIndex, currentEntryIndex, isNavigation);
+    ownSlideTargetRef.current = plan.ownSlideTarget;
+    scrollRef.current?.scrollTo({ x: currentEntryIndex * windowWidth, animated: plan.animated });
   }, [forceUpdateEntryIndex, windowWidth]);
+  useEffect(() => {
+    previousEntryIdRef.current = currentEntryId;
+  }, [currentEntryId]);
 
   const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(fallbackTimerRef.current), []);
 
   const onScrollBeginDrag = useCallback((): void => {
     clearTimeout(fallbackTimerRef.current);
+    ownSlideTargetRef.current = undefined;
     isUserDraggingRef.current = true;
     dragStartIndexRef.current = currentEntryIndexRef.current;
   }, []);
@@ -88,11 +108,13 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
         return;
       }
       const scrollLeft = e.nativeEvent.contentOffset.x;
+      offsetXRef.current = scrollLeft;
       const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
-      if (selectedIndex === currentEntryIndex) {
-        return;
+      const read = WorkoutPagerScroll_read(ownSlideTargetRef.current, selectedIndex, currentEntryIndex);
+      ownSlideTargetRef.current = read.ownSlideTarget;
+      if (read.reportIndex != null) {
+        onIndexChange(read.reportIndex);
       }
-      onIndexChange(selectedIndex);
     },
     [currentEntryIndex, windowWidth, onIndexChange]
   );

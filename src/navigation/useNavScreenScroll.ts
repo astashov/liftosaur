@@ -111,6 +111,7 @@ export function useNavScreenScroll(options: INavScreenScrollOptions): INavScreen
     () => ({
       scrollRef,
       scrollYRef,
+      contentSizeRef,
       scrollAnimatedY,
       viewportRef,
       footerHeight,

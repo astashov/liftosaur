@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { memo, useCallback, useMemo } from "react";
 import Animated, { LayoutAnimationConfig } from "react-native-reanimated";
+import { useExpandedRowRegistration } from "./workoutCenterExpandedRow";
 import { IDispatch } from "../ducks/types";
 import {
   WorkoutBodyEntering,
@@ -366,8 +367,9 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     onOpenSubscription,
   };
 
+  const rowRef = useExpandedRowRegistration(entryIndex, !!props.isExpanded);
   return (
-    <Animated.View layout={WorkoutLayoutTransition} style={WorkoutLayoutClip}>
+    <Animated.View ref={rowRef} layout={WorkoutLayoutTransition} style={WorkoutLayoutClip}>
       {/* Only a swap between the two bodies fades, never the row mounting with the screen.
           The distinct keys make the swap an unmount and a mount, which entering and exiting need. */}
       <LayoutAnimationConfig skipEntering skipExiting>

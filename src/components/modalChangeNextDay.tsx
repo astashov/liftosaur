@@ -49,6 +49,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
 
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
+  const contentSizeRef = useRef({ width: 0, height: 0 });
   const scrollListenersRef = useRef<Set<INavScreenScrollListener>>(new Set());
   const addScrollListener = useCallback((listener: INavScreenScrollListener) => {
     scrollListenersRef.current.add(listener);
@@ -58,6 +59,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
   }, []);
   const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     scrollYRef.current = e.nativeEvent.contentOffset.y;
+    contentSizeRef.current = e.nativeEvent.contentSize;
     scrollListenersRef.current.forEach((l) => l(e));
   }, []);
   const scrollAnimatedY = useRef(new Animated.Value(0)).current;
@@ -76,6 +78,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
     () => ({
       scrollRef,
       scrollYRef,
+      contentSizeRef,
       scrollAnimatedY,
       viewportRef,
       footerHeight: 0,

@@ -6,6 +6,7 @@ const WHEEL_GESTURE_MS = 300;
 
 interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
+  currentEntryId: string;
   entryCount: number;
   windowWidth: number;
   forceUpdateEntryIndex: boolean;
