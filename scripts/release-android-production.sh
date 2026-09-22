@@ -9,6 +9,25 @@ NOTES_DIR="$ROOT/android/app/src/main/play/release-notes/en-US"
 NOTES_FILE="$NOTES_DIR/production.txt"
 PLAY_NOTES_LIMIT=500
 
+NO_SUBMIT=0
+for arg in "$@"; do
+  case "$arg" in
+    --no-submit) NO_SUBMIT=1 ;;
+    *)
+      echo "Unknown arg: $arg" >&2
+      echo "Usage: $0 [--no-submit]" >&2
+      echo "  --no-submit  upload the bundle and notes as a draft release on the production track;" >&2
+      echo "               nothing goes to review until you press \"Start rollout\" in Play Console" >&2
+      exit 1
+      ;;
+  esac
+done
+if [[ $NO_SUBMIT -eq 1 ]]; then
+  RELEASE_STATUS="draft"
+else
+  RELEASE_STATUS="completed"
+fi
+
 if [[ ! -f "$KEY" ]]; then
   echo "ERROR: service account key not found at:" >&2
   echo "  $KEY" >&2
@@ -84,12 +103,17 @@ echo "----------------------------------------"
 echo
 
 cd "$ROOT/android"
-echo "Building and uploading versionCode $CURRENT to the production track..."
-./gradlew publishReleaseBundle --rerun --track production --release-status completed
+echo "Building and uploading versionCode $CURRENT to the production track as $RELEASE_STATUS..."
+./gradlew publishReleaseBundle --rerun --track production --release-status "$RELEASE_STATUS"
 echo
 cd "$ROOT"
 TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/releaseAndroid/verifyProductionTrack.ts --versionCode "$CURRENT"
 echo
-echo "With managed publishing on, the release waits in Play Console"
-echo "(Publishing overview) until you press Publish after review."
+if [[ $NO_SUBMIT -eq 1 ]]; then
+  echo "Draft release created. Nothing is sent for review. In Play Console open"
+  echo "Production, edit the draft release, and press \"Start rollout to Production\" when ready."
+else
+  echo "With managed publishing on, the release waits in Play Console"
+  echo "(Publishing overview) until you press Publish after review."
+fi
 echo "Release notes saved to android/app/src/main/play/release-notes/en-US/production.txt"

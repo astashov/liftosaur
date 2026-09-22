@@ -238,11 +238,20 @@ async function main(): Promise<void> {
   const versionId = await findOrCreateAppStoreVersion(appId, flags.version);
   await attachBuild(versionId, buildId);
   await setWhatsNew(versionId, notes);
+  const versionUrl = `https://appstoreconnect.apple.com/apps/${appId}/distribution/ios/version/inflight`;
+  if (flags.noSubmit === "1") {
+    console.log("");
+    console.log(`Version ${flags.version} is prepared: build ${flags.build} attached, release notes set.`);
+    console.log(`Nothing is submitted. Press "Add for Review" in App Store Connect when ready,`);
+    console.log(`or run npm run release:ios:production -- --skip-build to submit it from here.`);
+    console.log(versionUrl);
+    return;
+  }
   await submitForReview(appId, versionId);
   console.log("");
   console.log(`Version ${flags.version} is in review. Release type is manual: after approval it waits`);
   console.log(`in App Store Connect until you press "Release This Version".`);
-  console.log(`https://appstoreconnect.apple.com/apps/${appId}/distribution/ios/version/inflight`);
+  console.log(versionUrl);
 }
 
 main().catch((error) => {

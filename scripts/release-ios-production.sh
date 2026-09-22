@@ -21,17 +21,21 @@ APP_STORE_NOTES_LIMIT=4000
 DRY_RUN=0
 SKIP_BUILD=0
 TESTFLIGHT=0
+NO_SUBMIT=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=1 ;;
     --skip-build) SKIP_BUILD=1 ;;
     --testflight) TESTFLIGHT=1 ;;
+    --no-submit) NO_SUBMIT=1 ;;
     *)
       echo "Unknown arg: $arg" >&2
-      echo "Usage: $0 [--dry-run] [--skip-build] [--testflight]" >&2
+      echo "Usage: $0 [--dry-run] [--skip-build] [--testflight] [--no-submit]" >&2
       echo "  --dry-run     archive and export a signed .ipa locally, no upload, no App Store Connect changes" >&2
       echo "  --skip-build  skip the archive and upload, only submit the already uploaded build for review" >&2
       echo "  --testflight  archive and upload, then stop: no release notes, no review submission" >&2
+      echo "  --no-submit   do everything up to the review: upload, create the version, attach the build," >&2
+      echo "                set the release notes, then stop without submitting for review" >&2
       exit 1
       ;;
   esac
@@ -43,6 +47,10 @@ if [[ $DRY_RUN -eq 1 && $SKIP_BUILD -eq 1 ]]; then
 fi
 if [[ $TESTFLIGHT -eq 1 && ($DRY_RUN -eq 1 || $SKIP_BUILD -eq 1) ]]; then
   echo "ERROR: --testflight cannot be combined with --dry-run or --skip-build." >&2
+  exit 1
+fi
+if [[ $NO_SUBMIT -eq 1 && ($DRY_RUN -eq 1 || $TESTFLIGHT -eq 1) ]]; then
+  echo "ERROR: --no-submit cannot be combined with --dry-run or --testflight, which never submit." >&2
   exit 1
 fi
 
@@ -221,9 +229,14 @@ EOF
 fi
 
 cd "$ROOT"
-echo "Waiting for App Store Connect to process the build, then submitting for review..."
+if [[ $NO_SUBMIT -eq 1 ]]; then
+  echo "Waiting for App Store Connect to process the build, then preparing the version (no review submission)..."
+else
+  echo "Waiting for App Store Connect to process the build, then submitting for review..."
+fi
 TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/releaseIos/submitToAppStore.ts \
   --version "$VERSION" \
   --build "$BUILD_NUMBER" \
-  --notesFile "$NOTES_FILE"
+  --notesFile "$NOTES_FILE" \
+  --noSubmit "$NO_SUBMIT"
 echo "Release notes saved to ios/release-notes/en-US/production.txt"
