@@ -40,6 +40,7 @@ import { Thunk_pushScreen } from "../ducks/thunks";
 import { IWorkoutSetType } from "./workoutExerciseSetFields";
 import { WorkoutExerciseSetCompact } from "./workoutExerciseSetCompact";
 import { WorkoutExerciseSetExpanded } from "./workoutExerciseSetExpanded";
+import { SetCompleteHaptic_play } from "../utils/setCompleteHaptic";
 
 export interface ISetColumnWidths {
   set: number;
@@ -255,6 +256,9 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   const onCompleteSet = useCallback(() => {
     FocusedInputFlush_flush();
     refocus();
+    if (!set.isCompleted) {
+      SetCompleteHaptic_play();
+    }
     dispatch({
       type: "CompleteSetAction",
       setIndex,
