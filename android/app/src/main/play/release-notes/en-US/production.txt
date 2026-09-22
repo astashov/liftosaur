@@ -1,3 +1,1 @@
-Added real-time sync - now when you change your program or workout through API,
-or through MCP (e.g. by ChatGPT or Claude converation) - it will immediately get
-reflected on device, without app waking up or reloading.
+Redesigned the workout screen. Decluttered it, and now expanding the current set row to make it readable from distance, and also easier to tap the checkmark to complete set.
