@@ -144,14 +144,17 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const isExternal = props.progress.isExternal;
 
   const onPagerIndexChange = useCallback(
-    (selectedIndex: number): void => {
+    (selectedIndex: number, isUserDriven?: boolean): void => {
       if (selectedIndex === currentEntryIndex) {
         return;
       }
-      if (!isExternal) {
+      if (!isExternal || isUserDriven) {
         updateProgress(
           dispatch,
-          lb<IHistoryRecord>().p("currentEntryIndex").record(selectedIndex),
+          [
+            lb<IHistoryRecord>().p("currentEntryIndex").record(selectedIndex),
+            lb<IHistoryRecord>().pi("ui", {}).p("isExternal").record(false),
+          ],
           "scroll-exercise-tab"
         );
       } else {

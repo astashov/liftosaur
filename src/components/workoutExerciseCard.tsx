@@ -525,7 +525,8 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           <View>
             <GroupHeader name={`Previous Note (from ${DateUtils_format(timestamp)})`} />
             <View className="pl-1 mb-1 border-purplev3-300" style={{ borderLeftWidth: 4 }}>
-              <Text className="text-sm select-text">{lastNote}</Text>
+              {/* An Android text selection keeps its page on screen, so the exercise pager snaps back to it */}
+              <Text className={Platform.OS === "web" ? "text-sm select-text" : "text-sm"}>{lastNote}</Text>
             </View>
           </View>
         )}
