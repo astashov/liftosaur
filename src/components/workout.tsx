@@ -57,6 +57,7 @@ import { WorkoutExercise } from "./workoutExercise";
 import { WorkoutExercisePager } from "./workoutExercisePager";
 import { Scroller, IScrollerHandle } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
+import { WorkoutStripReveal_offset } from "../utils/workoutStripReveal";
 import { Markdown } from "./markdown";
 import { GridDragHandle } from "./editProgram/editProgramGrid/gridDragHandle";
 import { IGridDragSession, useGridDragSession } from "./editProgram/editProgramGrid/useGridDragSession";
@@ -686,6 +687,22 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
     }
     prevEntriesLengthRef.current = curr;
   }, [props.progress.entries.length]);
+
+  useEffect(() => {
+    const offset = WorkoutStripReveal_offset({
+      index: currentEntryIndex,
+      count: countRef.current,
+      pitch,
+      gap,
+      padding: remValue,
+      offset: horizontalOffsetRef.current,
+      viewportWidth: viewportWidthRef.current,
+      contentWidth: contentWidthRef.current,
+    });
+    if (offset != null) {
+      thumbScrollerRef.current?.scrollTo(offset);
+    }
+  }, [currentEntryIndex, pitch, gap, remValue]);
 
   const onAddExercise = useCallback(() => {
     trackClick("workout-add-exercise-button");
