@@ -1,6 +1,8 @@
-import { Children, JSX, ReactNode, useCallback, useState } from "react";
+import { Children, JSX, ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { Animated, View, LayoutChangeEvent, Platform } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
+import { useReportSheetHeight } from "./ActiveSheetHeightContext";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 import { NavScreenScrollContext } from "./NavScreenScrollContext";
 import { useNavScreenScroll } from "./useNavScreenScroll";
@@ -22,6 +24,8 @@ export function NavScreenContent(props: {
   avoidSystemKeyboard?: boolean;
 }): JSX.Element {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   const [footerHeight, setFooterHeight] = useState(0);
   const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
@@ -103,7 +107,18 @@ export function NavScreenContent(props: {
             {props.footer}
           </View>
         ) : null}
+        {isFocused && props.footer != null && footerHeight > 0 ? (
+          <FooterHeightReport height={footerHeight + tabBarHeight} />
+        ) : null}
       </View>
     </NavScreenScrollContext.Provider>
   );
+}
+
+function FooterHeightReport(props: { height: number }): null {
+  const reportHeight = useReportSheetHeight();
+  useEffect(() => {
+    reportHeight(props.height);
+  }, [props.height, reportHeight]);
+  return null;
 }
