@@ -65,8 +65,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
           <Pressable
             className="items-center justify-center"
             style={{ width: columnWidths.set }}
-            disabled={props.onToggleExpand == null}
+            disabled={props.onToggleExpand == null && onEditTarget == null}
             onPress={props.onToggleExpand}
+            onLongPress={onEditTarget}
           >
             <View
               className="w-scaled-6 h-scaled-6 items-center justify-center"
@@ -89,8 +90,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 className="flex-row items-center flex-1 pt-1"
                 data-testid="workout-set-row-head"
                 testID="workout-set-row-head"
-                disabled={onTargetPress == null}
+                disabled={onTargetPress == null && onEditTarget == null}
                 onPress={onTargetPress}
+                onLongPress={onEditTarget}
               >
                 <View className="flex-1" data-testid="workout-set-target" testID="workout-set-target">
                   <WorkoutExerciseSetTargetField
@@ -252,8 +254,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <Pressable
                 className="flex-row items-center gap-2 pr-4 mt-1"
                 testID="set-plates"
-                disabled={props.onToggleExpand == null}
+                disabled={props.onToggleExpand == null && onEditTarget == null}
                 onPress={props.onToggleExpand}
+                onLongPress={onEditTarget}
               >
                 {isSubscribed && props.platesLine.isMatch ? (
                   <PlatesBar plates={props.platesLine.sidePlates} />
@@ -280,8 +283,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <Pressable
                 className="pr-4 mt-1"
                 testID="set-previous-lines"
-                disabled={props.onToggleExpand == null}
+                disabled={props.onToggleExpand == null && onEditTarget == null}
                 onPress={props.onToggleExpand}
+                onLongPress={onEditTarget}
               >
                 {previousLines.map((line) => (
                   <View key={line.label} className="flex-row flex-wrap items-center gap-1">

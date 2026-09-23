@@ -32,8 +32,9 @@ export function WorkoutExerciseSetCompact(props: IWorkoutExerciseSetBodyProps): 
           className="flex-row items-center flex-1"
           data-testid="workout-set-row-head"
           testID="workout-set-row-head"
-          disabled={onTargetPress == null}
+          disabled={onTargetPress == null && props.onEditTarget == null}
           onPress={onTargetPress}
+          onLongPress={props.onEditTarget}
         >
           <View className="items-center justify-center py-1" style={{ width: columnWidths.set }}>
             <View
