@@ -41,6 +41,9 @@ import { IWorkoutSetType } from "./workoutExerciseSetFields";
 import { WorkoutExerciseSetCompact } from "./workoutExerciseSetCompact";
 import { WorkoutExerciseSetExpanded } from "./workoutExerciseSetExpanded";
 import { SetCompleteHaptic_play } from "../utils/setCompleteHaptic";
+import ReactNativeHapticFeedback from "react-native-haptic-feedback";
+
+const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettings: false };
 
 export interface ISetColumnWidths {
   set: number;
@@ -145,6 +148,7 @@ export interface IWorkoutExerciseSetBodyProps {
   onOpenRoundingInfo: () => void;
   onToggleExpand?: () => void;
   onEditTarget?: () => void;
+  onLongPressSet?: () => void;
   onDeleteSet: () => void;
   onMenuOpenChange?: (isOpen: boolean) => void;
   platesLine?: IWorkoutSetPlatesLine;
@@ -310,6 +314,10 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       set
     );
   }, [trackClick, dispatch, settings, type, entryIndex, setIndex, programExercise, exerciseType, set]);
+  const onLongPressSet = useCallback(() => {
+    ReactNativeHapticFeedback.trigger("impactMedium", HAPTIC_OPTIONS);
+    onEditTarget();
+  }, [onEditTarget]);
   const onDeleteSet = useCallback(() => {
     trackClick("workout-set-delete");
     updateProgress(
@@ -367,6 +375,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     onOpenRoundingInfo,
     onToggleExpand: onToggleExpandProp ? onToggleExpand : undefined,
     onEditTarget: hasEdit ? onEditTarget : undefined,
+    onLongPressSet: hasEdit ? onLongPressSet : undefined,
     onDeleteSet,
     onMenuOpenChange: props.onMenuOpenChange,
     platesLine,

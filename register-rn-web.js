@@ -8,7 +8,8 @@ if (typeof global.__DEV__ === "undefined") {
 
 const gestureHandlerStub = path.join(__dirname, "src/utils/rnStubs/gestureHandler.js");
 const reanimatedStub = path.join(__dirname, "src/utils/rnStubs/reanimated.js");
-const uniwindShim = path.join(__dirname, "src/utils/uniwindSsrShim.js");
+const hapticFeedbackStub = path.join(__dirname, "src/utils/rnStubs/hapticFeedback.js");
+const uniwindShim =path.join(__dirname, "src/utils/uniwindSsrShim.js");
 const uniwindSep = `${path.sep}uniwind${path.sep}`;
 
 Module._resolveFilename = function (request, parent, isMain, options) {
@@ -27,6 +28,9 @@ Module._resolveFilename = function (request, parent, isMain, options) {
   }
   if (request === "react-native-reanimated" || request.startsWith("react-native-reanimated/")) {
     return reanimatedStub;
+  }
+  if (request === "react-native-haptic-feedback" || request.startsWith("react-native-haptic-feedback/")) {
+    return hapticFeedbackStub;
   }
   return origResolve.call(this, request, parent, isMain, options);
 };

@@ -240,6 +240,9 @@
     "decision-in-view:useCallback#2": "predates the rule",
     "long-view": "predates the rule"
   },
+  "src/components/workoutExerciseSet.tsx": {
+    "long-view": "one set row: its dispatch callbacks and the props both bodies share; rendering lives in workoutExerciseSetCompact.tsx and workoutExerciseSetExpanded.tsx"
+  },
   "src/components/workoutMenu.tsx": {
     "decision-in-view:useMemo#1": "maps menu ids to their dispatches; which ids appear is decided in workoutMenuActions.ts"
   },

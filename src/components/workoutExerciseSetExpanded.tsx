@@ -29,7 +29,7 @@ const COMPLETE_ICON_SIZE = 48;
 const UNILATERAL_WEIGHT_FLEX = 1.4;
 
 export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps): JSX.Element {
-  const { set, isUnilateral, columnWidths, onEditTarget, onDeleteSet } = props;
+  const { set, isUnilateral, columnWidths, onEditTarget, onLongPressSet, onDeleteSet } = props;
   const onTargetPress = props.isRoundedWeight ? props.onOpenRoundingInfo : props.onToggleExpand;
   const actions = useMemo<IActionMenuAction[]>(() => {
     const list: IActionMenuAction[] = [];
@@ -65,9 +65,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
           <Pressable
             className="items-center justify-center"
             style={{ width: columnWidths.set }}
-            disabled={props.onToggleExpand == null && onEditTarget == null}
+            disabled={props.onToggleExpand == null && onLongPressSet == null}
             onPress={props.onToggleExpand}
-            onLongPress={onEditTarget}
+            onLongPress={onLongPressSet}
           >
             <View
               className="w-scaled-6 h-scaled-6 items-center justify-center"
@@ -90,9 +90,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 className="flex-row items-center flex-1 pt-1"
                 data-testid="workout-set-row-head"
                 testID="workout-set-row-head"
-                disabled={onTargetPress == null && onEditTarget == null}
+                disabled={onTargetPress == null && onLongPressSet == null}
                 onPress={onTargetPress}
-                onLongPress={onEditTarget}
+                onLongPress={onLongPressSet}
               >
                 <View className="flex-1" data-testid="workout-set-target" testID="workout-set-target">
                   <WorkoutExerciseSetTargetField
@@ -254,9 +254,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <Pressable
                 className="flex-row items-center gap-2 pr-4 mt-1"
                 testID="set-plates"
-                disabled={props.onToggleExpand == null && onEditTarget == null}
+                disabled={props.onToggleExpand == null && onLongPressSet == null}
                 onPress={props.onToggleExpand}
-                onLongPress={onEditTarget}
+                onLongPress={onLongPressSet}
               >
                 {isSubscribed && props.platesLine.isMatch ? (
                   <PlatesBar plates={props.platesLine.sidePlates} />
@@ -283,9 +283,9 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <Pressable
                 className="pr-4 mt-1"
                 testID="set-previous-lines"
-                disabled={props.onToggleExpand == null && onEditTarget == null}
+                disabled={props.onToggleExpand == null && onLongPressSet == null}
                 onPress={props.onToggleExpand}
-                onLongPress={onEditTarget}
+                onLongPress={onLongPressSet}
               >
                 {previousLines.map((line) => (
                   <View key={line.label} className="flex-row flex-wrap items-center gap-1">
