@@ -114,6 +114,8 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
           key={index}
           style={{
             minWidth: "100vw",
+            height: index === currentEntryIndex ? undefined : 0,
+            alignSelf: "flex-start",
             scrollSnapAlign: "center",
             scrollSnapStop: "always",
           }}
