@@ -26,6 +26,7 @@ import {
 } from "./workoutExerciseSetFields";
 
 const COMPLETE_ICON_SIZE = 48;
+const UNILATERAL_WEIGHT_FLEX = 1.4;
 
 export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps): JSX.Element {
   const { set, isUnilateral, columnWidths, onEditTarget, onDeleteSet } = props;
@@ -123,7 +124,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
 
             <View className="flex-row items-center gap-2 pr-4">
               {isUnilateral ? (
-                <View className="flex-row items-center flex-1 gap-1">
+                <>
                   <Text className="text-xs text-text-secondary">L</Text>
                   <InputNumber2
                     size="lg"
@@ -158,7 +159,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                     step={1}
                     inputCommitMode="blur"
                   />
-                </View>
+                </>
               ) : (
                 <InputNumber2
                   size="lg"
@@ -181,6 +182,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
               <InputWeight2
                 size="lg"
                 fill={true}
+                fillFlex={isUnilateral ? UNILATERAL_WEIGHT_FLEX : 1}
                 tabIndex={tabIndex}
                 tabStop={true}
                 name="set-weight"

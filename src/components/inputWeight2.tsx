@@ -28,6 +28,7 @@ interface IInputWeight2Props {
   width?: number;
   size?: "md" | "lg";
   fill?: boolean;
+  fillFlex?: number;
   showUnitInside?: boolean;
   placeholder?: string;
   exerciseType?: IExerciseType;
@@ -163,7 +164,7 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
   }, [showPlates, evaluatedWeight, props.settings, props.exerciseType, props.addOn]);
 
   return (
-    <View style={props.fill ? { flex: 1 } : undefined}>
+    <View style={props.fill ? { flex: props.fillFlex ?? 1 } : undefined}>
       <InputNumber2
         width={props.width}
         size={props.size}
