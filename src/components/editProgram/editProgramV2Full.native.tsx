@@ -16,6 +16,7 @@ import { useModal } from "../../navigation/ModalStateContext";
 import { PlannerKey_fromFullName } from "../../pages/planner/plannerKey";
 import { LiftoEditorBrain_dayDataAt } from "../primitives/liftoEditorBrain";
 import { DayLiftoEditorInline } from "./dayLiftoEditorInline";
+import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -75,6 +76,9 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
         error={
           props.ui.fullTextError ? props.ui.fullTextError : evaluatedWeeks.success ? undefined : evaluatedWeeks.error
         }
+        onCustomErrorCta={(err) => (
+          <EditProgramCustomErrorCta dayData={{ week: 1, dayInWeek: 1 }} dispatch={props.plannerDispatch} err={err} />
+        )}
         // Looked up across the whole program rather than in the caret's day: the same exercise
         // carries the same equipment wherever it appears, and this is asked while focus is
         // still crossing into it.

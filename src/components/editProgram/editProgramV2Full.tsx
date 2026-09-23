@@ -72,7 +72,12 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           }
           value={fulltext}
           onCustomErrorCta={(err) => (
-            <EditProgramCustomErrorCta dayData={{ week: 1, dayInWeek: 1 }} dispatch={props.plannerDispatch} err={err} />
+            <EditProgramCustomErrorCta
+              dayData={{ week: 1, dayInWeek: 1 }}
+              dispatch={props.plannerDispatch}
+              err={err}
+              isInvertedColors={true}
+            />
           )}
           onChange={(text) => {
             setFulltext(text);

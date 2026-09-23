@@ -64,6 +64,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
             dayData={{ week: weekIndex + 1, dayInWeek: dayIndex + 1 }}
             dispatch={props.plannerDispatch}
             err={err}
+            isInvertedColors={true}
           />
         )}
         onChange={(e) => {

@@ -12,6 +12,7 @@ interface IPlannerEditorCustomCtaProps {
   err: IEditorError;
   dayData: IShortDayData;
   dispatch: ILensDispatch<IPlannerState>;
+  isInvertedColors?: boolean;
 }
 
 export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): JSX.Element {
@@ -47,7 +48,11 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
         );
       }}
     >
-      <Text className="inline-block underline text-text-alwayswhite">Add custom exercise</Text>
+      <Text
+        className={`inline-block underline ${props.isInvertedColors ? "text-text-alwayswhite" : "text-xs text-text-error"}`}
+      >
+        Add custom exercise
+      </Text>
     </Pressable>
   );
 }

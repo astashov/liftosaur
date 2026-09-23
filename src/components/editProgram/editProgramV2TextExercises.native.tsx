@@ -17,6 +17,7 @@ import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconWatch } from "../icons/iconWatch";
 import { DayLiftoEditorInline } from "./dayLiftoEditorInline";
+import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 
 interface IEditProgramV2TextExercisesProps {
   exerciseFullNames: string[];
@@ -61,6 +62,13 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         settings={props.settings}
         evaluatedProgram={props.evaluatedProgram}
         error={evaluatedDay.success ? undefined : evaluatedDay.error}
+        onCustomErrorCta={(err) => (
+          <EditProgramCustomErrorCta
+            dayData={{ week: weekIndex + 1, dayInWeek: dayIndex + 1 }}
+            dispatch={plannerDispatch}
+            err={err}
+          />
+        )}
         exerciseTypeFor={(fullName) => {
           const key = PlannerKey_fromFullName(fullName, props.settings.exercises);
           return exercises.find((e) => e.key === key)?.exerciseType;

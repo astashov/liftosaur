@@ -43,6 +43,7 @@ function lineAt(text: string, index: number): number {
 
 interface IStickyErrorProps {
   message?: string;
+  cta?: ReactNode;
   children: ReactNode;
 }
 
@@ -124,6 +125,7 @@ function StickyError(props: IStickyErrorProps): JSX.Element {
           onLayout={onBannerLayout}
         >
           <Text className="text-xs font-semibold text-text-error">{props.message}</Text>
+          {props.cta}
         </Animated.View>
       ) : null}
       {props.children}
@@ -148,6 +150,7 @@ interface IDayLiftoEditorInlineProps {
   // Offsets are relative to this editor's own document, so its own numbering is what the
   // error's line refers to.
   error?: PlannerSyntaxError;
+  onCustomErrorCta?: (error: PlannerSyntaxError) => ReactNode;
   // Equipment for weight stepping. Answered without an offset because the controller asks
   // while focus is crossing into the exercise, before this component has re-rendered.
   exerciseTypeFor: (exerciseFullName: string) => IExerciseType | undefined;
@@ -476,7 +479,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
   );
 
   return (
-    <StickyError message={error?.message}>
+    <StickyError message={error?.message} cta={error != null ? props.onCustomErrorCta?.(error) : undefined}>
       <View
         className="p-2 border rounded-lg"
         style={{ borderColor: error != null ? Tailwind_semantic().text.error : Tailwind_semantic().border.neutral }}
