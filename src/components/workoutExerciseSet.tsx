@@ -103,6 +103,7 @@ interface IWorkoutExerciseSet {
   isNext?: boolean;
   isExpanded?: boolean;
   onToggleExpand?: (mode: IProgressMode, setIndex: number) => void;
+  onCompleteExpansion?: (mode: IProgressMode, setIndex: number) => void;
   previousLines?: IWorkoutSetPreviousLine[];
   onMenuOpenChange?: (isOpen: boolean) => void;
   subscription?: ISubscription;
@@ -170,7 +171,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   const weightInputWidth = props.columnWidths.weight / remValue;
 
   const { dispatch, lbSet, lbSets, setIndex, entryIndex, programExercise, otherStates, isPlayground, type } = props;
-  const { onToggleExpand: onToggleExpandProp, exerciseType, settings } = props;
+  const { onToggleExpand: onToggleExpandProp, onCompleteExpansion, exerciseType, settings } = props;
 
   const onInputLeftReps = useCallback(
     (value: number | undefined) => {
@@ -263,6 +264,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     if (!set.isCompleted) {
       SetCompleteHaptic_play();
     }
+    onCompleteExpansion?.(type, setIndex);
     dispatch({
       type: "CompleteSetAction",
       setIndex,
@@ -274,7 +276,18 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       forceUpdateEntryIndex: type === "workout" && !set.isCompleted,
       isExternal: false,
     });
-  }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted, refocus]);
+  }, [
+    dispatch,
+    setIndex,
+    entryIndex,
+    programExercise,
+    otherStates,
+    isPlayground,
+    type,
+    set.isCompleted,
+    refocus,
+    onCompleteExpansion,
+  ]);
   const onEditSetTimer = useCallback(() => {
     trackClick("workout-set-timer-edit-open");
     updateProgress(

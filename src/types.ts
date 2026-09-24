@@ -1565,6 +1565,7 @@ export interface IWorkoutSettings {
   pickerSort?: IExercisePickerSort;
   showWorkoutNotes?: boolean;
   showExerciseNotes?: boolean;
+  shouldCollapseSets?: boolean;
 }
 const _VWorkoutSettings = v.object({
   targetType: VTargetType,
@@ -1574,6 +1575,7 @@ const _VWorkoutSettings = v.object({
   pickerSort: v.optional(VExercisePickerSort),
   showWorkoutNotes: v.optional(v.boolean()),
   showExerciseNotes: v.optional(v.boolean()),
+  shouldCollapseSets: v.optional(v.boolean()),
 });
 const _VWorkoutSettingsMatches: IEquals<v.InferOutput<typeof _VWorkoutSettings>, IWorkoutSettings> = true;
 void _VWorkoutSettingsMatches;

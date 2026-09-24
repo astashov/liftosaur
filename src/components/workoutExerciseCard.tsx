@@ -28,6 +28,7 @@ import { Markdown } from "./markdown";
 import {
   IWorkoutSetExpansionOverride,
   WorkoutSetExpansion_expanded,
+  WorkoutSetExpansion_shouldCollapseSetsAfterComplete,
   WorkoutSetExpansion_toggle,
 } from "../utils/workoutSetExpansion";
 import { WorkoutHints_recordUseInState } from "../utils/workoutHintsDispatch";
@@ -270,15 +271,22 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const helps = props.helps;
   const [expansionOverride, setExpansionOverride] = useState<IWorkoutSetExpansionOverride>(undefined);
   const [isSetMenuOpen, setIsSetMenuOpen] = useState(false);
-  const expandedSetValue = WorkoutSetExpansion_expanded(entry, expansionOverride);
+  const shouldCollapseSets = !!settings.workoutSettings.shouldCollapseSets;
+  const expandedSetValue = WorkoutSetExpansion_expanded(entry, expansionOverride, shouldCollapseSets);
   const expandedSet = useMemo(() => expandedSetValue, [expandedSetValue?.mode, expandedSetValue?.setIndex]);
   // Read through a ref, so the callback survives a set completion and the other rows skip rendering.
-  const toggleInputRef = useRef({ entry, expansionOverride, helps });
-  toggleInputRef.current = { entry, expansionOverride, helps };
+  const toggleInputRef = useRef({ entry, expansionOverride, helps, shouldCollapseSets, expandedSet });
+  toggleInputRef.current = { entry, expansionOverride, helps, shouldCollapseSets, expandedSet };
   const onToggleExpand = useCallback(
     (mode: IProgressMode, setIndex: number): void => {
       const current = toggleInputRef.current;
-      const next = WorkoutSetExpansion_toggle(current.entry, current.expansionOverride, mode, setIndex);
+      const next = WorkoutSetExpansion_toggle(
+        current.entry,
+        current.expansionOverride,
+        current.shouldCollapseSets,
+        mode,
+        setIndex
+      );
       setExpansionOverride(next);
       trackClick(next?.kind === "collapsed" ? "workout-set-collapse" : "workout-set-expand");
       if (next?.kind === "expanded") {
@@ -287,16 +295,37 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     },
     [dispatch, trackClick]
   );
+  const onCompleteSet = useCallback(
+    (mode: IProgressMode, setIndex: number): void => {
+      const current = toggleInputRef.current;
+      const next = WorkoutSetExpansion_shouldCollapseSetsAfterComplete(
+        current.entry,
+        current.expandedSet,
+        current.shouldCollapseSets,
+        mode,
+        setIndex
+      );
+      if (next !== current.shouldCollapseSets) {
+        updateSettings(
+          dispatch,
+          lb<ISettings>().p("workoutSettings").p("shouldCollapseSets").record(next),
+          "toggle-collapse-sets"
+        );
+      }
+    },
+    [dispatch]
+  );
   const isMultiweek = (props.program?.weeks.length ?? 0) > 1;
   const expansion = useMemo<IWorkoutExerciseSetsExpansion>(
     () => ({
       expanded: expandedSet,
       onToggle: onToggleExpand,
+      onComplete: onCompleteSet,
       prevData: props.prevData,
       isMultiweek,
       onMenuOpenChange: setIsSetMenuOpen,
     }),
-    [expandedSet, onToggleExpand, props.prevData, isMultiweek]
+    [expandedSet, onToggleExpand, onCompleteSet, props.prevData, isMultiweek]
   );
 
   const subscription = props.subscription;

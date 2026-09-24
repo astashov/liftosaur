@@ -67,6 +67,7 @@ interface IWorkoutExerciseAllSets {
 export interface IWorkoutExerciseSetsExpansion {
   expanded: IWorkoutExpandedSet | undefined;
   onToggle: (mode: IProgressMode, setIndex: number) => void;
+  onComplete: (mode: IProgressMode, setIndex: number) => void;
   prevData: IPrevExerciseData | undefined;
   isMultiweek: boolean;
   onMenuOpenChange: (isOpen: boolean) => void;
@@ -254,6 +255,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             isNext={nextSetIndex === i}
             isExpanded={expanded?.mode === "warmup" && expanded.setIndex === i}
             onToggleExpand={expansion?.onToggle}
+            onCompleteExpansion={expansion?.onComplete}
             previousLines={expanded?.mode === "warmup" && expanded.setIndex === i ? previousLines : undefined}
             onMenuOpenChange={expansion?.onMenuOpenChange}
             setIndex={i}
@@ -270,6 +272,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             key={`workout-${set.id}-${i}`}
             isExpanded={expanded?.mode === "workout" && expanded.setIndex === i}
             onToggleExpand={expansion?.onToggle}
+            onCompleteExpansion={expansion?.onComplete}
             previousLines={expanded?.mode === "workout" && expanded.setIndex === i ? previousLines : undefined}
             onMenuOpenChange={expansion?.onMenuOpenChange}
             isNext={nextSetIndex - warmupSets.length === i}

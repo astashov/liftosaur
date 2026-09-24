@@ -40,7 +40,8 @@ function nextUnfinished(entry: IHistoryEntry): IWorkoutExpandedSet | undefined {
 
 export function WorkoutSetExpansion_expanded(
   entry: IHistoryEntry,
-  override: IWorkoutSetExpansionOverride
+  override: IWorkoutSetExpansionOverride,
+  shouldCollapseSets: boolean
 ): IWorkoutExpandedSet | undefined {
   if (override?.kind === "collapsed" && override.completedCount === completedCount(entry)) {
     return undefined;
@@ -52,16 +53,37 @@ export function WorkoutSetExpansion_expanded(
       return found;
     }
   }
-  return nextUnfinished(entry);
+  return shouldCollapseSets ? undefined : nextUnfinished(entry);
+}
+
+export function WorkoutSetExpansion_shouldCollapseSetsAfterComplete(
+  entry: IHistoryEntry,
+  expanded: IWorkoutExpandedSet | undefined,
+  shouldCollapseSets: boolean,
+  mode: IProgressMode,
+  setIndex: number
+): boolean {
+  const set = setAt(entry, mode, setIndex);
+  if (set == null || set.isCompleted) {
+    return shouldCollapseSets;
+  }
+  if (expanded == null) {
+    return true;
+  }
+  if (expanded.mode === mode && expanded.setIndex === setIndex) {
+    return false;
+  }
+  return shouldCollapseSets;
 }
 
 export function WorkoutSetExpansion_toggle(
   entry: IHistoryEntry,
   override: IWorkoutSetExpansionOverride,
+  shouldCollapseSets: boolean,
   mode: IProgressMode,
   setIndex: number
 ): IWorkoutSetExpansionOverride {
-  const expanded = WorkoutSetExpansion_expanded(entry, override);
+  const expanded = WorkoutSetExpansion_expanded(entry, override, shouldCollapseSets);
   if (expanded && expanded.mode === mode && expanded.setIndex === setIndex) {
     return { kind: "collapsed", completedCount: completedCount(entry) };
   }
