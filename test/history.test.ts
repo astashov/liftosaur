@@ -167,6 +167,24 @@ describe("History", () => {
       expect(data.bestAmrap?.set.id).to.eql("a2");
     });
 
+    it("counts a unilateral set by the side with fewer reps", () => {
+      const unilateral: ISet = {
+        vtype: "set",
+        id: "u",
+        index: 0,
+        reps: 8,
+        isUnilateral: true,
+        isCompleted: true,
+        completedReps: 8,
+        completedRepsLeft: 3,
+        completedWeight: { value: 200, unit: "lb" },
+      };
+      const history = [buildRecord(now - 1 * day, [{ ...buildEntry(squat, true), sets: [unilateral] }])];
+      const data = History_buildPrevExerciseData(history, now)[Exercise_toKey(squat)];
+      expect(data.bestByReps[3]?.set.id).to.eql("u");
+      expect(data.bestByReps[8]).to.eql(undefined);
+    });
+
     it("skips non-started entries when picking lastEntry", () => {
       const history = [
         buildRecord(now - 5 * day, [buildEntry(squat, true)]),

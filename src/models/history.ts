@@ -490,9 +490,16 @@ function History_amrapScore(set: ISet, weight: IWeight, reps: number): number {
   return Weight_convertTo(Weight_getOneRepMax(weight, reps, set.completedRpe), "lb").value;
 }
 
+function History_bothSidesReps(set: ISet): number | undefined {
+  if (set.completedReps == null || set.completedRepsLeft == null) {
+    return set.completedReps;
+  }
+  return Math.min(set.completedReps, set.completedRepsLeft);
+}
+
 function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number): void {
   const weight = set.completedWeight;
-  const reps = set.completedReps;
+  const reps = History_bothSidesReps(set);
   if (!set.isCompleted || weight == null || reps == null || reps <= 0) {
     return;
   }

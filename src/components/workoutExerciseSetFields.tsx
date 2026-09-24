@@ -8,7 +8,7 @@ import { FastText } from "./primitives/fastText";
 import { StyledText, StyledText_cls } from "../utils/styledText";
 import { useRem } from "../utils/useRem";
 import { WorkoutExerciseUtils_setsStatusToTextColorValue } from "../utils/workoutExerciseUtils";
-import { Reps_setsStatus, Reps_avgUnilateralCompletedReps } from "../models/set";
+import { Reps_setsStatus, Reps_avgUnilateralCompletedReps, Reps_displayCompletedReps } from "../models/set";
 import {
   Weight_eq,
   Weight_rpeMultiplier,
@@ -138,7 +138,7 @@ export function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX
   const statusColor = WorkoutExerciseUtils_setsStatusToTextColorValue(Reps_setsStatus([set]));
   const semibold = { ...cls("font-semibold"), color: statusColor };
   const builder = new StyledText();
-  builder.add(set.completedReps != null ? n(set.completedReps) : "-", semibold);
+  builder.add(Reps_displayCompletedReps(set), semibold);
   builder.add(" × ", cls("text-text-secondary"));
   builder.add(set.completedWeight ? set.completedWeight.value.toString() : "-", semibold);
   builder.add(set.completedWeight?.unit, { ...cls("text-xs"), color: statusColor });
