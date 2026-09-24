@@ -80,7 +80,7 @@ export function CustomKeyboardProvider(props: {
   const [shouldMount, setShouldMount] = useState(false);
   const slideY = useRef(new Animated.Value(400)).current;
   const prevActiveRef = useRef<IKeyboardConfig | null>(null);
-  const touchStartRef = useRef<{ x: number; y: number; openGen: number } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; openGen: number; activeId: string | null } | null>(null);
   const openGenRef = useRef(0);
   const insets = useSafeAreaInsets();
   const bottomOverflow = props.applySafeAreaBottom === false ? insets.bottom : 0;
@@ -212,7 +212,12 @@ export function CustomKeyboardProvider(props: {
           if (!t) {
             return;
           }
-          touchStartRef.current = { x: t.pageX, y: t.pageY, openGen: openGenRef.current };
+          touchStartRef.current = {
+            x: t.pageX,
+            y: t.pageY,
+            openGen: openGenRef.current,
+            activeId: KeyboardActiveId_get(),
+          };
         }}
         onTouchEnd={(e) => {
           const start = touchStartRef.current;
@@ -220,7 +225,7 @@ export function CustomKeyboardProvider(props: {
           if (!start || activeConfig == null) {
             return;
           }
-          if (openGenRef.current !== start.openGen) {
+          if (openGenRef.current !== start.openGen || KeyboardActiveId_get() !== start.activeId) {
             return;
           }
           const t = e.nativeEvent.changedTouches[0];
