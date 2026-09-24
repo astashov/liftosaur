@@ -11,6 +11,9 @@ module.exports = {
     "<rootDir>/test-render/setup/nativeMocks.ts",
   ],
   watchman: false,
+  // Crawling the repo root pulls in ios/build, worktrees/ and .archdoc-snapshots/, each holding a
+  // second copy of a package.json that haste then reports as a naming collision.
+  roots: ["<rootDir>/src", "<rootDir>/test", "<rootDir>/test-render", "<rootDir>/node_modules"],
   moduleNameMapper: {
     "\\.css$": "<rootDir>/test-render/setup/emptyModule.js",
   },
