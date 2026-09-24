@@ -200,7 +200,11 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="items-center justify-center flex-1"
             onPress={() => setIsExpanded(false)}
           >
-            <Text numberOfLines={1} data-testid="rest-timer-current" className="text-2xl font-bold text-text-alwayswhite">
+            <Text
+              numberOfLines={1}
+              data-testid="rest-timer-current"
+              className="text-2xl font-bold text-text-alwayswhite"
+            >
               {TimeUtils_formatMMSS(timeDifference)}
             </Text>
             <Text numberOfLines={1} data-testid="rest-timer-total" className={`text-sm ${totalColorClass}`}>

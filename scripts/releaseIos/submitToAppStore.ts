@@ -119,7 +119,9 @@ async function waitForProcessedBuild(appId: string, version: string, buildNumber
         `Build ${version} (${buildNumber}) still not processed after ${BUILD_POLL_TIMEOUT_MS / 60000} minutes`
       );
     }
-    console.log(`${new Date().toLocaleTimeString()} build ${version} (${buildNumber}): ${state ?? "not visible yet"}, waiting...`);
+    console.log(
+      `${new Date().toLocaleTimeString()} build ${version} (${buildNumber}): ${state ?? "not visible yet"}, waiting...`
+    );
     await sleep(BUILD_POLL_INTERVAL_MS);
   }
 }
@@ -199,10 +201,9 @@ async function submitForReview(appId: string, versionId: string): Promise<void> 
     });
     submissionId = created.data.id;
   }
-  const items = await request<{ data: { id: string; relationships?: { appStoreVersion?: { data?: { id: string } } } }[] }>(
-    "GET",
-    `/reviewSubmissions/${submissionId}/items?include=appStoreVersion`
-  );
+  const items = await request<{
+    data: { id: string; relationships?: { appStoreVersion?: { data?: { id: string } } } }[];
+  }>("GET", `/reviewSubmissions/${submissionId}/items?include=appStoreVersion`);
   const alreadyIncluded = items.data.some((item) => item.relationships?.appStoreVersion?.data?.id === versionId);
   if (!alreadyIncluded) {
     await request("POST", "/reviewSubmissionItems", {

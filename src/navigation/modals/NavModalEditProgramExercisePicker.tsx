@@ -21,7 +21,10 @@ import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plann
 import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ObjectUtils_clone } from "../../utils/object";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
-import { EditProgramUiHelpers_duplicateCurrentInstance, EditProgramUiHelpers_changeAllInstances } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_duplicateCurrentInstance,
+  EditProgramUiHelpers_changeAllInstances,
+} from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { ProgramRewrite_changedKeys } from "../../models/programRewrite";
 import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import type { IRootStackParamList } from "../types";

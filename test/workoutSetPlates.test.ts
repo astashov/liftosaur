@@ -22,6 +22,7 @@ describe("WorkoutSetPlates", () => {
   it("formats one side for a barbell exercise and flags an exact match", () => {
     expect(WorkoutSetPlates_line(set(135), settings, { id: "squat", equipment: "barbell" })).to.eql({
       plates: "45",
+      sidePlates: [{ value: 45, unit: "lb" }],
       isMatch: true,
     });
   });

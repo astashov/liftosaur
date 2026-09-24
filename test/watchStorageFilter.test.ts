@@ -158,10 +158,7 @@ describe("WatchStorageFilter_filterForPhone", () => {
   it("keeps a phone-only record the watch never had", () => {
     const watch = buildStorage(2, 10);
     const phoneOnly = buildRecord(9000, 10);
-    const phone = Storage_fillVersions(
-      { ...Storage_getDefault(), history: [phoneOnly, ...watch.history] },
-      "phone"
-    );
+    const phone = Storage_fillVersions({ ...Storage_getDefault(), history: [phoneOnly, ...watch.history] }, "phone");
     const payload = JSON.parse(WatchStorageFilter_filterForPhoneJson(watch, 1_000_000, UNLIMITED)) as IStorage;
 
     const merged = Storage_mergeStorage(phone, payload, "phone");
@@ -174,10 +171,7 @@ describe("WatchStorageFilter_filterForPhone", () => {
   it("moves a phone-only newest record out of position, which consumers must not depend on", () => {
     const watch = buildStorage(2, 10);
     const phoneOnly = buildRecord(9000, 10);
-    const phone = Storage_fillVersions(
-      { ...Storage_getDefault(), history: [phoneOnly, ...watch.history] },
-      "phone"
-    );
+    const phone = Storage_fillVersions({ ...Storage_getDefault(), history: [phoneOnly, ...watch.history] }, "phone");
     const payload = JSON.parse(WatchStorageFilter_filterForPhoneJson(watch, 1_000_000, UNLIMITED)) as IStorage;
 
     const merged = Storage_mergeStorage(phone, payload, "phone");

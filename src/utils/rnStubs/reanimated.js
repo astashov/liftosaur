@@ -76,6 +76,7 @@ const Animated = {
 module.exports = {
   default: Animated,
   View,
+  LayoutAnimationConfig: View,
   useSharedValue,
   useAnimatedStyle,
   useDerivedValue,

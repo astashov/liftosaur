@@ -378,6 +378,7 @@ describe("isGoogleProductV2Active", () => {
 
 describe("getGoogleProductV2 on non-ok responses", () => {
   const googleError = { error: { code: 500, message: "Internal error encountered.", status: "INTERNAL" } };
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const nodeFetchModule = require("node-fetch");
   const originalFetch = nodeFetchModule.default;
 

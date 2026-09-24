@@ -92,8 +92,8 @@ export const workoutTourConfig: ITourConfig = {
         <>
           <Text className={`mb-2 ${paraCn}`}>
             <Text className="font-bold">Tap a set</Text> to expand it, then tap the{" "}
-            <Text className="font-bold">pencil</Text> to change its <Text className="font-bold">target</Text> reps
-            and weight, or to delete it.
+            <Text className="font-bold">pencil</Text> to change its <Text className="font-bold">target</Text> reps and
+            weight, or to delete it.
           </Text>
           <Text className={paraCn}>
             These changes only affect <Text className="font-bold">this workout</Text> - they won't modify your program.

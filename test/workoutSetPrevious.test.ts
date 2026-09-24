@@ -125,7 +125,11 @@ describe("WorkoutSetPrevious", () => {
       expect(WorkoutSetPrevious_lines("warmup", 0, target(5), warmupFromOlder, false, false)).to.eql([
         { label: "Last", set: olderWarmup, timestamp: 2500 },
       ]);
-      const noWarmups: IPrevExerciseData = { ...withLast, lastWarmupEntry: undefined, lastWarmupEntryTimestamp: undefined };
+      const noWarmups: IPrevExerciseData = {
+        ...withLast,
+        lastWarmupEntry: undefined,
+        lastWarmupEntryTimestamp: undefined,
+      };
       expect(WorkoutSetPrevious_lines("warmup", 0, target(5), noWarmups, false, false)).to.eql([]);
     });
 
