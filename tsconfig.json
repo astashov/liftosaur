@@ -42,6 +42,7 @@
     "lambda/**/*",
     "liftosaur-cdk/**/*",
     "test/**/*",
+    "test-render/**/*",
     "tests/**/*",
     "aihelpers/**/*",
     "index.native.ts",
