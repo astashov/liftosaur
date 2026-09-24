@@ -16,6 +16,8 @@ import { Reps_findNextEntryAndSetIndex } from "../models/set";
 import { Progress_getCurrentProgress } from "../models/progress";
 import { SendMessage_print } from "../utils/sendMessage";
 import { useTrackClick } from "../utils/clickTracking";
+import { useRem } from "../utils/useRem";
+import { TEXT_SIZE_MAX } from "../models/settings";
 
 function useRestTimerTick(isActive: boolean): void {
   const [, setTick] = useState(0);
@@ -56,6 +58,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const keyboardActiveId = useCustomKeyboardActiveId();
   const { height: windowHeight } = useWindowDimensions();
   const activeSheet = useActiveSheet();
+  const expandedSpacing = useRem() >= TEXT_SIZE_MAX ? 4 : 8;
   const activeSheetHeight = activeSheet.height;
   // When the custom keyboard is open, the timer is shown inside it (see KeyboardRestTimer), so hide
   // the floating one here. We keep it mounted (not returning null) so the completion chirp still fires.
@@ -150,8 +153,8 @@ export function RestTimer(props: IProps): JSX.Element | null {
         style={[
           {
             position: "absolute",
-            left: 16,
-            right: 16,
+            left: expandedSpacing * 2,
+            right: expandedSpacing * 2,
             bottom: animatedTargetBottom,
             zIndex: 30,
             opacity: animatedOpacity,
@@ -159,12 +162,14 @@ export function RestTimer(props: IProps): JSX.Element | null {
         ]}
         pointerEvents={pointerEventsMode}
       >
-        <View className={`flex-row ${bgClass} rounded-lg`} style={shadowStyle}>
+        <View
+          className={`flex-row items-center ${bgClass} rounded-lg`}
+          style={[shadowStyle, { gap: expandedSpacing, padding: expandedSpacing }]}
+        >
           <Pressable
             data-testid="rest-timer-minus"
             testID="rest-timer-minus"
-            className="relative items-center justify-center m-2"
-            style={{ minWidth: 40, minHeight: 40 }}
+            className="relative items-center justify-center px-1 min-w-scaled-10 min-h-scaled-10"
             onPress={() => {
               trackClick("rest-timer-minus");
               props.dispatch(
@@ -180,8 +185,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           <Pressable
             data-testid="rest-timer-cancel"
             testID="rest-timer-cancel"
-            className="relative items-center justify-center my-2"
-            style={{ minWidth: 40, minHeight: 40 }}
+            className="relative items-center justify-center min-w-scaled-10 min-h-scaled-10"
             onPress={() => {
               trackClick("rest-timer-cancel");
               props.dispatch({ type: "StopTimer" });
@@ -196,18 +200,17 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="items-center justify-center flex-1"
             onPress={() => setIsExpanded(false)}
           >
-            <Text numberOfLines={1} data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
+            <Text numberOfLines={1} data-testid="rest-timer-current" className="text-2xl font-bold text-text-alwayswhite">
               {TimeUtils_formatMMSS(timeDifference)}
             </Text>
-            <Text numberOfLines={1} data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+            <Text numberOfLines={1} data-testid="rest-timer-total" className={`text-sm ${totalColorClass}`}>
               {TimeUtils_formatMMSS(timer * 1000)}
             </Text>
           </Pressable>
           <Pressable
             data-testid="rest-timer-back"
             testID="rest-timer-back"
-            className="relative items-center justify-center my-2"
-            style={{ minWidth: 40, minHeight: 40 }}
+            className="relative items-center justify-center min-w-scaled-10 min-h-scaled-10"
             onPress={() => setIsExpanded(false)}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
@@ -218,8 +221,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           <Pressable
             data-testid="rest-timer-plus"
             testID="rest-timer-plus"
-            className="relative items-center justify-center m-2"
-            style={{ minWidth: 40, minHeight: 40 }}
+            className="relative items-center justify-center px-1 min-w-scaled-10 min-h-scaled-10"
             onPress={() => {
               trackClick("rest-timer-plus");
               props.dispatch(
@@ -249,20 +251,20 @@ export function RestTimer(props: IProps): JSX.Element | null {
           trackClick("rest-timer-expand");
           setIsExpanded(true);
         }}
-        className={`${bgClass} items-center px-2 py-2 rounded-lg`}
-        style={[{ minWidth: 64 }, shadowStyle]}
+        className={`${bgClass} items-center px-3 py-2 rounded-lg min-w-scaled-20`}
+        style={shadowStyle}
       >
         <Text
           data-testid="rest-timer-current"
           numberOfLines={1}
-          className="font-bold text-text-alwayswhite whitespace-nowrap"
+          className="text-2xl font-bold text-text-alwayswhite whitespace-nowrap"
         >
           {TimeUtils_formatMMSS(timeDifference)}
         </Text>
         <Text
           data-testid="rest-timer-total"
           numberOfLines={1}
-          className={`text-xs ${totalColorClass} whitespace-nowrap`}
+          className={`text-sm ${totalColorClass} whitespace-nowrap`}
         >
           {TimeUtils_formatMMSS(timer * 1000)}
         </Text>
