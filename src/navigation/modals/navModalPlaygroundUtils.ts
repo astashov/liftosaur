@@ -46,7 +46,7 @@ export function buildPlaygroundDispatch(
     if (isCardsAction(action)) {
       const progress = getProgress();
       if (progress) {
-        const newProgress = buildCardsReducer(settings, stats, undefined)(progress, action);
+        const newProgress = buildCardsReducer([], settings, stats, undefined)(progress, action);
         updateState(dispatch, [lbProgress.record(newProgress)], action.type);
       }
     } else {

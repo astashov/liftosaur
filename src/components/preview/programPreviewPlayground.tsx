@@ -40,7 +40,7 @@ function buildDayDispatch(
   stats: IStats
 ): IDispatch {
   return (async (action: unknown) => {
-    const newProgress = buildCardsReducer(settings, stats, undefined)(progress, action as ICardsAction);
+    const newProgress = buildCardsReducer([], settings, stats, undefined)(progress, action as ICardsAction);
     onProgressChange(playgroundDispatch, weekIndex, dayIndex, newProgress);
   }) as IDispatch;
 }

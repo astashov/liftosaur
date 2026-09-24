@@ -22,7 +22,6 @@ import {
   Progress_showUpdateDate,
   Progress_changeDate,
   Progress_stopTimer,
-  Progress_startTimer,
   Progress_getCurrentProgress,
   Progress_applyProgramDay,
   Progress_runInitialUpdateScripts,
@@ -50,7 +49,7 @@ import {
   ISubscription,
   IStats,
 } from "../types";
-import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
+import { IndexedDBUtils_get } from "../utils/indexeddb";
 import { Persistence } from "../utils/persistence";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
@@ -73,9 +72,8 @@ import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subs
 import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
 import { Exercise_toKey } from "../models/exercise";
-import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
-import { NativeWatchBridge_sendDiscardWorkoutToWatch } from "../utils/nativeWatchBridge";
-import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
+import { INativeEffect } from "../models/nativeEffects";
+import { History_resumeWorkout } from "../models/history";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { ProgramRewrite_changedKeys } from "../models/programRewrite";
@@ -86,7 +84,7 @@ import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
 import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
-import { PerfProbe_onAction, PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
+import { PerfProbe_onAction } from "../utils/perfSetCompleteProbe";
 import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 
@@ -339,17 +337,14 @@ export type IEditHistoryRecordAction = {
   historyRecord: IHistoryRecord;
 };
 
-export type IStartTimer = {
-  type: "StartTimer";
-  timestamp: number;
-  mode: IProgressMode;
-  entryIndex: number;
-  setIndex: number;
-  timer?: number;
-};
-
 export type IStopTimer = {
   type: "StopTimer";
+};
+
+export type IResumeWorkoutAction = {
+  type: "ResumeWorkoutAction";
+  isPlayground: boolean;
+  hasSubscription: boolean;
 };
 
 export type IApplyProgramChangesToProgress = {
@@ -387,14 +382,12 @@ export type IAction =
   | IConfirmDate
   | ILoginAction
   | ILogoutAction
-  | IStartTimer
   | IStopTimer
+  | IResumeWorkoutAction
   | IUpdateStateAction
   | IReplaceStateAction
   | IUpdateSettingsAction
   | IApplyProgramChangesToProgress;
-
-let timerId: number | undefined = undefined;
 
 function isExternalStorageMerge(action: unknown): boolean {
   return (
@@ -590,7 +583,11 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
 }
 
 export const reducerWrapper =
-  (storeToLocalStorage: boolean, persistence: Persistence): Reducer<IState, IAction> =>
+  (
+    storeToLocalStorage: boolean,
+    persistence: Persistence,
+    applyEffects: (effects: INativeEffect[]) => void
+  ): Reducer<IState, IAction> =>
   (state, action) => {
     Diagnostics_setLastState(state);
     Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
@@ -598,7 +595,9 @@ export const reducerWrapper =
     const perfActionType = "type" in action ? action.type : "thunk";
     const perfActionDesc = "type" in action && action.type === "UpdateState" ? action.desc : undefined;
     const perfSyncStart = perfOn ? Date.now() : 0;
-    let newState = reducer(state, action);
+    const effects: INativeEffect[] = [];
+    let newState = reducer(state, action, effects);
+    applyEffects(effects);
     const isMergingStorage = isExternalStorageMerge(action);
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
     if (isStorageChanged) {
@@ -622,41 +621,14 @@ export const reducerWrapper =
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
 
-    if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
+    if (typeof window !== "undefined") {
       window.tempUserId = newState.storage.tempUserId;
-      if (timerId != null) {
-        window.clearTimeout(timerId);
-      }
-
       (window as any).state = newState;
       if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-        timerId = window.setTimeout(async () => {
-          clearTimeout(timerId);
-
-          const newState2: IState = (window as any).state;
-          timerId = undefined;
-          const userId = newState2.user?.id || newState2.storage.tempUserId;
-          await IndexedDBUtils_set("current_account", userId);
-          const probeTarget = PerfProbe_isTarget();
-          try {
-            const stats = await persistence.save(`liftosaur_${userId}`, {
-              storage: newState2.storage,
-              lastSynced: newState2.lastSynced,
-            });
-            if (probeTarget) {
-              lg("perf-persist", {
-                stringify_ms: stats.stringifyMs,
-                write_ms: stats.writeMs,
-                bytes: stats.bytes,
-                shards: stats.shards.join(","),
-              });
-            }
-          } catch (e) {
-            // Write failed (e.g. quota) — the write cache wasn't updated, so the next
-            // save retries these shards instead of skipping them as "unchanged"
-            lg("ls-persistence-save-error", { error: String(e) });
-          }
-        }, 100);
+        persistence.scheduleSave(newState.user?.id || newState.storage.tempUserId, {
+          storage: newState.storage,
+          lastSynced: newState.lastSynced,
+        });
       }
     }
 
@@ -688,6 +660,7 @@ export const reducerWrapper =
   };
 
 export function buildCardsReducer(
+  effects: INativeEffect[],
   settings: ISettings,
   stats: IStats,
   subscription?: ISubscription
@@ -695,15 +668,16 @@ export function buildCardsReducer(
   return (progress, action): IHistoryRecord => {
     switch (action.type) {
       case "CompleteSetAction": {
-        const newProgress = Progress_completeSetAction(settings, stats, progress, action, subscription);
+        const newProgress = Progress_completeSetAction(effects, settings, stats, progress, action, subscription);
         return newProgress;
       }
       case "ChangeAMRAPAction": {
-        const newProgress = Progress_changeAmrapAction(settings, stats, progress, action, subscription);
+        const newProgress = Progress_changeAmrapAction(effects, settings, stats, progress, action, subscription);
         return newProgress;
       }
       case "CheckSetTimerAction": {
         return Progress_checkSetTimer(
+          effects,
           settings,
           stats,
           progress,
@@ -715,7 +689,7 @@ export function buildCardsReducer(
         );
       }
       case "CloseSetTimerAction": {
-        return Progress_closeTimedSet(progress, settings, subscription, action.isPlayground);
+        return Progress_closeTimedSet(effects, progress, settings, subscription, action.isPlayground);
       }
       case "StartSetTimerWorkAction": {
         return Progress_startSetTimerWork(progress, action.startedAt ?? Date.now());
@@ -727,7 +701,9 @@ export function buildCardsReducer(
   };
 }
 
-export const reducer: Reducer<IState, IAction> = (state, action): IState => {
+export type IEffectfulReducer = (state: IState, action: IAction, effects: INativeEffect[]) => IState;
+
+export const reducer: IEffectfulReducer = (state, action, effects): IState => {
   if (
     action.type === "CompleteSetAction" ||
     action.type === "ChangeAMRAPAction" ||
@@ -742,7 +718,12 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     }
     return Progress_setProgress(
       state,
-      buildCardsReducer(state.storage.settings, state.storage.stats, state.storage.subscription)(progress, action)
+      buildCardsReducer(
+        effects,
+        state.storage.settings,
+        state.storage.stats,
+        state.storage.subscription
+      )(progress, action)
     );
   } else if (action.type === "StartProgramDayAction") {
     const progress = Progress_getProgress(state);
@@ -773,7 +754,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress == null) {
       return state;
     }
-    const newStorage = Progress_finishWorkout(state.storage, progress);
+    const newStorage = Progress_finishWorkout(effects, state.storage, progress);
     return {
       ...state,
       storage: newStorage,
@@ -802,9 +783,9 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = Progress_getProgressById(state, action.id);
     if (progress != null) {
       if (Progress_isCurrent(progress)) {
-        NativeWorkoutBridge_discardWorkout();
-        NativeWatchBridge_sendDiscardWorkoutToWatch();
-        NativeWorkoutMirroring_resetWatchWorkoutState();
+        effects.push({ type: "discardWorkout" });
+        effects.push({ type: "sendDiscardWorkoutToWatch" });
+        effects.push({ type: "resetWatchWorkoutState" });
         return {
           ...state,
           storage: {
@@ -837,30 +818,23 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "StopTimer") {
     const progress = Progress_getProgress(state);
     if (progress != null) {
-      return Progress_setProgress(state, Progress_stopTimer(progress));
+      return Progress_setProgress(state, Progress_stopTimer(effects, progress));
     } else {
       return state;
     }
-  } else if (action.type === "StartTimer") {
-    const progress = Progress_getProgress(state);
-    if (progress) {
-      return Progress_setProgress(
-        state,
-        Progress_startTimer(
-          progress,
-          action.timestamp,
-          action.mode,
-          action.entryIndex,
-          action.setIndex,
-          state.storage.settings,
-          state.storage.subscription,
-          action.timer,
-          true
-        )
-      );
-    } else {
+  } else if (action.type === "ResumeWorkoutAction") {
+    const progress = Progress_getCurrentProgress(state);
+    if (progress == null) {
       return state;
     }
+    const intervals = History_resumeWorkout(
+      effects,
+      progress,
+      action.isPlayground,
+      state.storage.settings.timers.reminder,
+      action.hasSubscription
+    );
+    return Progress_setProgress(state, { ...progress, intervals });
   } else if (action.type === "UpdateSettings") {
     if (isLoggingEnabled) {
       console.log(`%c-------${action.desc ? ` ${action.desc}` : ""}`, "font-weight:bold");

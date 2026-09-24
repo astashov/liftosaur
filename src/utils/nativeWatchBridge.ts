@@ -1,59 +1,43 @@
-export type INativeWatchEvent = {
-  type:
-    | "watchStorageMerge"
-    | "reloadStorageFromDisk"
-    | "liveActivityStorage"
-    | "endWorkout"
-    | "requestStorage"
-    | "requestAuth"
-    | "watchCrashReport";
-  storage?: string;
-  deviceId?: string;
-  isLiveActivity?: boolean;
-  forceUpdateEntryIndex?: boolean;
-  data?: string;
-};
+import { INativeWatchAuth, INativeWatchEvent, IWatchBridge } from "./watchBridge";
 
-export type INativeWatchAuth = {
-  token: string;
-  expiresAt: number;
-  userId?: string;
-};
+export type { INativeWatchAuth, INativeWatchEvent } from "./watchBridge";
 
-export function NativeWatchBridge_isAvailable(): boolean {
-  return false;
-}
+export class WatchBridge implements IWatchBridge {
+  public isAvailable(): boolean {
+    return false;
+  }
 
-export function NativeWatchBridge_hasWatchApp(): boolean {
-  return false;
-}
+  public hasWatchApp(): boolean {
+    return false;
+  }
 
-export function NativeWatchBridge_subscribeToWatchEvents(_handler: (event: INativeWatchEvent) => void): () => void {
-  return () => {};
-}
+  public subscribeToWatchEvents(_handler: (event: INativeWatchEvent) => void): () => void {
+    return () => {};
+  }
 
-export function NativeWatchBridge_sendStorageToWatch(_filteredStorageJson: string): void {}
+  public sendStorageToWatch(_filteredStorageJson: string): void {}
 
-export function NativeWatchBridge_sendAuthToWatch(_auth: INativeWatchAuth): void {}
+  public sendAuthToWatch(_auth: INativeWatchAuth): void {}
 
-export function NativeWatchBridge_sendStorageAckToWatch(_historyIds: string[]): void {}
+  public sendStorageAckToWatch(_historyIds: string[]): void {}
 
-export function NativeWatchBridge_sendNoAuthToWatch(): void {}
+  public sendNoAuthToWatch(): void {}
 
-export function NativeWatchBridge_sendClearAuthToWatch(): void {}
+  public sendClearAuthToWatch(): void {}
 
-export function NativeWatchBridge_clearWatchStorage(): void {}
+  public clearWatchStorage(): void {}
 
-export function NativeWatchBridge_sendFinishWorkoutToWatch(_saveToHealth: boolean): Promise<boolean> {
-  return Promise.resolve(false);
-}
+  public sendFinishWorkoutToWatch(_saveToHealth: boolean): Promise<boolean> {
+    return Promise.resolve(false);
+  }
 
-export function NativeWatchBridge_sendDiscardWorkoutToWatch(): void {}
+  public sendDiscardWorkoutToWatch(): void {}
 
-export function NativeWatchBridge_requestWatchLogs(): Promise<string> {
-  return Promise.resolve("");
-}
+  public requestWatchLogs(): Promise<string> {
+    return Promise.resolve("");
+  }
 
-export function NativeWatchBridge_isWatchPaired(): boolean {
-  return false;
+  public isWatchPaired(): boolean {
+    return false;
+  }
 }

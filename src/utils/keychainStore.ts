@@ -1,17 +1,17 @@
-export interface IAuthToken {
-  token: string;
-  expiresAt: number;
-  userId?: string;
-}
+import { IAuthToken, IKeychain } from "./keychain";
 
-export async function KeychainStore_setAuthToken(_auth: IAuthToken): Promise<void> {
-  return;
-}
+export type { IAuthToken } from "./keychain";
 
-export async function KeychainStore_getAuthToken(): Promise<IAuthToken | undefined> {
-  return undefined;
-}
+export class Keychain implements IKeychain {
+  public async setAuthToken(_auth: IAuthToken): Promise<void> {
+    return;
+  }
 
-export async function KeychainStore_clearAuthToken(): Promise<void> {
-  return;
+  public async getAuthToken(): Promise<IAuthToken | undefined> {
+    return undefined;
+  }
+
+  public async clearAuthToken(): Promise<void> {
+    return;
+  }
 }

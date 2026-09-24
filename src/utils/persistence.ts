@@ -2,6 +2,7 @@ import { IndexedDBUtils_get, IndexedDBUtils_getAllKeys, IndexedDBUtils_setMany }
 import type { IStorage, IPartialStorage } from "../types";
 import type { ILastSynced, ILocalStorage } from "../models/state";
 import { lg } from "./posthog";
+import { PerfProbe_isTarget } from "./perfSetCompleteProbe";
 
 export interface IPersistenceStore {
   get(key: string): Promise<unknown>;
@@ -166,11 +167,66 @@ function assembleStorage(partialRaw: string, historyRaw: string, programsRaw: st
 export class Persistence {
   private writeCache: Partial<Record<string, IWriteCacheEntry>> = {};
   private readonly oldBaselineShardsToDelete = new Set<string>();
+  private scheduled: { accountId: string; data: ILocalStorage } | undefined = undefined;
+  private scheduledTimer: ReturnType<typeof setTimeout> | undefined = undefined;
 
   constructor(
     private readonly store: IPersistenceStore = indexedDBStore,
-    private readonly mode: IPersistenceMode = "sharded"
+    private readonly mode: IPersistenceMode = "sharded",
+    private readonly saveDelayMs: number = 100
   ) {}
+
+  public scheduleSave(accountId: string, data: ILocalStorage): void {
+    this.scheduled = { accountId, data };
+    if (this.scheduledTimer != null) {
+      clearTimeout(this.scheduledTimer);
+    }
+    this.scheduledTimer = setTimeout(() => {
+      this.flushSave().catch(() => undefined);
+    }, this.saveDelayMs);
+  }
+
+  public async flushSave(): Promise<void> {
+    if (this.scheduledTimer != null) {
+      clearTimeout(this.scheduledTimer);
+      this.scheduledTimer = undefined;
+    }
+    const pending = this.scheduled;
+    if (pending == null) {
+      return;
+    }
+    this.scheduled = undefined;
+    try {
+      // The account pointer is best-effort. IndexedDBUtils_setMany rejects on a failed
+      // transaction, and a failed pointer write must not stop the workout data from being saved.
+      await this.store.setMany([["current_account", pending.accountId]]);
+    } catch (e) {
+      lg("ls-persistence-account-pointer-error", { error: String(e) });
+    }
+    try {
+      const stats = await this.save(`liftosaur_${pending.accountId}`, pending.data);
+      if (PerfProbe_isTarget()) {
+        lg("perf-persist", {
+          stringify_ms: stats.stringifyMs,
+          write_ms: stats.writeMs,
+          bytes: stats.bytes,
+          shards: stats.shards.join(","),
+        });
+      }
+    } catch (e) {
+      // Write failed (e.g. quota) — the write cache wasn't updated, so the next
+      // save retries these shards instead of skipping them as "unchanged"
+      lg("ls-persistence-save-error", { error: String(e) });
+    }
+  }
+
+  public cancelSave(): void {
+    if (this.scheduledTimer != null) {
+      clearTimeout(this.scheduledTimer);
+      this.scheduledTimer = undefined;
+    }
+    this.scheduled = undefined;
+  }
 
   public async save(baseKey: string, data: ILocalStorage): Promise<IPersistenceSaveStats> {
     const t0 = Date.now();

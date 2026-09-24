@@ -3,84 +3,33 @@ import { ExerciseImageUtils_url } from "../models/exerciseImage";
 import { Program_evaluate, Program_getProgramExercise } from "../models/program";
 import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
 import { Progress_shouldShowAmrapModal, Progress_getNextEntry, Progress_getActiveSetTimer } from "../models/progress";
-import { ISetsStatus, Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
+import { Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
 import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../models/weight";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { IHistoryRecord, IProgram, ISettings, ISubscription, ITimedSetSide } from "../types";
+import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { TimedSet_toView } from "../models/timedSet";
 import { n } from "./math";
-import { NativeWorkoutBridge_updateLiveActivity } from "./nativeWorkoutBridge";
+import {
+  ILiveActivityEntry,
+  ILiveActivityGetReady,
+  ILiveActivitySetTimer,
+  ILiveActivityState,
+} from "./liveActivityState";
+import { INativeEffect } from "../models/nativeEffects";
 import { SendMessage_print } from "./sendMessage";
 import { Subscriptions_hasSubscription } from "./subscriptions";
 import { UrlUtils_build } from "./url";
 
 declare const __HOST__: string;
 
-export interface ILiveActivitySet {
-  status: ISetsStatus;
-  isWarmup: boolean;
-}
-
-export interface ILiveActivityEntry {
-  exerciseName: string;
-  currentSet: number;
-  totalSets: number;
-  completedSets: ILiveActivitySet[];
-  canCompleteFromLiveActivity: boolean;
-  isWarmup: boolean;
-  entryIndex: number;
-  setIndex: number;
-
-  exerciseImageUrl?: string;
-  targetReps?: string;
-  targetWeight?: string;
-  targetRPE?: string;
-  targetTimer?: string;
-  plates?: string;
-  currentWeight?: string;
-  currentReps?: string;
-  isSetTimer?: boolean;
-}
-
-export interface ILiveActivityRest {
-  restTimerSince: number;
-  restTimer: number;
-  // Whether the resting set is part of an `auto` circuit (so the live activity shows "tap to update" when
-  // the rest ends, to auto-advance to the next set's work timer). Non-auto rest just expires.
-  isAuto: boolean;
-}
-
-export interface ILiveActivitySetTimer {
-  setTimerSince: number;
-  setTimer: number;
-  isOverflow: boolean;
-  isCompleted: boolean;
-  entryIndex: number;
-  setIndex: number;
-  restTimer: number;
-  phaseId: string;
-  side: ITimedSetSide;
-  recordedThisSide: boolean;
-}
-
-export interface ILiveActivityGetReady {
-  getReadySince: number;
-  getReady: number;
-  entryIndex: number;
-  setIndex: number;
-  setTimer: number;
-  phaseId: string;
-  side: ITimedSetSide;
-}
-
-export interface ILiveActivityState {
-  restTimer?: ILiveActivityRest;
-  setTimer?: ILiveActivitySetTimer;
-  getReady?: ILiveActivityGetReady;
-  historyEntryState?: ILiveActivityEntry;
-  workoutStartTimestamp: number;
-  ignoreDoNotDisturb: boolean;
-}
+export type {
+  ILiveActivitySet,
+  ILiveActivityEntry,
+  ILiveActivityRest,
+  ILiveActivitySetTimer,
+  ILiveActivityGetReady,
+  ILiveActivityState,
+} from "./liveActivityState";
 
 export function LiveActivityManager_getLiveActivityEntry(
   progress: IHistoryRecord,
@@ -155,6 +104,7 @@ export function LiveActivityManager_getLiveActivityEntry(
 }
 
 export function LiveActivityManager_updateProgressLiveActivity(
+  effects: INativeEffect[],
   program: IProgram | undefined,
   progress: IHistoryRecord,
   settings: ISettings,
@@ -171,6 +121,7 @@ export function LiveActivityManager_updateProgressLiveActivity(
       ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
       : undefined;
   LiveActivityManager_updateLiveActivity(
+    effects,
     progress,
     entryIndex,
     setIndex,
@@ -183,6 +134,7 @@ export function LiveActivityManager_updateProgressLiveActivity(
 }
 
 export function LiveActivityManager_updateLiveActivity(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   entryIndex: number | undefined,
   setIndex: number | undefined,
@@ -265,10 +217,11 @@ export function LiveActivityManager_updateLiveActivity(
   SendMessage_print(
     `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
   );
-  NativeWorkoutBridge_updateLiveActivity(attributes);
+  effects.push({ type: "updateLiveActivity", state: attributes });
 }
 
 export function LiveActivityManager_updateLiveActivityForNextEntry(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   entryIndex: number,
   mode: "workout" | "warmup",
@@ -284,6 +237,7 @@ export function LiveActivityManager_updateLiveActivityForNextEntry(
   const nextEntryIndex = nextEntry ? progress.entries.indexOf(nextEntry) : undefined;
   const nextSetIndex = nextEntry ? Reps_findNextSetIndex(nextEntry) : undefined;
   LiveActivityManager_updateLiveActivity(
+    effects,
     progress,
     nextEntryIndex,
     nextSetIndex,

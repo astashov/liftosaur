@@ -583,6 +583,7 @@ function applySetWrite(
   const entry = current.entries[entryIndex];
   const programExercise = Program_getProgramExercise(current.day, evaluated, entry.programExerciseId);
   current = Progress_completeSetAction(
+    [],
     settings,
     stats,
     current,
@@ -602,6 +603,7 @@ function applySetWrite(
   );
 
   current = Progress_settleTimedSet(
+    [],
     settings,
     stats,
     current,
@@ -655,6 +657,7 @@ function applySetWrite(
     }
 
     current = Progress_changeAmrapAction(
+      [],
       settings,
       stats,
       current,

@@ -4,6 +4,7 @@ import { Storage_isChanged } from "../../src/models/storage";
 import { NoRetryError, Thunk_sync2 } from "../../src/ducks/thunks";
 import { IGThunk, IReducerOnIGAction } from "../../src/ducks/types";
 import { IEnv, IState } from "../../src/models/state";
+import { NativeEffects_apply } from "../../src/models/nativeEffects";
 import { ObjectUtils_clone } from "../../src/utils/object";
 
 export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> {
@@ -20,21 +21,26 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
   }
 
   public static build(state: IState, env: IEnv): MockReducer<IState, IAction, IEnv> {
-    return new MockReducer(reducerWrapper(true, env.persistence), state, env, [
-      async (dispatch, action, oldState, newState) => {
-        if (Storage_isChanged(oldState.storage, newState.storage)) {
-          try {
-            await dispatch(Thunk_sync2());
-          } catch (e) {
-            if (e instanceof NoRetryError && e.message === "Network Error") {
-              // Ignore
-            } else {
-              throw e;
+    return new MockReducer(
+      reducerWrapper(true, env.persistence, (effects) => NativeEffects_apply(env, effects)),
+      state,
+      env,
+      [
+        async (dispatch, action, oldState, newState) => {
+          if (Storage_isChanged(oldState.storage, newState.storage)) {
+            try {
+              await dispatch(Thunk_sync2());
+            } catch (e) {
+              if (e instanceof NoRetryError && e.message === "Network Error") {
+                // Ignore
+              } else {
+                throw e;
+              }
             }
           }
-        }
-      },
-    ]);
+        },
+      ]
+    );
   }
 
   public static clone(

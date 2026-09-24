@@ -1,4 +1,4 @@
-import { NativeTimerBridge_playSound } from "../utils/nativeTimerBridge";
+import { ITimerBridge } from "../utils/timerBridge";
 
 // Closed set, because every platform resolves these names separately - web by filename, iOS by bundle
 // resource, Android by a `when` over R.raw. An unmapped name doesn't fail there, it plays the wrong sound.
@@ -17,6 +17,8 @@ export class MockAudioInterface implements IAudioInterface {
 export class AudioInterface implements IAudioInterface {
   private readonly audios: Record<string, HTMLAudioElement> = {};
 
+  constructor(private readonly timer: ITimerBridge) {}
+
   private getAudio(sound: ISoundName): HTMLAudioElement {
     if (this.audios[sound] == null) {
       this.audios[sound] = new Audio(`/${sound}.m4r`);
@@ -28,7 +30,7 @@ export class AudioInterface implements IAudioInterface {
     if (volume <= 0 && !vibration) {
       return;
     }
-    const isPlayed = NativeTimerBridge_playSound(volume, vibration, sound);
+    const isPlayed = this.timer.playSound(volume, vibration, sound);
     if (!isPlayed && volume > 0) {
       const audio = this.getAudio(sound);
       audio.volume = volume;

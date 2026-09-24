@@ -1,52 +1,49 @@
 import { SendMessage_toAndroid, SendMessage_toIos } from "./sendMessage";
+import { INativeTimerStartParams, ITimerBridge } from "./timerBridge";
 
-export type INativeTimerStartParams = {
-  duration: number;
-  title: string;
-  subtitleHeader: string;
-  subtitle: string;
-  bodyHeader: string;
-  body: string;
-  volume: number;
-  vibration: boolean;
-  ignoreDoNotDisturb: boolean;
-  timerSinceMs: number;
-  timerSeconds: number;
-};
+export type { INativeTimerStartParams } from "./timerBridge";
 
-export function NativeTimerBridge_startTimer(params: INativeTimerStartParams): void {
-  const obj = {
-    type: "startTimer",
-    duration: params.duration.toString(),
-    title: params.title,
-    subtitleHeader: params.subtitleHeader,
-    subtitle: params.subtitle,
-    bodyHeader: params.bodyHeader,
-    body: params.body,
-    ignoreDoNotDisturb: params.ignoreDoNotDisturb ? "true" : "false",
-    vibration: params.vibration ? "true" : "false",
-    volume: params.volume.toString(),
-    timerSinceMs: params.timerSinceMs.toString(),
-    timerSeconds: params.timerSeconds.toString(),
-  };
-  SendMessage_toIos(obj);
-  SendMessage_toAndroid(obj);
-}
+export class TimerBridge implements ITimerBridge {
+  public startTimer(params: INativeTimerStartParams): void {
+    const obj = {
+      type: "startTimer",
+      duration: params.duration.toString(),
+      title: params.title,
+      subtitleHeader: params.subtitleHeader,
+      subtitle: params.subtitle,
+      bodyHeader: params.bodyHeader,
+      body: params.body,
+      ignoreDoNotDisturb: params.ignoreDoNotDisturb ? "true" : "false",
+      vibration: params.vibration ? "true" : "false",
+      volume: params.volume.toString(),
+      timerSinceMs: params.timerSinceMs.toString(),
+      timerSeconds: params.timerSeconds.toString(),
+    };
+    SendMessage_toIos(obj);
+    SendMessage_toAndroid(obj);
+  }
 
-export function NativeTimerBridge_stopTimer(): void {
-  SendMessage_toIos({ type: "stopTimer" });
-  SendMessage_toAndroid({ type: "stopTimer" });
-}
+  public stopTimer(): void {
+    SendMessage_toIos({ type: "stopTimer" });
+    SendMessage_toAndroid({ type: "stopTimer" });
+  }
 
-export function NativeTimerBridge_playSound(volume: number, vibration: boolean, sound: string): boolean {
-  return (
-    SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound }) ||
-    SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound })
-  );
-}
+  public playSound(volume: number, vibration: boolean, sound: string): boolean {
+    return (
+      SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound }) ||
+      SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound })
+    );
+  }
 
-export function NativeTimerBridge_subscribeOnScheduled(_handler: () => void): () => void {
-  // Web/WebView path: app.tsx already listens for window.postMessage({type:"timerScheduled"})
-  // and sets nativeNotificationScheduled. This subscription is a no-op for symmetry with .native.
-  return () => {};
+  public subscribeOnScheduled(_handler: () => void): () => void {
+    return () => {};
+  }
+
+  public scheduleReminder(_duration: number, _title: string, _body: string): void {
+    return;
+  }
+
+  public cancelReminder(): void {
+    return;
+  }
 }

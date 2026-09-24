@@ -1,42 +1,41 @@
-import * as Keychain from "react-native-keychain";
+import * as RNKeychain from "react-native-keychain";
+import { IAuthToken, IKeychain } from "./keychain";
 
-export interface IAuthToken {
-  token: string;
-  expiresAt: number;
-  userId?: string;
-}
+export type { IAuthToken } from "./keychain";
 
 const SERVICE = "com.liftosaur.www.auth";
 const ACCOUNT = "session";
 
-export async function KeychainStore_setAuthToken(auth: IAuthToken): Promise<void> {
-  const payload = JSON.stringify(auth);
-  await Keychain.setGenericPassword(ACCOUNT, payload, {
-    service: SERVICE,
-    accessible: Keychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-  });
-}
-
-export async function KeychainStore_getAuthToken(): Promise<IAuthToken | undefined> {
-  try {
-    const result = await Keychain.getGenericPassword({ service: SERVICE });
-    if (result === false) {
-      return undefined;
-    }
-    const parsed = JSON.parse(result.password) as IAuthToken;
-    if (!parsed.token) {
-      return undefined;
-    }
-    return parsed;
-  } catch (e) {
-    return undefined;
+export class Keychain implements IKeychain {
+  public async setAuthToken(auth: IAuthToken): Promise<void> {
+    const payload = JSON.stringify(auth);
+    await RNKeychain.setGenericPassword(ACCOUNT, payload, {
+      service: SERVICE,
+      accessible: RNKeychain.ACCESSIBLE.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+    });
   }
-}
 
-export async function KeychainStore_clearAuthToken(): Promise<void> {
-  try {
-    await Keychain.resetGenericPassword({ service: SERVICE });
-  } catch (e) {
-    // ignore
+  public async getAuthToken(): Promise<IAuthToken | undefined> {
+    try {
+      const result = await RNKeychain.getGenericPassword({ service: SERVICE });
+      if (result === false) {
+        return undefined;
+      }
+      const parsed = JSON.parse(result.password) as IAuthToken;
+      if (!parsed.token) {
+        return undefined;
+      }
+      return parsed;
+    } catch (e) {
+      return undefined;
+    }
+  }
+
+  public async clearAuthToken(): Promise<void> {
+    try {
+      await RNKeychain.resetGenericPassword({ service: SERVICE });
+    } catch (e) {
+      // ignore
+    }
   }
 }

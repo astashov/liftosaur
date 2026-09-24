@@ -60,7 +60,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { CollectionUtils_compact, CollectionUtils_setAt } from "../utils/collection";
 import { ImportExporter_exportStorage, ImportExporter_getExportedProgram } from "../lib/importexporter";
 import { Storage_mergeStorage, Storage_isChanged, Storage_get, Storage_setAffiliate } from "../models/storage";
-import { History_exportAsCSV } from "../models/history";
+import { History_exportAsCSV, History_calories, History_pauseWorkoutState } from "../models/history";
 import { ImportSession_apply, ImportSession_findEditedRecordIds, ImportSession_undo } from "../models/importSession";
 import { ImportFileError } from "../utils/importTypes";
 import { StringUtils_pluralize } from "../utils/string";
@@ -115,8 +115,7 @@ import {
   Progress_scheduleTimerNotification,
 } from "../models/progress";
 import { Reps_findNextEntryAndSetIndex } from "../models/set";
-import { NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
-import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
+import { INativeEffect, NativeEffects_apply } from "../models/nativeEffects";
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
@@ -157,12 +156,7 @@ import {
   LiveActivityManager_updateProgressLiveActivity,
   LiveActivityManager_updateLiveActivityForNextEntry,
 } from "../utils/liveActivityManager";
-import { KeychainStore_setAuthToken, KeychainStore_clearAuthToken, IAuthToken } from "../utils/keychainStore";
-import {
-  NativeWatchBridge_sendAuthToWatch,
-  NativeWatchBridge_sendClearAuthToWatch,
-  NativeWatchBridge_sendStorageAckToWatch,
-} from "../utils/nativeWatchBridge";
+import { IAuthToken } from "../utils/keychain";
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
 
 declare let Rollbar: RB;
@@ -188,7 +182,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
         return env.service.googleSignIn(token, userId, {});
       });
       await load(dispatch, "Signing in", () => {
-        return handleLogin(dispatch, loginResult, env.service.client, userId);
+        return handleLogin(dispatch, loginResult, env, userId);
       });
       if (cb) {
         cb(getState());
@@ -207,7 +201,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
           return env.service.googleSignIn(accessToken, userId, {});
         });
         await load(dispatch, "Signing in", () => {
-          return handleLogin(dispatch, result, env.service.client, userId);
+          return handleLogin(dispatch, result, env, userId);
         });
         if (cb) {
           cb(getState());
@@ -218,7 +212,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
       const state = getState();
       const userId = state.user?.id || state.storage.tempUserId;
       const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
-      await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
+      await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env, userId));
       if (cb) {
         cb(getState());
       }
@@ -249,7 +243,7 @@ export function Thunk_emailAuth(
         : env.service.emailSignIn(email, password, userId);
     });
     if (result.type === "success") {
-      await load(dispatch, "Signing in", () => handleLogin(dispatch, result.response, env.service.client, userId));
+      await load(dispatch, "Signing in", () => handleLogin(dispatch, result.response, env, userId));
       dispatch(Thunk_sync2());
       cb({}, getState());
     } else if (result.type === "confirmation_sent") {
@@ -319,7 +313,7 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
       const result = await load(dispatch, "Logging in", async () =>
         env.service.appleSignIn(code ?? "", id_token!, userId)
       );
-      await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env.service.client, userId));
+      await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env, userId));
       if (cb) {
         cb(getState());
       }
@@ -383,12 +377,12 @@ export function Thunk_logOut(cb?: () => void): IThunk {
       if (!isDebugAccount) {
         SendMessage_toIos({ type: "accountLogout" });
         try {
-          await KeychainStore_clearAuthToken();
+          await env.keychain.clearAuthToken();
         } catch (e) {
           lg("ls-keychain-clear-auth-fail", { error: e instanceof Error ? e.message : String(e) });
         }
         await SignOut_google();
-        NativeWatchBridge_sendClearAuthToWatch();
+        env.watch.sendClearAuthToWatch();
       }
     }
     if (cb) {
@@ -783,7 +777,9 @@ export function Thunk_updateTimer(
     if (!program) {
       return;
     }
+    const effects: INativeEffect[] = [];
     const newProgress = Progress_updateTimer(
+      effects,
       progress,
       program,
       newTimer,
@@ -794,6 +790,7 @@ export function Thunk_updateTimer(
       state.storage.settings,
       state.storage.subscription
     );
+    NativeEffects_apply(env, effects);
     updateProgress(dispatch, lb<IHistoryRecord>().record(newProgress), "Update rest timer");
   };
 }
@@ -814,7 +811,9 @@ export function Thunk_updateLiveActivity(
     if (!program) {
       return;
     }
+    const effects: INativeEffect[] = [];
     LiveActivityManager_updateProgressLiveActivity(
+      effects,
       program,
       progress,
       state.storage.settings,
@@ -824,6 +823,7 @@ export function Thunk_updateLiveActivity(
       restTimer,
       restTimerSince
     );
+    NativeEffects_apply(env, effects);
   };
 }
 
@@ -995,10 +995,12 @@ export function Thunk_refreshLiveActivity(): IThunk {
     const settings = state.storage.settings;
     const subscription = state.storage.subscription;
     const setTimerModal = progress.setTimer;
+    const effects: INativeEffect[] = [];
     if (setTimerModal != null) {
       // Centralization in LiveActivityManager_updateLiveActivity reads setTimerModal, so the entry/set
       // passed here are overridden — it renders the set-timer view.
       LiveActivityManager_updateProgressLiveActivity(
+        effects,
         program,
         progress,
         settings,
@@ -1008,6 +1010,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
         undefined,
         undefined
       );
+      NativeEffects_apply(env, effects);
       return;
     }
     if (progress.timer != null && progress.timerSince != null) {
@@ -1020,6 +1023,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
           ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode ?? "workout")
           : undefined;
       LiveActivityManager_updateProgressLiveActivity(
+        effects,
         program,
         progress,
         settings,
@@ -1029,6 +1033,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
         progress.timer,
         progress.timerSince
       );
+      NativeEffects_apply(env, effects);
       return;
     }
     const next = Progress_getFirstIncompleteWorkoutSet(progress);
@@ -1036,6 +1041,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
       const entry = progress.entries[next.entryIndex];
       const absoluteSetIndex = entry.warmupSets.length + next.setIndex;
       LiveActivityManager_updateProgressLiveActivity(
+        effects,
         program,
         progress,
         settings,
@@ -1045,6 +1051,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
         undefined,
         undefined
       );
+      NativeEffects_apply(env, effects);
     }
   };
 }
@@ -1183,8 +1190,10 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
             Subscriptions_hasSubscription(mergedStorage.subscription)
           ) {
             const remaining = afterProgress.timer - (Date.now() - afterProgress.timerSince) / 1000;
+            const timerEffects: INativeEffect[] = [];
             if (remaining > 0) {
               Progress_scheduleTimerNotification(
+                timerEffects,
                 afterProgress,
                 afterProgress.timerEntryIndex,
                 afterProgress.timerMode,
@@ -1194,10 +1203,11 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
                 afterProgress.timer
               );
             } else {
-              NativeTimerBridge_stopTimer();
+              timerEffects.push({ type: "stopTimer" });
             }
+            NativeEffects_apply(env, timerEffects);
           } else {
-            NativeTimerBridge_stopTimer();
+            env.timer.stopTimer();
           }
         }
 
@@ -1211,7 +1221,9 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
             evaluatedProgram && entry
               ? Program_getProgramExercise(afterProgress.day, evaluatedProgram, entry.programExerciseId)
               : undefined;
+          const liveActivityEffects: INativeEffect[] = [];
           LiveActivityManager_updateLiveActivityForNextEntry(
+            liveActivityEffects,
             afterProgress,
             entryIndex,
             mode,
@@ -1219,16 +1231,12 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
             mergedStorage.settings,
             mergedStorage.subscription
           );
+          NativeEffects_apply(env, liveActivityEffects);
         }
 
-        // If progress went from active to empty, the workout ended on the watch.
-        // Run the same JS-side cleanup as a phone-side finish/discard so the
-        // module-level reminder duration in nativeWorkoutBridge gets cleared.
-        // Without this, the AppState listener can schedule a phantom "ongoing
-        // workout" reminder the next time the phone backgrounds.
         const progressIsNowEmpty = !mergedStorage.progress || mergedStorage.progress.length === 0;
         if (hadProgress && progressIsNowEmpty) {
-          NativeWorkoutBridge_discardWorkout();
+          env.workout.discardWorkout();
         }
         if (wasOnProgressScreen && hadProgress && progressIsNowEmpty) {
           SendMessage_print("handleWatchStorageMerge: workout finished on watch, navigating to main screen");
@@ -1243,7 +1251,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       const mergedIds = new Set((mergedStorage.history ?? []).map((r) => `${r.id}`));
       const ackedIds = (watchStorage.history ?? []).map((r) => `${r.id}`).filter((id) => mergedIds.has(id));
       if (ackedIds.length > 0) {
-        NativeWatchBridge_sendStorageAckToWatch(ackedIds);
+        env.watch.sendStorageAckToWatch(ackedIds);
       }
     } catch (error) {
       SendMessage_print(`handleWatchStorageMerge: failed to merge storage: ${error}`);
@@ -1260,7 +1268,7 @@ export function Thunk_fetchStorage(storageId?: string): IThunk {
         const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
         return env.service.getStorage(state.storage.tempUserId, userId || undefined, storageId, state.adminKey);
       });
-      await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+      await handleLogin(dispatch, result, env, getState().user?.id || getState().storage.tempUserId);
     }
   };
 }
@@ -1586,6 +1594,50 @@ export function Thunk_finishProgramDay(id: number): IThunk {
       goBack();
     }
     dispatch({ type: "FinishProgramDayAction", id });
+  };
+}
+
+export function Thunk_pauseWorkout(): IThunk {
+  return async (dispatch, getState, env) => {
+    env.workout.pauseWorkout();
+    History_pauseWorkoutState(dispatch);
+  };
+}
+
+export function Thunk_pauseWorkoutNative(): IThunk {
+  return async (dispatch, getState, env) => {
+    env.workout.pauseWorkout();
+  };
+}
+
+export function Thunk_saveWorkoutToHealthNative(args: {
+  progress: IHistoryRecord;
+  intervals: [number, number | null][];
+}): IThunk {
+  return async (dispatch, getState, env) => {
+    env.workout.finishWorkout({
+      healthSync: true,
+      calories: History_calories(args.progress),
+      intervals: JSON.stringify(args.intervals),
+    });
+  };
+}
+
+export function Thunk_finishWorkoutNative(args: {
+  progress: IHistoryRecord;
+  shouldSyncToHealth: boolean;
+  intervals: [number, number | null][];
+  onDone: (watchSaved: boolean) => void;
+}): IThunk {
+  return async (dispatch, getState, env) => {
+    env.workout.finishWorkout({
+      healthSync: args.shouldSyncToHealth,
+      calories: History_calories(args.progress),
+      intervals: JSON.stringify(args.intervals),
+    });
+    const watchSaved = await env.watch.sendFinishWorkoutToWatch(args.shouldSyncToHealth);
+    env.mirroring.resetWatchWorkoutState();
+    args.onDone(watchSaved);
   };
 }
 
@@ -2154,7 +2206,7 @@ export function Thunk_debugTestLogin(
         await env.service.signout().catch(() => undefined);
         throw e;
       }
-      await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+      await handleLogin(dispatch, result, env, getState().user?.id || getState().storage.tempUserId);
       updateState(
         dispatch,
         [lb<IState>().p("storage").p("subscription").p("key").record(setup.key)],
@@ -2456,9 +2508,10 @@ function _load<T>(
 async function handleLogin(
   dispatch: IDispatch,
   result: IGetStorageResponse,
-  client: Window["fetch"],
+  env: IEnv,
   oldUserId?: string
 ): Promise<void> {
+  const client = env.service.client;
   try {
     if (result.email != null) {
       dispatch(Thunk_postevent("login"));
@@ -2520,11 +2573,11 @@ async function handleLogin(
           userId: result.user_id,
         };
         try {
-          await KeychainStore_setAuthToken(auth);
+          await env.keychain.setAuthToken(auth);
         } catch (e) {
           lg("ls-keychain-set-auth-fail", { error: e instanceof Error ? e.message : String(e) });
         }
-        NativeWatchBridge_sendAuthToWatch(auth);
+        env.watch.sendAuthToWatch(auth);
       }
     } else if (result.key) {
       updateState(

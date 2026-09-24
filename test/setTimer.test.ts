@@ -149,6 +149,7 @@ describe("Set timer triggering", () => {
 
     function recordFromClock(progress: IHistoryRecord, entryIndex: number, setIndex: number): IHistoryRecord {
       return Progress_completeSetAction(
+        [],
         noCountdown,
         Stats_getEmpty(),
         progress,
@@ -229,11 +230,20 @@ describe("Set timer triggering", () => {
   it("proceedAfterTimedSet starts the rest timer in a workout but not in the playground", () => {
     const text = `# Week 1\n## Day 1\nPlank / 3x1 30s|15s auto\n`;
 
-    const workout = Progress_proceedAfterTimedSet(buildLoggedTimedSet(text), 0, 0, Settings_build(), undefined, false);
+    const workout = Progress_proceedAfterTimedSet(
+      [],
+      buildLoggedTimedSet(text),
+      0,
+      0,
+      Settings_build(),
+      undefined,
+      false
+    );
     expect(workout.setTimer).to.eql(undefined);
     expect(workout.timer).to.not.eql(undefined);
 
     const playground = Progress_proceedAfterTimedSet(
+      [],
       buildLoggedTimedSet(text),
       0,
       0,
@@ -248,11 +258,11 @@ describe("Set timer triggering", () => {
   it("closeTimedSet starts the deferred rest in a workout but not in the playground", () => {
     const text = `# Week 1\n## Day 1\nPlank / 3x1 30s|15s auto\n`;
 
-    const workout = Progress_closeTimedSet(buildLoggedTimedSet(text), Settings_build(), undefined, false);
+    const workout = Progress_closeTimedSet([], buildLoggedTimedSet(text), Settings_build(), undefined, false);
     expect(workout.setTimer).to.eql(undefined);
     expect(workout.timer).to.not.eql(undefined);
 
-    const playground = Progress_closeTimedSet(buildLoggedTimedSet(text), Settings_build(), undefined, true);
+    const playground = Progress_closeTimedSet([], buildLoggedTimedSet(text), Settings_build(), undefined, true);
     expect(playground.setTimer).to.eql(undefined);
     expect(playground.timer).to.eql(undefined);
   });
@@ -302,6 +312,7 @@ describe("Get ready countdown", () => {
     expect(Progress_isSetTimerCheckDue(progress, startedAt + 5000)).to.equal(true);
 
     const after = Progress_checkSetTimer(
+      [],
       settings,
       Stats_getEmpty(),
       progress,
@@ -324,7 +335,7 @@ describe("Get ready countdown", () => {
       ...base,
       setTimerGetReady: { entryIndex: 0, setIndex: 0, ...phase(base, 0, 0), startedAt, getReady: 5, nonce: 1 },
     };
-    const after = Progress_checkSetTimer(settings, Stats_getEmpty(), progress, undefined, undefined, undefined);
+    const after = Progress_checkSetTimer([], settings, Stats_getEmpty(), progress, undefined, undefined, undefined);
     expect(after.setTimerGetReady).to.eql(undefined);
     expect(after.setTimer).to.eql(undefined);
     expect(after.entries[0].sets[0].isCompleted).to.equal(true);
@@ -339,7 +350,7 @@ describe("Get ready countdown", () => {
       ...base,
       setTimerGetReady: { entryIndex: 0, setIndex: 0, ...phase(base, 0, 0), startedAt, getReady: 5, nonce: 1 },
     };
-    const after = Progress_checkSetTimer(settings, Stats_getEmpty(), progress, undefined, undefined, undefined);
+    const after = Progress_checkSetTimer([], settings, Stats_getEmpty(), progress, undefined, undefined, undefined);
     expect(after.setTimerGetReady).to.eql(undefined);
     expect(after.setTimer?.startedAt).to.equal(startedAt + 5000);
     expect(after.entries[0].sets[0].isCompleted).to.not.equal(true);
@@ -502,7 +513,7 @@ describe("Get ready countdown", () => {
       ...base,
       setTimerGetReady: { entryIndex: 0, setIndex: 0, ...phase(base, 0, 0), startedAt: Date.now(), getReady: 5 },
     };
-    const after = Progress_closeTimedSet(progress, settingsWithGetReady(5), undefined, false);
+    const after = Progress_closeTimedSet([], progress, settingsWithGetReady(5), undefined, false);
     expect(after.setTimerGetReady).to.eql(undefined);
     expect(after.setTimer).to.eql(undefined);
     expect(after.timer).to.eql(undefined);
@@ -526,6 +537,7 @@ describe("Get ready countdown", () => {
       amrapModal: { entryIndex: 0, setIndex: 0, isAmrap: true },
     };
     const after = Progress_changeAmrapAction(
+      [],
       Settings_build(),
       Stats_getEmpty(),
       merged,
@@ -548,11 +560,11 @@ describe("Get ready countdown", () => {
       timerSetIndex: 0,
       timerMode: "workout",
     };
-    const straight = Progress_advanceTimedSet(withRest, Settings_build(), true);
+    const straight = Progress_advanceTimedSet([], withRest, Settings_build(), true);
     expect(straight.setTimerGetReady).to.eql(undefined);
     expect(straight.setTimer?.setIndex).to.equal(1);
 
-    const withCountdown = Progress_advanceTimedSet(withRest, Settings_build(), true, 4);
+    const withCountdown = Progress_advanceTimedSet([], withRest, Settings_build(), true, 4);
     expect(withCountdown.setTimer).to.eql(undefined);
     expect(withCountdown.setTimerGetReady?.setIndex).to.equal(1);
     expect(withCountdown.setTimerGetReady?.getReady).to.equal(4);
@@ -572,7 +584,14 @@ describe("Get ready countdown", () => {
     }
 
     it("shortens the rest by the countdown so the circuit's cadence is unchanged", () => {
-      const after = Progress_proceedAfterTimedSet(loggedFirstSet(autoText), 0, 0, settingsWithGetReady(4), undefined);
+      const after = Progress_proceedAfterTimedSet(
+        [],
+        loggedFirstSet(autoText),
+        0,
+        0,
+        settingsWithGetReady(4),
+        undefined
+      );
       // The 10s rest becomes 6s; the other 4s is the countdown, so a round still takes 20 + 10.
       expect(after.timer).to.equal(6);
       expect(after.setTimer).to.eql(undefined);
@@ -592,6 +611,7 @@ describe("Get ready countdown", () => {
         timerMode: "workout",
       };
       const after = Progress_checkSetTimer(
+        [],
         settingsWithGetReady(4),
         Stats_getEmpty(),
         resting,
@@ -606,6 +626,7 @@ describe("Get ready countdown", () => {
 
     it("leaves the rest alone when getReady is unset", () => {
       const after = Progress_proceedAfterTimedSet(
+        [],
         loggedFirstSet(autoText),
         0,
         0,
@@ -627,6 +648,7 @@ describe("Get ready countdown", () => {
         timerMode: "workout",
       };
       const after = Progress_checkSetTimer(
+        [],
         settingsWithGetReady(4),
         Stats_getEmpty(),
         resting,
@@ -642,6 +664,7 @@ describe("Get ready countdown", () => {
 
     it("skips the rest entirely when the countdown is as long as it", () => {
       const after = Progress_proceedAfterTimedSet(
+        [],
         loggedFirstSet(`# Week 1\n## Day 1\nPlank / 3x1 20s|3s auto\n`),
         0,
         0,
@@ -654,6 +677,7 @@ describe("Get ready countdown", () => {
 
     it("gives a zero-rest EMOM no countdown at all", () => {
       const after = Progress_proceedAfterTimedSet(
+        [],
         loggedFirstSet(`# Week 1\n## Day 1\nPlank / 3x1 20s|0s auto\n`),
         0,
         0,
@@ -666,6 +690,7 @@ describe("Get ready countdown", () => {
 
     it("leaves a non-auto rest at full length, since it waits for a tap", () => {
       const after = Progress_proceedAfterTimedSet(
+        [],
         loggedFirstSet(`# Week 1\n## Day 1\nPlank / 3x1 20s|10s\n`),
         0,
         0,
@@ -743,6 +768,7 @@ describe("Unilateral set timers", () => {
     opts: { keepTiming?: boolean; recordedSeconds?: number } = {}
   ): IHistoryRecord {
     return Progress_completeSetAction(
+      [],
       settings,
       Stats_getEmpty(),
       progress,
@@ -806,7 +832,7 @@ describe("Unilateral set timers", () => {
       ],
       setTimer: { entryIndex: 0, setIndex: 0, ...phase(base, 0, 0), side: "left", startedAt, nonce: 1 },
     };
-    const after = Progress_checkSetTimer(settingsWith(5), Stats_getEmpty(), kept, undefined, undefined, undefined);
+    const after = Progress_checkSetTimer([], settingsWith(5), Stats_getEmpty(), kept, undefined, undefined, undefined);
     expect(after.entries[0].sets[0].completedSetTimerLeft).to.equal(18);
     expect(after.setTimerGetReady?.side).to.equal("right");
   });
@@ -853,7 +879,7 @@ describe("Unilateral set timers", () => {
       ...progress,
       setTimer: { entryIndex: 0, setIndex: 0, ...phase(progress, 0, 0), startedAt: Date.now(), nonce: 1 },
     };
-    const advanced = Progress_advanceTimedSet(withClock, settingsWith(undefined), false, 0, Date.now());
+    const advanced = Progress_advanceTimedSet([], withClock, settingsWith(undefined), false, 0, Date.now());
     expect(advanced.setTimer?.entryIndex).to.equal(1);
     expect(advanced.setTimer?.side).to.equal("left");
   });
@@ -1012,7 +1038,7 @@ describe("Timed set phase identity", () => {
     expect(first.setTimer?.setId).to.equal(progress.entries[0].sets[0].id);
     expect(first.setTimer?.side).to.equal("bilateral");
 
-    const closed = Progress_closeTimedSet(first, noCountdown(), undefined, false);
+    const closed = Progress_closeTimedSet([], first, noCountdown(), undefined, false);
     const second = Progress_completeSet(closed, 0, 0, "workout", false, noCountdown());
     expect(second.setTimer?.id).to.not.equal(first.setTimer?.id);
   });

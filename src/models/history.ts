@@ -12,7 +12,7 @@ import {
   Exercise_targetMuscles,
   Exercise_synergistMuscles,
 } from "./exercise";
-import { Progress_getEntryId, Progress_isCurrent, Progress_lbProgress } from "./progress";
+import { Progress_getEntryId, Progress_isCurrent } from "./progress";
 import { CollectionUtils_sort, CollectionUtils_sortByExpr } from "../utils/collection";
 
 import {
@@ -56,7 +56,7 @@ import { IState, updateState } from "./state";
 import { lb, lbu } from "lens-shmens";
 import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_isNotEmpty } from "../utils/object";
 import { IDispatch } from "../ducks/types";
-import { NativeWorkoutBridge_pauseWorkout, NativeWorkoutBridge_resumeWorkout } from "../utils/nativeWorkoutBridge";
+import { INativeEffect } from "./nativeEffects";
 import memoize from "micro-memoize";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatYYYYMMDD } from "../utils/date";
 import {
@@ -996,9 +996,8 @@ export function History_exportAsCSV(history: IHistoryRecord[], settings: ISettin
   return lines;
 }
 
-export function History_pauseWorkoutAction(dispatch: IDispatch): void {
+export function History_pauseWorkoutState(dispatch: IDispatch): void {
   const lensGetters = { progress: lb<IState>().p("storage").pi("progress").get() };
-  NativeWorkoutBridge_pauseWorkout();
   updateState(
     dispatch,
     [
@@ -1028,29 +1027,12 @@ export function History_pauseWorkout(intervals?: IIntervals): IIntervals | undef
   }
 }
 
-export function History_resumeWorkoutAction(
-  dispatch: IDispatch,
-  isPlayground: boolean,
-  settings: ISettings,
-  hasSubscription: boolean
-): void {
-  updateState(
-    dispatch,
-    [
-      Progress_lbProgress().recordModify((progress) => {
-        const intervals = History_resumeWorkout(progress, isPlayground, settings.timers.reminder, hasSubscription);
-        return { ...progress, intervals };
-      }),
-    ],
-    "Resume workout"
-  );
-}
-
 export function History_isPaused(intervals?: IIntervals): boolean {
   return intervals ? intervals.length === 0 || intervals[intervals.length - 1][1] != null : false;
 }
 
 export function History_resumeWorkout(
+  effects: INativeEffect[],
   historyRecord: IHistoryRecord,
   isPlayground: boolean,
   reminder: number | undefined,
@@ -1060,11 +1042,7 @@ export function History_resumeWorkout(
   if (History_isPaused(intervals)) {
     const isStart = !intervals || intervals.length === 0;
     if (!isPlayground && Progress_isCurrent(historyRecord)) {
-      NativeWorkoutBridge_resumeWorkout({
-        reminder: reminder || 0,
-        isStart,
-        hasSubscription,
-      });
+      effects.push({ type: "resumeWorkout", reminder: reminder || 0, isStart, hasSubscription });
     }
     const newIntervals = intervals ? ObjectUtils_clone(intervals) : [];
     newIntervals.push([Date.now(), undefined]);

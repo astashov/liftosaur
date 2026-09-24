@@ -1,27 +1,25 @@
-export type INativeWorkoutMirroringEvent = {
-  type: "heartRate" | "stateChanged" | "ended" | "failed";
-  heartRate?: number;
-  isWatchWorkoutActive?: boolean;
-  didStartWatchWorkout?: boolean;
-  error?: string;
-};
+import { INativeWorkoutMirroringEvent, IWorkoutMirroring } from "./workoutMirroring";
 
-export function NativeWorkoutMirroring_startWatchWorkout(): Promise<boolean> {
-  return Promise.resolve(false);
-}
+export type { INativeWorkoutMirroringEvent } from "./workoutMirroring";
 
-export function NativeWorkoutMirroring_pauseWatchWorkout(): void {}
+export class WorkoutMirroring implements IWorkoutMirroring {
+  public startWatchWorkout(): Promise<boolean> {
+    return Promise.resolve(false);
+  }
 
-export function NativeWorkoutMirroring_resumeWatchWorkout(): void {}
+  public pauseWatchWorkout(): void {}
 
-export function NativeWorkoutMirroring_endWatchWorkout(): void {}
+  public resumeWatchWorkout(): void {}
 
-export function NativeWorkoutMirroring_resetWatchWorkoutState(): void {}
+  public endWatchWorkout(): void {}
 
-export function NativeWorkoutMirroring_isHealthKitAvailable(): boolean {
-  return false;
-}
+  public resetWatchWorkoutState(): void {}
 
-export function NativeWorkoutMirroring_subscribe(_handler: (event: INativeWorkoutMirroringEvent) => void): () => void {
-  return () => {};
+  public isHealthKitAvailable(): boolean {
+    return false;
+  }
+
+  public subscribe(_handler: (event: INativeWorkoutMirroringEvent) => void): () => void {
+    return () => {};
+  }
 }

@@ -77,7 +77,12 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
 
   const [showCreateProgramModal, setShowCreateProgramModal] = useState(false);
   const initialState = buildState({ storage, userId: props.account.id, deviceId: props.deviceId });
-  const [state, dispatch] = useThunkReducer(reducerWrapper(false, props.env.persistence), initialState, props.env, []);
+  const [state, dispatch] = useThunkReducer(
+    reducerWrapper(false, props.env.persistence, () => undefined),
+    initialState,
+    props.env,
+    []
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [isDuplicating, setIsDuplicating] = useState<string | undefined>(undefined);
   const [isDeleting, setIsDeleting] = useState<string | undefined>(undefined);

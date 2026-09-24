@@ -29,6 +29,7 @@ void BUNDLE_VERSION_ANDROID;
 
 import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
+import { TimerBridge } from "./utils/nativeTimerBridge";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils_formatYYYYMMDDHHMM } from "./utils/date";
 import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_getAllKeys } from "./utils/indexeddb";
@@ -47,7 +48,8 @@ if ("serviceWorker" in navigator && (typeof window === "undefined" || window.loc
 
 console.log(DateUtils_formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
-const audio = new AudioInterface();
+const timer = new TimerBridge();
+const audio = new AudioInterface(timer);
 const persistence = new Persistence();
 const url = UrlUtils_build(document.location.href);
 const userId = url.searchParams.get("userid") || undefined;
@@ -68,7 +70,14 @@ async function initialize(loadedData: ILocalStorage | undefined): Promise<void> 
     const queue = new AsyncQueue();
     (window as any).queue = queue;
     createRoot(document.getElementById("app")!).render(
-      <AppView initialState={initialState} client={client} audio={audio} queue={queue} persistence={persistence} />
+      <AppView
+        initialState={initialState}
+        client={client}
+        audio={audio}
+        queue={queue}
+        persistence={persistence}
+        timer={timer}
+      />
     );
   } catch (e) {
     console.error(e);

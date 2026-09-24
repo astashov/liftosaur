@@ -87,6 +87,11 @@ import { Collector } from "../utils/collector";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { SendMessage_toIos } from "../utils/sendMessage";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
+import { INativeEffect, INativeEffectBridges, NativeEffects_apply } from "../models/nativeEffects";
+import { TimerBridge } from "../utils/nativeTimerBridge";
+import { WorkoutBridge } from "../utils/nativeWorkoutBridge";
+import { WatchBridge } from "../utils/nativeWatchBridge";
+import { WorkoutMirroring } from "../utils/nativeWorkoutMirroringBridge";
 import { TimedSet_toView, TimedSet_withRecorded } from "../models/timedSet";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { lg } from "../utils/posthog";
@@ -284,6 +289,13 @@ function setToWatchSet(
 }
 
 // Cache validated storage to avoid re-parsing/validating on every call
+const watchBridges: INativeEffectBridges = {
+  timer: new TimerBridge(),
+  workout: new WorkoutBridge(),
+  watch: new WatchBridge(),
+  mirroring: new WorkoutMirroring(),
+};
+
 let cachedStorage: IStorage | null = null;
 let cachedStorageVersion: number = 0; // Incremented on each mutation
 let hasValidatedOnceThisSession: boolean = false; // Only validate once per app session
@@ -437,13 +449,15 @@ class LiftosaurWatch {
   private static modifyStorage(
     storageJson: string,
     deviceId: string,
-    cb: (storage: IStorage) => IEither<IStorage, string>
+    cb: (storage: IStorage, effects: INativeEffect[]) => IEither<IStorage, string>
   ): string {
     return this.getStorage<IStorage>(storageJson, (storage) => {
-      const newStorageResult = cb(storage);
+      const effects: INativeEffect[] = [];
+      const newStorageResult = cb(storage, effects);
       if (!newStorageResult.success) {
         return { success: false, error: newStorageResult.error };
       }
+      NativeEffects_apply(watchBridges, effects);
       const newStorage = newStorageResult.data;
       const newVersions = Storage_updateVersions(storage, newStorage, deviceId);
       newStorage._versions = newVersions;
@@ -456,13 +470,15 @@ class LiftosaurWatch {
   private static modifyStorageFresh(
     storageJson: string,
     deviceId: string,
-    cb: (storage: IStorage) => IEither<IStorage, string>
+    cb: (storage: IStorage, effects: INativeEffect[]) => IEither<IStorage, string>
   ): string {
     return this.getStorageFresh<IStorage>(storageJson, (storage) => {
-      const newStorageResult = cb(storage);
+      const effects: INativeEffect[] = [];
+      const newStorageResult = cb(storage, effects);
       if (!newStorageResult.success) {
         return { success: false, error: newStorageResult.error };
       }
+      NativeEffects_apply(watchBridges, effects);
       const newStorage = newStorageResult.data;
       const newVersions = Storage_updateVersions(storage, newStorage, deviceId);
       newStorage._versions = newVersions;
@@ -533,14 +549,14 @@ class LiftosaurWatch {
   }
 
   public static finishWorkout(storageJson: string, deviceId: string): string {
-    return this.modifyStorage(storageJson, deviceId, (storage) => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects) => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No progress to finish" };
       }
       lg("watch-finish-workout", { workout: JSON.stringify(progress) });
       lg("ls-finish-workout");
-      const newStorage = Progress_finishWorkout(storage, progress);
+      const newStorage = Progress_finishWorkout(effects, storage, progress);
       return { success: true, data: newStorage };
     });
   }
@@ -638,7 +654,7 @@ class LiftosaurWatch {
     restTimer: number,
     restTimerSince: number
   ): string {
-    return this.modifyStorageFresh(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorageFresh(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -663,6 +679,7 @@ class LiftosaurWatch {
         console.log(`Main App: Set already completed, refreshing live activity`);
         const program = getProgram(storage);
         LiveActivityManager_updateProgressLiveActivity(
+          effects,
           program,
           progress,
           storage.settings,
@@ -675,6 +692,7 @@ class LiftosaurWatch {
         return { success: true, data: storage };
       }
       const newProgress = Progress_completeSetAction(
+        effects,
         storage.settings,
         storage.stats,
         progress,
@@ -709,7 +727,7 @@ class LiftosaurWatch {
     setIndex: number,
     skipLiveActivityUpdate: boolean
   ): string {
-    return this.modifyStorageFresh(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorageFresh(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -727,6 +745,7 @@ class LiftosaurWatch {
         );
         if (!skipLiveActivityUpdate) {
           LiveActivityManager_updateProgressLiveActivity(
+            effects,
             program,
             progress,
             storage.settings,
@@ -739,6 +758,7 @@ class LiftosaurWatch {
         }
       } else {
         const newProgress = Progress_updateTimer(
+          effects,
           progress,
           program,
           action === "increase" ? timer + 15 : Math.max(0, timer - 15),
@@ -774,7 +794,7 @@ class LiftosaurWatch {
         // A malformed payload must not block logging the set — fall back to the stored values.
       }
     }
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       let progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -824,6 +844,7 @@ class LiftosaurWatch {
         : undefined;
       lg("watch-complete-set");
       const newProgress = Progress_completeSetAction(
+        effects,
         storage.settings,
         storage.stats,
         progress,
@@ -862,7 +883,7 @@ class LiftosaurWatch {
 
   // Polled by the watch (e.g. every second) to drive `auto` set timer transitions; no-op otherwise.
   public static checkSetTimer(storageJson: string, deviceId: string): string {
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -879,6 +900,7 @@ class LiftosaurWatch {
           ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
           : undefined;
       const newProgress = Progress_checkSetTimer(
+        effects,
         storage.settings,
         storage.stats,
         progress,
@@ -935,7 +957,7 @@ class LiftosaurWatch {
     keepTiming: boolean,
     recordedSeconds: number
   ): string {
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -952,6 +974,7 @@ class LiftosaurWatch {
           : undefined;
       lg("watch-record-set-timer");
       const newProgress = Progress_completeSetAction(
+        effects,
         storage.settings,
         storage.stats,
         progress,
@@ -976,12 +999,12 @@ class LiftosaurWatch {
 
   // Discard the set timer banner from the watch (no recording); starts deferred rest if already logged.
   public static closeSetTimer(storageJson: string, deviceId: string): string {
-    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects): IEither<IStorage, string> => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
       }
-      const newProgress = Progress_closeTimedSet(progress, storage.settings, storage.subscription);
+      const newProgress = Progress_closeTimedSet(effects, progress, storage.settings, storage.subscription);
       return { success: true, data: { ...storage, progress: [newProgress] } };
     });
   }
@@ -1318,7 +1341,7 @@ class LiftosaurWatch {
     completedRpe?: number,
     userPromptedVarsJson?: string
   ): string {
-    return this.modifyStorage(storageJson, deviceId, (storage) => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects) => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -1366,6 +1389,7 @@ class LiftosaurWatch {
 
       // Use Progress.changeAmrapAction which handles all the logic
       const newProgress = Progress_changeAmrapAction(
+        effects,
         settings,
         storage.stats,
         progress,
@@ -1418,7 +1442,7 @@ class LiftosaurWatch {
   }
 
   public static adjustRestTimer(storageJson: string, deviceId: string, adjustment: number): string {
-    return this.modifyStorage(storageJson, deviceId, (storage) => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects) => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
@@ -1436,6 +1460,7 @@ class LiftosaurWatch {
       lg("watch-adjust-rest-timer");
       const newTimer = progress.timer + adjustment;
       const newProgress = Progress_updateTimer(
+        effects,
         progress,
         program,
         newTimer,
@@ -1508,13 +1533,14 @@ class LiftosaurWatch {
   }
 
   public static resumeWorkout(storageJson: string, deviceId: string): string {
-    return this.modifyStorage(storageJson, deviceId, (storage) => {
+    return this.modifyStorage(storageJson, deviceId, (storage, effects) => {
       const progress = storage.progress?.[0];
       if (!progress) {
         return { success: false, error: "No active workout" };
       }
 
       const newIntervals = History_resumeWorkout(
+        effects,
         progress,
         false,
         undefined,

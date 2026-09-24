@@ -373,4 +373,63 @@ describe("Persistence", () => {
     const stats = await persistence.saveFull(BASE_KEY, { storage });
     expect(stats.shards).to.include.members(["history", "programs", "stats", "storage"]);
   });
+
+  describe("scheduleSave", () => {
+    it("writes the data it was given, not whatever is current when the timer runs", async () => {
+      const scheduler = new Persistence(store, "sharded", 0);
+      scheduler.scheduleSave("acc", { storage: buildStorage([1]) });
+      scheduler.scheduleSave("acc", { storage: buildStorage([1, 2]) });
+      await scheduler.flushSave();
+      const written = await store.get("liftosaurshard:liftosaur_acc:history");
+      expect(JSON.parse(written as string)).to.have.length(2);
+    });
+
+    it("collapses a burst into one write", async () => {
+      const scheduler = new Persistence(store, "sharded", 0);
+      scheduler.scheduleSave("acc", { storage: buildStorage([1]) });
+      scheduler.scheduleSave("acc", { storage: buildStorage([1, 2]) });
+      scheduler.scheduleSave("acc", { storage: buildStorage([1, 2, 3]) });
+      store.writes = [];
+      await scheduler.flushSave();
+      const shardWrites = store.writes.filter((keys) => keys.some((k) => k.startsWith("liftosaurshard:")));
+      expect(shardWrites).to.have.length(1);
+    });
+
+    it("writes nothing after cancelSave", async () => {
+      const scheduler = new Persistence(store, "sharded", 0);
+      scheduler.scheduleSave("acc", { storage: buildStorage([1]) });
+      scheduler.cancelSave();
+      store.writes = [];
+      await scheduler.flushSave();
+      expect(store.writes).to.have.length(0);
+    });
+
+    it("still saves the workout when the account pointer write fails", async () => {
+      const failingPointer: IPersistenceStore = {
+        get: (key) => store.get(key),
+        getAllKeys: () => store.getAllKeys(),
+        setMany: async (pairs) => {
+          if (pairs.some(([key]) => key === "current_account")) {
+            throw new Error("quota exceeded");
+          }
+          return store.setMany(pairs);
+        },
+      };
+      const scheduler = new Persistence(failingPointer, "sharded", 0);
+      scheduler.scheduleSave("acc", { storage: buildStorage([1]) });
+      await scheduler.flushSave();
+      expect(await store.get("liftosaurshard:liftosaur_acc:history")).to.not.equal(undefined);
+    });
+
+    it("keeps two stores independent, so one cannot drop the other's save", async () => {
+      const first = new Persistence(store, "sharded", 0);
+      const second = new Persistence(store, "sharded", 0);
+      first.scheduleSave("first", { storage: buildStorage([1]) });
+      second.scheduleSave("second", { storage: buildStorage([2]) });
+      await first.flushSave();
+      await second.flushSave();
+      expect(await store.get("liftosaurshard:liftosaur_first:history")).to.not.equal(undefined);
+      expect(await store.get("liftosaurshard:liftosaur_second:history")).to.not.equal(undefined);
+    });
+  });
 });

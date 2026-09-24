@@ -72,7 +72,7 @@ import {
   IStorage,
   IProgramExerciseWarmupSet,
 } from "../types";
-import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
+import { INativeEffect } from "./nativeEffects";
 import { SendMessage_print } from "../utils/sendMessage";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IPercentage, IScriptErrorHandler, ITimedSetSide } from "../types";
@@ -378,6 +378,7 @@ export function Progress_isCurrent(progress: Pick<IHistoryRecord, "id"> | undefi
 }
 
 export function Progress_scheduleTimerNotification(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   entryIndex: number,
   mode: IProgressMode,
@@ -411,22 +412,26 @@ export function Progress_scheduleTimerNotification(
     }
   }
   SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
-  NativeTimerBridge_startTimer({
-    duration,
-    title,
-    subtitleHeader,
-    subtitle,
-    bodyHeader,
-    body,
-    ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
-    vibration: !!settings.vibration,
-    volume: settings.volume,
-    timerSinceMs,
-    timerSeconds,
+  effects.push({
+    type: "startTimer",
+    params: {
+      duration,
+      title,
+      subtitleHeader,
+      subtitle,
+      bodyHeader,
+      body,
+      ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
+      vibration: !!settings.vibration,
+      volume: settings.volume,
+      timerSinceMs,
+      timerSeconds,
+    },
   });
 }
 
 export function Progress_startTimer(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   timestamp: number,
   mode: IProgressMode,
@@ -467,11 +472,11 @@ export function Progress_startTimer(
     // aborts on a non-positive interval.
     const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
     if (timerForPush > 0) {
-      Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush, timestamp, timer);
+      Progress_scheduleTimerNotification(effects, progress, entryIndex, mode, settings, timerForPush, timestamp, timer);
     } else {
       // Backdated start that's already overrun: schedule nothing, but clear any earlier pending
       // notification so a stale one doesn't fire.
-      NativeTimerBridge_stopTimer();
+      effects.push({ type: "stopTimer" });
     }
   }
   const newProgress: IHistoryRecord = {
@@ -578,6 +583,7 @@ export function Progress_getNextEntryIndex(
 }
 
 export function Progress_updateTimer(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   program: IProgram | undefined,
   newTimer: number,
@@ -591,6 +597,7 @@ export function Progress_updateTimer(
   const timerForPush = newTimer - Math.round((Date.now() - timerSince) / 1000);
   if (timerForPush > 0) {
     const newProgress = Progress_startTimer(
+      effects,
       progress,
       progress.timerSince || Date.now(),
       progress.timerMode || "workout",
@@ -603,6 +610,7 @@ export function Progress_updateTimer(
     );
     if (!skipLiveActivityUpdate) {
       LiveActivityManager_updateProgressLiveActivity(
+        effects,
         program,
         progress,
         settings,
@@ -615,7 +623,7 @@ export function Progress_updateTimer(
     }
     return newProgress;
   } else {
-    NativeTimerBridge_stopTimer();
+    effects.push({ type: "stopTimer" });
     const newProgress = {
       ...progress,
       timer: Math.max(0, newTimer),
@@ -626,6 +634,7 @@ export function Progress_updateTimer(
     };
     if (!skipLiveActivityUpdate) {
       LiveActivityManager_updateProgressLiveActivity(
+        effects,
         program,
         progress,
         settings,
@@ -656,8 +665,8 @@ export function Progress_maybeApplySuperset(
   return progress;
 }
 
-export function Progress_stopTimer(progress: IHistoryRecord): IHistoryRecord {
-  NativeTimerBridge_stopTimer();
+export function Progress_stopTimer(effects: INativeEffect[], progress: IHistoryRecord): IHistoryRecord {
+  effects.push({ type: "stopTimer" });
   return Progress_stopTimerPure(progress);
 }
 
@@ -1354,6 +1363,7 @@ export function Progress_getAutoGetReadySeconds(set: ISet | undefined, settings:
 // `startedAt` is when the previous phase actually ended, not when we noticed. Reading the clock here
 // instead would hand a late reconcile a full fresh countdown and stretch the circuit past its cadence.
 export function Progress_advanceTimedSet(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   settings: ISettings,
   freshNonce: boolean,
@@ -1366,7 +1376,7 @@ export function Progress_advanceTimedSet(
   // Advancing ends the current (auto) rest — cancel its pending "rest is over" notification so it doesn't
   // fire during the next set's clock.
   if (progress.timerSince != null) {
-    NativeTimerBridge_stopTimer();
+    effects.push({ type: "stopTimer" });
   }
   // Follow the clock to the next set's exercise so the shown exercise tracks the active set (EMOM/Tabata can
   // roll into a different exercise). currentEntryIndex syncs, so every client's view moves with it.
@@ -1423,6 +1433,7 @@ export function Progress_handOffToOtherSide(
 
 // The single place that decides what happens after a timed set is recorded+completed from its clock.
 export function Progress_proceedAfterTimedSet(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   entryIndex: number,
   setIndex: number,
@@ -1456,13 +1467,13 @@ export function Progress_proceedAfterTimedSet(
     clockStartedAt != null && endedOffsetSeconds != null ? clockStartedAt + endedOffsetSeconds * 1000 : Date.now();
   // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
   if (set?.auto && (set.timer ?? 0) === 0) {
-    return Progress_advanceTimedSet(progress, settings, false, 0, timedSetEndedAt);
+    return Progress_advanceTimedSet(effects, progress, settings, false, 0, timedSetEndedAt);
   }
   const autoGetReady = Progress_getAutoGetReadySeconds(set, settings);
   // The countdown eats the whole rest (rest <= getReady), so there is no rest left to run - go straight into
   // it, otherwise Progress_startTimer would clear the timer for a 0s rest and nothing would reopen the clock.
   if (autoGetReady > 0 && (set?.timer ?? 0) - autoGetReady <= 0) {
-    return Progress_advanceTimedSet(progress, settings, true, autoGetReady, timedSetEndedAt);
+    return Progress_advanceTimedSet(effects, progress, settings, true, autoGetReady, timedSetEndedAt);
   }
   let newProgress: IHistoryRecord = { ...progress, setTimer: undefined, setTimerGetReady: undefined };
   if (set?.isCompleted && set.setTimer != null) {
@@ -1470,6 +1481,7 @@ export function Progress_proceedAfterTimedSet(
     // opens rather than at the moment work starts.
     const restTimer = autoGetReady > 0 ? (set.timer ?? 0) - autoGetReady : undefined;
     newProgress = Progress_startTimer(
+      effects,
       newProgress,
       timedSetEndedAt,
       "workout",
@@ -1486,6 +1498,7 @@ export function Progress_proceedAfterTimedSet(
 // Discard the set timer banner without recording. If the set was already logged (via "Log & keep"),
 // start its deferred rest.
 export function Progress_closeTimedSet(
+  effects: INativeEffect[],
   progress: IHistoryRecord,
   settings: ISettings,
   subscription: ISubscription | undefined,
@@ -1501,6 +1514,7 @@ export function Progress_closeTimedSet(
   // The playground has no rest timers, so discarding a "Log & keep timing" set just closes the banner.
   if (!isPlayground && set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
     newProgress = Progress_startTimer(
+      effects,
       newProgress,
       Date.now(),
       "workout",
@@ -1559,6 +1573,7 @@ export function Progress_isSetTimerCheckDue(progress: IHistoryRecord, now: numbe
 // its target → record+complete+proceed (overflow `+` sets count up past target and are stopped manually);
 // (B) an `auto` set's rest expired → advance to the next timed set.
 export function Progress_checkSetTimer(
+  effects: INativeEffect[],
   settings: ISettings,
   stats: IStats,
   progress: IHistoryRecord,
@@ -1581,6 +1596,7 @@ export function Progress_checkSetTimer(
     if (set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000) {
       const recordedSeconds = TimedSet_recordedFor(set, stm.side) ?? set.setTimer;
       return Progress_completeSetAction(
+        effects,
         settings,
         stats,
         current,
@@ -1618,6 +1634,7 @@ export function Progress_checkSetTimer(
       // itself, not the work clock. It starts at the rest's deadline, not now: a tick that lands late (a
       // throttled timer, a wake) must not hand out a full fresh countdown and stretch the round.
       return Progress_advanceTimedSet(
+        effects,
         current,
         settings,
         true,
@@ -2217,6 +2234,7 @@ export function Progress_applyProgramDay(
 }
 
 export function Progress_changeAmrapAction(
+  effects: INativeEffect[],
   settings: ISettings,
   stats: IStats,
   progress: IHistoryRecord,
@@ -2265,7 +2283,7 @@ export function Progress_changeAmrapAction(
     );
   }
   if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
-    newProgress = Progress_stopTimer(newProgress);
+    newProgress = Progress_stopTimer(effects, newProgress);
   }
   newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, "workout");
   // A timed set keeps its set-timer modal open behind the amrap modal (see Progress_proceedAfterTimedSet).
@@ -2290,6 +2308,7 @@ export function Progress_changeAmrapAction(
     // The playground has no rest timers (matches Progress_proceedAfterTimedSet + normal-set completion).
     if (!action.isPlayground) {
       newProgress = Progress_startTimer(
+        effects,
         newProgress,
         new Date().getTime(),
         "workout",
@@ -2301,12 +2320,14 @@ export function Progress_changeAmrapAction(
     }
   }
   newProgress.intervals = History_resumeWorkout(
+    effects,
     newProgress,
     action.isPlayground,
     settings.timers.reminder,
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
   LiveActivityManager_updateLiveActivityForNextEntry(
+    effects,
     newProgress,
     action.entryIndex,
     "workout",
@@ -2325,6 +2346,7 @@ export interface ITimedSetDurations {
 // Takes explicit durations rather than deriving them from the clock: a completed `auto` set backdates the
 // next set's clock into the future, so Date.now() against it went negative and recorded [25, -25, 0].
 export function Progress_settleTimedSet(
+  effects: INativeEffect[],
   settings: ISettings,
   stats: IStats,
   progress: IHistoryRecord,
@@ -2357,6 +2379,7 @@ export function Progress_settleTimedSet(
     }
     const reported = phase.side === "left" ? durations.left : durations.right;
     current = Progress_completeSetAction(
+      effects,
       settings,
       stats,
       current,
@@ -2384,6 +2407,7 @@ export function Progress_settleTimedSet(
 }
 
 export function Progress_completeSetAction(
+  effects: INativeEffect[],
   settings: ISettings,
   stats: IStats,
   progress: IHistoryRecord,
@@ -2445,6 +2469,7 @@ export function Progress_completeSetAction(
       );
       if (handedOff === banked) {
         return Progress_completeSetAction(
+          effects,
           settings,
           stats,
           { ...banked, setTimer: undefined, setTimerGetReady: undefined },
@@ -2456,6 +2481,7 @@ export function Progress_completeSetAction(
       banked = handedOff;
     }
     LiveActivityManager_updateLiveActivityForNextEntry(
+      effects,
       banked,
       action.entryIndex,
       action.mode,
@@ -2480,6 +2506,7 @@ export function Progress_completeSetAction(
       .set(recorded);
     if (!action.keepSetTimerRunning) {
       stopped = Progress_proceedAfterTimedSet(
+        effects,
         stopped,
         action.entryIndex,
         action.setIndex,
@@ -2489,12 +2516,14 @@ export function Progress_completeSetAction(
       );
     }
     stopped.intervals = History_resumeWorkout(
+      effects,
       stopped,
       action.isPlayground,
       settings.timers.reminder,
       subscription != null && Subscriptions_hasSubscription(subscription)
     );
     LiveActivityManager_updateLiveActivityForNextEntry(
+      effects,
       stopped,
       action.entryIndex,
       action.mode,
@@ -2543,9 +2572,10 @@ export function Progress_completeSetAction(
     // Starting this set's clock means the previous set's rest is over — stop it (and cancel its pending
     // "rest is over" notification) so it doesn't fire in the middle of this set's clock.
     if (newProgress.timerSince != null) {
-      newProgress = Progress_stopTimer(newProgress);
+      newProgress = Progress_stopTimer(effects, newProgress);
     }
     LiveActivityManager_updateLiveActivityForNextEntry(
+      effects,
       newProgress,
       action.entryIndex,
       action.mode,
@@ -2570,7 +2600,7 @@ export function Progress_completeSetAction(
   }
 
   if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
-    newProgress = Progress_stopTimer(newProgress);
+    newProgress = Progress_stopTimer(effects, newProgress);
   }
   if (didFinish) {
     newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, action.mode);
@@ -2579,6 +2609,7 @@ export function Progress_completeSetAction(
   // (below) so a set logged via "Log & keep timing" doesn't start resting while its clock still runs.
   if (!action.isPlayground && newSet.setTimer == null) {
     newProgress = Progress_startTimer(
+      effects,
       newProgress,
       new Date().getTime(),
       action.mode,
@@ -2592,6 +2623,7 @@ export function Progress_completeSetAction(
   // banner and start rest — the one place that decision lives. "Log & keep timing" skips it.
   if (wasSetTimerOpen && !action.keepSetTimerRunning) {
     newProgress = Progress_proceedAfterTimedSet(
+      effects,
       newProgress,
       action.entryIndex,
       action.setIndex,
@@ -2613,12 +2645,14 @@ export function Progress_completeSetAction(
     };
   }
   newProgress.intervals = History_resumeWorkout(
+    effects,
     newProgress,
     action.isPlayground,
     settings.timers.reminder,
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
   LiveActivityManager_updateLiveActivityForNextEntry(
+    effects,
     newProgress,
     action.entryIndex,
     action.mode,
@@ -2659,12 +2693,16 @@ export function Progress_forceUpdateEntryIndex(dispatch: IDispatch): void {
   );
 }
 
-export function Progress_finishWorkout(storage: IStorage, progress: IHistoryRecord): IStorage {
+export function Progress_finishWorkout(
+  effects: INativeEffect[],
+  storage: IStorage,
+  progress: IHistoryRecord
+): IStorage {
   const settings = storage.settings;
   const programIndex = storage.programs.findIndex((p) => p.id === progress.programId)!;
   const program = progress.programId === emptyProgramId ? Program_createEmptyProgram() : storage.programs[programIndex];
   const evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
-  Progress_stopTimer(progress);
+  Progress_stopTimer(effects, progress);
   const historyRecord = History_finishProgramDay(
     progress,
     storage.settings,

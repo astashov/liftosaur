@@ -4,12 +4,7 @@ import { useTrackClick } from "../utils/clickTracking";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
-import {
-  History_workoutTime,
-  History_isPaused,
-  History_resumeWorkoutAction,
-  History_pauseWorkoutAction,
-} from "../models/history";
+import { History_workoutTime, History_isPaused } from "../models/history";
 import { Progress_lbProgress, Progress_isCurrent, Progress_getActiveSetTimer } from "../models/progress";
 import { INavCommon, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
@@ -19,7 +14,7 @@ import { Timer } from "./timer";
 import { Workout } from "./workout";
 import { WorkoutFinishButton } from "./workoutFinishButton";
 import { WorkoutMenu } from "./workoutMenu";
-import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks";
+import { Thunk_updateLiveActivity, Thunk_deleteProgress, Thunk_pauseWorkout } from "../ducks/thunks";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
@@ -178,13 +173,17 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const onPauseResume = useCallback(() => {
     trackClick(History_isPaused(props.progress.intervals) ? "workout-resume" : "workout-pause");
     if (History_isPaused(props.progress.intervals)) {
-      History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
+      dispatch({
+        type: "ResumeWorkoutAction",
+        isPlayground: false,
+        hasSubscription: Subscriptions_hasSubscription(props.subscription),
+      });
       const currentEntryIndex = props.progress.currentEntryIndex || 0;
       const currentEntry = props.progress.entries[currentEntryIndex];
       const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
       dispatch(Thunk_updateLiveActivity(currentEntryIndex, setIndex, props.progress.timer, props.progress.timerSince));
     } else {
-      History_pauseWorkoutAction(dispatch);
+      dispatch(Thunk_pauseWorkout());
     }
   }, [dispatch, props.progress, props.settings, props.subscription, trackClick]);
 

@@ -241,6 +241,7 @@ function applyCommand(
     const entry = progress.entries[entryIndex];
     const programExercise = Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
     let newProgress = Progress_completeSetAction(
+      [],
       settings,
       stats,
       progress,
@@ -262,6 +263,7 @@ function applyCommand(
     // real clock, so immediately fire that second signal here, recording the set's programmed hold duration
     // (setTimer) as the held time. A caller can then tweak it with change_set_time to test hold progression.
     newProgress = Progress_settleTimedSet(
+      [],
       settings,
       stats,
       newProgress,
@@ -279,6 +281,7 @@ function applyCommand(
       const modal = newProgress.amrapModal;
       const set = newProgress.entries[modal.entryIndex].sets[modal.setIndex];
       newProgress = Progress_changeAmrapAction(
+        [],
         settings,
         stats,
         newProgress,

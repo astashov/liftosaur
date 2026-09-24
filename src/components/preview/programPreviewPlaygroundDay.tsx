@@ -34,6 +34,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
   const dispatch: IDispatch = useCallback(
     async (action) => {
       const newProgress = buildCardsReducer(
+        [],
         props.settings,
         props.stats,
         undefined

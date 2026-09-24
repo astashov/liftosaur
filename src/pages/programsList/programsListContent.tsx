@@ -5,6 +5,11 @@ import { IEnv } from "../../models/state";
 import { IStorage } from "../../types";
 import { AsyncQueue } from "../../utils/asyncQueue";
 import { Persistence } from "../../utils/persistence";
+import { TimerBridge } from "../../utils/nativeTimerBridge";
+import { WorkoutBridge } from "../../utils/nativeWorkoutBridge";
+import { WatchBridge } from "../../utils/nativeWatchBridge";
+import { Keychain } from "../../utils/keychainStore";
+import { WorkoutMirroring } from "../../utils/nativeWorkoutMirroringBridge";
 import { ProgramContentList } from "../program/programContentList";
 import { Service } from "../../api/service";
 
@@ -20,7 +25,17 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
   const queue = new AsyncQueue();
   const audio = new MockAudioInterface();
   const service = new Service(props.client);
-  const env: IEnv = { queue, audio, service, persistence: new Persistence() };
+  const env: IEnv = {
+    queue,
+    audio,
+    service,
+    persistence: new Persistence(),
+    timer: new TimerBridge(),
+    workout: new WorkoutBridge(),
+    watch: new WatchBridge(),
+    keychain: new Keychain(),
+    mirroring: new WorkoutMirroring(),
+  };
   return (
     <ProgramContentList
       service={service}

@@ -198,7 +198,7 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
 
   const dispatch: IDispatch = useCallback(
     (async (action: unknown) => {
-      const newProgress = buildCardsReducer(settings, stats, undefined)(progress, action as ICardsAction);
+      const newProgress = buildCardsReducer([], settings, stats, undefined)(progress, action as ICardsAction);
       track({ name: "main_playground" });
       setProgress(newProgress);
     }) as IDispatch,

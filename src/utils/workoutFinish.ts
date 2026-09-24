@@ -1,14 +1,17 @@
 import { Platform } from "react-native";
 import { IDispatch } from "../ducks/types";
-import { Thunk_finishProgramDay, Thunk_postevent, Thunk_saveWorkoutToHealth } from "../ducks/thunks";
+import {
+  Thunk_finishProgramDay,
+  Thunk_finishWorkoutNative,
+  Thunk_pauseWorkoutNative,
+  Thunk_postevent,
+  Thunk_saveWorkoutToHealth,
+} from "../ducks/thunks";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { Progress_isFullyEmptyOrFinishedSet } from "../models/progress";
 import { IHistoryRecord, ISettings } from "../types";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { SendMessage_isIos } from "./sendMessage";
-import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "./nativeWorkoutBridge";
-import { NativeWatchBridge_sendFinishWorkoutToWatch } from "./nativeWatchBridge";
-import { NativeWorkoutMirroring_resetWatchWorkoutState } from "./nativeWorkoutMirroringBridge";
 import { Dialog_confirm } from "./dialog";
 
 export interface IWorkoutFinishArgs {
@@ -39,7 +42,7 @@ export async function WorkoutFinish_run(args: IWorkoutFinishArgs): Promise<void>
   setIsFinishing(true);
   try {
     await nextPaint();
-    NativeWorkoutBridge_pauseWorkout();
+    dispatch(Thunk_pauseWorkoutNative());
     dispatch(Thunk_finishProgramDay(progress.id));
     if (isCurrent) {
       dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
@@ -53,28 +56,30 @@ export async function WorkoutFinish_run(args: IWorkoutFinishArgs): Promise<void>
         (!settings.healthConfirmation || (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
       const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
       const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
-      NativeWorkoutBridge_finishWorkout({
-        healthSync: !!shouldSyncToHealth,
-        calories: History_calories(progress),
-        intervals: JSON.stringify(intervals),
-      });
-      const watchSaved = await NativeWatchBridge_sendFinishWorkoutToWatch(!!shouldSyncToHealth);
-      NativeWorkoutMirroring_resetWatchWorkoutState();
-      if (shouldSyncToHealth && !watchSaved) {
-        const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
-        const startMs = validIntervals[0]?.[0] ?? progress.startTime;
-        const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
-        dispatch(
-          Thunk_saveWorkoutToHealth({
-            startMs,
-            endMs,
-            calories: History_calories(progress),
-            intervals,
-          })
-        );
-      } else if (watchSaved) {
-        dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
-      }
+      dispatch(
+        Thunk_finishWorkoutNative({
+          progress,
+          shouldSyncToHealth: !!shouldSyncToHealth,
+          intervals,
+          onDone: (watchSaved) => {
+            if (shouldSyncToHealth && !watchSaved) {
+              const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
+              const startMs = validIntervals[0]?.[0] ?? progress.startTime;
+              const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
+              dispatch(
+                Thunk_saveWorkoutToHealth({
+                  startMs,
+                  endMs,
+                  calories: History_calories(progress),
+                  intervals,
+                })
+              );
+            } else if (watchSaved) {
+              dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
+            }
+          },
+        })
+      );
     }
     // isFinishing stays true on success: Thunk_finishProgramDay defers the 1-2s blocking commit past
     // `await getNavigationService()` and navigates away first, so clearing here would drop the

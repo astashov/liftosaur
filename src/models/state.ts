@@ -28,6 +28,11 @@ import type { IIapActiveSubscription, IIapAdapter } from "../utils/iapAdapter";
 import type { IHealthAdapter } from "../utils/healthAdapter";
 import type { IPushSync } from "../utils/pushSyncAdapter";
 import type { Persistence } from "../utils/persistence";
+import type { ITimerBridge } from "../utils/timerBridge";
+import type { IWorkoutBridge } from "../utils/workoutBridge";
+import type { IWatchBridge } from "../utils/watchBridge";
+import type { IKeychain } from "../utils/keychain";
+import type { IWorkoutMirroring } from "../utils/workoutMirroring";
 
 export type IEnv = {
   service: Service;
@@ -39,6 +44,11 @@ export type IEnv = {
   iap?: IIapAdapter;
   health?: IHealthAdapter;
   push?: IPushSync;
+  timer: ITimerBridge;
+  workout: IWorkoutBridge;
+  watch: IWatchBridge;
+  keychain: IKeychain;
+  mirroring: IWorkoutMirroring;
 };
 
 export interface INotification {

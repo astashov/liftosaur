@@ -22,6 +22,12 @@ import {
   Thunk_debugTestLogin,
 } from "../ducks/thunks";
 import { Service } from "../api/service";
+import { NativeEffects_apply } from "../models/nativeEffects";
+import { ITimerBridge } from "../utils/timerBridge";
+import { WorkoutBridge } from "../utils/nativeWorkoutBridge";
+import { WatchBridge } from "../utils/nativeWatchBridge";
+import { Keychain } from "../utils/keychainStore";
+import { WorkoutMirroring } from "../utils/nativeWorkoutMirroringBridge";
 import { IAudioInterface } from "../lib/audioInterface";
 import { Persistence } from "../utils/persistence";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
@@ -71,6 +77,7 @@ interface IProps {
   initialState: IState;
   queue: AsyncQueue;
   persistence: Persistence;
+  timer: ITimerBridge;
 }
 
 function getScreenNameFromNavState(navState: NavigationState | undefined): IScreen {
@@ -102,12 +109,28 @@ function getScreenNameFromNavState(navState: NavigationState | undefined): IScre
 
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue, persistence } = props;
+  const timerBridge = props.timer;
   const env = useMemo<IEnv>(
-    () => ({ service: new Service(client), audio, queue, persistence, navigationRef, getCurrentScreenData }),
-    [client, audio, queue, persistence]
+    () => ({
+      service: new Service(client),
+      audio,
+      queue,
+      persistence,
+      navigationRef,
+      getCurrentScreenData,
+      timer: timerBridge,
+      workout: new WorkoutBridge(),
+      watch: new WatchBridge(),
+      keychain: new Keychain(),
+      mirroring: new WorkoutMirroring(),
+    }),
+    [client, audio, queue, persistence, timerBridge]
   );
   const service = env.service;
-  const reducer = useMemo(() => reducerWrapper(true, persistence), [persistence]);
+  const reducer = useMemo(
+    () => reducerWrapper(true, persistence, (effects) => NativeEffects_apply(env, effects)),
+    [persistence, env]
+  );
   const onActions = useMemo(() => defaultOnActions(env), [env]);
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef<IState>(state);

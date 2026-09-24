@@ -170,27 +170,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { reducerWrapper, defaultOnActions, getInitialState, getIdbKey, IAction } from "./ducks/reducer";
 import { useThunkReducer } from "./utils/useThunkReducer";
-import { Service } from "./api/service";
-import { AudioInterface } from "./lib/audioInterface";
+import { AppEnv_build } from "./utils/appEnv";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
 } from "./utils/subscriptions";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
-import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
-import {
-  NativeWorkoutBridge_subscribeToLiveActivityActions,
-  NativeWorkoutBridge_discardWorkout,
-} from "./utils/nativeWorkoutBridge";
-import {
-  NativeWatchBridge_subscribeToWatchEvents,
-  NativeWatchBridge_hasWatchApp,
-  NativeWatchBridge_sendStorageToWatch,
-  NativeWatchBridge_sendNoAuthToWatch,
-  NativeWatchBridge_sendAuthToWatch,
-  NativeWatchBridge_sendClearAuthToWatch,
-} from "./utils/nativeWatchBridge";
-import { KeychainStore_getAuthToken, KeychainStore_clearAuthToken } from "./utils/keychainStore";
+import { NativeEffects_apply } from "./models/nativeEffects";
 import { lg } from "./utils/posthog";
 import { EventManager_initTelemetry } from "./utils/eventManager";
 import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
@@ -202,7 +188,6 @@ import { ImagePreloader_preload } from "./utils/imagePreloader";
 import { RestTimer } from "./components/restTimer";
 import { IScreen } from "./models/screen";
 import { IEnv, IState } from "./models/state";
-import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
 import { TrackedStateProvider } from "./navigation/TrackedStateContext";
 import { ModalStateProvider } from "./navigation/ModalStateContext";
@@ -246,10 +231,6 @@ import {
   Thunk_postevent,
   Thunk_debugTestLogin,
 } from "./ducks/thunks";
-import { IapAdapter } from "./utils/iap";
-import { HealthAdapter } from "./utils/health";
-import NativeLiftosaurPush from "./specs/NativeLiftosaurPush";
-import { PushSyncClient } from "./utils/pushSyncClient";
 import { PushRegistration_identityOf } from "./utils/pushRegistration";
 import { History_getGraphsAggregates, History_getHomeAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
@@ -269,24 +250,14 @@ GoogleSignin.configure({
   offlineAccess: false,
 });
 
-function AppInner(props: { initialState: IState; persistence: Persistence }): React.JSX.Element {
-  const persistence = props.persistence;
-  const env = useMemo<IEnv>(() => {
-    const service = new Service(fetch);
-    return {
-      service,
-      audio: new AudioInterface(),
-      queue: new AsyncQueue(),
-      persistence,
-      navigationRef,
-      getCurrentScreenData,
-      iap: new IapAdapter(),
-      health: new HealthAdapter(),
-      push: new PushSyncClient(service, NativeLiftosaurPush, Platform.OS === "ios" ? "ios" : "android"),
-    };
-  }, [persistence]);
+export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.Element {
+  const env = props.env;
+  const persistence = env.persistence;
   const service = env.service;
-  const reducer = useMemo(() => reducerWrapper(true, persistence), [persistence]);
+  const reducer = useMemo(
+    () => reducerWrapper(true, persistence, (effects) => NativeEffects_apply(env, effects)),
+    [persistence, env]
+  );
   const onActions = useMemo(() => defaultOnActions(env), [env]);
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef(state);
@@ -514,7 +485,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
     if (Platform.OS !== "android") {
       return;
     }
-    return NativeTimerBridge_subscribeOnScheduled(() => {
+    return env.timer.subscribeOnScheduled(() => {
       if (Progress_getCurrentProgress(stateRef.current)?.ui) {
         updateState(
           dispatch,
@@ -523,7 +494,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
         );
       }
     });
-  }, [dispatch]);
+  }, [dispatch, env]);
 
   useEffect(() => {
     // Never mirror a debug sandbox to the paired watch - that would copy the target user's
@@ -531,86 +502,88 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
     if (AdminDebug_isDebugAccountId(state.storage.tempUserId)) {
       return;
     }
-    if (!NativeWatchBridge_hasWatchApp()) {
+    if (!env.watch.hasWatchApp()) {
       return;
     }
     const filtered = WatchStorageFilter_filterJson(state.storage);
-    NativeWatchBridge_sendStorageToWatch(filtered);
-  }, [state.storage]);
+    env.watch.sendStorageToWatch(filtered);
+  }, [state.storage, env]);
 
   useEffect(() => {
-    return NativeWatchBridge_subscribeToWatchEvents((event) => {
+    return env.watch.subscribeToWatchEvents((event) => {
       if (event.type === "watchStorageMerge" && event.storage) {
         dispatch(Thunk_handleWatchStorageMerge(event.storage, !!event.isLiveActivity));
       } else if (event.type === "liveActivityStorage" && event.storage) {
         dispatch(Thunk_handleWatchStorageMerge(event.storage, true));
       } else if (event.type === "endWorkout") {
-        // Native side already ended the LA / timer / reminder via Swift.
-        // This handler only clears JS module state (currentReminderDuration)
-        // so the AppState listener doesn't schedule a phantom reminder later.
-        // Idempotent with respect to native cleanup.
-        NativeWorkoutBridge_discardWorkout();
+        // Swift already ended the live activity, timer and reminder for this event. Only this call clears
+        // the reminder duration the workout bridge holds, which the AppState listener would otherwise reuse.
+        env.workout.discardWorkout();
       } else if (event.type === "requestStorage") {
         if (!AdminDebug_isDebugAccountId(stateRef.current.storage.tempUserId)) {
           const filtered = WatchStorageFilter_filterJson(stateRef.current.storage);
-          NativeWatchBridge_sendStorageToWatch(filtered);
+          env.watch.sendStorageToWatch(filtered);
         }
       } else if (event.type === "requestAuth") {
         const currentUserId = stateRef.current.user?.id;
-        KeychainStore_getAuthToken()
+        env.keychain
+          .getAuthToken()
           .then((auth) => {
             if (auth && auth.token && currentUserId && auth.userId === currentUserId) {
-              NativeWatchBridge_sendAuthToWatch(auth);
+              env.watch.sendAuthToWatch(auth);
             } else {
               if (auth && auth.token && auth.userId !== currentUserId) {
                 lg("ls-keychain-stale-on-request", {
                   storedUserId: auth.userId || "",
                   currentUserId: currentUserId || "",
                 });
-                KeychainStore_clearAuthToken().catch((e) =>
-                  lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
-                );
-                NativeWatchBridge_sendClearAuthToWatch();
+                env.keychain
+                  .clearAuthToken()
+                  .catch((e) =>
+                    lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
+                  );
+                env.watch.sendClearAuthToWatch();
               } else {
-                NativeWatchBridge_sendNoAuthToWatch();
+                env.watch.sendNoAuthToWatch();
               }
             }
           })
           .catch((e) => {
             lg("ls-keychain-get-auth-fail", { error: e instanceof Error ? e.message : String(e) });
-            NativeWatchBridge_sendNoAuthToWatch();
+            env.watch.sendNoAuthToWatch();
           });
       }
     });
-  }, [dispatch]);
+  }, [dispatch, env]);
 
   useEffect(() => {
     const currentUserId = stateRef.current.user?.id;
-    KeychainStore_getAuthToken()
+    env.keychain
+      .getAuthToken()
       .then((auth) => {
         if (!auth || !auth.token) {
           return;
         }
         if (currentUserId && auth.userId === currentUserId) {
-          NativeWatchBridge_sendAuthToWatch(auth);
+          env.watch.sendAuthToWatch(auth);
         } else {
           lg("ls-keychain-stale-on-startup", {
             storedUserId: auth.userId || "",
             currentUserId: currentUserId || "",
           });
-          KeychainStore_clearAuthToken().catch((e) =>
-            lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
-          );
-          NativeWatchBridge_sendClearAuthToWatch();
+          env.keychain
+            .clearAuthToken()
+            .catch((e) => lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) }));
+          env.watch.sendClearAuthToWatch();
         }
       })
       .catch((e) => {
         lg("ls-keychain-get-auth-fail-startup", { error: e instanceof Error ? e.message : String(e) });
       });
-  }, []);
+  }, [env]);
 
   useEffect(() => {
-    return NativeWorkoutBridge_subscribeToLiveActivityActions((event) => {
+    return env.workout.subscribeToLiveActivityActions((event) => {
       const entryIndex = event.entryIndex ?? 0;
       const setIndex = event.setIndex ?? 0;
       if (event.action === "completeSet") {
@@ -768,6 +741,7 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
 export function App(): React.JSX.Element {
   const [initialState, setInitialState] = useState<IState | null>(null);
   const [persistence] = useState(() => new Persistence());
+  const [env] = useState(() => AppEnv_build(persistence));
 
   useEffect(() => {
     async function load(): Promise<void> {
@@ -804,7 +778,7 @@ export function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-        <AppInner initialState={initialState} persistence={persistence} />
+        <AppRoot initialState={initialState} env={env} />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

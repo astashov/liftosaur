@@ -26,6 +26,7 @@ import { lb } from "lens-shmens";
 import { Progress_getProgress } from "../../src/models/progress";
 import { MockIapAdapter } from "./mockIapAdapter";
 import { MockHealthAdapter } from "./mockHealthAdapter";
+import { MockBridges_build, MockBridgeLog } from "./mockBridges";
 import { Persistence } from "../../src/utils/persistence";
 
 export function SyncTestUtils_mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
@@ -154,6 +155,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   env: IEnv;
   iapAdapter: MockIapAdapter;
   healthAdapter: MockHealthAdapter;
+  bridgeLog: MockBridgeLog;
 }> {
   const aStorage = { ...Storage_getDefault(), email: "admin@example.com" };
   const log = new MockLogUtil();
@@ -177,12 +179,18 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   const queue = new AsyncQueue();
   const iapAdapter = new MockIapAdapter();
   const healthAdapter = new MockHealthAdapter();
+  const bridges = MockBridges_build();
   const env: IEnv = {
     service,
     audio: new MockAudioInterface(),
     queue,
     iap: iapAdapter,
     health: healthAdapter,
+    timer: bridges.timer,
+    workout: bridges.workout,
+    watch: bridges.watch,
+    keychain: bridges.keychain,
+    mirroring: bridges.mirroring,
     persistence: new Persistence(),
   };
   const url = UrlUtils_build("https://www.liftosaur.com");
@@ -199,7 +207,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   await mockReducer.run([
     SyncTestUtils_mockDispatch((ds) => Program_cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
   ]);
-  return { di, mockFetch, log, mockReducer, env, iapAdapter, healthAdapter };
+  return { di, mockFetch, log, mockReducer, env, iapAdapter, healthAdapter, bridgeLog: bridges.log };
 }
 
 export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string): Promise<{
@@ -210,6 +218,7 @@ export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string)
   env: IEnv;
   iapAdapter: MockIapAdapter;
   healthAdapter: MockHealthAdapter;
+  bridgeLog: MockBridgeLog;
 }> {
   const result = await SyncTestUtils_initTheApp(deviceId);
   await SyncTestUtils_logWorkout(result.mockReducer, basicBeginnerProgram, [
