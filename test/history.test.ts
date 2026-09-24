@@ -1,6 +1,10 @@
 import "mocha";
 import { expect } from "chai";
-import { History_getMaxWeightSetFromEntry, History_buildPrevExerciseData } from "../src/models/history";
+import {
+  History_getMaxWeightSetFromEntry,
+  History_buildPrevExerciseData,
+  History_collectRepPersonalRecords,
+} from "../src/models/history";
 import { IHistoryEntry, IHistoryRecord, ISet, IExerciseType } from "../src/types";
 import { UidFactory_generateUid } from "../src/utils/generator";
 import { Exercise_toKey } from "../src/models/exercise";
@@ -270,5 +274,44 @@ describe("History", () => {
         expect(limited[key]).to.eql(full[key]);
       }
     });
+  });
+});
+
+describe("History_collectRepPersonalRecords", () => {
+  it("uses completed reps rather than programmed reps", () => {
+    const exercise: IExerciseType = { id: "squat" };
+    const set = buildSet(true);
+
+    set.reps = 5;
+    set.completedReps = 4;
+    set.completedWeight = { value: 100, unit: "lb" };
+
+    const entry = buildEntry(exercise, true);
+    entry.sets = [set];
+
+    const record = buildRecord(1, [entry]);
+    const collector = History_collectRepPersonalRecords(exercise, "lb");
+    const result = collector.fn(collector.initial, record);
+
+    expect(result.repPersonalRecords[4]?.weight.value).to.equal(100);
+    expect(result.repPersonalRecords[4]?.set.completedReps).to.equal(4);
+    expect(result.repPersonalRecords[5]).to.equal(undefined);
+  });
+  it("excludes 1RM records because the existing Max 1RM covers them", () => {
+    const exercise: IExerciseType = { id: "squat" };
+    const set = buildSet(true);
+
+    set.reps = 1;
+    set.completedReps = 1;
+    set.completedWeight = { value: 120, unit: "lb" };
+
+    const entry = buildEntry(exercise, true);
+    entry.sets = [set];
+
+    const record = buildRecord(1, [entry]);
+    const collector = History_collectRepPersonalRecords(exercise, "lb");
+    const result = collector.fn(collector.initial, record);
+
+    expect(result.repPersonalRecords[1]).to.equal(undefined);
   });
 });
