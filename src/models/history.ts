@@ -470,6 +470,8 @@ export function History_collectLastNote(
 export interface IPrevExerciseData {
   lastEntry?: IHistoryEntry;
   lastEntryTimestamp?: number;
+  lastWarmupEntry?: IHistoryEntry;
+  lastWarmupEntryTimestamp?: number;
   lastNote?: string;
   lastNoteTimestamp?: number;
   sameDayEntry?: IHistoryEntry;
@@ -572,6 +574,14 @@ export function History_buildPrevExerciseData(
       ) {
         data.lastEntry = entry;
         data.lastEntryTimestamp = time;
+      }
+      if (
+        isBefore &&
+        Reps_isStarted(entry.warmupSets) &&
+        (data.lastWarmupEntryTimestamp == null || time > data.lastWarmupEntryTimestamp)
+      ) {
+        data.lastWarmupEntry = entry;
+        data.lastWarmupEntryTimestamp = time;
       }
       if (
         isBefore &&

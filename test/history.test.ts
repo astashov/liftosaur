@@ -176,6 +176,16 @@ describe("History", () => {
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 5 * day);
     });
 
+    it("picks lastWarmupEntry by completed warmups, apart from the work sets", () => {
+      const history = [
+        buildRecord(now - 5 * day, [{ ...buildEntry(squat, false), warmupSets: [buildSet(true)] }]),
+        buildRecord(now - 1 * day, [{ ...buildEntry(squat, true), warmupSets: [buildSet(false)] }]),
+      ];
+      const data = History_buildPrevExerciseData(history, now);
+      expect(data[Exercise_toKey(squat)].lastWarmupEntryTimestamp).to.eql(now - 5 * day);
+      expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 1 * day);
+    });
+
     it("only picks notes within the last two months", () => {
       const history = [
         buildRecord(now - 70 * day, [buildEntry(squat, true, "old note")]),

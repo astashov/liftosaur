@@ -87,7 +87,13 @@ describe("WorkoutSetPrevious", () => {
   describe("last", () => {
     const lastWarmup = set("lw", 5, 45);
     const last = entry("last", [set("l0", 5, 200), set("l1", 5, 190)], [lastWarmup]);
-    const withLast: IPrevExerciseData = { ...prevData, lastEntry: last, lastEntryTimestamp: 3000 };
+    const withLast: IPrevExerciseData = {
+      ...prevData,
+      lastEntry: last,
+      lastEntryTimestamp: 3000,
+      lastWarmupEntry: last,
+      lastWarmupEntryTimestamp: 3000,
+    };
 
     it("comes first and takes the set at the same position", () => {
       expect(WorkoutSetPrevious_lines("workout", 1, target(5), withLast, true, false)).to.eql([
@@ -109,13 +115,29 @@ describe("WorkoutSetPrevious", () => {
       ]);
     });
 
-    it("is hidden when it is the same set as the best or the same-day line", () => {
+    it("takes warmups from the last workout with a completed warmup", () => {
+      const olderWarmup = set("ow", 5, 95);
+      const warmupFromOlder: IPrevExerciseData = {
+        ...withLast,
+        lastWarmupEntry: entry("older", [], [olderWarmup]),
+        lastWarmupEntryTimestamp: 2500,
+      };
+      expect(WorkoutSetPrevious_lines("warmup", 0, target(5), warmupFromOlder, false, false)).to.eql([
+        { label: "Last", set: olderWarmup, timestamp: 2500 },
+      ]);
+      const noWarmups: IPrevExerciseData = { ...withLast, lastWarmupEntry: undefined, lastWarmupEntryTimestamp: undefined };
+      expect(WorkoutSetPrevious_lines("warmup", 0, target(5), noWarmups, false, false)).to.eql([]);
+    });
+
+    it("still shows when it is the same set as the best or the same-day line", () => {
       const lastIsBest: IPrevExerciseData = { ...withLast, lastEntry: entry("l", [best5]) };
       expect(WorkoutSetPrevious_lines("workout", 0, target(5), lastIsBest, false, false)).to.eql([
+        { label: "Last", set: best5, timestamp: 3000 },
         { label: "Best", set: best5, timestamp: 2000 },
       ]);
       const lastIsSameDay: IPrevExerciseData = { ...withLast, lastEntry: sameDay };
       expect(WorkoutSetPrevious_lines("workout", 0, target(5), lastIsSameDay, true, false)).to.eql([
+        { label: "Last", set: sameDay.sets[0], timestamp: 3000 },
         { label: "Best", set: best5, timestamp: 2000 },
         { label: "Same day", set: sameDay.sets[0], timestamp: 1000 },
       ]);

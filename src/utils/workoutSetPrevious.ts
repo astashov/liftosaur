@@ -52,15 +52,11 @@ export function WorkoutSetPrevious_lines(
     (best == null || !sameResult(best.set, sameDaySet))
       ? sameDaySet
       : undefined;
-  const last = setAt(prevData?.lastEntry, mode, setIndex);
-  if (
-    last != null &&
-    prevData?.lastEntryTimestamp != null &&
-    !(isLastInColumn && mode === "workout") &&
-    last !== best?.set &&
-    last !== sameDay
-  ) {
-    lines.push({ label: "Last", set: last, timestamp: prevData.lastEntryTimestamp });
+  const lastEntry = mode === "warmup" ? prevData?.lastWarmupEntry : prevData?.lastEntry;
+  const lastTimestamp = mode === "warmup" ? prevData?.lastWarmupEntryTimestamp : prevData?.lastEntryTimestamp;
+  const last = setAt(lastEntry, mode, setIndex);
+  if (last != null && lastTimestamp != null && !(isLastInColumn && mode === "workout")) {
+    lines.push({ label: "Last", set: last, timestamp: lastTimestamp });
   }
   if (best != null) {
     lines.push({ label: set.isAmrap ? "Best AMRAP" : "Best", set: best.set, timestamp: best.timestamp });
