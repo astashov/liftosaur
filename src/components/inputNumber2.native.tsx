@@ -42,6 +42,7 @@ const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettin
 // centered digits, with the flex parent centering the margin box.
 const LARGE_LINE_HEIGHT = 1.2;
 const LARGE_DIGIT_TOP_MARGIN = 0.23;
+const LARGE_CURSOR_HEIGHT = 0.8;
 
 interface IInputNumber2Props {
   name: string;
@@ -88,7 +89,7 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   return num;
 }
 
-function InputCursor(): JSX.Element {
+function InputCursor(props: { fontSize?: number }): JSX.Element {
   const opacity = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const animation = Animated.loop(
@@ -100,7 +101,11 @@ function InputCursor(): JSX.Element {
     animation.start();
     return () => animation.stop();
   }, [opacity]);
-  return <Animated.View className="w-px h-scaled-3 bg-background-darkgray" style={{ opacity }} />;
+  if (props.fontSize == null) {
+    return <Animated.View className="w-px h-scaled-3 bg-background-darkgray" style={{ opacity }} />;
+  }
+  const height = Math.round(props.fontSize * LARGE_CURSOR_HEIGHT);
+  return <Animated.View className="w-0.5 bg-background-darkgray" style={{ opacity, height }} />;
 }
 
 type IRepMaxCalculatorOpener = (data: { unit: "kg" | "lb" }) => void;
@@ -602,7 +607,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
               {value}
             </Text>
           )}
-          {isFocused && <InputCursor />}
+          {isFocused && <InputCursor fontSize={isLarge ? valueFontStyle.fontSize : undefined} />}
           {props.showUnitInside && props.selectedUnit && props.value != null && (
             <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
           )}
