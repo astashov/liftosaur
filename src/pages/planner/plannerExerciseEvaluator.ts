@@ -92,6 +92,7 @@ export class PlannerSyntaxError extends SyntaxError {
 
   constructor(message: string, line: number, offset: number, from: number, to: number, details: IPlannerErrorDetails) {
     super(message);
+    Object.setPrototypeOf(this, PlannerSyntaxError.prototype);
     this.line = line;
     this.offset = offset;
     this.from = from;

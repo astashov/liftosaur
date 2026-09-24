@@ -90,6 +90,7 @@ export class LiftoscriptSyntaxError extends SyntaxError {
     details: ILiftoscriptErrorDetails
   ) {
     super(message);
+    Object.setPrototypeOf(this, LiftoscriptSyntaxError.prototype);
     this.line = line;
     this.offset = offset;
     this.from = from;
