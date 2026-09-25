@@ -21,12 +21,27 @@ declare let Rollbar: RB;
 
 const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
 
-// Parsing a Liftoscript expression with Lezer is expensive, and the same progress/update
-// scripts are scanned repeatedly (e.g. the same exercise instance in every week/day, and on
-// every tour/render pass). Cache by (script, name) since the result is pure.
+const parseLiftoscript = memoize((script: string): Tree => LiftoscriptParser.parse(script), { maxSize: 200 });
+
+// The semantic pass reads only the script, the mode, and which state and binding keys exist, never their values.
+// A pass that throws is not cached, so every run of a broken script still reports its error.
+const validateLiftoscript = memoize(
+  (_script: string, _mode: IProgramMode, _stateKeys: string, _bindingKeys: string, validate: () => void): true => {
+    validate();
+    return true;
+  },
+  { maxSize: 500, transformKey: (args) => args.slice(0, 4) }
+);
+
+// The pass checks membership with `in`, which also sees inherited keys. A state variable named `__proto__`
+// gives the state a prototype, and then `Object.keys` no longer describes what `in` finds.
+function hasOnlyOwnKeys(value: object): boolean {
+  return Object.getPrototypeOf(value) === Object.prototype;
+}
+
 const hasKeywordMemoized = memoize(
   (script: string, name: string): boolean => {
-    const expr = LiftoscriptParser.parse(script);
+    const expr = parseLiftoscript(script);
     const cursor = expr.cursor();
     do {
       if (cursor.node.type.name === NodeName.Keyword) {
@@ -101,7 +116,7 @@ export class ScriptRunner {
   }
 
   public parse(): [LiftoscriptEvaluator, Tree] {
-    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptTree = parseLiftoscript(this.script);
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
       this.script,
       this.state,
@@ -112,12 +127,23 @@ export class ScriptRunner {
       this.units,
       this.mode
     );
-    liftoscriptEvaluator.parse(liftoscriptTree.topNode);
+    const validate = (): void => liftoscriptEvaluator.parse(liftoscriptTree.topNode);
+    if (hasOnlyOwnKeys(this.state) && hasOnlyOwnKeys(this.bindings)) {
+      validateLiftoscript(
+        this.script,
+        this.mode,
+        Object.keys(this.state).sort().join("\n"),
+        Object.keys(this.bindings).sort().join("\n"),
+        validate
+      );
+    } else {
+      validate();
+    }
     return [liftoscriptEvaluator, liftoscriptTree];
   }
 
   public switchWeightsToUnit(toUnit: IUnit): string {
-    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptTree = parseLiftoscript(this.script);
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
       this.script,
       this.state,
@@ -132,7 +158,7 @@ export class ScriptRunner {
   }
 
   public getStateVariableKeys(): Set<string> {
-    const liftoscriptTree = LiftoscriptParser.parse(this.script);
+    const liftoscriptTree = parseLiftoscript(this.script);
     const liftoscriptEvaluator = new LiftoscriptEvaluator(
       this.script,
       this.state,
@@ -147,7 +173,7 @@ export class ScriptRunner {
   }
 
   public static hasStateVariable(script: string, name: string): boolean {
-    const expr = LiftoscriptParser.parse(script);
+    const expr = parseLiftoscript(script);
     const cursor = expr.cursor();
     do {
       if (cursor.node.type.name === NodeName.StateVariable) {

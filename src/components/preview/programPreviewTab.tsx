@@ -1,49 +1,15 @@
-import { JSX, memo, useMemo } from "react";
+import { JSX, memo } from "react";
 import { View } from "react-native";
 import { IProgram, ISettings, IStats } from "../../types";
-import {
-  Program_evaluate,
-  Program_nextHistoryRecord,
-  Program_getProgramDay,
-  Program_getProgramDayUsedExercises,
-} from "../../models/program";
+import { Program_evaluate } from "../../models/program";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { ScrollableTabs } from "../scrollableTabs";
 import { Markdown } from "../markdown";
-import { ObjectUtils_filter } from "../../utils/object";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ProgramPreviewTabDay } from "./programPreviewTabDay";
 import { useProgressiveItems } from "../../utils/useProgressiveItems";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
-
-interface IProgramPreviewWeek {
-  name: string;
-  description?: string;
-  days: { day: number; states: Record<string, unknown>; progress: ReturnType<typeof Program_nextHistoryRecord> }[];
-}
-
-export function ProgramPreview_buildWeeks(
-  program: IProgram,
-  settings: ISettings,
-  stats: IStats
-): IProgramPreviewWeek[] {
-  const evaluatedProgram = Program_evaluate(program, settings);
-  let dayNumber = 0;
-  return evaluatedProgram.weeks.map((week, weekIndex) => ({
-    name: week.name,
-    description: evaluatedProgram.weeks[weekIndex]?.description,
-    days: week.days.map(() => {
-      dayNumber += 1;
-      const progress = Program_nextHistoryRecord(program, settings, stats, dayNumber);
-      const programDay = Program_getProgramDay(evaluatedProgram, dayNumber);
-      const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
-      const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
-      const states = ObjectUtils_filter(evaluatedProgram.states, (key) => exerciseTags.has(key));
-      return { day: dayNumber, states, progress };
-    }),
-  }));
-}
+import { IProgramPreviewWeek } from "./programPreviewWeeks";
 
 interface IProgramPreviewWeekContentProps {
   week: IProgramPreviewWeek;
@@ -96,65 +62,5 @@ export const ProgramPreviewWeekContent = memo(function ProgramPreviewWeekContent
         ))}
       </View>
     </View>
-  );
-});
-
-interface IProgramPreviewTabProps {
-  program: IProgram;
-  programId: string;
-  settings: ISettings;
-  ui: IPlannerUi;
-  stats: IStats;
-  dispatch: IDispatch;
-  plannerDispatch: ILensDispatch<IPlannerState>;
-}
-
-export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Element => {
-  const weeks = useMemo(
-    () => ProgramPreview_buildWeeks(props.program, props.settings, props.stats),
-    [props.program, props.settings, props.stats]
-  );
-
-  const tabs = useMemo(
-    () =>
-      weeks.map((week, weekIndex) => ({
-        label: week.name,
-        children: () => (
-          <ProgramPreviewWeekContent
-            week={week}
-            weekIndex={weekIndex}
-            program={props.program}
-            programId={props.programId}
-            settings={props.settings}
-            ui={props.ui}
-            stats={props.stats}
-            dispatch={props.dispatch}
-            plannerDispatch={props.plannerDispatch}
-            totalWeeks={weeks.length}
-          />
-        ),
-      })),
-    [
-      weeks,
-      props.program,
-      props.programId,
-      props.settings,
-      props.ui,
-      props.stats,
-      props.dispatch,
-      props.plannerDispatch,
-    ]
-  );
-
-  return (
-    <ScrollableTabs
-      shouldNotExpand={true}
-      color="purple"
-      type="squares"
-      topPadding="0.25rem"
-      className="gap-2 px-4"
-      nonSticky={false}
-      tabs={tabs}
-    />
   );
 });

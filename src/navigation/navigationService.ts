@@ -68,6 +68,8 @@ export function navigateTo<T extends IScreen>(screen: T, params?: IAllScreenPara
     // Started on the tap, not on the navigation state change, so the profiler is already running
     // while the screen mounts. Three seconds covers the mount and the deferred graph and history.
     HermesProfile_captureOnce("open-workout", 3000);
+  } else if (screen === "editProgram") {
+    HermesProfile_captureOnce("open-program", 4000);
   }
 
   if (opts?.stack === "subscription") {

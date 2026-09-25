@@ -35,7 +35,8 @@ import { IconKebab } from "../icons/iconKebab";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { useIsFocused } from "@react-navigation/native";
 import { navigateToModal, getCurrentRouteName } from "../../navigation/navigationService";
-import { ProgramPreview_buildWeeks, ProgramPreviewWeekContent } from "../preview/programPreviewTab";
+import { ProgramPreviewWeekContent } from "../preview/programPreviewTab";
+import { ProgramPreviewWeeks_build } from "../preview/programPreviewWeeks";
 import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
 import { NavScreenContent } from "../../navigation/NavScreenContent";
@@ -50,6 +51,7 @@ import { usePerfRenderTrace } from "../../utils/usePerfRenderTrace";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
 import { PerfEnabled_tier2 } from "../../utils/perfEnabled";
 import { PerfProfiler } from "../../utils/perfProfiler";
+import { HermesProfile_captureOnce } from "../../utils/hermesProfile";
 
 function onProfile(
   id: string,
@@ -254,6 +256,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
       const tabLabel = TAB_LABELS[newTabIndex];
       if (tabLabel) {
         dispatch(Thunk_log(`ls-program-tab-${tabLabel.toLowerCase()}`));
+        HermesProfile_captureOnce(`program-tab-${tabLabel.toLowerCase()}`, 3000);
       }
       plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex), "Change tab");
     },
@@ -270,13 +273,19 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     [plannerDispatch]
   );
 
-  const previewWeeks = useTimedMemo(
-    "editProgram.previewWeeks",
-    () =>
-      activeTabLabel === "Preview" ? ProgramPreview_buildWeeks(program, props.settings, props.navCommon.stats) : [],
-    [activeTabLabel, program, props.settings, props.navCommon.stats]
+  const previewWeekLabels = useMemo(
+    () => (activeTabLabel === "Preview" ? evaluatedProgram.weeks.map((w) => w.name) : []),
+    [activeTabLabel, evaluatedProgram]
   );
-  const safePreviewWeekIndex = Math.min(previewWeekIndex, Math.max(0, previewWeeks.length - 1));
+  const safePreviewWeekIndex = Math.min(previewWeekIndex, Math.max(0, previewWeekLabels.length - 1));
+  const previewWeek = useTimedMemo(
+    "editProgram.previewWeek",
+    () =>
+      activeTabLabel === "Preview"
+        ? ProgramPreviewWeeks_build(program, props.settings, props.navCommon.stats, safePreviewWeekIndex)
+        : undefined,
+    [activeTabLabel, program, props.settings, props.navCommon.stats, safePreviewWeekIndex]
+  );
   const playgroundWeekNames = useMemo(
     () => (activeTabLabel === "Playground" ? evaluatedProgram.weeks.map((w) => w.name) : []),
     [activeTabLabel, evaluatedProgram]
@@ -307,12 +316,11 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
 
   let tabContent: JSX.Element;
   if (activeTabLabel === "Preview") {
-    const currentWeek = previewWeeks[safePreviewWeekIndex];
-    tabContent = currentWeek ? (
+    tabContent = previewWeek ? (
       <PerfProfiler id="tab.Preview" onRender={onProfile}>
         <ProgramPreviewWeekContent
           key="preview"
-          week={currentWeek}
+          week={previewWeek}
           weekIndex={safePreviewWeekIndex}
           program={program}
           programId={programId}
@@ -321,7 +329,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
           stats={props.navCommon.stats}
           dispatch={dispatch}
           plannerDispatch={plannerDispatch}
-          totalWeeks={previewWeeks.length}
+          totalWeeks={previewWeekLabels.length}
         />
       </PerfProfiler>
     ) : (
@@ -376,7 +384,6 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
     () => planner.weeks.map((_, i) => evaluatedWeeks[i]?.some((day) => !day.success) ?? false),
     [planner.weeks, evaluatedWeeks]
   );
-  const previewWeekLabels = useMemo(() => previewWeeks.map((w) => w.name), [previewWeeks]);
 
   let perTabStickyHeader: JSX.Element;
   if (activeTabLabel === "Edit") {
@@ -400,7 +407,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
         )}
       </View>
     );
-  } else if (activeTabLabel === "Preview" && previewWeeks.length > 1) {
+  } else if (activeTabLabel === "Preview" && previewWeekLabels.length > 1) {
     perTabStickyHeader = (
       <View className="bg-background-default">
         <WeekTabBar labels={previewWeekLabels} activeIndex={safePreviewWeekIndex} onChange={setPreviewWeekIndex} />
