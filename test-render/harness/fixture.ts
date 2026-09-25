@@ -7,6 +7,7 @@ import { basicBeginnerProgram } from "../../src/programs/basicBeginnerProgram";
 import { tourConfigs } from "../../src/components/tour/tourConfigs";
 import { Tour_stepHelpFlag } from "../../src/components/tour/tourTypes";
 import { IHistoryRecord, IProgram } from "../../src/types";
+import { EditProgram_initPlannerState } from "../../src/models/editProgram";
 
 // A fixed clock, so a history fixture built at 23:59 does not straddle a day boundary and shift
 // which week the calendar renders.
@@ -15,6 +16,8 @@ const FIXED_NOW = Date.parse("2026-09-24T12:00:00.000Z");
 export interface IFixture {
   program?: IProgram;
   subscribed?: boolean;
+  ongoingWorkout?: boolean;
+  editingProgram?: boolean;
 }
 
 function seenEveryTour(): string[] {
@@ -37,14 +40,15 @@ export function Fixture_history(count: number, now: number = FIXED_NOW): IHistor
 
 export function Fixture_build(args: IFixture = {}): IState {
   const program = args.program ?? basicBeginnerProgram;
-  const progress = Program_nextHistoryRecord(program, Settings_build(), Stats_getEmpty(), 0);
+  const progress =
+    args.ongoingWorkout === false ? [] : [Program_nextHistoryRecord(program, Settings_build(), Stats_getEmpty(), 0)];
   // Without the seen-tour helps and hearAboutUs.done, a first launch opens the hear-about-us modal
   // over the workout screen.
   const storage = {
     ...Storage_getDefault(),
     programs: [program],
     currentProgramId: program.id,
-    progress: [progress],
+    progress,
     helps: seenEveryTour(),
     hearAboutUs: { done: true, requests: [] },
     subscription:
@@ -52,5 +56,10 @@ export function Fixture_build(args: IFixture = {}): IState {
         ? { apple: [], google: [] }
         : { apple: [], google: [], key: "render-contract-test-key" },
   };
-  return buildState({ storage, deviceId: "render-contract-device" });
+  const state = buildState({ storage, deviceId: "render-contract-device" });
+  if (!args.editingProgram) {
+    return state;
+  }
+  // What Program_editAction records before it navigates to the editProgram screen.
+  return { ...state, editProgramStates: { [program.id]: EditProgram_initPlannerState(program.id, program) } };
 }

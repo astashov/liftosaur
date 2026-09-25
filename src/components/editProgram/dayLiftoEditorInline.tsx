@@ -171,6 +171,8 @@ interface IDayLiftoEditorInlineProps {
 //
 // Native-only despite the file name: it's imported from the .native.tsx hosts, and LiftoEditor
 // itself throws on web.
+export const DayLiftoEditorInline_commitDelayMs = 300;
+
 export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Element {
   // Where the focus sits, for the actions to ask which day they're in. Kept in a ref because
   // the pills fire from the dock, a render after focus moved.
@@ -393,7 +395,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
       commitTimerRef.current = undefined;
       committedRef.current = text;
       onChangeRef.current(text);
-    }, 300);
+    }, DayLiftoEditorInline_commitDelayMs);
     commitTimerRef.current = timer;
     return () => clearTimeout(timer);
   }, [text]);

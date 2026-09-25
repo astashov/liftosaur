@@ -33,6 +33,8 @@ export interface IRenderMount {
 export interface ICommitObserver {
   start: () => void;
   stop: () => IRenderTrace;
+  observed: () => number;
+  commits: () => number;
   dispose: () => void;
   mounted: (selector: IRenderSelector) => IRenderMount[];
 }
@@ -68,6 +70,7 @@ export function CommitObserver_install(): ICommitObserver {
   let observations: IRenderObservation[] = [];
   let nextMountId = 1;
   let recording = false;
+  let commits = 0;
   let appRoot: any = undefined;
 
   const identityFor = (fiber: any, props: Record<string, unknown>): IInstanceState => {
@@ -127,6 +130,7 @@ export function CommitObserver_install(): ICommitObserver {
     if (root !== appRoot || !recording) {
       return;
     }
+    commits += 1;
     visit(root.current, false);
   };
 
@@ -154,6 +158,7 @@ export function CommitObserver_install(): ICommitObserver {
       }
       identities = new WeakMap();
       observations = [];
+      commits = 0;
       if (appRoot != null) {
         visit(appRoot.current, true);
       }
@@ -163,6 +168,8 @@ export function CommitObserver_install(): ICommitObserver {
       recording = false;
       return RenderTrace_build(observations);
     },
+    observed: (): number => observations.length,
+    commits: (): number => commits,
     dispose: (): void => {
       recording = false;
       hook.onCommitFiberRoot = originalCommit;

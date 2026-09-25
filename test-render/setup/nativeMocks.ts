@@ -228,7 +228,21 @@ jest.mock("../../src/specs/FastTextNativeComponent", () => {
 });
 jest.mock("../../src/specs/LiftoEditorNativeComponent", () => {
   const { View } = require("react-native");
-  return { __esModule: true, default: View, Commands: { setValue: jest.fn(), focus: jest.fn(), blur: jest.fn() } };
+  const commands = [
+    "setText",
+    "setStyledRanges",
+    "patchStyledRanges",
+    "setSelection",
+    "blurEditor",
+    "replaceRange",
+    "requestCaretRect",
+    "requestRangeRects",
+  ];
+  return { __esModule: true, default: View, Commands: Object.fromEntries(commands.map((c) => [c, jest.fn()])) };
+});
+jest.mock("@expensify/react-native-live-markdown/src/MarkdownTextInput", () => {
+  const { TextInput } = require("react-native");
+  return { __esModule: true, default: TextInput };
 });
 jest.mock("../../src/specs/NativeLiftosaurProfiler", () => ({ __esModule: true, default: null }));
 jest.mock("../../src/specs/NativeLiftosaurWatch", () => ({ __esModule: true, default: null }));
