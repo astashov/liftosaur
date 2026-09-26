@@ -4,8 +4,8 @@ import type { IPartialStorage, IStorage } from "../../src/types";
 
 const PACKED_VERSION_KEYS = ["history", "programs", "stats"];
 
-// Readers ship with this false and deploy first, so a rollback always lands on a build that reads vz
-export const UserRow_WRITES_PACKED = false;
+// Rows now hold versions only in vz: never deploy a build older than ac721e4d, it ignores vz and accepts stale uploads
+export const UserRow_WRITES_PACKED = true;
 
 export type IUserRowItem = Omit<ILimitedUserDao, "storage"> & {
   storage: Omit<IPartialStorage, "history" | "programs" | "stats">;
