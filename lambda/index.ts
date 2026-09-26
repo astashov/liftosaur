@@ -106,7 +106,7 @@ import {
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
-import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
+import { IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings_applyExportedProgram, Settings_applyWebEditorSettings } from "../src/models/settings";
 import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
@@ -683,116 +683,6 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             user_id: limitedUser.id,
             key,
           });
-        } else {
-          di.log.log("Error", result.error);
-          return response(400, { type: "error", error: result.error, key });
-        }
-      }
-    }
-  }
-  return ResponseUtils_json(401, event, { type: "error", error: "not_authorized", key });
-};
-
-const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
-const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postSyncEndpoint> = async ({
-  payload,
-  match: { params },
-}) => {
-  const { event, di } = payload;
-  let userId: string | undefined = undefined;
-  let setCookie: string | undefined = undefined;
-  const bodyJson = getBodyJson(event);
-  const timestamp = bodyJson.timestamp || Date.now();
-  const storageUpdate = bodyJson.storageUpdate as IStorageUpdate;
-  const historylimit = bodyJson.historylimit as number | undefined;
-  if (params.adminkey != null && params.userid != null && params.adminkey === (await di.secrets.getApiKey())) {
-    userId = params.userid;
-    const cookieSecret = await di.secrets.getCookieSecret();
-    const session = JWT.sign({ userId: userId }, cookieSecret);
-    setCookie = Cookie.serialize("session", session, {
-      httpOnly: true,
-      domain: ".liftosaur.com",
-      path: "/",
-      expires: new Date(new Date().getFullYear() + 10, 0, 1),
-    });
-  } else {
-    userId = await getCurrentUserId(event, di);
-  }
-  let keyResult: { key: string; isClaimed: boolean } | undefined;
-  if (params.tempuserid) {
-    keyResult = await new FreeUserDao(di).getKey(params.tempuserid);
-  }
-  const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
-  const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
-    ResponseUtils_json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
-  const eventDao = new EventDao(di);
-  const storageDao = new StorageDao(di);
-  if (userId != null) {
-    const userDao = new UserDao(di);
-    const limitedUser = await userDao.getLimitedById(userId);
-    if (limitedUser != null) {
-      di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
-      storageUpdate.tempUserId = userId;
-      if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
-        di.log.log("Fetch: Safe update");
-        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
-        if (result.success) {
-          const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, result.data.newStorage, undefined),
-            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
-          ]);
-          if (storageId) {
-            await eventDao.post({
-              type: "safesnapshot",
-              userId: limitedUser.id,
-              timestamp,
-              commithash: process.env.COMMIT_HASH || "",
-              storage_id: storageId,
-              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
-              isMobile: Mobile_isMobile(
-                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
-              ),
-            });
-          }
-          return response(200, {
-            type: "clean",
-            new_original_id: result.data.originalId,
-            email: limitedUser.email,
-            user_id: limitedUser.id,
-            key,
-          });
-        } else {
-          return response(400, { type: "error", error: result.error, key });
-        }
-      } else {
-        di.log.log("Fetch: Merging update");
-        storageUpdate.originalId = Date.now();
-        const result = await userDao.applySafeSync(limitedUser, storageUpdate);
-        if (result.success) {
-          di.log.log("New original id", result.data);
-          const fullUser = (await userDao.getById(userId, { historyLimit: historylimit }))!;
-          const storage = fullUser.storage;
-          const [storageId] = await Promise.all([
-            storageDao.store(limitedUser.id, storage, undefined),
-            userDao.maybeSaveProgramRevision(limitedUser.id, storageUpdate),
-          ]);
-          if (key) {
-            storage.subscription.key = key;
-          }
-          if (storageId) {
-            await eventDao.post({
-              type: "mergesnapshot",
-              userId: limitedUser.id,
-              commithash: process.env.COMMIT_HASH || "",
-              timestamp,
-              storage_id: storageId,
-              isMobile: Mobile_isMobile(
-                payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
-              ),
-              update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
-            });
-          }
-          return response(200, { type: "dirty", storage, email: limitedUser.email, user_id: limitedUser.id, key });
         } else {
           di.log.log("Error", result.error);
           return response(400, { type: "error", error: result.error, key });
@@ -3952,7 +3842,6 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .post(postImageUploadUrlEndpoint, postImageUploadUrlHandler)
-      .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)
       .post(postDebugSessionEndpoint, postDebugSessionHandler)
       .post(postSetupTestAccountEndpoint, postSetupTestAccountHandler)

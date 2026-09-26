@@ -1,39 +1,8 @@
 import { IVersions, VersionTracker } from "../models/versionTracker";
-import { ISettings, IStorage, IStatsWeight, IStatsPercentage, IStatsLength, STORAGE_VERSION_TYPES } from "../types";
+import { IStorage, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils_compact, CollectionUtils_groupByKey } from "./collection";
 import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_isEqual } from "./object";
 import { lg } from "./posthog";
-
-export type IStorageUpdate = Partial<Omit<IStorage, "stats" | "settings" | "originalId" | "version">> & {
-  settings: ISettingsUpdate;
-  originalId?: IStorage["originalId"];
-  version: IStorage["version"];
-  stats?: IStatsUpdate;
-  _versions?: IStorage["_versions"];
-};
-
-export type ISettingsUpdate = Partial<ISettings>;
-
-export interface ISyncFetchRequest {
-  storage: IStorageUpdate;
-  userId?: string;
-  adminKey?: string;
-}
-
-export type IStatsUpdateLength = IStatsLength[keyof IStatsLength] extends (infer A)[] | undefined
-  ? (A & { type: "length" })[]
-  : never;
-export type IStatsUpdateWeight = IStatsWeight[keyof IStatsWeight] extends (infer A)[] | undefined
-  ? (A & { type: "weight" })[]
-  : never;
-export type IStatsUpdatePercentage = IStatsPercentage[keyof IStatsPercentage] extends (infer A)[] | undefined
-  ? (A & { type: "percentage" })[]
-  : never;
-export type IStatsUpdate = Partial<
-  Record<keyof IStatsLength, IStatsUpdateLength> &
-    Record<keyof IStatsWeight, IStatsUpdateWeight> &
-    Record<keyof IStatsPercentage, IStatsUpdatePercentage>
->;
 
 export interface IStorageUpdate2 {
   versions?: IVersions<IStorage>;

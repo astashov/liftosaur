@@ -8,23 +8,10 @@ import RB from "rollbar";
 import { IState, updateState } from "./state";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
-import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
+import { ObjectUtils_isEqual } from "../utils/object";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
-import { IStorageUpdate } from "../utils/sync";
-import {
-  IHistoryRecord,
-  IStorage,
-  IPartialStorage,
-  IHearAboutUs,
-  STORAGE_VERSION_TYPES,
-  VStorage,
-  VHistoryRecord,
-} from "../types";
-import {
-  CollectionUtils_groupByKeyUniq,
-  CollectionUtils_compact,
-  CollectionUtils_immutableSort,
-} from "../utils/collection";
+import { IHistoryRecord, IStorage, IPartialStorage, STORAGE_VERSION_TYPES, VStorage, VHistoryRecord } from "../types";
+import { CollectionUtils_immutableSort } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
 import { lg } from "../utils/posthog";
 import { Diagnostics_getLastActions, Diagnostics_setLastValidationErrors } from "../utils/diagnostics";
@@ -333,59 +320,4 @@ function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRe
     return progress;
   }
   return [{ ...head, entries: sortedEntries }, ...progress.slice(1)];
-}
-
-function mergeHearAboutUs(a?: IHearAboutUs, b?: IHearAboutUs): IHearAboutUs | undefined {
-  if (a == null) {
-    return b;
-  }
-  if (b == null) {
-    return a;
-  }
-  const requests = Array.from(new Set([...(a.requests || []), ...(b.requests || [])]));
-  const done = a.done || b.done;
-  const result = (b.result?.ts ?? -1) >= (a.result?.ts ?? -1) ? (b.result ?? a.result) : (a.result ?? b.result);
-  return { result, requests, done };
-}
-
-export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {
-  const { stats, ...update } = updateWithStats;
-
-  const deletedGyms = new Set([...storage.settings.deletedGyms, ...(update.settings?.deletedGyms || [])]);
-  const lastGyms = CollectionUtils_groupByKeyUniq(storage.settings.gyms || [], "id");
-  const newGyms = CollectionUtils_groupByKeyUniq(update.settings?.gyms || [], "id");
-  const gymsObj = { ...lastGyms, ...newGyms };
-  const gymsArr = CollectionUtils_compact(ObjectUtils_values(gymsObj)).filter((g) => !deletedGyms.has(g.id));
-
-  const deletedHistory = Array.from(new Set([...storage.deletedHistory, ...(update.deletedHistory || [])]));
-  const deletedPrograms = Array.from(new Set([...storage.deletedPrograms, ...(update.deletedPrograms || [])]));
-  const deletedStats = Array.from(new Set([...storage.deletedStats, ...(update.deletedStats || [])]));
-  const reviewRequests = Array.from(new Set([...storage.reviewRequests, ...(update.reviewRequests || [])]));
-  const signupRequests = Array.from(new Set([...storage.signupRequests, ...(update.signupRequests || [])]));
-  const hearAboutUs = mergeHearAboutUs(storage.hearAboutUs, update.hearAboutUs);
-  const helps = Array.from(new Set([...storage.helps, ...(update.helps || [])]));
-
-  const exercises = { ...storage.settings.exercises, ...(update.settings?.exercises || {}) };
-  const exerciseData = { ...storage.settings.exerciseData, ...(update.settings?.exerciseData || {}) };
-
-  const newStorage: IPartialStorage = {
-    ...storage,
-    ...update,
-    deletedHistory,
-    deletedPrograms,
-    deletedStats,
-    reviewRequests,
-    signupRequests,
-    hearAboutUs,
-    helps,
-    settings: {
-      ...storage.settings,
-      ...update.settings,
-      exercises,
-      exerciseData,
-      gyms: gymsArr,
-    },
-  };
-
-  return newStorage;
 }

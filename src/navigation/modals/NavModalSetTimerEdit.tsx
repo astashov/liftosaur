@@ -44,7 +44,8 @@ export function NavModalSetTimerEdit(): JSX.Element {
   }
 
   const editModal = progress?.ui?.setTimerEditModal;
-  const set = editModal ? progress?.entries[editModal.entryIndex]?.sets[editModal.setIndex] : undefined;
+  const entry = editModal ? progress?.entries[editModal.entryIndex] : undefined;
+  const set = editModal ? entry?.sets[editModal.setIndex] : undefined;
 
   const shouldGoBack = editModal == null || set == null;
   useEffect(() => {
@@ -61,7 +62,7 @@ export function NavModalSetTimerEdit(): JSX.Element {
     )
   );
 
-  if (shouldGoBack || editModal == null || set == null) {
+  if (shouldGoBack || editModal == null || entry == null || set == null) {
     return <></>;
   }
 
@@ -76,7 +77,7 @@ export function NavModalSetTimerEdit(): JSX.Element {
           set={set}
           entryIndex={editModal.entryIndex}
           setIndex={editModal.setIndex}
-          isUnilateral={Exercise_getIsUnilateral(progress.entries[editModal.entryIndex].exercise, settings)}
+          isUnilateral={Exercise_getIsUnilateral(entry.exercise, settings)}
           dispatch={modalDispatch}
         />
       </FormSheet>

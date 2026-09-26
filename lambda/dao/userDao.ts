@@ -14,12 +14,7 @@ import {
   IStatsHealthValue,
 } from "../../src/types";
 import { Settings_build } from "../../src/models/settings";
-import {
-  Storage_get,
-  Storage_fillVersions,
-  Storage_applyUpdate,
-  Storage_updateVersions,
-} from "../../src/models/storage";
+import { Storage_get, Storage_fillVersions, Storage_updateVersions } from "../../src/models/storage";
 import { Utils_getEnv } from "../utils";
 import {
   CollectionUtils_uniqBy,
@@ -33,7 +28,7 @@ import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
-import { IStorageUpdate, IStorageUpdate2 } from "../../src/utils/sync";
+import { IStorageUpdate2 } from "../../src/utils/sync";
 import { IEither } from "../../src/utils/types";
 import { LftS3Buckets } from "./buckets";
 import JWT from "jsonwebtoken";
@@ -463,115 +458,6 @@ export class UserDao {
       throw e;
     }
     return { data: { originalId, newStorage, didWrite: true }, success: true };
-  }
-
-  public async applySafeSync(
-    limitedUser: ILimitedUserDao,
-    storageUpdate: IStorageUpdate
-  ): Promise<IEither<{ originalId: number; newStorage?: IPartialStorage }, string>> {
-    const env = Utils_getEnv();
-    const result = Storage_get(limitedUser.storage);
-    if (!result.success) {
-      this.di.log.log("corrupted_server_storage validation errors (sync1):", JSON.stringify(result.error));
-      return { success: false, error: "corrupted_server_storage" };
-    }
-    const limitedUserStorage = result.data;
-    if (limitedUserStorage.version !== storageUpdate.version) {
-      if (isSyncSafeOutdatedClient(storageUpdate.version, limitedUserStorage.version)) {
-        this.di.log.log(
-          "sync-safe outdated storage (sync1), allowing merge, client version:",
-          storageUpdate.version,
-          "server version:",
-          limitedUserStorage.version
-        );
-      } else {
-        return { success: false, error: "outdated_client_storage" };
-      }
-    }
-    const { originalId: oldOriginalId, version, settings, tempUserId, ...restStorageUpdate } = storageUpdate;
-    if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils_keys(settings).length === 0) {
-      return { success: true, data: { originalId: oldOriginalId || Date.now() } };
-    }
-
-    const originalId = Date.now();
-    const newStorage = {
-      ...Storage_applyUpdate(limitedUserStorage, storageUpdate),
-      originalId,
-    };
-
-    const historyDeletes = this.di.dynamo.batchDelete({
-      tableName: userTableNames[env].historyRecords,
-      keys: (storageUpdate.deletedHistory || []).map((id) => ({ id, userId: limitedUser.id })),
-    });
-    const historyUpdates = this.di.dynamo.batchPut({
-      tableName: userTableNames[env].historyRecords,
-      items: CollectionUtils_uniqBy(storageUpdate.history || [], "id").map((record) => ({
-        ...record,
-        userId: limitedUser.id,
-      })),
-    });
-
-    const userPrograms =
-      (storageUpdate.deletedPrograms || []).length > 0 ? await this.getProgramsByUserId(limitedUser.id) : [];
-    const programWrites = ProgramRowWrites_plan(
-      userPrograms,
-      storageUpdate.programs || [],
-      storageUpdate.deletedPrograms || []
-    );
-    const programDeletes = this.di.dynamo.batchDelete({
-      tableName: userTableNames[env].programs,
-      keys: programWrites.idsToDelete.map((id) => ({ id, userId: limitedUser.id })),
-    });
-
-    const programUpdates = this.di.dynamo.batchPut({
-      tableName: userTableNames[env].programs,
-      items: programWrites.programsToPut.map((record) => ({ ...record, userId: limitedUser.id })),
-    });
-
-    const stats = storageUpdate.stats;
-    const statsDb = ObjectUtils_keys(stats || {})
-      .map((type) => {
-        return (stats?.[type] || []).map((stat) => {
-          const name = `${stat.timestamp}_${type}`;
-          const statDb: IStatDb = { ...stat, name };
-          return statDb;
-        });
-      })
-      .flat();
-    const statsDeletes =
-      (storageUpdate.deletedStats || []).length > 0
-        ? (async () => {
-            const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
-              tableName: userTableNames[env].stats,
-              expression: "#userId = :userId",
-              attrs: { "#userId": "userId" },
-              values: { ":userId": limitedUser.id },
-            });
-            const statsIdToDelete = userStats.filter((s) => storageUpdate.deletedStats?.indexOf(s.timestamp) !== -1);
-            return this.di.dynamo.batchDelete({
-              tableName: userTableNames[env].stats,
-              keys: statsIdToDelete.map((s) => ({ userId: limitedUser.id, name: s.name })),
-            });
-          })()
-        : Promise.resolve();
-    const statsUpdates = this.di.dynamo.batchPut({
-      tableName: userTableNames[env].stats,
-      items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
-    });
-
-    delete newStorage.history;
-    delete newStorage.programs;
-    delete newStorage.stats;
-    await Promise.all([
-      this.store({ ...limitedUser, storage: newStorage }),
-      historyUpdates,
-      historyDeletes,
-      programUpdates,
-      programDeletes,
-      statsDeletes,
-      statsUpdates,
-    ]);
-    return { data: { originalId, newStorage }, success: true };
   }
 
   public async getByAppleId(appleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {

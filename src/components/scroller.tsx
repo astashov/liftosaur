@@ -1,6 +1,10 @@
 import { JSX, ReactNode, Ref, RefObject, forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import { View, ScrollView, Platform, ScrollViewProps } from "react-native";
-import { HorizontalScroll_edges, HorizontalScroll_fadeMask, HorizontalScroll_wheelDelta } from "../utils/horizontalScroll";
+import {
+  HorizontalScroll_edges,
+  HorizontalScroll_fadeMask,
+  HorizontalScroll_wheelDelta,
+} from "../utils/horizontalScroll";
 
 const EDGE_FADE_PX = 24;
 

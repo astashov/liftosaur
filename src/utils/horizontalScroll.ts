@@ -20,14 +20,17 @@ export function HorizontalScroll_wheelDelta(w: IHorizontalScrollWheel): number |
   if (w.maxOffset <= 0 || Math.abs(w.deltaX) >= Math.abs(w.deltaY)) {
     return undefined;
   }
-  const scale =
-    w.deltaMode === DOM_DELTA_LINE ? LINE_HEIGHT_PX : w.deltaMode === DOM_DELTA_PAGE ? w.viewportWidth : 1;
+  const scale = w.deltaMode === DOM_DELTA_LINE ? LINE_HEIGHT_PX : w.deltaMode === DOM_DELTA_PAGE ? w.viewportWidth : 1;
   const delta = w.deltaY * scale;
   const isAtEnd = delta > 0 ? w.offset >= w.maxOffset - 1 : w.offset <= 1;
   return isAtEnd ? undefined : delta;
 }
 
-export function HorizontalScroll_edges(offset: number, contentWidth: number, viewportWidth: number): IHorizontalScrollEdges {
+export function HorizontalScroll_edges(
+  offset: number,
+  contentWidth: number,
+  viewportWidth: number
+): IHorizontalScrollEdges {
   const maxOffset = Math.max(0, contentWidth - viewportWidth);
   return { hasMoreLeft: offset > 1, hasMoreRight: offset < maxOffset - 1 };
 }
