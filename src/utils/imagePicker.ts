@@ -24,7 +24,8 @@ export async function ImagePicker_pick(source: "camera" | "photo-library"): Prom
       const reader = new FileReader();
       reader.onload = () => {
         const dataUrl = reader.result as string;
-        downscaleDataUrl(dataUrl, 1600, 0.8)
+        const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+        downscaleDataUrl(dataUrl, 1600, outputType, 0.8)
           .then(resolve)
           .catch(() => resolve(dataUrl));
       };
@@ -35,7 +36,12 @@ export async function ImagePicker_pick(source: "camera" | "photo-library"): Prom
   });
 }
 
-async function downscaleDataUrl(dataUrl: string, maxDim: number, quality: number): Promise<string> {
+async function downscaleDataUrl(
+  dataUrl: string,
+  maxDim: number,
+  outputType: "image/png" | "image/jpeg",
+  quality: number
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -51,7 +57,7 @@ async function downscaleDataUrl(dataUrl: string, maxDim: number, quality: number
         return;
       }
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", quality));
+      resolve(canvas.toDataURL(outputType, quality));
     };
     img.onerror = () => reject(new Error("Image load failed"));
     img.src = dataUrl;
