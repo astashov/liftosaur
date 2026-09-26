@@ -180,9 +180,10 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const onAddSet = useCallback(() => {
     trackClick("workout-add-set");
     const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
+    const unit = Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
     updateProgress(
       dispatch,
-      [lbSets.recordModify((s) => Reps_addSet(s, unilateral, lastSets ? lastSets[lastSets.length - 1] : undefined))],
+      [lbSets.recordModify((s) => Reps_addSet(s, unilateral, lastSets?.[lastSets.length - 1], false, unit))],
       "add-set"
     );
   }, [dispatch, exerciseType, lbSets, lastSets, settings, trackClick]);

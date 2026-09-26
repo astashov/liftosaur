@@ -9,6 +9,7 @@ import {
   Weight_build,
   Weight_convertTo,
   Weight_add,
+  Weight_is,
 } from "./weight";
 import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
 import { ObjectUtils_clone } from "../utils/object";
@@ -94,8 +95,25 @@ export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): 
   };
 }
 
-export function Reps_addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet, isWarmup?: boolean): ISet[] {
-  lastSet = sets[sets.length - 1] || lastSet;
+function convertSetWeightsTo(set: ISet, unit: IUnit): ISet {
+  return {
+    ...set,
+    weight: set.weight ? Weight_convertTo(set.weight, unit) : undefined,
+    originalWeight: Weight_is(set.originalWeight) ? Weight_convertTo(set.originalWeight, unit) : set.originalWeight,
+    completedWeight: set.completedWeight ? Weight_convertTo(set.completedWeight, unit) : undefined,
+  };
+}
+
+export function Reps_addSet(
+  sets: ISet[],
+  isUnilateral: boolean,
+  previousWorkoutSet?: ISet,
+  isWarmup?: boolean,
+  unit?: IUnit
+): ISet[] {
+  let lastSet =
+    sets[sets.length - 1] ??
+    (previousWorkoutSet && unit ? convertSetWeightsTo(previousWorkoutSet, unit) : previousWorkoutSet);
   if (lastSet == null) {
     lastSet = Reps_newSet(isUnilateral, 0);
   } else {
