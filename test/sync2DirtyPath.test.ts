@@ -7,7 +7,8 @@ import { APIGatewayProxyEvent } from "aws-lambda";
 import { getRawHandler, IHandler } from "../lambda";
 import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
-import { userTableNames } from "../lambda/dao/userDao";
+import { ILimitedUserDao, UserDao, userTableNames } from "../lambda/dao/userDao";
+import { IUserRowItem, UserRow_pack } from "../lambda/utils/userRow";
 import { eventsTableNames } from "../lambda/dao/eventDao";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { LftS3Buckets } from "../lambda/dao/buckets";
@@ -201,7 +202,7 @@ describe("/api/sync2 dirty branch", () => {
       return (versioned._versions?.[collection] as ICollectionVersions).items?.[id];
     }
 
-    async function seedVersioned(): Promise<void> {
+    async function seedVersioned(args: { version?: string; statRows?: number } = {}): Promise<void> {
       record = {
         vtype: "history_record",
         id: RECORD_ID,
@@ -223,7 +224,12 @@ describe("/api/sync2 dirty branch", () => {
       const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
       await di.dynamo.put({
         tableName: userTableNames.prod.users,
-        item: { id: userId, email: "test@example.com", createdAt: 1, storage: partial },
+        item: {
+          id: userId,
+          email: "test@example.com",
+          createdAt: 1,
+          storage: { ...partial, version: args.version ?? partial.version },
+        },
       });
       await di.dynamo.put({
         tableName: freeUsersTableNames.prod.freeUsers,
@@ -231,7 +237,87 @@ describe("/api/sync2 dirty branch", () => {
       });
       await di.dynamo.put({ tableName: userTableNames.prod.programs, item: { ...program, userId } });
       await di.dynamo.put({ tableName: userTableNames.prod.historyRecords, item: { ...record, userId } });
+      for (let i = 0; i < (args.statRows ?? 0); i += 1) {
+        const timestamp = 1700000000000 + i * 86400000;
+        await di.dynamo.put({
+          tableName: userTableNames.prod.stats,
+          item: {
+            userId,
+            name: `${timestamp}_weight`,
+            type: "weight",
+            timestamp,
+            updatedAt: timestamp,
+            value: { value: 80, unit: "kg" },
+          },
+        });
+      }
     }
+
+    async function packStoredRow(): Promise<void> {
+      const key = { id: userId };
+      const raw = (await di.dynamo.get<ILimitedUserDao>({ tableName: userTableNames.prod.users, key }))!;
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: UserRow_pack(raw, true) });
+    }
+
+    it("reads a packed row and keeps its versions through a merge", async () => {
+      await seedVersioned();
+      await packStoredRow();
+      const raw = (await di.dynamo.get<IUserRowItem>({ tableName: userTableNames.prod.users, key: { id: userId } }))!;
+      expect(raw.vz).to.be.instanceOf(Uint8Array);
+      await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { settings: { volume: 0.25 } },
+          versions: { settings: { volume: Date.now() + 10_000 } },
+        },
+      });
+      const row = (await new UserDao(di).getLimitedById(userId))!;
+      expect((row.storage._versions?.history as ICollectionVersions).items?.[RECORD_ID]).to.eql(
+        versionOf("history", RECORD_ID)
+      );
+      const json = await pull({ storageUpdate: emptyUpdate() });
+      expect((json.storage._versions.history as ICollectionVersions).items?.[RECORD_ID]).to.eql(
+        versionOf("history", RECORD_ID)
+      );
+    });
+
+    it("rejects a stale copy of a workout whose newer version lives in vz", async () => {
+      await seedVersioned();
+      await packStoredRow();
+      const stale = { ...record, notes: "stale" };
+      await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { history: [stale] },
+          versions: { history: { items: { [RECORD_ID]: { vc: { ios_a: 0 }, t: 1 } } } },
+        },
+      });
+      const stored = di.dynamo.data[userTableNames.prod.historyRecords] as Record<string, { notes?: string }>;
+      expect(Object.values(stored).map((r) => r.notes)).to.eql([undefined]);
+    });
+
+    it("a migration writes the row without re-putting unchanged records or stats", async () => {
+      await seedVersioned({ version: "20260903120000", statRows: 30 });
+      const batchPut = sinon.spy(di.dynamo, "batchPut");
+      const put = sinon.spy(di.dynamo, "put");
+      const json = await pull({ storageUpdate: emptyUpdate() });
+      expect(json.type).to.equal("dirty");
+      expect(json.storage.version).to.equal(getLatestMigrationVersion());
+      const putTables = batchPut
+        .getCalls()
+        .filter((c) => c.args[0].items.length > 0)
+        .map((c) => c.args[0].tableName);
+      expect(putTables).to.not.include(userTableNames.prod.stats);
+      expect(putTables).to.not.include(userTableNames.prod.historyRecords);
+      expect(put.getCalls().map((c) => c.args[0].tableName)).to.include(userTableNames.prod.users);
+      const stats = await di.dynamo.query({
+        tableName: userTableNames.prod.stats,
+        expression: "#userId = :userId",
+        attrs: { "#userId": "userId" },
+        values: { ":userId": userId },
+      });
+      expect(stats.length).to.equal(30);
+    });
 
     async function registerOtherDevice(): Promise<void> {
       const result = await handler(

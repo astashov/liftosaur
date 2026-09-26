@@ -1,4 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ObjectUtils_isEqual } from "./object";
+
+export interface ICollectionDiff<T> {
+  changed: T[];
+  removedKeys: string[];
+}
+
+export function CollectionUtils_diffByKey<T>(previous: T[], next: T[], keyOf: (item: T) => string): ICollectionDiff<T> {
+  const previousByKey = new Map(previous.map((item) => [keyOf(item), item]));
+  const nextKeys = new Set(next.map(keyOf));
+  const changed = next.filter((item) => {
+    const before = previousByKey.get(keyOf(item));
+    return before == null || !ObjectUtils_isEqual(before as Record<string, unknown>, item as Record<string, unknown>);
+  });
+  const removedKeys = Array.from(previousByKey.keys()).filter((key) => !nextKeys.has(key));
+  return { changed, removedKeys };
+}
+
 // inGroupsOf([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 3).forEach((e) => print(e));
 //
 // ["1", "2", "3"]

@@ -8,7 +8,8 @@ import { EQUIPMENT_WRITABLE_FIELDS } from "../lambda/utils/apiv1Equipment";
 import { EXERCISE_DATA_WRITABLE_FIELDS } from "../lambda/utils/apiv1ExerciseData";
 import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
-import { userTableNames } from "../lambda/dao/userDao";
+import { UserDao, userTableNames } from "../lambda/dao/userDao";
+import { ICollectionVersions } from "../src/models/versionTracker";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { OauthDao } from "../lambda/dao/oauthDao";
 import { ApiKeyDao } from "../lambda/dao/apiKeyDao";
@@ -596,8 +597,8 @@ describe("MCP", () => {
         ctx
       );
 
-      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
-      const programVersions = user.storage._versions.programs.items;
+      const user = await new UserDao(di).getLimitedById(userId);
+      const programVersions = (user!.storage._versions!.programs as ICollectionVersions).items!;
       const planner = Object.values(programVersions)[0] as any;
       // A bare timestamp here means the clock was destroyed: every device's counter resets to 0, and a
       // replica holding a pre-reset count then outranks the server forever.

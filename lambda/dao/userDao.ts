@@ -19,7 +19,7 @@ import { Utils_getEnv } from "../utils";
 import {
   CollectionUtils_uniqBy,
   CollectionUtils_inGroupsOf,
-  CollectionUtils_collectToSet,
+  CollectionUtils_diffByKey,
   CollectionUtils_groupByKey,
 } from "../../src/utils/collection";
 import { ObjectUtils_keys, ObjectUtils_clone } from "../../src/utils/object";
@@ -48,6 +48,8 @@ import {
   SyncMergeNoop_row,
 } from "../utils/syncMergeNoop";
 import { ProgramRowWrites_plan } from "../utils/programRowWrites";
+import { IUserRowItem, UserRow_pack, UserRow_unpack } from "../utils/userRow";
+import { StatRowWrites_plan } from "../utils/statRowWrites";
 
 export const userTableNames = {
   dev: {
@@ -119,7 +121,7 @@ export interface IApplySafeSync2Result {
   didWrite: boolean;
 }
 
-interface IStatDb {
+export interface IStatDb {
   name: string;
   // Plain number for "health" rows (sleep minutes / kcal / grams), unit-tagged object for the rest.
   value: IWeight | ILength | IPercentage | number;
@@ -266,7 +268,7 @@ export class UserDao {
       const fullUser = await this.getById(limitedUser.id);
       const storage = Storage_get(fullUser!.storage);
       if (storage.success) {
-        await this.saveStorage(fullUser!, storage.data, deviceId);
+        await this.saveMigratedStorage(fullUser!, storage.data, deviceId, fullUser!.storage);
         migrated = true;
       } else {
         this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
@@ -606,11 +608,7 @@ export class UserDao {
 
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils_getEnv();
-    const storage = ObjectUtils_clone(user.storage);
-    delete storage.programs;
-    delete storage.history;
-    delete storage.stats;
-    const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
+    const item = { ...UserRow_pack(user), nickname: user.storage.settings.nickname?.toLowerCase() };
     await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
   }
 
@@ -619,11 +617,7 @@ export class UserDao {
   // put would let anyone overwrite an existing user row and take over that id
   public async create(user: ILimitedUserDao): Promise<boolean> {
     const env = Utils_getEnv();
-    const storage = ObjectUtils_clone(user.storage);
-    delete storage.programs;
-    delete storage.history;
-    delete storage.stats;
-    const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
+    const item = { ...UserRow_pack(user), nickname: user.storage.settings.nickname?.toLowerCase() };
     return this.di.dynamo.putIfNotExists({ tableName: userTableNames[env].users, item, partitionKey: "id" });
   }
 
@@ -644,19 +638,21 @@ export class UserDao {
 
   public async getLimitedById(userId: string): Promise<ILimitedUserDao | undefined> {
     const env = Utils_getEnv();
-    return this.di.dynamo.get<ILimitedUserDao>({
+    const item = await this.di.dynamo.get<IUserRowItem>({
       tableName: userTableNames[env].users,
       key: { id: userId },
     });
+    return item != null ? UserRow_unpack(item) : undefined;
   }
 
   public async getLimitedByIds(userIds: string[], args?: { consistentRead?: boolean }): Promise<ILimitedUserDao[]> {
     const env = Utils_getEnv();
-    return this.di.dynamo.batchGet<ILimitedUserDao>({
+    const items = await this.di.dynamo.batchGet<IUserRowItem>({
       tableName: userTableNames[env].users,
       keys: userIds.map((ui) => ({ id: ui })),
       consistentRead: args?.consistentRead,
     });
+    return items.map((item) => UserRow_unpack(item));
   }
 
   public async getUserIdByOriginalTransactionId(originalTransactionId: string): Promise<string | undefined> {
@@ -1061,27 +1057,45 @@ export class UserDao {
   }
 
   public async saveStorage(user: ILimitedUserDao, aStorage: IPartialStorage, deviceId: string): Promise<void> {
+    await this.writeStorage(user, aStorage, deviceId, undefined);
+  }
+
+  private async saveMigratedStorage(
+    user: ILimitedUserDao,
+    aStorage: IPartialStorage,
+    deviceId: string,
+    unchangedSnapshot: IPartialStorage
+  ): Promise<void> {
+    await this.writeStorage(user, aStorage, deviceId, unchangedSnapshot);
+  }
+
+  private async writeStorage(
+    user: ILimitedUserDao,
+    aStorage: IPartialStorage,
+    deviceId: string,
+    snapshot: IPartialStorage | undefined
+  ): Promise<void> {
     const storage = Storage_fillVersions(aStorage, deviceId);
     const { history, programs, stats, ...userStorage } = storage;
-    const statsObj: IStats = stats || { length: {}, weight: {}, percentage: {} };
     const env = Utils_getEnv();
     const updatedUser: ILimitedUserDao = { ...user, storage: userStorage };
 
     let historyDeletes: Promise<void>[] = [];
     let historyUpdates: Promise<void>[] = [];
     if (history) {
-      const userHistory = await this.getHistoryByUserId(user.id);
-      const newHistoryIds = CollectionUtils_collectToSet(history || [], "id");
-      const historyToDelete = userHistory.filter((r) => !newHistoryIds.has(r.id));
+      const before = snapshot?.history ?? (await this.getHistoryByUserId(user.id));
+      const diff = CollectionUtils_diffByKey(before, history, (r) => String(r.id));
+      const historyToPut = snapshot == null ? history : diff.changed;
+      const historyIdsToDelete = diff.removedKeys.map(Number);
 
-      historyDeletes = CollectionUtils_inGroupsOf(23, historyToDelete).map(async (group) => {
+      historyDeletes = CollectionUtils_inGroupsOf(23, historyIdsToDelete).map(async (group) => {
         await this.di.dynamo.batchDelete({
           tableName: userTableNames[env].historyRecords,
-          keys: group.map((record) => ({ id: record.id, userId: user.id })),
+          keys: group.map((id) => ({ id, userId: user.id })),
         });
       });
 
-      historyUpdates = CollectionUtils_inGroupsOf(23, history).map(async (group) => {
+      historyUpdates = CollectionUtils_inGroupsOf(23, historyToPut).map(async (group) => {
         const items = CollectionUtils_uniqBy(group, "id").map((record) => ({ ...record, userId: user.id }));
         await this.di.dynamo.batchPut({ tableName: userTableNames[env].historyRecords, items });
       });
@@ -1090,17 +1104,18 @@ export class UserDao {
     let programDeletes: Promise<void>[] = [];
     let programUpdates: Promise<void>[] = [];
     if (programs) {
-      const userPrograms = await this.getProgramsByUserId(user.id);
-      const newProgramIds = CollectionUtils_collectToSet(programs || [], "id");
-      const programsToDelete = userPrograms.filter((r) => !newProgramIds.has(r.id));
-      programDeletes = CollectionUtils_inGroupsOf(23, programsToDelete).map(async (group) => {
+      const before = snapshot?.programs ?? (await this.getProgramsByUserId(user.id));
+      const diff = CollectionUtils_diffByKey(before, programs, (p) => p.id);
+      const programsToPut = snapshot == null ? programs : diff.changed;
+      const programIdsToDelete = diff.removedKeys;
+      programDeletes = CollectionUtils_inGroupsOf(23, programIdsToDelete).map(async (group) => {
         await this.di.dynamo.batchDelete({
           tableName: userTableNames[env].programs,
-          keys: group.map((record) => ({ id: record.id, userId: user.id })),
+          keys: group.map((id) => ({ id, userId: user.id })),
         });
       });
 
-      programUpdates = CollectionUtils_inGroupsOf(23, programs).map(async (group) => {
+      programUpdates = CollectionUtils_inGroupsOf(23, programsToPut).map(async (group) => {
         await this.di.dynamo.batchPut({
           tableName: userTableNames[env].programs,
           items: group.map((record) => ({ ...record, userId: user.id })),
@@ -1111,101 +1126,15 @@ export class UserDao {
     let statsDeletes: Promise<void>[] = [];
     let statsUpdates: Promise<void>[] = [];
     if (stats) {
-      const userStats = await this.getStatsByUserId(user.id);
-      const newStatNames = new Set<string>();
-      for (const k of ObjectUtils_keys(statsObj.length)) {
-        const s = statsObj.length[k];
-        for (const v of s || []) {
-          newStatNames.add(`${v.timestamp}_${k}`);
-        }
-      }
-      for (const k of ObjectUtils_keys(statsObj.weight)) {
-        const s = statsObj.weight[k];
-        for (const v of s || []) {
-          newStatNames.add(`${v.timestamp}_${k}`);
-        }
-      }
-      for (const k of ObjectUtils_keys(statsObj.percentage)) {
-        const s = statsObj.percentage[k];
-        for (const v of s || []) {
-          newStatNames.add(`${v.timestamp}_${k}`);
-        }
-      }
-      for (const k of ObjectUtils_keys(statsObj.health || {})) {
-        const s = statsObj.health?.[k];
-        for (const v of s || []) {
-          newStatNames.add(`${v.timestamp}_${k}`);
-        }
-      }
-      const statsToDelete = [];
-      for (const k of ObjectUtils_keys(userStats.weight)) {
-        const s = userStats.weight[k];
-        for (const v of s || []) {
-          const name = `${v.timestamp}_${k}`;
-          if (!newStatNames.has(name)) {
-            statsToDelete.push(name);
-          }
-        }
-      }
-      for (const k of ObjectUtils_keys(userStats.length)) {
-        const s = userStats.length[k];
-        for (const v of s || []) {
-          const name = `${v.timestamp}_${k}`;
-          if (!newStatNames.has(name)) {
-            statsToDelete.push(name);
-          }
-        }
-      }
-      for (const k of ObjectUtils_keys(userStats.percentage)) {
-        const s = userStats.percentage[k];
-        for (const v of s || []) {
-          const name = `${v.timestamp}_${k}`;
-          if (!newStatNames.has(name)) {
-            statsToDelete.push(name);
-          }
-        }
-      }
-      // A stats blob without a `health` key (e.g. from a pre-health client or an old backup) must not
-      // delete imported health rows — absence means "unknown", not "deleted".
-      if (statsObj.health != null) {
-        for (const k of ObjectUtils_keys(userStats.health || {})) {
-          const s = userStats.health?.[k];
-          for (const v of s || []) {
-            const name = `${v.timestamp}_${k}`;
-            if (!newStatNames.has(name)) {
-              statsToDelete.push(name);
-            }
-          }
-        }
-      }
+      const before = snapshot?.stats ?? (await this.getStatsByUserId(user.id));
+      const { puts: statsToPut, deleteNames: statsToDelete } = StatRowWrites_plan(before, stats, snapshot == null);
       statsDeletes = CollectionUtils_inGroupsOf(23, statsToDelete).map(async (group) => {
         await this.di.dynamo.batchDelete({
           tableName: userTableNames[env].stats,
           keys: group.map((record) => ({ userId: user.id, name: record })),
         });
       });
-
-      const statsLengthArray: IStatDb[] = ObjectUtils_keys(statsObj.length).flatMap((key) => {
-        const st = statsObj.length[key] || [];
-        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "length" }));
-      });
-      const statsWeightArray: IStatDb[] = ObjectUtils_keys(statsObj.weight).flatMap((key) => {
-        const st = statsObj.weight[key] || [];
-        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "weight" }));
-      });
-      const statsPercentageArray: IStatDb[] = ObjectUtils_keys(statsObj.percentage).flatMap((key) => {
-        const st = statsObj.percentage[key] || [];
-        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "percentage" }));
-      });
-      const statsHealthArray: IStatDb[] = ObjectUtils_keys(statsObj.health || {}).flatMap((key) => {
-        const st = statsObj.health?.[key] || [];
-        return st.map((s) => ({ ...s, name: `${s.timestamp}_${key}`, type: "health" as const }));
-      });
-      const statsArray = statsLengthArray
-        .concat(statsWeightArray)
-        .concat(statsPercentageArray)
-        .concat(statsHealthArray);
-      statsUpdates = CollectionUtils_inGroupsOf(23, statsArray).map(async (group) => {
+      statsUpdates = CollectionUtils_inGroupsOf(23, statsToPut).map(async (group) => {
         await this.di.dynamo.batchPut({
           tableName: userTableNames[env].stats,
           items: group.map((record) => ({ ...record, userId: user.id })),
@@ -1226,7 +1155,8 @@ export class UserDao {
 
   public async getAllLimited(args: { limit?: number } = {}): Promise<ILimitedUserDao[]> {
     const env = Utils_getEnv();
-    return this.di.dynamo.scan({ tableName: userTableNames[env].users, limit: args.limit });
+    const items = await this.di.dynamo.scan<IUserRowItem>({ tableName: userTableNames[env].users, limit: args.limit });
+    return items.map((item) => UserRow_unpack(item));
   }
 
   public async getAll(): Promise<IUserDao[]> {
