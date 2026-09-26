@@ -269,6 +269,7 @@ export function Settings_build(): ISettings {
         equipment: Settings_defaultEquipment(),
       },
     ],
+    // Builds before 2026-09-26 require deletedGyms in VSettings. Drop with its removal migration.
     deletedGyms: [],
     volume: 1.0,
     vibration: false,

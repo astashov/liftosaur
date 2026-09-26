@@ -346,7 +346,6 @@ export async function ApiV1_deleteGym(
           ...old.settings,
           gyms: remaining,
           currentGymId,
-          deletedGyms: Array.from(new Set([...(old.settings.deletedGyms ?? []), gymId])),
         },
       };
     },

@@ -132,9 +132,6 @@ export function KitchenSinkProgram_build(): IProgram {
     days: [],
     exercises: [],
     tags: [],
-    deletedDays: [],
-    deletedWeeks: [],
-    deletedExercises: [],
     clonedAt: 1708563096401,
     planner: { vtype: "planner", name: "Kitchen Sink", weeks },
   };

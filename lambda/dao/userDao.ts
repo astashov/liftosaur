@@ -513,6 +513,7 @@ export class UserDao {
       createdAt: Date.now(),
       storage: {
         progress: [],
+        // Builds before 2026-09-26 require the deleted* arrays in VStorage. Drop with their removal migration.
         deletedHistory: [],
         deletedPrograms: [],
         deletedStats: [],

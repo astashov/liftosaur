@@ -104,13 +104,6 @@ export function ScreenGyms(props: IProps): JSX.Element {
                                 }
                                 return { ...settings, gyms: newGyms };
                               }),
-                            lb<IState>()
-                              .p("storage")
-                              .p("settings")
-                              .p("deletedGyms")
-                              .recordModify((dg) => {
-                                return Array.from(new Set([...dg, gym.id]));
-                              }),
                           ],
                           "Delete gym"
                         );

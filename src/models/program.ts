@@ -227,9 +227,6 @@ export function Program_cleanPlannerProgram(program: IProgram): IProgram {
       exercises: [],
       days: [],
       weeks: [],
-      deletedDays: [],
-      deletedWeeks: [],
-      deletedExercises: [],
     };
   } else {
     return program;
@@ -1347,9 +1344,6 @@ export function Program_create(name: string, id?: string): IProgram {
     days: [{ id: UidFactory_generateUid(8), name: "Day 1", exercises: [] }],
     exercises: [],
     tags: [],
-    deletedDays: [],
-    deletedWeeks: [],
-    deletedExercises: [],
     clonedAt: Date.now(),
   };
 }
@@ -1365,36 +1359,6 @@ export function Program_isChanged(aProgram: IProgram, bProgram: IProgram): boole
     });
   }
   return false;
-}
-
-export function Program_mergePrograms(
-  oldProgram: IProgram,
-  newProgram: IProgram,
-  enforceNew: boolean = false
-): IProgram {
-  const deletedWeeks = new Set([...(oldProgram.deletedWeeks || []), ...(newProgram.deletedWeeks || [])]);
-  const deletedDays = new Set([...(oldProgram.deletedDays || []), ...(newProgram.deletedDays || [])]);
-  const deletedExercises = new Set([...(oldProgram.deletedExercises || []), ...(newProgram.deletedExercises || [])]);
-  return {
-    vtype: "program",
-    id: newProgram.id,
-    name: newProgram.name,
-    description: newProgram.description,
-    url: newProgram.url,
-    author: newProgram.author,
-    nextDay: newProgram.nextDay,
-    days: newProgram.days,
-    deletedDays: Array.from(deletedDays),
-    weeks: newProgram.weeks,
-    deletedWeeks: Array.from(deletedWeeks),
-    isMultiweek: newProgram.isMultiweek,
-    tags: newProgram.tags,
-    shortDescription: newProgram.shortDescription,
-    exercises: newProgram.exercises,
-    deletedExercises: Array.from(deletedExercises),
-    clonedAt: newProgram.clonedAt || oldProgram.clonedAt,
-    planner: newProgram.planner,
-  };
 }
 
 export async function Program_toUrl(

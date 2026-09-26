@@ -1203,9 +1203,6 @@ export interface IProgram {
   weeks: IProgramWeek[];
   isMultiweek: boolean;
   tags: IProgramTag[];
-  deletedDays?: string[];
-  deletedWeeks?: string[];
-  deletedExercises?: string[];
   clonedAt?: number;
   shortDescription?: string;
   planner?: IPlannerProgram;
@@ -1226,9 +1223,6 @@ const _VProgram = v.object({
   weeks: v.array(VProgramWeek),
   isMultiweek: v.boolean(),
   tags: v.array(VProgramTag),
-  deletedDays: v.optional(v.array(v.string())),
-  deletedWeeks: v.optional(v.array(v.string())),
-  deletedExercises: v.optional(v.array(v.string())),
   clonedAt: v.optional(v.number()),
   shortDescription: v.optional(v.string()),
   planner: v.optional(VPlannerProgram),
@@ -1620,7 +1614,7 @@ export const VMuscleGroupsSettings: v.GenericSchema<IMuscleGroupsSettings> = _VM
 export interface ISettings {
   timers: ISettingsTimers;
   gyms: IGym[];
-  deletedGyms: string[];
+  deletedGyms?: string[];
   graphs: IGraphs;
   graphOptions: Record<string, IGraphOptions | undefined>;
   graphsSettings: {
@@ -1671,7 +1665,7 @@ export interface ISettings {
 const _VSettings = v.object({
   timers: VSettingsTimers,
   gyms: v.array(VGym),
-  deletedGyms: v.array(v.string()),
+  deletedGyms: v.optional(v.array(v.string())),
   graphs: VGraphs,
   graphOptions: v.record(v.string(), v.optional(VGraphOptions)),
   graphsSettings: v.object({
@@ -1835,14 +1829,14 @@ export const VHearAboutUs: v.GenericSchema<IHearAboutUs> = _VHearAboutUs;
 
 interface IStorageRaw {
   history: IHistoryRecord[];
-  deletedHistory: number[];
+  deletedHistory?: number[];
   stats: IStats;
-  deletedStats: number[];
+  deletedStats?: number[];
   settings: ISettings;
   currentProgramId?: string;
   version: string;
   programs: IProgram[];
-  deletedPrograms: number[];
+  deletedPrograms?: number[];
   reviewRequests: number[];
   signupRequests: number[];
   hearAboutUs?: IHearAboutUs;
@@ -1866,14 +1860,14 @@ interface IStorageRaw {
 }
 const _VStorage = v.object({
   history: v.array(VHistoryRecord),
-  deletedHistory: v.array(v.number()),
+  deletedHistory: v.optional(v.array(v.number())),
   stats: VStats,
-  deletedStats: v.array(v.number()),
+  deletedStats: v.optional(v.array(v.number())),
   settings: VSettings,
   currentProgramId: v.optional(v.string()),
   version: v.string(),
   programs: v.array(VProgram),
-  deletedPrograms: v.array(v.number()),
+  deletedPrograms: v.optional(v.array(v.number())),
   reviewRequests: v.array(v.number()),
   signupRequests: v.array(v.number()),
   hearAboutUs: v.optional(_VHearAboutUs),

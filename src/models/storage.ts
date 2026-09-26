@@ -153,6 +153,7 @@ export function Storage_getDefault(): IStorage {
     currentProgramId: undefined,
     reviewRequests: [],
     signupRequests: [],
+    // Builds before 2026-09-26 require the deleted* arrays in VStorage. Drop with their removal migration.
     deletedHistory: [],
     deletedPrograms: [],
     deletedStats: [],
