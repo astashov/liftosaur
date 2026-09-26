@@ -4,6 +4,7 @@ import { ObjectUtils_mapValues, ObjectUtils_filter } from "../../src/utils/objec
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { AffiliateDao } from "./affiliateDao";
+import { ILogSummary, ILogSummaryRow, LogSummary_ofUser } from "../utils/logSummary";
 
 export const logTableNames = {
   dev: {
@@ -59,6 +60,45 @@ export class LogDao {
       attrs: { "#month": "month", "#year": "year" },
       values: { ":month": month, ":year": year },
     });
+  }
+
+  public async getUserIdsWithActionInMonth(year: number, month: number, action: string): Promise<string[]> {
+    const env = Utils_getEnv();
+    const rows = await this.di.dynamo.query<Pick<ILogDao, "userId">>({
+      tableName: logTableNames[env].logs,
+      indexName: logTableNames[env].logsDate,
+      expression: "#month = :month AND #year = :year",
+      filterExpression: "#action = :action",
+      projection: "#userId",
+      attrs: { "#month": "month", "#year": "year", "#action": "action", "#userId": "userId" },
+      values: { ":month": month, ":year": year, ":action": action },
+    });
+    return rows.map((r) => r.userId);
+  }
+
+  public async getSummariesForUsers(userIds: string[]): Promise<ILogSummary[]> {
+    const env = Utils_getEnv();
+    const summaries: ILogSummary[] = [];
+    for (const group of CollectionUtils_inGroupsOf(50, userIds)) {
+      const groupSummaries = await Promise.all(
+        group.map(async (userId) => {
+          const rows = await this.di.dynamo.query<ILogSummaryRow>({
+            tableName: logTableNames[env].logs,
+            expression: "userId = :userId",
+            projection: "#action, #ts, #subscriptions",
+            attrs: { "#action": "action", "#ts": "ts", "#subscriptions": "subscriptions" },
+            values: { ":userId": userId },
+          });
+          return LogSummary_ofUser(userId, rows);
+        })
+      );
+      for (const summary of groupSummaries) {
+        if (summary != null) {
+          summaries.push(summary);
+        }
+      }
+    }
+    return summaries;
   }
 
   public async getFirstEventTimestamp(userId: string): Promise<number | undefined> {

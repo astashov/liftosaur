@@ -35,6 +35,7 @@ export interface IDynamoUtil {
     attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number | number[]>>;
     limit?: number;
+    projection?: string;
   }): Promise<T[]>;
   scan<T>(args: {
     tableName: string;
@@ -84,6 +85,8 @@ export interface IDynamoUtil {
     tableName: string;
     keys: Record<string, NativeAttributeValue>[];
     consistentRead?: boolean;
+    projection?: string;
+    attrs?: Record<string, string>;
   }): Promise<T[]>;
   batchDelete(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<void>;
   batchPut(args: { tableName: string; items: Record<string, NativeAttributeValue>[] }): Promise<void>;
@@ -112,6 +115,7 @@ export class DynamoUtil implements IDynamoUtil {
     attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
     limit?: number;
+    projection?: string;
   }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -124,6 +128,7 @@ export class DynamoUtil implements IDynamoUtil {
             ScanIndexForward: args.scanIndexForward,
             KeyConditionExpression: args.expression,
             FilterExpression: args.filterExpression,
+            ProjectionExpression: args.projection,
             ExpressionAttributeNames: args.attrs,
             ExpressionAttributeValues: args.values,
             Limit: args.limit,
@@ -508,6 +513,8 @@ export class DynamoUtil implements IDynamoUtil {
     tableName: string;
     keys: Record<string, NativeAttributeValue>[];
     consistentRead?: boolean;
+    projection?: string;
+    attrs?: Record<string, string>;
   }): Promise<T[]> {
     if (args.keys.length === 0) {
       return [];
@@ -517,7 +524,14 @@ export class DynamoUtil implements IDynamoUtil {
       const result = await Promise.all(
         CollectionUtils_inGroupsOf(95, args.keys).map((group) => {
           return this.sendBatchGetWithRetry(
-            { [args.tableName]: { Keys: group, ConsistentRead: args.consistentRead } },
+            {
+              [args.tableName]: {
+                Keys: group,
+                ConsistentRead: args.consistentRead,
+                ProjectionExpression: args.projection,
+                ExpressionAttributeNames: args.attrs,
+              },
+            },
             `get ${args.tableName}`
           );
         })

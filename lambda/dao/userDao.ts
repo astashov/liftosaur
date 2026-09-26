@@ -109,6 +109,10 @@ export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
   storage: IPartialStorage;
 };
 
+export type IUserStatsFields = Pick<IUserDao, "id" | "email" | "createdAt"> & {
+  storage?: Pick<IStorage, "subscription">;
+};
+
 export interface IUserReadArgs {
   skipPrograms?: boolean;
   skipStats?: boolean;
@@ -653,6 +657,22 @@ export class UserDao {
       consistentRead: args?.consistentRead,
     });
     return items.map((item) => UserRow_unpack(item));
+  }
+
+  public async getStatsFieldsByIds(userIds: string[]): Promise<IUserStatsFields[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.batchGet<IUserStatsFields>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #email, #createdAt, #storage.#subscription",
+      attrs: {
+        "#id": "id",
+        "#email": "email",
+        "#createdAt": "createdAt",
+        "#storage": "storage",
+        "#subscription": "subscription",
+      },
+    });
   }
 
   public async getUserIdByOriginalTransactionId(originalTransactionId: string): Promise<string | undefined> {

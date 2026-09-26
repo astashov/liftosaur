@@ -37,6 +37,7 @@ import {
   CollectionUtils_uniqBy,
   CollectionUtils_groupByKeyUniq,
   CollectionUtils_sortBy,
+  CollectionUtils_sortByExpr,
   CollectionUtils_groupByKey,
   CollectionUtils_sort,
 } from "../src/utils/collection";
@@ -3630,35 +3631,32 @@ export const reconcilePaymentsLambdaHandler = (
 export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
   return async () => {
     const di = diBuilder();
-    const lastThreeMonths = [DateUtils_yearAndMonth(Date.now())];
-    const lastMonthlogRecords = await new LogDao(di).getAllForYearAndMonth(
-      lastThreeMonths[0][0],
-      lastThreeMonths[0][1]
-    );
-    const userIds = lastMonthlogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId);
-    const users = await new UserDao(di).getLimitedByIds(userIds);
+    const [year, month] = DateUtils_yearAndMonth(Date.now());
+    const userIds = await new LogDao(di).getUserIdsWithActionInMonth(year, month, "ls-finish-workout");
+    const users = await new UserDao(di).getStatsFieldsByIds(userIds);
     const usersById = CollectionUtils_groupByKeyUniq(users, "id");
-    const logRecords = CollectionUtils_sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
-    const logRecordsByUserId = CollectionUtils_groupByKey(logRecords, "userId");
+    const summaries = await new LogDao(di).getSummariesForUsers(userIds);
 
-    const usersData: IStatsUserData[] = Object.keys(logRecordsByUserId).map((userId) => {
-      const userLogRecords = CollectionUtils_sortBy(logRecordsByUserId[userId] || [], "ts", true);
-      const lastAction = userLogRecords[0];
-      const firstAction = userLogRecords[userLogRecords.length - 1];
-      const userSubscriptions = usersById[userId]?.storage.subscription;
-      const isSubscribed =
-        userSubscriptions != null
-          ? ClientSubscription.Subscriptions_hasSubscription(userSubscriptions)
-          : userLogRecords.some((lr) => (lr.subscriptions || []).length > 0);
-      return {
-        userId,
-        email: usersById[userId]?.email,
-        userTs: usersById[userId]?.createdAt,
-        isSubscribed: isSubscribed,
-        firstAction: { name: firstAction.action, ts: firstAction.ts },
-        lastAction: { name: lastAction.action, ts: lastAction.ts },
-      };
-    });
+    const usersData: IStatsUserData[] = CollectionUtils_sortByExpr(
+      summaries.map((summary) => {
+        const user = usersById[summary.userId];
+        const userSubscriptions = user?.storage?.subscription;
+        const isSubscribed =
+          userSubscriptions != null
+            ? ClientSubscription.Subscriptions_hasSubscription(userSubscriptions)
+            : summary.hasSubscriptions;
+        return {
+          userId: summary.userId,
+          email: user?.email,
+          userTs: user?.createdAt,
+          isSubscribed: isSubscribed,
+          firstAction: summary.firstAction,
+          lastAction: summary.lastAction,
+        };
+      }),
+      (u) => u.lastAction.ts,
+      true
+    );
 
     let lastDay;
     const data: IStatsUserData[][] = [];
