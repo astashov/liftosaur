@@ -1,5 +1,8 @@
-import { JSX, ReactNode, Ref, RefObject, forwardRef, useImperativeHandle, useRef } from "react";
+import { JSX, ReactNode, Ref, RefObject, forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
 import { View, ScrollView, Platform, ScrollViewProps } from "react-native";
+import { HorizontalScroll_edges, HorizontalScroll_fadeMask, HorizontalScroll_wheelDelta } from "../utils/horizontalScroll";
+
+const EDGE_FADE_PX = 24;
 
 interface IProps {
   children: ReactNode;
@@ -37,6 +40,46 @@ export const Scroller = forwardRef(function Scroller(props: IProps, ref: Ref<ISc
     []
   );
 
+  const scrollableNode = useCallback((): HTMLElement | undefined => {
+    const node: unknown = scrollRef.current?.getScrollableNode();
+    return typeof HTMLElement !== "undefined" && node instanceof HTMLElement ? node : undefined;
+  }, [scrollRef]);
+
+  const updateFade = useCallback(() => {
+    const node = scrollableNode();
+    if (node == null) {
+      return;
+    }
+    const edges = HorizontalScroll_edges(node.scrollLeft, node.scrollWidth, node.clientWidth);
+    const mask = HorizontalScroll_fadeMask(edges, EDGE_FADE_PX) ?? "";
+    node.style.maskImage = mask;
+    node.style.webkitMaskImage = mask;
+  }, [scrollableNode]);
+
+  useEffect(() => {
+    const node = isWeb ? scrollableNode() : undefined;
+    if (node == null) {
+      return;
+    }
+    const onWheel = (e: WheelEvent): void => {
+      const delta = HorizontalScroll_wheelDelta({
+        deltaX: e.deltaX,
+        deltaY: e.deltaY,
+        deltaMode: e.deltaMode,
+        offset: node.scrollLeft,
+        maxOffset: node.scrollWidth - node.clientWidth,
+        viewportWidth: node.clientWidth,
+      });
+      if (delta != null) {
+        e.preventDefault();
+        node.scrollLeft += delta;
+      }
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    updateFade();
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [isWeb, scrollableNode, updateFade]);
+
   if (!isWeb) {
     return (
       <View ref={props.viewportRef} collapsable={false}>
@@ -60,7 +103,19 @@ export const Scroller = forwardRef(function Scroller(props: IProps, ref: Ref<ISc
         horizontal
         showsHorizontalScrollIndicator={false}
         className="scrollbar-hide"
-        {...scrollProps}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          props.onScroll?.(e);
+          updateFade();
+        }}
+        onContentSizeChange={(width, height) => {
+          props.onContentSizeChange?.(width, height);
+          updateFade();
+        }}
+        onLayout={(e) => {
+          props.onLayout?.(e);
+          updateFade();
+        }}
       >
         {props.children}
       </ScrollView>
