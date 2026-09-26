@@ -1,6 +1,5 @@
 import { ILastSynced } from "../models/state";
-import { VersionTracker } from "../models/versionTracker";
-import { IStorage, STORAGE_VERSION_TYPES } from "../types";
+import { IStorage } from "../types";
 
 export const SyncBaseline_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
@@ -21,18 +20,6 @@ export function SyncBaseline_afterClean(baseline: ILastSynced, sentStorage: ISyn
     versions: sentStorage._versions,
     tempUserId: sentStorage.tempUserId,
     serverVersionsFetchedAt: baseline.serverVersionsFetchedAt,
-  };
-}
-
-export function SyncBaseline_withWatchVersions(
-  baseline: ILastSynced,
-  watchVersions: IStorage["_versions"],
-  deviceId: string
-): ILastSynced {
-  const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId });
-  return {
-    ...baseline,
-    versions: versionTracker.mergeVersions(baseline.versions || {}, watchVersions || {}),
   };
 }
 

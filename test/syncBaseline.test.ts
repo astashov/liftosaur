@@ -8,7 +8,6 @@ import {
   SyncBaseline_afterClean,
   SyncBaseline_fromServer,
   SyncBaseline_needsFetch,
-  SyncBaseline_withWatchVersions,
 } from "../src/utils/syncBaseline";
 
 function storageWith(tempUserId: string, versions: IStorage["_versions"]): IStorage {
@@ -31,17 +30,6 @@ describe("SyncBaseline", () => {
     const after = SyncBaseline_afterClean(baseline, storageWith("user1", sentVersions));
     expect(after.versions).to.equal(sentVersions);
     expect(after.serverVersionsFetchedAt).to.equal(5000);
-  });
-
-  it("withWatchVersions merges watch items and leaves phone-only versions absent", () => {
-    const baseline = SyncBaseline_fromServer(storageWith("user1", serverVersions), 5000);
-    const watchVersions: IStorage["_versions"] = { history: { items: { 2: 300 } } };
-    const merged = SyncBaseline_withWatchVersions(baseline, watchVersions, "phone");
-    const history = merged.versions?.history as { items: Record<string, unknown> };
-    expect(Object.keys(history.items)).to.eql(["1", "2"]);
-    expect(history.items["3"]).to.equal(undefined);
-    expect(merged.serverVersionsFetchedAt).to.equal(5000);
-    expect(SyncBaseline_withWatchVersions(baseline, undefined, "phone").versions).to.eql(serverVersions);
   });
 
   describe("needsFetch", () => {

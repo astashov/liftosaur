@@ -130,7 +130,6 @@ import {
   SyncBaseline_afterClean,
   SyncBaseline_fromServer,
   SyncBaseline_needsFetch,
-  SyncBaseline_withWatchVersions,
 } from "../utils/syncBaseline";
 import { runMigrations } from "../migrations/runner";
 import { HistoryDelta_sortNewestFirst } from "../utils/historyDelta";
@@ -1156,10 +1155,6 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       }
 
       if (Storage_isChanged(state.storage, mergedStorage)) {
-        const mergedLastSynced = state.lastSynced
-          ? SyncBaseline_withWatchVersions(state.lastSynced, watchStorage._versions, state.deviceId)
-          : undefined;
-
         const mergedHistoryLen = mergedStorage.history?.length ?? 0;
 
         if (phoneHistoryLen > 0 && mergedHistoryLen < phoneHistoryLen) {
@@ -1170,11 +1165,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
           });
         }
 
-        updateState(
-          dispatch,
-          [lb<IState>().p("storage").record(mergedStorage), lb<IState>().p("lastSynced").record(mergedLastSynced)],
-          "Merge watch storage"
-        );
+        updateState(dispatch, [lb<IState>().p("storage").record(mergedStorage)], "Merge watch storage");
         SendMessage_print("handleWatchStorageMerge: successfully merged watch storage");
 
         const beforeProgress = state.storage.progress?.[0];

@@ -524,6 +524,75 @@ describe("sync", () => {
       return (await di.dynamo.scan<IUserDao>({ tableName: userTableNames.prod.users }))[0];
     }
 
+    async function offlineWatch(
+      phone: MockReducer<IState, IAction, IEnv>,
+      env: IEnv
+    ): Promise<MockReducer<IState, IAction, IEnv>> {
+      const watch = MockReducer.clone(phone, "watch-ABC", env);
+      await watch.run([
+        SyncTestUtils_mockDispatch((ds) => updateState(ds, [lb<IState>().p("nosync").record(true)], "watch offline")),
+      ]);
+      return watch;
+    }
+
+    function setRepsActions(reps: number): IAction[] {
+      return [
+        {
+          type: "UpdateProgress",
+          lensRecordings: [lb<IHistoryRecord>().p("entries").i(0).p("sets").i(0).p("completedReps").record(reps)],
+          desc: `Set completed reps to ${reps}`,
+        },
+      ];
+    }
+
+    it("uploads a workout the watch finished while it could not reach the server", async () => {
+      const { mockReducer: phone, di, env } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+      const watch = await offlineWatch(phone, env);
+      await SyncTestUtils_logWorkout(watch, basicBeginnerProgram, [
+        [5, 5, 5],
+        [5, 5, 5],
+        [5, 5, 5],
+      ]);
+      const watchRecordId = watch.state.storage.history[0].id;
+      expect(phone.state.storage.history.map((r) => r.id)).to.not.include(watchRecordId);
+
+      await phone.run([Thunk_handleWatchStorageMerge(JSON.stringify(watch.state.storage))]);
+      await phone.run([Thunk_sync2()]);
+
+      expect(
+        (await di.dynamo.scan<IHistoryRecord>({ tableName: userTableNames.prod.historyRecords })).map((r) => r.id)
+      ).to.include(watchRecordId);
+    });
+
+    it("uploads a set the watch completed while it could not reach the server", async () => {
+      const { mockReducer: phone, di, env } = await SyncTestUtils_initTheApp("web_123");
+      await SyncTestUtils_startWorkout(phone);
+      const watch = await offlineWatch(phone, env);
+      await watch.run(setRepsActions(4));
+
+      await phone.run([Thunk_handleWatchStorageMerge(JSON.stringify(watch.state.storage))]);
+      await phone.run([Thunk_sync2()]);
+
+      expect((await serverUser(di)).storage.progress?.[0]?.entries[0].sets[0].completedReps).to.equal(4);
+    });
+
+    it("keeps the server's newer set when the phone uploads an older watch copy", async () => {
+      const { mockReducer: phone, di, env } = await SyncTestUtils_initTheApp("web_123");
+      await SyncTestUtils_startWorkout(phone);
+      const watch = MockReducer.clone(phone, "watch-ABC", env);
+      await watch.run(setRepsActions(3));
+      const olderWatchStorage = JSON.stringify(watch.state.storage);
+      await watch.run(setRepsActions(4));
+      await watch.run([Thunk_sync2({ force: true })]);
+      expect((await serverUser(di)).storage.progress?.[0]?.entries[0].sets[0].completedReps).to.equal(4);
+
+      await phone.run([Thunk_handleWatchStorageMerge(olderWatchStorage)]);
+      await phone.run([Thunk_sync2()]);
+
+      expect((await serverUser(di)).storage.progress?.[0]?.entries[0].sets[0].completedReps).to.equal(4);
+      expect(phone.state.storage.progress?.[0]?.entries[0].sets[0].completedReps).to.equal(4);
+    });
+
     it("keeps a phone change uploadable when a watch merge arrives with no baseline", async () => {
       const { mockReducer: a, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
       await a.run([

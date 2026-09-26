@@ -181,6 +181,8 @@ import { lg } from "./utils/posthog";
 import { EventManager_initTelemetry } from "./utils/eventManager";
 import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
 import { AdminDebug_isDebugAccountId } from "./models/adminDebug";
+import { IWatchAuthSource, WatchAuthHandoff_accountId, WatchAuthHandoff_decide } from "./utils/watchAuthHandoff";
+import { IAuthToken } from "./utils/keychain";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
 import { TourConfigs_findTourId, TourConfigs_imagesForCurrentScreen } from "./components/tour/tourConfigs";
@@ -249,6 +251,34 @@ GoogleSignin.configure({
   iosClientId: "944666871420-of5rtcpja10vsp2jbe5m6amob7u5qvjq.apps.googleusercontent.com",
   offlineAccess: false,
 });
+
+const watchAuthEvents: Record<IWatchAuthSource, { stale: string; readFail: string }> = {
+  startup: { stale: "ls-keychain-stale-on-startup", readFail: "ls-keychain-get-auth-fail-startup" },
+  request: { stale: "ls-keychain-stale-on-request", readFail: "ls-keychain-get-auth-fail" },
+};
+
+function handOffWatchAuth(env: IEnv, getState: () => IState, source: IWatchAuthSource): void {
+  const apply = (auth: IAuthToken | undefined): void => {
+    const state = getState();
+    const accountId = WatchAuthHandoff_accountId(state.user, state.storage);
+    const decision = WatchAuthHandoff_decide(auth, accountId, source);
+    if (decision.kind === "send") {
+      env.watch.sendAuthToWatch(decision.auth);
+    } else if (decision.kind === "clearWatch") {
+      lg(watchAuthEvents[source].stale, { storedUserId: decision.storedUserId, currentUserId: accountId || "" });
+      env.watch.sendClearAuthToWatch();
+    } else if (decision.kind === "sendNoAuth") {
+      env.watch.sendNoAuthToWatch();
+    }
+  };
+  env.keychain
+    .getAuthToken()
+    .then(apply)
+    .catch((e) => {
+      lg(watchAuthEvents[source].readFail, { error: e instanceof Error ? e.message : String(e) });
+      apply(undefined);
+    });
+}
 
 export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.Element {
   const env = props.env;
@@ -525,61 +555,13 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
           env.watch.sendStorageToWatch(filtered);
         }
       } else if (event.type === "requestAuth") {
-        const currentUserId = stateRef.current.user?.id;
-        env.keychain
-          .getAuthToken()
-          .then((auth) => {
-            if (auth && auth.token && currentUserId && auth.userId === currentUserId) {
-              env.watch.sendAuthToWatch(auth);
-            } else {
-              if (auth && auth.token && auth.userId !== currentUserId) {
-                lg("ls-keychain-stale-on-request", {
-                  storedUserId: auth.userId || "",
-                  currentUserId: currentUserId || "",
-                });
-                env.keychain
-                  .clearAuthToken()
-                  .catch((e) =>
-                    lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
-                  );
-                env.watch.sendClearAuthToWatch();
-              } else {
-                env.watch.sendNoAuthToWatch();
-              }
-            }
-          })
-          .catch((e) => {
-            lg("ls-keychain-get-auth-fail", { error: e instanceof Error ? e.message : String(e) });
-            env.watch.sendNoAuthToWatch();
-          });
+        handOffWatchAuth(env, () => stateRef.current, "request");
       }
     });
   }, [dispatch, env]);
 
   useEffect(() => {
-    const currentUserId = stateRef.current.user?.id;
-    env.keychain
-      .getAuthToken()
-      .then((auth) => {
-        if (!auth || !auth.token) {
-          return;
-        }
-        if (currentUserId && auth.userId === currentUserId) {
-          env.watch.sendAuthToWatch(auth);
-        } else {
-          lg("ls-keychain-stale-on-startup", {
-            storedUserId: auth.userId || "",
-            currentUserId: currentUserId || "",
-          });
-          env.keychain
-            .clearAuthToken()
-            .catch((e) => lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) }));
-          env.watch.sendClearAuthToWatch();
-        }
-      })
-      .catch((e) => {
-        lg("ls-keychain-get-auth-fail-startup", { error: e instanceof Error ? e.message : String(e) });
-      });
+    handOffWatchAuth(env, () => stateRef.current, "startup");
   }, [env]);
 
   useEffect(() => {
