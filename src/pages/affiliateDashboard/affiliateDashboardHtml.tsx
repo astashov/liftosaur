@@ -2,12 +2,13 @@ import type { JSX } from "react";
 import { Page } from "../../components/page";
 import type { IAffiliateDashboardSummary, IAffiliateData } from "./affiliateDashboardContent";
 import { AffiliateDashboardContent } from "./affiliateDashboardContent";
+import type { IAffiliateMonthlyPayment } from "../../../lambda/dao/affiliateDao";
 
 export interface IAffiliateDashboardHtmlProps {
   affiliateId: string;
   affiliateData: IAffiliateData[];
   summary: IAffiliateDashboardSummary;
-  monthlyPayments: { month: string; revenue: number; count: number }[];
+  monthlyPayments: IAffiliateMonthlyPayment[];
   apiKey: string;
   client: Window["fetch"];
 }

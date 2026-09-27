@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { IAccount } from "../../models/account";
 import type { ICreatorStats } from "../../../lambda/userAffiliates";
+import { PaymentMixList } from "../../components/paymentMixList";
 
 export interface IUserAffiliatesSummary {
   totalUsers: number;
@@ -86,6 +87,9 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
                   Number of Payments
                 </th>
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Currency · Plan
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Program Users
                 </th>
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
@@ -99,7 +103,7 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
             <tbody className="bg-white divide-y divide-gray-200">
               {monthlyPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan={6} className="px-4 py-4 text-center text-gray-500">
                     No payments yet
                   </td>
                 </tr>
@@ -117,6 +121,9 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
                     <tr key={monthData.month} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
                       <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{monthData.count}</td>
+                      <td className="px-4 py-4 text-sm">
+                        <PaymentMixList mix={monthData.mix} />
+                      </td>
                       <td className="px-4 py-4 text-sm text-blue-700 whitespace-nowrap">
                         {monthData.programUsersTotal}
                         {monthData.programUsers > 0 && (

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import type { IAffiliateMonthlyPayment } from "../../../lambda/dao/affiliateDao";
+import { PaymentMixList } from "../../components/paymentMixList";
 
 export interface IAffiliateDashboardSummary {
   totalUsers: number;
@@ -17,7 +19,7 @@ export interface IAffiliateDashboardContentProps {
   affiliateData: IAffiliateData[];
   affiliateId: string;
   summary: IAffiliateDashboardSummary;
-  monthlyPayments: { month: string; revenue: number; count: number }[];
+  monthlyPayments: IAffiliateMonthlyPayment[];
   apiKey: string;
 }
 
@@ -96,6 +98,9 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                   Number of Payments
                 </th>
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                  Currency · Plan
+                </th>
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                   Revenue (20% share)
                 </th>
               </tr>
@@ -103,7 +108,7 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
             <tbody className="bg-white divide-y divide-gray-200">
               {props.monthlyPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-4 py-4 text-center text-gray-500">
+                  <td colSpan={4} className="px-4 py-4 text-center text-gray-500">
                     No payments yet
                   </td>
                 </tr>
@@ -121,6 +126,9 @@ export function AffiliateDashboardContent(props: IAffiliateDashboardContentProps
                     <tr key={monthData.month} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
                       <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{monthData.count}</td>
+                      <td className="px-4 py-4 text-sm">
+                        <PaymentMixList mix={monthData.mix} />
+                      </td>
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {formatCurrency(monthData.revenue)}
                       </td>

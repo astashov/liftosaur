@@ -13,6 +13,7 @@ import {
 } from "../../src/utils/collection";
 import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDashboardContent";
 import { PriceUtils_exchangeRate } from "../../src/utils/price";
+import { IPaymentMixEntry, IPaymentMixInput, PaymentMix_ofPayments } from "../utils/paymentMix";
 
 const tableNames = {
   dev: {
@@ -40,6 +41,7 @@ export interface IAffiliateMonthlyPayment {
   couponUsers: number;
   programUsersTotal: number;
   couponUsersTotal: number;
+  mix: IPaymentMixEntry[];
 }
 
 export interface IAffiliateDashboardSummary {
@@ -223,20 +225,32 @@ export class AffiliateDao {
     allEligiblePayments: IPaymentDao[],
     affiliateUsers: { affiliateTimestamp: number; affiliateType?: "coupon" | "program" }[]
   ): IAffiliateMonthlyPayment[] {
-    const perMonth: Record<string, { revenue: number; count: number; programUsers: number; couponUsers: number }> = {};
-    const ensureMonth = (
-      monthKey: string
-    ): { revenue: number; count: number; programUsers: number; couponUsers: number } => {
+    type IMonthAccumulator = {
+      revenue: number;
+      count: number;
+      programUsers: number;
+      couponUsers: number;
+      payments: IPaymentMixInput[];
+    };
+    const perMonth: Record<string, IMonthAccumulator> = {};
+    const ensureMonth = (monthKey: string): IMonthAccumulator => {
       if (!perMonth[monthKey]) {
-        perMonth[monthKey] = { revenue: 0, count: 0, programUsers: 0, couponUsers: 0 };
+        perMonth[monthKey] = { revenue: 0, count: 0, programUsers: 0, couponUsers: 0, payments: [] };
       }
       return perMonth[monthKey];
     };
 
     allEligiblePayments.forEach((payment) => {
       const month = ensureMonth(this.monthKeyFromTimestamp(payment.timestamp));
-      month.revenue += this.getDollarAmount(payment) * 0.2;
+      const share = this.getDollarAmount(payment) * 0.2;
+      month.revenue += share;
       month.count += 1;
+      month.payments.push({
+        currency: payment.currency,
+        productId: payment.productId,
+        isFreeTrialPayment: payment.isFreeTrialPayment,
+        share,
+      });
     });
 
     affiliateUsers.forEach(({ affiliateTimestamp, affiliateType }) => {
@@ -249,7 +263,7 @@ export class AffiliateDao {
     });
 
     const ascending = Object.entries(perMonth)
-      .map(([month, data]) => ({ month, ...data }))
+      .map(([month, { payments, ...data }]) => ({ month, ...data, mix: PaymentMix_ofPayments(payments) }))
       .sort((a, b) => a.month.localeCompare(b.month));
 
     let programUsersTotal = 0;
