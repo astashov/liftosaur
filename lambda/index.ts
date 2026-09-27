@@ -119,6 +119,8 @@ import { renderAllExercisesHtml } from "./allExercises";
 import { renderAllProgramsHtml } from "./allPrograms";
 import { renderAllDocsHtml } from "./allDocs";
 import { renderDocDetailsHtml } from "./docDetails";
+import { renderAllFeaturesHtml } from "./allFeatures";
+import { renderFeatureDetailsHtml } from "./featureDetails";
 import { DocDao } from "./dao/docDao";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils_toWord } from "../src/utils/math";
@@ -2743,6 +2745,49 @@ const getDocDetailsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+const getAllFeaturesEndpoint = Endpoint.build("/features");
+const getAllFeaturesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllFeaturesEndpoint> = async ({
+  payload,
+}) => {
+  const { di } = payload;
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  const features = new DocDao("features").getIndex();
+  return {
+    statusCode: 200,
+    body: renderAllFeaturesHtml(di.fetch, features, isLoggedIn),
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "public, s-maxage=86400, max-age=0",
+    },
+  };
+};
+
+const getFeatureDetailsEndpoint = Endpoint.build("/features/:id");
+const getFeatureDetailsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getFeatureDetailsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
+  const result = new DocDao("features").getById(params.id);
+  if (result == null) {
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
+    };
+  }
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  return {
+    statusCode: 200,
+    body: renderFeatureDetailsHtml(di.fetch, result.indexEntry, result.detail.content, isLoggedIn),
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "public, s-maxage=86400, max-age=0",
+    },
+  };
+};
+
 const getUserContextEndpoint = Endpoint.build("/api/usercontext");
 const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserContextEndpoint> = async ({
   payload,
@@ -3881,6 +3926,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
       .get(getAllDocsEndpoint, getAllDocsHandler)
       .get(getDocDetailsEndpoint, getDocDetailsHandler)
+      .get(getAllFeaturesEndpoint, getAllFeaturesHandler)
+      .get(getFeatureDetailsEndpoint, getFeatureDetailsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramPreviewEndpoint, getProgramPreviewHandler)

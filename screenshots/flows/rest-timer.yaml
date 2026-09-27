@@ -1,0 +1,75 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-timers
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-timers
+- takeScreenshot: rest-timer-settings
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      text: "Vibration"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: rest-timer-sound
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: complete-set
+    index: 0
+- takeScreenshot: rest-timer-collapsed
+- tapOn:
+    id: rest-timer-collapsed
+- takeScreenshot: rest-timer-expanded
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - pressKey: Lock
+      - extendedWaitUntil:
+          visible: "Next"
+          timeout: 8000
+          optional: true
+      - tapOn:
+          text: "Always Allow"
+          optional: true
+      - takeScreenshot: rest-timer-lock-screen
+      - pressKey: Home
+      - pressKey: Home
+      - extendedWaitUntil:
+          visible: "Liftosaur"
+          timeout: 5000
+      - takeScreenshot: rest-timer-dynamic-island
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Home
+      - swipe:
+          start: 50%, 2%
+          end: 50%, 70%
+          duration: 400
+      - extendedWaitUntil:
+          visible: "Liftosaur"
+          timeout: 5000
+          optional: true
+      - takeScreenshot: rest-timer-live-update
+      - pressKey: Back
+- launchApp
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: "Plank.*"
+- tapOn:
+    id: start-set-timer
+    index: 0
+- takeScreenshot: rest-timer-get-ready

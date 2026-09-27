@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- launchApp:
+    stopApp: true
+- tapOn: "I have an account"
+- tapOn:
+    id: menu-item-login-email
+- tapOn: "Email"
+- inputText: ${EMAIL}
+- tapOn: "Password"
+- inputText: ${PASSWORD}
+- tapOn:
+    id: email-auth-submit
+- tapOn:
+    text: "Not Now"
+    optional: true
+- tapOn:
+    text: "Never"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: footer-home
+    timeout: 30000

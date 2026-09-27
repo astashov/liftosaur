@@ -1,0 +1,17 @@
+# Apple Watch Series 11 46mm, coordinates in points (208x248).
+# Home: Start button
+launch
+wait 12000
+tap 104 220
+wait 3000
+# Exercise list: first exercise card
+tap 104 160
+wait 3000
+# Exercise screen: complete the set, the rest timer starts in the header
+tap 104 196
+wait 2000
+screenshot watch-rest-timer-exercise
+# The pill's tappable area is just below it, opens the Rest Timer sheet
+tap 104 52
+wait 2000
+screenshot watch-rest-timer

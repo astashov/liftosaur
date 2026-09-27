@@ -1,0 +1,61 @@
+appId: ${APP_ID}
+---
+- runFlow: login.yaml
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - swipe:
+          start: 50%, 2%
+          end: 50%, 70%
+          duration: 400
+      - tapOn:
+          text: "Clear all"
+          optional: true
+      - pressKey: Back
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - extendedWaitUntil:
+          visible: "Turn On All"
+          timeout: 8000
+          optional: true
+      - tapOn:
+          text: "Turn On All"
+          optional: true
+      - tapOn:
+          text: "Allow"
+          optional: true
+- tapOn:
+    id: complete-set
+    index: 0
+- tapOn:
+    text: "Allow"
+    optional: true
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - pressKey: Lock
+      - extendedWaitUntil:
+          visible: "Allow Live Activities from Liftosaur?"
+          timeout: 8000
+          optional: true
+      - tapOn:
+          text: "Allow"
+          optional: true
+      - pressKey: Home
+      - pressKey: Lock
+      - extendedWaitUntil:
+          visible: "Always Allow"
+          timeout: 8000
+          optional: true
+      - tapOn:
+          text: "Always Allow"
+          optional: true
+      - pressKey: Home

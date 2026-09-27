@@ -1,0 +1,35 @@
+# Week 1
+## Upper A
+// Pause **1 second** on the chest, then drive up.
+Bench Press / 1x5 60%, 1x3 70%, 3x5 / 155lb / warmup: 1x5 45%, 1x3 65% / progress: lp(5lb)
+Bent Over Row / 3x8-12 / 115lb / progress: dp(5lb, 8, 12)
+Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
+  if (completedReps[ns] >= 8) {
+    weights += state.increment
+  } else if (completedReps[ns] < 5) {
+    weights -= state.increment
+  }
+~}
+Lateral Raise / 3x12-15 / 15lb / superset: A
+Face Pull / 3x15 / 40lb / superset: A
+Plank / 3x1 60s|30s
+
+## Lower A
+Squat / 5x5 / 185lb / warmup: 1x5 45%, 1x3 65%, 1x2 85% / progress: lp(5lb)
+Romanian Deadlift / 3x8 @8+ / 165lb / progress: dp(10lb, 8, 10)
+Bulgarian Split Squat / 3x10 / 30lb
+Seated Leg Curl / 3x12 / 70lb / superset: B
+Standing Calf Raise / 3x15 / 90lb / superset: B
+
+## Upper B
+Incline Bench Press / 3x8-10 / 115lb / progress: dp(5lb, 8, 10)
+Pull Up / 3x5+ / 0lb
+Bicep Curl / 3x10 @8 ?+
+Triceps Extension / 3x12 / 40lb / superset: C
+Lateral Raise / 3x15 / 15lb / superset: C
+
+## Lower B
+Deadlift / 1x5 / 275lb / warmup: 1x5 45%, 1x3 65%, 1x2 85% / progress: lp(5lb)
+Front Squat / 3x6 / 135lb / progress: lp(5lb)
+Leg Press / 3x10-12 / 270lb / progress: dp(10lb, 10, 12)
+Hanging Leg Raise / 3x10

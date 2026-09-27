@@ -71,6 +71,7 @@ import { getInitialState } from "./reducer";
 import { IndexedDBUtils_set } from "../utils/indexeddb";
 import { Account_getAll, IAccount } from "../models/account";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
+import { WatchAuthHandoff_accountId } from "../utils/watchAuthHandoff";
 import { OnloadModal_getNext, OnloadModal_shouldShowHearAboutUs } from "../models/onloadModal";
 import { Screen_shouldConfirmNavigation } from "../models/screen";
 import {
@@ -2568,7 +2569,9 @@ async function handleLogin(
         } catch (e) {
           lg("ls-keychain-set-auth-fail", { error: e instanceof Error ? e.message : String(e) });
         }
-        env.watch.sendAuthToWatch(auth);
+        if (WatchAuthHandoff_accountId({ id: result.user_id, email: result.email }, storage) != null) {
+          env.watch.sendAuthToWatch(auth);
+        }
       }
     } else if (result.key) {
       updateState(

@@ -1,0 +1,30 @@
+.feature-body p:has(> img) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.feature-body img {
+  display: block;
+  flex: 0 0 auto;
+  width: 250px;
+  height: auto;
+  margin: 0;
+  border-radius: 34px;
+  border: 8px solid #111;
+  background: #111;
+  overflow: hidden;
+}
+
+.feature-body p:has(> img:nth-of-type(3)) img {
+  width: 200px;
+  border-radius: 28px;
+  border-width: 6px;
+}
+
+.feature-body img[alt*="Apple Watch"] {
+  width: 180px;
+  border-radius: 40px;
+}

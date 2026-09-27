@@ -6,4 +6,5 @@ export interface IDocIndexEntry {
   category?: string;
   datePublished?: string;
   dateModified?: string;
+  screenshots?: string[];
 }

@@ -21,6 +21,12 @@ export interface INativeEffectBridges {
   mirroring: IWorkoutMirroring;
 }
 
+export function NativeEffects_withoutWatchWorkout(effects: readonly INativeEffect[]): INativeEffect[] {
+  return effects.map((effect) =>
+    effect.type === "resumeWorkout" && effect.hasSubscription ? { ...effect, hasSubscription: false } : effect
+  );
+}
+
 export function NativeEffects_apply(bridges: INativeEffectBridges, effects: readonly INativeEffect[]): void {
   for (const effect of effects) {
     switch (effect.type) {

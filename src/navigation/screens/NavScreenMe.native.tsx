@@ -81,6 +81,7 @@ export function NavScreenAccount(): React.JSX.Element {
           dispatch={dispatch}
           email={state.user?.email}
           userId={state.user?.id}
+          nosync={state.nosync}
           storage={untrack(state.storage)}
           subscriptionStatus={state.subscriptionStatus}
           subscriptionStatusLoading={state.subscriptionStatusLoading}

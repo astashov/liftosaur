@@ -1164,6 +1164,32 @@ export class LiftosaurCdkStack extends cdk.Stack {
             },
           ],
         },
+        "/features": {
+          origin: apiOrigin,
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/features/*": {
+          origin: apiOrigin,
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
         "/.well-known/oauth-protected-resource": {
           origin: apiOrigin,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,

@@ -160,6 +160,8 @@ const mainConfig = {
     allexercises: ["./src/allExercises.tsx", "./src/index.css"],
     alldocs: ["./src/allDocs.tsx", "./src/index.css"],
     docdetails: ["./src/docDetails.tsx", "./src/programDetails.css", "./src/index.css"],
+    allfeatures: ["./src/allFeatures.tsx", "./src/features.css", "./src/index.css"],
+    featuredetails: ["./src/featureDetails.tsx", "./src/features.css", "./src/programDetails.css", "./src/index.css"],
     allprograms: ["./src/allPrograms.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
@@ -462,6 +464,14 @@ const mainConfig = {
         secure: false,
       },
       "/doc/*": {
+        target: localapi,
+        secure: false,
+      },
+      "/features": {
+        target: localapi,
+        secure: false,
+      },
+      "/features/*": {
         target: localapi,
         secure: false,
       },

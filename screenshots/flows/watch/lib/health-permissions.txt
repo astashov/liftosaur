@@ -1,0 +1,23 @@
+# First launch after install: the Health Access sheet. Review, allow all writes, Next, allow all reads, Done.
+launch
+wait 8000
+tap 104 240
+wait 2000
+tap 175 212
+wait 1000
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 500
+tap 104 185
+wait 2000
+tap 175 212
+wait 1000
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 500
+tap 104 185
+wait 2000

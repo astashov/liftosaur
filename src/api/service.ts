@@ -367,6 +367,7 @@ export class Service {
         storage: json.storage,
         user_id: json.user_id,
         is_new_user: json.is_new_user,
+        key: json.key,
         session: json.session,
       },
     };

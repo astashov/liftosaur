@@ -72,7 +72,7 @@ import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subs
 import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
 import { Exercise_toKey } from "../models/exercise";
-import { INativeEffect } from "../models/nativeEffects";
+import { INativeEffect, NativeEffects_withoutWatchWorkout } from "../models/nativeEffects";
 import { History_resumeWorkout } from "../models/history";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -597,7 +597,9 @@ export const reducerWrapper =
     const perfSyncStart = perfOn ? Date.now() : 0;
     const effects: INativeEffect[] = [];
     let newState = reducer(state, action, effects);
-    applyEffects(effects);
+    applyEffects(
+      AdminDebug_isDebugAccountId(newState.storage.tempUserId) ? NativeEffects_withoutWatchWorkout(effects) : effects
+    );
     const isMergingStorage = isExternalStorageMerge(action);
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
     if (isStorageChanged) {

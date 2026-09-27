@@ -3,12 +3,14 @@ import * as path from "path";
 import { IDocIndexEntry } from "../../src/models/doc";
 import { IDocDetail, parseDocMarkdown } from "../../src/utils/docUtils";
 
+export type IDocCollection = "content" | "features";
+
 export class DocDao {
   private readonly docsDir: string;
 
-  constructor() {
-    const bundled = path.join(__dirname, "..", "docs", "content");
-    this.docsDir = fs.existsSync(bundled) ? bundled : path.join(__dirname, "..", "..", "docs", "content");
+  constructor(collection: IDocCollection = "content") {
+    const bundled = path.join(__dirname, "..", "docs", collection);
+    this.docsDir = fs.existsSync(bundled) ? bundled : path.join(__dirname, "..", "..", "docs", collection);
   }
 
   public getIndex(): IDocIndexEntry[] {

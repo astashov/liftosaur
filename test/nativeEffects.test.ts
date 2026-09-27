@@ -16,7 +16,7 @@ import { Settings_build } from "../src/models/settings";
 import { Stats_getEmpty } from "../src/models/stats";
 import { Storage_getDefault } from "../src/models/storage";
 import { IHistoryRecord, ISettings, ISubscription } from "../src/types";
-import { INativeEffect, NativeEffects_apply } from "../src/models/nativeEffects";
+import { INativeEffect, NativeEffects_apply, NativeEffects_withoutWatchWorkout } from "../src/models/nativeEffects";
 import { MockBridges_build } from "./utils/mockBridges";
 
 (globalThis as unknown as { __HOST__: string }).__HOST__ = "https://www.liftosaur.com";
@@ -240,5 +240,16 @@ describe("Native effects", () => {
     Progress_stopTimer(effects, progress);
     NativeEffects_apply(bridges, effects);
     expect(bridges.log.names()).to.eql(["timer.stopTimer"]);
+  });
+
+  it("drops the watch workout from a resume for a debug sandbox account", () => {
+    const effects: INativeEffect[] = [
+      { type: "stopTimer" },
+      { type: "resumeWorkout", reminder: 30, isStart: true, hasSubscription: true },
+    ];
+    expect(NativeEffects_withoutWatchWorkout(effects)).to.eql([
+      { type: "stopTimer" },
+      { type: "resumeWorkout", reminder: 30, isStart: true, hasSubscription: false },
+    ]);
   });
 });

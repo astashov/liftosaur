@@ -9,6 +9,7 @@
 /out
 /docs/*
 !/docs/content/
+!/docs/features/
 /cypress/videos
 /cypress/screenshots
 /backup
