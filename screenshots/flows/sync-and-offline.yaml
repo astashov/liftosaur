@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- takeScreenshot: sync-and-offline-me-account
+- tapOn:
+    id: menu-item-account
+- takeScreenshot: sync-and-offline-account
+- tapOn:
+    id: account-sign-out
+- extendedWaitUntil:
+    visible:
+      id: menu-item-login
+    timeout: 10000
+- takeScreenshot: sync-and-offline-sign-in

@@ -1,0 +1,26 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-account
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-account
+- takeScreenshot: account-screen
+- tapOn:
+    id: account-sign-out
+- extendedWaitUntil:
+    visible:
+      id: menu-item-login-email
+    timeout: 15000
+- takeScreenshot: account-sign-in
+- tapOn:
+    id: menu-item-login-email
+- takeScreenshot: account-email-form
+- tapOn:
+    id: email-auth-mode-forgot
+- takeScreenshot: account-forgot-password

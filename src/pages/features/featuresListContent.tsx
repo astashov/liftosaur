@@ -1,8 +1,10 @@
 import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
+import { FeatureImages_size, IFeatureImageSizes } from "./featureImages";
 
 export interface IFeaturesListContentProps {
   features: IDocIndexEntry[];
+  sizes: IFeatureImageSizes;
 }
 
 export function Features_screenshotUrl(featureId: string, name: string): string {
@@ -28,7 +30,14 @@ export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Eleme
         <span className="text-text-primary">Features</span>
       </nav>
       <h1 className="mb-2 text-3xl font-bold">Liftosaur Features</h1>
-      <p className="mb-8 text-text-secondary">Everything the app does, one page per feature, with screenshots.</p>
+      <p className="mb-8 text-text-secondary">
+        Everything the app does, one page per feature, with screenshots. For the Liftoscript language, the API and the
+        MCP server, see the{" "}
+        <a href="/doc" className="underline hover:text-text-primary">
+          documentation
+        </a>
+        .
+      </p>
       {Array.from(categories.entries()).map(([category, features]) => (
         <div key={category} className="mb-10">
           <h2 className="mb-3 text-xl font-bold">{category}</h2>
@@ -45,7 +54,10 @@ export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Eleme
                       className="block w-full h-auto rounded-[9px]"
                       src={Features_screenshotUrl(feature.id, feature.screenshots[0])}
                       alt={feature.title}
+                      width={FeatureImages_size(props.sizes, feature.id, feature.screenshots[0])?.width}
+                      height={FeatureImages_size(props.sizes, feature.id, feature.screenshots[0])?.height}
                       loading="lazy"
+                      decoding="async"
                     />
                   </span>
                 )}

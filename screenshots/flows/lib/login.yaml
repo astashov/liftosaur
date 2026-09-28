@@ -21,3 +21,4 @@ appId: ${APP_ID}
     visible:
       id: footer-home
     timeout: 30000
+- waitForAnimationToEnd

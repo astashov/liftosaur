@@ -1,0 +1,48 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-program
+- tapOn:
+    id: tab-edit
+- tapOn:
+    id: editor-v2-perday-program
+- takeScreenshot: supersets-liftoscript
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-timers
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-timers
+- takeScreenshot: supersets-timer
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: workout-tab-lateral-raise
+- takeScreenshot: supersets-workout
+- tapOn:
+    id: complete-set
+    index: 0
+- takeScreenshot: supersets-next-exercise
+- tapOn:
+    id: exercise-superset-picker
+    index: 0
+- takeScreenshot: supersets-picker
+- tapOn:
+    id: superset-group-a
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Edit Program Exercise"
+- extendedWaitUntil:
+    visible:
+      id: exercise-liftoeditor-save
+    timeout: 10000
+- takeScreenshot: supersets-program-editor

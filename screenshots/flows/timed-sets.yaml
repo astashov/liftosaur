@@ -1,0 +1,52 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-timers
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-timers
+- takeScreenshot: timed-sets-timers
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    text: "Plank.*"
+- takeScreenshot: timed-sets-set-row
+- tapOn:
+    id: start-set-timer
+    index: 0
+- takeScreenshot: timed-sets-get-ready
+- tapOn:
+    id: set-timer-start-now
+- takeScreenshot: timed-sets-running
+- tapOn:
+    id: set-timer-stop-record
+- tapOn:
+    id: modal-amrap-submit
+    optional: true
+- takeScreenshot: timed-sets-recorded
+- tapOn:
+    id: set-timer-value
+- takeScreenshot: timed-sets-edit-time
+- tapOn:
+    id: set-timer-edit-submit
+- tapOn:
+    id: set-options
+    index: 0
+- tapOn:
+    text: "Edit Target"
+- tapOn:
+    id: input-target-set-timer-field
+- tapOn:
+    id: edit-target-overflow-set-timer
+- takeScreenshot: timed-sets-count-up
+- tapOn:
+    id: keyboard-close
+- tapOn:
+    id: edit-set-target-save

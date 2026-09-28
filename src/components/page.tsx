@@ -186,6 +186,7 @@ interface IProps<T> extends IPageWrapperProps {
   description?: string;
   ogDescription?: string;
   ogUrl?: string;
+  ogType?: "website" | "article";
   ogImage?: string;
   jsonLd?: IJsonLd[];
   data: T;
@@ -253,7 +254,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <meta property="og:description" content={props.ogDescription || props.description} />
         <meta property="fb:app_id" content="3448767138535273" />
         {props.ogUrl && <meta property="og:url" content={props.ogUrl} />}
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content={props.ogType || "website"} />
         {props.ogImage && <meta property="og:image" content={props.ogImage} />}
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: applyThemeBeforePaint() }} />

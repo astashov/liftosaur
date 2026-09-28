@@ -1,0 +1,32 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-program
+- tapOn:
+    id: tab-playground
+- takeScreenshot: playground-day
+- tapOn:
+    id: program-preview-complete-exercise
+    index: 0
+- takeScreenshot: playground-completed
+- scrollUntilVisible:
+    element:
+      id: finish-day-details-playground
+      index: 0
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: finish-day-details-playground
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: preview-day-name
+      index: 0
+    direction: UP
+    centerElement: true
+- takeScreenshot: playground-finished
+- tapOn:
+    id: program-preview-edit-exercise
+    index: 0
+- takeScreenshot: playground-variables

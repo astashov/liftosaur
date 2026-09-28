@@ -1,0 +1,120 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- takeScreenshot: workout-screen-overview
+- tapOn:
+    id: complete-set
+    index: 0
+- tapOn:
+    id: complete-set
+    index: 1
+- takeScreenshot: workout-screen-next-set
+- tapOn:
+    id: input-set-reps-field
+    index: 2
+- takeScreenshot: workout-screen-keypad
+- tapOn:
+    id: keyboard-close
+- tapOn:
+    id: set-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Edit Target"
+- takeScreenshot: workout-screen-edit-target
+- tapOn:
+    id: input-target-weight-field
+- tapOn:
+    id: keyboard-backspace
+- tapOn:
+    id: keyboard-backspace
+- tapOn:
+    id: keyboard-backspace
+- tapOn:
+    id: keyboard-button-2
+- tapOn:
+    id: keyboard-button-1
+- tapOn:
+    id: keyboard-button-2
+- tapOn:
+    id: keyboard-close
+- tapOn:
+    id: edit-set-target-save
+- tapOn:
+    id: workout-set-row-head
+    index: 2
+- takeScreenshot: workout-screen-rounding
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 70%
+          end: 50%, 99%
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- tapOn:
+    text: "Target"
+    index: 0
+- tapOn:
+    text: "Previous Set"
+    index: 0
+- tapOn:
+    text: "Plates"
+    index: 0
+- takeScreenshot: workout-screen-e1rm
+- tapOn:
+    text: "e1RM"
+    index: 0
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- takeScreenshot: workout-screen-exercise-menu
+- tapOn:
+    text: "Show Exercise Notes"
+- takeScreenshot: workout-screen-exercise-notes
+- repeat:
+    times: 5
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: set-options
+          direction: DOWN
+      - tapOn:
+          id: complete-set
+          below:
+            id: set-options
+      - waitForAnimationToEnd
+      - tapOn:
+          id: rest-timer-collapsed
+          optional: true
+      - tapOn:
+          id: rest-timer-cancel
+          optional: true
+      - waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: workout-stats-graph
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: workout-screen-history
+- scrollUntilVisible:
+    element:
+      id: finish-workout
+    direction: UP
+- waitForAnimationToEnd
+- tapOn:
+    id: finish-workout
+- tapOn:
+    text: "OK"
+    optional: true
+- takeScreenshot: workout-screen-summary

@@ -1,0 +1,115 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- extendedWaitUntil:
+    visible:
+      id: workout-tab-bench-press
+    timeout: 10000
+- swipe:
+    start: 90%, 24%
+    end: 10%, 24%
+    duration: 400
+- tapOn:
+    id: add-exercise-button
+- scrollUntilVisible:
+    element:
+      id: custom-exercise-create
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: custom-exercises-picker
+- tapOn:
+    id: custom-exercise-create
+- takeScreenshot: custom-exercises-form
+- tapOn:
+    id: custom-exercise-name-input
+- inputText: "Landmine Press"
+- pressKey: Enter
+- tapOn:
+    id: autofill-muscles
+- extendedWaitUntil:
+    notVisible:
+      text: "Autofill Muscles and Types"
+    timeout: 3000
+    optional: true
+- extendedWaitUntil:
+    visible:
+      text: "Autofill Muscles and Types"
+    timeout: 20000
+- takeScreenshot: custom-exercises-autofill
+- tapOn:
+    id: clone-builtin-exercise
+- takeScreenshot: custom-exercises-clone-library
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Bench Press"
+- pressKey: Enter
+- tapOn:
+    id: custom-exercise-bench-press
+    index: 0
+- takeScreenshot: custom-exercises-cloned
+- tapOn:
+    id: select-target-muscles
+- takeScreenshot: custom-exercises-target-muscles
+- tapOn:
+    id: done-selecting-muscles
+- tapOn:
+    id: custom-exercise-change-image
+- takeScreenshot: custom-exercises-image-source
+- tapOn:
+    point: 50%, 77%
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Overhead Press"
+- pressKey: Enter
+- takeScreenshot: custom-exercises-image-library
+- tapOn:
+    id: menu-item-overhead-press
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: custom-exercise-create
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: custom-exercise-create
+- scrollUntilVisible:
+    element:
+      id: menu-item-landmine-press
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-landmine-press
+- tapOn:
+    id: exercise-picker-confirm
+- scrollUntilVisible:
+    element:
+      text: ".*Landmine Press.*"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: custom-exercises-in-workout
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-muscle-groups
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-muscle-groups
+- takeScreenshot: custom-exercises-muscle-groups
+- scrollUntilVisible:
+    element:
+      id: delete-muscle-group-shoulders
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: delete-muscle-group-shoulders
+- scrollUntilVisible:
+    element:
+      id: unhide-muscle-group-shoulders
+    direction: DOWN
+- takeScreenshot: custom-exercises-hidden-group

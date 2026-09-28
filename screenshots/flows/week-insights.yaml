@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- takeScreenshot: week-insights-home
+- tapOn:
+    id: toggle-week-insights
+- takeScreenshot: week-insights-details
+- scrollUntilVisible:
+    element:
+      id: week-insights-show-planner-settings
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: week-insights-muscle-groups
+- tapOn:
+    text: "Chest:.*"
+- takeScreenshot: week-insights-exercises
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 70%
+          end: 50%, 99%
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- scrollUntilVisible:
+    element:
+      id: week-insights-show-planner-settings
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: week-insights-show-planner-settings
+- takeScreenshot: week-insights-settings
+- tapOn:
+    id: planner-settings-muscle-groups
+- takeScreenshot: week-insights-edit-muscle-groups

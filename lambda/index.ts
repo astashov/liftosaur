@@ -2751,10 +2751,10 @@ const getAllFeaturesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
 }) => {
   const { di } = payload;
   const isLoggedIn = getIsLoggedIn(payload.event);
-  const features = new DocDao("features").getIndex();
+  const dao = new DocDao("features");
   return {
     statusCode: 200,
-    body: renderAllFeaturesHtml(di.fetch, features, isLoggedIn),
+    body: renderAllFeaturesHtml(di.fetch, dao.getIndex(), dao.getScreenshotSizes(), isLoggedIn),
     headers: {
       "content-type": "text/html",
       "cache-control": "public, s-maxage=86400, max-age=0",
@@ -2769,7 +2769,8 @@ const getFeatureDetailsHandler: RouteHandler<
   typeof getFeatureDetailsEndpoint
 > = async ({ payload, match: { params } }) => {
   const { di } = payload;
-  const result = new DocDao("features").getById(params.id);
+  const dao = new DocDao("features");
+  const result = dao.getById(params.id);
   if (result == null) {
     return {
       statusCode: 404,
@@ -2780,7 +2781,13 @@ const getFeatureDetailsHandler: RouteHandler<
   const isLoggedIn = getIsLoggedIn(payload.event);
   return {
     statusCode: 200,
-    body: renderFeatureDetailsHtml(di.fetch, result.indexEntry, result.detail.content, isLoggedIn),
+    body: renderFeatureDetailsHtml(
+      di.fetch,
+      result.indexEntry,
+      result.detail.content,
+      dao.getScreenshotSizes(),
+      isLoggedIn
+    ),
     headers: {
       "content-type": "text/html",
       "cache-control": "public, s-maxage=86400, max-age=0",

@@ -1,0 +1,67 @@
+# Apple Watch Series 11 46mm, coordinates in points (208x248).
+# Home: the New Workout card
+launch
+wait 12000
+screenshot watch-apple-watch-home
+# Home: Start button
+tap 104 220
+wait 3000
+screenshot watch-apple-watch-workout
+# Exercise list: first exercise card (Bench Press, 7 sets)
+tap 104 160
+wait 3000
+screenshot watch-apple-watch-exercise
+# Reps field, left of the × separator, focuses the crown (guess: fields sit centred between the header and the Plates line)
+tap 50 114
+wait 1500
+screenshot watch-apple-watch-crown
+# Same tap unfocuses it
+tap 50 114
+wait 1000
+# Complete the warmup set, the rest timer pill appears in the header
+tap 104 196
+wait 2500
+# Two swipes up move the vertical page to the third exercise, Overhead Press 3x5+ (guess: vertical page swipe)
+swipe 104 200 104 60
+wait 2000
+swipe 104 200 104 60
+wait 2000
+# Complete the set: the AMRAP sheet asks for reps
+tap 104 196
+wait 3000
+screenshot watch-apple-watch-amrap
+# Cancel, the left button under the Reps field (guess: label 12pt + field 36pt + 12pt gap + 8pt padding under a 40pt sheet bar)
+tap 56 139
+wait 2000
+# Three swipes up to the sixth exercise, Plank 3x1 60s|30s (guess)
+swipe 104 200 104 60
+wait 2000
+swipe 104 200 104 60
+wait 2000
+swipe 104 200 104 60
+wait 2000
+# Play button starts the Get Ready countdown
+tap 104 196
+wait 2500
+screenshot watch-apple-watch-get-ready
+# The countdown is 5s, then the set clock replaces the ring
+wait 5500
+screenshot watch-apple-watch-set-clock
+# X in the top left closes the clock without logging (guess: 32pt circle with 8pt hit padding, 8pt from the top)
+tap 24 32
+wait 2000
+# Edge swipe pops back to the exercise list (guess)
+swipe 4 124 180 124
+wait 2000
+# Scroll to the bottom of the list, then Finish (guess: Finish sits above the Discard caption)
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 500
+swipe 104 220 104 40
+wait 1000
+tap 104 194
+wait 5000
+screenshot watch-apple-watch-summary

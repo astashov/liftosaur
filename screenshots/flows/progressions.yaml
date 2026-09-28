@@ -1,0 +1,63 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-program
+- tapOn:
+    id: tab-playground
+- tapOn:
+    id: program-preview-complete-exercise
+    index: 0
+- scrollUntilVisible:
+    element:
+      id: suppress-progress
+    direction: DOWN
+- takeScreenshot: progressions-preview
+- tapOn:
+    id: suppress-progress
+- takeScreenshot: progressions-suppressed
+- tapOn:
+    id: suppress-progress
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: exercise-options
+- waitForAnimationToEnd
+- tapOn:
+    text: "Edit Program Exercise"
+- extendedWaitUntil:
+    visible:
+      id: exercise-liftoeditor-save
+    timeout: 10000
+- takeScreenshot: progressions-linear-settings
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 12%
+          end: 50%, 95%
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- tapOn:
+    id: workout-tab-overhead-press
+- scrollUntilVisible:
+    element:
+      id: exercise-options
+    direction: UP
+- tapOn:
+    id: exercise-options
+- waitForAnimationToEnd
+- tapOn:
+    text: "Edit Program Exercise"
+- extendedWaitUntil:
+    visible:
+      id: exercise-liftoeditor-save
+    timeout: 10000
+- takeScreenshot: progressions-state-variables

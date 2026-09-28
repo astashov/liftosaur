@@ -2,14 +2,22 @@ import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
 import { Markdown } from "../../components/markdown";
 import { Features_screenshotUrl } from "./featuresListContent";
+import {
+  FeatureImages_altText,
+  FeatureImages_inlineHtml,
+  FeatureImages_size,
+  IFeatureImageSizes,
+} from "./featureImages";
 
 export interface IFeatureDetailsContentProps {
   feature: IDocIndexEntry;
   content: string;
+  sizes: IFeatureImageSizes;
 }
 
 export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.Element {
-  const { feature, content } = props;
+  const { feature, sizes } = props;
+  const content = FeatureImages_inlineHtml(props.content, sizes);
 
   return (
     <section className="px-4 py-8 mx-auto" style={{ maxWidth: 800 }}>
@@ -28,7 +36,7 @@ export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.E
       {feature.shortDescription && <p className="mb-6 text-lg text-text-secondary">{feature.shortDescription}</p>}
       {feature.screenshots && feature.screenshots.length > 0 && (
         <div className="flex flex-wrap justify-center gap-5 pt-2 pb-5 mb-2">
-          {feature.screenshots.map((name) => (
+          {feature.screenshots.map((name, index) => (
             <figure
               key={name}
               className="shrink-0 w-[250px] m-0 overflow-hidden rounded-[34px] border-8 border-[#111] bg-[#111]"
@@ -36,7 +44,12 @@ export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.E
               <img
                 className="block w-full h-auto rounded-[26px]"
                 src={Features_screenshotUrl(feature.id, name)}
-                alt={`${feature.title} - ${name}`}
+                alt={FeatureImages_altText(feature.title, feature.id, name)}
+                width={FeatureImages_size(sizes, feature.id, name)?.width}
+                height={FeatureImages_size(sizes, feature.id, name)?.height}
+                loading={index === 0 ? "eager" : "lazy"}
+                fetchPriority={index === 0 ? "high" : undefined}
+                decoding="async"
               />
             </figure>
           ))}

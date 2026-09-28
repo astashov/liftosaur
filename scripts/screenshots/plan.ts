@@ -1,6 +1,13 @@
 export interface IScreenshotsSim {
   udid: string;
   email: string;
+  driverPort: number;
+}
+
+const firstDriverPort = 7001;
+
+export function ScreenshotsPlan_driverPort(deviceIndex: number): number {
+  return firstDriverPort + deviceIndex;
 }
 
 export interface IScreenshotsAssignment {

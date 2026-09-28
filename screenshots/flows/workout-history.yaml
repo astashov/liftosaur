@@ -1,0 +1,83 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- extendedWaitUntil:
+    visible:
+      id: toggle-week-insights
+    timeout: 15000
+- takeScreenshot: workout-history-feed
+- tapOn:
+    id: toggle-week-insights
+- takeScreenshot: workout-history-week-insights
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: 50%, 8%
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- tapOn:
+    point: 50%, 11%
+- takeScreenshot: workout-history-month-calendar
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          point: 50%, 8%
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- scrollUntilVisible:
+    element:
+      id: history-record
+      index: 1
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: workout-history-past-card
+- tapOn:
+    id: history-record
+    index: 1
+- takeScreenshot: workout-history-past-workout
+- tapOn:
+    id: workout-menu
+- takeScreenshot: workout-history-menu
+- tapOn:
+    text: "Show Workout Notes"
+- tapOn:
+    id: workout-notes-input
+- inputText: "Felt strong today, bench moved fast"
+- hideKeyboard
+- takeScreenshot: workout-history-notes
+- tapOn:
+    id: finish-workout
+- tapOn:
+    text: "OK"
+- scrollUntilVisible:
+    element:
+      text: "(?s).*Felt strong today.*"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: workout-history-note-on-card
+- scrollUntilVisible:
+    element:
+      id: history-record
+      index: 1
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: history-record
+    index: 1
+- tapOn:
+    id: workout-menu
+- tapOn:
+    text: "Delete Workout"
+- takeScreenshot: workout-history-delete
+- tapOn:
+    text: "OK"

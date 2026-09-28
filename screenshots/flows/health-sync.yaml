@@ -1,0 +1,70 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: menu-item-apple-health
+          direction: DOWN
+          centerElement: true
+      - tapOn:
+          id: menu-item-apple-health
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: menu-item-google-health-connect
+          direction: DOWN
+          centerElement: true
+      - tapOn:
+          id: menu-item-google-health-connect
+- takeScreenshot: health-sync-settings
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      id: "menu-item-sleep-&-nutrition"
+    direction: UP
+- tapOn:
+    id: "menu-item-sleep-&-nutrition"
+- takeScreenshot: health-sync-sleep-nutrition
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      id: menu-item-measurements
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: menu-item-measurements
+- tapOn:
+    id: add-measurements
+- scrollUntilVisible:
+    element:
+      text: "Sync to .*"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: health-sync-measurements
+- tapOn:
+    id: footer-home
+- scrollUntilVisible:
+    element:
+      id: history-record
+      index: 1
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: history-record
+    index: 1
+- tapOn:
+    id: workout-menu
+- tapOn:
+    text: "Share"
+- takeScreenshot: health-sync-share

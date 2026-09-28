@@ -30,6 +30,17 @@ export function DocsListContent(props: IDocsListContentProps): JSX.Element {
       </nav>
       <h1 className="mb-2 text-3xl font-bold">Documentation</h1>
       <p className="mb-8 text-text-secondary">Learn how to use Liftosaur and its features.</p>
+      <div className="mb-8">
+        <a
+          href="/features"
+          className="block p-4 no-underline border rounded-lg border-border-neutral hover:bg-background-neutral"
+        >
+          <div className="text-base font-semibold text-text-primary">Features</div>
+          <div className="mt-1 text-sm text-text-secondary">
+            Every feature of the app explained with screenshots, one page per topic.
+          </div>
+        </a>
+      </div>
       {uncategorized.length > 0 && (
         <div className="mb-8">
           <DocsList docs={uncategorized} />

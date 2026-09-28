@@ -1,0 +1,17 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: footer-me
+      - scrollUntilVisible:
+          element:
+            id: menu-item-apple-health
+          direction: DOWN
+          centerElement: true
+      - tapOn:
+          id: menu-item-apple-health
+      - takeScreenshot: apple-watch-health-settings

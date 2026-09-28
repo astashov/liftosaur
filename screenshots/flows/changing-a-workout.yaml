@@ -1,0 +1,130 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Edit Program Exercise"
+- takeScreenshot: changing-a-workout-edit-exercise
+- tapOn:
+    id: exercise-liftoeditor-save
+- tapOn:
+    id: workout-menu
+- tapOn:
+    text: "Edit Program Day"
+- takeScreenshot: changing-a-workout-edit-day
+- tapOn:
+    id: day-liftoeditor-save
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Swap Exercise"
+- takeScreenshot: changing-a-workout-swap-picker
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Incline Bench"
+- tapOn:
+    id: menu-item-incline-bench-press-barbell
+- pressKey: Enter
+- hideKeyboard
+- tapOn:
+    id: exercise-picker-confirm
+- takeScreenshot: changing-a-workout-swapped
+- scrollUntilVisible:
+    element:
+      id: exercise-options
+      index: 0
+    direction: UP
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Swap Exercise"
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Bench Press"
+- tapOn:
+    id: menu-item-bench-press-barbell
+- pressKey: Enter
+- hideKeyboard
+- tapOn:
+    id: exercise-picker-confirm
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Swap Exercise"
+- takeScreenshot: changing-a-workout-swap-recent
+- tapOn:
+    id: menu-item-incline-bench-press-barbell
+- tapOn:
+    id: exercise-picker-confirm
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Remove Exercise"
+- takeScreenshot: changing-a-workout-remove
+- tapOn:
+    text: "OK"
+- tapOn:
+    id: add-exercise-button
+- tapOn:
+    id: tab-from-program
+- takeScreenshot: changing-a-workout-add-from-program
+- scrollUntilVisible:
+    element:
+      id: exercise-picker-program-pull-up-1-3
+    direction: DOWN
+- tapOn:
+    id: exercise-picker-program-pull-up-1-3
+- tapOn:
+    id: exercise-picker-confirm
+    optional: true
+- takeScreenshot: changing-a-workout-added
+- tapOn:
+    id: finish-workout
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    id: finish-day-continue
+- tapOn:
+    text: "Not Now"
+    optional: true
+- tapOn:
+    id: footer-workout
+- tapOn:
+    id: start-empty-workout
+- takeScreenshot: changing-a-workout-adhoc-picker
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Chest Dip"
+- tapOn:
+    id: menu-item-chest-dip-bodyweight
+- pressKey: Enter
+- hideKeyboard
+- tapOn:
+    id: exercise-picker-confirm
+- tapOn:
+    id: add-workout-set
+- takeScreenshot: changing-a-workout-adhoc
+- tapOn:
+    id: finish-workout
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    id: create-program-day
+- takeScreenshot: changing-a-workout-program-day

@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- tapOn:
+    id: menu-item-account
+- scrollUntilVisible:
+    element:
+      id: menu-item-free-access
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: premium-account
+- tapOn:
+    id: menu-item-free-access
+- takeScreenshot: premium-plans
+- tapOn:
+    text: "Plates Calculator.*"
+- takeScreenshot: premium-feature-info

@@ -1,0 +1,750 @@
+{
+  "account/account-email-form": {
+    "width": 600,
+    "height": 1304
+  },
+  "account/account-forgot-password": {
+    "width": 600,
+    "height": 1304
+  },
+  "account/account-screen": {
+    "width": 600,
+    "height": 1304
+  },
+  "account/account-sign-in": {
+    "width": 600,
+    "height": 1304
+  },
+  "ai-and-mcp/ai-and-mcp-api-key-created": {
+    "width": 600,
+    "height": 1304
+  },
+  "ai-and-mcp/ai-and-mcp-api-keys": {
+    "width": 600,
+    "height": 1304
+  },
+  "api/api-key-created": {
+    "width": 600,
+    "height": 1304
+  },
+  "api/api-keys-empty": {
+    "width": 600,
+    "height": 1304
+  },
+  "api/api-me-row": {
+    "width": 600,
+    "height": 1304
+  },
+  "apple-watch/apple-watch-health-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "apple-watch/watch-apple-watch-amrap": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-crown": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-exercise": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-get-ready": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-home": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-set-clock": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-summary": {
+    "width": 416,
+    "height": 496
+  },
+  "apple-watch/watch-apple-watch-workout": {
+    "width": 416,
+    "height": 496
+  },
+  "built-in-programs/built-in-programs-import": {
+    "width": 600,
+    "height": 1304
+  },
+  "built-in-programs/built-in-programs-info": {
+    "width": 600,
+    "height": 1304
+  },
+  "built-in-programs/built-in-programs-library": {
+    "width": 600,
+    "height": 1304
+  },
+  "built-in-programs/built-in-programs-preview": {
+    "width": 600,
+    "height": 1304
+  },
+  "built-in-programs/built-in-programs-started": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-add-from-program": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-added": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-adhoc": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-adhoc-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-edit-day": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-edit-exercise": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-program-day": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-remove": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-swap-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-swap-recent": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-swapped": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-autofill": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-clone-library": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-cloned": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-form": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-hidden-group": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-image-library": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-image-source": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-in-workout": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-muscle-groups": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "custom-exercises/custom-exercises-target-muscles": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-barbell": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-custom": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-exercise": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-fixed": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-gyms": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-hidden": {
+    "width": 600,
+    "height": 1304
+  },
+  "equipment-and-gyms/equipment-and-gyms-list": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-calculator": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-from-program": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-list": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-multi-add": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-override-muscles": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-prs": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-search": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-stats": {
+    "width": 600,
+    "height": 1304
+  },
+  "exercise-library/exercise-library-swap": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-bodyweight": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-choose": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-exercise": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-legend": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-muscle-group": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-personal-records": {
+    "width": 600,
+    "height": 1304
+  },
+  "graphs/graphs-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "health-sync/android-health-sync-measurements": {
+    "width": 600,
+    "height": 1339
+  },
+  "health-sync/android-health-sync-settings": {
+    "width": 600,
+    "height": 1339
+  },
+  "health-sync/android-health-sync-share": {
+    "width": 600,
+    "height": 1339
+  },
+  "health-sync/android-health-sync-sleep-nutrition": {
+    "width": 600,
+    "height": 1339
+  },
+  "health-sync/health-sync-measurements": {
+    "width": 600,
+    "height": 1304
+  },
+  "health-sync/health-sync-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "health-sync/health-sync-share": {
+    "width": 600,
+    "height": 1304
+  },
+  "health-sync/health-sync-sleep-nutrition": {
+    "width": 600,
+    "height": 1304
+  },
+  "import-export/import-export-export": {
+    "width": 600,
+    "height": 1304
+  },
+  "import-export/import-export-hevy": {
+    "width": 600,
+    "height": 1304
+  },
+  "import-export/import-export-import": {
+    "width": 600,
+    "height": 1304
+  },
+  "liftoscript/liftoscript-exercise-sheet": {
+    "width": 600,
+    "height": 1304
+  },
+  "liftoscript/liftoscript-full-program": {
+    "width": 600,
+    "height": 1304
+  },
+  "liftoscript/liftoscript-per-day": {
+    "width": 600,
+    "height": 1304
+  },
+  "liftoscript/liftoscript-playground": {
+    "width": 600,
+    "height": 1304
+  },
+  "lock-screen-and-notifications/android-lock-screen-and-notifications-live-update": {
+    "width": 600,
+    "height": 1339
+  },
+  "lock-screen-and-notifications/android-lock-screen-and-notifications-reminder": {
+    "width": 600,
+    "height": 1339
+  },
+  "lock-screen-and-notifications/android-lock-screen-and-notifications-sound": {
+    "width": 600,
+    "height": 1339
+  },
+  "lock-screen-and-notifications/lock-screen-and-notifications-dynamic-island": {
+    "width": 600,
+    "height": 1304
+  },
+  "lock-screen-and-notifications/lock-screen-and-notifications-live-activity": {
+    "width": 600,
+    "height": 1304
+  },
+  "lock-screen-and-notifications/lock-screen-and-notifications-reminder": {
+    "width": 600,
+    "height": 1304
+  },
+  "lock-screen-and-notifications/lock-screen-and-notifications-sound": {
+    "width": 600,
+    "height": 1304
+  },
+  "measurements/measurements-add": {
+    "width": 600,
+    "height": 1304
+  },
+  "measurements/measurements-bodyweight": {
+    "width": 600,
+    "height": 1304
+  },
+  "measurements/measurements-moving-average": {
+    "width": 600,
+    "height": 1304
+  },
+  "measurements/measurements-sleep-nutrition": {
+    "width": 600,
+    "height": 1304
+  },
+  "measurements/measurements-types": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-appearance": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-dark-mode": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-equipment": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-me": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-units": {
+    "width": 600,
+    "height": 1304
+  },
+  "onboarding-and-settings/onboarding-and-settings-welcome": {
+    "width": 600,
+    "height": 1304
+  },
+  "playground/playground-completed": {
+    "width": 600,
+    "height": 1304
+  },
+  "playground/playground-day": {
+    "width": 600,
+    "height": 1304
+  },
+  "playground/playground-finished": {
+    "width": 600,
+    "height": 1304
+  },
+  "playground/playground-variables": {
+    "width": 600,
+    "height": 1304
+  },
+  "premium/premium-account": {
+    "width": 600,
+    "height": 1304
+  },
+  "premium/premium-feature-info": {
+    "width": 600,
+    "height": 1304
+  },
+  "premium/premium-plans": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-create": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-day-details": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-exercise-sheet": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-full-text": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-grid": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-perday-text": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-ui-mode": {
+    "width": 600,
+    "height": 1304
+  },
+  "program-editor/program-editor-week-stats": {
+    "width": 600,
+    "height": 1304
+  },
+  "progressions/progressions-linear-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "progressions/progressions-preview": {
+    "width": 600,
+    "height": 1304
+  },
+  "progressions/progressions-state-variables": {
+    "width": 600,
+    "height": 1304
+  },
+  "progressions/progressions-suppressed": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-collapsed": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-dynamic-island": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-expanded": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-get-ready": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-lock-screen": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/rest-timer-sound": {
+    "width": 600,
+    "height": 1304
+  },
+  "rest-timer/watch-rest-timer": {
+    "width": 416,
+    "height": 496
+  },
+  "rest-timer/watch-rest-timer-exercise": {
+    "width": 416,
+    "height": 496
+  },
+  "set-types/set-types-amrap-popup": {
+    "width": 600,
+    "height": 1304
+  },
+  "set-types/set-types-next-workout": {
+    "width": 600,
+    "height": 1304
+  },
+  "set-types/set-types-per-side": {
+    "width": 600,
+    "height": 1304
+  },
+  "set-types/set-types-rpe-logged": {
+    "width": 600,
+    "height": 1304
+  },
+  "set-types/set-types-rpe-popup": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-export-text": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-image-preview": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-image-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-import": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-menu": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-private-link": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-programs/sharing-programs-public-link": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-workouts/sharing-workouts-copied-text": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-workouts/sharing-workouts-finish-screen": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-workouts/sharing-workouts-profile-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-workouts/sharing-workouts-share-sheet": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-liftoscript": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-next-exercise": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-program-editor": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-timer": {
+    "width": 600,
+    "height": 1304
+  },
+  "supersets/supersets-workout": {
+    "width": 600,
+    "height": 1304
+  },
+  "sync-and-offline/sync-and-offline-account": {
+    "width": 600,
+    "height": 1304
+  },
+  "sync-and-offline/sync-and-offline-me-account": {
+    "width": 600,
+    "height": 1304
+  },
+  "sync-and-offline/sync-and-offline-sign-in": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-count-up": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-edit-time": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-get-ready": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-recorded": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-running": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-set-row": {
+    "width": 600,
+    "height": 1304
+  },
+  "timed-sets/timed-sets-timers": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-details": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-edit-muscle-groups": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-exercises": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-home": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-muscle-groups": {
+    "width": 600,
+    "height": 1304
+  },
+  "week-insights/week-insights-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-delete": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-feed": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-menu": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-month-calendar": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-note-on-card": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-notes": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-past-card": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-past-workout": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-week-insights": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-e1rm": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-edit-target": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-exercise-menu": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-exercise-notes": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-history": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-keypad": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-next-set": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-overview": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-rounding": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-screen/workout-screen-summary": {
+    "width": 600,
+    "height": 1304
+  }
+}

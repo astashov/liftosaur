@@ -60,7 +60,9 @@ export function Markdown(props: IProps): JSX.Element {
     }
     if (container) {
       for (const element of Array.from(container.querySelectorAll("a"))) {
-        element.setAttribute("target", "_blank");
+        if (!(element.getAttribute("href") || "").startsWith("/")) {
+          element.setAttribute("target", "_blank");
+        }
       }
       hydrateLiftoscriptCodeBlocks(container);
       setTimeout(() => {

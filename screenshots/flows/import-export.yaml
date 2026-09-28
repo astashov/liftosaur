@@ -1,0 +1,37 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-export-all-programs-to-text-file
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: import-export-export
+- scrollUntilVisible:
+    element:
+      id: menu-item-import-history-from-other-apps
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: import-export-import
+- tapOn:
+    id: menu-item-import-history-from-other-apps
+- extendedWaitUntil:
+    visible:
+      id: menu-item-upload-csv-file-from-hevy
+    timeout: 5000
+- takeScreenshot: import-export-hevy
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 60%
+          end: 50%, 95%
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back

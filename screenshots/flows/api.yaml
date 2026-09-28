@@ -1,0 +1,32 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-api-keys
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: api-me-row
+- tapOn:
+    id: menu-item-api-keys
+- extendedWaitUntil:
+    visible:
+      id: create-api-key
+    timeout: 10000
+- tapOn:
+    id: create-api-key
+- extendedWaitUntil:
+    visible:
+      id: delete-api-key
+    timeout: 10000
+- takeScreenshot: api-key-created
+- tapOn:
+    id: delete-api-key
+- tapOn:
+    text: "OK"
+- extendedWaitUntil:
+    visible: "No API keys yet"
+    timeout: 10000
+- takeScreenshot: api-keys-empty

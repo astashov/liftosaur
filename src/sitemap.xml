@@ -28,6 +28,9 @@
     <loc>https://www.liftosaur.com/terms.html</loc>
   </url>
   <url>
+    <loc>https://www.liftosaur.com/support.html</loc>
+  </url>
+  <url>
     <loc>https://www.liftosaur.com/affiliates</loc>
   </url>
   <url>
@@ -109,6 +112,10 @@
     <lastmod>2026-02-22T19:34:23-06:00</lastmod>
   </url>
   <url>
+    <loc>https://www.liftosaur.com/programs/recommended-routine</loc>
+    <lastmod>2026-07-07T18:18:11-05:00</lastmod>
+  </url>
+  <url>
     <loc>https://www.liftosaur.com/programs/pzerofullbody</loc>
     <lastmod>2026-02-22T19:34:23-06:00</lastmod>
   </url>
@@ -182,7 +189,7 @@
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/strongcurves</loc>
-    <lastmod>2026-02-22T19:34:23-06:00</lastmod>
+    <lastmod>2026-07-01T19:55:10-05:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/texasmethod</loc>
@@ -218,7 +225,7 @@
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/calgary-barbell-16-week</loc>
-    <lastmod>2026-03-14T10:41:12-05:00</lastmod>
+    <lastmod>2026-07-01T19:55:10-05:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/coolcicada-ppl</loc>
@@ -334,10 +341,130 @@
   </url>
   <url>
     <loc>https://www.liftosaur.com/doc/mcp</loc>
-    <lastmod>2026-06-20</lastmod>
+    <lastmod>2026-08-24</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/account</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/ai-and-mcp</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/api</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/apple-watch</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/built-in-programs</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/changing-a-workout</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/custom-exercises</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/equipment-and-gyms</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/exercise-library</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/graphs</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/health-sync</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/import-export</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/liftoscript</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/lock-screen-and-notifications</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/measurements</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/onboarding-and-settings</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/playground</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/premium</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/program-editor</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/progressions</loc>
+    <lastmod>2026-09-27</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/features/rest-timer</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/set-types</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/sharing-programs</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/sharing-workouts</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/supersets</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/sync-and-offline</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/timed-sets</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/web-editor</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/week-insights</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/workout-history</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/features/workout-screen</loc>
     <lastmod>2026-09-27</lastmod>
   </url>
   <url>
@@ -499,6 +626,10 @@
   <url>
     <loc>https://www.liftosaur.com/exercises/dumbbell-bulgarian-split-squat</loc>
     <lastmod>2026-02-27T16:19:26-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-bulgarian-split-squat</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/exercises/cable-cable-crossover</loc>
@@ -1197,6 +1328,10 @@
     <lastmod>2026-02-27T16:19:26-06:00</lastmod>
   </url>
   <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-romanian-deadlift</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
     <loc>https://www.liftosaur.com/exercises/band-reverse-hyperextension</loc>
     <lastmod>2026-02-27T16:19:26-06:00</lastmod>
   </url>
@@ -1671,6 +1806,122 @@
   <url>
     <loc>https://www.liftosaur.com/exercises/barbell-zercher-squat</loc>
     <lastmod>2026-02-27T16:19:26-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-wall-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-incline-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-knee-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-diamond-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-pseudo-planche-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-pike-pushup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-ring-dip</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-negative-dip</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-vertical-row</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-wide-row</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-ring-row</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-tuck-front-lever-row</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-front-lever-row</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-scapular-pull-up</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-dead-hang</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-negative-pullup</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-assisted-squat</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-shrimp-squat</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-nordic-curl</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-handstand</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-wall-handstand</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-crow-pose</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-dragon-flag</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-copenhagen-plank</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-hanging-knee-raise</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-arch-hang</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/bodyweight-support-hold</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/band-pallof-press</loc>
+    <lastmod>2026-07-07T11:41:39-05:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/exercises/dumbbell-renegade-row</loc>
+    <lastmod>2026-07-07T18:18:11-05:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/one-rep-max-calculator</loc>

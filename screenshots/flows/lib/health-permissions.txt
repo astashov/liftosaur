@@ -1,0 +1,13 @@
+# iPhone 17 Pro, points (402x874). The Health Access sheet hides the whole accessibility tree, so these are blind taps.
+# Turn On All
+tap 80 381
+wait 1500
+# Continue
+tap 201 748
+wait 1500
+# Full History
+tap 174 527
+wait 1000
+# Allow
+tap 201 748
+wait 2500

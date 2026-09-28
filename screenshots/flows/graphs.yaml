@@ -1,0 +1,82 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-graphs
+- tapOn:
+    id: graphs-modify
+- takeScreenshot: graphs-settings
+- scrollUntilVisible:
+    element:
+      id: item-graph-bench-press
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: item-graph-bench-press
+- scrollUntilVisible:
+    element:
+      id: item-graph-chest
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: item-graph-chest
+- scrollUntilVisible:
+    element:
+      id: menu-item-bodyweight
+    direction: DOWN
+- tapOn:
+    id: menu-item-bodyweight
+- scrollUntilVisible:
+    element:
+      id: group-header-selected-graphs
+    direction: UP
+- takeScreenshot: graphs-choose
+- swipe:
+    start: 50%, 15%
+    end: 50%, 95%
+    duration: 400
+- tapOn:
+    point: 50%, 4%
+- extendedWaitUntil:
+    visible:
+      id: graphs-modify
+    timeout: 5000
+- takeScreenshot: graphs-exercise
+- longPressOn:
+    id: graph
+    index: 0
+- takeScreenshot: graphs-legend
+- scrollUntilVisible:
+    element:
+      text: ".*Chest Weekly Volume.*"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: graphs-muscle-group
+- scrollUntilVisible:
+    element:
+      text: "Bodyweight"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: graphs-bodyweight
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-exercises
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-exercises
+- scrollUntilVisible:
+    element:
+      id: menu-item-bench-press
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-bench-press
+- scrollUntilVisible:
+    element:
+      id: exercise-stats-pr
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: graphs-personal-records

@@ -1,0 +1,100 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element:
+      id: menu-item-available-equipment
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-available-equipment
+- takeScreenshot: equipment-and-gyms-list
+- tapOn:
+    id: group-header-barbell
+- takeScreenshot: equipment-and-gyms-barbell
+- tapOn:
+    id: group-header-barbell
+- scrollUntilVisible:
+    element:
+      id: group-header-kettlebell
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: group-header-kettlebell
+- scrollUntilVisible:
+    element:
+      id: add-new-fixed-weight
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: equipment-and-gyms-fixed
+- tapOn:
+    id: group-header-kettlebell
+- scrollUntilVisible:
+    element:
+      id: delete-equipment-smith-machine
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: delete-equipment-smith-machine
+- scrollUntilVisible:
+    element:
+      id: add-new-equipment
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: equipment-and-gyms-hidden
+- tapOn:
+    id: add-new-equipment
+- tapOn:
+    point: 50%, 86%
+- inputText: "Safety Squat Bar"
+- tapOn:
+    id: add-equipment-submit
+- scrollUntilVisible:
+    element:
+      id: add-new-equipment
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: equipment-and-gyms-custom
+- scrollUntilVisible:
+    element:
+      id: add-new-gym
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: add-new-gym
+- tapOn:
+    id: new-gym
+- tapOn:
+    text: "Home Gym"
+    optional: true
+- inputText: "Home Gym"
+- tapOn:
+    id: add-gym-submit
+- takeScreenshot: equipment-and-gyms-gyms
+- tapOn:
+    id: navbar-back
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      id: menu-item-exercises
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: menu-item-exercises
+- scrollUntilVisible:
+    element:
+      id: menu-item-bench-press
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-bench-press
+- scrollUntilVisible:
+    element:
+      text: "Equipments for each Gym"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: equipment-and-gyms-exercise

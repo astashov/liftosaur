@@ -1,0 +1,90 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: exercise-options
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    text: "Swap Exercise"
+- takeScreenshot: exercise-library-swap
+- tapOn:
+    id: tab-from-program
+- takeScreenshot: exercise-library-from-program
+- tapOn:
+    id: tab-ad-hoc-exercise
+- tapOn:
+    id: exercise-filter-by-name
+- inputText: "Incline"
+- takeScreenshot: exercise-library-search
+- tapOn:
+    id: menu-item-incline-bench-press
+- pressKey: Enter
+- hideKeyboard
+- tapOn:
+    id: exercise-picker-confirm
+- swipe:
+    start: 90%, 24%
+    end: 10%, 24%
+    duration: 400
+- tapOn:
+    id: add-exercise-button
+- takeScreenshot: exercise-library-picker
+- scrollUntilVisible:
+    element:
+      id: menu-item-ab-wheel
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-ab-wheel
+- scrollUntilVisible:
+    element:
+      id: menu-item-arch-hang
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-arch-hang
+- takeScreenshot: exercise-library-multi-add
+- tapOn:
+    id: exercise-picker-confirm
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: menu-item-exercises
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: menu-item-exercises
+- takeScreenshot: exercise-library-list
+- tapOn:
+    id: menu-item-bench-press
+- takeScreenshot: exercise-library-stats
+- scrollUntilVisible:
+    element:
+      id: exercise-stats-pr
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: exercise-library-prs
+- scrollUntilVisible:
+    element:
+      id: onerm-calculator
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: onerm-calculator
+- takeScreenshot: exercise-library-calculator
+- tapOn:
+    id: rep-max-calculator-back
+- scrollUntilVisible:
+    element:
+      id: override-exercise-muscles
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: override-exercise-muscles
+- takeScreenshot: exercise-library-override-muscles

@@ -1,0 +1,34 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      id: "menu-item-sleep-&-nutrition"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "menu-item-sleep-&-nutrition"
+- takeScreenshot: measurements-sleep-nutrition
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      id: menu-item-measurements
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: menu-item-measurements
+- takeScreenshot: measurements-bodyweight
+- tapOn:
+    text: "Off"
+- tapOn:
+    text: "3"
+- takeScreenshot: measurements-moving-average
+- tapOn:
+    id: add-measurements
+- takeScreenshot: measurements-add
+- tapOn:
+    id: modify-stats
+- takeScreenshot: measurements-types

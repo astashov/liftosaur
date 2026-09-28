@@ -1,0 +1,13 @@
+appId: ${APP_ID}
+---
+- runFlow: login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: complete-set
+    index: 0
+- tapOn:
+    text: "Allow"
+    optional: true

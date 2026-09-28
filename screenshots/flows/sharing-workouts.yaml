@@ -1,0 +1,50 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: complete-set
+    index: 0
+- tapOn:
+    id: finish-workout
+- tapOn:
+    text: "OK"
+- takeScreenshot: sharing-workouts-finish-screen
+- tapOn:
+    id: finish-day-continue
+- tapOn:
+    text: "Not Now"
+    optional: true
+- scrollUntilVisible:
+    element:
+      id: history-record
+      index: 1
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: history-record
+    index: 1
+- tapOn:
+    id: workout-menu
+- tapOn:
+    text: "Share"
+- takeScreenshot: sharing-workouts-share-sheet
+- tapOn:
+    id: bottom-sheet-share-to-text
+- extendedWaitUntil:
+    visible: "Copied!"
+    timeout: 5000
+- takeScreenshot: sharing-workouts-copied-text
+- tapOn:
+    text: "OK"
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      text: "Nickname"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: sharing-workouts-profile-settings

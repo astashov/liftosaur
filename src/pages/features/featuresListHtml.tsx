@@ -2,9 +2,11 @@ import type { JSX } from "react";
 import { IJsonLd, Page } from "../../components/page";
 import { IDocIndexEntry } from "../../models/doc";
 import { FeaturesListContent } from "./featuresListContent";
+import { IFeatureImageSizes } from "./featureImages";
 
 interface IProps {
   features: IDocIndexEntry[];
+  sizes: IFeatureImageSizes;
   client: Window["fetch"];
   isLoggedIn?: boolean;
 }
@@ -21,6 +23,14 @@ export function FeaturesListHtml(props: IProps): JSX.Element {
       type: "BreadcrumbList",
       items: [{ name: "Home", url: "https://www.liftosaur.com" }, { name: "Features" }],
     },
+    {
+      type: "ItemList",
+      name: "Liftosaur Features",
+      items: props.features.map((feature) => ({
+        name: feature.title,
+        url: `https://www.liftosaur.com/features/${feature.id}`,
+      })),
+    },
   ];
 
   return (
@@ -34,6 +44,7 @@ export function FeaturesListHtml(props: IProps): JSX.Element {
       description={description}
       ogDescription={description}
       ogUrl={url}
+      ogImage="https://www.liftosaur.com/images/logo-square.png"
       jsonLd={jsonLd}
       data={data}
       client={client}

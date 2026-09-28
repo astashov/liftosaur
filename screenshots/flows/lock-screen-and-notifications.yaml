@@ -1,0 +1,69 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- scrollUntilVisible:
+    element:
+      text: "Vibration"
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: lock-screen-and-notifications-sound
+- scrollUntilVisible:
+    element:
+      id: menu-item-timers
+    direction: UP
+    centerElement: true
+- tapOn:
+    id: menu-item-timers
+- takeScreenshot: lock-screen-and-notifications-reminder
+- tapOn:
+    id: navbar-back
+- tapOn:
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- tapOn:
+    id: complete-set
+    index: 0
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - pressKey: Lock
+      - extendedWaitUntil:
+          visible: "\\+15s"
+          timeout: 8000
+          optional: true
+      - tapOn:
+          text: "Always Allow"
+          optional: true
+      - tapOn:
+          text: ".*×.*"
+          optional: true
+      - extendedWaitUntil:
+          visible: "\\+15s"
+          timeout: 5000
+          optional: true
+      - takeScreenshot: lock-screen-and-notifications-live-activity
+      - pressKey: Home
+      - pressKey: Home
+      - extendedWaitUntil:
+          visible: "Liftosaur"
+          timeout: 5000
+      - takeScreenshot: lock-screen-and-notifications-dynamic-island
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Home
+      - swipe:
+          start: 50%, 2%
+          end: 50%, 70%
+          duration: 400
+      - extendedWaitUntil:
+          visible: "\\+15s"
+          timeout: 5000
+          optional: true
+      - takeScreenshot: lock-screen-and-notifications-live-update
+      - pressKey: Back

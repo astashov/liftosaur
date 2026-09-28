@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-program
+- tapOn:
+    id: tab-edit
+- tapOn:
+    id: "grid-cell-Bench Press-0"
+- tapOn:
+    id: grid-action-edit
+- takeScreenshot: liftoscript-exercise-sheet
+- tapOn:
+    id: exercise-liftoeditor-save
+- tapOn:
+    id: editor-v2-perday-program
+- takeScreenshot: liftoscript-per-day
+- tapOn:
+    id: editor-v2-full-program
+- takeScreenshot: liftoscript-full-program
+- tapOn:
+    id: tab-playground
+- takeScreenshot: liftoscript-playground

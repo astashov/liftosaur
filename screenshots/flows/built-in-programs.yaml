@@ -1,0 +1,42 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-me
+- tapOn:
+    id: menu-item-program
+- tapOn:
+    id: tab-built-in
+- takeScreenshot: built-in-programs-library
+- tapOn:
+    id: import-program
+- takeScreenshot: built-in-programs-import
+- tapOn:
+    id: modal-import-from-link-cancel
+- scrollUntilVisible:
+    element:
+      text: "Basic Beginner Routine"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    text: "Basic Beginner Routine"
+- takeScreenshot: built-in-programs-info
+- tapOn:
+    id: preview-program
+- takeScreenshot: built-in-programs-preview
+- tapOn:
+    id: navbar-back
+- scrollUntilVisible:
+    element:
+      text: "Basic Beginner Routine"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    text: "Basic Beginner Routine"
+- tapOn:
+    id: clone-program
+- extendedWaitUntil:
+    visible:
+      id: footer-home
+    timeout: 10000
+- takeScreenshot: built-in-programs-started

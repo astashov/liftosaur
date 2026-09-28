@@ -7,6 +7,7 @@ import {
   IScreenshotsAssignment,
   IScreenshotsSim,
   ScreenshotsPlan_assign,
+  ScreenshotsPlan_driverPort,
   ScreenshotsPlan_flowName,
   ScreenshotsPlan_ownsFile,
   ScreenshotsPlan_parseResults,
@@ -15,11 +16,14 @@ import {
 import { IWatchStep, WatchFlow_parse } from "./watchFlow";
 import { ScreenshotsAccounts_open } from "./accounts";
 import { ScreenshotsAccountStorage_email } from "./accountStorage";
+import { FeatureImages_key, IFeatureImageSizes } from "../../src/pages/features/featureImages";
 
 const root = path.resolve(__dirname, "../..");
 const flowsDir = path.join(root, "screenshots/flows");
 const watchFlowsDir = path.join(root, "screenshots/flows/watch");
 const outDir = path.join(root, "images/features");
+const sizesFile = path.join(root, "docs/features/screenshots.json");
+const imageWidth = 600;
 const derivedData = path.join(root, "ios/build/screenshots");
 const appPath = path.join(derivedData, "Build/Products/Release-iphonesimulator/Liftosaur.app");
 const watchAppPath = path.join(derivedData, "Build/Products/Release-watchsimulator/LiftosaurWatch.app");
@@ -36,6 +40,8 @@ const defaultAvd = "Pixel_9_Pro_API_36";
 const maestroBin = process.env.MAESTRO_BIN || path.join(os.homedir(), ".maestro/bin/maestro");
 const secretsFile = path.join(os.homedir(), ".secrets/liftosaur-screenshots.env");
 const watchSyncMs = 20000;
+const flowAttempts = 2;
+const wipeAttempts = 5;
 
 interface IArgs {
   sims: number;
@@ -44,6 +50,7 @@ interface IArgs {
   skipBuild: boolean;
   android: boolean;
   avd: string;
+  firstAccount: number;
 }
 
 interface ISimPair {
@@ -57,7 +64,7 @@ interface IShot {
 }
 
 function parseArgs(argv: string[]): IArgs {
-  const args: IArgs = { sims: 1, skipBuild: false, android: false, avd: defaultAvd };
+  const args: IArgs = { sims: 1, skipBuild: false, android: false, avd: defaultAvd, firstAccount: 0 };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--sims") {
@@ -72,6 +79,8 @@ function parseArgs(argv: string[]): IArgs {
       args.android = true;
     } else if (a === "--avd") {
       args.avd = argv[++i];
+    } else if (a === "--first-account") {
+      args.firstAccount = parseInt(argv[++i], 10);
     } else {
       throw new Error(`Unknown argument ${a}`);
     }
@@ -156,11 +165,19 @@ function findOrCreateSim(name: string, deviceType: string, runtime: string): str
   return simctl("create", name, deviceType, runtime).trim();
 }
 
-function isPaired(watch: string, phone: string): boolean {
+function listPairs(): { watch: { udid: string }; phone: { udid: string } }[] {
   const parsed: { pairs: Record<string, { watch: { udid: string }; phone: { udid: string } }> } = JSON.parse(
     simctl("list", "pairs", "-j")
   );
-  return Object.values(parsed.pairs).some((p) => p.watch.udid === watch && p.phone.udid === phone);
+  return Object.values(parsed.pairs);
+}
+
+function isPaired(watch: string, phone: string): boolean {
+  return listPairs().some((p) => p.watch.udid === watch && p.phone.udid === phone);
+}
+
+function pairedWatch(phone: string): string | undefined {
+  return listPairs().find((p) => p.phone.udid === phone)?.watch.udid;
 }
 
 function ensureSims(count: number): ISimPair[] {
@@ -186,33 +203,52 @@ function bootSim(udid: string): void {
   simctl("bootstatus", udid, "-b");
 }
 
-function wipeContainer(udid: string, appBundleId: string): void {
+async function removeWhenReleased(dir: string): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      fs.rmSync(dir, { recursive: true, force: true });
+      return;
+    } catch (e) {
+      if (attempt >= wipeAttempts) {
+        throw e;
+      }
+      await sleep(500);
+    }
+  }
+}
+
+async function wipeContainer(udid: string, appBundleId: string): Promise<void> {
   simctlIgnoringFailure("terminate", udid, appBundleId);
   const container = simctl("get_app_container", udid, appBundleId, "data").trim();
   for (const dir of ["Documents", "Library", "tmp"]) {
-    fs.rmSync(path.join(container, dir), { recursive: true, force: true });
+    await removeWhenReleased(path.join(container, dir));
     fs.mkdirSync(path.join(container, dir), { recursive: true });
   }
   fs.mkdirSync(path.join(container, "Library/Caches"), { recursive: true });
   fs.mkdirSync(path.join(container, "Library/Preferences"), { recursive: true });
 }
 
-function wipeApps(pair: ISimPair): void {
-  wipeContainer(pair.phone, bundleId);
+async function wipeApps(pair: ISimPair): Promise<void> {
+  await wipeContainer(pair.phone, bundleId);
   simctl("keychain", pair.phone, "reset");
   if (pair.watch != null && fs.existsSync(watchAppPath)) {
-    wipeContainer(pair.watch, watchBundleId);
+    await wipeContainer(pair.watch, watchBundleId);
     simctl("keychain", pair.watch, "reset");
   }
 }
 
 function xcodebuild(scheme: string, destination: string, log: string): void {
   const args = [
-    "-workspace", "ios/Liftosaur.xcworkspace",
-    "-scheme", scheme,
-    "-configuration", "Release",
-    "-destination", destination,
-    "-derivedDataPath", derivedData,
+    "-workspace",
+    "ios/Liftosaur.xcworkspace",
+    "-scheme",
+    scheme,
+    "-configuration",
+    "Release",
+    "-destination",
+    destination,
+    "-derivedDataPath",
+    derivedData,
     "SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) DISABLE_OTA",
     "build",
   ];
@@ -232,7 +268,11 @@ function xcodebuild(scheme: string, destination: string, log: string): void {
 
 function buildIos(pair: ISimPair, log: string): void {
   console.log(`Building iOS Release apps (log: ${log})`);
-  execFileSync("npm", ["run", "build:watch-bundle"], { cwd: root, env: { ...process.env, NODE_ENV: "production" }, stdio: "ignore" });
+  execFileSync("npm", ["run", "build:watch-bundle"], {
+    cwd: root,
+    env: { ...process.env, NODE_ENV: "production" },
+    stdio: "ignore",
+  });
   xcodebuild("Liftosaur", `platform=iOS Simulator,id=${pair.phone}`, log);
   if (pair.watch != null) {
     xcodebuild("LiftosaurWatch", `platform=watchOS Simulator,id=${pair.watch}`, log);
@@ -266,7 +306,10 @@ async function ensureEmulator(avd: string): Promise<string> {
     return devices[0];
   }
   console.log(`Starting emulator ${avd}`);
-  const child = spawn(emulatorBin, ["-avd", avd, "-no-boot-anim", "-no-snapshot-save"], { detached: true, stdio: "ignore" });
+  const child = spawn(emulatorBin, ["-avd", avd, "-no-boot-anim", "-no-snapshot-save"], {
+    detached: true,
+    stdio: "ignore",
+  });
   child.unref();
   adb("wait-for-device");
   for (let i = 0; i < 120; i++) {
@@ -309,12 +352,19 @@ function runMaestro(
 ): Promise<{ output: string; code: number }> {
   return new Promise((resolve) => {
     const args = [
-      "--udid", assignment.sim.udid,
+      "--udid",
+      assignment.sim.udid,
+      "--driver-host-port",
+      String(assignment.sim.driverPort),
       "test",
-      "-e", `APP_ID=${appId}`,
-      "-e", `EMAIL=${assignment.sim.email}`,
-      "-e", `PASSWORD=${pass}`,
-      "--debug-output", debugDir,
+      "-e",
+      `APP_ID=${appId}`,
+      "-e",
+      `EMAIL=${assignment.sim.email}`,
+      "-e",
+      `PASSWORD=${pass}`,
+      "--debug-output",
+      debugDir,
       ...assignment.flows,
     ];
     const child = spawn(maestroBin, args, { cwd: root });
@@ -374,19 +424,37 @@ function findScreenshots(dir: string, prefix: string): Record<string, IShot[]> {
   return found;
 }
 
-async function collect(key: string, shots: IShot[]): Promise<number> {
+async function collect(key: string, shots: IShot[], sizes: IFeatureImageSizes): Promise<number> {
   const { prefix, flow } = ScreenshotsPlan_splitRunKey(key);
   const target = path.join(outDir, flow);
   fs.mkdirSync(target, { recursive: true });
   for (const file of fs.readdirSync(target)) {
     if (ScreenshotsPlan_ownsFile(prefix, file)) {
       fs.rmSync(path.join(target, file));
+      delete sizes[FeatureImages_key(flow, path.basename(file, ".webp"))];
     }
   }
   for (const shot of shots) {
-    await sharp(shot.file).webp({ quality: 85 }).toFile(path.join(target, `${shot.name}.webp`));
+    const info = await sharp(shot.file)
+      .resize({ width: imageWidth, withoutEnlargement: true })
+      .webp({ quality: 85 })
+      .toFile(path.join(target, `${shot.name}.webp`));
+    sizes[FeatureImages_key(flow, shot.name)] = { width: info.width, height: info.height };
   }
   return shots.length;
+}
+
+function readSizes(): IFeatureImageSizes {
+  return fs.existsSync(sizesFile) ? JSON.parse(fs.readFileSync(sizesFile, "utf8")) : {};
+}
+
+function writeSizes(sizes: IFeatureImageSizes): void {
+  const sorted = Object.fromEntries(
+    Object.keys(sizes)
+      .sort()
+      .map((k) => [k, sizes[k]])
+  );
+  fs.writeFileSync(sizesFile, `${JSON.stringify(sorted, null, 2)}\n`);
 }
 
 interface IRunState {
@@ -411,14 +479,18 @@ async function runPhoneFlows(
 ): Promise<void> {
   for (const flowPath of flows) {
     const flow = ScreenshotsPlan_flowName(flowPath);
-    const debugDir = path.join(runDir, `${prefix || "ios-"}${sim.udid}`, flow);
-    await wipe();
-    const result = await runMaestro({ sim, flows: [flowPath] }, appId, debugDir, pass);
-    fs.mkdirSync(debugDir, { recursive: true });
-    fs.writeFileSync(path.join(debugDir, "maestro.log"), result.output.split(pass).join("<password>"));
-    const results = ScreenshotsPlan_parseResults(result.output);
-    const shots = findScreenshots(debugDir, prefix);
-    recordFlow(state, `${prefix}${flow}`, results[flow] ?? (result.code === 0 ? "passed" : "failed"), shots[flow] ?? []);
+    let status: "passed" | "failed" = "failed";
+    let shots: IShot[] = [];
+    for (let attempt = 1; attempt <= flowAttempts && status === "failed"; attempt++) {
+      const debugDir = path.join(runDir, `${prefix || "ios-"}${sim.udid}`, attempt === 1 ? flow : `${flow}-retry`);
+      await wipe();
+      const result = await runMaestro({ sim, flows: [flowPath] }, appId, debugDir, pass);
+      fs.mkdirSync(debugDir, { recursive: true });
+      fs.writeFileSync(path.join(debugDir, "maestro.log"), result.output.split(pass).join("<password>"));
+      status = ScreenshotsPlan_parseResults(result.output)[flow] ?? (result.code === 0 ? "passed" : "failed");
+      shots = findScreenshots(debugDir, prefix)[flow] ?? [];
+    }
+    recordFlow(state, `${prefix}${flow}`, status, shots);
   }
 }
 
@@ -430,7 +502,9 @@ async function main(): Promise<void> {
   if (flows.length === 0 && watchFlows.length === 0) {
     throw new Error(`No flows found in ${flowsDir}`);
   }
-  const pairs: ISimPair[] = args.udids ? args.udids.map((phone) => ({ phone })) : ensureSims(args.sims);
+  const pairs: ISimPair[] = args.udids
+    ? args.udids.map((phone) => ({ phone, watch: pairedWatch(phone) }))
+    : ensureSims(args.sims);
   const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "liftosaur-screenshots-"));
   if (!args.skipBuild) {
     if (pairs.length > 0) {
@@ -461,22 +535,33 @@ async function main(): Promise<void> {
     }
   }
   const accounts = ScreenshotsAccounts_open(pass);
-  const sims: IScreenshotsSim[] = pairs.map((pair, i) => ({ udid: pair.phone, email: ScreenshotsAccountStorage_email(i) }));
+  const sims: IScreenshotsSim[] = pairs.map((pair, i) => ({
+    udid: pair.phone,
+    email: ScreenshotsAccountStorage_email(args.firstAccount + i),
+    driverPort: ScreenshotsPlan_driverPort(i),
+  }));
   const freshIos = async (i: number): Promise<void> => {
-    wipeApps(pairs[i]);
-    await accounts.reset(i);
+    await wipeApps(pairs[i]);
+    await accounts.reset(args.firstAccount + i);
   };
   const warmup = path.join(flowsDir, "lib/warmup.yaml");
+  const warmupHealth = path.join(flowsDir, "lib/warmup-health.yaml");
+  const healthSteps = WatchFlow_parse(fs.readFileSync(path.join(flowsDir, "lib/health-permissions.txt"), "utf8"));
   console.log(`Warming up ${sims.length} simulator(s): system permission prompts`);
   await Promise.all(
     sims.map(async (sim, i) => {
+      await freshIos(i);
+      await runMaestro({ sim, flows: [warmupHealth] }, bundleId, path.join(runDir, "warmup-health"), pass);
+      await runWatchFlow(sim.udid, healthSteps, path.join(runDir, "warmup-health"));
       await freshIos(i);
       return runMaestro({ sim, flows: [warmup] }, bundleId, path.join(runDir, "warmup"), pass);
     })
   );
   const assignments = sims.length > 0 ? ScreenshotsPlan_assign(flows, sims) : [];
   const watchAssignments = sims.length > 0 ? ScreenshotsPlan_assign(watchFlows, sims) : [];
-  console.log(`Running ${flows.length} phone flow(s) and ${watchFlows.length} watch flow(s) on ${sims.length} simulator(s), output in ${runDir}`);
+  console.log(
+    `Running ${flows.length} phone flow(s) and ${watchFlows.length} watch flow(s) on ${sims.length} simulator(s), output in ${runDir}`
+  );
   const started = Date.now();
   const state: IRunState = { shotsByFlow: {}, statusByFlow: {} };
 
@@ -488,14 +573,23 @@ async function main(): Promise<void> {
     if (watchAssignment != null && watch != null) {
       await freshIos(i);
       simctl("launch", watch, watchBundleId);
-      await runMaestro({ sim, flows: [path.join(flowsDir, "lib/login.yaml")] }, bundleId, path.join(runDir, `sim-${i + 1}-watch-login`), pass);
+      await runMaestro(
+        { sim, flows: [path.join(flowsDir, "lib/login.yaml")] },
+        bundleId,
+        path.join(runDir, `sim-${i + 1}-watch-login`),
+        pass
+      );
       simctlIgnoringFailure("terminate", sim.udid, bundleId);
       simctl("launch", sim.udid, bundleId);
       await sleep(watchSyncMs);
       for (const flowPath of watchAssignment.flows) {
         const flow = ScreenshotsPlan_flowName(flowPath);
         try {
-          const shots = await runWatchFlow(watch, WatchFlow_parse(fs.readFileSync(flowPath, "utf8")), path.join(runDir, `watch-${flow}`));
+          const shots = await runWatchFlow(
+            watch,
+            WatchFlow_parse(fs.readFileSync(flowPath, "utf8")),
+            path.join(runDir, `watch-${flow}`)
+          );
           recordFlow(state, `watch-${flow}`, "passed", shots);
         } catch (e) {
           recordFlow(state, `watch-${flow}`, "failed", []);
@@ -511,10 +605,14 @@ async function main(): Promise<void> {
     }
     const serial = await ensureEmulator(args.avd);
     adb("-s", serial, "install", "-r", apkPath);
-    const sim: IScreenshotsSim = { udid: serial, email: ScreenshotsAccountStorage_email(sims.length) };
+    const sim: IScreenshotsSim = {
+      udid: serial,
+      email: ScreenshotsAccountStorage_email(args.firstAccount + sims.length),
+      driverPort: ScreenshotsPlan_driverPort(sims.length),
+    };
     const freshAndroid = async (): Promise<void> => {
       wipeAndroidApp();
-      await accounts.reset(sims.length);
+      await accounts.reset(args.firstAccount + sims.length);
     };
     console.log(`Running ${flows.length} flow(s) on Android ${serial} as ${sim.email}`);
     await freshAndroid();
@@ -525,14 +623,16 @@ async function main(): Promise<void> {
   await Promise.all([...iosRuns, androidRun]);
 
   let failed = 0;
+  const sizes = readSizes();
   for (const flow of Object.keys(state.statusByFlow).sort()) {
     const status = state.statusByFlow[flow];
-    const count = status === "passed" ? await collect(flow, state.shotsByFlow[flow] ?? []) : 0;
+    const count = status === "passed" ? await collect(flow, state.shotsByFlow[flow] ?? [], sizes) : 0;
     if (status === "failed") {
       failed++;
     }
     console.log(`${status === "passed" ? "PASS" : "FAIL"}  ${flow}  ${count} screenshot(s)`);
   }
+  writeSizes(sizes);
   console.log(`Done in ${Math.round((Date.now() - started) / 1000)}s. ${failed} failed. Logs: ${runDir}`);
   process.exit(failed > 0 ? 1 : 0);
 }

@@ -1,0 +1,57 @@
+appId: ${APP_ID}
+---
+- runFlow: lib/login.yaml
+- tapOn:
+    id: footer-program
+- tapOn:
+    id: tab-edit
+- tapOn:
+    id: "grid-cell-Bench Press-0"
+- takeScreenshot: program-editor-grid
+- tapOn:
+    id: grid-action-edit
+- takeScreenshot: program-editor-exercise-sheet
+- tapOn:
+    id: exercise-liftoeditor-save
+- tapOn:
+    id: grid-select-day-0-0
+- tapOn:
+    id: grid-action-edit
+- takeScreenshot: program-editor-day-details
+- tapOn:
+    id: edit-day-cancel
+- tapOn:
+    id: editor-v2-ui-program
+- takeScreenshot: program-editor-ui-mode
+- tapOn:
+    id: editor-v2-week-muscles
+- takeScreenshot: program-editor-week-stats
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - swipe:
+          start: 50%, 30%
+          end: 50%, 95%
+          duration: 400
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - pressKey: Back
+- tapOn:
+    id: editor-v2-perday-program
+- takeScreenshot: program-editor-perday-text
+- tapOn:
+    id: editor-v2-full-program
+- takeScreenshot: program-editor-full-text
+- tapOn:
+    id: footer-me
+- tapOn:
+    id: menu-item-program
+- tapOn:
+    id: create-program
+- tapOn:
+    text: "Program Name"
+- inputText: Push Pull Legs
+- takeScreenshot: program-editor-create

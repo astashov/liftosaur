@@ -22,6 +22,20 @@ const docEntries = fs.existsSync(docsContentDir)
       })
   : [];
 
+const featuresDir = path.resolve("docs/features");
+const featureEntries = fs.existsSync(featuresDir)
+  ? fs
+      .readdirSync(featuresDir)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => {
+        const { indexEntry } = parseDocMarkdown(fs.readFileSync(path.join(featuresDir, f), "utf8"));
+        return {
+          id: indexEntry.id,
+          lastmod: indexEntry.dateModified || getGitLastModified(path.join("docs/features", f)),
+        };
+      })
+  : [];
+
 function getGitLastModified(filePath: string): string | undefined {
   try {
     const date = execSync(`git log -1 --format=%aI -- "${filePath}"`, { encoding: "utf8" }).trim();
@@ -40,6 +54,7 @@ const urls: ISitemapUrl[] = [
   { loc: "https://www.liftosaur.com" },
   { loc: "https://www.liftosaur.com/app" },
   { loc: "https://www.liftosaur.com/doc" },
+  { loc: "https://www.liftosaur.com/features" },
   { loc: "https://www.liftosaur.com/blog" },
   { loc: "https://www.liftosaur.com/exercises" },
   { loc: "https://www.liftosaur.com/planner" },
@@ -60,6 +75,10 @@ const urls: ISitemapUrl[] = [
   })),
   ...docEntries.map((entry) => ({
     loc: `https://www.liftosaur.com/doc/${entry.id}`,
+    ...(entry.lastmod ? { lastmod: entry.lastmod } : {}),
+  })),
+  ...featureEntries.map((entry) => ({
+    loc: `https://www.liftosaur.com/features/${entry.id}`,
     ...(entry.lastmod ? { lastmod: entry.lastmod } : {}),
   })),
   ...Exercise_allExpanded({}).map((e) => {

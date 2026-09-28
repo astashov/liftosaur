@@ -2,6 +2,7 @@ import "mocha";
 import { expect } from "chai";
 import {
   ScreenshotsPlan_assign,
+  ScreenshotsPlan_driverPort,
   ScreenshotsPlan_flowName,
   ScreenshotsPlan_ownsFile,
   ScreenshotsPlan_parseResults,
@@ -10,8 +11,8 @@ import {
 
 describe("ScreenshotsPlan", () => {
   const sims = [
-    { udid: "a", email: "screenshots1@test.liftosaur.com" },
-    { udid: "b", email: "screenshots2@test.liftosaur.com" },
+    { udid: "a", email: "screenshots1@test.liftosaur.com", driverPort: 7001 },
+    { udid: "b", email: "screenshots2@test.liftosaur.com", driverPort: 7002 },
   ];
 
   it("spreads flows round-robin over the simulators", () => {
@@ -34,6 +35,11 @@ describe("ScreenshotsPlan", () => {
   it("reads per-flow results from maestro's summary", () => {
     const output = "Running...\n[Passed] rest-timer.yaml (48s)\n[Failed] graphs.yaml (12s)\n";
     expect(ScreenshotsPlan_parseResults(output)).to.eql({ "rest-timer": "passed", graphs: "failed" });
+  });
+
+  it("gives every device its own Maestro driver port", () => {
+    expect(ScreenshotsPlan_driverPort(0)).to.equal(7001);
+    expect(ScreenshotsPlan_driverPort(3)).to.equal(7004);
   });
 
   it("splits a run key into the platform prefix and the flow directory", () => {

@@ -1,7 +1,7 @@
 ---
 id: rest-timer
 title: "Rest Timer"
-shortDescription: "Starts on its own after every set, using the rest time from your program or your defaults. Adjust it with one tap, and get the cue on your lock screen, Dynamic Island, headphones, or Apple Watch."
+shortDescription: "Starts on its own after every set, using the rest time from your program. Adjust it with one tap, on the lock screen, through headphones or on Apple Watch."
 category: "Workout"
 order: 10
 datePublished: "2026-09-27"
