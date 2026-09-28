@@ -48,14 +48,14 @@ Go to **Me → Timers**. You can set, in seconds:
 
 You can write rest times right in the program text, per exercise or per set:
 
-```
+```liftoscript
 Bench Press / 5x5 / 90s
 Squat / 1x12 60s, 5x5 120s
 ```
 
 Timed sets use two values, the set duration and the rest after it:
 
-```
+```liftoscript
 Plank / 3x1 60s|30s
 ```
 

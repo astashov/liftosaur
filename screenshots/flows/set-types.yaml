@@ -47,14 +47,3 @@ appId: ${APP_ID}
 - tapOn:
     id: workout-tab-bicep-curl
 - takeScreenshot: set-types-per-side
-- tapOn:
-    id: finish-workout
-- tapOn:
-    text: "OK"
-- tapOn:
-    id: footer-workout
-- tapOn:
-    id: change-next-day
-- tapOn:
-    id: menu-item-next-day-picker-1
-- takeScreenshot: set-types-next-workout

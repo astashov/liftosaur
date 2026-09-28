@@ -7,4 +7,5 @@ export interface IDocIndexEntry {
   datePublished?: string;
   dateModified?: string;
   screenshots?: string[];
+  headerScreenshots?: boolean;
 }

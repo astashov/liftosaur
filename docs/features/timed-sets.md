@@ -15,11 +15,11 @@ screenshots: [timed-sets-get-ready, timed-sets-running]
 
 A plain `90s` after the sets is the rest timer. Put a `|` in it and the left side becomes the set timer, how long the set itself lasts:
 
-```
-Plank / 3x1 60s|30s
+```liftoscript
+Plank / 3x1 60s|30s / 0lb
 ```
 
-That is 3 sets of plank, 60 seconds each, then 30 seconds of rest. In the workout, a timed set shows a play button instead of the check mark.
+That is 3 sets of plank, 60 seconds each, then 30 seconds of rest. In the workout, a timed set shows a play button instead of the check mark. Give a bodyweight exercise `0lb`, or the app asks you for the weight when the set ends.
 
 `60s|?` keeps your default rest from **Me → Timers**. See [Liftoscript](/doc/liftoscript) for the full syntax, and [Rest Timer](/features/rest-timer) for how the rest side works.
 
@@ -63,7 +63,7 @@ Tap the recorded time in the set row. The **Edit recorded time** sheet takes min
 
 Add `+` after the set timer and the clock does not stop at the target. You stop it yourself with **Stop & record**, and the elapsed time is recorded. This is the AMRAP of timers, "hold the plank as long as you can":
 
-```
+```liftoscript
 Plank / 2x1 30s|60s, 1x1 30s+|60s
 ```
 
@@ -75,7 +75,7 @@ In `progress` and `update` blocks, the target is `setTime` and the recorded time
 
 Add `auto` and the app opens the next timed set on its own when the rest ends. No tap between rounds.
 
-```
+```liftoscript
 // EMOM - 5 rounds, 5 reps, 1-minute window
 Power Clean / 5x5 135lb 60s|0s auto
 

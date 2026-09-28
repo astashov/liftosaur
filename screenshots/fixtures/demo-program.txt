@@ -12,7 +12,7 @@ Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
 ~}
 Lateral Raise / 3x12-15 / 15lb / superset: A
 Face Pull / 3x15 / 40lb / superset: A
-Plank / 3x1 60s|30s
+Plank / 3x1 60s|30s / 0lb
 
 ## Lower A
 Squat / 5x5 / 185lb / warmup: 1x5 45%, 1x3 65%, 1x2 85% / progress: lp(5lb)

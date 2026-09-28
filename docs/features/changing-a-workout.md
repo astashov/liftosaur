@@ -6,12 +6,19 @@ category: "Workout"
 order: 50
 datePublished: "2026-09-27"
 dateModified: "2026-09-27"
-screenshots: [changing-a-workout-swapped, changing-a-workout-adhoc]
+screenshots: [changing-a-workout-next-workout, changing-a-workout-pick-day]
+headerScreenshots: false
 ---
+
+## Pick which day to do
+
+![The New Workout sheet with the next day and Start](/images/features/changing-a-workout/changing-a-workout-next-workout.webp) ![The Change Next Workout picker listing every day](/images/features/changing-a-workout/changing-a-workout-pick-day.webp)
+
+Tap **Workout** in the footer when no workout is ongoing. The **New Workout** sheet shows the next day of your program with its exercises, and a **Start** button. Tap **Select next workout** to do another day instead. The picker lists every day of the program. Tap one, and it becomes the next day, so the program continues from there. **Ad-Hoc Workout** on the same sheet starts an empty workout, see below.
 
 ## Swap an exercise
 
-![The Swap Exercise picker](/images/features/changing-a-workout/changing-a-workout-swap-picker.webp) ![Incline Bench Press with adjusted weights](/images/features/changing-a-workout/changing-a-workout-swapped.webp)
+![The Swap Exercise picker on the Ad-hoc Exercise tab](/images/features/changing-a-workout/changing-a-workout-swap-adhoc.webp) ![The From Program tab of the picker](/images/features/changing-a-workout/changing-a-workout-swap-from-program.webp)
 
 Tap the cog on the exercise card and pick **Swap Exercise**. The picker has two tabs: **Ad-hoc Exercise** and **From Program**. Pick one exercise and tap **Swap Exercise** at the bottom.
 
@@ -33,8 +40,6 @@ The app remembers the last 5 exercises you swapped to, per exercise. Next time y
 
 ## Add an exercise
 
-![The From Program tab when adding exercises](/images/features/changing-a-workout/changing-a-workout-add-from-program.webp) ![Pull Up added at the end of the workout](/images/features/changing-a-workout/changing-a-workout-added.webp)
-
 Tap **+** at the end of the exercise strip at the top. The picker opens as **Add Exercises**. You can select several at once. The button at the bottom says **Add to this workout (2)** with your count.
 
 An ad-hoc exercise arrives with no sets. Tap **Add Set** on its card. Its sets carry an **Ad-hoc** label. An exercise from the **From Program** tab arrives with its sets and runs its progression when you finish.
@@ -42,8 +47,6 @@ An ad-hoc exercise arrives with no sets. Tap **Add Set** on its card. Its sets c
 Added exercises land at the end of the workout. Long-tap a thumbnail in the strip and drag it to move it.
 
 ## Remove an exercise
-
-![The confirmation before removing an exercise](/images/features/changing-a-workout/changing-a-workout-remove.webp)
 
 Tap the cog on the card and pick **Remove Exercise**. The app asks "Do you want to remove this exercise in this workout only?". Tap **OK**. The program does not change. If the exercise was in a superset, its partner leaves the superset too.
 
@@ -59,7 +62,7 @@ You can also skip programs from the start. The program choice screen has **Go wi
 
 ## Save an ad-hoc workout as a program day
 
-![The Program day from Adhoc workout sheet](/images/features/changing-a-workout/changing-a-workout-program-day.webp)
+![Create Program Day on the finish screen](/images/features/changing-a-workout/changing-a-workout-create-program-day.webp) ![The Program day from Adhoc workout sheet](/images/features/changing-a-workout/changing-a-workout-program-day.webp)
 
 Tap **Finish**. When the workout came from no program of yours, the **Congratulations!** screen shows **Create Program Day**. Tap it. The sheet **Program day from Adhoc workout** opens.
 
@@ -79,13 +82,3 @@ Tap the kebab at the top and pick **Edit Program Day**. The same editor opens wi
 If you change an exercise that is set up separately on several days, the app asks: **Change only this day** or **Change across whole program**. If you already logged sets for the old exercise, it asks "You've already logged sets for Bench Press in this workout. Switch them to Incline Bench Press too?".
 
 **Edit Program Exercise** is not in the menu of an ad-hoc or swapped exercise.
-
-## Change state variables
-
-Exercises with `progress: custom(...)` keep values between workouts, like `increment: 5lb`. See [Progressions](/features/progressions).
-
-In the exercise editor, tap the `custom(...)` part of the progress. A **State vars…** chip appears above the keyboard. It opens the **State Variables** sheet with every variable and its value. Change a value, add a variable, or delete one that no script uses. Tap **Save** in the editor to write it to the program.
-
-A variable marked **User Prompted** is asked when you complete the last set of the exercise, under **Enter new state variables values**.
-
-Under the sets, the card shows **State Variables changes** when finishing the workout would change a variable. Each line reads `increment: 5lb -> 10lb`, so you see the progression before it happens.

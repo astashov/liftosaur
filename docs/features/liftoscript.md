@@ -15,38 +15,38 @@ screenshots: [liftoscript-exercise-sheet, liftoscript-full-program]
 
 Every program in Liftosaur is text. Each exercise is one line. The exercise name comes first, then sections separated by `/`:
 
-```
+```liftoscript
 Bench Press / 3x8
 ```
 
 `3x8` is 3 sets of 8 reps. `3x8-12` is a rep range. Commas join set groups:
 
-```
+```liftoscript
 Bench Press / 1x5, 1x3, 1x1, 5x5
 ```
 
 Add the weight after the reps. It can be lb or kg, or a percentage of your 1RM:
 
-```
+```liftoscript
 Bench Press / 3x12 60kg
 Bench Press / 3x12 80%
 ```
 
 Add `@` and a number from 1 to 10 for an RPE target. With no weight, the app looks up the weight from your 1RM, the reps and the RPE:
 
-```
+```liftoscript
 Bench Press / 3x12 @8
 ```
 
 Each set group can have its own weight, percentage or RPE:
 
-```
+```liftoscript
 Bench Press / 1x5 @8, 1x3 @9, 1x1 @10, 5x5 50%
 ```
 
 A value that applies to every set goes in its own section:
 
-```
+```liftoscript
 Bench Press / 1x12, 5x5 / 20s 60%
 ```
 
@@ -60,7 +60,7 @@ A `+` after the reps makes an AMRAP set. A `+` after the RPE or the weight asks 
 
 In the full program text, `#` starts a week and `##` starts a day:
 
-```
+```liftoscript
 # Week 1
 ## Day 1
 Squat / 5x5 / progress: lp(5lb)
@@ -75,7 +75,7 @@ Squat / 5x4
 
 A `//` line above an exercise is its description. The workout screen shows it. It takes Markdown. A `///` line is a note for you and never shows in the workout:
 
-```
+```liftoscript
 /// Not shown in the workout
 // Pause **2 seconds** at the bottom
 Squat / 5x5 / progress: lp(5lb)
@@ -89,13 +89,13 @@ A `//` line above `# Week 1` or `## Day 1` describes the week or the day. The we
 
 A week range after the name repeats the line on the same day in those weeks:
 
-```
+```liftoscript
 Bench Press[1-5] / 3x8
 ```
 
 The repeated weeks stay empty in the text. `...` reuses the sets, weights, warmups and scripts of another exercise in the current week:
 
-```
+```liftoscript
 Bench Press / 5x5 / progress: lp(5lb)
 Squat / ...Bench Press
 ```
@@ -104,14 +104,14 @@ Squat / ...Bench Press
 
 `used: none` makes a template. The line never appears in a workout, and the name does not need to be a real exercise:
 
-```
+```liftoscript
 t1 / used: none / 1x10+, 3x10 / 70% / progress: lp(5lb)
 t1: Bench Press / ...t1
 ```
 
 A word and a colon before the name is a label. `main: Squat` and `accessory: Squat` are two different exercises, each with its own progression. A name in parentheses after a set group is a set label, up to 8 characters. It shows next to the set in the workout:
 
-```
+```liftoscript
 Squat / 4x5 (Main), 1x5+ (AMRAP)
 ```
 

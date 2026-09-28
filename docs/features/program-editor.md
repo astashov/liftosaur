@@ -63,7 +63,7 @@ The second mode button shows one week, with a card per day. A day card has the n
 
 The third mode button shows every day as its own text editor. The fourth shows the whole program as one text, with `# Week 1` and `## Upper A` headings:
 
-```
+```liftoscript
 # Week 1
 ## Upper A
 Bench Press / 1x5 60%, 1x3 70%, 3x5 / 155lb / warmup: 1x5 45%, 1x3 65% / progress: lp(5lb)

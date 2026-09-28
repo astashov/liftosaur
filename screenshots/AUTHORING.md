@@ -21,7 +21,7 @@ screenshots: [rest-timer-collapsed, rest-timer-expanded]
 
 - `category` is one of `Workout`, `Programs`, `Exercises and equipment`, `Progress`, `Sharing and data`, `Getting started`. `order` sorts within the category.
 - `title` is at most 60 characters and `shortDescription` is 50 to 160 characters. They become the page title, the meta description and the card text. `test/featureDocs.test.ts` fails on anything else.
-- `screenshots` names the one or two shots shown under the title. Names are screenshot names from the flow, without extension.
+- `screenshots` names the one or two shots shown under the title, and the first one is also the card thumbnail on /features and the page's social image. Names are screenshot names from the flow, without extension. Add `headerScreenshots: false` to keep the thumbnail and social image but leave the strip under the title out, when those shots already sit in a section.
 - Sections are `## ` headings. Each section that has a screen gets one image line right under the heading: `![What the reader sees](/images/features/<id>/<shot-name>.webp)`. Up to three images on one line, separated by a space, when a section spans platforms. An image of the watch must have `Apple Watch` in its alt text, that is what sizes it.
 - Every fact comes from the code in `src/`, from `llms/app.md`, `docs/content/*.md` or `CHANGELOG.md`. A claim you cannot find in one of those is left out. Name the exact menu path, the button label and the Liftoscript syntax, as the app shows them.
 - Plain sentences, under 20 words, one idea each. Say what the user does and what the app does in reply. No marketing words. Bold the labels the user taps, as in **Me → Timers**. Liftoscript goes in fenced code blocks. Link to `/doc/liftoscript` for syntax detail and to another feature page with `/features/<id>` when it covers the rest.
@@ -59,7 +59,7 @@ appId: ${APP_ID}
 
 Every flow signs into an account holding `screenshots/fixtures/demo.json`, built from `screenshots/fixtures/demo-program.txt`:
 
-- Program "Demo Program", four days: Upper A, Lower A, Upper B, Lower B. Bench Press with `lp(5lb)` and warmups, Bent Over Row with `dp`, Overhead Press with a custom progress script and `state.increment`, Lateral Raise and Face Pull as superset A, Plank as a timed set `3x1 60s|30s`, Squat, Romanian Deadlift `@8+`, Bulgarian Split Squat, Seated Leg Curl and Standing Calf Raise as superset B, Incline Bench Press, Pull Up `3x5+`, Bicep Curl `@8 ?+`, Triceps Extension and Lateral Raise as superset C, Deadlift, Front Squat, Leg Press, Hanging Leg Raise.
+- Program "Demo Program", four days: Upper A, Lower A, Upper B, Lower B. Bench Press with `lp(5lb)` and warmups, Bent Over Row with `dp`, Overhead Press with a custom progress script and `state.increment`, Lateral Raise and Face Pull as superset A, Plank as a timed set `3x1 60s|30s / 0lb`, Squat, Romanian Deadlift `@8+`, Bulgarian Split Squat, Seated Leg Curl and Standing Calf Raise as superset B, Incline Bench Press, Pull Up `3x5+`, Bicep Curl `@8 ?+`, Triceps Extension and Lateral Raise as superset C, Deadlift, Front Squat, Leg Press, Hanging Leg Raise.
 - 48 finished workouts over 12 weeks, the last one 9 days ago, with progressions applied and some missed sets.
 - Bodyweight weekly from 184 lb down to 178 lb, waist, chest and body fat every two weeks.
 - Premium, units lb, no custom exercises, one gym, default equipment.

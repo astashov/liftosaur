@@ -17,6 +17,11 @@ appId: ${APP_ID}
     centerElement: true
 - tapOn:
     id: menu-item-timers
+- tapOn:
+    id: menu-item-superset
+- inputText: "15"
+- tapOn:
+    text: "Timed sets"
 - takeScreenshot: supersets-timer
 - tapOn:
     id: footer-workout
@@ -28,6 +33,12 @@ appId: ${APP_ID}
 - tapOn:
     id: complete-set
     index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: complete-set
+    below:
+      id: set-options
+- waitForAnimationToEnd
 - takeScreenshot: supersets-next-exercise
 - tapOn:
     id: exercise-superset-picker

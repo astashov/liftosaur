@@ -57,7 +57,7 @@ Uploads need a signed-in account. Otherwise the app says "You need to be logged 
 
 Tap **Save**. The exercise appears under **Custom Exercises** in the picker. Select it and tap **Add to this workout**. In a program, write it by name like any built-in exercise:
 
-```
+```liftoscript
 Landmine Press / 3x10 / 60s
 ```
 

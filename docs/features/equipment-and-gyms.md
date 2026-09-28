@@ -82,7 +82,7 @@ The same settings live in **Me → Exercises**. Tap an exercise to open its stat
 
 Program scripts can step by your plates too:
 
-```
+```liftoscript
 weights[1] = increment(completedWeights[1]);
 ```
 

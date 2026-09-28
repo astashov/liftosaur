@@ -91,19 +91,15 @@
     "width": 600,
     "height": 1304
   },
-  "changing-a-workout/changing-a-workout-add-from-program": {
-    "width": 600,
-    "height": 1304
-  },
-  "changing-a-workout/changing-a-workout-added": {
-    "width": 600,
-    "height": 1304
-  },
   "changing-a-workout/changing-a-workout-adhoc": {
     "width": 600,
     "height": 1304
   },
   "changing-a-workout/changing-a-workout-adhoc-picker": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-create-program-day": {
     "width": 600,
     "height": 1304
   },
@@ -115,23 +111,27 @@
     "width": 600,
     "height": 1304
   },
+  "changing-a-workout/changing-a-workout-next-workout": {
+    "width": 600,
+    "height": 1304
+  },
+  "changing-a-workout/changing-a-workout-pick-day": {
+    "width": 600,
+    "height": 1304
+  },
   "changing-a-workout/changing-a-workout-program-day": {
     "width": 600,
     "height": 1304
   },
-  "changing-a-workout/changing-a-workout-remove": {
+  "changing-a-workout/changing-a-workout-swap-adhoc": {
     "width": 600,
     "height": 1304
   },
-  "changing-a-workout/changing-a-workout-swap-picker": {
+  "changing-a-workout/changing-a-workout-swap-from-program": {
     "width": 600,
     "height": 1304
   },
   "changing-a-workout/changing-a-workout-swap-recent": {
-    "width": 600,
-    "height": 1304
-  },
-  "changing-a-workout/changing-a-workout-swapped": {
     "width": 600,
     "height": 1304
   },
@@ -520,10 +520,6 @@
     "height": 496
   },
   "set-types/set-types-amrap-popup": {
-    "width": 600,
-    "height": 1304
-  },
-  "set-types/set-types-next-workout": {
     "width": 600,
     "height": 1304
   },

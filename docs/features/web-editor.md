@@ -19,7 +19,7 @@ The editor is built for a big screen. On a laptop the stats sit to the right of 
 
 Each day has an **Exercises** text box. Type one exercise per line, with sets and reps after a slash:
 
-```
+```liftoscript
 Bench Press / 5x5 / 90s
 Squat / 3x8 @8
 ```

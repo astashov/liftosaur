@@ -13,12 +13,14 @@ screenshots: [set-types-amrap-popup, set-types-per-side]
 
 In Liftoscript, a `+` after a value means "ask me when I finish the set". There are four places you can put it:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb
 Romanian Deadlift / 3x8 @8+ / 165lb
 Bench Press / 3x8 / 100lb+
 Bicep Curl / 3x10 @8 ?+
-Squat / 3x5 / progress: custom(shouldBumpWeight+: 0) {~ ... ~}
+Squat / 3x5 / progress: custom(shouldBumpWeight+: 0) {~
+  if (state.shouldBumpWeight > 0) { weights += 5lb }
+~}
 ```
 
 - `5+` is an AMRAP set. The app asks how many reps you did.
@@ -36,7 +38,7 @@ Write `5+` and the set target shows as `5+` on the workout screen. When you tap 
 
 The number you enter is saved as the completed reps of that set. Progressions read it as `completedReps`. The demo program uses it like this:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
   if (completedReps[ns] >= 8) {
     weights += state.increment
@@ -54,11 +56,13 @@ A set with a rep range, like `3x8-12+`, works the same way. `+` goes after the t
 
 ![The Completed RPE popup](/images/features/set-types/set-types-rpe-popup.webp) ![The logged RPE next to the completed set](/images/features/set-types/set-types-rpe-logged.webp)
 
+RPE, Rate of Perceived Exertion, is how hard a set felt, on a scale from 1 to 10. 10 means you could not have done one more rep. 9 means one rep was left, 8 means two, and so on down. Logging it tells the app and your progression scripts how close to failure a set was, which the reps and weight alone do not show.
+
 `@8` alone sets a target RPE and the app does not ask anything. `@8+` shows the target as `@8+` and asks for your **Completed RPE** when you tap the checkmark. The field goes from 0 to 10 in steps of 0.5, and starts at the target RPE.
 
 After **Done**, the set row shows the RPE you entered next to the set. Progressions read it as `completedRPE`, and the target as `RPE`:
 
-```
+```liftoscript
 Romanian Deadlift / 3x8 @8+ / 165lb / progress: custom() {~
   if (completedRPE[ns] < 8) {
     weights += 10lb
@@ -76,7 +80,7 @@ When one set asks for both weight and RPE, the popup shows both fields.
 
 The entered weight is saved as the completed weight of the set. Progressions read it as `completedWeights`:
 
-```
+```liftoscript
 Bicep Curl / 3x10 @8 ?+ / progress: custom() {~
   weights = increment(completedWeights[1])
 ~}
@@ -98,7 +102,7 @@ To change this for an exercise, tap the exercise name on the workout screen to o
 
 Add `+` after a state variable name in `progress: custom(...)`:
 
-```
+```liftoscript
 Bench Press / 3x8 / progress: custom(shouldBumpWeight+: 0) {~
   if (shouldBumpWeight > 0) {
     weights += 5lb
@@ -114,15 +118,10 @@ Tap a set to expand it, tap its options button, and choose **Edit Target**. The 
 
 Scripts can also set them. `amraps`, `logrpes` and `askweights` work like `reps` or `weights`, `1` turns a marker on and `0` turns it off:
 
-```
+```liftoscript
 Squat / 3x8 100lb / progress: custom() {~
   amraps = 1
   askweights[ns] = 1
 ~}
 ```
 
-## What changes in the next workout
-
-![The next workout after the AMRAP progression added 5lb](/images/features/set-types/set-types-next-workout.webp)
-
-Nothing changes until you tap **Finish**. Then the app runs the progress script of every exercise with what you entered: `completedReps`, `completedRepsLeft`, `completedRPE`, `completedWeights` and your state variable values. The script updates the program text, and the next workout shows the new weights and reps. The workout itself is saved in history with the reps, RPE and weight you entered. See [Liftoscript](/doc/liftoscript) for the full list of variables.

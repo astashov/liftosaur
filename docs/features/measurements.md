@@ -37,7 +37,7 @@ Bodyweight and body fat jump from day to day. **Moving Average Window Size** add
 
 The moving average also feeds your programs. The `bodyweight` variable in Liftoscript returns the latest moving average when a window is set for Bodyweight, and the latest raw value otherwise. This helps for weighted or assisted pull ups and dips:
 
-```
+```liftoscript
 Pull Up / 3x8 0lb / update: custom() {~
   if (setIndex == 0) {
     weights = bodyweight

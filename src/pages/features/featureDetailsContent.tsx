@@ -18,6 +18,7 @@ export interface IFeatureDetailsContentProps {
 export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.Element {
   const { feature, sizes } = props;
   const content = FeatureImages_inlineHtml(props.content, sizes);
+  const headerShots = feature.headerScreenshots === false ? [] : (feature.screenshots ?? []);
 
   return (
     <section className="px-4 py-8 mx-auto" style={{ maxWidth: 800 }}>
@@ -34,9 +35,9 @@ export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.E
       </nav>
       <h1 className="mb-2 text-3xl font-bold">{feature.title}</h1>
       {feature.shortDescription && <p className="mb-6 text-lg text-text-secondary">{feature.shortDescription}</p>}
-      {feature.screenshots && feature.screenshots.length > 0 && (
+      {headerShots.length > 0 && (
         <div className="flex flex-wrap justify-center gap-5 pt-2 pb-5 mb-2">
-          {feature.screenshots.map((name, index) => (
+          {headerShots.map((name, index) => (
             <figure
               key={name}
               className="shrink-0 w-[250px] m-0 overflow-hidden rounded-[34px] border-8 border-[#111] bg-[#111]"

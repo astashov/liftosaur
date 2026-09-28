@@ -15,7 +15,7 @@ screenshots: [progressions-preview, progressions-linear-settings]
 
 A progression is a rule on one exercise in your program. It runs when you finish the workout and rewrites the program text. Write it with `progress:` after the sets:
 
-```
+```liftoscript
 Bench Press / 3x5 / 155lb / progress: lp(5lb)
 ```
 
@@ -29,7 +29,7 @@ Complete all working sets of an exercise, and the app shows what the rule will d
 
 Linear progression (`lp`) adds a fixed weight after you complete every set and rep:
 
-```
+```liftoscript
 Squat / 3x8 / progress: lp(5lb, 2)
 Squat / 3x8 / progress: lp(5lb, 2, 0, 10lb, 3)
 ```
@@ -42,7 +42,7 @@ To edit it in the app, tap the cog on the exercise during a workout and pick **E
 
 Double progression (`dp`) grows the reps inside a range, then adds weight and resets the reps:
 
-```
+```liftoscript
 Bent Over Row / 3x8-12 / 115lb / progress: dp(5lb, 8, 12)
 ```
 
@@ -50,7 +50,7 @@ With `3x8-12` the range narrows from below until you hit 12 on every set, then t
 
 Sum of reps (`sum`) adds weight when the reps of all sets add up to a number:
 
-```
+```liftoscript
 Bench Press / 3x10+ / progress: sum(30, 5lb)
 ```
 
@@ -58,7 +58,7 @@ Bench Press / 3x10+ / progress: sum(30, 5lb)
 
 `progress: custom()` runs a script between `{~` and `~}`. It reads what you did and writes new values into the program:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
   if (completedReps[ns] >= 8) {
     weights += state.increment
@@ -78,7 +78,7 @@ In the app, pick **Custom** in the **Progress** picker and tap **Edit Script**. 
 
 State variables live in the parentheses of `custom()`. The script reads and writes them as `state.name`, and the app saves them in the program text:
 
-```
+```liftoscript
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
   if (completedReps >= reps) {
     state.attempt += 1
@@ -98,7 +98,7 @@ In the exercise editor, tap **State vars…** on a `custom(...)` line to open th
 
 `update: custom()` runs before the first set and after every set you complete. It changes the sets of the current workout only. `setIndex` is the set you just tapped, 0 on the first run:
 
-```
+```liftoscript
 Bench Press / 3x8 / update: custom() {~
   if (setIndex == 1 && completedReps[1] >= reps[1]) {
     numberOfSets = 4

@@ -11,8 +11,6 @@ screenshots: [supersets-workout, supersets-next-exercise]
 
 ## How it works
 
-![Lateral Raise in superset A, with Face Pull as its partner](/images/features/supersets/supersets-workout.webp)
-
 A superset is a group of exercises you do in turn: one set of the first, one set of the second, then back to the first. In Liftosaur, every exercise in the group carries the same group name, like `A`.
 
 On the workout screen, each exercise in a group shows a line **Supersets with:** and the name of the next exercise in the group. The thumbnails at the top get a colored line under them, one color per group. The line is colored for the group you are working on now, and gray for the other groups.
@@ -20,8 +18,6 @@ On the workout screen, each exercise in a group shows a line **Supersets with:**
 Groups only match within one day. `A` on Monday and `A` on Wednesday are two different groups.
 
 ## Move to the next exercise after each set
-
-![Face Pull is now the current exercise after a Lateral Raise set](/images/features/supersets/supersets-next-exercise.webp)
 
 Complete a working set of an exercise in a group. The workout screen moves to the next exercise in the group. Complete a set there, and it moves on again, and back to the first one after the last. Warmup sets do not move you.
 
@@ -53,7 +49,7 @@ Open an exercise in the program editor, or pick **Edit Program Exercise** from t
 
 Add a `superset:` section to each exercise in the group:
 
-```
+```liftoscript
 Lateral Raise / 3x12-15 / 15lb / superset: A
 Face Pull / 3x15 / 40lb / superset: A
 ```
@@ -62,9 +58,9 @@ The group name after `superset:` can be any string, like `A` or `ChestDay1`. In 
 
 ## Rest between superset exercises
 
-![Me → Timers with the Superset timer](/images/features/supersets/supersets-timer.webp)
+![Me → Timers with the Superset timer set to 15 seconds](/images/features/supersets/supersets-timer.webp)
 
-Go to **Me → Timers** and set **Superset**, in seconds. This rest runs after every working set of an exercise in a group, instead of the **Workout** timer. It is empty by default, so groups use the Workout timer until you set it. A per-set rest time in the program text, like `Face Pull / 3x15 180s / superset: A`, takes priority over both. See [Rest Timer](/features/rest-timer) for how the timer works.
+Go to **Me → Timers** and set **Superset**, in seconds, for example 15. This rest runs after every working set of an exercise in a group, instead of the **Workout** timer. It is empty by default, so groups use the Workout timer until you set it. A per-set rest time in the program text, like `Face Pull / 3x15 180s / superset: A`, takes priority over both. See [Rest Timer](/features/rest-timer) for how the timer works.
 
 ## History and program preview
 
@@ -74,7 +70,7 @@ A finished workout in your history draws the same colored line next to each exer
 
 This is separate from supersets. When a program repeats an exercise across weeks, the app keeps the order of exercises in the day as well as it can. When exercises start repeating on different weeks, that order can become unclear. Write the position in square brackets after the exercise name to fix it:
 
-```
+```liftoscript
 Squat[1,1-4] / 3x8
 Bench Press[2,1-4] / 3x8
 Bicep Curl[3,1-4] / 3x8

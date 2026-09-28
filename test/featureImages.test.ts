@@ -22,7 +22,17 @@ describe("FeatureImages", () => {
       sizes
     );
     expect(html).to.equal(
-      '<img src="/images/features/rest-timer/rest-timer-collapsed.webp" alt="Timer &quot;pill&quot;" width="600" height="1304" loading="lazy" decoding="async">'
+      '<p><img src="/images/features/rest-timer/rest-timer-collapsed.webp" alt="Timer &quot;pill&quot;" width="600" height="1304" loading="lazy" decoding="async"></p>'
+    );
+  });
+
+  it("wraps a line of several images in one paragraph", () => {
+    const html = FeatureImages_inlineHtml(
+      "Text before.\n\n![a](/images/features/x/a.webp) ![b](/images/features/x/b.webp)\n\nText after.",
+      sizes
+    );
+    expect(html).to.equal(
+      'Text before.\n\n<p><img src="/images/features/x/a.webp" alt="a" loading="lazy" decoding="async"> <img src="/images/features/x/b.webp" alt="b" loading="lazy" decoding="async"></p>\n\nText after.'
     );
   });
 

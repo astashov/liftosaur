@@ -34291,7 +34291,7 @@
             "days": [
               {
                 "name": "Upper A",
-                "exerciseText": "// Pause **1 second** on the chest, then drive up.\nBench Press / 1x5, 1x3, 3x5 / 210lb / warmup: 1x5 45%, 1x3 65% / progress: lp(5lb)\nBent Over Row / 3x8-12 / 150lb / progress: dp(5lb, 8, 12)\nOverhead Press / 3x5+ / 110lb / progress: custom(increment: 5lb) {~\n  if (completedReps[ns] >= 8) {\n    weights += state.increment\n  } else if (completedReps[ns] < 5) {\n    weights -= state.increment\n  }\n~}\nLateral Raise / 3x12-15 / 15lb / superset: A\nFace Pull / 3x15 / 40lb / superset: A\nPlank / 3x1 60s|30s"
+                "exerciseText": "// Pause **1 second** on the chest, then drive up.\nBench Press / 1x5, 1x3, 3x5 / 210lb / warmup: 1x5 45%, 1x3 65% / progress: lp(5lb)\nBent Over Row / 3x8-12 / 150lb / progress: dp(5lb, 8, 12)\nOverhead Press / 3x5+ / 110lb / progress: custom(increment: 5lb) {~\n  if (completedReps[ns] >= 8) {\n    weights += state.increment\n  } else if (completedReps[ns] < 5) {\n    weights -= state.increment\n  }\n~}\nLateral Raise / 3x12-15 / 15lb / superset: A\nFace Pull / 3x15 / 40lb / superset: A\nPlank / 3x1 60s|30s / 0lb"
               },
               {
                 "name": "Lower A",
