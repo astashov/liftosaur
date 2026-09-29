@@ -5,7 +5,7 @@ shortDescription: "See max weight, volume and estimated 1RM per exercise, weekly
 category: "Progress"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-28"
+dateModified: "2026-09-29"
 screenshots: [graphs-exercise, graphs-muscle-group]
 ---
 
@@ -38,7 +38,7 @@ If you have no history and no measurements, the sheet says "You haven't tracked 
 
 The dropdown at the top right of each exercise graph switches between **Max Weight** and **Volume**.
 
-- **Max Weight** shows the heaviest set of that exercise in each workout. A second line shows the estimated one rep max (e1RM). Liftosaur computes it with the Epley formula from the weight and reps of your best set.
+- **Max Weight** shows the heaviest set of that exercise in each workout. A second line shows the estimated one rep max (e1RM) of your best set that day: its weight divided by the share of 1RM that the RPE chart gives for its reps at its RPE, with RPE 10 assumed when none is logged. It is the same number as the **e1RM** column on the workout screen, see [Logging a Workout](/features/workout-screen).
 - **Volume** shows weight × reps summed over all sets in the workout.
 
 Long-press a point. A legend appears above the chart with the date, the weight and reps, and the e1RM. It also shows the notes you wrote for that exercise or workout, and the state variables of the exercise on that day, like `rm1` or `increment`. Tap **Workout** in the legend to open that workout. Tap the X to close the legend.
