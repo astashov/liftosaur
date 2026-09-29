@@ -16,6 +16,13 @@
 -->
 
 ---
+date: 2026-09-29
+title: Show heart rate on the workout screen
+---
+
+On iOS, it now shows the heart rate (if available) on the workout screen. It takes it from the Apple Watch - if you have them. Alternatively, it can also get the heart rate from AirPods 3 Pro as well.
+
+---
 date: 2026-09-22
 title: Redesign of the workout screen
 ---
