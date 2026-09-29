@@ -3,7 +3,6 @@ import NativeLiftosaurLiveActivity from "../specs/NativeLiftosaurLiveActivity";
 import { ILiveActivityState } from "./liveActivityState";
 import { Analytics_trackFinishWorkout } from "./analytics";
 import { ITimerBridge } from "./timerBridge";
-import { IWorkoutMirroring } from "./workoutMirroring";
 import { INativeWorkoutBridgeLiveActivityAction, IWorkoutBridge } from "./workoutBridge";
 
 export type { INativeWorkoutBridgeLiveActivityAction } from "./workoutBridge";
@@ -16,10 +15,7 @@ export class WorkoutBridge implements IWorkoutBridge {
   // exact render the waiting intent is blocked on.
   private pendingCompleteSetRequestId: string | null = null;
 
-  constructor(
-    private readonly timer: ITimerBridge,
-    private readonly mirroring: IWorkoutMirroring
-  ) {}
+  constructor(private readonly timer: ITimerBridge) {}
 
   private ensureAppStateSubscription(): void {
     if (this.appStateSubscription != null) {
@@ -45,19 +41,11 @@ export class WorkoutBridge implements IWorkoutBridge {
     NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
     this.currentReminderDuration = null;
     this.timer.cancelReminder();
-    this.mirroring.pauseWatchWorkout();
   }
 
   public resumeWorkout(opts: { reminder: number; isStart: boolean; hasSubscription: boolean }): void {
     this.ensureAppStateSubscription();
     this.currentReminderDuration = opts.reminder > 0 ? opts.reminder : null;
-    if (opts.hasSubscription) {
-      if (opts.isStart) {
-        this.mirroring.startWatchWorkout().catch(() => {});
-      } else {
-        this.mirroring.resumeWatchWorkout();
-      }
-    }
   }
 
   public finishWorkout(_opts: { healthSync: boolean; calories: number; intervals: string }): void {

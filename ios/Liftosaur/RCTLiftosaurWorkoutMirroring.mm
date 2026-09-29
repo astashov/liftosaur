@@ -31,48 +31,11 @@ RCT_EXPORT_MODULE(LiftosaurWorkoutMirroring)
   }];
 }
 
-- (void)startWatchWorkout:(RCTPromiseResolveBlock)resolve
-                   reject:(RCTPromiseRejectBlock)reject {
+- (void)setDesiredWorkout:(double)workoutId status:(NSString *)status expectWatch:(BOOL)expectWatch {
   [self wireEventEmitterIfNeeded];
-  [[LiftosaurWorkoutMirroringImpl shared] startWatchWorkoutWithCompletion:^(BOOL started) {
-    resolve(@(started));
-  }];
-}
-
-- (void)pauseWatchWorkout:(RCTPromiseResolveBlock)resolve
-                   reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurWorkoutMirroringImpl shared] pauseWatchWorkout];
-  resolve(nil);
-}
-
-- (void)resumeWatchWorkout:(RCTPromiseResolveBlock)resolve
-                    reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurWorkoutMirroringImpl shared] resumeWatchWorkout];
-  resolve(nil);
-}
-
-- (void)endWatchWorkout:(RCTPromiseResolveBlock)resolve
-                 reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurWorkoutMirroringImpl shared] endWatchWorkout];
-  resolve(nil);
-}
-
-- (void)resetWatchWorkoutState:(RCTPromiseResolveBlock)resolve
-                        reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurWorkoutMirroringImpl shared] resetWatchWorkoutState];
-  resolve(nil);
-}
-
-- (NSNumber *)isHealthKitAvailable {
-  return @([[LiftosaurWorkoutMirroringImpl shared] isHealthKitAvailable]);
-}
-
-- (NSNumber *)isWatchWorkoutActive {
-  return @([[LiftosaurWorkoutMirroringImpl shared] isWatchWorkoutActiveObjC]);
-}
-
-- (NSNumber *)didStartWatchWorkout {
-  return @([[LiftosaurWorkoutMirroringImpl shared] didStartWatchWorkoutObjC]);
+  [[LiftosaurWorkoutMirroringImpl shared] setDesiredWorkoutWithWorkoutId:workoutId
+                                                                  status:status
+                                                             expectWatch:expectWatch];
 }
 
 - (void)flushPendingEvents:(RCTPromiseResolveBlock)resolve

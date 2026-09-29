@@ -1,6 +1,7 @@
 import { IEnv } from "../../src/models/state";
 import { Service } from "../../src/api/service";
 import { AsyncQueue } from "../../src/utils/asyncQueue";
+import { HeartRateStore } from "../../src/utils/heartRateStore";
 import { Persistence } from "../../src/utils/persistence";
 import { MockAudioInterface } from "../../src/lib/audioInterface";
 import { MockBridges_build } from "../../test/utils/mockBridges";
@@ -47,6 +48,7 @@ export function RenderEnv_build(): IRenderEnv {
     watch: bridges.watch,
     keychain: bridges.keychain,
     mirroring: bridges.mirroring,
+    heartRate: new HeartRateStore(bridges.mirroring),
   };
   return { env, bridges };
 }

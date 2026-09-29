@@ -1,9 +1,11 @@
 import { createContext, useContext } from "react";
 import { Service } from "../api/service";
+import { IHeartRateStore } from "../utils/heartRateStore";
 
 export interface IAppContext {
   service: Service;
   isApp?: boolean;
+  heartRate?: IHeartRateStore;
 }
 
 export const AppContext = createContext<Partial<IAppContext>>({});

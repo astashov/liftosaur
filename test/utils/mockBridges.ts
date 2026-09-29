@@ -3,7 +3,7 @@ import { INativeTimerStartParams, ITimerBridge } from "../../src/utils/timerBrid
 import { INativeWatchAuth, INativeWatchEvent, IWatchBridge } from "../../src/utils/watchBridge";
 import { IAuthToken, IKeychain } from "../../src/utils/keychain";
 import { INativeWorkoutBridgeLiveActivityAction, IWorkoutBridge } from "../../src/utils/workoutBridge";
-import { INativeWorkoutMirroringEvent, IWorkoutMirroring } from "../../src/utils/workoutMirroring";
+import { IDesiredWorkout, INativeWorkoutMirroringEvent, IWorkoutMirroring } from "../../src/utils/workoutMirroring";
 
 export type IMockBridgeCall = { bridge: string; method: string; args: unknown[] };
 
@@ -184,34 +184,12 @@ export class MockWatchBridge implements IWatchBridge {
 }
 
 export class MockWorkoutMirroring implements IWorkoutMirroring {
-  public startResult: boolean = true;
   private handler: ((event: INativeWorkoutMirroringEvent) => void) | undefined = undefined;
 
   constructor(private readonly log: MockBridgeLog) {}
 
-  public async startWatchWorkout(): Promise<boolean> {
-    this.log.record("mirroring", "startWatchWorkout");
-    return this.startResult;
-  }
-
-  public pauseWatchWorkout(): void {
-    this.log.record("mirroring", "pauseWatchWorkout");
-  }
-
-  public resumeWatchWorkout(): void {
-    this.log.record("mirroring", "resumeWatchWorkout");
-  }
-
-  public endWatchWorkout(): void {
-    this.log.record("mirroring", "endWatchWorkout");
-  }
-
-  public resetWatchWorkoutState(): void {
-    this.log.record("mirroring", "resetWatchWorkoutState");
-  }
-
-  public isHealthKitAvailable(): boolean {
-    return true;
+  public setDesiredWorkout(_desired: IDesiredWorkout): void {
+    this.log.record("mirroring", "setDesiredWorkout");
   }
 
   public subscribe(handler: (event: INativeWorkoutMirroringEvent) => void): () => void {

@@ -13,6 +13,7 @@ import { TimerBridge } from "./nativeTimerBridge";
 import { WatchBridge } from "./nativeWatchBridge";
 import { WorkoutBridge } from "./nativeWorkoutBridge";
 import { WorkoutMirroring } from "./nativeWorkoutMirroringBridge";
+import { HeartRateStore } from "./heartRateStore";
 import { Persistence } from "./persistence";
 import { PushSyncClient } from "./pushSyncClient";
 
@@ -32,7 +33,8 @@ export function AppEnv_build(persistence: Persistence): IEnv {
     push: new PushSyncClient(service, NativeLiftosaurPush, Platform.OS === "ios" ? "ios" : "android"),
     timer,
     mirroring,
-    workout: new WorkoutBridge(timer, mirroring),
+    heartRate: new HeartRateStore(mirroring),
+    workout: new WorkoutBridge(timer),
     watch: new WatchBridge(),
     keychain: new Keychain(),
   };

@@ -28,6 +28,7 @@ import { WorkoutBridge } from "../utils/nativeWorkoutBridge";
 import { WatchBridge } from "../utils/nativeWatchBridge";
 import { Keychain } from "../utils/keychainStore";
 import { WorkoutMirroring } from "../utils/nativeWorkoutMirroringBridge";
+import { HeartRateStore } from "../utils/heartRateStore";
 import { IAudioInterface } from "../lib/audioInterface";
 import { Persistence } from "../utils/persistence";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
@@ -110,8 +111,9 @@ function getScreenNameFromNavState(navState: NavigationState | undefined): IScre
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue, persistence } = props;
   const timerBridge = props.timer;
-  const env = useMemo<IEnv>(
-    () => ({
+  const env = useMemo<IEnv>(() => {
+    const mirroring = new WorkoutMirroring();
+    return {
       service: new Service(client),
       audio,
       queue,
@@ -122,10 +124,10 @@ export function AppView(props: IProps): JSX.Element | null {
       workout: new WorkoutBridge(),
       watch: new WatchBridge(),
       keychain: new Keychain(),
-      mirroring: new WorkoutMirroring(),
-    }),
-    [client, audio, queue, persistence, timerBridge]
-  );
+      mirroring,
+      heartRate: new HeartRateStore(mirroring),
+    };
+  }, [client, audio, queue, persistence, timerBridge]);
   const service = env.service;
   const reducer = useMemo(
     () => reducerWrapper(true, persistence, (effects) => NativeEffects_apply(env, effects)),

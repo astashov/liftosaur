@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import NativeLiftosaurWorkoutMirroring from "../specs/NativeLiftosaurWorkoutMirroring";
-import { INativeWorkoutMirroringEvent, IWorkoutMirroring } from "./workoutMirroring";
+import { HeartRateReading_parseEvent } from "../models/heartRateReading";
+import { IDesiredWorkout, INativeWorkoutMirroringEvent, IWorkoutMirroring } from "./workoutMirroring";
 
 export type { INativeWorkoutMirroringEvent } from "./workoutMirroring";
 
@@ -12,45 +13,8 @@ export class WorkoutMirroring implements IWorkoutMirroring {
     return NativeLiftosaurWorkoutMirroring;
   }
 
-  public async startWatchWorkout(): Promise<boolean> {
-    const mod = this.getModule();
-    if (mod == null) {
-      return false;
-    }
-    try {
-      return await mod.startWatchWorkout();
-    } catch (e) {
-      console.warn("NativeWorkoutMirroring.startWatchWorkout failed", e);
-      return false;
-    }
-  }
-
-  public pauseWatchWorkout(): void {
-    this.getModule()
-      ?.pauseWatchWorkout()
-      .catch(() => {});
-  }
-
-  public resumeWatchWorkout(): void {
-    this.getModule()
-      ?.resumeWatchWorkout()
-      .catch(() => {});
-  }
-
-  public endWatchWorkout(): void {
-    this.getModule()
-      ?.endWatchWorkout()
-      .catch(() => {});
-  }
-
-  public resetWatchWorkoutState(): void {
-    this.getModule()
-      ?.resetWatchWorkoutState()
-      .catch(() => {});
-  }
-
-  public isHealthKitAvailable(): boolean {
-    return this.getModule()?.isHealthKitAvailable() ?? false;
+  public setDesiredWorkout(desired: IDesiredWorkout): void {
+    this.getModule()?.setDesiredWorkout(desired.workoutId ?? 0, desired.status, desired.expectWatch);
   }
 
   public subscribe(handler: (event: INativeWorkoutMirroringEvent) => void): () => void {
@@ -58,7 +22,12 @@ export class WorkoutMirroring implements IWorkoutMirroring {
     if (mod == null) {
       return () => {};
     }
-    const subscription = mod.onMirroringEvent(handler);
+    const subscription = mod.onMirroringEvent((raw) => {
+      const event = HeartRateReading_parseEvent(raw);
+      if (event != null) {
+        handler(event);
+      }
+    });
     mod.flushPendingEvents().catch(() => {});
     return () => subscription.remove();
   }

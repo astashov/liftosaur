@@ -219,7 +219,6 @@ describe("Native effects", () => {
       { type: "stopTimer" },
       { type: "discardWorkout" },
       { type: "sendDiscardWorkoutToWatch" },
-      { type: "resetWatchWorkoutState" },
       { type: "pauseWorkout" },
       { type: "resumeWorkout", reminder: 30, isStart: true, hasSubscription: true },
     ]);
@@ -227,7 +226,6 @@ describe("Native effects", () => {
       "timer.stopTimer",
       "workout.discardWorkout",
       "watch.sendDiscardWorkoutToWatch",
-      "mirroring.resetWatchWorkoutState",
       "workout.pauseWorkout",
       "workout.resumeWorkout",
     ]);

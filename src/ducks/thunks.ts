@@ -1627,7 +1627,6 @@ export function Thunk_finishWorkoutNative(args: {
       intervals: JSON.stringify(args.intervals),
     });
     const watchSaved = await env.watch.sendFinishWorkoutToWatch(args.shouldSyncToHealth);
-    env.mirroring.resetWatchWorkoutState();
     args.onDone(watchSaved);
   };
 }

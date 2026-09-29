@@ -10,6 +10,7 @@ import { WorkoutBridge } from "../../utils/nativeWorkoutBridge";
 import { WatchBridge } from "../../utils/nativeWatchBridge";
 import { Keychain } from "../../utils/keychainStore";
 import { WorkoutMirroring } from "../../utils/nativeWorkoutMirroringBridge";
+import { HeartRateStore } from "../../utils/heartRateStore";
 import { ProgramContentList } from "../program/programContentList";
 import { Service } from "../../api/service";
 
@@ -25,6 +26,7 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
   const queue = new AsyncQueue();
   const audio = new MockAudioInterface();
   const service = new Service(props.client);
+  const mirroring = new WorkoutMirroring();
   const env: IEnv = {
     queue,
     audio,
@@ -34,7 +36,8 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
     workout: new WorkoutBridge(),
     watch: new WatchBridge(),
     keychain: new Keychain(),
-    mirroring: new WorkoutMirroring(),
+    mirroring,
+    heartRate: new HeartRateStore(mirroring),
   };
   return (
     <ProgramContentList
