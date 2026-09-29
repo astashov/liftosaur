@@ -48,6 +48,7 @@ import { runMigrations } from "../src/migrations/runner";
 import { c, IEither } from "../src/utils/types";
 import {
   ResponseUtils_json,
+  ResponseUtils_gzippedHtml,
   ResponseUtils_getHeaders,
   ResponseUtils_getReferer,
   ResponseUtils_getHost,
@@ -2343,9 +2344,8 @@ const getDashboardsPaymentsHandler: RouteHandler<
   if (match.params.before != null) {
     return ResponseUtils_json(200, event, page);
   }
-  return {
-    statusCode: 200,
-    body: renderPaymentsDashboardHtml(
+  return ResponseUtils_gzippedHtml(
+    renderPaymentsDashboardHtml(
       di.fetch,
       apiKey,
       page.paymentsData,
@@ -2353,9 +2353,8 @@ const getDashboardsPaymentsHandler: RouteHandler<
       page.summary,
       page.nextBefore,
       page.hasMore
-    ),
-    headers: { "content-type": "text/html" },
-  };
+    )
+  );
 };
 
 const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });
