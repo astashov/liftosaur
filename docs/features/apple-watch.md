@@ -1,7 +1,7 @@
 ---
 id: apple-watch
 title: "Apple Watch"
-shortDescription: "Run your workout from your wrist. Log sets with the Digital Crown, answer AMRAP and RPE prompts, time planks and see your heart rate."
+shortDescription: "Run your workout from your wrist. Log sets with the Digital Crown, answer AMRAP and RPE prompts, run timed sets and see your heart rate."
 category: "Workout"
 order: 80
 datePublished: "2026-09-27"
@@ -13,7 +13,7 @@ screenshots: [watch-apple-watch-exercise, watch-apple-watch-get-ready]
 
 ![New Workout card on the Apple Watch](/images/features/apple-watch/watch-apple-watch-home.webp)
 
-The watch app comes with the iPhone app, version 6.31 or later. It needs Premium. Without it, the watch shows **Premium Required** with a **Recheck** button.
+The watch app comes with the iPhone app. It needs Premium. Without it, the watch shows **Premium Required** with a **Recheck** button.
 
 Open Liftosaur on the phone once after pairing, or the watch shows **Sync Required**.
 
@@ -59,11 +59,11 @@ Then the set clock runs, `0:12 of 1:00`. At the target, the watch logs the set a
 
 ## Heart rate
 
-Starting a workout on the watch starts an Apple Health strength workout session. Your heart rate then shows under the clock on every workout screen, in beats per minute. It reads `--` until the first reading arrives. If a reading never comes, tap the heart to start the session again.
+Starting a workout on the watch starts an Apple Health strength workout session. Your heart rate then shows under the clock on every workout screen, in beats per minute. It reads `--` until the first reading arrives. If a reading never comes, tap the heart to start the session again. If it still shows `--`, check that Liftosaur may read heart rate: on the watch, open **Settings → Privacy & Security → Health**, and on the iPhone, open the **Health** app, then **Sharing → Apps and Services → Liftosaur**.
 
 ## Finish the workout and Apple Health
 
-![Summary on the Apple Watch](/images/features/apple-watch/watch-apple-watch-summary.webp) ![Apple Health settings on the phone](/images/features/apple-watch/apple-watch-health-settings.webp)
+![Apple Health settings on the phone](/images/features/apple-watch/apple-watch-health-settings.webp)
 
 Tap **Finish** on the workout screen. The **Summary** shows time, volume, sets, reps, the exercises, sets per muscle group and any personal records. **Done** returns to the home screen.
 

@@ -40,28 +40,10 @@ swipe 104 200 104 60
 wait 2000
 swipe 104 200 104 60
 wait 2000
-# Play button starts the Get Ready countdown
+# Play button starts the 5s Get Ready countdown; the tap itself takes about a second, so shoot right away
 tap 104 196
-wait 2500
+wait 700
 screenshot watch-apple-watch-get-ready
 # The countdown is 5s, then the set clock replaces the ring
-wait 5500
+wait 7000
 screenshot watch-apple-watch-set-clock
-# X in the top left closes the clock without logging (guess: 32pt circle with 8pt hit padding, 8pt from the top)
-tap 24 32
-wait 2000
-# Edge swipe pops back to the exercise list (guess)
-swipe 4 124 180 124
-wait 2000
-# Scroll to the bottom of the list, then Finish (guess: Finish sits above the Discard caption)
-swipe 104 220 104 40
-wait 500
-swipe 104 220 104 40
-wait 500
-swipe 104 220 104 40
-wait 500
-swipe 104 220 104 40
-wait 1000
-tap 104 194
-wait 5000
-screenshot watch-apple-watch-summary

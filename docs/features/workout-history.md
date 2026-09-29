@@ -57,6 +57,8 @@ Tap **Save**. The app asks "Are you sure you want to SAVE this PAST workout?". T
 
 ## Change the date or the length
 
+![The date and length sheet](/images/features/workout-history/workout-history-change-date.webp)
+
 Open the past workout and tap the date in the title. A sheet opens with **Please enter new date** and a date picker, then **Please enter workout length** in hh:mm. Pick the day and tap **Save** on the sheet. The workout keeps its time of day, only the calendar day changes. Then tap **Save** in the top right to store it.
 
 The card moves to its new place in the feed, and the week strip and month calendar mark the new day.

@@ -63,10 +63,6 @@
     "width": 416,
     "height": 496
   },
-  "apple-watch/watch-apple-watch-summary": {
-    "width": 416,
-    "height": 496
-  },
   "apple-watch/watch-apple-watch-workout": {
     "width": 416,
     "height": 496
@@ -664,6 +660,10 @@
     "height": 1304
   },
   "week-insights/week-insights-settings": {
+    "width": 600,
+    "height": 1304
+  },
+  "workout-history/workout-history-change-date": {
     "width": 600,
     "height": 1304
   },

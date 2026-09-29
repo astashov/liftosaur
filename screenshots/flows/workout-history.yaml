@@ -44,16 +44,36 @@ appId: ${APP_ID}
 - tapOn:
     id: history-record
     index: 1
+- extendedWaitUntil:
+    visible:
+      id: finish-workout
+    timeout: 10000
+- waitForAnimationToEnd
 - takeScreenshot: workout-history-past-workout
 - tapOn:
+    point: 50%, 10%
+- extendedWaitUntil:
+    visible: "Please enter new date"
+    timeout: 8000
+- waitForAnimationToEnd
+- takeScreenshot: workout-history-change-date
+- tapOn:
+    id: modal-date-cancel
+- tapOn:
     id: workout-menu
+- waitForAnimationToEnd
 - takeScreenshot: workout-history-menu
 - tapOn:
     text: "Show Workout Notes"
 - tapOn:
     id: workout-notes-input
-- inputText: "Felt strong today, bench moved fast"
+- inputText: "Felt strong today. Bench moved fast, so I added 5 lb on the last set. Slept 8 hours, bodyweight 178 lb. Next time try the incline bench first."
 - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: workout-notes-input
+    direction: UP
+- waitForAnimationToEnd
 - takeScreenshot: workout-history-notes
 - tapOn:
     id: finish-workout
