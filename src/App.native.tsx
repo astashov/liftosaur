@@ -174,8 +174,10 @@ import { AppEnv_build } from "./utils/appEnv";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
+  Subscriptions_hasSubscription,
 } from "./utils/subscriptions";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
+import { DesiredHeartRateWorkout_fromProgress } from "./models/desiredHeartRateWorkout";
 import { NativeEffects_apply } from "./models/nativeEffects";
 import { lg } from "./utils/posthog";
 import { EventManager_initTelemetry } from "./utils/eventManager";
@@ -309,6 +311,22 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
   }, []);
+
+  const {
+    workoutId: heartRateWorkoutId,
+    status: heartRateWorkoutStatus,
+    expectWatch: heartRateExpectWatch,
+  } = DesiredHeartRateWorkout_fromProgress(
+    Progress_getCurrentProgress(state),
+    Subscriptions_hasSubscription(state.storage.subscription)
+  );
+  useEffect(() => {
+    env.mirroring.setDesiredWorkout({
+      workoutId: heartRateWorkoutId,
+      status: heartRateWorkoutStatus,
+      expectWatch: heartRateExpectWatch,
+    });
+  }, [env, heartRateWorkoutId, heartRateWorkoutStatus, heartRateExpectWatch]);
 
   useEffect(() => {
     return env.push?.start({
@@ -660,7 +678,7 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
   const screensWithoutTimer: IScreen[] = ["subscription"];
 
   return (
-    <AppContext.Provider value={{ service, isApp: true }}>
+    <AppContext.Provider value={{ service, isApp: true, heartRate: env.heartRate }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <TrackedStateProvider state={state} dispatch={dispatch}>
           <ClickTrackingContext.Provider value={dispatch}>

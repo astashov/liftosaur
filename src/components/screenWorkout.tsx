@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { Platform, InteractionManager } from "react-native";
+import { Platform, InteractionManager, View } from "react-native";
 import { useTrackClick } from "../utils/clickTracking";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
@@ -11,6 +11,7 @@ import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
+import { WorkoutHeartRate } from "./workoutHeartRate";
 import { Workout } from "./workout";
 import { WorkoutFinishButton } from "./workoutFinishButton";
 import { WorkoutMenu } from "./workoutMenu";
@@ -196,12 +197,15 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         History_workoutTime({ startTime: progressStartTime, endTime: progressEndTime, intervals: progressIntervals })
       )
     ) : (
-      <Timer
-        startTime={progressStartTime}
-        endTime={progressEndTime}
-        intervals={progressIntervals}
-        onPauseResume={onPauseResume}
-      />
+      <View className="flex-row items-center">
+        <Timer
+          startTime={progressStartTime}
+          endTime={progressEndTime}
+          intervals={progressIntervals}
+          onPauseResume={onPauseResume}
+        />
+        <WorkoutHeartRate />
+      </View>
     );
   }, [isCurrent, progressStartTime, progressEndTime, progressIntervals, onPauseResume]);
 

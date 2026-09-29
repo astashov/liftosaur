@@ -11,8 +11,7 @@ export type INativeEffect =
   | { type: "resumeWorkout"; reminder: number; isStart: boolean; hasSubscription: boolean }
   | { type: "pauseWorkout" }
   | { type: "discardWorkout" }
-  | { type: "sendDiscardWorkoutToWatch" }
-  | { type: "resetWatchWorkoutState" };
+  | { type: "sendDiscardWorkoutToWatch" };
 
 export interface INativeEffectBridges {
   timer: ITimerBridge;
@@ -54,9 +53,6 @@ export function NativeEffects_apply(bridges: INativeEffectBridges, effects: read
         break;
       case "sendDiscardWorkoutToWatch":
         bridges.watch.sendDiscardWorkoutToWatch();
-        break;
-      case "resetWatchWorkoutState":
-        bridges.mirroring.resetWatchWorkoutState();
         break;
       default:
         exhausted(effect);

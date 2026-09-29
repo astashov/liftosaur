@@ -33,6 +33,7 @@ import type { IWorkoutBridge } from "../utils/workoutBridge";
 import type { IWatchBridge } from "../utils/watchBridge";
 import type { IKeychain } from "../utils/keychain";
 import type { IWorkoutMirroring } from "../utils/workoutMirroring";
+import type { IHeartRateStore } from "../utils/heartRateStore";
 
 export type IEnv = {
   service: Service;
@@ -49,6 +50,7 @@ export type IEnv = {
   watch: IWatchBridge;
   keychain: IKeychain;
   mirroring: IWorkoutMirroring;
+  heartRate: IHeartRateStore;
 };
 
 export interface INotification {

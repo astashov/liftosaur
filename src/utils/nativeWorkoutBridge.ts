@@ -2,12 +2,11 @@ import { ILiveActivityState } from "./liveActivityState";
 import { SendMessage_toIosAndAndroid } from "./sendMessage";
 import { INativeWorkoutBridgeLiveActivityAction, IWorkoutBridge } from "./workoutBridge";
 import { ITimerBridge } from "./timerBridge";
-import { IWorkoutMirroring } from "./workoutMirroring";
 
 export type { INativeWorkoutBridgeLiveActivityAction } from "./workoutBridge";
 
 export class WorkoutBridge implements IWorkoutBridge {
-  constructor(_timer?: ITimerBridge, _mirroring?: IWorkoutMirroring) {}
+  constructor(_timer?: ITimerBridge) {}
 
   public pauseWorkout(): void {
     SendMessage_toIosAndAndroid({ type: "pauseWorkout" });

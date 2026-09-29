@@ -787,7 +787,6 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
       if (Progress_isCurrent(progress)) {
         effects.push({ type: "discardWorkout" });
         effects.push({ type: "sendDiscardWorkoutToWatch" });
-        effects.push({ type: "resetWatchWorkoutState" });
         return {
           ...state,
           storage: {
