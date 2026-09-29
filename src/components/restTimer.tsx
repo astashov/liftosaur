@@ -326,7 +326,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
               isExpanded ? { height: 5, opacity: 0.6 } : { bottom: 0, opacity: isTimeOut ? 0 : 0.3 },
             ]}
           >
+            {/* Reanimated copies a settled animation's final style into React props and never clears it
+                (FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS), so the next rest would start at full width. */}
             <Reanimated.View
+              key={`${timerSince}-${timer}`}
               style={[
                 {
                   flex: 1,
