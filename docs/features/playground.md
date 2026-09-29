@@ -5,7 +5,7 @@ shortDescription: "Simulate workouts to see how weights, reps and state variable
 category: "Programs"
 order: 50
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [playground-day, playground-finished]
 ---
 

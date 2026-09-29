@@ -5,7 +5,7 @@ shortDescription: "See max weight, volume and estimated 1RM per exercise, weekly
 category: "Progress"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [graphs-exercise, graphs-muscle-group]
 ---
 

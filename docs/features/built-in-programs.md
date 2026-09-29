@@ -5,7 +5,7 @@ shortDescription: "About 60 popular programs like GZCLP, 5/3/1, Starting Strengt
 category: "Programs"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [built-in-programs-library, built-in-programs-info]
 ---
 

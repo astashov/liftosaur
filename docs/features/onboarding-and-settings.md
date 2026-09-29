@@ -5,7 +5,7 @@ shortDescription: "Pick your units, equipment and program on the first run, then
 category: "Start here"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [onboarding-and-settings-welcome, onboarding-and-settings-me]
 ---
 

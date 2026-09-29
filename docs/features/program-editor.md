@@ -5,7 +5,7 @@ shortDescription: "Build a program on a calendar grid, in a per-day UI, or as Li
 category: "Programs"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [program-editor-grid, program-editor-exercise-sheet]
 ---
 

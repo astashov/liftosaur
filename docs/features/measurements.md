@@ -5,7 +5,7 @@ shortDescription: "Log bodyweight, body fat and 13 body sites, with a moving ave
 category: "Progress"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [measurements-bodyweight, measurements-moving-average]
 ---
 

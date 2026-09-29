@@ -5,7 +5,7 @@ shortDescription: "Tell the app how to add weight or reps over time. Pick a buil
 category: "Programs"
 order: 40
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [progressions-preview, progressions-linear-settings]
 ---
 

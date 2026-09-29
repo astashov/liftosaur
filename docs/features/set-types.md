@@ -5,7 +5,7 @@ shortDescription: "Add a + in your program and the app asks what you did: AMRAP 
 category: "Workout"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [set-types-amrap-popup, set-types-per-side]
 ---
 

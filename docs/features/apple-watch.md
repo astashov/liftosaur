@@ -5,7 +5,7 @@ shortDescription: "Run your workout from your wrist. Log sets with the Digital C
 category: "Workout"
 order: 80
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [watch-apple-watch-exercise, watch-apple-watch-get-ready]
 ---
 

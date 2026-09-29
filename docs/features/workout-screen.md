@@ -5,7 +5,7 @@ shortDescription: "Tap the checkmark to complete a set. See big reps and weight 
 category: "Workout"
 order: 5
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [workout-screen-overview, workout-screen-next-set]
 ---
 

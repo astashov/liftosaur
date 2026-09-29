@@ -5,7 +5,7 @@ shortDescription: "Time the set itself, not only the rest. Planks, carries, EMOM
 category: "Workout"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [timed-sets-get-ready, timed-sets-running]
 ---
 

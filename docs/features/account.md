@@ -5,7 +5,7 @@ shortDescription: "Sign in with Apple, Google or email to sync workouts, share l
 category: "Sharing and data"
 order: 50
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [account-screen, account-sign-in]
 ---
 

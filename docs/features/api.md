@@ -5,7 +5,7 @@ shortDescription: "Create an API key in the app, then read and write programs, h
 category: "Sharing and data"
 order: 70
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [api-me-row, api-keys-empty]
 ---
 

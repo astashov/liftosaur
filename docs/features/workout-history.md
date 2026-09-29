@@ -5,7 +5,7 @@ shortDescription: "Every finished workout is a card on the Home tab, under a wee
 category: "Workout"
 order: 60
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [workout-history-feed, workout-history-month-calendar]
 ---
 

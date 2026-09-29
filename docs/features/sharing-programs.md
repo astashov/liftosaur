@@ -5,7 +5,7 @@ shortDescription: "Copy a public link to any program, generate an image with a Q
 category: "Sharing and data"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [sharing-programs-menu, sharing-programs-image-preview]
 ---
 

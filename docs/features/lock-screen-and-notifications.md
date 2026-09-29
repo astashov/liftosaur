@@ -5,7 +5,7 @@ shortDescription: "Complete sets and adjust rest from the iOS Live Activity, Dyn
 category: "Workout"
 order: 70
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [lock-screen-and-notifications-live-activity, lock-screen-and-notifications-sound]
 ---
 

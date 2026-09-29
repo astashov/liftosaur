@@ -5,7 +5,7 @@ shortDescription: "Write a program as text: one line per exercise with sets, rep
 category: "Programs"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [liftoscript-exercise-sheet, liftoscript-full-program]
 ---
 

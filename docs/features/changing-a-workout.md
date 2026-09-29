@@ -5,7 +5,7 @@ shortDescription: "Swap, add or remove exercises mid-workout, train without a pr
 category: "Workout"
 order: 50
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [changing-a-workout-next-workout, changing-a-workout-pick-day]
 headerScreenshots: false
 ---

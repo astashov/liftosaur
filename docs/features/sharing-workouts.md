@@ -5,7 +5,7 @@ shortDescription: "Post a finished workout to Instagram Story, Feed or TikTok as
 category: "Sharing and data"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [sharing-workouts-finish-screen, sharing-workouts-share-sheet]
 ---
 

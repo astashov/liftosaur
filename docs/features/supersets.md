@@ -5,7 +5,7 @@ shortDescription: "Group two or more exercises, and the workout screen moves to 
 category: "Workout"
 order: 40
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [supersets-workout, supersets-next-exercise]
 ---
 

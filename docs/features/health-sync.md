@@ -5,7 +5,7 @@ shortDescription: "Send finished workouts and body measurements to Apple Health 
 category: "Progress"
 order: 40
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [health-sync-settings, health-sync-share]
 ---
 

@@ -5,7 +5,7 @@ shortDescription: "Add Liftosaur to ChatGPT, or connect Claude and Gemini throug
 category: "Start here"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-28"
+dateModified: "2026-09-29"
 screenshots: [ai-and-mcp-autofill]
 headerScreenshots: false
 ---

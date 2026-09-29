@@ -5,7 +5,7 @@ shortDescription: "See this week's total sets, volume, PRs, strength and hypertr
 category: "Progress"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [week-insights-home, week-insights-muscle-groups]
 ---
 

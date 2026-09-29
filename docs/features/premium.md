@@ -5,7 +5,7 @@ shortDescription: "One subscription unlocks plates per side, graphs, muscle view
 category: "Start here"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [premium-plans, premium-account]
 ---
 

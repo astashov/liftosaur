@@ -5,7 +5,7 @@ shortDescription: "Hundreds of built-in exercises with muscle maps. Search, filt
 category: "Exercises and equipment"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [exercise-library-picker, exercise-library-stats]
 ---
 

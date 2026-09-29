@@ -5,7 +5,7 @@ shortDescription: "Add exercises missing from the built-in list, with muscles, t
 category: "Exercises and equipment"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [custom-exercises-cloned, custom-exercises-muscle-groups]
 ---
 

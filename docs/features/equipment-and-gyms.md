@@ -5,7 +5,7 @@ shortDescription: "Tell Liftosaur what bar, plates and fixed weights you have, a
 category: "Exercises and equipment"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-29"
 screenshots: [equipment-and-gyms-barbell, equipment-and-gyms-gyms]
 ---
 

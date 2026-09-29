@@ -5,7 +5,7 @@ shortDescription: "Import workout history from Hevy or a CSV file, with a previe
 category: "Sharing and data"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [import-export-export, import-export-import]
 ---
 

@@ -5,7 +5,7 @@ shortDescription: "Starts on its own after every set, using the rest time from y
 category: "Workout"
 order: 10
 datePublished: "2026-09-27"
-dateModified: "2026-09-27"
+dateModified: "2026-09-28"
 screenshots: [rest-timer-collapsed, rest-timer-expanded]
 ---
 
