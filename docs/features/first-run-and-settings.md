@@ -1,17 +1,17 @@
 ---
-id: onboarding-and-settings
+id: first-run-and-settings
 title: "First Run and Settings"
 shortDescription: "Pick your units, equipment and program on the first run, then tune the Me tab: dark mode, text size, week start, Always On Display and more."
 category: "Start here"
 order: 10
 datePublished: "2026-09-27"
 dateModified: "2026-09-29"
-screenshots: [onboarding-and-settings-welcome, onboarding-and-settings-me]
+screenshots: [first-run-and-settings-welcome, first-run-and-settings-me]
 ---
 
 ## Starting for the first time
 
-![The welcome screen](/images/features/onboarding-and-settings/onboarding-and-settings-welcome.webp)
+![The welcome screen](/images/features/first-run-and-settings/first-run-and-settings-welcome.webp)
 
 The first screen shows five short slides about the app. They change on their own every 5 seconds.
 
@@ -19,7 +19,7 @@ Tap **Get started** to begin setup. Tap **I have an account** to sign in and pul
 
 ## Picking your units
 
-![Pick your units](/images/features/onboarding-and-settings/onboarding-and-settings-units.webp)
+![Pick your units](/images/features/first-run-and-settings/first-run-and-settings-units.webp)
 
 The **Pick your units** screen has two buttons: **Pounds (lb)** and **Kilograms (kg)**. Pick one and tap **Continue**.
 
@@ -27,7 +27,7 @@ This becomes the default unit for programs and weights. You can change it later 
 
 ## Setting up equipment and plates
 
-![What equipment do you have?](/images/features/onboarding-and-settings/onboarding-and-settings-equipment.webp)
+![What equipment do you have?](/images/features/first-run-and-settings/first-run-and-settings-equipment.webp)
 
 The **What equipment do you have?** screen lists equipment types with a toggle for each. Turn on the ones your gym has. The app uses them to round program weights to what you can load.
 
@@ -58,7 +58,7 @@ Some screens show a tip box with a question-mark icon. Tap its X to close it. A 
 
 ## The Me tab
 
-![The Me tab](/images/features/onboarding-and-settings/onboarding-and-settings-me.webp)
+![The Me tab](/images/features/first-run-and-settings/first-run-and-settings-me.webp)
 
 Tap **Me** in the footer. The top row is **Program**, showing the current program name. Tap it to switch programs. Below it, the settings are grouped:
 
@@ -81,7 +81,7 @@ When you clone a built-in program, the app converts its weights to your unit. Wh
 
 ## Dark mode and text size
 
-![Appearance settings](/images/features/onboarding-and-settings/onboarding-and-settings-appearance.webp) ![Dark mode on](/images/features/onboarding-and-settings/onboarding-and-settings-dark-mode.webp)
+![Appearance settings](/images/features/first-run-and-settings/first-run-and-settings-appearance.webp) ![Dark mode on](/images/features/first-run-and-settings/first-run-and-settings-dark-mode.webp)
 
 By default the app follows your phone's light or dark theme. Turn **Dark mode** on or off under **Appearance** to override it.
 

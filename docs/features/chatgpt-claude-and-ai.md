@@ -1,12 +1,12 @@
 ---
-id: ai-and-mcp
+id: chatgpt-claude-and-ai
 title: "Using AI with Liftosaur"
 shortDescription: "Add Liftosaur to ChatGPT, or connect Claude and Gemini through the MCP server, and ask the assistant to write programs, log workouts and analyze your history."
 category: "Start here"
 order: 20
 datePublished: "2026-09-27"
 dateModified: "2026-09-29"
-screenshots: [ai-and-mcp-autofill]
+screenshots: [chatgpt-claude-and-ai-autofill]
 headerScreenshots: false
 ---
 
@@ -69,7 +69,7 @@ The reference tools are open to everyone. An assistant can read the Liftoscript 
 
 ## Autofill muscles for a custom exercise
 
-![A custom exercise form after Autofill Muscles and Types](/images/features/ai-and-mcp/ai-and-mcp-autofill.webp)
+![A custom exercise form after Autofill Muscles and Types](/images/features/chatgpt-claude-and-ai/chatgpt-claude-and-ai-autofill.webp)
 
 When you create a custom exercise, the form has an **Autofill Muscles and Types** button. Type the exercise name and tap the button. The app asks an AI model to fill the target muscles, synergist muscles and exercise types from the name. Check the result and adjust anything that looks wrong. If the name is unknown, the app says "Couldn't autofill the muscles for this exercise. Try a different name!". See [Custom Exercises](/features/custom-exercises) for the rest of the form.
 

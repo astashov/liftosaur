@@ -5,25 +5,25 @@ appId: ${APP_ID}
 - extendedWaitUntil:
     visible: "Get started"
     timeout: 20000
-- takeScreenshot: onboarding-and-settings-welcome
+- takeScreenshot: first-run-and-settings-welcome
 - tapOn: "Get started"
-- takeScreenshot: onboarding-and-settings-units
+- takeScreenshot: first-run-and-settings-units
 - tapOn: "Continue"
-- takeScreenshot: onboarding-and-settings-equipment
+- takeScreenshot: first-run-and-settings-equipment
 - runFlow: lib/login.yaml
 - tapOn:
     id: footer-me
-- takeScreenshot: onboarding-and-settings-me
+- takeScreenshot: first-run-and-settings-me
 - scrollUntilVisible:
     element:
       text: "Dark mode"
     direction: DOWN
     centerElement: true
-- takeScreenshot: onboarding-and-settings-appearance
+- takeScreenshot: first-run-and-settings-appearance
 - tapOn:
     rightOf:
       text: "Dark mode"
-- takeScreenshot: onboarding-and-settings-dark-mode
+- takeScreenshot: first-run-and-settings-dark-mode
 - tapOn:
     rightOf:
       text: "Dark mode"

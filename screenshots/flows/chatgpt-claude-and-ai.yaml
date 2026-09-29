@@ -37,4 +37,4 @@ appId: ${APP_ID}
     visible:
       text: "Autofill Muscles and Types"
     timeout: 20000
-- takeScreenshot: ai-and-mcp-autofill
+- takeScreenshot: chatgpt-claude-and-ai-autofill

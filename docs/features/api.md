@@ -72,4 +72,4 @@ Writes need two extra headers, `X-Liftosaur-Device-Id` and `X-Liftosaur-Client`.
 
 ## AI assistants and MCP
 
-The same key also powers the MCP server, so Claude, ChatGPT or Gemini can edit programs and log workouts for you. See [AI and MCP](/features/ai-and-mcp).
+The same key also powers the MCP server, so Claude, ChatGPT or Gemini can edit programs and log workouts for you. See [Using AI with Liftosaur](/features/chatgpt-claude-and-ai).

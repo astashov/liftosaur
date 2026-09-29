@@ -2,6 +2,215 @@
 
 One section per page of https://www.liftosaur.com/features, generated from docs/features by scripts/build-llms-features.ts. Liftoscript syntax is in liftoscript.md.
 
+## First Run and Settings
+
+Category: Start here. Page: https://www.liftosaur.com/features/first-run-and-settings
+
+Pick your units, equipment and program on the first run, then tune the Me tab: dark mode, text size, week start, Always On Display and more.
+
+### Starting for the first time
+
+The first screen shows five short slides about the app. They change on their own every 5 seconds.
+
+Tap **Get started** to begin setup. Tap **I have an account** to sign in and pull your data from the cloud. See [Account](/features/account) for sign-in options.
+
+### Picking your units
+
+The **Pick your units** screen has two buttons: **Pounds (lb)** and **Kilograms (kg)**. Pick one and tap **Continue**.
+
+This becomes the default unit for programs and weights. You can change it later under **Me → Weight Units**, or per equipment type.
+
+### Setting up equipment and plates
+
+The **What equipment do you have?** screen lists equipment types with a toggle for each. Turn on the ones your gym has. The app uses them to round program weights to what you can load.
+
+Tap **Set up plates** to enter the bar weight and plates for each equipment type, then tap **Continue**. Tap **Skip** to keep the defaults.
+
+Next, a short survey asks where you heard about Liftosaur. You can tap **Skip**.
+
+See [Equipment and gyms](/features/equipment-and-gyms) for how rounding works and how to change this later.
+
+### Choosing a program
+
+The **Choose your program** screen has four options:
+
+- **Pick a built-in program**: choose from routines like 5/3/1 and GZCLP. See [Built-in programs](/features/built-in-programs).
+- **Create a program**: build your own from scratch. See [Program editor](/features/program-editor).
+- **Import from link**: paste a link from the program web editor. See [Sharing programs](/features/sharing-programs).
+- **Go without program**: run ad hoc workouts and build the program along the way.
+
+After you pick a program, the app opens the Home tab.
+
+### Tours and help tips
+
+Until you have finished 4 workouts, the app shows a tour the first time you open the workout screen, the program editor, and the program exercise editor. Each tour is a set of cards with **Next →**, **← Back**, and **Done** buttons. Tap the X in the corner to close it early.
+
+Every screen with a tour or a help page has a question-mark icon in the top right corner. Tap it to replay the tour or open the help page. The **Me** tab opens a help page about settings.
+
+Some screens show a tip box with a question-mark icon. Tap its X to close it. A closed tip stays closed.
+
+### The Me tab
+
+Tap **Me** in the footer. The top row is **Program**, showing the current program name. Tap it to switch programs. Below it, the settings are grouped:
+
+- **Account**: **Account** shows your email or "Not signed in" ([Account](/features/account)). **Nickname** is used on your profile page. **Is Profile Page Public?** appears when you are signed in. **API Keys** opens the keys for the [API](/features/api).
+- **My Measurements**: **Bodyweight** and **Bodyfat** show your latest values. **Measurements** and **Sleep & Nutrition** open the tracking screens ([Measurements](/features/measurements)).
+- **Workout**: **Exercises** ([Exercise library](/features/exercise-library)), **Muscle Groups**, **Timers** ([Rest timer](/features/rest-timer)), **Available Equipment** ([Equipment and gyms](/features/equipment-and-gyms)), **Weight Units**, **Length Units**, **Week starts from:**, and **Always On Display**. **Current Gym** appears when you have more than one gym.
+- **Sound**: a **Vibration** toggle and a volume slider for the rest timer chime. On Android with [Premium](/features/premium), **Ignore Do Not Disturb** lets the notification sound play in Silent mode.
+- **Sync**: **Apple Health** on iOS or **Google Health Connect** on Android ([Health sync](/features/health-sync)).
+- **Appearance**: the text size slider and **Dark mode**.
+- **Import / Export**: export to JSON, CSV, or a text file, and import history and programs ([Import and export](/features/import-export)).
+- **Miscellaneous**: **Changelog**, **Contact Us**, **Discord Server**, **Privacy Policy**, **Terms & Conditions**, **Licenses**, **Documentation**, **Source Code on Github**, and **Roadmap**.
+
+### Units, week start, and automatic conversion
+
+**Weight Units** is kg or lb. **Length Units** is cm or in, used for body measurements.
+
+When you clone a built-in program, the app converts its weights to your unit. When you import a program from a link with the other unit, the app asks: "The program has weights in kg, do you want to convert them to lb?".
+
+**Week starts from:** is Sunday or Monday. It sets the first day in the week calendar on the Home tab and in [Week insights](/features/week-insights).
+
+### Dark mode and text size
+
+By default the app follows your phone's light or dark theme. Turn **Dark mode** on or off under **Appearance** to override it.
+
+The text size slider, marked **A A**, goes from 12 to 24 in steps of 2. It starts from your device text size, and the label under it says **Matching your device text size**. Move it, and the label changes to **Set in the app**. Tap **Use device size** to follow the device again. Icons and exercise thumbnails scale with the text.
+
+### Keeping the screen on
+
+Turn on **Always On Display** under **Workout** to stop the screen from sleeping while the app is open. It is off by default.
+## Using AI with Liftosaur
+
+Category: Start here. Page: https://www.liftosaur.com/features/chatgpt-claude-and-ai
+
+Add Liftosaur to ChatGPT, or connect Claude and Gemini through the MCP server, and ask the assistant to write programs, log workouts and analyze your history.
+
+### Add Liftosaur to ChatGPT
+
+Liftosaur is in the ChatGPT plugin directory. There is nothing to configure and no URL to paste.
+
+1. Open [Liftosaur in the ChatGPT plugin directory](https://chatgpt.com/plugins/plugin_asdk_app_6a5bb283d24481918813e6efbc3d66ad), or open **Plugins** in ChatGPT and search for **Liftosaur**.
+2. Select **Connect**.
+3. Sign in with your Liftosaur account and approve access.
+4. In a chat, write **@Liftosaur** before your request, or select **+** → **More** and pick Liftosaur.
+
+From then on you talk to it like this:
+
+- "@Liftosaur create a 4-day upper/lower program with linear progression."
+- "@Liftosaur I did 3x5 squats at 225 lb today, log it."
+- "@Liftosaur how has my bench press progressed over the last month?"
+- "@Liftosaur my program does not have enough back work, fix it."
+
+The change lands in the app right away. There is no need to close and reopen it.
+
+Plugin availability depends on your ChatGPT plan, region and workspace settings. If **Connect** is greyed out in a workspace, ask the administrator to enable Liftosaur for your role.
+
+### What the assistant can do
+
+Behind the plugin is the Liftosaur MCP server. MCP (Model Context Protocol) is an open standard that lets an AI assistant call tools in another app. The assistant gets these tools:
+
+- **Programs**: list your programs, read a program's Liftoscript source, create a program, update it, or delete it.
+- **Workout history**: list your workouts with date filters, read one workout, log a new workout, edit one, or delete one.
+- **Custom exercises**: list, read, create, update and delete your custom exercises.
+- **Gyms and equipment**: list your gyms, add one, rename one or make it current, and edit bars, plates and fixed weights.
+- **Exercise settings**: read and set your 1RM, weight rounding, equipment and notes per exercise.
+- **Measurements**: read your bodyweight, body part and body fat history, add a value, edit one, or delete one.
+- **Testing and analysis**: `run_playground` simulates a workout to check that a progression works. `get_program_stats` reports duration per day, weekly volume per muscle group, and the strength vs hypertrophy split.
+- **Reference**: the Liftoscript language reference, complete program examples, the program design guide, the workout record format, the built-in exercise list, and the source of every built-in program.
+
+Everything that touches your account needs [Premium](/features/premium). The reference tools work without an account.
+
+### Write a program with an assistant
+
+Ask for the program you want. The assistant reads the Liftoscript reference, writes the program, tests it with `run_playground`, and saves it to your account with `create_program`. If it skips the reference and the syntax comes out wrong, tell it to call `get_liftoscript_reference` first.
+
+To change a program, describe the change. The assistant reads your current program with `get_program`, edits the Liftoscript, and saves it with `update_program`.
+
+To check balance, ask for `get_program_stats`. It returns volume per muscle group and session length.
+
+### Connect Claude, Gemini and other clients
+
+Any MCP client can use the same server. The URL is `https://www.liftosaur.com/mcp`.
+
+- **Claude.ai and Claude Desktop**: go to **Settings → Connectors**, click **Add custom connector**, and paste the URL. A browser window opens to sign in with your Liftosaur account.
+- **Claude Code**: run `claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp`.
+- **Gemini CLI**: add the server to `~/.gemini/settings.json` with `"httpUrl": "https://www.liftosaur.com/mcp"`, then run `/mcp auth liftosaur`.
+
+Sign-in uses OAuth 2.1. The client opens a browser window once, and then refreshes the token on its own. Command-line clients and config-file setups can skip the browser and send an [API key](/features/api) as `Authorization: Bearer lftsk_your_key_here` instead. Every client's exact steps are in the [MCP server docs](/doc/mcp).
+
+### Without Premium
+
+The reference tools are open to everyone. An assistant can read the Liftoscript reference, the examples, the design guide and the built-in programs, and write valid Liftoscript for you. Paste the result into the [Web Editor](/planner), or into the program editor in the app. See [Liftoscript](/doc/liftoscript) for the syntax.
+
+### Autofill muscles for a custom exercise
+
+When you create a custom exercise, the form has an **Autofill Muscles and Types** button. Type the exercise name and tap the button. The app asks an AI model to fill the target muscles, synergist muscles and exercise types from the name. Check the result and adjust anything that looks wrong. If the name is unknown, the app says "Couldn't autofill the muscles for this exercise. Try a different name!". See [Custom Exercises](/features/custom-exercises) for the rest of the form.
+
+### The old prompt generator
+
+The page at `liftosaur.com/ai/prompt` used to build a large prompt with the docs and examples. You copied it into ChatGPT, Claude or Gemini, and pasted the answer back into the web editor. That page is retired. The ChatGPT plugin and the MCP server replace the round trip, and the free reference tools cover the same ground without an account.
+## Premium
+
+Category: Start here. Page: https://www.liftosaur.com/features/premium
+
+One subscription unlocks plates per side, graphs, muscle views, Week Insights, the Apple Watch app and the API. Monthly, yearly or lifetime.
+
+### What Premium unlocks
+
+Premium turns on these features:
+
+- **Plates Calculator**. The plates to load on each side of the bar, next to the set, under the weight keyboard, and as the **Plates** column on the workout screen. Without Premium, the set shows a **See plates for each side** link instead. See [Logging a Workout](/features/workout-screen).
+- **Graphs**. The **Graphs** tab, the graph under an exercise on the workout screen, the exercise stats screen, and the bodyweight, measurements and sleep graphs. Without Premium, the tab opens the Premium screen. The other graphs are blurred, with an **Unlock** button. The **Moving Average Window Size** setting on the measurements graph is Premium too. See [Graphs](/features/graphs).
+- **Muscles**. The muscle group views for a program and for a day. Without Premium they are blurred.
+- **Rest Timer Notifications**. A push notification when the rest ends, the Live Activity and Dynamic Island on iOS, and the Live Update chip on Android. On Android, the **Ignore Do Not Disturb** toggle under **Sound** on the **Me** tab appears with Premium. See [Rest Timer](/features/rest-timer).
+- **Week Insights**. The week card on the Home tab. Without Premium it shows **See Week Insights**, which opens the Premium screen. See [Week Insights](/features/week-insights).
+- **Apple Watch App**. Without Premium, the watch shows **Premium Required**. See [Apple Watch](/features/apple-watch).
+- **API & MCP**. API keys in **Me → API Keys**. Without Premium the screen shows **Subscribe to unlock**. See [API](/features/api).
+
+Everything else is free: programs and the editor, Liftoscript, logging workouts, history, measurements entry, equipment, sharing, import and export.
+
+### See a feature before you buy
+
+Tap a feature name on the Premium screen. A sheet opens with a short description and a screenshot of that feature.
+
+### Choose a plan
+
+The Premium screen shows three cards:
+
+- **Start with Yearly**, the highlighted card, with a **Save 33%** badge.
+- **Start with Monthly**.
+- **Lifetime**, a **One-time payment**. It never renews.
+
+Monthly and Yearly come with a **Free 14-day trial**. The store charges you after the trial, then every month or every year. When a discount offer is running, the cards show the old price crossed out and the note **Discount applies for the first year**. The trial note is hidden then.
+
+The store sets the price, adjusted per country, and shows it in your currency.
+
+You can cancel any time from your App Store or Google Play subscription settings. Premium stays on until the end of the period you already paid for, or until the end of the trial if you cancel during it, so cancelling on day one of the trial still gives you the full 14 days. You cannot buy Lifetime while a subscription is active. The card says **Cancel your subscription first**, or **Available after** the end date of a cancelled one.
+
+### Where to buy and where it works
+
+You buy Premium in the iOS app or the Android app. The web app cannot sell it. Tapping a plan on the web tells you to install Liftosaur from Google Play or the App Store, subscribe there, then log in with the same method on the web.
+
+Premium is tied to your account. The receipt syncs with your data, so the features unlock on iOS, Android and the web at once. If you bought on the other platform, the Premium screen says **You bought this subscription on the App Store. Manage or cancel it from an Apple device.**, or the same for Google Play and an Android device. The features stay unlocked.
+
+### See your plan and manage it
+
+Go to **Me → Account**. Under **🌟 Liftosaur Premium** one row shows your plan:
+
+- **Free plan** with **Get Premium**. Tap it to open the Premium screen.
+- **Premium — Yearly** or **Premium — Monthly**, with **Renews on** the next date, and **Manage**. A **Cancel subscription** link opens the store's subscription manager.
+- **Ends on** the date, **won't renew**, after you cancel. **Manage** opens the Premium screen, where **Resubscribe** takes you back to the store.
+- **Lifetime Premium**, **All features unlocked forever**.
+- **Free access**, **All features unlocked**, when Liftosaur granted you a free key.
+- On the web, **Premium** with **Manage on the mobile app**.
+
+A subscriber also sees **Switch to Monthly** or **Switch to Yearly** on the Premium screen. A switch to Yearly starts at your next renewal. A switch to Monthly credits the time left on the yearly plan.
+
+### Restore a purchase
+
+If Premium is off after a reinstall or on a new phone, open the Premium screen and tap **Restore Subscription** at the bottom. The app asks the store for your purchases and unlocks the features. If the store has nothing, the app says **No active purchases to restore.**
+
+**Redeem coupon** on the same screen opens the App Store code sheet on iOS, or a code field on Android.
 ## Logging a Workout
 
 Category: Workout. Page: https://www.liftosaur.com/features/workout-screen
@@ -25,25 +234,29 @@ Sets that end in `+` ask a question after the tap. `5+` asks for reps, `?+` asks
 
 Tap a **Reps** or **Weight** field. A keypad opens with digits, **+**, **-**, backspace and a close button. On the weight field, **+** and **-** step by the smallest weight your equipment can load. On reps they step by 1.
 
-The RPE column shows the RPE you logged after a `@8+` set, as `@8`. To change it, or the target itself, tap the pencil icon on the expanded set and pick **Edit Target**. The sheet has reps, weight, **Enable RPE?**, **Enable Set Timer?** and **Enable Custom Rest Timer?**. **Delete Set** in the same menu removes the set.
+The RPE column shows the RPE you logged after a `@8+` set, as `@8`.
+
+### Change what a set asks for
+
+Tap the pencil icon on the expanded set and pick **Edit Target**. The **Edit Set Target** sheet has **Min** and **Max** reps, an **AMRAP?** switch, the target **Weight** with an **Ask?** switch, and switches for **Enable RPE?**, **Enable Set Timer?** and **Enable Custom Rest Timer?**. The change applies to this workout only. **Delete Set** in the same menu removes the set.
 
 ### Add sets, expand and collapse
 
-Tap a set number or its target to expand the set. Tap it again to collapse it. After you complete the expanded set, the next unfinished set expands. If you collapsed a set yourself, the sets stay collapsed after that.
+Tap a set row to expand it. Tap it again to collapse it. After you complete the expanded set, the next unfinished set expands. If you collapsed a set yourself, the sets stay collapsed after that.
 
 **Add Warmup Set** and **Add Set** under the sets add one row each. **Add Set** copies the last set of the exercise, or the last set from your previous workout when there are none.
 
 ### See plates, the rounded weight, and estimated 1RM
 
-The second column header is **Target**. Tap it to cycle: **Target**, **Previous Set**, **Plates**, **e1RM**. **Plates** needs Premium and equipment set for the exercise. **e1RM** is the estimated one rep max from reps, weight and RPE.
+The second column header is **Target**. Tap it to cycle: **Target**, **Previous Set**, **Plates**, **e1RM**. **Plates** needs Premium and equipment set for the exercise. **e1RM** is the estimated one rep max for each set: the set's weight divided by the share of 1RM that the RPE chart gives for its reps at its RPE, with RPE 10 assumed when none is logged.
 
-When the program's weight does not match your plates, the target shows the exact weight crossed out and the rounded weight underlined. Tap the underlined weight. A sheet titled **Why is the weight adjusted?** explains the percentage of your 1RM, the kg to lb conversion, the bar weight, the plates per side, or the closest fixed dumbbell.
+When the program's weight does not match your plates, the target shows the exact weight crossed out like ~~212lb~~ and the rounded weight underlined, 210lb. Tap the underlined weight. A sheet titled **Why is the weight adjusted?** explains the percentage of your 1RM, the kg to lb conversion, the bar weight, the plates per side, or the closest fixed dumbbell.
 
 ### Move between exercises
 
 Swipe left or right to move between exercises, or tap a thumbnail in the strip at the top. Each thumbnail shows completed sets over total, like `2/5`, and a check when the exercise is done. Exercises in a superset share a colored line under their thumbnails. Long-tap a thumbnail and drag it to reorder.
 
-The cog on the exercise card opens a menu: **Edit Program Exercise**, **Swap Exercise**, **Edit Superset**, **Show Exercise Notes**, **Remove Exercise**. **Remove Exercise** asks "Do you want to remove this exercise in this workout only?".
+The cog on the exercise card opens a menu letting you to edit program exercise, swap exercise for this workout only, etc.
 
 The card header has **Equipment** and, when the program uses percentages, **1RM**. Tap either value to change it.
 
@@ -57,7 +270,7 @@ For notes on the whole workout, tap the kebab at the top and pick **Show Workout
 
 Scroll below the sets. The graph shows your weights over time for this exercise, after two or more past workouts. It needs Premium. **Hide Graphs and PRs** hides this block.
 
-**Personal Records** lists **Max Weight** and **Max 1RM** with their dates. Under it is every past workout of this exercise.
+**Personal Records** lists **Max Weight** and **Max 1RM** with their dates. **Max 1RM** is an estimate (e1RM), not a lift you did. The app takes the weight of a set and divides it by the share of your 1RM that the RPE chart gives for that many reps at that RPE. A set without a logged RPE counts as RPE 10, so 5 reps at 200 lb become 200 lb ÷ 0.865 ≈ 231 lb. The chart follows the OpenPowerlifting RPE calculator. Under the records is every past workout of this exercise.
 
 ### Muscles worked today
 
@@ -117,14 +330,14 @@ Go to **Me → Timers**. You can set, in seconds:
 
 You can write rest times right in the program text, per exercise or per set:
 
-```
+```liftoscript
 Bench Press / 5x5 / 90s
 Squat / 1x12 60s, 5x5 120s
 ```
 
 Timed sets use two values, the set duration and the rest after it:
 
-```
+```liftoscript
 Plank / 3x1 60s|30s
 ```
 
@@ -160,11 +373,11 @@ Time the set itself, not only the rest. Planks, carries, EMOM and Tabata get a c
 
 A plain `90s` after the sets is the rest timer. Put a `|` in it and the left side becomes the set timer, how long the set itself lasts:
 
-```
-Plank / 3x1 60s|30s
+```liftoscript
+Plank / 3x1 60s|30s / 0lb
 ```
 
-That is 3 sets of plank, 60 seconds each, then 30 seconds of rest. In the workout, a timed set shows a play button instead of the check mark.
+That is 3 sets of plank, 60 seconds each, then 30 seconds of rest. In the workout, a timed set shows a play button instead of the check mark. Give a bodyweight exercise `0lb`, or the app asks you for the weight when the set ends.
 
 `60s|?` keeps your default rest from **Me → Timers**. See [Liftoscript](/doc/liftoscript) for the full syntax, and [Rest Timer](/features/rest-timer) for how the rest side works.
 
@@ -198,7 +411,7 @@ Tap the recorded time in the set row. The **Edit recorded time** sheet takes min
 
 Add `+` after the set timer and the clock does not stop at the target. You stop it yourself with **Stop & record**, and the elapsed time is recorded. This is the AMRAP of timers, "hold the plank as long as you can":
 
-```
+```liftoscript
 Plank / 2x1 30s|60s, 1x1 30s+|60s
 ```
 
@@ -210,7 +423,7 @@ In `progress` and `update` blocks, the target is `setTime` and the recorded time
 
 Add `auto` and the app opens the next timed set on its own when the rest ends. No tap between rounds.
 
-```
+```liftoscript
 // EMOM - 5 rounds, 5 reps, 1-minute window
 Power Clean / 5x5 135lb 60s|0s auto
 
@@ -245,12 +458,14 @@ Add a + in your program and the app asks what you did: AMRAP reps, RPE, the weig
 
 In Liftoscript, a `+` after a value means "ask me when I finish the set". There are four places you can put it:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb
 Romanian Deadlift / 3x8 @8+ / 165lb
 Bench Press / 3x8 / 100lb+
 Bicep Curl / 3x10 @8 ?+
-Squat / 3x5 / progress: custom(shouldBumpWeight+: 0) {~ ... ~}
+Squat / 3x5 / progress: custom(shouldBumpWeight+: 0) {~
+  if (state.shouldBumpWeight > 0) { weights += 5lb }
+~}
 ```
 
 - `5+` is an AMRAP set. The app asks how many reps you did.
@@ -266,7 +481,7 @@ Write `5+` and the set target shows as `5+` on the workout screen. When you tap 
 
 The number you enter is saved as the completed reps of that set. Progressions read it as `completedReps`. The demo program uses it like this:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
   if (completedReps[ns] >= 8) {
     weights += state.increment
@@ -282,11 +497,13 @@ A set with a rep range, like `3x8-12+`, works the same way. `+` goes after the t
 
 ### Log your RPE
 
+RPE, Rate of Perceived Exertion, is how hard a set felt, on a scale from 1 to 10. 10 means you could not have done one more rep. 9 means one rep was left, 8 means two, and so on down. Logging it tells the app and your progression scripts how close to failure a set was, which the reps and weight alone do not show.
+
 `@8` alone sets a target RPE and the app does not ask anything. `@8+` shows the target as `@8+` and asks for your **Completed RPE** when you tap the checkmark. The field goes from 0 to 10 in steps of 0.5, and starts at the target RPE.
 
 After **Done**, the set row shows the RPE you entered next to the set. Progressions read it as `completedRPE`, and the target as `RPE`:
 
-```
+```liftoscript
 Romanian Deadlift / 3x8 @8+ / 165lb / progress: custom() {~
   if (completedRPE[ns] < 8) {
     weights += 10lb
@@ -304,7 +521,7 @@ When one set asks for both weight and RPE, the popup shows both fields.
 
 The entered weight is saved as the completed weight of the set. Progressions read it as `completedWeights`:
 
-```
+```liftoscript
 Bicep Curl / 3x10 @8 ?+ / progress: custom() {~
   weights = increment(completedWeights[1])
 ~}
@@ -324,7 +541,7 @@ To change this for an exercise, tap the exercise name on the workout screen to o
 
 Add `+` after a state variable name in `progress: custom(...)`:
 
-```
+```liftoscript
 Bench Press / 3x8 / progress: custom(shouldBumpWeight+: 0) {~
   if (shouldBumpWeight > 0) {
     weights += 5lb
@@ -340,16 +557,12 @@ Tap a set to expand it, tap its options button, and choose **Edit Target**. The 
 
 Scripts can also set them. `amraps`, `logrpes` and `askweights` work like `reps` or `weights`, `1` turns a marker on and `0` turns it off:
 
-```
+```liftoscript
 Squat / 3x8 100lb / progress: custom() {~
   amraps = 1
   askweights[ns] = 1
 ~}
 ```
-
-### What changes in the next workout
-
-Nothing changes until you tap **Finish**. Then the app runs the progress script of every exercise with what you entered: `completedReps`, `completedRepsLeft`, `completedRPE`, `completedWeights` and your state variable values. The script updates the program text, and the next workout shows the new weights and reps. The workout itself is saved in history with the reps, RPE and weight you entered. See [Liftoscript](/doc/liftoscript) for the full list of variables.
 ## Supersets
 
 Category: Workout. Page: https://www.liftosaur.com/features/supersets
@@ -384,13 +597,13 @@ Changes made here apply to this workout only. Your program stays as it was.
 
 ### Group exercises in the program editor
 
-Open an exercise in the program editor. On the day card, tap the three-dot menu and pick **Enable Superset**. A **Superset group:** row appears. Tap it to pick an existing group or create a new one, from a sheet with the same choices as in the workout. The row lists the other exercises in the group in brackets. **Disable Superset** in the same menu takes the exercise out of its group.
+Open an exercise in the program editor, or pick **Edit Program Exercise** from the cog on the workout screen. The exercise line opens in the Liftoscript editor sheet. Tap the **Enable superset** pill to add `/ superset: A` to the line. Change the letter in the text to move the exercise to another group, and delete the `superset:` part to take it out of its group.
 
 ### Write it in Liftoscript
 
 Add a `superset:` section to each exercise in the group:
 
-```
+```liftoscript
 Lateral Raise / 3x12-15 / 15lb / superset: A
 Face Pull / 3x15 / 40lb / superset: A
 ```
@@ -399,7 +612,7 @@ The group name after `superset:` can be any string, like `A` or `ChestDay1`. In 
 
 ### Rest between superset exercises
 
-Go to **Me → Timers** and set **Superset**, in seconds. This rest runs after every working set of an exercise in a group, instead of the **Workout** timer. It is empty by default, so groups use the Workout timer until you set it. A per-set rest time in the program text, like `Face Pull / 3x15 180s / superset: A`, takes priority over both. See [Rest Timer](/features/rest-timer) for how the timer works.
+Go to **Me → Timers** and set **Superset**, in seconds, for example 15. This rest runs after every working set of an exercise in a group, instead of the **Workout** timer. It is empty by default, so groups use the Workout timer until you set it. A per-set rest time in the program text, like `Face Pull / 3x15 180s / superset: A`, takes priority over both. See [Rest Timer](/features/rest-timer) for how the timer works.
 
 ### History and program preview
 
@@ -409,7 +622,7 @@ A finished workout in your history draws the same colored line next to each exer
 
 This is separate from supersets. When a program repeats an exercise across weeks, the app keeps the order of exercises in the day as well as it can. When exercises start repeating on different weeks, that order can become unclear. Write the position in square brackets after the exercise name to fix it:
 
-```
+```liftoscript
 Squat[1,1-4] / 3x8
 Bench Press[2,1-4] / 3x8
 Bicep Curl[3,1-4] / 3x8
@@ -421,6 +634,10 @@ The first number is the position, the range is the weeks the exercise repeats. `
 Category: Workout. Page: https://www.liftosaur.com/features/changing-a-workout
 
 Swap, add or remove exercises mid-workout, train without a program, turn an ad-hoc workout into a program day, or edit the program day from the workout.
+
+### Pick which day to do
+
+Tap **Workout** in the footer when no workout is ongoing. The **New Workout** sheet shows the next day of your program with its exercises, and a **Start** button. Tap **Select next workout** to do another day instead. The picker lists every day of the program. Tap one, and it becomes the next day, so the program continues from there. **Ad-Hoc Workout** on the same sheet starts an empty workout, see below.
 
 ### Swap an exercise
 
@@ -478,16 +695,6 @@ Tap the kebab at the top and pick **Edit Program Day**. The same editor opens wi
 If you change an exercise that is set up separately on several days, the app asks: **Change only this day** or **Change across whole program**. If you already logged sets for the old exercise, it asks "You've already logged sets for Bench Press in this workout. Switch them to Incline Bench Press too?".
 
 **Edit Program Exercise** is not in the menu of an ad-hoc or swapped exercise.
-
-### Change state variables
-
-Exercises with `progress: custom(...)` keep values between workouts, like `increment: 5lb`. See [Progressions](/features/progressions).
-
-In the exercise editor, tap the `custom(...)` part of the progress. A **State vars…** chip appears above the keyboard. It opens the **State Variables** sheet with every variable and its value. Change a value, add a variable, or delete one that no script uses. Tap **Save** in the editor to write it to the program.
-
-A variable marked **User Prompted** is asked when you complete the last set of the exercise, under **Enter new state variables values**.
-
-Under the sets, the card shows **State Variables changes** when finishing the workout would change a variable. Each line reads `increment: 5lb -> 10lb`, so you see the progression before it happens.
 ## History and Calendar
 
 Category: Workout. Page: https://www.liftosaur.com/features/workout-history
@@ -514,7 +721,9 @@ The week starts on Sunday. To start it on Monday, go to **Me → Settings** and 
 
 The card under the strip sums up the selected week: the date range, the volume, the number of sets, and the number of personal records. For a past week, the volume and sets show the difference from the week before, in green or red.
 
-Tap **Show More**. The details list the week's personal records, the total sets, and the **Strength** and **Hypertrophy** split with percentages. Then the sets per **Upper**, **Lower**, **Core**, **Push**, **Pull**, **Legs**, and per muscle group, with a body drawing. **Change Set Range Settings** opens the set targets.
+Tap **Show More**. The details list the week's personal records, the total sets, and the **Strength** and **Hypertrophy** split with percentages. Then the sets per **Upper**, **Lower**, **Core**, **Push**, **Pull**, **Legs**, and per muscle group, with a body drawing.
+
+A muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total, of which 3 counted as strength (`s`, under 8 reps) and 5 as hypertrophy (`h`, 8 reps or more), on 2 days (`d`). The total is colored against your weekly set range for that group, 10 to 12 sets by default. The arrow says which way to go: **↑** below the minimum, **↓** above the maximum, none inside the range. **Change Set Range Settings** at the bottom changes the ranges and the day targets. [Week Insights](/features/week-insights) explains every number and color.
 
 Week Insights needs Premium. Without it, the card says **See Week Insights** and opens the subscription screen.
 
@@ -648,11 +857,11 @@ Android needs the Do Not Disturb access permission for this. The first time, the
 
 Category: Workout. Page: https://www.liftosaur.com/features/apple-watch
 
-Run your workout from your wrist. Log sets with the Digital Crown, answer AMRAP and RPE prompts, time planks and see your heart rate.
+Run your workout from your wrist. Log sets with the Digital Crown, answer AMRAP and RPE prompts, run timed sets and see your heart rate.
 
 ### What you need
 
-The watch app comes with the iPhone app, version 6.31 or later. It needs Premium. Without it, the watch shows **Premium Required** with a **Recheck** button.
+The watch app comes with the iPhone app. It needs Premium. Without it, the watch shows **Premium Required** with a **Recheck** button.
 
 Open Liftosaur on the phone once after pairing, or the watch shows **Sync Required**.
 
@@ -690,7 +899,7 @@ Then the set clock runs, `0:12 of 1:00`. At the target, the watch logs the set a
 
 ### Heart rate
 
-Starting a workout on the watch starts an Apple Health strength workout session. Your heart rate then shows under the clock on every workout screen, in beats per minute. It reads `--` until the first reading arrives. If a reading never comes, tap the heart to start the session again.
+Starting a workout on the watch starts an Apple Health strength workout session. Your heart rate then shows under the clock on every workout screen, in beats per minute. It reads `--` until the first reading arrives. If a reading never comes, tap the heart to start the session again. If it still shows `--`, check that Liftosaur may read heart rate: on the watch, open **Settings → Privacy & Security → Health**, and on the iPhone, open the **Health** app, then **Sharing → Apps and Services → Liftosaur**.
 
 ### Finish the workout and Apple Health
 
@@ -801,7 +1010,13 @@ Tap an exercise, a day name or a week name to select it. A dock appears above th
 
 Tap the pencil on an exercise. A bottom sheet opens with the exercise line in Liftoscript. Tap a value, like `3x5` or `155lb`, to get a hint and a row of pills. Swipe to move between values.
 
-The pills add the parts of a set: **Add weight**, **Add RPE**, **Add rest timer**, **Add set timer**, **Make rep range**, **Add set label**, **Add set variation**, **Add warmups**, **Add label**, **Enable superset**, **Add progress** and **Add update**. Weight takes lb, kg or a percentage of your 1RM. Reps with a `+` are AMRAP. RPE with a `+` asks you to log the real RPE.
+The pills depend on the value you tapped. Each one inserts or rewrites a piece of Liftoscript for you, so you never have to remember the syntax:
+
+- Tap the exercise name for line-level pills: **Add sets**, **Add warmups**, **Add set variation**, **Add progress**, **Add update**, **Enable superset**, **Add label**, **Reuse…**, **Repeat…** and **Add forced order…**.
+- Tap a set group like `3x5` for set pills: **Add weight**, **Add RPE**, **Add rest timer**, **Add set timer**, **Add auto**, **Add set label** and **Add another set group**.
+- Tap the `progress:` part for **Add state var**, **Require 2 successes**, **Add deload on failure** and **Reuse script from…**. Tap a state variable inside `custom(...)` for **Rename…**, **Make weight** and **Make number**, which switch its value between a weight and a plain number.
+
+Reps with a `+` are AMRAP. RPE with a `+` asks you to log the real RPE.
 
 Double-tap the text to edit it as plain text. A suggestion strip on the keyboard offers exercise names, equipment variants, reuse targets like `...t1`, section names, progress functions and state variables. Tap **Apply** to fold the text back, then **Save**.
 
@@ -821,7 +1036,7 @@ The second mode button shows one week, with a card per day. A day card has the n
 
 The third mode button shows every day as its own text editor. The fourth shows the whole program as one text, with `# Week 1` and `## Upper A` headings:
 
-```
+```liftoscript
 # Week 1
 ### Upper A
 Bench Press / 1x5 60%, 1x3 70%, 3x5 / 155lb / warmup: 1x5 45%, 1x3 65% / progress: lp(5lb)
@@ -831,7 +1046,15 @@ Both text modes have the same pills and suggestion strip. A syntax error keeps y
 
 ### Check the sets per muscle group
 
-Tap the week muscles icon next to the week name in the UI mode, or select a week on the grid and pick **Week stats**. The sheet shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then the sets and the weekly frequency per muscle group. Colors show if you are inside the range set in **Edit Weekly Muscle Range Settings**. A front and back muscle map colors the muscles by volume. Tap a number to see which exercises count towards it.
+Tap the week muscles icon next to the week name in the UI mode, or select a week on the grid and pick **Week stats**. The sheet shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then the sets and the weekly frequency per muscle group.
+
+Each muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total that week, of which 3 are strength (`s`, under 8 reps) and 5 hypertrophy (`h`, 8 reps or more), on 2 days (`d`). A synergist set counts as a fraction, 0.5 by default, and each number is rounded on its own, so the parts may not add up to the total.
+
+Every muscle group has a weekly set range, 10 to 12 sets unless you change it, and a frequency target, 2 days by default. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below.
+
+To change the ranges, the frequency targets or the synergist multiplier, tap **Edit Weekly Muscle Range Settings** at the bottom of the sheet. The same settings drive [Week Insights](/features/week-insights) for your finished workouts.
+
+A front and back muscle map colors the muscles by volume. Tap a number to see which exercises count towards it.
 
 The day muscles icon, or **Day stats** on the grid, shows one day.
 
@@ -852,38 +1075,38 @@ Write a program as text: one line per exercise with sets, reps, weight, 1RM perc
 
 Every program in Liftosaur is text. Each exercise is one line. The exercise name comes first, then sections separated by `/`:
 
-```
+```liftoscript
 Bench Press / 3x8
 ```
 
 `3x8` is 3 sets of 8 reps. `3x8-12` is a rep range. Commas join set groups:
 
-```
+```liftoscript
 Bench Press / 1x5, 1x3, 1x1, 5x5
 ```
 
 Add the weight after the reps. It can be lb or kg, or a percentage of your 1RM:
 
-```
+```liftoscript
 Bench Press / 3x12 60kg
 Bench Press / 3x12 80%
 ```
 
 Add `@` and a number from 1 to 10 for an RPE target. With no weight, the app looks up the weight from your 1RM, the reps and the RPE:
 
-```
+```liftoscript
 Bench Press / 3x12 @8
 ```
 
 Each set group can have its own weight, percentage or RPE:
 
-```
+```liftoscript
 Bench Press / 1x5 @8, 1x3 @9, 1x1 @10, 5x5 50%
 ```
 
 A value that applies to every set goes in its own section:
 
-```
+```liftoscript
 Bench Press / 1x12, 5x5 / 20s 60%
 ```
 
@@ -895,7 +1118,7 @@ A `+` after the reps makes an AMRAP set. A `+` after the RPE or the weight asks 
 
 In the full program text, `#` starts a week and `##` starts a day:
 
-```
+```liftoscript
 # Week 1
 ### Day 1
 Squat / 5x5 / progress: lp(5lb)
@@ -910,7 +1133,7 @@ Squat / 5x4
 
 A `//` line above an exercise is its description. The workout screen shows it. It takes Markdown. A `///` line is a note for you and never shows in the workout:
 
-```
+```liftoscript
 /// Not shown in the workout
 // Pause **2 seconds** at the bottom
 Squat / 5x5 / progress: lp(5lb)
@@ -924,13 +1147,13 @@ A `//` line above `# Week 1` or `## Day 1` describes the week or the day. The we
 
 A week range after the name repeats the line on the same day in those weeks:
 
-```
+```liftoscript
 Bench Press[1-5] / 3x8
 ```
 
 The repeated weeks stay empty in the text. `...` reuses the sets, weights, warmups and scripts of another exercise in the current week:
 
-```
+```liftoscript
 Bench Press / 5x5 / progress: lp(5lb)
 Squat / ...Bench Press
 ```
@@ -939,14 +1162,14 @@ Squat / ...Bench Press
 
 `used: none` makes a template. The line never appears in a workout, and the name does not need to be a real exercise:
 
-```
+```liftoscript
 t1 / used: none / 1x10+, 3x10 / 70% / progress: lp(5lb)
 t1: Bench Press / ...t1
 ```
 
 A word and a colon before the name is a label. `main: Squat` and `accessory: Squat` are two different exercises, each with its own progression. A name in parentheses after a set group is a set label, up to 8 characters. It shows next to the set in the workout:
 
-```
+```liftoscript
 Squat / 4x5 (Main), 1x5+ (AMRAP)
 ```
 
@@ -975,9 +1198,11 @@ Tell the app how to add weight or reps over time. Pick a built-in linear, double
 
 A progression is a rule on one exercise in your program. It runs when you finish the workout and rewrites the program text. Write it with `progress:` after the sets:
 
-```
+```liftoscript
 Bench Press / 3x5 / 155lb / progress: lp(5lb)
 ```
+
+Complete all three sets of five, and after you finish the workout the line reads `160lb`. Miss a rep, and it stays at `155lb`.
 
 You write it once per exercise. The app applies it on every day and week where that exercise appears. Write `progress: none` on a deload day to skip it there.
 
@@ -987,20 +1212,20 @@ Complete all working sets of an exercise, and the app shows what the rule will d
 
 Linear progression (`lp`) adds a fixed weight after you complete every set and rep:
 
-```
+```liftoscript
 Squat / 3x8 / progress: lp(5lb, 2)
 Squat / 3x8 / progress: lp(5lb, 2, 0, 10lb, 3)
 ```
 
 The second number is how many good sessions you need. The fourth and fifth are the weight to drop and how many failed sessions it takes. The app adds the increment to the weight you lifted, so a weight you changed during the workout carries over.
 
-To edit it in the app, tap the cog on the exercise during a workout and pick **Edit Program Exercise**. The **Edit Progress** section has a **Progress** picker with **Linear Progression**, **Double Progression**, **Sum Reps**, and **Custom**. Linear shows **Increase weight by** and **after every ... successful attempts**.
+To edit it in the app, tap the cog on the exercise during a workout and pick **Edit Program Exercise**. The exercise line opens in the Liftoscript editor sheet. Change the `progress:` part of the line and tap **Save**, and the program is updated.
 
 ### Adding reps first, then weight
 
 Double progression (`dp`) grows the reps inside a range, then adds weight and resets the reps:
 
-```
+```liftoscript
 Bent Over Row / 3x8-12 / 115lb / progress: dp(5lb, 8, 12)
 ```
 
@@ -1008,7 +1233,7 @@ With `3x8-12` the range narrows from below until you hit 12 on every set, then t
 
 Sum of reps (`sum`) adds weight when the reps of all sets add up to a number:
 
-```
+```liftoscript
 Bench Press / 3x10+ / progress: sum(30, 5lb)
 ```
 
@@ -1016,7 +1241,7 @@ Bench Press / 3x10+ / progress: sum(30, 5lb)
 
 `progress: custom()` runs a script between `{~` and `~}`. It reads what you did and writes new values into the program:
 
-```
+```liftoscript
 Overhead Press / 3x5+ / 85lb / progress: custom(increment: 5lb) {~
   if (completedReps[ns] >= 8) {
     weights += state.increment
@@ -1034,7 +1259,7 @@ In the app, pick **Custom** in the **Progress** picker and tap **Edit Script**. 
 
 State variables live in the parentheses of `custom()`. The script reads and writes them as `state.name`, and the app saves them in the program text:
 
-```
+```liftoscript
 Bench Press / 3x8 / progress: custom(attempt: 0) {~
   if (completedReps >= reps) {
     state.attempt += 1
@@ -1048,13 +1273,13 @@ Bench Press / 3x8 / progress: custom(attempt: 0) {~
 
 A `+` after the name, as in `custom(shouldBumpWeight+: 0)`, makes the app ask you for the value after the last set.
 
-On the **Edit Program Exercise** screen, **Progress State Variables** lists each variable with its value. Change a value there, or tap **+ Add State Variable**. In the text editor, tap **State vars…** on a `custom(...)` to open the same list as a sheet.
+In the exercise editor, tap **State vars…** on a `custom(...)` line to open the list of variables with their current values. Change a value there, and the app writes it back into the program text.
 
 ### Changing sets during the workout
 
 `update: custom()` runs before the first set and after every set you complete. It changes the sets of the current workout only. `setIndex` is the set you just tapped, 0 on the first run:
 
-```
+```liftoscript
 Bench Press / 3x8 / update: custom() {~
   if (setIndex == 1 && completedReps[1] >= reps[1]) {
     numberOfSets = 4
@@ -1068,13 +1293,13 @@ Completed sets never change. Turn the section on from the 3-dot menu of **Edit P
 
 Tap **Suppress** under the preview to keep the program as it is after this workout. The listed changes get a line through them. Tap **Enable** to turn the rule back on.
 
-### Why the weight is not the one in the program
+### Rounded weights in the workout
 
-If the app rounded a weight to your plates, the weight is underlined. Tap the set to expand it, then tap the weight. The **Why is the weight adjusted?** sheet shows the program's weight, the 1RM math for a percentage, and the bar and plates it used.
+A progression writes exact weights into the program. When the increment is not a weight your plates can make, like `2.5lb` with only 5 lb plates, the program soon holds a weight like `162.5lb` that you cannot load. Percentages of your 1RM do the same: `70%` of a 235 lb max is 164.5 lb. In the workout, the app rounds such a weight to what you can load and underlines it. Tap the set to expand it, then tap the underlined weight. The **Why is the weight adjusted?** sheet shows the program's weight, the 1RM math for a percentage, and the bar and plates it used. See [Logging a Workout](/features/workout-screen) for the sheet.
 
 ### More tools for scripts
 
-- `bodyweight` is your latest bodyweight from measurements. `weights = bodyweight` in an update script tracks pull-ups.
+- `bodyweight` is your latest bodyweight from measurements. `weights = bodyweight` in an update script tracks pull-ups. [Equipment, Plates and Gyms](/features/equipment-and-gyms) shows the full setup for weighted and assisted pull-ups.
 - Tags let one exercise change another's state. Write `Squat / 3x8 / id: tags(1)`, then `state[1].rating = 10` from another script.
 - Progression ladders: `Split Squat | ! Bulgarian Split Squat | Pistol Squat / 3x8 0lb`. `exerciseVariationIndex += 1` moves to the next movement.
 - Built-in functions: `floor`, `ceil`, `round`, `sum`, `min`, `max`, `increment`, `decrement`, `roundWeight`, `rpeMultiplier`, `calculate1RM`, `zeroOrGte`, and `print` to show values in the preview.
@@ -1150,7 +1375,7 @@ The editor is built for a big screen. On a laptop the stats sit to the right of 
 
 Each day has an **Exercises** text box. Type one exercise per line, with sets and reps after a slash:
 
-```
+```liftoscript
 Bench Press / 5x5 / 90s
 Squat / 3x8 @8
 ```
@@ -1163,7 +1388,13 @@ Click the document icon in the toolbar to switch to **Full Program** mode. The w
 
 ### Check volume and balance
 
-To the right of the editor is **Week Stats**. It shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then sets for **Upper**, **Lower**, **Core**, **Push**, **Pull** and **Legs**, then sets per muscle group. Each number is colored by whether it sits in your target range. A `3d` after a number is the number of days that muscle group is trained that week. Hover a number to see which exercises count toward it and how much.
+To the right of the editor is **Week Stats**. It shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then sets for **Upper**, **Lower**, **Core**, **Push**, **Pull** and **Legs**, then sets per muscle group.
+
+Each line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total that week, of which 3 are strength (`s`, under 8 reps) and 5 hypertrophy (`h`, 8 reps or more), on 2 days (`d`). A synergist set counts as a fraction, 0.5 by default, and each number is rounded on its own, so the parts may not add up to the total.
+
+Every muscle group has a weekly set range, 10 to 12 sets unless you change it, and a frequency target, 2 days by default. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below. The type lines have no range, so no color and no arrow.
+
+Hover a number to see which exercises count toward it and how much.
 
 A front and back body figure below the numbers shades the muscles you train that week.
 
@@ -1218,7 +1449,7 @@ Type in **Search by name**. Words match the name and the equipment, so `incline 
 
 ### Add several at once
 
-Tap the circle on each exercise you want. The button counts them: **Add to this workout (2)**. In the program editor it says **Add Exercises (2)**. A swap picks one exercise only.
+Tap the circle on each exercise you want. The button counts them: **Add to this workout (2)**, and the names of the selected exercises are listed under it, so you can check your picks after scrolling on. In the program editor it says **Add Exercises (2)**. A swap picks one exercise only.
 
 ### Filter by equipment and muscles
 
@@ -1244,6 +1475,16 @@ The weights come along. The app takes the weight from your history for the new e
 The **From Program** tab lists your current program's exercises by week and day, and an exercise added from here keeps its progression. **Ad-hoc Exercise** adds a plain exercise.
 
 A swap to an ad-hoc exercise drops the old exercise's progression. The settings icon at the top left of the sheet has one switch to keep it: **Keep existing program exercise logic when pick adhoc exercise**.
+
+### Keep your usual alternatives ready
+
+If you often swap the same exercises in, say Incline Bench Press when the flat bench is taken, define them in the program once with `used: none`. Such a line is not part of any day, so it never shows up in a workout on its own, but it carries its own sets, weight and progression:
+
+```liftoscript
+Incline Bench Press / 3x8 / 115lb / used: none / progress: dp(5lb, 8, 10)
+```
+
+When you swap during a workout, pick it from the **From Program** tab. It comes in with these sets and this weight instead of a guess from history, and its progression runs when you finish, so the next swap starts from the updated weight. See [Liftoscript](/doc/liftoscript) for `used: none` and [Changing Today's Workout](/features/changing-a-workout) for swapping.
 
 ### Your exercises list
 
@@ -1274,7 +1515,9 @@ The same calculator is on the site at [/rep-max-calculator](/rep-max-calculator)
 
 ### Override muscles
 
-Tap **Override Muscles** at the top of the exercise screen. Pick the muscles and give each a multiplier from 0 to 1. At 1 it is a target muscle, and each set counts in full. Below 1 it is a synergist. The override applies to the week insights, the volume on the Program screen, and the graphs.
+Every built-in exercise comes with target and synergist muscles, and the app counts your sets per muscle group from them in the week insights, the volume on the Program screen, and the graphs. Those defaults do not fit everyone. A wide-grip pull-up may be mostly back for you, while the default also counts biceps. A Romanian deadlift you do for the glutes still counts as hamstrings. And a custom exercise may have no muscles at all. The override fixes the counts for you without changing the exercise for anyone else.
+
+Tap **Override Muscles** at the top of the exercise screen. Pick the muscles and give each a multiplier from 0 to 1. At 1 it is a target muscle, and each set counts in full. Below 1 it is a synergist, and a set counts as that share, the same way the default synergist multiplier works in [Week Insights](/features/week-insights). The override applies everywhere sets per muscle are counted.
 
 ### The exercises directory on the site
 
@@ -1319,7 +1562,7 @@ Uploads need a signed-in account. Otherwise the app says "You need to be logged 
 
 Tap **Save**. The exercise appears under **Custom Exercises** in the picker. Select it and tap **Add to this workout**. In a program, write it by name like any built-in exercise:
 
-```
+```liftoscript
 Landmine Press / 3x10 / 60s
 ```
 
@@ -1379,15 +1622,41 @@ Dumbbells, kettlebells and weight stacks come in fixed steps. Turn on **Is Fixed
 
 Every row has a **Unit** field: **Default**, **lb** or **kg**. Pick **kg** for a machine with a kg stack in a lb gym. Exercises on that equipment show kg in the workout and in history. Graphs stay in your default unit.
 
-### Bodyweight bar and assisted machines
+### Bodyweight, weighted and assisted pull-ups
 
-Two switches on each plate-loaded row cover pull-ups and dips. **Bodyweight for Bar** uses your current bodyweight as the bar, and the **Bar** field turns gray to show it. **Is assisting?** makes the plates reduce the total instead of adding to it.
+Two switches on each plate-loaded row cover pull-ups, dips and the like. **Bodyweight for Bar** uses your current bodyweight as the bar, and the **Bar** field turns gray to show it. **Is assisting?** makes the plates reduce the total instead of adding to it. Your bodyweight comes from **Me → Measurements**, and from Apple Health or Health Connect when that sync is on.
 
-Turn both on for an assisted pull-up machine and enter its plates. The app rounds to your bodyweight minus plates. If a weight drops to 0 by surprise, the **Why is the weight adjusted?** popup says when **Is assisting?** is the reason.
+**Weighted pull-ups.** Add a custom equipment, for example **Belt**, turn on **Bodyweight for Bar**, leave **Is assisting?** off, and enter the plates you hang from the belt. In the program, the weight is the extra load, and an `update` script adds your bodyweight when the workout starts:
+
+```liftoscript
+Pull Up, Belt / 3x8 25lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight + originalWeights[ns]
+  }
+~} / progress: lp(5lb)
+```
+
+The sets show bodyweight plus 25 lb, the plates calculator shows what to hang, and a good session makes it 30 lb next time.
+
+**Assisted pull-ups.** Use the assisted machine equipment, or a custom one, turn on both **Bodyweight for Bar** and **Is assisting?**, and enter the machine's stack as plates. For bands, add one "plate" per band with the weight it takes off. In the program, the weight is the assistance, and the script subtracts it:
+
+```liftoscript
+Pull Up, Leverage Machine / 3x8 50lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight - originalWeights[ns]
+  }
+~} / progress: lp(-5lb)
+```
+
+A good session lowers the assistance to 45 lb. If a weight drops to 0 by surprise, the **Why is the weight adjusted?** popup says when **Is assisting?** is the reason.
+
+**Plain bodyweight.** Write `0lb` and keep the `update` script, so the sets show your bodyweight and the history records it. See [Progressions](/features/progressions) for `update` scripts and the `bodyweight` variable.
 
 ### Hide equipment you do not have
 
-Tap the eye icon on a built-in row to hide it. Hidden rows collect in one line at the bottom, **Hidden Equipment: Smith Machine**. Tap the name there to bring it back. The exercise picker leaves out exercises that use hidden equipment.
+Tap the eye icon on a built-in row to hide it. Hidden rows collect in one line at the bottom, **Hidden Equipment: Smith Machine**. Tap the name there to bring it back.
+
+By default the exercise picker leaves out every exercise that uses hidden equipment, so a gym without a Smith machine never offers Smith machine exercises. To see them anyway, open the filter screen in the picker and turn off **Show only available equipment**. The switch is remembered until you change it back.
 
 ### Add your own equipment
 
@@ -1403,7 +1672,7 @@ The same settings live in **Me → Exercises**. Tap an exercise to open its stat
 
 Program scripts can step by your plates too:
 
-```
+```liftoscript
 weights[1] = increment(completedWeights[1]);
 ```
 
@@ -1525,21 +1794,25 @@ Below that is the total number of sets, and the split:
 
 The percent is green when it reaches your target share, yellow when it is within 10 points below it, red otherwise. The default target is 30% strength and 70% hypertrophy.
 
-Next come six exercise types: **Upper**, **Lower**, **Core**, **Push**, **Pull** and **Legs**. Each line reads like `24 (8s, 16h), 3d`: total sets, then strength and hypertrophy sets, then how many days that week you trained that type.
+Next come six exercise types: **Upper**, **Lower**, **Core**, **Push**, **Pull** and **Legs**. Each line reads like `24 (8s, 16h), 3d`: 24 sets in total, of which 8 counted as strength (`s`, under 8 reps) and 16 as hypertrophy (`h`, 8 reps or more), spread over 3 days (`d`). Types have no target range, so these lines have no color and no arrow.
 
 ### Sets per muscle group against your target range
 
 The last block lists every muscle group you trained that week: **Shoulders**, **Triceps**, **Back**, **Abs**, **Glutes**, **Hamstrings**, **Quadriceps**, **Chest**, **Biceps**, **Calves**, **Forearms**, and any custom groups. A body drawing next to the list shades the muscles by how much work they got.
 
-Each line uses the same `total (Ns, Nh), Nd` form. The total is colored against your weekly range for that group:
+Each line uses the same form as the type lines, plus an arrow. `Hamstrings: 3↑ (2s, 2h), 1d` means 3 sets in total, of which 2 counted as strength (`s`, under 8 reps) and 2 as hypertrophy (`h`, 8 reps or more), spread over 1 day (`d`). The parts may not add up to the total, because synergist sets count as a fraction and each number is rounded to a whole set on its own. 1.5 strength and 1.5 hypertrophy sets show as `3 (2s, 2h)`.
+
+Every muscle group has a weekly set range, 10 to 12 sets unless you change it. The total is colored against that range:
 
 - Green: inside the range.
 - Yellow: between 70% of the minimum and 130% of the maximum.
 - Red: further off than that.
 
-An arrow tells you which way to go: **↑** means below the minimum, **↓** means above the maximum. The day count is green when you hit your frequency target, yellow at half of it, red below.
+The arrow after the total tells you which way to go. **↑** means you are below the minimum and should add sets. **↓** means you are above the maximum. No arrow means you are inside the range. In the example, 3 sets of hamstrings against a 10 to 12 range gives a red `3↑`.
 
-The default range is 10 to 12 sets and 2 days for every group.
+Every group also has a frequency target, 2 days unless you change it. The day count is green when you reach it, yellow at half of it, red below.
+
+To change the range or the frequency for one group or for all of them, tap **Change Set Range Settings** at the bottom of the sheet. The **Muscle Settings** sheet on the right has a **Min**, **Max** and **Freq, days** row per group. The section on target ranges below walks through it.
 
 An exercise counts one set for each of its target muscle groups. For a synergist muscle group it counts a fraction of a set, 0.5 by default. You can change the target and synergist muscles of one exercise with **Override Muscles** at the top of its Exercise Stats screen, under **Me → Exercises**.
 
@@ -1608,7 +1881,7 @@ Bodyweight and body fat jump from day to day. **Moving Average Window Size** add
 
 The moving average also feeds your programs. The `bodyweight` variable in Liftoscript returns the latest moving average when a window is set for Bodyweight, and the latest raw value otherwise. This helps for weighted or assisted pull ups and dips:
 
-```
+```liftoscript
 Pull Up / 3x8 0lb / update: custom() {~
   if (setIndex == 0) {
     weights = bodyweight
@@ -2069,68 +2342,6 @@ Every account on the phone keeps its own copy of programs, history and settings.
 **Delete Current Local Account** asks you to type `delete`. It signs out, removes this account's data from the phone, and starts a new empty local account. The cloud copy is not touched.
 
 **Delete Current Cloud Account** appears only when you are signed in. Type `delete` to confirm. The server removes your programs, workout history, measurements, settings, uploaded images, API keys, push subscriptions and logs. Payment records stay, tax law requires it. The app then signs out and says "Account deleted from cloud." If it fails, it asks you to email info@liftosaur.com.
-## Premium
-
-Category: Sharing and data. Page: https://www.liftosaur.com/features/premium
-
-One subscription unlocks plates per side, graphs, muscle views, Week Insights, the Apple Watch app and the API. Monthly, yearly or lifetime.
-
-### What Premium unlocks
-
-Premium turns on these features:
-
-- **Plates Calculator**. The plates to load on each side of the bar, next to the set, under the weight keyboard, and as the **Plates** column on the workout screen. Without Premium, the set shows a **See plates for each side** link instead. See [Logging a Workout](/features/workout-screen).
-- **Graphs**. The **Graphs** tab, the graph under an exercise on the workout screen, the exercise stats screen, and the bodyweight, measurements and sleep graphs. Without Premium, the tab opens the Premium screen. The other graphs are blurred, with an **Unlock** button. The **Moving Average Window Size** setting on the measurements graph is Premium too. See [Graphs](/features/graphs).
-- **Muscles**. The muscle group views for a program and for a day. Without Premium they are blurred.
-- **Rest Timer Notifications**. A push notification when the rest ends, the Live Activity and Dynamic Island on iOS, and the Live Update chip on Android. On Android, the **Ignore Do Not Disturb** toggle under **Sound** on the **Me** tab appears with Premium. See [Rest Timer](/features/rest-timer).
-- **Week Insights**. The week card on the Home tab. Without Premium it shows **See Week Insights**, which opens the Premium screen. See [Week Insights](/features/week-insights).
-- **Apple Watch App**. Without Premium, the watch shows **Premium Required**. See [Apple Watch](/features/apple-watch).
-- **API & MCP**. API keys in **Me → API Keys**. Without Premium the screen shows **Subscribe to unlock**. See [API](/features/api).
-
-Everything else is free: programs and the editor, Liftoscript, logging workouts, history, measurements entry, equipment, sharing, import and export.
-
-### See a feature before you buy
-
-Tap a feature name on the Premium screen. A sheet opens with a short description and a screenshot of that feature.
-
-### Choose a plan
-
-The Premium screen shows three cards:
-
-- **Start with Yearly**, the highlighted card, with a **Save 33%** badge.
-- **Start with Monthly**.
-- **Lifetime**, a **One-time payment**. It never renews.
-
-Monthly and Yearly come with a **Free 14-day trial**. The store charges you after the trial, then every month or every year. When a discount offer is running, the cards show the old price crossed out and the note **Discount applies for the first year**. The trial note is hidden then.
-
-The store sets the price, adjusted per country, and shows it in your currency.
-
-You can cancel any time from your App Store or Google Play subscription settings. You cannot buy Lifetime while a subscription is active. The card says **Cancel your subscription first**, or **Available after** the end date of a cancelled one.
-
-### Where to buy and where it works
-
-You buy Premium in the iOS app or the Android app. The web app cannot sell it. Tapping a plan on the web tells you to install Liftosaur from Google Play or the App Store, subscribe there, then log in with the same method on the web.
-
-Premium is tied to your account. The receipt syncs with your data, so the features unlock on iOS, Android and the web at once. If you bought on the other platform, the Premium screen says **You bought this subscription on the App Store. Manage or cancel it from an Apple device.**, or the same for Google Play and an Android device. The features stay unlocked.
-
-### See your plan and manage it
-
-Go to **Me → Account**. Under **🌟 Liftosaur Premium** one row shows your plan:
-
-- **Free plan** with **Get Premium**. Tap it to open the Premium screen.
-- **Premium — Yearly** or **Premium — Monthly**, with **Renews on** the next date, and **Manage**. A **Cancel subscription** link opens the store's subscription manager.
-- **Ends on** the date, **won't renew**, after you cancel. **Manage** opens the Premium screen, where **Resubscribe** takes you back to the store.
-- **Lifetime Premium**, **All features unlocked forever**.
-- **Free access**, **All features unlocked**, when Liftosaur granted you a free key.
-- On the web, **Premium** with **Manage on the mobile app**.
-
-A subscriber also sees **Switch to Monthly** or **Switch to Yearly** on the Premium screen. A switch to Yearly starts at your next renewal. A switch to Monthly credits the time left on the yearly plan.
-
-### Restore a purchase
-
-If Premium is off after a reinstall or on a new phone, open the Premium screen and tap **Restore Subscription** at the bottom. The app asks the store for your purchases and unlocks the features. If the store has nothing, the app says **No active purchases to restore.**
-
-**Redeem coupon** on the same screen opens the App Store code sheet on iOS, or a code field on Android.
 ## API
 
 Category: Sharing and data. Page: https://www.liftosaur.com/features/api
@@ -2200,148 +2411,4 @@ Writes need two extra headers, `X-Liftosaur-Device-Id` and `X-Liftosaur-Client`.
 
 ### AI assistants and MCP
 
-The same key also powers the MCP server, so Claude, ChatGPT or Gemini can edit programs and log workouts for you. See [AI and MCP](/features/ai-and-mcp).
-## Using AI with Liftosaur
-
-Category: Sharing and data. Page: https://www.liftosaur.com/features/ai-and-mcp
-
-Connect Claude, ChatGPT or Gemini to your account through the MCP server, and ask it to write programs, log workouts and analyze your history.
-
-### What an assistant can do
-
-Liftosaur has an MCP server. MCP (Model Context Protocol) is an open standard that lets an AI assistant call tools in another app. Once connected, Claude, ChatGPT, Gemini or any other MCP client can work on your account through normal conversation.
-
-The assistant gets these tools:
-
-- **Programs**: list your programs, read a program's Liftoscript source, create a program, update it, or delete it.
-- **Workout history**: list your workouts with date filters, read one workout, log a new workout, edit one, or delete one.
-- **Custom exercises**: list, read, create, update and delete your custom exercises.
-- **Gyms and equipment**: list your gyms, add one, rename one or make it current, and edit bars, plates and fixed weights.
-- **Exercise settings**: read and set your 1RM, weight rounding, equipment and notes per exercise.
-- **Measurements**: read your bodyweight, body part and body fat history, add a value, edit one, or delete one.
-- **Testing and analysis**: `run_playground` simulates a workout to check that a progression works. `get_program_stats` reports duration per day, weekly volume per muscle group, and the strength vs hypertrophy split.
-- **Reference**: the Liftoscript language reference, complete program examples, the program design guide, the workout record format, the built-in exercise list, and the source of every built-in program.
-
-So you can say "Create a 4-day upper/lower program with linear progression". Or "I did 3x5 squats at 225lb today". Or "How has my squat progressed over the last month?".
-
-Everything that touches your account needs Premium. The reference tools work without an account.
-
-### Connect Claude, ChatGPT or Gemini
-
-The server URL is `https://www.liftosaur.com/mcp`.
-
-- **Claude.ai and Claude Desktop**: go to **Settings → Connectors**, click **Add custom connector**, and paste the URL. A browser window opens to sign in with your Liftosaur account.
-- **Claude Code**: run `claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp`.
-- **ChatGPT**: open **Plugins**, search for **Liftosaur**, select **Connect**, and sign in. In a chat, mention **@Liftosaur**.
-- **Gemini CLI**: add the server to `~/.gemini/settings.json` with `"httpUrl": "https://www.liftosaur.com/mcp"`, then run `/mcp auth liftosaur`.
-
-Sign-in uses OAuth 2.1. The client opens a browser window once, and then refreshes the token on its own. Every client's exact steps are in the [MCP server docs](/doc/mcp).
-
-### Connect with an API key
-
-Command-line clients and config-file setups can skip the browser sign-in and use an API key instead.
-
-1. Go to **Me → API Keys**.
-2. Type a name and tap **Create**.
-3. Tap **Copy**. The key starts with `lftsk_`.
-
-Send it as a header: `Authorization: Bearer lftsk_your_key_here`. Keep the key secret. If you lose it, tap **Delete** and create a new one. The same key works for the [REST API](/docs/api).
-
-### Write a program with an assistant
-
-Ask for the program you want. The assistant reads the Liftoscript reference, writes the program, tests it with `run_playground`, and saves it to your account with `create_program`. If it skips the reference and the syntax comes out wrong, tell it to call `get_liftoscript_reference` first.
-
-To change a program, describe the change: "My program doesn't have enough back work." The assistant reads your current program with `get_program`, edits the Liftoscript, and saves it with `update_program`.
-
-To check balance, ask for `get_program_stats`. It returns volume per muscle group and session length.
-
-Your phone gets the change in real time. There is no need to close and reopen the app.
-
-### Without Premium
-
-The reference tools are open to everyone. An assistant can read the Liftoscript reference, the examples, the design guide and the built-in programs, and write valid Liftoscript for you. Paste the result into the [Web Editor](/planner), or into the program editor in the app. See [Liftoscript](/doc/liftoscript) for the syntax.
-
-### Autofill muscles for a custom exercise
-
-When you create a custom exercise, the form has an **Autofill Muscles and Types** button. Type the exercise name and tap the button. The app asks an AI model to fill the target muscles, synergist muscles and exercise types from the name. Check the result and adjust anything that looks wrong. If the name is unknown, the app says "Couldn't autofill the muscles for this exercise. Try a different name!".
-
-### The old prompt generator
-
-The page at `liftosaur.com/ai/prompt` used to build a large prompt with the docs and examples. You copied it into ChatGPT, Claude or Gemini, and pasted the answer back into the web editor. That page is retired. The MCP server replaces the round trip, and the free reference tools cover the same ground without an account.
-## First Run and Settings
-
-Category: Getting started. Page: https://www.liftosaur.com/features/onboarding-and-settings
-
-Pick your units, equipment and program on the first run, then tune the Me tab: dark mode, text size, week start, Always On Display and more.
-
-### Starting for the first time
-
-The first screen shows five short slides about the app. They change on their own every 5 seconds.
-
-Tap **Get started** to begin setup. Tap **I have an account** to sign in and pull your data from the cloud. See [Account](/features/account) for sign-in options.
-
-### Picking your units
-
-The **Pick your units** screen has two buttons: **Pounds (lb)** and **Kilograms (kg)**. Pick one and tap **Continue**.
-
-This becomes the default unit for programs and weights. You can change it later under **Me → Weight Units**, or per equipment type.
-
-### Setting up equipment and plates
-
-The **What equipment do you have?** screen lists equipment types with a toggle for each. Turn on the ones your gym has. The app uses them to round program weights to what you can load.
-
-Tap **Set up plates** to enter the bar weight and plates for each equipment type, then tap **Continue**. Tap **Skip** to keep the defaults.
-
-Next, a short survey asks where you heard about Liftosaur. You can tap **Skip**.
-
-See [Equipment and gyms](/features/equipment-and-gyms) for how rounding works and how to change this later.
-
-### Choosing a program
-
-The **Choose your program** screen has four options:
-
-- **Pick a built-in program**: choose from routines like 5/3/1 and GZCLP. See [Built-in programs](/features/built-in-programs).
-- **Create a program**: build your own from scratch. See [Program editor](/features/program-editor).
-- **Import from link**: paste a link from the program web editor. See [Sharing programs](/features/sharing-programs).
-- **Go without program**: run ad hoc workouts and build the program along the way.
-
-After you pick a program, the app opens the Home tab.
-
-### Tours and help tips
-
-Until you have finished 4 workouts, the app shows a tour the first time you open the workout screen, the program editor, and the program exercise editor. Each tour is a set of cards with **Next →**, **← Back**, and **Done** buttons. Tap the X in the corner to close it early.
-
-Every screen with a tour or a help page has a question-mark icon in the top right corner. Tap it to replay the tour or open the help page. The **Me** tab opens a help page about settings.
-
-Some screens show a tip box with a question-mark icon. Tap its X to close it. A closed tip stays closed.
-
-### The Me tab
-
-Tap **Me** in the footer. The top row is **Program**, showing the current program name. Tap it to switch programs. Below it, the settings are grouped:
-
-- **Account**: **Account** shows your email or "Not signed in" ([Account](/features/account)). **Nickname** is used on your profile page. **Is Profile Page Public?** appears when you are signed in. **API Keys** opens the keys for the [API](/features/api).
-- **My Measurements**: **Bodyweight** and **Bodyfat** show your latest values. **Measurements** and **Sleep & Nutrition** open the tracking screens ([Measurements](/features/measurements)).
-- **Workout**: **Exercises** ([Exercise library](/features/exercise-library)), **Muscle Groups**, **Timers** ([Rest timer](/features/rest-timer)), **Available Equipment** ([Equipment and gyms](/features/equipment-and-gyms)), **Weight Units**, **Length Units**, **Week starts from:**, and **Always On Display**. **Current Gym** appears when you have more than one gym.
-- **Sound**: a **Vibration** toggle and a volume slider for the rest timer chime. On Android with [Premium](/features/premium), **Ignore Do Not Disturb** lets the notification sound play in Silent mode.
-- **Sync**: **Apple Health** on iOS or **Google Health Connect** on Android ([Health sync](/features/health-sync)).
-- **Appearance**: the text size slider and **Dark mode**.
-- **Import / Export**: export to JSON, CSV, or a text file, and import history and programs ([Import and export](/features/import-export)).
-- **Miscellaneous**: **Changelog**, **Contact Us**, **Discord Server**, **Privacy Policy**, **Terms & Conditions**, **Licenses**, **Documentation**, **Source Code on Github**, and **Roadmap**.
-
-### Units, week start, and automatic conversion
-
-**Weight Units** is kg or lb. **Length Units** is cm or in, used for body measurements.
-
-When you clone a built-in program, the app converts its weights to your unit. When you import a program from a link with the other unit, the app asks: "The program has weights in kg, do you want to convert them to lb?".
-
-**Week starts from:** is Sunday or Monday. It sets the first day in the week calendar on the Home tab and in [Week insights](/features/week-insights).
-
-### Dark mode and text size
-
-By default the app follows your phone's light or dark theme. Turn **Dark mode** on or off under **Appearance** to override it.
-
-The text size slider, marked **A A**, goes from 12 to 24 in steps of 2. It starts from your device text size, and the label under it says **Matching your device text size**. Move it, and the label changes to **Set in the app**. Tap **Use device size** to follow the device again. Icons and exercise thumbnails scale with the text.
-
-### Keeping the screen on
-
-Turn on **Always On Display** under **Workout** to stop the screen from sleeping while the app is open. It is off by default.
+The same key also powers the MCP server, so Claude, ChatGPT or Gemini can edit programs and log workouts for you. See [AI and MCP](/features/chatgpt-claude-and-ai).
