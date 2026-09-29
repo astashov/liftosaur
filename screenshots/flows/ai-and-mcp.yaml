@@ -2,27 +2,39 @@ appId: ${APP_ID}
 ---
 - runFlow: lib/login.yaml
 - tapOn:
-    id: footer-me
+    id: footer-workout
+- tapOn:
+    text: ".*Demo Program.*"
+- extendedWaitUntil:
+    visible:
+      id: workout-tab-bench-press
+    timeout: 10000
+- swipe:
+    start: 90%, 24%
+    end: 10%, 24%
+    duration: 400
+- tapOn:
+    id: add-exercise-button
 - scrollUntilVisible:
     element:
-      id: menu-item-api-keys
+      id: custom-exercise-create
     direction: DOWN
     centerElement: true
 - tapOn:
-    id: menu-item-api-keys
+    id: custom-exercise-create
+- tapOn:
+    id: custom-exercise-name-input
+- inputText: "Landmine Press"
+- pressKey: Enter
+- tapOn:
+    id: autofill-muscles
+- extendedWaitUntil:
+    notVisible:
+      text: "Autofill Muscles and Types"
+    timeout: 3000
+    optional: true
 - extendedWaitUntil:
     visible:
-      id: create-api-key
-    timeout: 10000
-- takeScreenshot: ai-and-mcp-api-keys
-- tapOn:
-    id: create-api-key
-- extendedWaitUntil:
-    visible:
-      id: delete-api-key
-    timeout: 10000
-- takeScreenshot: ai-and-mcp-api-key-created
-- tapOn:
-    id: delete-api-key
-- tapOn:
-    text: "OK"
+      text: "Autofill Muscles and Types"
+    timeout: 20000
+- takeScreenshot: ai-and-mcp-autofill

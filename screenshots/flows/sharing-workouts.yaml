@@ -14,6 +14,22 @@ appId: ${APP_ID}
     text: "OK"
 - takeScreenshot: sharing-workouts-finish-screen
 - tapOn:
+    id: finish-day-share-igstory
+- extendedWaitUntil:
+    visible: "Default Background"
+    timeout: 10000
+- waitForAnimationToEnd
+- takeScreenshot: sharing-workouts-story-preview
+- swipe:
+    start: 50%, 22%
+    end: 50%, 95%
+    duration: 400
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: finish-day-continue
+    timeout: 10000
+- tapOn:
     id: finish-day-continue
 - tapOn:
     text: "Not Now"

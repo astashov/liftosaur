@@ -29,7 +29,7 @@ Type in **Search by name**. Words match the name and the equipment, so `incline 
 
 ![Two exercises selected, Add to this workout (2)](/images/features/exercise-library/exercise-library-multi-add.webp)
 
-Tap the circle on each exercise you want. The button counts them: **Add to this workout (2)**. In the program editor it says **Add Exercises (2)**. A swap picks one exercise only.
+Tap the circle on each exercise you want. The button counts them: **Add to this workout (2)**, and the names of the selected exercises are listed under it, so you can check your picks after scrolling on. In the program editor it says **Add Exercises (2)**. A swap picks one exercise only.
 
 ## Filter by equipment and muscles
 
@@ -59,6 +59,16 @@ The weights come along. The app takes the weight from your history for the new e
 The **From Program** tab lists your current program's exercises by week and day, and an exercise added from here keeps its progression. **Ad-hoc Exercise** adds a plain exercise.
 
 A swap to an ad-hoc exercise drops the old exercise's progression. The settings icon at the top left of the sheet has one switch to keep it: **Keep existing program exercise logic when pick adhoc exercise**.
+
+## Keep your usual alternatives ready
+
+If you often swap the same exercises in, say Incline Bench Press when the flat bench is taken, define them in the program once with `used: none`. Such a line is not part of any day, so it never shows up in a workout on its own, but it carries its own sets, weight and progression:
+
+```liftoscript
+Incline Bench Press / 3x8 / 115lb / used: none / progress: dp(5lb, 8, 10)
+```
+
+When you swap during a workout, pick it from the **From Program** tab. It comes in with these sets and this weight instead of a guess from history, and its progression runs when you finish, so the next swap starts from the updated weight. See [Liftoscript](/doc/liftoscript) for `used: none` and [Changing Today's Workout](/features/changing-a-workout) for swapping.
 
 ## Your exercises list
 
@@ -99,7 +109,9 @@ The same calculator is on the site at [/rep-max-calculator](/rep-max-calculator)
 
 ![The Override Muscles sheet](/images/features/exercise-library/exercise-library-override-muscles.webp)
 
-Tap **Override Muscles** at the top of the exercise screen. Pick the muscles and give each a multiplier from 0 to 1. At 1 it is a target muscle, and each set counts in full. Below 1 it is a synergist. The override applies to the week insights, the volume on the Program screen, and the graphs.
+Every built-in exercise comes with target and synergist muscles, and the app counts your sets per muscle group from them in the week insights, the volume on the Program screen, and the graphs. Those defaults do not fit everyone. A wide-grip pull-up may be mostly back for you, while the default also counts biceps. A Romanian deadlift you do for the glutes still counts as hamstrings. And a custom exercise may have no muscles at all. The override fixes the counts for you without changing the exercise for anyone else.
+
+Tap **Override Muscles** at the top of the exercise screen. Pick the muscles and give each a multiplier from 0 to 1. At 1 it is a target muscle, and each set counts in full. Below 1 it is a synergist, and a set counts as that share, the same way the default synergist multiplier works in [Week Insights](/features/week-insights). The override applies everywhere sets per muscle are counted.
 
 ## The exercises directory on the site
 

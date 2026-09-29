@@ -15,11 +15,7 @@
     "width": 600,
     "height": 1304
   },
-  "ai-and-mcp/ai-and-mcp-api-key-created": {
-    "width": 600,
-    "height": 1304
-  },
-  "ai-and-mcp/ai-and-mcp-api-keys": {
+  "ai-and-mcp/ai-and-mcp-autofill": {
     "width": 600,
     "height": 1304
   },
@@ -572,6 +568,10 @@
     "height": 1304
   },
   "sharing-workouts/sharing-workouts-share-sheet": {
+    "width": 600,
+    "height": 1304
+  },
+  "sharing-workouts/sharing-workouts-story-preview": {
     "width": 600,
     "height": 1304
   },

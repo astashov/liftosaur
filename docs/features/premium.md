@@ -2,8 +2,8 @@
 id: premium
 title: "Premium"
 shortDescription: "One subscription unlocks plates per side, graphs, muscle views, Week Insights, the Apple Watch app and the API. Monthly, yearly or lifetime."
-category: "Sharing and data"
-order: 60
+category: "Start here"
+order: 30
 datePublished: "2026-09-27"
 dateModified: "2026-09-27"
 screenshots: [premium-plans, premium-account]
@@ -43,7 +43,7 @@ Monthly and Yearly come with a **Free 14-day trial**. The store charges you afte
 
 The store sets the price, adjusted per country, and shows it in your currency.
 
-You can cancel any time from your App Store or Google Play subscription settings. You cannot buy Lifetime while a subscription is active. The card says **Cancel your subscription first**, or **Available after** the end date of a cancelled one.
+You can cancel any time from your App Store or Google Play subscription settings. Premium stays on until the end of the period you already paid for, or until the end of the trial if you cancel during it, so cancelling on day one of the trial still gives you the full 14 days. You cannot buy Lifetime while a subscription is active. The card says **Cancel your subscription first**, or **Available after** the end date of a cancelled one.
 
 ## Where to buy and where it works
 

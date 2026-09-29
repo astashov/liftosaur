@@ -367,11 +367,31 @@ function runMaestro(
       debugDir,
       ...assignment.flows,
     ];
+    fs.mkdirSync(debugDir, { recursive: true });
+    const logFile = path.join(debugDir, "maestro.log");
+    console.log(`${path.basename(debugDir)}: tail -f ${logFile}`);
+    const log = fs.createWriteStream(logFile);
     const child = spawn(maestroBin, args, { cwd: root });
     let output = "";
-    child.stdout.on("data", (chunk) => (output += chunk.toString()));
-    child.stderr.on("data", (chunk) => (output += chunk.toString()));
-    child.on("close", (code) => resolve({ output, code: code ?? 1 }));
+    let pending = "";
+    const append = (chunk: Buffer): void => {
+      pending += chunk.toString();
+      const lastNewline = pending.lastIndexOf("\n");
+      if (lastNewline === -1) {
+        return;
+      }
+      const lines = pending.slice(0, lastNewline + 1);
+      pending = pending.slice(lastNewline + 1);
+      output += lines;
+      log.write(lines.split(pass).join("<password>"));
+    };
+    child.stdout.on("data", append);
+    child.stderr.on("data", append);
+    child.on("close", (code) => {
+      output += pending;
+      log.end(pending.split(pass).join("<password>"));
+      resolve({ output, code: code ?? 1 });
+    });
   });
 }
 
@@ -485,8 +505,6 @@ async function runPhoneFlows(
       const debugDir = path.join(runDir, `${prefix || "ios-"}${sim.udid}`, attempt === 1 ? flow : `${flow}-retry`);
       await wipe();
       const result = await runMaestro({ sim, flows: [flowPath] }, appId, debugDir, pass);
-      fs.mkdirSync(debugDir, { recursive: true });
-      fs.writeFileSync(path.join(debugDir, "maestro.log"), result.output.split(pass).join("<password>"));
       status = ScreenshotsPlan_parseResults(result.output)[flow] ?? (result.code === 0 ? "passed" : "failed");
       shots = findScreenshots(debugDir, prefix)[flow] ?? [];
     }

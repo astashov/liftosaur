@@ -37,7 +37,13 @@ Tap an exercise, a day name or a week name to select it. A dock appears above th
 
 Tap the pencil on an exercise. A bottom sheet opens with the exercise line in Liftoscript. Tap a value, like `3x5` or `155lb`, to get a hint and a row of pills. Swipe to move between values.
 
-The pills add the parts of a set: **Add weight**, **Add RPE**, **Add rest timer**, **Add set timer**, **Make rep range**, **Add set label**, **Add set variation**, **Add warmups**, **Add label**, **Enable superset**, **Add progress** and **Add update**. Weight takes lb, kg or a percentage of your 1RM. Reps with a `+` are AMRAP. RPE with a `+` asks you to log the real RPE.
+The pills depend on the value you tapped. Each one inserts or rewrites a piece of Liftoscript for you, so you never have to remember the syntax:
+
+- Tap the exercise name for line-level pills: **Add sets**, **Add warmups**, **Add set variation**, **Add progress**, **Add update**, **Enable superset**, **Add label**, **Reuse…**, **Repeat…** and **Add forced order…**.
+- Tap a set group like `3x5` for set pills: **Add weight**, **Add RPE**, **Add rest timer**, **Add set timer**, **Add auto**, **Add set label** and **Add another set group**.
+- Tap the `progress:` part for **Add state var**, **Require 2 successes**, **Add deload on failure** and **Reuse script from…**. Tap a state variable inside `custom(...)` for **Rename…**, **Make weight** and **Make number**, which switch its value between a weight and a plain number.
+
+Reps with a `+` are AMRAP. RPE with a `+` asks you to log the real RPE.
 
 Double-tap the text to edit it as plain text. A suggestion strip on the keyboard offers exercise names, equipment variants, reuse targets like `...t1`, section names, progress functions and state variables. Tap **Apply** to fold the text back, then **Save**.
 
@@ -77,7 +83,15 @@ Both text modes have the same pills and suggestion strip. A syntax error keeps y
 
 ![Week Stats with the muscle map](/images/features/program-editor/program-editor-week-stats.webp)
 
-Tap the week muscles icon next to the week name in the UI mode, or select a week on the grid and pick **Week stats**. The sheet shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then the sets and the weekly frequency per muscle group. Colors show if you are inside the range set in **Edit Weekly Muscle Range Settings**. A front and back muscle map colors the muscles by volume. Tap a number to see which exercises count towards it.
+Tap the week muscles icon next to the week name in the UI mode, or select a week on the grid and pick **Week stats**. The sheet shows **Total Sets**, **Strength Sets** and **Hypertrophy Sets**, then the sets and the weekly frequency per muscle group.
+
+Each muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total that week, of which 3 are strength (`s`, under 8 reps) and 5 hypertrophy (`h`, 8 reps or more), on 2 days (`d`). A synergist set counts as a fraction, 0.5 by default, and each number is rounded on its own, so the parts may not add up to the total.
+
+Every muscle group has a weekly set range, 10 to 12 sets unless you change it, and a frequency target, 2 days by default. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below.
+
+To change the ranges, the frequency targets or the synergist multiplier, tap **Edit Weekly Muscle Range Settings** at the bottom of the sheet. The same settings drive [Week Insights](/features/week-insights) for your finished workouts.
+
+A front and back muscle map colors the muscles by volume. Tap a number to see which exercises count towards it.
 
 The day muscles icon, or **Day stats** on the grid, shows one day.
 

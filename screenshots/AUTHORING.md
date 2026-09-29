@@ -19,7 +19,7 @@ screenshots: [rest-timer-collapsed, rest-timer-expanded]
 ---
 ```
 
-- `category` is one of `Workout`, `Programs`, `Exercises and equipment`, `Progress`, `Sharing and data`, `Getting started`. `order` sorts within the category.
+- `category` is one of `Start here`, `Workout`, `Programs`, `Exercises and equipment`, `Progress`, `Sharing and data`, in that order on /features, from `FeatureCategories_order` in `src/pages/features/featureCategories.ts`. `order` sorts within the category. `Start here` holds the three pages a new visitor wants first: the first run, Premium, and using AI.
 - `title` is at most 60 characters and `shortDescription` is 50 to 160 characters. They become the page title, the meta description and the card text. `test/featureDocs.test.ts` fails on anything else.
 - `screenshots` names the one or two shots shown under the title, and the first one is also the card thumbnail on /features and the page's social image. Names are screenshot names from the flow, without extension. Add `headerScreenshots: false` to keep the thumbnail and social image but leave the strip under the title out, when those shots already sit in a section.
 - Sections are `## ` headings. Each section that has a screen gets one image line right under the heading: `![What the reader sees](/images/features/<id>/<shot-name>.webp)`. Up to three images on one line, separated by a space, when a section spans platforms. An image of the watch must have `Apple Watch` in its alt text, that is what sizes it.

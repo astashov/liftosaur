@@ -3,17 +3,11 @@ import { expect } from "chai";
 import * as fs from "fs";
 import * as path from "path";
 import { parseDocMarkdown } from "../src/utils/docUtils";
+import { FeatureCategories_order } from "../src/pages/features/featureCategories";
 
 const featuresDir = path.resolve(__dirname, "../docs/features");
 const flowsDir = path.resolve(__dirname, "../screenshots/flows");
-const categories = [
-  "Workout",
-  "Programs",
-  "Exercises and equipment",
-  "Progress",
-  "Sharing and data",
-  "Getting started",
-];
+const categories = FeatureCategories_order;
 
 function flowScreenshotNames(id: string): string[] {
   const flow = path.join(flowsDir, `${id}.yaml`);

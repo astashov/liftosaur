@@ -2,7 +2,7 @@
 id: onboarding-and-settings
 title: "First Run and Settings"
 shortDescription: "Pick your units, equipment and program on the first run, then tune the Me tab: dark mode, text size, week start, Always On Display and more."
-category: "Getting started"
+category: "Start here"
 order: 10
 datePublished: "2026-09-27"
 dateModified: "2026-09-27"

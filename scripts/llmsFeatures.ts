@@ -1,23 +1,10 @@
 import { IDocIndexEntry } from "../src/models/doc";
 import { IDocDetail } from "../src/utils/docUtils";
-
-const categoryOrder = [
-  "Workout",
-  "Programs",
-  "Exercises and equipment",
-  "Progress",
-  "Sharing and data",
-  "Getting started",
-];
+import { FeatureCategories_rank } from "../src/pages/features/featureCategories";
 
 export interface ILlmsFeaturePage {
   indexEntry: IDocIndexEntry;
   detail: IDocDetail;
-}
-
-function categoryRank(category: string | undefined): number {
-  const index = categoryOrder.indexOf(category || "");
-  return index === -1 ? categoryOrder.length : index;
 }
 
 function bodyWithoutImages(content: string): string {
@@ -30,7 +17,7 @@ function bodyWithoutImages(content: string): string {
 export function LlmsFeatures_compile(pages: ILlmsFeaturePage[]): string {
   const sorted = [...pages].sort(
     (a, b) =>
-      categoryRank(a.indexEntry.category) - categoryRank(b.indexEntry.category) ||
+      FeatureCategories_rank(a.indexEntry.category) - FeatureCategories_rank(b.indexEntry.category) ||
       a.indexEntry.order - b.indexEntry.order
   );
   const sections = sorted.map(({ indexEntry, detail }) =>

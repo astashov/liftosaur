@@ -41,6 +41,8 @@ The Instagram and TikTok items are only in the iOS and Android apps. The web app
 
 ## What the image shows
 
+![The Share workout to IG Story preview with the Default Background frame](/images/features/sharing-workouts/sharing-workouts-story-preview.webp)
+
 Every share option builds the same workout card:
 
 - The Liftosaur logo, and a trophy with the number of personal records you set in this workout.

@@ -33,7 +33,9 @@ The week starts on Sunday. To start it on Monday, go to **Me → Settings** and 
 
 The card under the strip sums up the selected week: the date range, the volume, the number of sets, and the number of personal records. For a past week, the volume and sets show the difference from the week before, in green or red.
 
-Tap **Show More**. The details list the week's personal records, the total sets, and the **Strength** and **Hypertrophy** split with percentages. Then the sets per **Upper**, **Lower**, **Core**, **Push**, **Pull**, **Legs**, and per muscle group, with a body drawing. **Change Set Range Settings** opens the set targets.
+Tap **Show More**. The details list the week's personal records, the total sets, and the **Strength** and **Hypertrophy** split with percentages. Then the sets per **Upper**, **Lower**, **Core**, **Push**, **Pull**, **Legs**, and per muscle group, with a body drawing.
+
+A muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total, of which 3 counted as strength (`s`, under 8 reps) and 5 as hypertrophy (`h`, 8 reps or more), on 2 days (`d`). The total is colored against your weekly set range for that group, 10 to 12 sets by default. The arrow says which way to go: **↑** below the minimum, **↓** above the maximum, none inside the range. **Change Set Range Settings** at the bottom changes the ranges and the day targets. [Week Insights](/features/week-insights) explains every number and color.
 
 Week Insights needs Premium. Without it, the card says **See Week Insights** and opens the subscription screen.
 

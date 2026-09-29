@@ -52,17 +52,43 @@ Dumbbells, kettlebells and weight stacks come in fixed steps. Turn on **Is Fixed
 
 Every row has a **Unit** field: **Default**, **lb** or **kg**. Pick **kg** for a machine with a kg stack in a lb gym. Exercises on that equipment show kg in the workout and in history. Graphs stay in your default unit.
 
-## Bodyweight bar and assisted machines
+## Bodyweight, weighted and assisted pull-ups
 
-Two switches on each plate-loaded row cover pull-ups and dips. **Bodyweight for Bar** uses your current bodyweight as the bar, and the **Bar** field turns gray to show it. **Is assisting?** makes the plates reduce the total instead of adding to it.
+Two switches on each plate-loaded row cover pull-ups, dips and the like. **Bodyweight for Bar** uses your current bodyweight as the bar, and the **Bar** field turns gray to show it. **Is assisting?** makes the plates reduce the total instead of adding to it. Your bodyweight comes from **Me → Measurements**, and from Apple Health or Health Connect when that sync is on.
 
-Turn both on for an assisted pull-up machine and enter its plates. The app rounds to your bodyweight minus plates. If a weight drops to 0 by surprise, the **Why is the weight adjusted?** popup says when **Is assisting?** is the reason.
+**Weighted pull-ups.** Add a custom equipment, for example **Belt**, turn on **Bodyweight for Bar**, leave **Is assisting?** off, and enter the plates you hang from the belt. In the program, the weight is the extra load, and an `update` script adds your bodyweight when the workout starts:
+
+```liftoscript
+Pull Up, Belt / 3x8 25lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight + originalWeights[ns]
+  }
+~} / progress: lp(5lb)
+```
+
+The sets show bodyweight plus 25 lb, the plates calculator shows what to hang, and a good session makes it 30 lb next time.
+
+**Assisted pull-ups.** Use the assisted machine equipment, or a custom one, turn on both **Bodyweight for Bar** and **Is assisting?**, and enter the machine's stack as plates. For bands, add one "plate" per band with the weight it takes off. In the program, the weight is the assistance, and the script subtracts it:
+
+```liftoscript
+Pull Up, Leverage Machine / 3x8 50lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight - originalWeights[ns]
+  }
+~} / progress: lp(-5lb)
+```
+
+A good session lowers the assistance to 45 lb. If a weight drops to 0 by surprise, the **Why is the weight adjusted?** popup says when **Is assisting?** is the reason.
+
+**Plain bodyweight.** Write `0lb` and keep the `update` script, so the sets show your bodyweight and the history records it. See [Progressions](/features/progressions) for `update` scripts and the `bodyweight` variable.
 
 ## Hide equipment you do not have
 
 ![Hidden Equipment line at the end of the list](/images/features/equipment-and-gyms/equipment-and-gyms-hidden.webp)
 
-Tap the eye icon on a built-in row to hide it. Hidden rows collect in one line at the bottom, **Hidden Equipment: Smith Machine**. Tap the name there to bring it back. The exercise picker leaves out exercises that use hidden equipment.
+Tap the eye icon on a built-in row to hide it. Hidden rows collect in one line at the bottom, **Hidden Equipment: Smith Machine**. Tap the name there to bring it back.
+
+By default the exercise picker leaves out every exercise that uses hidden equipment, so a gym without a Smith machine never offers Smith machine exercises. To see them anyway, open the filter screen in the picker and turn off **Show only available equipment**. The switch is remembered until you change it back.
 
 ## Add your own equipment
 

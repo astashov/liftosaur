@@ -19,6 +19,8 @@ A progression is a rule on one exercise in your program. It runs when you finish
 Bench Press / 3x5 / 155lb / progress: lp(5lb)
 ```
 
+Complete all three sets of five, and after you finish the workout the line reads `160lb`. Miss a rep, and it stays at `155lb`.
+
 You write it once per exercise. The app applies it on every day and week where that exercise appears. Write `progress: none` on a deload day to skip it there.
 
 Complete all working sets of an exercise, and the app shows what the rule will do under the sets. **Exercise Changes** lists the new weights or reps. **State Variables changes** lists the values the script remembers.
@@ -110,17 +112,17 @@ Completed sets never change. Turn the section on from the 3-dot menu of **Edit P
 
 ## Skipping the progression once
 
-![The Suppress link under the preview](/images/features/progressions/progressions-suppressed.webp)
+![Exercise Changes with the Suppress link](/images/features/progressions/progressions-preview.webp) ![The changes struck through after Suppress, with Enable](/images/features/progressions/progressions-suppressed.webp)
 
 Tap **Suppress** under the preview to keep the program as it is after this workout. The listed changes get a line through them. Tap **Enable** to turn the rule back on.
 
-## Why the weight is not the one in the program
+## Rounded weights in the workout
 
-If the app rounded a weight to your plates, the weight is underlined. Tap the set to expand it, then tap the weight. The **Why is the weight adjusted?** sheet shows the program's weight, the 1RM math for a percentage, and the bar and plates it used.
+A progression writes exact weights into the program. When the increment is not a weight your plates can make, like `2.5lb` with only 5 lb plates, the program soon holds a weight like `162.5lb` that you cannot load. Percentages of your 1RM do the same: `70%` of a 235 lb max is 164.5 lb. In the workout, the app rounds such a weight to what you can load and underlines it. Tap the set to expand it, then tap the underlined weight. The **Why is the weight adjusted?** sheet shows the program's weight, the 1RM math for a percentage, and the bar and plates it used. See [Logging a Workout](/features/workout-screen) for the sheet.
 
 ## More tools for scripts
 
-- `bodyweight` is your latest bodyweight from measurements. `weights = bodyweight` in an update script tracks pull-ups.
+- `bodyweight` is your latest bodyweight from measurements. `weights = bodyweight` in an update script tracks pull-ups. [Equipment, Plates and Gyms](/features/equipment-and-gyms) shows the full setup for weighted and assisted pull-ups.
 - Tags let one exercise change another's state. Write `Squat / 3x8 / id: tags(1)`, then `state[1].rating = 10` from another script.
 - Progression ladders: `Split Squat | ! Bulgarian Split Squat | Pistol Squat / 3x8 0lb`. `exerciseVariationIndex += 1` moves to the next movement.
 - Built-in functions: `floor`, `ceil`, `round`, `sum`, `min`, `max`, `increment`, `decrement`, `roundWeight`, `rpeMultiplier`, `calculate1RM`, `zeroOrGte`, and `print` to show values in the preview.

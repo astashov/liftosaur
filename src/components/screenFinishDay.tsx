@@ -245,6 +245,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
       <View className="flex-row justify-between gap-4">
         <View className="items-center">
           <Pressable
+            testID="finish-day-share-igstory"
             className="nm-finishday-share-igstory"
             onPress={() => navigateToModal("socialShareModal", { type: "igstory", historyRecordId })}
           >
@@ -254,6 +255,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         </View>
         <View className="items-center">
           <Pressable
+            testID="finish-day-share-igfeed"
             className="nm-finishday-share-igfeed"
             onPress={() => navigateToModal("socialShareModal", { type: "igfeed", historyRecordId })}
           >
@@ -263,6 +265,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         </View>
         <View className="items-center">
           <Pressable
+            testID="finish-day-share-tiktok"
             className="nm-finishday-share-tiktok"
             onPress={() => navigateToModal("socialShareModal", { type: "tiktok", historyRecordId })}
           >
@@ -272,6 +275,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         </View>
         <View className="items-center">
           <Pressable
+            testID="finish-day-share-text"
             className="items-center justify-center w-scaled-10 h-scaled-10 rounded-full nm-finishday-share-text bg-background-subtle"
             onPress={() => {
               const text = LiftohistorySerializer_serialize(props.record, props.settings);

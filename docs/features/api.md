@@ -6,12 +6,10 @@ category: "Sharing and data"
 order: 70
 datePublished: "2026-09-27"
 dateModified: "2026-09-27"
-screenshots: [api-key-created, api-keys-empty]
+screenshots: [api-me-row, api-keys-empty]
 ---
 
 ## Create an API key
-
-![Me → API Keys with a new key](/images/features/api/api-key-created.webp)
 
 Go to **Me → API Keys**. The row is in the **Account** group. Type a name under **Create New Key** and tap **Create**. If you leave the name empty, the key is called "API Key".
 
@@ -22,8 +20,6 @@ Keep the key secret. Anyone who has it can read and change your training data. I
 API keys need Premium and a signed-in account. Without an account, the screen shows a **Log in** button. Without Premium, it shows **Subscribe to unlock**.
 
 ## Revoke a key
-
-![Me → API Keys after deleting the key](/images/features/api/api-keys-empty.webp)
 
 Tap **Delete** next to a key. The app asks "Are you sure you want to delete this API key?". Tap **OK**. Every request with that key now gets a `401` error. With no keys left, the screen says "No API keys yet".
 

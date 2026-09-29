@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
 import { FeatureImages_size, IFeatureImageSizes } from "./featureImages";
+import { FeatureCategories_group } from "./featureCategories";
 
 export interface IFeaturesListContentProps {
   features: IDocIndexEntry[];
@@ -12,13 +13,7 @@ export function Features_screenshotUrl(featureId: string, name: string): string 
 }
 
 export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Element {
-  const categories = new Map<string, IDocIndexEntry[]>();
-  for (const feature of props.features) {
-    const category = feature.category || "Other";
-    const list = categories.get(category) || [];
-    list.push(feature);
-    categories.set(category, list);
-  }
+  const categories = FeatureCategories_group(props.features);
 
   return (
     <section className="px-4 py-8 mx-auto" style={{ maxWidth: 960 }}>
@@ -38,7 +33,7 @@ export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Eleme
         </a>
         .
       </p>
-      {Array.from(categories.entries()).map(([category, features]) => (
+      {categories.map(([category, features]) => (
         <div key={category} className="mb-10">
           <h2 className="mb-3 text-xl font-bold">{category}</h2>
           <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
