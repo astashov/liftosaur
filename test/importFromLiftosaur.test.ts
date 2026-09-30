@@ -97,6 +97,37 @@ describe("ImportFromLiftosaur", () => {
     expect(b.startTime).to.equal(a.startTime);
   });
 
+  it("round-trips left reps and set timers through its own export", () => {
+    const settings = buildSettings();
+    const imported = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(buildCsv(row()), settings);
+    const set = imported.historyRecords[0].entries[0].sets[0];
+    set.isUnilateral = true;
+    set.completedRepsLeft = 3;
+    set.setTimer = 30;
+    set.isOverflowSetTimer = true;
+    set.completedSetTimer = 40;
+    set.completedSetTimerLeft = 35;
+    const exported = CSV_toString(History_exportAsCSV(imported.historyRecords, settings));
+    const reimported = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(exported, settings);
+    expect(reimported.errors).to.eql([]);
+    const reimportedSet = reimported.historyRecords[0].entries[0].sets[0];
+    expect(reimportedSet.completedRepsLeft).to.equal(3);
+    expect(reimportedSet.setTimer).to.equal(30);
+    expect(reimportedSet.isOverflowSetTimer).to.be.true;
+    expect(reimportedSet.completedSetTimer).to.equal(40);
+    expect(reimportedSet.completedSetTimerLeft).to.equal(35);
+  });
+
+  it("imports an old CSV without the set timer columns", () => {
+    const result = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(buildCsv(row()), buildSettings());
+    expect(result.errors).to.eql([]);
+    const set = result.historyRecords[0].entries[0].sets[0];
+    expect(set.setTimer).to.be.undefined;
+    expect(set.isOverflowSetTimer).to.be.undefined;
+    expect(set.completedSetTimer).to.be.undefined;
+    expect(set.completedSetTimerLeft).to.be.undefined;
+  });
+
   it("skips rows with bad numbers and reports row errors", () => {
     const result = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
       buildCsv(row(), row({ completedReps: "five" }), row({ completedReps: "3" })),

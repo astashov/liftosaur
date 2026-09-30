@@ -936,43 +936,28 @@ export function History_exportAsCSV(history: IHistoryRecord[], settings: ISettin
       "Target Muscles",
       "Synergist Muscles",
       "Notes",
+      "Completed Reps Left",
+      "Required Set Time Seconds",
+      "Is Overflow Set Time?",
+      "Completed Set Time Seconds",
+      "Completed Set Time Left Seconds",
     ],
   ];
 
   for (const historyRecord of history) {
     for (const entry of historyRecord.entries) {
       const exercise = Exercise_get(entry.exercise, settings.exercises);
-      for (const warmupSet of entry.warmupSets) {
+      const setsWithWarmupFlag: [ISet, number][] = [
+        ...entry.warmupSets.map((s): [ISet, number] => [s, 1]),
+        ...entry.sets.map((s): [ISet, number] => [s, 0]),
+      ];
+      for (const [set, isWarmup] of setsWithWarmupFlag) {
         lines.push([
           historyRecord.date,
           historyRecord.programName,
           historyRecord.dayName,
           Exercise_fullName(exercise, settings),
-          1,
-          warmupSet.reps ?? null,
-          warmupSet.completedReps ?? null,
-          warmupSet.isAmrap ? 1 : 0,
-          warmupSet.rpe ?? null,
-          warmupSet.completedRpe ?? null,
-          warmupSet.logRpe ? 1 : 0,
-          warmupSet.weight?.value ?? null,
-          warmupSet.weight?.unit ?? null,
-          warmupSet.completedWeight?.value ?? null,
-          warmupSet.completedWeight?.unit ?? null,
-          warmupSet.askWeight ? 1 : 0,
-          warmupSet.timestamp != null ? new Date(warmupSet.timestamp || 0).toISOString() : null,
-          Exercise_targetMuscles(exercise, settings).join(","),
-          Exercise_synergistMuscles(exercise, settings).join(","),
-          entry.notes ?? "",
-        ]);
-      }
-      for (const set of entry.sets) {
-        lines.push([
-          historyRecord.date,
-          historyRecord.programName,
-          historyRecord.dayName,
-          Exercise_fullName(exercise, settings),
-          0,
+          isWarmup,
           set.reps ?? null,
           set.completedReps ?? null,
           set.isAmrap ? 1 : 0,
@@ -988,6 +973,11 @@ export function History_exportAsCSV(history: IHistoryRecord[], settings: ISettin
           Exercise_targetMuscles(exercise, settings).join(","),
           Exercise_synergistMuscles(exercise, settings).join(","),
           entry.notes ?? "",
+          set.completedRepsLeft ?? null,
+          set.setTimer ?? null,
+          set.isOverflowSetTimer ? 1 : 0,
+          set.completedSetTimer ?? null,
+          set.completedSetTimerLeft ?? null,
         ]);
       }
     }

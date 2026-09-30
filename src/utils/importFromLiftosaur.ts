@@ -49,6 +49,11 @@ const columns = [
   "targetMuscles",
   "synergistMuscles",
   "notes",
+  "completedRepsLeft",
+  "setTimer",
+  "isOverflowSetTimer",
+  "completedSetTimer",
+  "completedSetTimerLeft",
 ] as const;
 type IColumn = (typeof columns)[number];
 
@@ -63,6 +68,10 @@ const numericColumns: IColumn[] = [
   "completedRpe",
   "weightValue",
   "completedWeightValue",
+  "completedRepsLeft",
+  "setTimer",
+  "completedSetTimer",
+  "completedSetTimerLeft",
 ];
 const unitColumns: IColumn[] = ["weightUnit", "completedWeightUnit"];
 
@@ -239,6 +248,8 @@ export function ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
             ? Weight_build(Number(set.completedWeightValue), set.completedWeightUnit as "kg" | "lb")
             : undefined;
         const completedRpe = set.completedRpe ? Number(set.completedRpe) : undefined;
+        const optionalNumber = (value: string): number | undefined => (value ? Number(value) : undefined);
+        const completedRepsLeft = optionalNumber(set.completedRepsLeft) ?? (isUnilateral ? completedReps : undefined);
         return {
           vtype: "set",
           id: UidFactory_generateUid(6),
@@ -248,7 +259,11 @@ export function ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
           isAmrap: set.isAmrap === "1",
           rpe: set.rpe ? Number(set.rpe) : undefined,
           completedRpe: completedRpe,
-          completedRepsLeft: isUnilateral ? completedReps : undefined,
+          completedRepsLeft,
+          setTimer: optionalNumber(set.setTimer),
+          isOverflowSetTimer: set.isOverflowSetTimer === "1" || undefined,
+          completedSetTimer: optionalNumber(set.completedSetTimer),
+          completedSetTimerLeft: optionalNumber(set.completedSetTimerLeft),
           isUnilateral,
           logRpe: set.logRpe === "1",
           weight: weight,
