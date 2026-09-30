@@ -408,8 +408,10 @@ export function Reps_completedSetKey(set: ISet): string {
   const repsLeft = set.isUnilateral ? (set.completedRepsLeft ?? 0) : -1;
   const w = set.completedWeight ? Weight_print(set.completedWeight) : "none";
   const rpe = set.completedRpe ?? -1;
+  const setTimer = set.completedSetTimer != null ? Math.round(set.completedSetTimer) : -1;
+  const setTimerLeft = set.isUnilateral && set.completedSetTimerLeft != null ? Math.round(set.completedSetTimerLeft) : -1;
   const label = set.label ?? "";
-  return `${reps}-${repsLeft}-${w}-${rpe}-${label}`;
+  return `${reps}-${repsLeft}-${w}-${rpe}-${setTimer}-${setTimerLeft}-${label}`;
 }
 
 export function Reps_targetSetKey(set: ISet): string {
@@ -419,10 +421,12 @@ export function Reps_targetSetKey(set: ISet): string {
   const rpe = set.rpe ?? -1;
   const logRpe = set.logRpe ? 1 : 0;
   const timer = set.timer ?? -1;
+  const setTimer = set.setTimer ?? -1;
+  const overflow = set.isOverflowSetTimer ? 1 : 0;
   const amrap = set.isAmrap ? 1 : 0;
   const label = set.label ?? "";
   const askWeight = set.askWeight ? 1 : 0;
-  return `${reps}-${minReps}-${w}-${askWeight}-${rpe}-${logRpe}-${timer}-${amrap}-${label}`;
+  return `${reps}-${minReps}-${w}-${askWeight}-${rpe}-${logRpe}-${timer}-${setTimer}-${overflow}-${amrap}-${label}`;
 }
 
 export function Reps_volume(sets: ISet[], unit: IUnit): IWeight {

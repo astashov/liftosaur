@@ -68,6 +68,7 @@ Liftohistory is a human-readable text format for workout history records in Lift
   Bench Press, Barbell / 3x8 185lb @7, 1x6 185lb @9 / warmup: 1x10 95lb, 1x5 135lb / target: 3x8-12 185lb @8 90s
   OHP / 3x10 95lb / target: 3x10 95lb 60s
   Pull Ups / 3x8|7 0lb / target: 3x10 0lb 60s
+  Wall Sit / 2x1 0kg 60s, 1x1 0kg 52s / target: 3x1 0kg 60s|45s
 }
 \`\`\`
 
@@ -88,6 +89,18 @@ Liftohistory is a human-readable text format for workout history records in Lift
 - \`3x8 185lb @8+\` — with logged RPE
 - \`3x8|7 0lb\` — unilateral: 8 right, 7 left
 - Units always explicit: \`lb\` or \`kg\`
+
+### Timed sets (holds)
+In completed sets, a duration is the time the user held the set:
+- \`1x1 0kg 52s\` — held for 52 seconds
+- \`1x1|1 40s|35s\` — unilateral hold: 40s right, 35s left (same order as \`8|7\` reps)
+- \`1x1|1 ?|35s\` — only the left side was recorded
+
+In target sets, a duration is the rest timer, and \`setTimer|restTimer\` is a timed set, same as in Liftoscript:
+- \`3x8 185lb 90s\` — 90s rest
+- \`3x1 0kg 60s|45s\` — hold for 60s, then rest 45s
+- \`1x1 30s+|60s\` — hold for at least 30s, the timer keeps counting until the user stops it
+- \`1x1 60s|?\` — hold for 60s, default rest
 
 ### Sections
 - Completed sets come first (what user actually did)

@@ -118,6 +118,10 @@ function serializeCompletedSets(sets: ISet[]): string {
   return groups.map(([set, count]) => formatCompletedSet(set, count)).join(", ");
 }
 
+function formatSeconds(seconds: number): string {
+  return `${Math.round(seconds)}s`;
+}
+
 function formatCompletedSet(set: ISet, count: number): string {
   const reps = set.completedReps ?? 0;
   let str = `${count}x`;
@@ -131,6 +135,11 @@ function formatCompletedSet(set: ISet, count: number): string {
   }
   if (set.completedRpe != null) {
     str += ` @${n(set.completedRpe)}`;
+  }
+  if (set.isUnilateral && set.completedSetTimerLeft != null) {
+    str += ` ${set.completedSetTimer != null ? formatSeconds(set.completedSetTimer) : "?"}|${formatSeconds(set.completedSetTimerLeft)}`;
+  } else if (set.completedSetTimer != null) {
+    str += ` ${formatSeconds(set.completedSetTimer)}`;
   }
   if (set.label) {
     str += ` (${set.label})`;
@@ -169,8 +178,10 @@ function formatTargetSet(set: ISet, count: number): string {
       str += "+";
     }
   }
-  if (set.timer != null) {
-    str += ` ${set.timer}s`;
+  if (set.setTimer != null) {
+    str += ` ${formatSeconds(set.setTimer)}${set.isOverflowSetTimer ? "+" : ""}|${set.timer != null ? formatSeconds(set.timer) : "?"}`;
+  } else if (set.timer != null) {
+    str += ` ${formatSeconds(set.timer)}`;
   }
   if (set.label) {
     str += ` (${set.label})`;

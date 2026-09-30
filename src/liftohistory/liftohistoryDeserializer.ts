@@ -8,6 +8,7 @@ import {
   MetadataValue,
   QuotedString,
   Duration,
+  SetTimer,
   Int,
   ExerciseLine,
   ExerciseName,
@@ -337,8 +338,22 @@ interface IParsedSet {
   rpe?: number;
   logRpe?: boolean;
   isAmrap?: boolean;
-  timer?: number;
+  duration?: number;
+  setTimerPair?: ISetTimerPair;
   label?: string;
+}
+
+interface ISetTimerPair {
+  first?: number;
+  isOverflow: boolean;
+  second?: number;
+}
+
+function parseSetTimerPair(str: string): ISetTimerPair {
+  const [first, second] = str.split("|");
+  const parseSide = (side: string): number | undefined =>
+    side.startsWith("?") ? undefined : parseInt(side.replace(/s\+?$/, ""), 10);
+  return { first: parseSide(first), isOverflow: first.endsWith("+"), second: parseSide(second) };
 }
 
 function parseExerciseSet(node: SyntaxNode, text: string): IParsedSet {
@@ -404,7 +419,11 @@ function parseExerciseSet(node: SyntaxNode, text: string): IParsedSet {
         break;
       }
       case Duration: {
-        result.timer = parseInt(getValue(child, text).replace(/s$/, ""), 10);
+        result.duration = parseInt(getValue(child, text).replace(/s$/, ""), 10);
+        break;
+      }
+      case SetTimer: {
+        result.setTimerPair = parseSetTimerPair(getValue(child, text));
         break;
       }
       case SetLabel: {
@@ -435,8 +454,10 @@ function deserializeSetsAsCompleted(node: SyntaxNode, text: string): ISet[] {
         completedRpe: parsed.rpe,
         isAmrap: parsed.isAmrap,
         label: parsed.label,
-        isUnilateral: parsed.repsLeft != null ? true : undefined,
+        isUnilateral: parsed.repsLeft != null || parsed.setTimerPair?.second != null ? true : undefined,
         completedRepsLeft: parsed.repsLeft,
+        completedSetTimer: parsed.setTimerPair ? parsed.setTimerPair.first : parsed.duration,
+        completedSetTimerLeft: parsed.setTimerPair?.second,
         isCompleted: true,
       });
     }
@@ -462,7 +483,9 @@ function deserializeSetsAsTarget(node: SyntaxNode, text: string): ISet[] {
         rpe: parsed.rpe,
         logRpe: parsed.logRpe || undefined,
         isAmrap: parsed.isAmrap || undefined,
-        timer: parsed.timer,
+        timer: parsed.setTimerPair ? parsed.setTimerPair.second : parsed.duration,
+        setTimer: parsed.setTimerPair?.first,
+        isOverflowSetTimer: parsed.setTimerPair?.isOverflow || undefined,
         label: parsed.label || undefined,
       });
     }
@@ -493,6 +516,8 @@ function mergeSets(completedSets: ISet[], targetSets: ISet[]): ISet[] {
         logRpe: target.logRpe,
         isAmrap: target.isAmrap || completed.isAmrap,
         timer: target.timer,
+        setTimer: target.setTimer,
+        isOverflowSetTimer: target.isOverflowSetTimer,
         label: target.label || completed.label,
       });
     } else if (completed) {
