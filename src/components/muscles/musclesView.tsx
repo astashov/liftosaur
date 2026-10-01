@@ -8,11 +8,10 @@ import {
   Exercise_synergistMuscles,
   Exercise_get,
 } from "../../models/exercise";
-import { IPoints, Muscle_getScreenMusclesFromMuscle } from "../../models/muscle";
+import { IPoints, Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
 import { IScreenMuscle, ISettings } from "../../types";
 import { CollectionUtils_sort, CollectionUtils_flat } from "../../utils/collection";
 import { ObjectUtils_keys } from "../../utils/object";
-import { StringUtils_capitalize } from "../../utils/string";
 import { GroupHeader } from "../groupHeader";
 import { Tabs2 } from "../tabs2";
 import { BackMusclesSvg, IMuscleStyle } from "./images/backMusclesSvg";
@@ -98,7 +97,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
             return (
               <MenuItem
                 key={muscleName}
-                name={StringUtils_capitalize(muscleName)}
+                name={Muscle_getMuscleGroupName(muscleName, props.settings)}
                 value={<Text className={color}>{(value || 0).toFixed(0)}%</Text>}
               />
             );
@@ -130,12 +129,12 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                     )
                   );
                   const targetScreenMusclesWithPercentage: [string, number][] = targetScreenMuscles.map((m) => [
-                    StringUtils_capitalize(m),
+                    Muscle_getMuscleGroupName(m, props.settings),
                     (props.points.exercisePoints[type][Exercise_toKey(e)]?.[m] || 0) * 100,
                   ]);
                   targetScreenMusclesWithPercentage.sort((a, b) => b[1] - a[1]);
                   const synergistScreenMusclesWithPercentage: [string, number][] = synergistScreenMuscles.map((m) => [
-                    StringUtils_capitalize(m),
+                    Muscle_getMuscleGroupName(m, props.settings),
                     (props.points.exercisePoints[type][Exercise_toKey(e)]?.[m] || 0) * 100,
                   ]);
                   synergistScreenMusclesWithPercentage.sort((a, b) => b[1] - a[1]);

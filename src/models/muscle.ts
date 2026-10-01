@@ -76,18 +76,6 @@ const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
   forearms: ["Brachioradialis", "Wrist Extensors", "Wrist Flexors"],
 };
 
-const muscleToScreenMuscleMapping = ObjectUtils_keys(screenMuscleToMuscleMapping).reduce<
-  Record<IMuscle, IScreenMuscle[]>
->((memo, screenMuscle) => {
-  const muscles = screenMuscleToMuscleMapping[screenMuscle];
-  for (const muscle of muscles) {
-    memo[muscle] = memo[muscle] || [];
-    memo[muscle].push(screenMuscle);
-  }
-  return memo;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}, {} as any);
-
 export function Muscle_getEmptyScreenMusclesPoints(): IScreenMusclePointsColl {
   return {
     shoulders: 0,
@@ -290,9 +278,11 @@ export function Muscle_getUnifiedPointsForExercise(
   const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
   const targetMuscles = Exercise_targetMuscles(programExercise.exerciseType, settings);
   const synergistMuscles = Exercise_synergistMuscles(programExercise.exerciseType, settings);
-  const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
+  const screenTargetMuscles = Array.from(
+    new Set(targetMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
+  );
   const screenSynergistMuscles = Array.from(
-    new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
+    new Set(synergistMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
   );
   const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(
     programExercise.exerciseType,
@@ -343,9 +333,11 @@ export function Muscle_getPointsForExercise(
     programExercise.exerciseType,
     settings
   );
-  const screenTargetMuscles = Array.from(new Set(targetMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || [])));
+  const screenTargetMuscles = Array.from(
+    new Set(targetMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
+  );
   const screenSynergistMuscles = Array.from(
-    new Set(synergistMuscles.flatMap((t) => muscleToScreenMuscleMapping[t] || []))
+    new Set(synergistMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
   );
   for (const set of historyEntry.sets) {
     if ((set.reps ?? 0) >= 8) {
