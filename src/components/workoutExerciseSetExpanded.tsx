@@ -134,6 +134,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                     tabIndex={tabIndex}
                     tabStop={true}
                     name="set-left-reps"
+                    cornerLabel="reps"
                     onInput={props.onInputLeftReps}
                     onBlur={props.onBlurLeftReps}
                     placeholder={props.placeholderReps}
@@ -151,6 +152,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                     tabIndex={tabIndex}
                     tabStop={true}
                     name="set-reps"
+                    cornerLabel="reps"
                     onInput={props.onInputReps}
                     onBlur={props.onBlurReps}
                     placeholder={props.placeholderReps}
@@ -169,6 +171,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                   tabIndex={tabIndex}
                   tabStop={true}
                   name="set-reps"
+                  cornerLabel="reps"
                   onInput={props.onInputReps}
                   onBlur={props.onBlurReps}
                   placeholder={props.placeholderReps}
@@ -188,6 +191,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 tabIndex={tabIndex}
                 tabStop={true}
                 name="set-weight"
+                showUnitInCorner={true}
                 exerciseType={props.exerciseType}
                 inputCommitMode="blur"
                 onBlur={props.onBlurWeight}

@@ -43,6 +43,7 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  cornerLabel?: string;
   inputCommitMode?: IInputCommitMode;
   inputDebounceMs?: number;
   "data-testid"?: string;
@@ -592,7 +593,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   return (
     <div ref={containerRef} className={`input-number ${props.fill ? "flex-1 min-w-0" : ""}`}>
       <div
-        className={`flex items-center justify-center ${isLarge ? "h-scaled-12 rounded-lg" : "h-scaled-6 rounded"} border bg-background-default border-border-prominent input-number-child`}
+        className={`relative flex items-center justify-center ${isLarge ? "h-scaled-12 rounded-lg" : "h-scaled-6 rounded"} border bg-background-default border-border-prominent input-number-child`}
         style={
           props.autowidth
             ? { paddingLeft: "0.5rem", paddingRight: "0.5rem" }
@@ -652,6 +653,11 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         )}
         {props.showUnitInside && props.selectedUnit && props.value != null && (
           <div className="text-xs text-text-secondary"> {props.selectedUnit}</div>
+        )}
+        {props.cornerLabel && (
+          <div className="absolute leading-none pointer-events-none text-2xs text-text-secondary top-0.5 right-1.5">
+            {props.cornerLabel}
+          </div>
         )}
         {props.after && props.after()}
       </div>

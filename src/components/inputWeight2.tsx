@@ -30,6 +30,7 @@ interface IInputWeight2Props {
   fill?: boolean;
   fillFlex?: number;
   showUnitInside?: boolean;
+  showUnitInCorner?: boolean;
   placeholder?: string;
   exerciseType?: IExerciseType;
   units?: (IUnit | IPercentageUnit)[];
@@ -187,6 +188,7 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
         enableUnits={props.units}
         selectedUnit={unit}
         showUnitInside={props.showUnitInside}
+        cornerLabel={props.showUnitInCorner ? unit : undefined}
         onChangeUnits={onChangeUnits}
         enableCalculator={true}
         inputCommitMode={props.inputCommitMode}

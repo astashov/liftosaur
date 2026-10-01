@@ -72,6 +72,7 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  cornerLabel?: string;
   inputCommitMode?: IInputCommitMode;
   inputDebounceMs?: number;
   "data-testid"?: string;
@@ -610,6 +611,11 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
           {isFocused && <InputCursor fontSize={isLarge ? valueFontStyle.fontSize : undefined} />}
           {props.showUnitInside && props.selectedUnit && props.value != null && (
             <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
+          )}
+          {props.cornerLabel && (
+            <View className="absolute top-0.5 right-1.5" pointerEvents="none">
+              <Text className="text-2xs text-text-secondary">{props.cornerLabel}</Text>
+            </View>
           )}
           {props.after && props.after()}
         </Pressable>
