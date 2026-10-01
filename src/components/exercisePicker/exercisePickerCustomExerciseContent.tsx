@@ -31,6 +31,9 @@ import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
 import { useModal } from "../../navigation/ModalStateContext";
 import { ImagePicker_pick } from "../../utils/imagePicker";
+import { VideoPicker_pick } from "../../utils/videoPicker";
+import { IVideoPick } from "../../utils/videoPick";
+import { ExerciseVideo } from "../exerciseVideo";
 
 interface IExercisePickerCustomExerciseContentProps {
   settings: ISettings;
@@ -67,6 +70,33 @@ async function uploadAndUpdateImage(
   );
 }
 
+async function uploadAndUpdateVideo(
+  source: "camera" | "photo-library",
+  exerciseId: string,
+  service: Service,
+  dispatch: ILensDispatch<ICustomExercise>
+): Promise<void> {
+  const pick = await VideoPicker_pick(source);
+  if (!pick) {
+    return;
+  }
+  const imageUploader = new ImageUploader(service);
+  const url = await imageUploader.uploadVideo(pick, exerciseId);
+  dispatch([lb<ICustomExercise>().p("videoUrl").record(url)], "Set custom exercise video URL");
+}
+
+async function uploadVideoFile(
+  file: File,
+  exerciseId: string,
+  service: Service,
+  dispatch: ILensDispatch<ICustomExercise>
+): Promise<void> {
+  const imageUploader = new ImageUploader(service);
+  const pick: IVideoPick = { uri: URL.createObjectURL(file), type: file.type || undefined, size: file.size };
+  const url = await imageUploader.uploadVideo(pick, exerciseId);
+  dispatch([lb<ICustomExercise>().p("videoUrl").record(url)], "Set custom exercise video URL");
+}
+
 async function confirmAsync(message: string): Promise<boolean> {
   return Dialog_confirm(message);
 }
@@ -84,6 +114,9 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
   const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
   const [showPicturePickerBottomSheet, setShowPicturePickerBottomSheet] = useState<boolean>(false);
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
+  const [showVideoBottomSheet, setShowVideoBottomSheet] = useState(false);
+  const [showVideoPickerBottomSheet, setShowVideoPickerBottomSheet] = useState(false);
+  const [videoPickerSource, setVideoPickerSource] = useState<"camera" | "photo-library">("photo-library");
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const openImageSource = useModal("exerciseImageSourceModal", (result) => {
@@ -94,6 +127,10 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
       ],
       "Set custom exercise image URL"
     );
+  });
+
+  const openVideoSource = useModal("exerciseVideoSourceModal", (result) => {
+    props.dispatch([lb<ICustomExercise>().p("videoUrl").record(result.videoUrl)], "Set custom exercise video URL");
   });
 
   const openCloneLibraryModal = useModal("exerciseCloneLibraryModal", (result) => {
@@ -133,6 +170,14 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
       setShowImageBottomSheet(true);
     } else {
       openImageSource({ exerciseId: editCustomExercise.id });
+    }
+  };
+
+  const openVideoSourceAction = (): void => {
+    if (props.useInlineModals) {
+      setShowVideoBottomSheet(true);
+    } else {
+      openVideoSource({ exerciseId: editCustomExercise.id });
     }
   };
 
@@ -185,6 +230,38 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               onPress={openImageSourceAction}
             >
               Add image
+            </Button>
+          )}
+        </View>
+        <View className="mt-4">
+          {editCustomExercise.videoUrl ? (
+            <View className="flex-row items-center gap-2">
+              <ExerciseVideo uri={editCustomExercise.videoUrl} resizeMode="cover" style={{ width: 60, height: 40 }} />
+              <LinkButton name="custom-exercise-change-video" className="text-xs" onPress={openVideoSourceAction}>
+                Change video
+              </LinkButton>
+              <LinkButton
+                name="custom-exercise-remove-video"
+                className="text-xs"
+                onPress={() =>
+                  props.dispatch(
+                    lb<ICustomExercise>().p("videoUrl").record(undefined),
+                    "Clear custom exercise video URL"
+                  )
+                }
+              >
+                Remove video
+              </LinkButton>
+            </View>
+          ) : (
+            <Button
+              name="custom-exercise-add-video"
+              kind="purple"
+              className="w-full"
+              buttonSize="md"
+              onPress={openVideoSourceAction}
+            >
+              Add demo video
             </Button>
           )}
         </View>
@@ -406,6 +483,82 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           </View>
         </BottomSheetOrModal>
       )}
+      {props.useInlineModals && showVideoBottomSheet && (
+        <BottomSheetOrModal
+          shouldShowClose={true}
+          onClose={() => setShowVideoBottomSheet(false)}
+          isHidden={!showVideoBottomSheet}
+        >
+          <View className="p-4">
+            <Text className="text-xs text-center text-text-secondary">MP4, up to 100 MB</Text>
+            {Platform.OS !== "web" ? (
+              <>
+                <BottomSheetItem
+                  name="record-video"
+                  title="Record Video"
+                  onClick={() => {
+                    if (!props.isLoggedIn) {
+                      Dialog_alert("You need to be logged in to upload custom exercise videos");
+                      return;
+                    }
+                    setShowVideoBottomSheet(false);
+                    setVideoPickerSource("camera");
+                    setShowVideoPickerBottomSheet(true);
+                  }}
+                />
+                <BottomSheetItem
+                  name="video-library"
+                  title="From Video Library"
+                  onClick={() => {
+                    if (!props.isLoggedIn) {
+                      Dialog_alert("You need to be logged in to upload custom exercise videos");
+                      return;
+                    }
+                    setShowVideoBottomSheet(false);
+                    setVideoPickerSource("photo-library");
+                    setShowVideoPickerBottomSheet(true);
+                  }}
+                />
+              </>
+            ) : (
+              <Importer
+                accept="video/mp4,video/quicktime,video/*"
+                onRawFile={async (file) => {
+                  if (!props.isLoggedIn) {
+                    Dialog_alert("You need to be logged in to upload custom exercise videos");
+                    return;
+                  }
+                  setIsUploading(true);
+                  try {
+                    await uploadVideoFile(file, editCustomExercise.id, service, props.dispatch);
+                    setShowVideoBottomSheet(false);
+                  } catch (e) {
+                    console.error("Error uploading video", e);
+                    Dialog_alert("Failed to upload video. Please try again.");
+                  } finally {
+                    setIsUploading(false);
+                  }
+                }}
+              >
+                {(onClick) => (
+                  <BottomSheetItem
+                    name="upload-video"
+                    icon={isUploading ? <IconSpinner width={18} height={18} /> : undefined}
+                    title="Upload Video"
+                    onClick={() => {
+                      if (!props.isLoggedIn) {
+                        Dialog_alert("You need to be logged in to upload custom exercise videos");
+                      } else {
+                        onClick();
+                      }
+                    }}
+                  />
+                )}
+              </Importer>
+            )}
+          </View>
+        </BottomSheetOrModal>
+      )}
       {props.useInlineModals && showPicturePickerBottomSheet && (
         <BottomSheetOrModal
           shouldShowClose={true}
@@ -449,6 +602,29 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               }}
             />
           </View>
+        </BottomSheetOrModal>
+      )}
+      {props.useInlineModals && showVideoPickerBottomSheet && (
+        <BottomSheetOrModal
+          shouldShowClose={true}
+          onClose={() => setShowVideoPickerBottomSheet(false)}
+          isHidden={!showVideoPickerBottomSheet}
+        >
+          <BottomSheetItem
+            name="video-picker-source"
+            title={videoPickerSource === "camera" ? "Record Video" : "From Video Library"}
+            onClick={async () => {
+              setIsUploading(true);
+              try {
+                await uploadAndUpdateVideo(videoPickerSource, editCustomExercise.id, service, props.dispatch);
+              } catch (e) {
+                Dialog_alert("Failed to upload video. Please try again.");
+              } finally {
+                setIsUploading(false);
+                setShowVideoPickerBottomSheet(false);
+              }
+            }}
+          />
         </BottomSheetOrModal>
       )}
       {props.useInlineModals && showImageLibrary && (

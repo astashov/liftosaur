@@ -180,7 +180,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           </View>
           <View>
             <LinkButton
-              name="edit-custom-exercise-stats"
+              name="delete-custom-exercise-stats"
               className="text-sm text-text-error"
               onClick={onDeleteCustomExercise}
             >
@@ -209,7 +209,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       />
 
       <View data-testid="exercise-stats-image" testID="exercise-stats-image">
-        <ExerciseImage settings={settings} key={exerciseKey} exerciseType={exerciseType} size="large" />
+        <ExerciseImage settings={settings} key={exerciseKey} exerciseType={exerciseType} size="large" motion />
       </View>
       {history.length > 1 && (
         <View data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">

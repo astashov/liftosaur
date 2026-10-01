@@ -445,6 +445,7 @@ export interface ICustomExercise {
   reuseImageFrom?: IExerciseType;
   largeImageUrl?: string;
   smallImageUrl?: string;
+  videoUrl?: string;
 }
 const _VCustomExercise = v.object({
   vtype: v.literal("custom_exercise"),
@@ -458,6 +459,7 @@ const _VCustomExercise = v.object({
   reuseImageFrom: v.optional(VExerciseType),
   largeImageUrl: v.optional(v.string()),
   smallImageUrl: v.optional(v.string()),
+  videoUrl: v.optional(v.string()),
 });
 const _VCustomExerciseMatches: IEquals<v.InferOutput<typeof _VCustomExercise>, ICustomExercise> = true;
 void _VCustomExerciseMatches;

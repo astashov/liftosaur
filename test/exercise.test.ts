@@ -9,6 +9,7 @@ import {
   Exercise_findById,
   Exercise_findIdByName,
   Exercise_findByNameAndEquipment,
+  Exercise_createOrUpdateCustomExercise,
 } from "../src/models/exercise";
 import { IAllCustomExercises, ICustomExercise } from "../src/types";
 
@@ -166,5 +167,62 @@ describe("Exercise — custom exercises named 'X' and 'X, <Equipment>' coexist",
       "custom-full": buildCustom("custom-full", "Squat, Barbell", false),
     };
     expect(Exercise_findByNameAndEquipment("Squat, Barbell", fullOnly)?.id).to.eql("squat");
+  });
+});
+
+describe("Exercise — custom exercise demo video survives the planner save", () => {
+  const VIDEO = "/images/mainvideo.mp4";
+  const original: ICustomExercise = { ...buildCustom("custom-curl", "Video Curl", false), videoUrl: undefined };
+  const allExercises: IAllCustomExercises = { "custom-curl": original };
+
+  it("keeps a video added in the editor", () => {
+    const result = Exercise_createOrUpdateCustomExercise(
+      allExercises,
+      original.name,
+      [],
+      [],
+      [],
+      undefined,
+      undefined,
+      VIDEO,
+      original
+    );
+    expect(result["custom-curl"]!.videoUrl).to.eql(VIDEO);
+  });
+
+  it("drops a video cleared in the editor", () => {
+    const withVideo: IAllCustomExercises = { "custom-curl": { ...original, videoUrl: VIDEO } };
+    const result = Exercise_createOrUpdateCustomExercise(
+      withVideo,
+      original.name,
+      [],
+      [],
+      [],
+      undefined,
+      undefined,
+      undefined,
+      withVideo["custom-curl"]
+    );
+    expect(result["custom-curl"]!.videoUrl).to.eql(undefined);
+  });
+
+  it("keeps a video added while creating a new custom exercise", () => {
+    const result = Exercise_createOrUpdateCustomExercise({}, "Fresh Curl", [], [], [], undefined, undefined, VIDEO);
+    expect(Object.values(result)[0]!.videoUrl).to.eql(VIDEO);
+  });
+
+  it("keeps a video when an exercise is recreated under the name of a deleted one", () => {
+    const deleted: IAllCustomExercises = { "custom-old": buildCustom("custom-old", "Fresh Curl", true) };
+    const result = Exercise_createOrUpdateCustomExercise(
+      deleted,
+      "Fresh Curl",
+      [],
+      [],
+      [],
+      undefined,
+      undefined,
+      VIDEO
+    );
+    expect(Object.values(result)[0]!.videoUrl).to.eql(VIDEO);
   });
 });

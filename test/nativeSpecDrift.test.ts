@@ -3,8 +3,8 @@ import { expect } from "chai";
 import fs from "fs";
 import path from "path";
 
-const SPEC = path.join(__dirname, "..", "src", "specs", "NativeLiftosaurLiveActivity.ts");
-const BRIDGE = path.join(__dirname, "..", "ios", "Liftosaur", "RCTLiftosaurLiveActivity.mm");
+const SPEC = path.join(process.cwd(), "src", "specs", "NativeLiftosaurLiveActivity.ts");
+const BRIDGE = path.join(process.cwd(), "ios", "Liftosaur", "RCTLiftosaurLiveActivity.mm");
 
 const ANDROID_ONLY: Record<string, string> = {
   isSetTimer: "LiveUpdateManager.kt",

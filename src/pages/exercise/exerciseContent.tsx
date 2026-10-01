@@ -428,7 +428,7 @@ function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
 
   return (
     <div className="pb-8">
-      <ExerciseImage size="large" exerciseType={props.exerciseType} />
+      <ExerciseImage size="large" exerciseType={props.exerciseType} settings={settings} />
       <div className="pb-1 text-lg font-bold">Muscle Groups</div>
       <div className="pb-8">
         <div className="font-bold">Type</div>

@@ -1,4 +1,5 @@
 import { Service } from "../api/service";
+import { IVideoPick } from "./videoPick";
 
 export class ImageUploader {
   private readonly MAX_WIDTH = 600;
@@ -22,6 +23,20 @@ export class ImageUploader {
     const fileName = `${exerciseId}.${extension}`;
     const file = new File([blob], fileName, { type: blob.type });
     return this.uploadImage(file, exerciseId);
+  }
+
+  public async uploadVideo(pick: IVideoPick, exerciseId: string): Promise<string> {
+    if (pick.size != null && pick.size > 100 * 1024 * 1024) {
+      throw new Error("Video is too large. The maximum size is 100 MB.");
+    }
+    const contentType = pick.type && pick.type !== "" ? pick.type : "video/mp4";
+    const extension = contentType === "video/quicktime" ? "mov" : "mp4";
+    const fileName = `${exerciseId}.${extension}`;
+    const blob = await (await fetch(pick.uri)).blob();
+    const file = new File([blob], fileName, { type: contentType });
+    const presignedUrlResponse = await this.service.postImageUploadUrl(fileName, contentType);
+    await this.uploadToS3(presignedUrlResponse.uploadUrl, file);
+    return presignedUrlResponse.imageUrl;
   }
 
   private async resizeImage(file: File): Promise<File> {

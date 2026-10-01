@@ -8,9 +8,13 @@ import {
   ExerciseImageUtils_url,
   ExerciseImageUtils_exists,
   ExerciseImageUtils_existsCustom,
+  ExerciseImageUtils_motionUrl,
+  ExerciseImageUtils_existsMotion,
+  ExerciseImageUtils_videoAspectRatio,
 } from "../models/exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { ExerciseVideo } from "./exerciseVideo";
 import { ImageCache_initialUri, ImageCache_markMissing, ImageCache_download } from "../utils/imageCache";
 import { useRemScale } from "../utils/useRem";
 
@@ -20,6 +24,7 @@ interface IProps {
   useTextForCustomExercise?: boolean;
   useBorderForCustomExercise?: boolean;
   suppressCustom?: boolean;
+  motion?: boolean;
   settings?: ISettings;
   className?: string;
   customClassName?: string;
@@ -32,6 +37,7 @@ function areExerciseImagePropsEqual(prev: IProps, next: IProps): boolean {
     prev.useTextForCustomExercise === next.useTextForCustomExercise &&
     prev.useBorderForCustomExercise === next.useBorderForCustomExercise &&
     prev.suppressCustom === next.suppressCustom &&
+    prev.motion === next.motion &&
     prev.className === next.className &&
     prev.customClassName === next.customClassName &&
     prev.width === next.width &&
@@ -60,6 +66,7 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
   const [aspectRatio, setAspectRatio] = useState<number>(4 / 3);
   const [src, setSrc] = useState<string | undefined>(initialUri);
   const [usingRemote, setUsingRemote] = useState<boolean>(initialUri === remoteSrc);
+  const [isVideoError, setIsVideoError] = useState<boolean>(false);
 
   if (prevRemote !== remoteSrc) {
     setPrevRemote(remoteSrc);
@@ -73,6 +80,16 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
   const doesExist =
     ExerciseImageUtils_exists(exerciseType, size) ||
     ExerciseImageUtils_existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
+
+  const existsMotion = ExerciseImageUtils_existsMotion(exerciseType, props.settings);
+  const motionUrl = props.motion ? ExerciseImageUtils_motionUrl(exerciseType, props.settings) : undefined;
+  const resolvedMotionUrl = motionUrl ? HostConfig_resolveUrl(motionUrl) : undefined;
+
+  const [prevMotionUrl, setPrevMotionUrl] = useState<string | undefined>(resolvedMotionUrl);
+  if (prevMotionUrl !== resolvedMotionUrl) {
+    setPrevMotionUrl(resolvedMotionUrl);
+    setIsVideoError(false);
+  }
 
   const onCachedError = (): void => {
     if (!usingRemote && remoteSrc) {
@@ -129,7 +146,17 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
       </>
     );
   } else {
-    return doesExist ? (
+    return props.motion && existsMotion && resolvedMotionUrl && !isVideoError ? (
+      <ExerciseVideo
+        uri={resolvedMotionUrl}
+        poster={remoteSrc}
+        resizeMode="contain"
+        className={props.className}
+        style={{ width: "100%", aspectRatio }}
+        onLoad={({ width, height }) => setAspectRatio(ExerciseImageUtils_videoAspectRatio(width, height))}
+        onError={() => setIsVideoError(true)}
+      />
+    ) : doesExist ? (
       <>
         <Image
           data-testid="exercise-image-large"

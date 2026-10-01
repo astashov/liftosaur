@@ -4,6 +4,7 @@ interface IImporterProps {
   children: (onClick: () => void) => ReactNode;
   onRawFile?: (file: File) => void;
   onFileSelect?: (contents: string) => void;
+  accept?: string;
 }
 
 export function Importer(props: IImporterProps): JSX.Element {
@@ -14,6 +15,7 @@ export function Importer(props: IImporterProps): JSX.Element {
       <input
         className="hidden"
         type="file"
+        accept={props.accept}
         ref={fileInput}
         onChange={() => {
           const file = fileInput.current?.files?.[0];

@@ -63,6 +63,7 @@ import { NavModalTour } from "./modals/NavModalTour";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
 import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
+import { NavModalExerciseVideoSource } from "./modals/NavModalExerciseVideoSource";
 import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
 import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
 import { NavModalCustomExercise } from "./modals/NavModalCustomExercise";
@@ -475,6 +476,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="dateModal" component={NavModalDate} />
           <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
           <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+          <RootStack.Screen name="exerciseVideoSourceModal" component={NavModalExerciseVideoSource} />
           <RootStack.Screen name="exercisePickerSettingsModal" component={NavModalExercisePickerSettings} />
           <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
           <RootStack.Screen name="newGymModal" component={NavModalNewGym} />

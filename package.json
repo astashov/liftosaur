@@ -258,6 +258,7 @@
     "react-native-screens": "^4.27.0",
     "react-native-share": "^12.2.6",
     "react-native-svg": "^15.15.4",
+    "react-native-video": "^6.19.2",
     "react-native-view-shot": "^5.0.1",
     "react-native-web": "^0.21.2",
     "react-native-webview": "^13.16.1",

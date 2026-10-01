@@ -186,6 +186,7 @@ export type IRootStackParamList = {
   muscleGroupMusclePickerModal: { muscleGroup: IScreenMuscle };
   programPreviewMusclesModal: { type: "program" } | { type: "day"; dayIndex: number };
   exerciseImageSourceModal: undefined;
+  exerciseVideoSourceModal: undefined;
   exerciseImageLibraryModal: undefined;
   exerciseCloneLibraryModal: undefined;
   exerciseTypesPickerModal: undefined;

@@ -10,6 +10,7 @@ export function EditCustomExerciseLenses_createOrUpdate<T>(
   types: IExerciseKind[],
   smallImageUrl?: string,
   largeImageUrl?: string,
+  videoUrl?: string,
   exercise?: ICustomExercise
 ): ILensRecordingPayload<T> {
   return prefix.p("exercises").recordModify((exercises) => {
@@ -21,6 +22,7 @@ export function EditCustomExerciseLenses_createOrUpdate<T>(
       types,
       smallImageUrl,
       largeImageUrl,
+      videoUrl,
       exercise
     );
   });

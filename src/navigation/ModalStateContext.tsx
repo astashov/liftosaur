@@ -72,6 +72,10 @@ export interface IExerciseImageLibraryResult {
   largeImageUrl?: string;
 }
 
+export interface IExerciseVideoSourceResult {
+  videoUrl?: string;
+}
+
 export interface IExerciseCloneLibraryResult {
   smallImageUrl?: string;
   largeImageUrl?: string;
@@ -136,6 +140,7 @@ export interface IModalDataMap {
   exerciseTypesPickerModal: IExerciseTypesPickerModalData;
   exerciseMusclesPickerModal: IExerciseMusclesPickerModalData;
   exerciseImageSourceModal: { exerciseId: string };
+  exerciseVideoSourceModal: { exerciseId: string };
   exerciseImageLibraryModal: {};
   exerciseCloneLibraryModal: {};
   photoPickerModal: {};
@@ -155,6 +160,7 @@ export interface IModalResultMap {
   exerciseTypesPickerModal: IExerciseKind[];
   exerciseMusclesPickerModal: IMuscle[];
   exerciseImageSourceModal: IExerciseImageLibraryResult;
+  exerciseVideoSourceModal: IExerciseVideoSourceResult;
   exerciseImageLibraryModal: IExerciseImageLibraryResult;
   exerciseCloneLibraryModal: IExerciseCloneLibraryResult;
   photoPickerModal: string;

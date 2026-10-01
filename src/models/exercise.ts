@@ -4938,7 +4938,8 @@ export function Exercise_createCustomExercise(
   sMuscles: IMuscle[],
   types: IExerciseKind[],
   smallImageUrl?: string,
-  largeImageUrl?: string
+  largeImageUrl?: string,
+  videoUrl?: string
 ): ICustomExercise {
   const id = UidFactory_generateUid(8);
   const newExercise: ICustomExercise = {
@@ -4949,6 +4950,7 @@ export function Exercise_createCustomExercise(
     types,
     smallImageUrl,
     largeImageUrl,
+    videoUrl,
     meta: {
       targetMuscles: tMuscles,
       synergistMuscles: sMuscles,
@@ -4966,7 +4968,8 @@ export function Exercise_editCustomExercise(
   sMuscles: IMuscle[],
   types: IExerciseKind[],
   smallImageUrl?: string,
-  largeImageUrl?: string
+  largeImageUrl?: string,
+  videoUrl?: string
 ): ICustomExercise {
   const newExercise: ICustomExercise = {
     ...exercise,
@@ -4974,6 +4977,7 @@ export function Exercise_editCustomExercise(
     types,
     smallImageUrl,
     largeImageUrl,
+    videoUrl,
     meta: { ...exercise.meta, targetMuscles: tMuscles, synergistMuscles: sMuscles },
   };
   return newExercise;
@@ -5050,6 +5054,7 @@ export function Exercise_createOrUpdateCustomExercise(
   types: IExerciseKind[],
   smallImageUrl?: string,
   largeImageUrl?: string,
+  videoUrl?: string,
   exercise?: ICustomExercise
 ): IAllCustomExercises {
   if (exercise != null) {
@@ -5060,7 +5065,8 @@ export function Exercise_createOrUpdateCustomExercise(
       sMuscles,
       types,
       smallImageUrl,
-      largeImageUrl
+      largeImageUrl,
+      videoUrl
     );
     return { ...allExercises, [newExercise.id]: newExercise };
   } else {
@@ -5077,6 +5083,7 @@ export function Exercise_createOrUpdateCustomExercise(
           types,
           smallImageUrl,
           largeImageUrl,
+          videoUrl,
           isDeleted: false,
           meta: {
             targetMuscles: tMuscles,
@@ -5086,7 +5093,15 @@ export function Exercise_createOrUpdateCustomExercise(
         },
       };
     } else {
-      const newExercise = Exercise_createCustomExercise(name, tMuscles, sMuscles, types, smallImageUrl, largeImageUrl);
+      const newExercise = Exercise_createCustomExercise(
+        name,
+        tMuscles,
+        sMuscles,
+        types,
+        smallImageUrl,
+        largeImageUrl,
+        videoUrl
+      );
       return { ...allExercises, [newExercise.id]: newExercise };
     }
   }

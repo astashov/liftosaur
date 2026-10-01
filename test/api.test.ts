@@ -153,6 +153,22 @@ describe("API v1", () => {
     });
   });
 
+  describe("image upload URL content types", () => {
+    it("accepts video/mp4 and rejects text/html", async () => {
+      const response = await service.postImageUploadUrl("exercise.mp4", "video/mp4");
+      expect(response.imageUrl).to.contain("user-uploads/");
+      expect(response.uploadUrl).to.be.a("string");
+
+      let rejected: unknown;
+      try {
+        await service.postImageUploadUrl("exercise.html", "text/html");
+      } catch (e) {
+        rejected = e;
+      }
+      expect(rejected).to.not.be.undefined;
+    });
+  });
+
   describe("history endpoints", () => {
     let apiKey: string;
 

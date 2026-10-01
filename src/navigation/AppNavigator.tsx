@@ -126,6 +126,7 @@ import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
 import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
 import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
+import { NavModalExerciseVideoSource } from "./modals/NavModalExerciseVideoSource";
 import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
 import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
 import { NavModalExerciseTypesPicker } from "./modals/NavModalExerciseTypesPicker";
@@ -422,6 +423,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
           <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
           <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+          <RootStack.Screen name="exerciseVideoSourceModal" component={NavModalExerciseVideoSource} />
           <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />

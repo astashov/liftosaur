@@ -15,6 +15,7 @@ export function EditCustomExercise_createOrUpdate(
   types: IExerciseKind[],
   smallImageUrl?: string,
   largeImageUrl?: string,
+  videoUrl?: string,
   exercise?: ICustomExercise
 ): void {
   updateState(
@@ -28,6 +29,7 @@ export function EditCustomExercise_createOrUpdate(
         types,
         smallImageUrl,
         largeImageUrl,
+        videoUrl,
         exercise
       ),
     ],
