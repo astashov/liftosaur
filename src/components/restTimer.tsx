@@ -5,7 +5,6 @@ import Reanimated, {
   FadeIn,
   FadeOut,
   LinearTransition,
-  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -45,16 +44,16 @@ function useRestTimerProgressStyle(
   timer: number | undefined
 ): ReturnType<typeof useAnimatedStyle> {
   const fraction = useSharedValue(0);
+  // No cancelAnimation in cleanup: scheduleOnUI runs after the next .value write, so it stopped the new rest at 0.
   useEffect(() => {
     if (timerSince == null || timer == null) {
-      return undefined;
+      return;
     }
     const progress = RestTimerProgress_at(timerSince, timer, Date.now());
     fraction.value = progress.fraction;
     if (progress.remainingMs > 0) {
       fraction.value = withTiming(1, { duration: progress.remainingMs, easing: Easing.linear });
     }
-    return () => cancelAnimation(fraction);
   }, [timerSince, timer, fraction]);
   return useAnimatedStyle(() => ({ transform: [{ scaleX: fraction.value }] }));
 }
@@ -326,10 +325,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
               isExpanded ? { height: 5, opacity: 0.6 } : { bottom: 0, opacity: isTimeOut ? 0 : 0.3 },
             ]}
           >
-            {/* Reanimated copies a settled animation's final style into React props and never clears it
-                (FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS), so the next rest would start at full width. */}
             <Reanimated.View
-              key={`${timerSince}-${timer}`}
               style={[
                 {
                   flex: 1,
