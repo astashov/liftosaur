@@ -14,6 +14,57 @@ export function LiftohistorySerializer_serialize(
   return serializeWorkoutRecord(historyRecord, settings, program);
 }
 
+export interface ILiftohistoryTimelineSet {
+  exercise: string;
+  entryIndex: number;
+  kind: "warmup" | "work";
+  setNumber: number;
+  reps: number;
+  weight?: string;
+  completedAt: number | null;
+}
+
+export function LiftohistorySerializer_setTimeline(
+  historyRecord: IHistoryRecord,
+  settings: ISettings
+): ILiftohistoryTimelineSet[] {
+  const timeline: ILiftohistoryTimelineSet[] = [];
+  historyRecord.entries.forEach((entry, entryIndex) => {
+    if (!hasCompletedSets(entry)) {
+      return;
+    }
+    const exercise = serializeExerciseName(entry, settings);
+    const groups: [ILiftohistoryTimelineSet["kind"], ISet[]][] = [
+      ["warmup", entry.warmupSets],
+      ["work", entry.sets],
+    ];
+    for (const [kind, sets] of groups) {
+      let setNumber = 0;
+      for (const set of sets) {
+        if (set.completedReps == null) {
+          continue;
+        }
+        setNumber += 1;
+        timeline.push({
+          exercise,
+          entryIndex,
+          kind,
+          setNumber,
+          reps: set.completedReps,
+          ...(set.completedWeight ? { weight: Weight_print(set.completedWeight) } : {}),
+          completedAt: set.timestamp ?? null,
+        });
+      }
+    }
+  });
+  return timeline.sort((a, b) => {
+    if (a.completedAt == null || b.completedAt == null) {
+      return (a.completedAt == null ? 1 : 0) - (b.completedAt == null ? 1 : 0);
+    }
+    return a.completedAt - b.completedAt;
+  });
+}
+
 function formatNotes(notes: string, indent: string): string {
   return notes
     .split("\n")
@@ -71,8 +122,7 @@ function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, pro
   lines.push(header);
 
   for (const entry of record.entries) {
-    const hasCompletedSets = entry.sets.some((s) => s.completedReps != null);
-    if (!hasCompletedSets) {
+    if (!hasCompletedSets(entry)) {
       continue;
     }
     if (entry.notes) {
@@ -85,11 +135,19 @@ function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, pro
   return lines.join("\n");
 }
 
-function serializeEntry(entry: IHistoryEntry, settings: ISettings): string {
+function hasCompletedSets(entry: IHistoryEntry): boolean {
+  return entry.sets.some((s) => s.completedReps != null);
+}
+
+function serializeExerciseName(entry: IHistoryEntry, settings: ISettings): string {
   const exercise = Exercise_get(entry.exercise, settings.exercises);
   // Legacy custom exercise names may contain characters the liftohistory grammar rejects,
   // which would make the export unparseable on re-import.
-  let line = Exercise_fullName({ ...exercise, name: Exercise_sanitizeName(exercise.name) }, settings);
+  return Exercise_fullName({ ...exercise, name: Exercise_sanitizeName(exercise.name) }, settings);
+}
+
+function serializeEntry(entry: IHistoryEntry, settings: ISettings): string {
+  let line = serializeExerciseName(entry, settings);
 
   const completedStr = serializeCompletedSets(entry.sets);
   if (completedStr) {

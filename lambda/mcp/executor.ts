@@ -180,13 +180,19 @@ export async function McpToolExecutor_execute(
           endDate: args.endDate as string | undefined,
           limit: args.limit as string | undefined,
           cursor: args.cursor as string | undefined,
+          includeTimestamps: args.includeTimestamps as string | undefined,
         },
         di
       );
 
     case "get_history_record": {
       const id = parseInt(args.id as string, 10);
-      const result = await ApiV1_getHistory(userId, user, { limit: "200" }, di);
+      const result = await ApiV1_getHistory(
+        userId,
+        user,
+        { limit: "200", includeTimestamps: args.includeTimestamps as string | undefined },
+        di
+      );
       if (!result.success) {
         return result;
       }

@@ -161,7 +161,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "get_history",
     description:
-      'Retrieve workout history records in Liftohistory text format. Example record:\n\n```\n2026-02-28T10:45:30Z / program: "5/3/1" / dayName: "Push Day" / week: 1 / dayInWeek: 5 / duration: 1235s / exercises: {\n  Bench Press, Barbell / 3x8 185lb @7, 1x6 185lb @9 / warmup: 1x10 95lb / target: 3x8-12 185lb @8 90s\n}\n```\n\nUse startDate/endDate (ISO dates or unix timestamps) to filter by date range. Use limit/cursor for pagination (max 200 per page).',
+      'Retrieve workout history records in Liftohistory text format. Example record:\n\n```\n2026-02-28T10:45:30Z / program: "5/3/1" / dayName: "Push Day" / week: 1 / dayInWeek: 5 / duration: 1235s / exercises: {\n  Bench Press, Barbell / 3x8 185lb @7, 1x6 185lb @9 / warmup: 1x10 95lb / target: 3x8-12 185lb @8 90s\n}\n```\n\nUse startDate/endDate (ISO dates or unix timestamps) to filter by date range. Use limit/cursor for pagination (max 200 per page). With includeTimestamps "true", each record also gets a `sets` array of every completed set, warmups included, sorted by completion time: `{ exercise, entryIndex, kind: "warmup" | "work", setNumber, reps, weight?, completedAt }`, where completedAt is unix ms or null (null sets come last).',
     annotations: { title: "Get workout history", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
@@ -170,17 +170,26 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
         endDate: { type: "string", description: "End date filter (ISO date string or unix timestamp)" },
         limit: { type: "string", description: "Max records to return (default 50, max 200)" },
         cursor: { type: "string", description: "Pagination cursor from previous response" },
+        includeTimestamps: {
+          type: "string",
+          description: 'Set to "true" to add the per-set `sets` timeline to each record',
+        },
       },
     },
   },
   {
     name: "get_history_record",
-    description: "Get a single workout history record by ID. Returns the record in Liftohistory text format.",
+    description:
+      'Get a single workout history record by ID. Returns the record in Liftohistory text format. With includeTimestamps "true", it also returns a `sets` array of completed sets sorted by completion time, in the same shape as get_history.',
     annotations: { title: "Get workout record", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
         id: { type: "string", description: "History record ID" },
+        includeTimestamps: {
+          type: "string",
+          description: 'Set to "true" to add the per-set `sets` timeline to the record',
+        },
       },
       required: ["id"],
     },

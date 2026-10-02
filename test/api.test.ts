@@ -217,6 +217,31 @@ describe("API v1", () => {
       expect(parseBody(listAfter).data.records.length).to.equal(0);
     });
 
+    it('adds the sets timeline only when includeTimestamps is "true"', async () => {
+      const historyText = `2025-03-01 10:00:00 +00:00 / exercises: {
+  Squat / 1x5 100lb
+}`;
+      await handler(
+        buildEvent("POST", "/api/v1/history", { headers: apiHeaders(apiKey), body: { text: historyText } }),
+        {
+          getRemainingTimeInMillis: () => 10000,
+        }
+      );
+
+      const plain = await handler(buildEvent("GET", "/api/v1/history", { headers: apiHeaders(apiKey) }), {
+        getRemainingTimeInMillis: () => 10000,
+      });
+      expect(Object.keys(parseBody(plain).data.records[0])).to.deep.equal(["id", "text"]);
+
+      const withSets = await handler(
+        buildEvent("GET", "/api/v1/history", { headers: apiHeaders(apiKey), qs: { includeTimestamps: "true" } }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(parseBody(withSets).data.records[0].sets).to.deep.equal([
+        { exercise: "Squat", entryIndex: 0, kind: "work", setNumber: 1, reps: 5, weight: "100lb", completedAt: null },
+      ]);
+    });
+
     it("links history record to program when program name is provided", async () => {
       const programText = `# Week 1
 ## Push Day

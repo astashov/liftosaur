@@ -2,7 +2,10 @@ import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
 import { Weight_build } from "../src/models/weight";
-import { LiftohistorySerializer_serialize } from "../src/liftohistory/liftohistorySerializer";
+import {
+  LiftohistorySerializer_serialize,
+  LiftohistorySerializer_setTimeline,
+} from "../src/liftohistory/liftohistorySerializer";
 import {
   LiftohistoryDeserializer_deserialize,
   LiftohistorySyntaxError,
@@ -426,6 +429,103 @@ describe("Liftohistory", () => {
       });
       const result = LiftohistorySerializer_serialize(record, settings);
       expect(result).to.include("1x5 100kg");
+    });
+  });
+
+  describe("Set timeline", () => {
+    it("lists completed work and warmup sets sorted by completion time", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "squat", equipment: "barbell" },
+            warmupSets: [
+              buildSet({ completedReps: 5, completedWeight: Weight_build(95, "lb"), timestamp: 1000 }),
+              buildSet({ reps: 3, weight: Weight_build(135, "lb") }),
+            ],
+            sets: [
+              buildSet({ completedReps: 5, completedWeight: Weight_build(185, "lb"), timestamp: 2000 }),
+              buildSet({ completedReps: 4, completedWeight: Weight_build(185, "lb"), timestamp: 3000 }),
+            ],
+          }),
+        ],
+      });
+      const text = LiftohistorySerializer_serialize(record, settings);
+      const timeline = LiftohistorySerializer_setTimeline(record, settings);
+      expect(timeline).to.deep.equal([
+        { exercise: "Squat", entryIndex: 0, kind: "warmup", setNumber: 1, reps: 5, weight: "95lb", completedAt: 1000 },
+        { exercise: "Squat", entryIndex: 0, kind: "work", setNumber: 1, reps: 5, weight: "185lb", completedAt: 2000 },
+        { exercise: "Squat", entryIndex: 0, kind: "work", setNumber: 2, reps: 4, weight: "185lb", completedAt: 3000 },
+      ]);
+      expect(text).to.include(`  ${timeline[0].exercise} / `);
+    });
+
+    it("orders superset sets by time, not by entry", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "benchPress", equipment: "barbell" },
+            sets: [
+              buildSet({ completedReps: 8, completedWeight: Weight_build(135, "lb"), timestamp: 1000 }),
+              buildSet({ completedReps: 8, completedWeight: Weight_build(135, "lb"), timestamp: 3000 }),
+            ],
+          }),
+          buildEntry({
+            exercise: { id: "bentOverRow", equipment: "barbell" },
+            warmupSets: [buildSet({ completedReps: 10, completedWeight: Weight_build(65, "lb"), timestamp: 1500 })],
+            sets: [
+              buildSet({ completedReps: 10, completedWeight: Weight_build(115, "lb"), timestamp: 2000 }),
+              buildSet({ completedReps: 10, completedWeight: Weight_build(115, "lb"), timestamp: 4000 }),
+            ],
+          }),
+        ],
+      });
+      const timeline = LiftohistorySerializer_setTimeline(record, settings);
+      expect(timeline.map((s) => [s.entryIndex, s.kind, s.setNumber, s.completedAt])).to.deep.equal([
+        [0, "work", 1, 1000],
+        [1, "warmup", 1, 1500],
+        [1, "work", 1, 2000],
+        [0, "work", 2, 3000],
+        [1, "work", 2, 4000],
+      ]);
+    });
+
+    it("lists sets without a timestamp last, with completedAt null, in entry order", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "squat", equipment: "barbell" },
+            sets: [buildSet({ completedReps: 5 }), buildSet({ completedReps: 5, timestamp: 5000 })],
+          }),
+          buildEntry({
+            exercise: { id: "deadlift", equipment: "barbell" },
+            sets: [buildSet({ completedReps: 3, completedWeight: Weight_build(225, "lb") })],
+          }),
+        ],
+      });
+      const timeline = LiftohistorySerializer_setTimeline(record, settings);
+      expect(timeline.map((s) => [s.entryIndex, s.setNumber, s.completedAt])).to.deep.equal([
+        [0, 2, 5000],
+        [0, 1, null],
+        [1, 1, null],
+      ]);
+      expect(timeline[1]).to.not.have.property("weight");
+    });
+
+    it("skips entries the serializer skips", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "squat", equipment: "barbell" },
+            warmupSets: [buildSet({ completedReps: 5, timestamp: 1000 })],
+            sets: [buildSet({ reps: 5 })],
+          }),
+        ],
+      });
+      expect(LiftohistorySerializer_setTimeline(record, settings)).to.deep.equal([]);
     });
   });
 

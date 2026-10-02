@@ -112,6 +112,7 @@ export const getV1HistoryEndpoint = Endpoint.build("/api/v1/history", {
   endDate: "string?",
   limit: "string?",
   cursor: "string?",
+  includeTimestamps: "string?",
 });
 export const getV1HistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getV1HistoryEndpoint> = async ({
   payload,

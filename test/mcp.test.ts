@@ -17,6 +17,9 @@ import { Storage_getDefault } from "../src/models/storage";
 import { MockFetch } from "./utils/mockFetch";
 import sinon from "sinon";
 import JWT from "jsonwebtoken";
+import { IHistoryRecord } from "../src/types";
+import { Weight_build } from "../src/models/weight";
+import { LiftohistorySerializer_serialize } from "../src/liftohistory/liftohistorySerializer";
 
 function buildMcpEvent(body: unknown, headers?: Record<string, string>): APIGatewayProxyEvent {
   return {
@@ -680,6 +683,163 @@ describe("MCP", () => {
       );
       expect(deleteResult.statusCode).to.equal(200);
       expect(parseBody(deleteResult).result.isError).to.be.undefined;
+    });
+
+    describe("includeTimestamps", () => {
+      const record: IHistoryRecord = {
+        vtype: "history_record",
+        id: 1772274600000,
+        date: "2026-02-28T10:30:00.000Z",
+        startTime: 1772274600000,
+        programId: "emptyprogram",
+        programName: "Adhoc",
+        day: 1,
+        dayName: "Workout",
+        entries: [
+          {
+            vtype: "history_entry",
+            id: "benchPress",
+            index: 0,
+            exercise: { id: "benchPress", equipment: "barbell" },
+            warmupSets: [],
+            sets: [
+              {
+                vtype: "set",
+                id: "b1",
+                index: 0,
+                completedReps: 8,
+                completedWeight: Weight_build(135, "lb"),
+                timestamp: 1772274700000,
+              },
+              {
+                vtype: "set",
+                id: "b2",
+                index: 1,
+                completedReps: 8,
+                completedWeight: Weight_build(135, "lb"),
+                timestamp: 1772274900000,
+              },
+            ],
+          },
+          {
+            vtype: "history_entry",
+            id: "bentOverRow",
+            index: 1,
+            exercise: { id: "bentOverRow", equipment: "barbell" },
+            warmupSets: [
+              {
+                vtype: "set",
+                id: "r0",
+                index: 0,
+                completedReps: 10,
+                completedWeight: Weight_build(65, "lb"),
+                timestamp: 1772274750000,
+              },
+            ],
+            sets: [
+              {
+                vtype: "set",
+                id: "r1",
+                index: 0,
+                completedReps: 10,
+                completedWeight: Weight_build(115, "lb"),
+                timestamp: 1772274800000,
+              },
+              { vtype: "set", id: "r2", index: 1, completedReps: 10, completedWeight: Weight_build(115, "lb") },
+            ],
+          },
+        ],
+      };
+
+      beforeEach(async () => {
+        await new UserDao(di).saveHistoryRecord(userId, record);
+      });
+
+      async function callTool(name: string, args: Record<string, unknown>): Promise<any> {
+        const result = await handler(buildMcpEvent(toolCall(name, args), authHeaders(token)), ctx);
+        const body = parseBody(result);
+        expect(body.result.isError).to.be.undefined;
+        return JSON.parse(body.result.content[0].text);
+      }
+
+      const expectedText = (): string => LiftohistorySerializer_serialize(record, Storage_getDefault().settings);
+
+      it('returns only id and text when the flag is absent or not "true"', async () => {
+        for (const args of [{}, { includeTimestamps: "false" }, { includeTimestamps: "1" }]) {
+          const data = await callTool("get_history", args);
+          expect(data.records).to.deep.equal([{ id: record.id, text: expectedText() }]);
+        }
+      });
+
+      it('adds sets sorted by completion time when the flag is "true"', async () => {
+        const data = await callTool("get_history", { includeTimestamps: "true" });
+        expect(data.records.length).to.equal(1);
+        const [rec] = data.records;
+        expect(Object.keys(rec)).to.deep.equal(["id", "text", "sets"]);
+        expect(rec.text).to.equal(expectedText());
+        expect(rec.sets).to.deep.equal([
+          {
+            exercise: "Bench Press",
+            entryIndex: 0,
+            kind: "work",
+            setNumber: 1,
+            reps: 8,
+            weight: "135lb",
+            completedAt: 1772274700000,
+          },
+          {
+            exercise: "Bent Over Row",
+            entryIndex: 1,
+            kind: "warmup",
+            setNumber: 1,
+            reps: 10,
+            weight: "65lb",
+            completedAt: 1772274750000,
+          },
+          {
+            exercise: "Bent Over Row",
+            entryIndex: 1,
+            kind: "work",
+            setNumber: 1,
+            reps: 10,
+            weight: "115lb",
+            completedAt: 1772274800000,
+          },
+          {
+            exercise: "Bench Press",
+            entryIndex: 0,
+            kind: "work",
+            setNumber: 2,
+            reps: 8,
+            weight: "135lb",
+            completedAt: 1772274900000,
+          },
+          {
+            exercise: "Bent Over Row",
+            entryIndex: 1,
+            kind: "work",
+            setNumber: 2,
+            reps: 10,
+            weight: "115lb",
+            completedAt: null,
+          },
+        ]);
+      });
+
+      it("get_history_record honours the flag", async () => {
+        const plain = await callTool("get_history_record", { id: String(record.id) });
+        expect(plain).to.deep.equal({ id: record.id, text: expectedText() });
+
+        const withSets = await callTool("get_history_record", { id: String(record.id), includeTimestamps: "true" });
+        expect(withSets.text).to.equal(expectedText());
+        expect(withSets.sets.map((s: any) => s.completedAt)).to.deep.equal([
+          1772274700000,
+          1772274750000,
+          1772274800000,
+          1772274900000,
+          null,
+        ]);
+      });
     });
 
     it("returns error for invalid history text", async () => {

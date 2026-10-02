@@ -1,6 +1,10 @@
 import { UserDao, ILimitedUserDao } from "../dao/userDao";
 import { IDI } from "./di";
-import { LiftohistorySerializer_serialize } from "../../src/liftohistory/liftohistorySerializer";
+import {
+  ILiftohistoryTimelineSet,
+  LiftohistorySerializer_serialize,
+  LiftohistorySerializer_setTimeline,
+} from "../../src/liftohistory/liftohistorySerializer";
 import {
   LiftohistoryDeserializer_deserialize,
   LiftohistorySyntaxError,
@@ -116,6 +120,7 @@ export interface IGetHistoryParams {
   endDate?: string;
   limit?: string;
   cursor?: string;
+  includeTimestamps?: string;
 }
 
 export async function ApiV1_getHistory(
@@ -123,7 +128,13 @@ export async function ApiV1_getHistory(
   user: ILimitedUserDao,
   params: IGetHistoryParams,
   di: IDI
-): Promise<IApiResult<{ records: { id: number; text: string }[]; hasMore: boolean; nextCursor?: number }>> {
+): Promise<
+  IApiResult<{
+    records: { id: number; text: string; sets?: ILiftohistoryTimelineSet[] }[];
+    hasMore: boolean;
+    nextCursor?: number;
+  }>
+> {
   const userDao = new UserDao(di);
   const settings = user.storage.settings;
   const limit = Math.min(parseInt(params.limit || "50", 10) || 50, 200);
@@ -144,7 +155,11 @@ export async function ApiV1_getHistory(
   const nextCursor = hasMore && records.length > 0 ? records[records.length - 1].id : undefined;
 
   return ok({
-    records: records.map((r) => ({ id: r.id, text: LiftohistorySerializer_serialize(r, settings) })),
+    records: records.map((r) => ({
+      id: r.id,
+      text: LiftohistorySerializer_serialize(r, settings),
+      ...(params.includeTimestamps === "true" ? { sets: LiftohistorySerializer_setTimeline(r, settings) } : {}),
+    })),
     hasMore,
     nextCursor,
   });
