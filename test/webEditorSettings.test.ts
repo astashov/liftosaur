@@ -3,8 +3,10 @@ import { expect } from "chai";
 import {
   Settings_build,
   Settings_applyWebEditorSettings,
-  Settings_webEditorSettingsUpdate,
+  Settings_webEditorInitial,
+  Settings_webEditorSettingsRequest,
   Settings_applyExportedProgram,
+  Settings_toggleStarred,
 } from "../src/models/settings";
 import { Program_create, Program_exportProgram } from "../src/models/program";
 import { ICustomExercise, IWebEditorSettings, VWebEditorSettings } from "../src/types";
@@ -155,11 +157,106 @@ describe("web editor settings", () => {
     });
 
     it("round-trips what the web editor sends", () => {
-      const settings = { ...Settings_build(), units: "kg" as const };
+      const initial = Settings_build();
+      const settings = { ...initial, units: "kg" as const };
       settings.planner.synergistMultiplier = 0.9;
-      const result = Settings_applyWebEditorSettings(Settings_build(), Settings_webEditorSettingsUpdate(settings));
+      const request = Settings_webEditorSettingsRequest(initial, settings);
+      const result = Settings_applyWebEditorSettings(Settings_build(), request.settings);
       expect(result.units).to.equal("kg");
       expect(result.planner.synergistMultiplier).to.equal(0.9);
+    });
+  });
+
+  describe("Settings_webEditorInitial", () => {
+    it("keeps the stored workout settings over the defaults", () => {
+      const stored = Settings_build();
+      stored.workoutSettings = { targetType: "e1rm", pickerSort: "similar_muscles" };
+      const result = Settings_webEditorInitial(stored, undefined);
+      expect(result.workoutSettings.targetType).to.equal("e1rm");
+      expect(result.workoutSettings.pickerSort).to.equal("similar_muscles");
+    });
+
+    it("loads the stored starred exercises", () => {
+      const stored = { ...Settings_build(), starredExercises: { squat: true } };
+      expect(Settings_webEditorInitial(stored, undefined).starredExercises).to.deep.equal({ squat: true });
+    });
+
+    it("lets a shared program's custom exercises fill in next to the stored ones", () => {
+      const stored = Settings_build();
+      stored.exercises = { a: customExercise("a", "A") };
+      const result = Settings_webEditorInitial(stored, { b: customExercise("b", "B") });
+      expect(Object.keys(result.exercises).sort()).to.deep.equal(["a", "b"]);
+    });
+
+    it("builds defaults for a visitor with no storage", () => {
+      const result = Settings_webEditorInitial(undefined, undefined);
+      expect(result.workoutSettings).to.deep.equal(Settings_build().workoutSettings);
+      expect(result.starredExercises).to.equal(undefined);
+    });
+  });
+
+  describe("Settings_webEditorSettingsRequest", () => {
+    it("sends nothing optional when only the program-level settings changed", () => {
+      const initial = Settings_build();
+      const request = Settings_webEditorSettingsRequest(initial, { ...initial, units: "kg" });
+      expect(request.settings.exercises).to.equal(undefined);
+      expect(request.settings.starredExercises).to.equal(undefined);
+      expect(request.settings.workoutSettings).to.equal(undefined);
+      expect(request.deletedStarredExerciseKeys).to.deep.equal([]);
+    });
+
+    it("sends a star and names an unstar", () => {
+      const initial = { ...Settings_build(), starredExercises: { squat: true } };
+      let starred = Settings_toggleStarred(initial.starredExercises, "squat");
+      starred = Settings_toggleStarred(starred, "bench");
+      const request = Settings_webEditorSettingsRequest(initial, { ...initial, starredExercises: starred });
+      expect(request.settings.starredExercises).to.deep.equal({ bench: true });
+      expect(request.deletedStarredExerciseKeys).to.deep.equal(["squat"]);
+    });
+
+    it("sends only the picker settings that changed, never targetType", () => {
+      const initial = Settings_build();
+      initial.workoutSettings = { targetType: "e1rm", shouldShowInvisibleEquipment: false };
+      const current = {
+        ...initial,
+        workoutSettings: { ...initial.workoutSettings, pickerSort: "similar_muscles" as const },
+      };
+      const request = Settings_webEditorSettingsRequest(initial, current);
+      expect(request.settings.workoutSettings).to.deep.equal({ pickerSort: "similar_muscles" });
+    });
+
+    it("sends only the custom exercises edited on the page", () => {
+      const initial = Settings_build();
+      initial.exercises = { mine: customExercise("mine", "Mine"), shared: customExercise("shared", "Shared") };
+      const current = {
+        ...initial,
+        exercises: {
+          ...initial.exercises,
+          mine: { ...customExercise("mine", "Mine"), isDeleted: true },
+          created: customExercise("created", "Created"),
+        },
+      };
+      const request = Settings_webEditorSettingsRequest(initial, current);
+      expect(Object.keys(request.settings.exercises || {}).sort()).to.deep.equal(["created", "mine"]);
+      expect(request.settings.exercises?.mine?.isDeleted).to.equal(true);
+    });
+
+    it("names an exerciseData override cleared since page load", () => {
+      const initial = Settings_build();
+      initial.exerciseData = { squat: { rm1: undefined } };
+      const request = Settings_webEditorSettingsRequest(initial, { ...initial, exerciseData: {} });
+      expect(request.deletedExerciseDataKeys).to.deep.equal(["squat"]);
+    });
+
+    it("produces a payload the server accepts", () => {
+      const initial = Settings_build();
+      const current = {
+        ...initial,
+        starredExercises: { squat: true },
+        exercises: { created: customExercise("created", "Created") },
+      };
+      const request = Settings_webEditorSettingsRequest(initial, current);
+      expect(Storage_validate(request.settings, VWebEditorSettings, "settings").success).to.equal(true);
     });
   });
 

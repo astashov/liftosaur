@@ -13,7 +13,7 @@ import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
 import { ModalPlannerSettings, IPlannerSettingsSaveStatus } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
-import { Settings_build, Settings_webEditorSettingsUpdate } from "../../models/settings";
+import { Settings_build, Settings_webEditorInitial, Settings_webEditorSettingsRequest } from "../../models/settings";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { StringUtils_capitalize } from "../../utils/string";
 import { Exercise_getById, Exercise_createOrUpdateCustomExercise } from "../../models/exercise";
@@ -27,7 +27,6 @@ import {
   IPlannerProgram,
   IPlannerProgramDay,
   IPlannerProgramWeek,
-  ISettings,
   IStats,
   IUnit,
 } from "../../types";
@@ -50,7 +49,6 @@ import { Modal } from "../../components/modal";
 import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
 import { UidFactory_generateUid } from "../../utils/generator";
-import { ObjectUtils_keys } from "../../utils/object";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../../utils/url";
@@ -178,22 +176,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     ? { ...props.initialProgram.program, planner: props.initialProgram.program.planner || initialPlanner }
     : { ...Program_create("My Program", "newprogram"), planner: initialPlanner };
 
-  const initialSettings: ISettings = Settings_build();
-  initialSettings.exercises = {
-    ...initialSettings.exercises,
-    ...props.partialStorage?.settings?.exercises,
-    ...props.initialProgram?.customExercises,
-  };
-  initialSettings.timers.workout = props.partialStorage?.settings?.timers.workout ?? initialSettings.timers.workout;
-  initialSettings.planner = props.partialStorage?.settings?.planner || initialSettings.planner;
-  initialSettings.muscleGroups = props.partialStorage?.settings?.muscleGroups || initialSettings.muscleGroups;
-  initialSettings.units = props.partialStorage?.settings?.units ?? initialSettings.units;
-  initialSettings.exerciseData = { ...props.partialStorage?.settings?.exerciseData, ...initialSettings.exerciseData };
-  initialSettings.workoutSettings = {
-    ...props.partialStorage?.settings?.workoutSettings,
-    ...initialSettings.workoutSettings,
-  };
-
+  const [initialSettings] = useState(() =>
+    Settings_webEditorInitial(props.partialStorage?.settings, props.initialProgram?.customExercises)
+  );
   const [settings, setSettings] = useState(initialSettings);
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
@@ -293,15 +278,18 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     }
   }, []);
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<IPlannerSettingsSaveStatus | undefined>(undefined);
-  const settingsUpdate = useMemo(
-    () => Settings_webEditorSettingsUpdate(settings),
-    [settings.units, settings.timers.workout, settings.planner, settings.muscleGroups, settings.exerciseData]
-  );
-  // The payload merges exerciseData, so an override cleared back to defaults has to be named to be removed
-  const storedExerciseData = props.partialStorage?.settings?.exerciseData;
-  const deletedExerciseDataKeys = useMemo(
-    () => ObjectUtils_keys(storedExerciseData || {}).filter((key) => settings.exerciseData[key] == null),
-    [storedExerciseData, settings.exerciseData]
+  const settingsRequest = useMemo(
+    () => Settings_webEditorSettingsRequest(initialSettings, settings),
+    [
+      settings.units,
+      settings.timers.workout,
+      settings.planner,
+      settings.muscleGroups,
+      settings.exerciseData,
+      settings.exercises,
+      settings.starredExercises,
+      settings.workoutSettings,
+    ]
   );
   const didSkipInitialSettingsSave = useRef(false);
   // Settings belong to the account, not the program, so this is gated on being logged in - `shouldSync`
@@ -318,15 +306,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     setSettingsSaveStatus("saving");
     const timeout = setTimeout(async () => {
       const result = await service.postSaveSettings({
-        settings: settingsUpdate,
-        deletedExerciseDataKeys,
+        ...settingsRequest,
         version: getLatestMigrationVersion(),
         deviceId: props.deviceId,
       });
       setSettingsSaveStatus(result.success ? "saved" : "error");
     }, 750);
     return () => clearTimeout(timeout);
-  }, [settingsUpdate, deletedExerciseDataKeys, canSaveSettings]);
+  }, [settingsRequest, canSaveSettings]);
 
   // "saving" covers both the debounce window and the request in flight; "error" means the edit never landed
   const hasUnsavedSettings = settingsSaveStatus === "saving" || settingsSaveStatus === "error";

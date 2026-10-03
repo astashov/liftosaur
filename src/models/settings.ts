@@ -12,7 +12,7 @@ import {
 } from "../types";
 import { Weight_build, Weight_print } from "./weight";
 import { IExportedProgram, Program_evaluate, Program_getAllUsedProgramExercises } from "./program";
-import { ObjectUtils_filter } from "../utils/object";
+import { ObjectUtils_filter, ObjectUtils_pick } from "../utils/object";
 import { lb } from "lens-shmens";
 import { updateSettings } from "./state";
 import { IDispatch } from "../ducks/types";
@@ -389,13 +389,73 @@ export function Settings_applyWebEditorSettings(
   };
 }
 
-export function Settings_webEditorSettingsUpdate(settings: ISettings): IWebEditorSettings {
+export function Settings_webEditorInitial(
+  stored: ISettings | undefined,
+  programCustomExercises: IAllCustomExercises | undefined
+): ISettings {
+  const settings = Settings_build();
   return {
-    units: settings.units,
-    timers: { workout: settings.timers.workout },
-    planner: settings.planner,
-    muscleGroups: settings.muscleGroups,
-    exerciseData: settings.exerciseData,
+    ...settings,
+    exercises: { ...settings.exercises, ...stored?.exercises, ...programCustomExercises },
+    timers: { ...settings.timers, workout: stored?.timers.workout ?? settings.timers.workout },
+    planner: stored?.planner || settings.planner,
+    muscleGroups: stored?.muscleGroups || settings.muscleGroups,
+    units: stored?.units ?? settings.units,
+    exerciseData: { ...settings.exerciseData, ...stored?.exerciseData },
+    workoutSettings: { ...settings.workoutSettings, ...stored?.workoutSettings },
+    starredExercises: stored?.starredExercises,
+  };
+}
+
+export interface IWebEditorSettingsRequest {
+  settings: IWebEditorSettings;
+  deletedExerciseDataKeys: string[];
+  deletedStarredExerciseKeys: string[];
+}
+
+const pickerSettingsKeys: (keyof IExercisePickerSettings)[] = [
+  "shouldKeepProgramExerciseId",
+  "pickerSort",
+  "shouldShowInvisibleEquipment",
+];
+
+function changedEntries<T>(
+  initial: Partial<Record<string, T>>,
+  current: Partial<Record<string, T>>
+): { changed: Record<string, T>; deletedKeys: string[] } {
+  const changed: Record<string, T> = {};
+  for (const key of Object.keys(current)) {
+    const value = current[key];
+    if (value != null && value !== initial[key]) {
+      changed[key] = value;
+    }
+  }
+  const deletedKeys = Object.keys(initial).filter((key) => initial[key] != null && current[key] == null);
+  return { changed, deletedKeys };
+}
+
+// Stars, picker settings and custom exercises are sent as a diff against page load, so a stale tab
+// cannot overwrite what the app changed since. A shared program's custom exercises are only sent once edited.
+export function Settings_webEditorSettingsRequest(initial: ISettings, current: ISettings): IWebEditorSettingsRequest {
+  const exercises = changedEntries(initial.exercises, current.exercises).changed;
+  const starred = changedEntries(initial.starredExercises || {}, current.starredExercises || {});
+  const pickerSettings = ObjectUtils_pick(
+    current.workoutSettings,
+    pickerSettingsKeys.filter((key) => current.workoutSettings[key] !== initial.workoutSettings[key])
+  );
+  return {
+    settings: {
+      units: current.units,
+      timers: { workout: current.timers.workout },
+      planner: current.planner,
+      muscleGroups: current.muscleGroups,
+      exerciseData: current.exerciseData,
+      ...(Object.keys(exercises).length > 0 ? { exercises } : {}),
+      ...(Object.keys(starred.changed).length > 0 ? { starredExercises: starred.changed } : {}),
+      ...(Object.keys(pickerSettings).length > 0 ? { workoutSettings: pickerSettings } : {}),
+    },
+    deletedExerciseDataKeys: changedEntries(initial.exerciseData, current.exerciseData).deletedKeys,
+    deletedStarredExerciseKeys: starred.deletedKeys,
   };
 }
 
