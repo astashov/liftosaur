@@ -12,7 +12,7 @@ import {
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 import { IEvaluatedProgram } from "../../models/program";
-import { Settings_getTheme } from "../../models/settings";
+import { AppliedTheme_get } from "../../utils/appliedTheme";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -62,7 +62,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
       <View className="px-4 pt-4">
         <PlannerEditorView
           name="Program"
-          theme={Settings_getTheme(props.settings)}
+          theme={AppliedTheme_get(props.settings)}
           autoHeight={true}
           minHeight={200}
           customExercises={props.settings.exercises}

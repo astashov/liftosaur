@@ -16,6 +16,7 @@ import type { IScreen } from "../models/screen";
 import { NavHeader } from "./NavHeader";
 import { ScreenErrorBoundary } from "../components/screenErrorBoundary";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { useSystemTheme } from "../utils/theme";
 import { NavScreenMain } from "./screens/NavScreenHome";
 import {
   NavScreenPrograms,
@@ -155,14 +156,18 @@ const MeStack = createStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createStackNavigator<IRootStackParamList>();
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function useStackScreenOptions() {
-  // Tailwind_semantic reads theme from the DOM (set by side effect on settings.theme).
-  // Narrow subscription to theme so options re-evaluate only on theme toggle, not every dispatch.
+// Tailwind_semantic reads theme from the DOM (set by side effect on settings.theme and the OS theme).
+// Narrow subscription to theme so options re-evaluate only on theme change, not every dispatch.
+function useThemeRerender(): void {
   const trackedState = useTrackedState();
-
+  useSystemTheme();
   // eslint-disable-next-line no-void
   void trackedState.storage.settings.theme;
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function useStackScreenOptions() {
+  useThemeRerender();
   return {
     header: NavHeader,
     animationEnabled: false,
@@ -291,10 +296,7 @@ const tabScreenOptions = {
 };
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function useRootScreenOptions() {
-  const trackedState = useTrackedState();
-
-  // eslint-disable-next-line no-void
-  void trackedState.storage.settings.theme;
+  useThemeRerender();
   return {
     headerShown: false,
     animationEnabled: false,

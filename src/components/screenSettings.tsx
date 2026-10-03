@@ -39,14 +39,7 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import { INavCommon } from "../models/state";
 import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat } from "../models/stats";
 import { Weight_print } from "../models/weight";
-import {
-  Settings_getTheme,
-  Settings_applyTheme,
-  Settings_getTextSize,
-  TEXT_SIZE_MIN,
-  TEXT_SIZE_MAX,
-  TEXT_SIZE_STEP,
-} from "../models/settings";
+import { Settings_getTextSize, TEXT_SIZE_MIN, TEXT_SIZE_MAX, TEXT_SIZE_STEP } from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
 import { useOsFontScale } from "../utils/fontScale";
 import { LinkButton } from "./linkButton";
@@ -81,10 +74,10 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const osFontScale = useOsFontScale();
   // This screen reads settings via `untrack`, so it doesn't re-render when `theme` changes.
-  // Track the toggle locally so the switch reflects the tap instead of snapping back.
-  const [theme, setTheme] = useState<"dark" | "light">(Settings_getTheme(props.settings));
+  // Track the choice locally so the select shows the tap instead of snapping back.
+  const [theme, setTheme] = useState<"dark" | "light" | undefined>(props.settings.theme);
   useEffect(() => {
-    setTheme(Settings_getTheme(props.settings));
+    setTheme(props.settings.theme);
   }, [props.settings]);
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
@@ -467,17 +460,21 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         </View>
       </MenuItemWrapper>
       <MenuItemEditable
-        type="boolean"
-        name="Dark mode"
-        value={theme === "dark" ? "true" : "false"}
+        type="select"
+        name="Theme"
+        value={theme ?? "system"}
+        values={[
+          ["system", "System"],
+          ["light", "Light"],
+          ["dark", "Dark"],
+        ]}
         onChange={(newValue) => {
-          const newTheme = newValue === "true" ? "dark" : "light";
+          const newTheme = newValue === "dark" || newValue === "light" ? newValue : undefined;
           setTheme(newTheme);
-          Settings_applyTheme(newTheme);
           props.dispatch({
             type: "UpdateSettings",
             lensRecording: lb<ISettings>().p("theme").record(newTheme),
-            desc: "Toggle dark mode",
+            desc: "Change theme",
           });
         }}
       />

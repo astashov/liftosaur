@@ -9,7 +9,7 @@ import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IDayData, IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
 import { IEvaluatedProgram } from "../../models/program";
-import { Settings_getTheme } from "../../models/settings";
+import { AppliedTheme_get } from "../../utils/appliedTheme";
 import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -51,7 +51,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
     <View className="flex-1 w-0 min-w-0">
       <PlannerEditorView
         name="Exercises"
-        theme={Settings_getTheme(props.settings)}
+        theme={AppliedTheme_get(props.settings)}
         autoHeight={true}
         minHeight={200}
         exerciseFullNames={props.exerciseFullNames}

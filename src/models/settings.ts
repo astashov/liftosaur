@@ -20,8 +20,6 @@ import { IExercise, Exercise_toKey, Exercise_get, Exercise_nameWithEquipment } f
 import { CollectionUtils_uniqByExpr, CollectionUtils_sort } from "../utils/collection";
 import { ProgramExercise_doesUse1RM } from "./programExercise";
 import { IExercisePickerSettings } from "../components/exercisePicker/exercisePickerSettings";
-import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
-import { Theme_apply } from "../utils/theme";
 
 export function Settings_programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
   return {
@@ -508,16 +506,6 @@ export function Settings_setOneRM(
   );
 }
 
-export function Settings_getTheme(settings: ISettings): "dark" | "light" {
-  return settings.theme
-    ? settings.theme
-    : typeof window !== "undefined"
-      ? window.lftSystemDarkMode
-        ? "dark"
-        : "light"
-      : "light";
-}
-
 export const TEXT_SIZE_MIN = 12;
 export const TEXT_SIZE_MAX = 24;
 export const TEXT_SIZE_STEP = 2;
@@ -536,10 +524,4 @@ export function Settings_getTextSize(settings: ISettings, osFontScale: number): 
 
 function clampTextSize(size: number): number {
   return Math.max(TEXT_SIZE_MIN, Math.min(TEXT_SIZE_MAX, size));
-}
-
-export function Settings_applyTheme(theme?: "dark" | "light"): void {
-  const resolved = theme ?? (typeof window !== "undefined" && window.lftSystemDarkMode ? "dark" : "light");
-  Theme_apply(resolved);
-  SendMessage_toIosAndAndroid({ type: "theme", value: resolved });
 }

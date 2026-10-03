@@ -52,8 +52,8 @@ import { exceptionIgnores } from "../utils/rollbar";
 
 // typeof-guarded: Metro/webpack define __DEV__, but this module also runs under node (tests).
 declare let __DEV__: boolean | undefined;
-import { Settings_applyTheme } from "../models/settings";
 import { useAppliedTextSize } from "../utils/textSize";
+import { useAppliedTheme } from "../utils/appliedTheme";
 import { AppContext } from "./appContext";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
@@ -159,6 +159,7 @@ export function AppView(props: IProps): JSX.Element | null {
   }, []);
 
   useAppliedTextSize(state.storage.settings);
+  useAppliedTheme(state.storage.settings);
 
   useLoopCatcher();
 
@@ -433,8 +434,6 @@ export function AppView(props: IProps): JSX.Element | null {
         "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
       );
     }
-
-    Settings_applyTheme(state.storage.settings.theme);
 
     return () => {
       window.removeEventListener("error", onerror);

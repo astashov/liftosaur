@@ -9,7 +9,7 @@ import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string"
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";
 import { PlannerProgramExercise_getState } from "../../../pages/planner/models/plannerProgramExercise";
-import { Settings_getTheme } from "../../../models/settings";
+import { AppliedTheme_get } from "../../../utils/appliedTheme";
 
 interface IModalEditUpdateScriptProps {
   onClose: () => void;
@@ -52,7 +52,7 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
       <ScriptEditorView
         name="modal-edit-update-script-editor"
         state={ownState}
-        theme={Settings_getTheme(props.settings)}
+        theme={AppliedTheme_get(props.settings)}
         lineNumbers={true}
         error={error}
         value={script}
