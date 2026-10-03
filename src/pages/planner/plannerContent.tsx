@@ -1,4 +1,4 @@
-import { JSX, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import {
   SafeLocalStorage_getItem,
@@ -8,18 +8,17 @@ import {
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
-import { lb, lf } from "lens-shmens";
+import { ILensRecordingPayload, lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
-import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings, IPlannerSettingsSaveStatus } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
 import { Settings_build, Settings_webEditorSettingsUpdate } from "../../models/settings";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { StringUtils_capitalize } from "../../utils/string";
 import { Exercise_getById, Exercise_createOrUpdateCustomExercise } from "../../models/exercise";
-import { undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
-import { BuilderCopyLink } from "../builder/components/builderCopyLink";
+import { canRedo, canUndo, redo, undo, undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
+import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
   ICustomExercise,
   IExerciseKind,
@@ -34,17 +33,17 @@ import {
 } from "../../types";
 import { Service } from "../../api/service";
 import {
-  PlannerProgram_isValid,
   PlannerProgram_hasNonSelectedWeightUnit,
   PlannerProgram_switchToUnit,
-  PlannerProgram_generateFullText,
+  PlannerProgram_parseText,
   PlannerProgram_evaluateText,
   PlannerProgram_replaceAndValidateExercise,
+  PlannerProgram_evaluate,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_fullToWeekEvalResult,
 } from "./models/plannerProgram";
 import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
-import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 import { IconHelp } from "../../components/icons/iconHelp";
-import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { PlannerContentFull } from "./plannerContentFull";
 import { Modal } from "../../components/modal";
@@ -52,29 +51,51 @@ import { GroupHeader } from "../../components/groupHeader";
 import { ProgramPreviewOrPlayground } from "../../components/programPreviewOrPlayground";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { ObjectUtils_keys } from "../../utils/object";
-import { IconPreview } from "../../components/icons/iconPreview";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../../utils/url";
-import { ProgramQrCode } from "../../components/programQrCode";
-import { Button } from "../../components/button";
-import { IconSpinner } from "../../components/icons/iconSpinner";
 import {
   IExportedProgram,
   Program_create,
+  Program_evaluate,
   Program_exportProgram,
   Program_changeExerciseName,
 } from "../../models/program";
-import { LinkButton } from "../../components/linkButton";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 import { Weight_oppositeUnit } from "../../models/weight";
-import { IconPicture } from "../../components/icons/iconPicture";
 import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
 import { track } from "../../utils/posthog";
 import { BottomSheetOrModalMuscleGroupsContent } from "../../components/bottomSheetOrModalMuscleGroupsContent";
 import { BottomSheetMusclesOverride } from "../../components/bottomSheetMusclesOverride";
+import { ClipboardUtils_copy } from "../../utils/clipboard";
+import { PlannerToolbar } from "./components/plannerToolbar";
+import { PlannerHelp } from "./components/plannerHelp";
+import { PlannerSidePanelHost } from "./components/plannerSidePanelHost";
+import { ModalPlannerSwapScope } from "./components/modalPlannerSwapScope";
+import { ModalPlannerEditDetails } from "./components/modalPlannerEditDetails";
+import {
+  IPlannerWebMode,
+  PlannerMode_applyFullText,
+  PlannerMode_current,
+  PlannerMode_isValid,
+  PlannerMode_fullTextAfter,
+  PlannerMode_switch,
+} from "./models/plannerMode";
+import { PlannerUiClamp_apply } from "./models/plannerUiClamp";
+import { IPlannerStructureResult } from "./models/plannerStructure";
+import { PlannerGridNavigation_create } from "./models/plannerGridNavigation";
+import { PlannerGridContext } from "./plannerGridContext";
+import { GridSelectionProvider } from "../../components/editProgram/editProgramGrid/gridSelectionContext";
+import { GridActionDock } from "../../components/editProgram/editProgramGrid/gridActionDock";
+import {
+  IGridEditDetailsRequest,
+  IGridEditDetailsResult,
+  IGridHost,
+} from "../../components/editProgram/editProgramGrid/gridHost";
 
 declare let __HOST__: string;
+
+const toolbarHeightPx = 48;
 
 export interface IPlannerContentProps {
   client: Window["fetch"];
@@ -219,6 +240,23 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       }
     },
     async (action, oldState, newState) => {
+      const oldPlanner = oldState.current.program.planner;
+      const newPlanner = newState.current.program.planner;
+      if (oldPlanner !== newPlanner) {
+        const ui = PlannerUiClamp_apply(newState.ui, oldPlanner, newPlanner);
+        if (ui !== newState.ui) {
+          dispatch(lb<IPlannerState>().p("ui").record(ui), "Clamp UI after structure change");
+        }
+      }
+    },
+    async (action, oldState, newState) => {
+      const fulltext = PlannerMode_fullTextAfter(oldState, newState);
+      if (fulltext != null) {
+        UndoingFlag_set(true);
+        dispatch(lb<IPlannerState>().p("fulltext").record(fulltext), "Sync full text with program");
+      }
+    },
+    async (action, oldState, newState) => {
       if ("type" in action && action.type === "Update" && action.desc === "stop-is-undoing") {
         setTimeout(() => {
           window.isUndoing = false;
@@ -231,7 +269,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     },
   ]);
   const planner = state.current.program.planner!;
-  useUndoRedo(state, dispatch, [!!state.fulltext], () => state.fulltext == null);
+  const mode = PlannerMode_current(state.ui);
+  useUndoRedo(state, dispatch, [mode]);
   useEffect(() => {
     if (state.id === "newprogram") {
       const id = UidFactory_generateUid(8);
@@ -319,18 +358,89 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [showRevisions, setShowRevisions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [clearHasChanges, setClearHasChanges] = useState<boolean>(false);
+  const [editDetails, setEditDetails] = useState<
+    { request: IGridEditDetailsRequest; onResult: (details?: IGridEditDetailsResult) => void } | undefined
+  >(undefined);
+  const Grid = useContext(PlannerGridContext);
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
+  const lbUi = lb<IPlannerState>().p("ui");
   const program = state.current.program;
 
-  const modalExerciseUi = state.ui.modalExercise;
-  const isInvalid = !PlannerProgram_isValid(planner, settings);
+  const fullText = state.fulltext?.text;
+  const fullResult = useMemo(
+    () => (mode === "full" && fullText != null ? PlannerProgram_evaluateFull(fullText, settings) : undefined),
+    [mode, fullText, settings]
+  );
+  const fullEvaluation = fullResult?.evaluatedWeeks;
+  const { evaluatedWeeks, exerciseFullNames } = useMemo(
+    () =>
+      fullResult != null
+        ? {
+            evaluatedWeeks: PlannerProgram_fullToWeekEvalResult(fullResult.evaluatedWeeks),
+            exerciseFullNames: fullResult.exerciseFullNames,
+          }
+        : PlannerProgram_evaluate(planner, settings),
+    [fullResult, planner, settings]
+  );
+  const evaluatedProgram = useMemo(
+    () => (mode === "grid" ? Program_evaluate(program, settings) : undefined),
+    [mode, program, settings]
+  );
+  const gridHost = useMemo<IGridHost>(
+    () => ({
+      createNavigation: PlannerGridNavigation_create,
+      openEditDetails: (request, onResult) => setEditDetails({ request, onResult }),
+    }),
+    []
+  );
 
-  const script = "Squat / 3x3-5\nRomanian Deadlift / 3x8";
-  const maxWidth = "1200px";
+  const modalExerciseUi = state.ui.modalExercise;
+  const isInvalid = !PlannerMode_isValid(evaluatedWeeks, fullEvaluation);
+  const isPanelOpen = !!state.ui.sidePanelOpen;
+
+  function switchMode(to: IPlannerWebMode): void {
+    if (to === "grid" && Grid == null) {
+      return;
+    }
+    const next = PlannerMode_switch(state, to);
+    if (!next.success) {
+      Dialog_alert(`Can't switch yet. ${next.error.message}`);
+      return;
+    }
+    dispatch(
+      [lbUi.record(next.data.ui), lb<IPlannerState>().p("fulltext").record(next.data.fulltext)],
+      `Switch to ${to} mode`
+    );
+  }
+
+  function applyStructure(transform: (p: IPlannerProgram) => IPlannerStructureResult, desc: string): boolean {
+    const result = transform(planner);
+    if (!result.success) {
+      Dialog_alert(result.error);
+      return false;
+    }
+    dispatch(lbProgram.record(result.data), desc);
+    return true;
+  }
+
+  function applyFullTextRecording(newText: string): ILensRecordingPayload<IPlannerState> {
+    return lb<IPlannerState>().recordModify((s) => PlannerMode_applyFullText(s, newText));
+  }
+
+  async function copyLink(): Promise<void> {
+    track({ name: "copy_link" });
+    const exportProgram = Program_exportProgram(program, settings);
+    const baseUrl = UrlUtils_build("/planner", window.location.href);
+    const encodedUrl = await Encoder_encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());
+    const source = getCurrentSource() ?? (settings.affiliateEnabled ? props.account?.id : undefined);
+    const url = await service.postShortUrl(encodedUrl.toString(), "p", source);
+    ClipboardUtils_copy(url);
+    setShowClipboardInfo(url);
+  }
 
   return (
-    <section className="px-4">
+    <section>
       {!props.shouldSync && isChanged(state) && !clearHasChanges && (
         <div className="fixed top-0 left-0 z-50 w-full text-xs text-center border-b border-border-prominent text-text-error bg-background-lighterror">
           Made changes to the program, but the link still goes to the original version. If you want to share updated
@@ -340,96 +450,19 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           </button>
         </div>
       )}
-      <div className="flex mx-auto" style={{ maxWidth }}>
-        <h1 className="flex items-center mb-4 mr-auto text-2xl font-bold leading-tightm">
-          <div>Web Editor</div>
-          {!showHelp && (
-            <button
-              className="block ml-3 nm-planner-help"
-              onClick={() => {
-                setShowHelp(true);
-                SafeLocalStorage_removeItem("hide-planner-help");
-              }}
-            >
-              <IconHelp />
-            </button>
-          )}
-        </h1>
-        {props.shouldSync && props.revisions && props.revisions.length > 0 && (
-          <div>
-            <LinkButton name="show-revisions" onClick={() => setShowRevisions(true)}>
-              Versions
-            </LinkButton>
-          </div>
-        )}
-      </div>
-
-      <div className="mx-auto" style={{ maxWidth }}>
-        <div
-          style={{ display: showHelp ? "block" : "none" }}
-          className="relative px-8 py-4 mb-4 mr-0 border border-border-cardyellow rounded-lg bg-background-cardyellow sm:mr-64"
-        >
-          <div>
-            <p className="mb-2">
-              This tool allows you to quickly build your weightlifting programs, ensure you have proper{" "}
-              <strong>weekly volume per muscle group</strong>, and balance it with the{" "}
-              <strong>time you spend in a gym</strong>. You can build multi-week programs, plan your mesocycles, deload
-              weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each exercise on a
-              graph.
-            </p>
-            <p className="mb-2">
-              Set the program name, create weeks and days, type the list of exercises for each day, putting each
-              exercise on a new line, along with the number of sets and reps after slash (<code>/</code>) character,
-              like this:
-            </p>
-            <div>
-              <div className="inline-block px-4 py-2 my-1 mb-2 border rounded-md bg-background-default border-border-neutral">
-                <PlannerCodeBlock script={script} />
-              </div>
-            </div>
-            <p className="mb-2">
-              Autocomplete will help you with the exercise names. You can also create custom exercises if they're
-              missing in the library.
-            </p>
-            <p className="mb-2">
-              On the right you'll see <strong>Weekly Stats</strong>, where you can see the number of sets per week per
-              muscle group, whether you're in the recommended range (indicated by color), strength/hypertrophy split,
-              and if you hover a mouse over the numbers - you'll see what exercises contribute to that number, and how
-              much.
-            </p>
-            <p className="mb-2">
-              The exercise syntax supports{" "}
-              <abbr title="RPE - Rate of Perceived Exertion. It's a subjective measure of how hard the set was.">
-                RPEs
-              </abbr>{" "}
-              , percentage of{" "}
-              <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
-              timers, various progressive overload types, etc. Read more about the features{" "}
-              <a target="_blank" className="font-bold underline text-text-link" href="https://www.liftosaur.com/doc/">
-                in the docs
-              </a>
-              !
-            </p>
-            <p className="mb-2">
-              When you're done, you can convert this program to Liftosaur program, and run what you planned in the gym,
-              using the <strong>Liftosaur app</strong>!
-            </p>
-          </div>
-          <button
-            className="absolute nm-planner-help-close"
-            style={{ top: "0.5rem", right: "0.5rem" }}
-            onClick={() => {
+      {showHelp && (
+        <div className="px-4 pt-4 md:px-8 lg:px-24">
+          <PlannerHelp
+            onClose={() => {
               setShowHelp(false);
               SafeLocalStorage_setItem("hide-planner-help", "true");
             }}
-          >
-            <IconCloseCircleOutline />
-          </button>
+          />
         </div>
-      </div>
+      )}
 
       {!props.shouldSync && (
-        <div className="mx-auto" style={{ maxWidth }}>
+        <div className={`px-4 md:px-8 lg:px-24 ${showHelp ? "" : "pt-4"}`}>
           <PlannerBanner
             userAgent={props.userAgent}
             isBannerLoading={isBannerLoading}
@@ -464,39 +497,29 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
         </div>
       )}
 
-      <div className="flex flex-col mb-2 sm:flex-row">
-        <div className="flex-1 py-2 ">
+      <div className="flex items-center gap-4 px-4 py-4 md:px-8 lg:px-24">
+        <div className="flex-1 min-w-0">
           {props.source != null && props.source === props.account?.id && (
-            <div>
-              <div className="inline-block px-2 text-sm rounded-md border-border-cardpurple bg-background-purpledark text-text-purple">
-                It's your affiliate link
-              </div>
+            <div className="inline-block px-2 mb-1 text-sm rounded-md border-border-cardpurple bg-background-purpledark text-text-purple">
+              It's your affiliate link
             </div>
           )}
-          <h2 className="mr-2 text-2xl font-bold">
+          <h1 className="text-2xl font-bold md:text-4xl">
             <LinkInlineInput
               value={state.current.program.name}
               onInputString={(v) => {
-                dispatch(lbProgram.p("name").record(v), "Update program name");
                 dispatch(
-                  lb<IPlannerState>().p("current").p("program").p("name").record(v),
-                  "Update current program name"
+                  [lbProgram.p("name").record(v), lb<IPlannerState>().p("current").p("program").p("name").record(v)],
+                  "Update program name"
                 );
                 document.title = `Liftosaur: Weight Lifting Tracking App | ${HtmlUtils_escapeHtml(v)}`;
               }}
             />
-          </h2>
-          {props.shouldSync ? (
-            <span
-              className="text-xs font-normal text-text-secondary nm-program-content-change-id"
-              style={{ marginTop: "-0.5rem" }}
-            >
-              id: {state.id}
-            </span>
-          ) : (
+          </h1>
+          {!props.shouldSync && (
             <button
               className="text-xs font-normal text-text-secondary nm-program-content-change-id"
-              style={{ marginTop: "-0.5rem" }}
+              title="Generate a new ID"
               onClick={() => {
                 const id = UidFactory_generateUid(8);
                 dispatch(
@@ -512,154 +535,138 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             </button>
           )}
         </div>
-        <div className="flex items-center">
-          {props.shouldSync && (
-            <div className="mr-2">
-              <Button
-                className="w-20"
-                buttonSize="md"
-                kind="purple"
-                name="web-save-planner"
-                disabled={isLoading || isInvalid || !isChanged(state)}
-                onClick={async () => {
-                  setIsLoading(true);
-                  try {
-                    const exportProgram = Program_exportProgram(state.current.program, settings);
-                    exportProgram.settings.exerciseData = settings.exerciseData;
-                    exportProgram.settings.workoutSettings = settings.workoutSettings;
-                    await saveProgram(props.client, exportProgram, props.deviceId);
-                    dispatch(
-                      lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram),
-                      "Save program"
-                    );
-                  } finally {
-                    setIsLoading(false);
-                  }
-                }}
-              >
-                {isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Save"}
-              </Button>
-            </div>
-          )}
-          <div className={state.fulltext != null ? "hidden sm:block" : ""}>
-            <button
-              disabled={isInvalid}
-              className="p-2"
-              onClick={() => {
-                if (!isInvalid) {
-                  dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(true), "Show picture export");
-                }
-              }}
-            >
-              <IconPicture size={24} />
-            </button>
-          </div>
-          <div className={state.fulltext != null ? "hidden sm:block" : ""}>
-            <button
-              disabled={isInvalid}
-              className="p-2"
-              onClick={() => {
-                if (!isInvalid) {
-                  dispatch(lb<IPlannerState>().p("ui").p("showPreview").record(true), "Show preview");
-                }
-              }}
-            >
-              <IconPreview size={22} />
-            </button>
-          </div>
-          {state.fulltext == null && (
-            <>
-              <div>
-                <button
-                  disabled={isInvalid}
-                  title={
-                    isInvalid ? "Fix errors in all weeks/days to switch to Full Program mode" : "Edit Full Program"
-                  }
-                  onClick={() =>
-                    dispatch(
-                      lb<IPlannerState>()
-                        .p("fulltext")
-                        .record({ text: PlannerProgram_generateFullText(planner.weeks) }),
-                      "Edit full program"
-                    )
-                  }
-                  className={`p-2 nm-edit-full-program ${isInvalid ? "cursor-not-allowed" : ""}`}
-                >
-                  <IconDoc color={isInvalid ? "#BAC4CD" : "#3C5063"} />
-                </button>
-              </div>
-              <BuilderCopyLink
-                suppressShowInfo={true}
-                onShowInfo={setShowClipboardInfo}
-                type="p"
-                program={program}
-                source={getCurrentSource() ?? (settings.affiliateEnabled ? props.account?.id : undefined)}
-                client={props.client}
-                encodedProgram={async () => {
-                  track({ name: "copy_link" });
-                  const exportProgram = Program_exportProgram(program, settings);
-                  const baseUrl = UrlUtils_build("/planner", window.location.href);
-                  const encodedUrl = await Encoder_encodeIntoUrl(JSON.stringify(exportProgram), baseUrl.toString());
-                  return encodedUrl.toString();
-                }}
-              />
-              <div>
-                <button
-                  title="Settings"
-                  onClick={() =>
-                    dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(true), "Show settings")
-                  }
-                  className="p-2 nm-planner-settings"
-                >
-                  <IconCog2 />
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-      {showClipboardInfo && (
-        <>
-          <div className="mb-2 text-xs text-left sm:text-right text-text-secondary">
-            Copied to clipboard:{" "}
-            <a target="_blank" className="font-bold underline text-text-link" href={showClipboardInfo}>
-              {showClipboardInfo}
-            </a>
-          </div>
-          {props.account?.affiliateEnabled && props.account?.id && (
-            <div className="text-left sm:text-right">
-              <div className="inline-block px-2 text-sm rounded-md border-border-cardpurple bg-background-purpledark text-text-purple">
-                Copied as an affiliate link
-              </div>
-            </div>
-          )}
-          <div className="text-right">
-            <ProgramQrCode url={showClipboardInfo} title="Scan this QR to open that link:" />
-          </div>
-        </>
-      )}
-
-      <div>
-        {state.fulltext != null ? (
-          <PlannerContentFull
-            fullText={state.fulltext}
-            settings={settings}
-            dispatch={dispatch}
-            service={service}
-            lbProgram={lbProgram}
-          />
-        ) : (
-          <PlannerContentPerDay
-            program={planner}
-            settings={settings}
-            ui={state.ui}
-            service={service}
-            initialWeek={initialWeek}
-            initialDay={initialDay}
-            dispatch={dispatch}
-          />
+        {!showHelp && (
+          <button
+            className="flex items-center gap-2 text-base font-semibold text-text-secondary nm-planner-help"
+            data-testid="planner-help"
+            aria-label="How to use Web Editor"
+            onClick={() => {
+              setShowHelp(true);
+              SafeLocalStorage_removeItem("hide-planner-help");
+            }}
+          >
+            <IconHelp />
+            <span className="hidden md:inline">How to use Web Editor</span>
+          </button>
         )}
       </div>
+
+      <PlannerToolbar
+        mode={mode}
+        canReorder={!isInvalid}
+        canUndo={!!canUndo(state)}
+        canRedo={!!canRedo(state)}
+        isPanelOpen={isPanelOpen}
+        showVersions={!!props.shouldSync && props.revisions.length > 0}
+        showSave={!!props.shouldSync}
+        isSaveDisabled={isLoading || isInvalid || !isChanged(state)}
+        isSaving={isLoading}
+        isPreviewDisabled={isInvalid}
+        onUndo={() => undo(dispatch, state)}
+        onRedo={() => redo(dispatch, state)}
+        onMode={switchMode}
+        onVersions={() => setShowRevisions(true)}
+        onPreview={() => dispatch(lbUi.p("showPreview").record(true), "Show preview")}
+        onSave={async () => {
+          setIsLoading(true);
+          try {
+            const exportProgram = Program_exportProgram(state.current.program, settings);
+            exportProgram.settings.exerciseData = settings.exerciseData;
+            exportProgram.settings.workoutSettings = settings.workoutSettings;
+            const savedId = await saveProgram(props.client, exportProgram, props.deviceId);
+            if (savedId != null) {
+              dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram), "Save program");
+            }
+          } finally {
+            setIsLoading(false);
+          }
+        }}
+        onTogglePanel={() => dispatch(lbUi.p("sidePanelOpen").record(!isPanelOpen), "Toggle side panel")}
+      />
+
+      <GridSelectionProvider>
+        <div className="flex border-b border-border-prominent bg-background-subtle">
+          <div className={`flex-1 min-w-0 px-4 py-6 md:px-8 lg:pl-24 ${isPanelOpen ? "hidden md:block" : ""}`}>
+            {mode === "grid" && Grid != null && evaluatedProgram != null ? (
+              <Grid
+                state={state}
+                evaluatedProgram={evaluatedProgram}
+                settings={settings}
+                isLoggedIn={!!props.account}
+                host={gridHost}
+                stickyHeaderHeight={toolbarHeightPx}
+                plannerDispatch={dispatch}
+                onChangeSettings={setSettings}
+              />
+            ) : mode === "full" && state.fulltext != null && fullEvaluation != null ? (
+              <PlannerContentFull
+                fullText={state.fulltext}
+                fullEvaluation={fullEvaluation}
+                exerciseFullNames={exerciseFullNames}
+                settings={settings}
+                dispatch={dispatch}
+              />
+            ) : (
+              <PlannerContentPerDay
+                program={planner}
+                settings={settings}
+                ui={state.ui}
+                evaluatedWeeks={evaluatedWeeks}
+                exerciseFullNames={exerciseFullNames}
+                dispatch={dispatch}
+                onStructure={applyStructure}
+              />
+            )}
+          </div>
+          <aside
+            className={`w-full md:w-72 lg:w-80 shrink-0 border-l border-border-prominent bg-background-default ${
+              isPanelOpen ? "block" : "hidden md:block"
+            }`}
+          >
+            <div
+              className="md:sticky md:overflow-y-auto md:max-h-[calc(100vh-3rem)]"
+              style={{ top: toolbarHeightPx, overscrollBehavior: "contain" }}
+            >
+              <PlannerSidePanelHost
+                state={state}
+                settings={settings}
+                evaluatedWeeks={evaluatedWeeks}
+                fullEvaluation={fullEvaluation}
+                evaluatedProgram={evaluatedProgram}
+                copiedUrl={showClipboardInfo}
+                isAffiliateLink={!!props.account?.affiliateEnabled && !!props.account?.id}
+                isExportDisabled={isInvalid}
+                dispatch={dispatch}
+                onCopyLink={copyLink}
+                onExportImage={() => dispatch(lbUi.p("showPictureExport").record(true), "Show picture export")}
+                onEditSettings={() => dispatch(lbUi.p("showSettingsModal").record(true), "Show settings")}
+              />
+            </div>
+          </aside>
+        </div>
+        {mode === "grid" && !isPanelOpen && (
+          <div className="fixed bottom-0 left-0 right-0 z-30 md:hidden">
+            <GridActionDock />
+          </div>
+        )}
+      </GridSelectionProvider>
+
+      {state.ui.editExerciseModal && (
+        <ModalPlannerSwapScope
+          plannerExercise={state.ui.editExerciseModal.plannerExercise}
+          settings={settings}
+          dispatch={dispatch}
+        />
+      )}
+      {editDetails && (
+        <ModalPlannerEditDetails
+          request={editDetails.request}
+          onClose={(result) => {
+            setEditDetails(undefined);
+            editDetails.onResult(result);
+          }}
+        />
+      )}
       {state.ui.showSettingsModal && (
         <ModalPlannerSettings
           inApp={false}
@@ -670,11 +677,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           }}
           settings={settings}
           onShowEditMuscleGroups={() => {
-            dispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true), "Show muscle groups");
+            dispatch(lbUi.p("showEditMuscleGroups").record(true), "Show muscle groups");
           }}
-          onClose={() =>
-            dispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")
-          }
+          onClose={() => dispatch(lbUi.p("showSettingsModal").record(false), "Close settings modal")}
         />
       )}
       {state.ui.showMuscleGroupsOverride && (
@@ -684,10 +689,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           exerciseType={state.ui.showMuscleGroupsOverride}
           settings={settings}
           onClose={() => {
-            dispatch(
-              lb<IPlannerState>().p("ui").p("showMuscleGroupsOverride").record(undefined),
-              "Close muscles override modal"
-            );
+            dispatch(lbUi.p("showMuscleGroupsOverride").record(undefined), "Close muscles override modal");
           }}
           onNewExerciseData={(newExerciseData) => {
             setSettings(lf(settings).p("exerciseData").set(newExerciseData));
@@ -719,9 +721,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {state.ui.showEditMuscleGroups && (
         <BottomSheetOrModalMuscleGroupsContent
           settings={settings}
-          onClose={() =>
-            dispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(false), "Close muscle groups")
-          }
+          onClose={() => dispatch(lbUi.p("showEditMuscleGroups").record(false), "Close muscle groups")}
           onNewSettings={(newSettings) => setSettings(newSettings)}
         />
       )}
@@ -734,10 +734,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             window.isUndoing = true;
             if (shouldClose) {
               dispatch(
-                [
-                  lb<IPlannerState>().p("ui").p("modalExercise").record(undefined),
-                  lb<IPlannerState>().p("ui").p("focusedExercise").record(undefined),
-                ],
+                [lbUi.p("modalExercise").record(undefined), lbUi.p("focusedExercise").record(undefined)],
                 "Close modal and clear focus"
               );
             }
@@ -745,86 +742,49 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               if (!exerciseType) {
                 return;
               }
-              if (state.fulltext) {
-                const newPlanner: IPlannerProgram = {
-                  vtype: "planner",
-                  name: state.current.program.name,
-                  weeks: PlannerProgram_evaluateText(state.fulltext.text),
-                };
-                const newProgram = { ...program, planner: newPlanner };
-                const newProgramResult = PlannerProgram_replaceAndValidateExercise(
-                  newProgram,
-                  modalExerciseUi.exerciseKey,
-                  exerciseType,
-                  settings
-                );
-                if (newProgramResult.success && newProgramResult.data.planner) {
-                  const newText = PlannerProgram_generateFullText(newProgramResult.data.planner.weeks);
-                  dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)], "Update fulltext");
-                } else if (!newProgramResult.success) {
-                  Dialog_alert(newProgramResult.error);
-                }
-              } else {
-                const newProgramResult = PlannerProgram_replaceAndValidateExercise(
-                  program,
-                  modalExerciseUi.exerciseKey,
-                  exerciseType,
-                  settings
-                );
-                if (newProgramResult.success && newProgramResult.data.planner) {
-                  dispatch(
-                    [lb<IPlannerState>().p("current").p("program").pi("planner").record(newProgramResult.data.planner)],
-                    "Replace exercise"
-                  );
-                } else if (!newProgramResult.success) {
-                  Dialog_alert(newProgramResult.error);
-                }
+              const unparsed = state.fulltext ? PlannerProgram_parseText(state.fulltext.text) : undefined;
+              if (unparsed != null && !unparsed.success) {
+                Dialog_alert(unparsed.error.message);
+                return;
+              }
+              const newProgramResult = PlannerProgram_replaceAndValidateExercise(
+                program,
+                modalExerciseUi.exerciseKey,
+                exerciseType,
+                settings
+              );
+              if (newProgramResult.success && newProgramResult.data.planner) {
+                dispatch(lbProgram.record(newProgramResult.data.planner), "Replace exercise");
+              } else if (!newProgramResult.success) {
+                Dialog_alert(newProgramResult.error);
+              }
+            } else if (state.fulltext) {
+              const line = state.fulltext.currentLine;
+              if (exerciseType && line != null) {
+                const exercise = Exercise_getById(exerciseType.id, settings.exercises);
+                const lines = state.fulltext.text.split("\n");
+                lines.splice(line, 0, exercise.name);
+                dispatch(applyFullTextRecording(lines.join("\n")), "Add exercise");
               }
             } else {
               dispatch(
-                [
-                  state.fulltext
-                    ? lb<IPlannerState>()
-                        .pi("fulltext")
-                        .p("text")
-                        .recordModify((text) => {
-                          if (!exerciseType) {
-                            return text;
-                          }
-                          const line = state.fulltext?.currentLine;
-                          if (line == null) {
-                            return text;
-                          }
-                          const exercise = Exercise_getById(exerciseType.id, settings.exercises);
-                          const lines = text.split("\n");
-                          lines.splice(line, 0, exercise.name);
-                          return lines.join("\n");
-                        })
-                    : lbProgram
-                        .p("weeks")
-                        .i(modalExerciseUi.focusedExercise.weekIndex)
-                        .p("days")
-                        .i(modalExerciseUi.focusedExercise.dayIndex)
-                        .p("exerciseText")
-                        .recordModify((exerciseText) => {
-                          if (!exerciseType) {
-                            return exerciseText;
-                          }
-                          const exercise = Exercise_getById(exerciseType.id, settings.exercises);
-                          return exerciseText + `\n${exercise.name}`;
-                        }),
-                ],
+                lbProgram
+                  .p("weeks")
+                  .i(modalExerciseUi.focusedExercise.weekIndex)
+                  .p("days")
+                  .i(modalExerciseUi.focusedExercise.dayIndex)
+                  .p("exerciseText")
+                  .recordModify((exerciseText) => {
+                    if (!exerciseType) {
+                      return exerciseText;
+                    }
+                    const exercise = Exercise_getById(exerciseType.id, settings.exercises);
+                    return exerciseText + `\n${exercise.name}`;
+                  }),
                 "Add exercise"
               );
             }
-            dispatch(
-              [
-                lb<IPlannerState>()
-                  .p("ui")
-                  .recordModify((ui) => ui),
-              ],
-              "stop-is-undoing"
-            );
+            dispatch([lbUi.recordModify((ui) => ui)], "stop-is-undoing");
           }}
           onCreateOrUpdate={(
             shouldClose: boolean,
@@ -857,7 +817,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               dispatch(lbProgram.record(newProgram.planner!), "stop-is-undoing");
             }
             if (shouldClose) {
-              dispatch(lb<IPlannerState>().p("ui").p("modalExercise").record(undefined), "Close exercise modal");
+              dispatch(lbUi.p("modalExercise").record(undefined), "Close exercise modal");
             }
           }}
           onDelete={(id) => {
@@ -881,9 +841,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           url={showClipboardInfo ?? getCurrentUrl()}
           settings={settings}
           program={program}
-          onClose={() =>
-            dispatch(lb<IPlannerState>().p("ui").p("showPictureExport").record(false), "Close picture export")
-          }
+          onClose={() => dispatch(lbUi.p("showPictureExport").record(false), "Close picture export")}
         />
       )}
       {showRevisions && props.revisions.length > 0 && (
@@ -896,7 +854,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             window.isUndoing = true;
             dispatch([lbProgram.p("weeks").record(PlannerProgram_evaluateText(text))], "Restore program");
             setShowRevisions(false);
-            dispatch([lb<IPlannerState>().p("fulltext").record(undefined)], "stop-is-undoing");
+            dispatch(
+              [lb<IPlannerState>().p("fulltext").record(undefined), lbUi.p("mode").record("perday")],
+              "stop-is-undoing"
+            );
           }}
         />
       )}

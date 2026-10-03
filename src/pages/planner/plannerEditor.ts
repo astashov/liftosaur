@@ -27,6 +27,7 @@ import {
 } from "../../models/exercise";
 import { ExerciseImageUtils_exists, ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { StringUtils_capitalize } from "../../utils/string";
+import { TextDiff_minimalEdit } from "../../utils/textDiff";
 import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
 import { ObjectUtils_isEqual } from "../../utils/object";
@@ -81,6 +82,7 @@ function buildInfoLine(label: string, data: string): HTMLElement {
 function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorCompartments] {
   const errorGutterCompartment = new Compartment();
   const highlightStyle = buildHighlightStyle();
+  const hasHistory = plannerEditor.args.hasHistory ?? true;
 
   return [
     [
@@ -271,7 +273,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
         ],
       }),
       ...(plannerEditor.args.lineNumbers
-        ? [lineNumbers(), highlightActiveLine(), highlightActiveLineGutter(), errorGutterCompartment.of([]), history()]
+        ? [
+            lineNumbers(),
+            highlightActiveLine(),
+            highlightActiveLineGutter(),
+            errorGutterCompartment.of([]),
+            ...(hasHistory ? [history()] : []),
+          ]
         : []),
       syntaxHighlighting(highlightStyle),
       highlightSelectionMatches(),
@@ -319,7 +327,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
         top: true,
       }),
       EditorState.allowMultipleSelections.of(true),
-      keymap.of([...defaultKeymap, ...historyKeymap, ...completionKeymap, ...searchKeymap, indentWithTab]),
+      keymap.of([
+        ...defaultKeymap,
+        ...(hasHistory ? historyKeymap : []),
+        ...completionKeymap,
+        ...searchKeymap,
+        indentWithTab,
+      ]),
     ],
     { errorGutterCompartment },
   ];
@@ -336,6 +350,7 @@ interface IArgs {
   height?: number;
   error?: PlannerSyntaxError;
   lineNumbers?: boolean;
+  hasHistory?: boolean;
 }
 
 export class PlannerEditor {
@@ -349,11 +364,20 @@ export class PlannerEditor {
   }
 
   public setValue(value: string): void {
-    if (this.codeMirror) {
-      this.codeMirror.update([
-        this.codeMirror.state.update({ changes: { from: 0, to: this.codeMirror.state.doc.length, insert: value } }),
-      ]);
+    const view = this.codeMirror;
+    const edit = view != null ? TextDiff_minimalEdit(view.state.doc.toString(), value) : undefined;
+    if (view != null && edit != null) {
+      view.dispatch({
+        changes: { from: edit.start, to: edit.end, insert: edit.text },
+        selection: { anchor: edit.start + edit.text.length },
+        scrollIntoView: view.hasFocus,
+      });
     }
+  }
+
+  public destroy(): void {
+    this.codeMirror?.destroy();
+    this.codeMirror = undefined;
   }
 
   public setCustomExercises(customExercises: IAllCustomExercises): void {

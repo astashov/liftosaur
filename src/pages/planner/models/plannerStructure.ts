@@ -1670,6 +1670,14 @@ export function PlannerStructure_addDay(
 }
 
 // Appends an empty week, named so it collides with nothing.
+export function PlannerStructure_addWeekWithDay(
+  planner: IPlannerProgram,
+  settings: ISettings
+): IPlannerStructureResult {
+  const withWeek = PlannerStructure_addWeek(planner, settings);
+  return withWeek.success ? PlannerStructure_addDay(withWeek.data, withWeek.data.weeks.length - 1, settings) : withWeek;
+}
+
 export function PlannerStructure_addWeek(planner: IPlannerProgram, settings: ISettings): IPlannerStructureResult {
   const result = ObjectUtils_clone(planner);
   result.weeks.push({ name: uniqueWeekName(planner, `Week ${result.weeks.length + 1}`), days: [] });

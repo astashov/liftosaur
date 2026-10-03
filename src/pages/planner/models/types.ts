@@ -226,6 +226,8 @@ export interface IModalExerciseUi {
   change?: "all" | "one" | "duplicate";
 }
 
+export type IPlannerSidePanelTab = "week" | "day" | "exercise";
+
 export interface IExercisePickerUi {
   state: IExercisePickerState;
   dayData: IShortDayData;
@@ -270,6 +272,8 @@ export interface IPlannerUi {
   tabIndex?: number;
   mode?: IPlannerEditMode;
   gridScale?: number;
+  sidePanelTab?: IPlannerSidePanelTab;
+  sidePanelOpen?: boolean;
 }
 
 export interface IPlannerFullText {

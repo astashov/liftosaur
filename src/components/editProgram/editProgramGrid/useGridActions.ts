@@ -27,7 +27,7 @@ import {
   IPlannerDayDetails,
 } from "../../../pages/planner/models/plannerStructure";
 
-// Every edit the grid can make, and *only* edits — navigation lives in useGridNavigation. They all
+// Every edit the grid can make, and *only* edits — navigation lives in the grid host. They all
 // share one shape: ask a pure transform first so a refusal can be shown, then dispatch it through
 // the lens. Checking inside the modifier alone would leave the refusal nowhere to go and the edit
 // would read as a silent no-op.

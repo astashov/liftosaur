@@ -24,6 +24,10 @@ export type IGridAutoScrollStep =
   | { kind: "resync"; to: number }
   | { kind: "scroll"; to: number };
 
+export function GridDragAutoScroll_toViewport(pagePosition: number, pageScroll: number): number {
+  return pagePosition - pageScroll;
+}
+
 export function GridDragAutoScroll_step(args: {
   // Where the finger is, in screen coordinates, and the edges it is measured against.
   position: number;

@@ -1,52 +1,58 @@
-import { JSX, useMemo } from "react";
-import { Service } from "../../api/service";
-import { ScrollableTabs } from "../../components/scrollableTabs";
+import { JSX } from "react";
+import { lb } from "lens-shmens";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { PlannerProgram_evaluate } from "./models/plannerProgram";
 import { IPlannerState, IPlannerUi } from "./models/types";
-import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
+import { IPlannerProgram, ISettings } from "../../types";
+import { IPlannerEvalResult } from "./plannerExerciseEvaluator";
+import { IPlannerStructureResult, PlannerStructure_addWeekWithDay } from "./models/plannerStructure";
+import { PlannerWeekSelection_index, PlannerWeekSelection_tabs } from "./models/plannerWeekSelection";
 import { PlannerWeek } from "./components/plannerWeek";
+import { PlannerWeekTabs } from "./components/plannerWeekTabs";
 
 export interface IPlannerContentPerDayProps {
   program: IPlannerProgram;
   settings: ISettings;
   ui: IPlannerUi;
-  service: Service;
-  initialWeek: IPlannerProgramWeek;
-  initialDay: IPlannerProgramDay;
+  evaluatedWeeks: IPlannerEvalResult[][];
+  exerciseFullNames: string[];
   dispatch: ILensDispatch<IPlannerState>;
+  onStructure: (transform: (planner: IPlannerProgram) => IPlannerStructureResult, desc: string) => boolean;
 }
 
 export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Element {
-  const { program, settings, ui, initialWeek, initialDay, service, dispatch } = props;
-  const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram_evaluate(program, settings);
-  }, [program, settings]);
+  const { program, ui, evaluatedWeeks, dispatch, settings } = props;
+  const weekIndex = PlannerWeekSelection_index(program.weeks.length, ui.weekIndex);
+  const week = program.weeks[weekIndex];
+  const selectWeek = (i: number): void => {
+    dispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(i), "Select week");
+  };
 
   return (
-    <ScrollableTabs
-      tabs={program.weeks.map((week, weekIndex) => {
-        return {
-          label: week.name,
-          isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
-          children: () => (
-            <PlannerWeek
-              key={weekIndex}
-              initialWeek={initialWeek}
-              initialDay={initialDay}
-              week={week}
-              weekIndex={weekIndex}
-              program={program}
-              settings={settings}
-              ui={ui}
-              exerciseFullNames={exerciseFullNames}
-              evaluatedWeeks={evaluatedWeeks}
-              service={service}
-              dispatch={dispatch}
-            />
-          ),
-        };
-      })}
-    />
+    <div>
+      <PlannerWeekTabs
+        weeks={PlannerWeekSelection_tabs(program.weeks, evaluatedWeeks)}
+        selectedIndex={weekIndex}
+        onSelect={selectWeek}
+        onAdd={() => {
+          if (props.onStructure((planner) => PlannerStructure_addWeekWithDay(planner, settings), "Add new week")) {
+            selectWeek(program.weeks.length);
+          }
+        }}
+      />
+      {week != null && (
+        <PlannerWeek
+          key={weekIndex}
+          week={week}
+          weekIndex={weekIndex}
+          program={program}
+          settings={settings}
+          ui={ui}
+          exerciseFullNames={props.exerciseFullNames}
+          evaluatedDays={evaluatedWeeks[weekIndex] ?? []}
+          dispatch={dispatch}
+          onStructure={props.onStructure}
+        />
+      )}
+    </div>
   );
 }

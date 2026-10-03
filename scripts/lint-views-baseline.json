@@ -317,8 +317,8 @@
     "decision-in-view:anonymous#3": "predates the rule",
     "long-view": "predates the rule"
   },
-  "src/pages/planner/plannerContentFull.tsx": {
-    "decision-in-view:save": "predates the rule"
+  "src/pages/planner/components/modalPlannerExercisePicker.tsx": {
+    "decision-in-view:anonymous#1": "onChoose only calls ProgramExercisePickerChange_apply and dispatches its result; the length is the argument object"
   },
   "src/pages/program/programContentList.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"

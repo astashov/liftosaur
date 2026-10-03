@@ -17,14 +17,11 @@ import { buildCustomLensDispatch } from "../../ducks/types";
 import { lb } from "lens-shmens";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IPlannerState } from "../../pages/planner/models/types";
-import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
-import { Exercise_get, Exercise_fullName } from "../../models/exercise";
-import { ObjectUtils_clone } from "../../utils/object";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
-  EditProgramUiHelpers_duplicateCurrentInstance,
-  EditProgramUiHelpers_changeAllInstances,
-} from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+  IProgramExercisePickerChange,
+  ProgramExercisePickerChange_apply,
+} from "../../models/programExercisePickerChange";
 import type { IRootStackParamList } from "../types";
 import type {
   ICustomExercise,
@@ -43,103 +40,30 @@ function onChangeExercise(
   selectedExercises: IExercisePickerSelectedExercise[],
   plannerExercise: IPlannerProgramExercise | undefined,
   dayData: IShortDayData,
-  change: "one" | "all" | "duplicate" | "variationAdd" | "variationEdit",
+  change: IProgramExercisePickerChange,
   variationIndex: number | undefined,
   plannerDispatch: ILensDispatch<IPlannerProgram>,
   onStopIsUndoing: () => void
 ): void {
-  const selectedExercise = selectedExercises[0];
-  if (!selectedExercise) {
+  if (!selectedExercises[0]) {
     return;
   }
-  const newExerciseType = selectedExercise.type === "template" ? selectedExercise.name : selectedExercise.exerciseType;
-  const newLabel = "label" in selectedExercise ? selectedExercise.label : undefined;
   UndoingFlag_set(true);
-  if (plannerExercise) {
-    if (change === "variationAdd" || change === "variationEdit") {
-      // A rung must be a concrete movement (templates carry no exerciseType), and the ladder is part of
-      // the exercise's identity, so it must stay identical across every instance of this key.
-      if (typeof newExerciseType === "string" || newExerciseType == null) {
-        return;
-      }
-      const exercise = Exercise_get(newExerciseType, settings.exercises);
-      const newPlanner = EditProgramUiHelpers_changeAllInstances(planner, plannerExercise.key, settings, true, (ex) => {
-        const variations = ex.exerciseVariations ?? [];
-        if (change === "variationAdd") {
-          variations.push({ exerciseType: newExerciseType, name: exercise.name, isCurrent: false });
-        } else if (variationIndex != null && variations[variationIndex] != null) {
-          variations[variationIndex] = {
-            exerciseType: newExerciseType,
-            name: exercise.name,
-            isCurrent: variations[variationIndex].isCurrent,
-          };
-        }
-        ex.exerciseVariations = variations;
-        // A lone rung serializes via ex.exerciseType, so keep it aligned with the current variation.
-        const current = variations.find((v) => v.isCurrent);
-        if (current?.exerciseType != null) {
-          ex.exerciseType = current.exerciseType;
-        }
-      });
-      plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Change exercise variation");
-    } else if (change === "one") {
-      const newPlanner = PlannerProgram_replaceExercise(
-        planner,
-        plannerExercise.key,
-        newLabel,
-        newExerciseType,
-        settings,
-        { week: dayData.week, dayInWeek: dayData.dayInWeek, day: 1 }
-      );
-      plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace one exercise in planner");
-    } else if (change === "duplicate") {
-      const newPlannerProgram = EditProgramUiHelpers_duplicateCurrentInstance(
-        planner,
-        { week: dayData.week, dayInWeek: dayData.dayInWeek, day: 1 },
-        plannerExercise.fullName,
-        newLabel,
-        newExerciseType,
-        settings
-      );
-      plannerDispatch(lb<IPlannerProgram>().record(newPlannerProgram), "Duplicate exercise in planner");
-    } else {
-      const newPlanner = PlannerProgram_replaceExercise(
-        planner,
-        plannerExercise.key,
-        newLabel,
-        newExerciseType,
-        settings
-      );
-      plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
-    }
-  } else {
-    const newPlanner = ObjectUtils_clone(planner);
-    const day = newPlanner.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
-    const exerciseText = day?.exerciseText;
-    if (exerciseText != null) {
-      // Every selected exercise, not just the first: the picker is multi-select whenever it was
-      // opened to add rather than to change one particular exercise, and each pick is its own line.
-      const newLines = selectedExercises.reduce<string[]>((acc, selected) => {
-        const exerciseType = selected.type === "template" ? selected.name : selected.exerciseType;
-        const label = "label" in selected ? selected.label : undefined;
-        let fullName: string | undefined;
-        if (typeof exerciseType === "string") {
-          fullName = `${label ? `${label}: ` : ""}${exerciseType} / used: none`;
-        } else if (exerciseType != null) {
-          fullName = Exercise_fullName(Exercise_get(exerciseType, settings.exercises), settings, label);
-        }
-        return fullName != null ? [...acc, `${fullName} / 1x1 100${settings.units}`] : acc;
-      }, []);
-      if (newLines.length > 0) {
-        const added = newLines.join("\n");
-        day.exerciseText = exerciseText.trim() ? exerciseText + `\n${added}` : added;
-        plannerDispatch(
-          lb<IPlannerProgram>().record(newPlanner),
-          `Add ${newLines.length > 1 ? `${newLines.length} exercises` : "exercise"} to exercise text`
-        );
-        onStopIsUndoing();
-      }
-    }
+  const result = ProgramExercisePickerChange_apply({
+    planner,
+    settings,
+    selectedExercises,
+    plannerExercise,
+    dayData,
+    change,
+    variationIndex,
+  });
+  if (result == null) {
+    return;
+  }
+  plannerDispatch(lb<IPlannerProgram>().record(result.planner), result.description);
+  if (result.isAdd) {
+    onStopIsUndoing();
   }
 }
 

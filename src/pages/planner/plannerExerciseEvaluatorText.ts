@@ -1,6 +1,8 @@
 import { SyntaxNode } from "@lezer/common";
 import { CollectionUtils_compact } from "../../utils/collection";
 import { PlannerNodeName } from "./plannerExerciseStyles";
+import { PlannerExerciseEvaluator, PlannerSyntaxError } from "./plannerExerciseEvaluator";
+import { IPlannerErrorDetails } from "../../syntaxErrorTypes";
 
 function getChildren(node: SyntaxNode): SyntaxNode[] {
   const cur = node.cursor();
@@ -47,8 +49,11 @@ export class PlannerExerciseEvaluatorText {
   private weeks: IPlannerExerciseEvaluatorTextWeek[] = [];
   private ongoingLines: IPlannerNonExerciseFullTextLine[] = [];
 
-  constructor(script: string) {
+  private readonly isStrict: boolean;
+
+  constructor(script: string, options: { isStrict?: boolean } = {}) {
     this.script = script;
+    this.isStrict = options.isStrict ?? false;
   }
 
   private getValue(node: SyntaxNode): string {
@@ -114,6 +119,11 @@ export class PlannerExerciseEvaluatorText {
     return description;
   }
 
+  private error(message: string, node: SyntaxNode, details: IPlannerErrorDetails): never {
+    const [line, offset] = PlannerExerciseEvaluator.getLineAndOffset(this.script, node);
+    throw PlannerSyntaxError.fromPoint(undefined, message, { line, offset, from: node.from, to: node.to }, details);
+  }
+
   private getLastDay(): IPlannerExerciseEvaluatorTextDay | undefined {
     const lastWeek = this.weeks[this.weeks.length - 1];
     return lastWeek?.days[lastWeek.days.length - 1];
@@ -126,6 +136,9 @@ export class PlannerExerciseEvaluatorText {
       this.weeks.push({ name: weekName, description, days: [] });
       this.ongoingLines = [];
     } else if (expr.type.name === PlannerNodeName.Day) {
+      if (this.weeks.length === 0) {
+        this.error(`You need to specify a week before a day`, expr, { type: "dayWithoutWeek" });
+      }
       const dayName = this.getValue(expr).replace(/^#+/, "").trim();
       const description = this.getWeekDayDescriptionAndFillLastDay();
       this.weeks[this.weeks.length - 1].days.push({ name: dayName, exercises: [], description });
@@ -137,16 +150,20 @@ export class PlannerExerciseEvaluatorText {
     } else if (expr.type.name === PlannerNodeName.TripleLineComment) {
       this.ongoingLines.push({ type: "triplelinecomment", line: this.getValue(expr) });
     } else if (expr.type.name === PlannerNodeName.ExerciseExpression) {
-      const lastWeek = this.weeks[this.weeks.length - 1];
-      const lastDay = lastWeek ? lastWeek.days[lastWeek.days.length - 1] : undefined;
-      const exercises = lastDay?.exercises;
-      if (exercises) {
-        for (const line of this.ongoingLines) {
-          exercises.push(line.line);
+      const lastDay = this.getLastDay();
+      if (lastDay == null) {
+        if (!this.isStrict) {
+          return;
         }
-        exercises.push(this.getValue(expr));
-        this.ongoingLines = [];
+        this.error(`You should first define a week and a day before listing exercises.`, expr, {
+          type: "exerciseWithoutDay",
+        });
       }
+      for (const line of this.ongoingLines) {
+        lastDay.exercises.push(line.line);
+      }
+      lastDay.exercises.push(this.getValue(expr));
+      this.ongoingLines = [];
     }
   }
 

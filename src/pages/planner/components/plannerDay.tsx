@@ -1,238 +1,158 @@
-import type { JSX } from "react";
+import { JSX, useState } from "react";
+import { PlannerDescription_afterBlur } from "../models/plannerDescription";
+import { lb, LensBuilder } from "lens-shmens";
 import { LinkInlineInput } from "../../../components/inlineInput";
-import { Dialog_confirm } from "../../../utils/dialog";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
-import { LinkButton } from "../../../components/linkButton";
-import { CollectionUtils_removeAt } from "../../../utils/collection";
-import { PlannerDayStats } from "./plannerDayStats";
-import { getExerciseForStats, PlannerExerciseStats } from "./plannerExerciseStats";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { Exercise_findByName } from "../../../models/exercise";
-import { TimeUtils_formatHHMM } from "../../../utils/time";
-import { PlannerStatsUtils_dayApproxTimeMs } from "../models/plannerStatsUtils";
-import { IconWatch } from "../../../components/icons/iconWatch";
-import { Service } from "../../../api/service";
+import { PlannerStatsUtils_formatDuration, PlannerStatsUtils_summary } from "../models/plannerStatsUtils";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
 import { PlannerCodeBlock } from "./plannerCodeBlock";
 import { AppliedTheme_get } from "../../../utils/appliedTheme";
 import { MarkdownEditor } from "../../../components/markdownEditor";
 import { GroupHeader } from "../../../components/groupHeader";
+import { IconArrowUp } from "../../../components/icons/iconArrowUp";
+import { IconArrowDown2 } from "../../../components/icons/iconArrowDown2";
+import { IconTimerSmall } from "../../../components/icons/iconTimerSmall";
+import {
+  PlannerDayFocus_collapseKey,
+  PlannerDayFocus_isNew,
+  PlannerDayFocus_toggleCollapsed,
+} from "../models/plannerDayFocus";
+import { StringUtils_pluralize } from "../../../utils/string";
 
 interface IPlannerDayProps {
   weekIndex: number;
   dayIndex: number;
   day: IPlannerProgramDay;
-  program: IPlannerProgram;
   lbProgram: LensBuilder<IPlannerState, IPlannerProgram, {}, undefined>;
   ui: IPlannerUi;
   exerciseFullNames: string[];
-  evaluatedWeeks: IPlannerEvalResult[][];
+  evaluatedDay: IPlannerEvalResult;
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
-  service: Service;
 }
 
 export function PlannerDay(props: IPlannerDayProps): JSX.Element {
-  const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
-  const { exercises } = props.settings;
-  const focusedExercise = props.ui.focusedExercise;
-  const evaluatedDay = props.evaluatedWeeks[weekIndex]?.[dayIndex];
-  const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
-  let approxDayTime: string | undefined;
-  if (evaluatedDay?.success) {
-    for (const plannerExercise of evaluatedDay.data) {
-      const exercise = Exercise_findByName(plannerExercise.name, {});
-      if (exercise) {
-        exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
-      }
-    }
-    approxDayTime = TimeUtils_formatHHMM(
-      PlannerStatsUtils_dayApproxTimeMs(
-        evaluatedDay.data,
-        props.settings.timers.workout ?? 180,
-        props.settings.timers.superset
-      )
-    );
-  }
-  const showProgramDescription = day.description != null;
-  const repeats: IPlannerProgramExercise[] = evaluatedDay?.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
+  const { day, dispatch, lbProgram, weekIndex, dayIndex, evaluatedDay, ui } = props;
+  const lbDay = lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex);
+  const collapseKey = PlannerDayFocus_collapseKey(weekIndex, dayIndex);
+  const [isAddingDescription, setIsAddingDescription] = useState(false);
+  const isCollapsed = ui.dayUi.collapsed.has(collapseKey);
+  const summary = evaluatedDay.success ? PlannerStatsUtils_summary([evaluatedDay], props.settings) : undefined;
+  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
+  const duration = summary ? PlannerStatsUtils_formatDuration(summary.approxTimeMs) : undefined;
 
   return (
-    <div className="flex flex-col md:flex-row">
-      <div className="flex-1">
-        <div className="flex items-center pb-4">
-          <h3 className="mr-2 text-xl font-bold">
-            <LinkInlineInput
-              value={day.name}
-              onInputString={(v) => {
-                dispatch(
-                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("name").record(v),
-                  "Update day name"
-                );
-              }}
-            />
-          </h3>
-          {approxDayTime && (
-            <div className="text-text-secondary">
-              <IconWatch className="mb-1 align-middle" />
-              <span className="pl-1 font-bold align-middle">{approxDayTime}</span>
-            </div>
-          )}
-        </div>
-        {showProgramDescription ? (
-          <>
-            <div className="leading-none">
-              <GroupHeader name="Day Description (Markdown)" />
-            </div>
-            <MarkdownEditor
-              value={evaluatedDay.success ? (day.description ?? "") : ""}
-              onChange={(v) => {
-                dispatch(
-                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(v),
-                  "Update day description"
-                );
-              }}
-            />
-            <div>
-              <LinkButton
-                className="text-xs"
-                name="planner-add-day-description"
-                onClick={() => {
-                  dispatch(
-                    lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(undefined),
-                    "Clear day description"
-                  );
+    <div
+      className="px-4 py-4 mb-3 border md:pl-3 md:pr-4 rounded-2xl bg-background-default border-border-prominent"
+      data-testid="planner-day"
+    >
+      <div className="flex items-center gap-2">
+        <h3 className="flex-1 min-w-0 text-lg font-bold md:pl-6">
+          <LinkInlineInput
+            value={day.name}
+            onInputString={(v) => dispatch(lbDay.p("name").record(v), "Update day name")}
+          />
+        </h3>
+        <button
+          className="p-2 nm-planner-collapse-day"
+          data-testid="planner-collapse-day"
+          aria-label={isCollapsed ? "Expand day" : "Collapse day"}
+          title={isCollapsed ? "Expand day" : "Collapse day"}
+          onClick={() =>
+            dispatch(
+              lb<IPlannerState>()
+                .p("ui")
+                .p("dayUi")
+                .p("collapsed")
+                .recordModify((collapsed) => PlannerDayFocus_toggleCollapsed(collapsed, collapseKey)),
+              isCollapsed ? "Expand day" : "Collapse day"
+            )
+          }
+        >
+          {isCollapsed ? <IconArrowDown2 /> : <IconArrowUp />}
+        </button>
+      </div>
+      <div className="md:pl-6">
+        {!isCollapsed &&
+          (day.description != null ? (
+            <div className="mt-2">
+              <MarkdownEditor
+                borderless={true}
+                hasHistory={false}
+                placeholder="Workout description in Markdown"
+                autoFocus={isAddingDescription}
+                value={day.description}
+                onChange={(v) => dispatch(lbDay.p("description").record(v), "Update day description")}
+                onBlur={(v) => {
+                  setIsAddingDescription(false);
+                  if (PlannerDescription_afterBlur(v) == null) {
+                    dispatch(lbDay.p("description").record(undefined), "Remove empty day description");
+                  }
                 }}
-              >
-                Delete Day Description
-              </LinkButton>
-            </div>
-          </>
-        ) : (
-          <div>
-            <LinkButton
-              className="text-xs"
-              name="planner-add-day-description"
-              onClick={() => {
-                dispatch(
-                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("description").record(""),
-                  "Add day description"
-                );
-              }}
-            >
-              Add Day Description
-            </LinkButton>
-          </div>
-        )}
-        <div className="flex">
-          <div className="flex-1 w-0">
-            {showProgramDescription && (
-              <div className="mt-1 leading-none">
-                <GroupHeader name="Exercises" />
-              </div>
-            )}
-            <PlannerEditorView
-              lineNumbers={true}
-              name="Exercises"
-              theme={AppliedTheme_get(props.settings)}
-              exerciseFullNames={props.exerciseFullNames}
-              customExercises={exercises}
-              error={evaluatedDay.success ? undefined : evaluatedDay.error}
-              value={day.exerciseText}
-              onCustomErrorCta={(err) => (
-                <PlannerEditorCustomCta dispatch={props.dispatch} err={err} isInvertedColors={true} />
-              )}
-              onChange={(e) => {
-                dispatch(
-                  lbProgram.p("weeks").i(weekIndex).p("days").i(dayIndex).p("exerciseText").record(e),
-                  "Update exercises"
-                );
-              }}
-              onBlur={(e, text) => {}}
-              onLineChange={(line) => {
-                if (
-                  !focusedExercise ||
-                  focusedExercise.weekIndex !== weekIndex ||
-                  focusedExercise.dayIndex !== dayIndex ||
-                  focusedExercise.exerciseLine !== line
-                ) {
-                  dispatch(
-                    lb<IPlannerState>()
-                      .p("ui")
-                      .p("focusedExercise")
-                      .record({ weekIndex, dayIndex, exerciseLine: line }),
-                    "Focus exercise"
-                  );
-                }
-              }}
-            />
-            {repeats.length > 0 && (
-              <>
-                <GroupHeader name="Repeated exercises from previous weeks:" />
-                <ul className="pl-1 ml-8 overflow-x-auto list-disc" style={{ marginTop: "-0.5rem" }}>
-                  {repeats.map((e, i) => (
-                    <li key={i}>
-                      <PlannerCodeBlock script={e.text} />
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-        </div>
-        {isFocused &&
-          focusedExercise?.exerciseLine != null &&
-          !!getExerciseForStats(
-            weekIndex,
-            dayIndex,
-            focusedExercise.exerciseLine,
-            props.evaluatedWeeks,
-            props.settings
-          ) && (
-            <div className="p-4 mt-2 border border-border-cardyellow rounded-lg bg-background-cardyellow">
-              <PlannerExerciseStats
-                settings={props.settings}
-                evaluatedWeeks={props.evaluatedWeeks}
-                dispatch={dispatch}
-                weekIndex={weekIndex}
-                dayIndex={dayIndex}
-                exerciseLine={focusedExercise?.exerciseLine}
               />
             </div>
-          )}
-        <div className="mb-6 text-sm">
-          <LinkButton
-            name="planner-delete-day"
-            className="text-sm"
-            onClick={async () => {
-              if (await Dialog_confirm("Are you sure you want to delete this day?")) {
-                dispatch(
-                  lbProgram
-                    .p("weeks")
-                    .i(weekIndex)
-                    .p("days")
-                    .recordModify((days) => CollectionUtils_removeAt(days, dayIndex)),
-                  "Delete day"
-                );
+          ) : (
+            <button
+              className="mt-2 text-base text-text-link nm-planner-add-day-description"
+              data-testid="planner-add-day-description"
+              onClick={() => {
+                setIsAddingDescription(true);
+                dispatch(lbDay.p("description").record(""), "Add day description");
+              }}
+            >
+              Add workout description
+            </button>
+          ))}
+        {summary && (
+          <div className="items-center hidden gap-1 mt-2 text-sm md:flex text-text-secondary">
+            <span>
+              {summary.exercisesPerDay} {StringUtils_pluralize("exercise", summary.exercisesPerDay)}
+            </span>
+            <IconTimerSmall className="ml-2" />
+            <span>{duration}</span>
+          </div>
+        )}
+        <div className={isCollapsed ? "hidden" : "mt-3"}>
+          <PlannerEditorView
+            lineNumbers={true}
+            hasHistory={false}
+            name="Exercises"
+            theme={AppliedTheme_get(props.settings)}
+            exerciseFullNames={props.exerciseFullNames}
+            customExercises={props.settings.exercises}
+            error={evaluatedDay.success ? undefined : evaluatedDay.error}
+            value={day.exerciseText}
+            onCustomErrorCta={(err) => <PlannerEditorCustomCta dispatch={dispatch} err={err} isInvertedColors={true} />}
+            onChange={(e) => dispatch(lbDay.p("exerciseText").record(e), "Update exercises")}
+            onLineChange={(line) => {
+              const next = { weekIndex, dayIndex, exerciseLine: line };
+              if (PlannerDayFocus_isNew(ui.focusedExercise, next)) {
+                dispatch(lb<IPlannerState>().p("ui").p("focusedExercise").record(next), "Focus exercise");
               }
             }}
-          >
-            Delete Day
-          </LinkButton>
-        </div>
-      </div>
-      <div className="w-56 ml-0 sm:ml-4">
-        {isFocused && evaluatedDay && (
-          <PlannerDayStats
-            dispatch={dispatch}
-            focusedExercise={focusedExercise}
-            settings={props.settings}
-            evaluatedDay={evaluatedDay}
           />
+          {repeats.length > 0 && (
+            <>
+              <GroupHeader name="Repeated exercises from previous weeks:" />
+              <ul className="pl-1 ml-8 overflow-x-auto list-disc" style={{ marginTop: "-0.5rem" }}>
+                {repeats.map((e, i) => (
+                  <li key={i}>
+                    <PlannerCodeBlock script={e.text} />
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+        {duration && (
+          <div className="flex items-center gap-1 mt-3 text-sm md:hidden text-text-secondary">
+            <IconTimerSmall />
+            <span>{duration}</span>
+          </div>
         )}
       </div>
     </div>

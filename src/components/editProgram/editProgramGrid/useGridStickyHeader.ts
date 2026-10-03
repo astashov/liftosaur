@@ -7,10 +7,12 @@ import { NavScreenScrollContext } from "../../../navigation/NavScreenScrollConte
 // screen's ScrollView pins only its own direct children — this row is nested inside the grid's
 // horizontal scroller, which is what keeps it lined up with the columns — so it follows the
 // vertical offset by hand, the same way StickyError does in dayLiftoEditorInline.tsx.
-export function useGridStickyHeader(): {
+export function useGridStickyHeader(options: { isHeaderInContainer: boolean }): {
   containerRef: RefObject<View | null>;
   onContainerLayout: () => void;
   onHeaderLayout: (e: LayoutChangeEvent) => void;
+  onHeaderHeight: (height: number) => void;
+  pinTop: number;
   translateY: Animated.AnimatedInterpolation<number> | number;
   // Where the grid's first row starts in scroll-content coordinates — the header's own anchor,
   // pushed past the header. Anything asking "where on screen has that row got to" needs the same
@@ -65,12 +67,16 @@ export function useGridStickyHeader(): {
     });
   }, [scrollCtx, remeasure]);
 
-  const onHeaderLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      headerHeightRef.current = e.nativeEvent.layout.height;
+  const onHeaderHeight = useCallback(
+    (height: number) => {
+      headerHeightRef.current = height;
       remeasure();
     },
     [remeasure]
+  );
+  const onHeaderLayout = useCallback(
+    (e: LayoutChangeEvent) => onHeaderHeight(e.nativeEvent.layout.height),
+    [onHeaderHeight]
   );
 
   // Interpolated rather than followed in JS: the scroll listeners run a frame or two behind the
@@ -92,8 +98,10 @@ export function useGridStickyHeader(): {
     containerRef,
     onContainerLayout: remeasure,
     onHeaderLayout,
+    onHeaderHeight,
+    pinTop: stickyHeaderHeight,
     translateY,
-    rowsTop: anchor.top + anchor.headerHeight,
+    rowsTop: options.isHeaderInContainer ? anchor.top + anchor.headerHeight : anchor.top,
     headerHeight: anchor.headerHeight,
   };
 }

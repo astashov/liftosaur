@@ -12,8 +12,10 @@ export const GRID_SCALE_MAX = 2.2;
 // release, which is the only value worth remembering.
 export interface IGridPinchArgs {
   scale: number;
+  isFitted: boolean;
+  fittedScale: number;
   onScalePreview: (scale: number) => void;
-  onScaleCommit: (scale: number) => void;
+  onScaleCommit: (scale: number | undefined) => void;
 }
 
 export interface IGridPinchResult {
@@ -22,6 +24,7 @@ export interface IGridPinchResult {
   // an ordinary prop.
   scrollAnimatedProps?: Partial<ScrollViewProps>;
   canPinch: boolean;
+  zoomControl?: JSX.Element;
 }
 
 // Coarse on purpose: a step finer than this moves a column by under a pixel, so it costs a render

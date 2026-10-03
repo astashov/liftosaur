@@ -24,6 +24,7 @@ interface IProps {
   maxHeight?: number;
   // On web the editor lives in the main DOM and inherits the app's theme class, so this is unused here.
   theme?: IEditorTheme;
+  hasHistory?: boolean;
 }
 
 export function PlannerEditorView(props: IProps): JSX.Element {
@@ -42,10 +43,15 @@ export function PlannerEditorView(props: IProps): JSX.Element {
       value: props.value,
       error: props.error,
       lineNumbers: props.lineNumbers,
+      hasHistory: props.hasHistory,
       customExercises: props.customExercises,
     });
     ce.attach(divRef.current!);
     codeEditor.current = ce;
+    return () => {
+      ce.destroy();
+      codeEditor.current = undefined;
+    };
   }, []);
 
   useEffect(() => {

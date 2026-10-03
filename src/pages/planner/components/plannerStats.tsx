@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, useLayoutEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { Text } from "../../../components/primitives/text";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
@@ -7,12 +7,16 @@ import { PlannerWeekMuscles } from "./plannerWeekMuscles";
 import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
+import { Pressable } from "../../../components/primitives/pressable";
+import { IconMuscleSettings } from "../../../components/icons/iconMuscleSettings";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { lb } from "lens-shmens";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { getNavigationService } from "../../../navigation/navUtils";
 import { CollectionUtils_sort } from "../../../utils/collection";
+import { TooltipPlacement_place } from "../../../utils/tooltipPlacement";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -21,6 +25,7 @@ interface IPlannerWeekStatsProps {
   settings: ISettings;
   dispatch: ILensDispatch<IPlannerState>;
   onEditSettings?: () => void;
+  editSettingsLabel?: string;
   focusedExercise?: IPlannerUiFocusedExercise;
 }
 
@@ -117,9 +122,20 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
 
       {onEditSettings && (
         <View className="py-2">
-          <LinkButton name="planner-stats-edit-settings" className="text-xs" onClick={() => onEditSettings()}>
-            Edit Weekly Muscle Range Settings
-          </LinkButton>
+          {props.editSettingsLabel != null ? (
+            <Pressable
+              className="flex-row items-center gap-2 nm-planner-stats-edit-settings"
+              testID="planner-stats-edit-settings"
+              onPress={() => onEditSettings()}
+            >
+              <IconMuscleSettings color={Tailwind_semantic().text.link} />
+              <Text className="text-sm font-semibold text-text-link">{props.editSettingsLabel}</Text>
+            </Pressable>
+          ) : (
+            <LinkButton name="planner-stats-edit-settings" className="text-xs" onClick={() => onEditSettings()}>
+              Edit Weekly Muscle Range Settings
+            </LinkButton>
+          )}
         </View>
       )}
 
@@ -189,7 +205,7 @@ export function PlannerSetSplit(props: {
 }): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
   const isDesktopWeb = Platform.OS === "web";
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipAnchor, setTooltipAnchor] = useState<DOMRect | undefined>(undefined);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
   const setColor = muscle
@@ -246,13 +262,15 @@ export function PlannerSetSplit(props: {
     return (
       <Text className={textSize}>
         <span
-          className="relative"
-          onMouseEnter={() => hasExercises && setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onClick={() => hasExercises && setShowTooltip((v) => !v)}
+          onMouseEnter={(e) => hasExercises && setTooltipAnchor(e.currentTarget.getBoundingClientRect())}
+          onMouseLeave={() => setTooltipAnchor(undefined)}
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setTooltipAnchor((anchor) => (anchor == null && hasExercises ? rect : undefined));
+          }}
         >
           {totalNode}
-          {showTooltip && hasExercises && <PlannerStatsTooltip split={split} />}
+          {tooltipAnchor != null && hasExercises && <PlannerStatsTooltip split={split} anchor={tooltipAnchor} />}
         </span>
         {trailingNode}
       </Text>
@@ -267,7 +285,22 @@ export function PlannerSetSplit(props: {
   );
 }
 
-function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
+function PlannerStatsTooltip(props: { split: ISetSplit; anchor: DOMRect }): JSX.Element | null {
+  const ref = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ left: number; top: number } | undefined>(undefined);
+  const { anchor } = props;
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el != null) {
+      const size = { width: el.offsetWidth, height: el.offsetHeight };
+      setPosition(
+        TooltipPlacement_place(anchor, size, {
+          width: document.documentElement.clientWidth,
+          height: document.documentElement.clientHeight,
+        })
+      );
+    }
+  }, [anchor]);
   const exercises = CollectionUtils_sort(props.split.exercises, (a, b) => {
     if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
       return a.exerciseName.localeCompare(b.exerciseName);
@@ -282,7 +315,15 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   }
 
   return (
-    <div className="absolute z-10 px-3 py-2 text-xs border bg-background-default border-border-neutral rounded-xl text-text-primary planner-stats-tooltip">
+    <div
+      ref={ref}
+      className="fixed z-50 px-3 py-2 text-xs border bg-background-default border-border-neutral rounded-xl text-text-primary"
+      style={{
+        left: position?.left ?? 0,
+        top: position?.top ?? 0,
+        visibility: position == null ? "hidden" : "visible",
+      }}
+    >
       <ul style={{ minWidth: "14rem" }}>
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;

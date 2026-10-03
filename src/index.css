@@ -9,6 +9,12 @@
   :host {
     -webkit-tap-highlight-color: revert;
   }
+
+  /* Tailwind v4 preflight resets buttons to cursor: default; v3 used pointer. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @import "./fonts.css";
@@ -875,25 +881,12 @@ iframe#exercise-youtube-player {
   height: 1.35rem;
 }
 
-.planner-stats-tooltip {
-  top: 30px;
-  right: 0;
-}
-
 .planner-editor-error {
   top: 0px;
 }
 
 #app .planner-editor-error {
   top: 3.5rem;
-}
-
-@media (max-width: 640px) {
-  .planner-stats-tooltip {
-    top: 30px;
-    left: 0;
-    right: auto;
-  }
 }
 
 .planner-editor-view .cm-scroller {

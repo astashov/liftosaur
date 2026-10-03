@@ -29,7 +29,7 @@ export function PlannerHtml(props: IProps): JSX.Element {
       isLoggedIn={!!props.account}
       css={["planner"]}
       js={["planner"]}
-      maxWidth={1200}
+      maxWidth={1440}
       maxBodyWidth={2400}
       title={title}
       description="The weightlifting program editor, that helps to balance volume, time and muscles worked"
