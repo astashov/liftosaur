@@ -1,12 +1,10 @@
 import { lb } from "lens-shmens";
-import {
-  Program_getNumberOfExerciseInstances,
-  Program_getProgramExerciseForKeyAndShortDayData,
-} from "../../../models/program";
+import { Program_getProgramExerciseForKeyAndShortDayData } from "../../../models/program";
 import { pickerStateFromPlannerExercise } from "../../../components/editProgram/editProgramUtils";
 import type { IGridNavigation, IGridNavigationContext } from "../../../components/editProgram/editProgramGrid/gridHost";
 import { IProgramGridPlacement, ProgramGrid_dayDataAt } from "./programGrid";
 import { IPlannerSidePanelTab, IPlannerState } from "./types";
+import { PlannerExerciseSwap_open } from "./plannerExerciseSwap";
 
 export function PlannerGridNavigation_create(context: IGridNavigationContext): IGridNavigation {
   const { grid, evaluatedProgram, settings, plannerDispatch } = context;
@@ -37,11 +35,15 @@ export function PlannerGridNavigation_create(context: IGridNavigationContext): I
     onDuplicatePlacement: (placement) => openPicker(placement, "duplicate", "Open duplicate exercise picker"),
     onSwapPlacement: (placement) => {
       const exercise = exerciseAt(placement);
-      if (exercise != null && Program_getNumberOfExerciseInstances(evaluatedProgram, placement.key) > 1) {
-        plannerDispatch(lbUi.p("editExerciseModal").record({ plannerExercise: exercise }), "Ask how far to swap");
+      if (exercise == null) {
+        openPicker(placement, "one", "Open swap exercise picker");
         return;
       }
-      openPicker(placement, "one", "Open swap exercise picker");
+      const dayData = ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart);
+      plannerDispatch(
+        lbUi.recordModify((ui) => PlannerExerciseSwap_open(ui, evaluatedProgram, settings, exercise, dayData)),
+        "Swap exercise"
+      );
     },
     onAddExercise: (weekIndex, rowIndex) => {
       plannerDispatch(

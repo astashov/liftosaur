@@ -13,17 +13,21 @@ import { Exercise_applyCustomExerciseChange } from "../../../models/exercise";
 import { Settings_toggleStarred } from "../../../models/settings";
 import { UndoingFlag_set } from "../../../utils/undoingFlag";
 import { ILensDispatch } from "../../../utils/useLensReducer";
+import { Dialog_alert } from "../../../utils/dialog";
 import { ISettings } from "../../../types";
 import { IExercisePickerUi, IPlannerState } from "../models/types";
+import { PlannerMode_outsideEditError } from "../models/plannerMode";
 
-export function ModalPlannerExercisePicker(props: {
+export interface IModalPlannerExercisePickerProps {
   picker: IExercisePickerUi;
   state: IPlannerState;
   settings: ISettings;
   isLoggedIn: boolean;
   dispatch: ILensDispatch<IPlannerState>;
   onChangeSettings: (settings: ISettings) => void;
-}): JSX.Element {
+}
+
+export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerProps): JSX.Element {
   const { picker, state, settings, dispatch } = props;
   const program = state.current.program;
   const evaluatedProgram = useMemo(() => Program_evaluate(program, settings), [program, settings]);
@@ -67,6 +71,11 @@ export function ModalPlannerExercisePicker(props: {
         }
         onChangeCustomExercise={(action, exercise, notes) => {
           const result = Exercise_applyCustomExerciseChange(action, exercise, notes, settings, program);
+          const editError = result.program?.planner ? PlannerMode_outsideEditError(state) : undefined;
+          if (editError != null) {
+            Dialog_alert(editError);
+            return;
+          }
           props.onChangeSettings(result.settings);
           if (result.program?.planner) {
             dispatch(
@@ -76,6 +85,12 @@ export function ModalPlannerExercisePicker(props: {
           }
         }}
         onChoose={(selectedExercises) => {
+          const editError = PlannerMode_outsideEditError(state);
+          if (editError != null) {
+            Dialog_alert(editError);
+            onClose();
+            return;
+          }
           const planner = program.planner;
           const result =
             planner != null

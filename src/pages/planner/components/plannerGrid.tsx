@@ -6,21 +6,17 @@ import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerState } from "../models/types";
 import { PlannerWindowScrollProvider } from "./plannerWindowScroll";
-import { ModalPlannerExercisePicker } from "./modalPlannerExercisePicker";
 
 export interface IPlannerGridProps {
   state: IPlannerState;
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
-  isLoggedIn: boolean;
   host: IGridHost;
   stickyHeaderHeight: number;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  onChangeSettings: (settings: ISettings) => void;
 }
 
 export function PlannerGrid(props: IPlannerGridProps): JSX.Element {
-  const picker = props.state.ui.exercisePicker;
   return (
     <PlannerWindowScrollProvider stickyHeaderHeight={props.stickyHeaderHeight} footerHeight={0}>
       {/* The grid sizes its lanes for the default line height (React Native's on native); the
@@ -34,16 +30,6 @@ export function PlannerGrid(props: IPlannerGridProps): JSX.Element {
           plannerDispatch={props.plannerDispatch}
         />
       </div>
-      {picker && (
-        <ModalPlannerExercisePicker
-          picker={picker}
-          state={props.state}
-          settings={props.settings}
-          isLoggedIn={props.isLoggedIn}
-          dispatch={props.plannerDispatch}
-          onChangeSettings={props.onChangeSettings}
-        />
-      )}
     </PlannerWindowScrollProvider>
   );
 }

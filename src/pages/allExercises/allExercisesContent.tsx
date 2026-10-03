@@ -1,5 +1,5 @@
 import { JSX, useRef, useState } from "react";
-import { ExerciseItem } from "../../components/modalExercise";
+import { ExerciseItem } from "../../components/exerciseItem";
 import { Multiselect } from "../../components/multiselect";
 import { equipmentName, Exercise_filterExercisesByNameAndType, Exercise_toKey } from "../../models/exercise";
 import { Settings_build } from "../../models/settings";

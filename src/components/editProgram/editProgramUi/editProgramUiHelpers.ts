@@ -7,13 +7,12 @@ import {
 } from "../../../models/programRewrite";
 import { Dialog_alert } from "../../../utils/dialog";
 import {
-  IModalExerciseUi,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
   IPlannerState,
   IPlannerUi,
 } from "../../../pages/planner/models/types";
-import { PlannerKey_fromFullName, PlannerKey_fromLabelNameAndEquipment } from "../../../pages/planner/plannerKey";
+import { PlannerKey_fromFullName } from "../../../pages/planner/plannerKey";
 import { PlannerStructure_normalizeOrdersInDay } from "../../../pages/planner/models/plannerStructure";
 import {
   IPlannerProgram,
@@ -25,8 +24,7 @@ import {
   IShortDayData,
 } from "../../../types";
 import { ObjectUtils_clone } from "../../../utils/object";
-import { PlannerExerciseEvaluator } from "../../../pages/planner/plannerExerciseEvaluator";
-import { IExercise, Exercise_findByNameEquipment, Exercise_fullName, Exercise_get } from "../../../models/exercise";
+import { IExercise, Exercise_fullName, Exercise_get } from "../../../models/exercise";
 import {
   IEvaluatedProgram,
   Program_evaluateCachedPlanner,
@@ -57,43 +55,6 @@ export function EditProgramUiHelpers_validate(
   }
   const error = ProgramRewrite_validate(newPlanner, settings);
   return plannerOrAlert(error != null ? { error } : { planner: newPlanner }, oldPlanner);
-}
-
-export function EditProgramUiHelpers_changeLabel(
-  planner: IPlannerProgram,
-  modalExerciseUi: IModalExerciseUi,
-  onProgramChange: (program: IPlannerProgram) => void,
-  onUiChange: (modalExerciseUi2?: IModalExerciseUi) => void,
-  fullName: string,
-  value: string | undefined,
-  settings: ISettings,
-  dayData: Required<IDayData>,
-  change?: "all" | "one" | "duplicate"
-): void {
-  const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
-  const newKey = PlannerKey_fromLabelNameAndEquipment(value, name, equipment, settings.exercises);
-
-  if (change === "all") {
-    onProgramChange(
-      EditProgramUiHelpers_changeAllInstances(planner, fullName, settings, true, (e) => {
-        e.label = value;
-      })
-    );
-  } else {
-    onProgramChange(
-      EditProgramUiHelpers_changeCurrentInstance3(planner, fullName, dayData, false, settings, true, (e) => {
-        e.label = value;
-      })
-    );
-  }
-
-  const exercise = Exercise_findByNameEquipment(settings.exercises, name, equipment);
-  let newModalExercise = modalExerciseUi;
-  if (exercise && modalExerciseUi && modalExerciseUi.fullName === fullName) {
-    const newFullName = Exercise_fullName(exercise, settings, value);
-    newModalExercise = { ...modalExerciseUi, exerciseKey: newKey, fullName: newFullName };
-    onUiChange(newModalExercise);
-  }
 }
 
 export function EditProgramUiHelpers_onDaysChange(

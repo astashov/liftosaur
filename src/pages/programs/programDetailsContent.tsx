@@ -164,7 +164,6 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
             {isWeekStatsOpen && (
               <PlannerWeekStats
                 hideTitle={true}
-                dispatch={() => {}}
                 evaluatedDays={evaluatedDays}
                 settings={settings}
               />

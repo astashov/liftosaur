@@ -59,6 +59,15 @@ export function PlannerMode_switch(
   return { success: true, data: { ui, fulltext: undefined } };
 }
 
+// A program edit made outside the Full Program editor regenerates its text, so it is refused while that text does not parse
+export function PlannerMode_outsideEditError(state: IPlannerState): string | undefined {
+  if (PlannerMode_current(state.ui) !== "full" || state.fulltext == null) {
+    return undefined;
+  }
+  const parsed = PlannerProgram_parseText(state.fulltext.text);
+  return parsed.success ? undefined : parsed.error.message;
+}
+
 export function PlannerMode_commitFullText(text: string, settings: ISettings): IPlannerFullTextCommit {
   const parsed = PlannerProgram_parseText(text);
   if (!parsed.success) {

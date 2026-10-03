@@ -3,6 +3,7 @@ import { lb } from "lens-shmens";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerState } from "../models/types";
 import type { IEditorError } from "../../../editorTypes";
+import { PlannerCustomExerciseCta_open } from "../models/plannerCustomExerciseCta";
 
 interface IPlannerEditorCustomCtaProps {
   err: IEditorError;
@@ -23,18 +24,8 @@ export function PlannerEditorCustomCta(props: IPlannerEditorCustomCtaProps): JSX
           props.dispatch(
             lb<IPlannerState>()
               .p("ui")
-              .p("modalExercise")
-              .record({
-                focusedExercise: {
-                  weekIndex: 0,
-                  dayIndex: 0,
-                  exerciseLine: 0,
-                },
-                types: [],
-                muscleGroups: [],
-                customExerciseName,
-              }),
-            "Open custom exercise modal"
+              .recordModify((ui) => PlannerCustomExerciseCta_open(ui, customExerciseName)),
+            "Open custom exercise picker"
           );
         }}
       >

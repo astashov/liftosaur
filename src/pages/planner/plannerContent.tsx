@@ -8,21 +8,15 @@ import {
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
-import { ILensRecordingPayload, lb, lf } from "lens-shmens";
+import { lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
 import { ModalPlannerSettings, IPlannerSettingsSaveStatus } from "./components/modalPlannerSettings";
-import { ModalExercise } from "../../components/modalExercise";
-import { Settings_build, Settings_webEditorInitial, Settings_webEditorSettingsRequest } from "../../models/settings";
+import { Settings_webEditorInitial, Settings_webEditorSettingsRequest } from "../../models/settings";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
-import { StringUtils_capitalize } from "../../utils/string";
-import { Exercise_getById, Exercise_createOrUpdateCustomExercise } from "../../models/exercise";
 import { canRedo, canUndo, redo, undo, undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
-  ICustomExercise,
-  IExerciseKind,
-  IMuscle,
   IPartialStorage,
   IPlannerProgram,
   IPlannerProgramDay,
@@ -34,9 +28,7 @@ import { Service } from "../../api/service";
 import {
   PlannerProgram_hasNonSelectedWeightUnit,
   PlannerProgram_switchToUnit,
-  PlannerProgram_parseText,
   PlannerProgram_evaluateText,
-  PlannerProgram_replaceAndValidateExercise,
   PlannerProgram_evaluate,
   PlannerProgram_evaluateFull,
   PlannerProgram_fullToWeekEvalResult,
@@ -57,7 +49,6 @@ import {
   Program_create,
   Program_evaluate,
   Program_exportProgram,
-  Program_changeExerciseName,
 } from "../../models/program";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 import { Weight_oppositeUnit } from "../../models/weight";
@@ -73,7 +64,6 @@ import { ModalPlannerSwapScope } from "./components/modalPlannerSwapScope";
 import { ModalPlannerEditDetails } from "./components/modalPlannerEditDetails";
 import {
   IPlannerWebMode,
-  PlannerMode_applyFullText,
   PlannerMode_current,
   PlannerMode_isValid,
   PlannerMode_fullTextAfter,
@@ -82,7 +72,7 @@ import {
 import { PlannerUiClamp_apply } from "./models/plannerUiClamp";
 import { IPlannerStructureResult } from "./models/plannerStructure";
 import { PlannerGridNavigation_create } from "./models/plannerGridNavigation";
-import { PlannerGridContext } from "./plannerGridContext";
+import { PlannerBrowserContext } from "./plannerBrowserContext";
 import { GridSelectionProvider } from "../../components/editProgram/editProgramGrid/gridSelectionContext";
 import { GridActionDock } from "../../components/editProgram/editProgramGrid/gridActionDock";
 import {
@@ -348,7 +338,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [editDetails, setEditDetails] = useState<
     { request: IGridEditDetailsRequest; onResult: (details?: IGridEditDetailsResult) => void } | undefined
   >(undefined);
-  const Grid = useContext(PlannerGridContext);
+  const browserComponents = useContext(PlannerBrowserContext);
+  const Grid = browserComponents?.Grid;
+  const ExercisePicker = browserComponents?.ExercisePicker;
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
@@ -382,7 +374,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     []
   );
 
-  const modalExerciseUi = state.ui.modalExercise;
   const isInvalid = !PlannerMode_isValid(evaluatedWeeks, fullEvaluation);
   const isPanelOpen = !!state.ui.sidePanelOpen;
 
@@ -409,10 +400,6 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     }
     dispatch(lbProgram.record(result.data), desc);
     return true;
-  }
-
-  function applyFullTextRecording(newText: string): ILensRecordingPayload<IPlannerState> {
-    return lb<IPlannerState>().recordModify((s) => PlannerMode_applyFullText(s, newText));
   }
 
   async function copyLink(): Promise<void> {
@@ -577,11 +564,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 state={state}
                 evaluatedProgram={evaluatedProgram}
                 settings={settings}
-                isLoggedIn={!!props.account}
                 host={gridHost}
                 stickyHeaderHeight={toolbarHeightPx}
                 plannerDispatch={dispatch}
-                onChangeSettings={setSettings}
               />
             ) : mode === "full" && state.fulltext != null && fullEvaluation != null ? (
               <PlannerContentFull
@@ -711,112 +696,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
           onNewSettings={(newSettings) => setSettings(newSettings)}
         />
       )}
-      {modalExerciseUi && (
-        <ModalExercise
+      {state.ui.exercisePicker && ExercisePicker != null && (
+        <ExercisePicker
+          picker={state.ui.exercisePicker}
+          state={state}
+          settings={settings}
           isLoggedIn={!!props.account}
-          isHidden={!modalExerciseUi}
-          shouldAddExternalLinks={true}
-          onChange={(exerciseType, label, shouldClose) => {
-            window.isUndoing = true;
-            if (shouldClose) {
-              dispatch(
-                [lbUi.p("modalExercise").record(undefined), lbUi.p("focusedExercise").record(undefined)],
-                "Close modal and clear focus"
-              );
-            }
-            if (modalExerciseUi.exerciseType && modalExerciseUi.exerciseKey) {
-              if (!exerciseType) {
-                return;
-              }
-              const unparsed = state.fulltext ? PlannerProgram_parseText(state.fulltext.text) : undefined;
-              if (unparsed != null && !unparsed.success) {
-                Dialog_alert(unparsed.error.message);
-                return;
-              }
-              const newProgramResult = PlannerProgram_replaceAndValidateExercise(
-                program,
-                modalExerciseUi.exerciseKey,
-                exerciseType,
-                settings
-              );
-              if (newProgramResult.success && newProgramResult.data.planner) {
-                dispatch(lbProgram.record(newProgramResult.data.planner), "Replace exercise");
-              } else if (!newProgramResult.success) {
-                Dialog_alert(newProgramResult.error);
-              }
-            } else if (state.fulltext) {
-              const line = state.fulltext.currentLine;
-              if (exerciseType && line != null) {
-                const exercise = Exercise_getById(exerciseType.id, settings.exercises);
-                const lines = state.fulltext.text.split("\n");
-                lines.splice(line, 0, exercise.name);
-                dispatch(applyFullTextRecording(lines.join("\n")), "Add exercise");
-              }
-            } else {
-              dispatch(
-                lbProgram
-                  .p("weeks")
-                  .i(modalExerciseUi.focusedExercise.weekIndex)
-                  .p("days")
-                  .i(modalExerciseUi.focusedExercise.dayIndex)
-                  .p("exerciseText")
-                  .recordModify((exerciseText) => {
-                    if (!exerciseType) {
-                      return exerciseText;
-                    }
-                    const exercise = Exercise_getById(exerciseType.id, settings.exercises);
-                    return exerciseText + `\n${exercise.name}`;
-                  }),
-                "Add exercise"
-              );
-            }
-            dispatch([lbUi.recordModify((ui) => ui)], "stop-is-undoing");
-          }}
-          onCreateOrUpdate={(
-            shouldClose: boolean,
-            name: string,
-            targetMuscles: IMuscle[],
-            synergistMuscles: IMuscle[],
-            types: IExerciseKind[],
-            smallImageUrl?: string,
-            largeImageUrl?: string,
-            exercise?: ICustomExercise
-          ) => {
-            const exercises = Exercise_createOrUpdateCustomExercise(
-              settings.exercises,
-              name,
-              targetMuscles,
-              synergistMuscles,
-              types,
-              smallImageUrl,
-              largeImageUrl,
-              exercise
-            );
-            setSettings(lf(settings).p("exercises").set(exercises));
-            if (exercise) {
-              const newProgram = Program_changeExerciseName(exercise.name, name, state.current.program, {
-                ...settings,
-                exercises,
-              });
-              window.isUndoing = true;
-              dispatch(lbProgram.record(newProgram.planner!), "Update program");
-              dispatch(lbProgram.record(newProgram.planner!), "stop-is-undoing");
-            }
-            if (shouldClose) {
-              dispatch(lbUi.p("modalExercise").record(undefined), "Close exercise modal");
-            }
-          }}
-          onDelete={(id) => {
-            setSettings(
-              lf(settings)
-                .p("exercises")
-                .set({ ...settings.exercises, [id]: { ...settings.exercises[id]!, isDeleted: true } })
-            );
-          }}
-          settings={{ ...Settings_build(), exercises: settings.exercises }}
-          customExerciseName={modalExerciseUi.customExerciseName}
-          exerciseType={modalExerciseUi.exerciseType}
-          initialFilterTypes={[...modalExerciseUi.muscleGroups, ...modalExerciseUi.types].map(StringUtils_capitalize)}
+          dispatch={dispatch}
+          onChangeSettings={setSettings}
         />
       )}
       {state.ui.showPictureExport && (

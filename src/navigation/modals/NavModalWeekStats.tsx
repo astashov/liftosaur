@@ -57,7 +57,6 @@ export function NavModalWeekStats(): JSX.Element {
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
       <FormSheet>
         <PlannerWeekStats
-          dispatch={plannerDispatch}
           onEditSettings={() => {
             navigateToModal("plannerSettingsModal", { context: "editProgram", programId });
           }}

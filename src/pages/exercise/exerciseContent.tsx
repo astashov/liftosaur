@@ -1,6 +1,6 @@
 import { JSX, ReactNode, Ref, forwardRef, useEffect, useRef, useState } from "react";
 import { ExerciseImage } from "../../components/exerciseImage";
-import { ExerciseItem } from "../../components/modalExercise";
+import { ExerciseItem } from "../../components/exerciseItem";
 import { Multiselect } from "../../components/multiselect";
 import {
   equipmentName,

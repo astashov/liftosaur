@@ -8,6 +8,7 @@ import {
   PlannerMode_isStructureError,
   PlannerMode_isValid,
   PlannerMode_fullTextAfter,
+  PlannerMode_outsideEditError,
   PlannerMode_switch,
 } from "../src/pages/planner/models/plannerMode";
 import { PlannerProgram_evaluate, PlannerProgram_evaluateFull } from "../src/pages/planner/models/plannerProgram";
@@ -186,5 +187,21 @@ describe("PlannerMode_fullTextAfter", () => {
   it("does nothing when the program did not change", () => {
     const state = fullStateOf(validPlanner, "anything");
     expect(PlannerMode_fullTextAfter(state, { ...state, ui: { ...state.ui, weekIndex: 1 } })).to.equal(undefined);
+  });
+});
+
+describe("PlannerMode_outsideEditError", () => {
+  it("allows the edit outside Full Program mode", () => {
+    expect(PlannerMode_outsideEditError(stateOf(validPlanner))).to.equal(undefined);
+  });
+
+  it("allows the edit when the Full Program text parses", () => {
+    const state = fullStateOf(validPlanner, "# Week 1\n## Day 1\nSquat / 3x5");
+    expect(PlannerMode_outsideEditError(state)).to.equal(undefined);
+  });
+
+  it("refuses the edit when the Full Program text does not parse", () => {
+    const state = fullStateOf(validPlanner, "## Day 1\nSquat / 3x5");
+    expect(PlannerMode_outsideEditError(state)).to.be.a("string");
   });
 });

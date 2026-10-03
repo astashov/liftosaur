@@ -29,6 +29,7 @@ import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { PlannerSidePanelStats_findExercise } from "../models/plannerSidePanelStats";
+import { PlannerExerciseSwap_openByKey } from "../models/plannerExerciseSwap";
 import { useRem } from "../../../utils/useRem";
 
 interface IPlannerExerciseStatsProps {
@@ -111,24 +112,11 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
                   testID="planner-swap-exercise"
                   onClick={() => {
                     const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
+                    const dayData = { week: props.weekIndex + 1, dayInWeek: props.dayIndex + 1 };
                     props.dispatch(
-                      [
-                        lb<IPlannerState>()
-                          .pi("ui")
-                          .p("modalExercise")
-                          .record({
-                            focusedExercise: {
-                              weekIndex: 0,
-                              dayIndex: 0,
-                              exerciseLine: 0,
-                            },
-                            types: [],
-                            muscleGroups: [],
-                            exerciseType: exercise,
-                            exerciseKey,
-                          }),
-                        lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
-                      ],
+                      lb<IPlannerState>().recordModify((state) =>
+                        PlannerExerciseSwap_openByKey(state, props.settings, dayData, exerciseKey)
+                      ),
                       "Swap exercise"
                     );
                   }}

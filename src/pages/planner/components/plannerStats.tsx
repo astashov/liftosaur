@@ -1,16 +1,13 @@
 import { JSX, useLayoutEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { Text } from "../../../components/primitives/text";
-import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
+import { ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils_keys } from "../../../utils/object";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
-import { IExerciseKind } from "../../../models/exercise";
-import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
 import { Pressable } from "../../../components/primitives/pressable";
 import { IconMuscleSettings } from "../../../components/icons/iconMuscleSettings";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
-import { lb } from "lens-shmens";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
@@ -23,15 +20,12 @@ interface IPlannerWeekStatsProps {
   colorize: boolean;
   frequency: boolean;
   settings: ISettings;
-  dispatch: ILensDispatch<IPlannerState>;
   onEditSettings?: () => void;
   editSettingsLabel?: string;
-  focusedExercise?: IPlannerUiFocusedExercise;
 }
 
 export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
-  const { setResults, settings, frequency, dispatch, focusedExercise, onEditSettings } = props;
-  const showLink = !frequency;
+  const { setResults, settings, frequency, onEditSettings } = props;
   return (
     <View className="mb-2" data-testid="planner-stats" testID="planner-stats">
       <Text className="text-sm">
@@ -62,7 +56,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         </Text>
       </Text>
       <Text className="text-sm">
-        {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Upper Sets" />{" "}
         <PlannerSetSplit
           split={setResults.upper}
           settings={settings}
@@ -71,7 +65,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         />
       </Text>
       <Text className="text-sm">
-        {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Lower Sets" />{" "}
         <PlannerSetSplit
           split={setResults.lower}
           settings={settings}
@@ -80,7 +74,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         />
       </Text>
       <Text className="text-sm">
-        {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Core Sets" />{" "}
         <PlannerSetSplit
           split={setResults.core}
           settings={settings}
@@ -89,7 +83,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         />
       </Text>
       <Text className="text-sm">
-        {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Push Sets" />{" "}
         <PlannerSetSplit
           split={setResults.push}
           settings={settings}
@@ -98,7 +92,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         />
       </Text>
       <Text className="text-sm">
-        {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Pull Sets" />{" "}
         <PlannerSetSplit
           split={setResults.pull}
           settings={settings}
@@ -107,7 +101,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         />
       </Text>
       <Text className="mb-4 text-sm">
-        {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
+        <StatLabel label="Legs Sets" />{" "}
         <PlannerSetSplit
           split={setResults.legs}
           settings={settings}
@@ -142,14 +136,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
           <Text key={muscleGroup} className="text-sm">
-            {labelSet(
-              Muscle_getMuscleGroupName(muscleGroup, props.settings),
-              showLink,
-              [],
-              [muscleGroup],
-              dispatch,
-              focusedExercise
-            )}{" "}
+            <StatLabel label={Muscle_getMuscleGroupName(muscleGroup, props.settings)} />{" "}
             <PlannerSetSplit
               split={setResults.muscleGroup[muscleGroup]}
               settings={settings}
@@ -164,36 +151,8 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   );
 }
 
-export function labelSet(
-  label: string,
-  showLink: boolean,
-  types: IExerciseKind[],
-  muscleGroups: IScreenMuscle[],
-  dispatch: ILensDispatch<IPlannerState>,
-  focusedExercise?: IPlannerUiFocusedExercise
-): JSX.Element {
-  if (showLink && focusedExercise) {
-    return (
-      <LinkButton
-        name={`planner-stats-${label}`}
-        className="text-sm font-normal"
-        onClick={() => {
-          dispatch(
-            lb<IPlannerState>().p("ui").p("modalExercise").record({
-              focusedExercise,
-              types,
-              muscleGroups,
-            }),
-            "Open exercise modal"
-          );
-        }}
-      >
-        {label}:
-      </LinkButton>
-    );
-  } else {
-    return <Text className="text-sm text-text-secondary">{label}:</Text>;
-  }
+function StatLabel(props: { label: string }): JSX.Element {
+  return <Text className="text-sm text-text-secondary">{props.label}:</Text>;
 }
 
 export function PlannerSetSplit(props: {

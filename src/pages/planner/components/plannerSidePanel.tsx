@@ -207,7 +207,6 @@ function PanelStats(props: IPlannerSidePanelProps): JSX.Element {
       return (
         <PlannerWeekStats
           hideTitle={true}
-          dispatch={props.dispatch}
           evaluatedDays={stats.evaluatedDays}
           settings={props.settings}
           onEditSettings={props.onEditSettings}
@@ -218,7 +217,6 @@ function PanelStats(props: IPlannerSidePanelProps): JSX.Element {
       return (
         <PlannerDayStats
           hideTitle={true}
-          dispatch={props.dispatch}
           settings={props.settings}
           evaluatedDay={stats.evaluatedDay}
         />

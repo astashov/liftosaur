@@ -1,5 +1,4 @@
 import { IUndoRedoState } from "../../builder/utils/undoredo";
-import { IExerciseKind } from "../../../models/exercise";
 import {
   IExercisePickerState,
   IExerciseType,
@@ -215,17 +214,6 @@ export type IPlannerUiMode = "full" | "perday";
 
 export type IPlannerEditMode = "grid" | "ui" | "perday" | "full";
 
-export interface IModalExerciseUi {
-  focusedExercise: IPlannerUiFocusedExercise;
-  types: IExerciseKind[];
-  muscleGroups: IScreenMuscle[];
-  exerciseType?: IExerciseType;
-  exerciseKey?: string;
-  fullName?: string;
-  customExerciseName?: string;
-  change?: "all" | "one" | "duplicate";
-}
-
 export type IPlannerSidePanelTab = "week" | "day" | "exercise";
 
 export interface IExercisePickerUi {
@@ -237,7 +225,6 @@ export interface IExercisePickerUi {
 
 export interface IPlannerUi {
   focusedExercise?: IPlannerUiFocusedExercise;
-  modalExercise?: IModalExerciseUi;
   exercisePicker?: IExercisePickerUi;
   exerciseUi: {
     edit: Set<string>;
