@@ -16,6 +16,16 @@
 -->
 
 ---
+date: 2026-10-03
+title: Redesigned the web editor
+---
+
+Now the [Web Editor's UI](https://www.liftosaur.com/planner) is matching the UI of the Program tab in the app. It now also got the new "Reorder" tab, where
+you can edit the program structure by dragging things around. Also you don't need to do "Apply" from the full mode like before, anything you change in the Full Text automatically gets applied across other tabs as well, so you can switch between tabs freely.
+
+But for the rest of it - it's the same functionality, just moved things around a bit.
+
+---
 date: 2026-09-29
 title: Show heart rate on the workout screen
 ---
