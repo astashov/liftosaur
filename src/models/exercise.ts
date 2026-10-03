@@ -5018,6 +5018,29 @@ export function Exercise_upsertCustomExercise(
   }
 }
 
+export function Exercise_applyCustomExerciseChange(
+  action: "upsert" | "delete",
+  exercise: ICustomExercise,
+  notes: string | undefined,
+  settings: ISettings,
+  program?: IProgram
+): { settings: ISettings; program?: IProgram } {
+  const oldExercise = settings.exercises[exercise.id];
+  const exercises =
+    action === "upsert"
+      ? Exercise_upsertCustomExercise(settings.exercises, exercise)
+      : Exercise_deleteCustomExercise(settings.exercises, exercise.id);
+  const newSettings = lb<ISettings>()
+    .p("exerciseData")
+    .pi(exercise.id)
+    .p("notes")
+    .set({ ...settings, exercises }, notes);
+  if (program && oldExercise && oldExercise.name !== exercise.name) {
+    return { settings: newSettings, program: Program_changeExerciseName(oldExercise.name, exercise.name, program, newSettings) };
+  }
+  return { settings: newSettings };
+}
+
 export function Exercise_handleCustomExerciseChange(
   dispatch: IDispatch,
   action: "upsert" | "delete",
@@ -5026,19 +5049,11 @@ export function Exercise_handleCustomExerciseChange(
   settings: ISettings,
   program?: IProgram
 ): void {
-  const oldExercise = settings.exercises[exercise.id];
-  const ex =
-    action === "upsert"
-      ? Exercise_upsertCustomExercise(settings.exercises, exercise)
-      : Exercise_deleteCustomExercise(settings.exercises, exercise.id);
-  updateSettings(dispatch, lb<ISettings>().p("exercises").record(ex), "Create custom exercise");
+  const result = Exercise_applyCustomExerciseChange(action, exercise, notes, settings, program);
+  updateSettings(dispatch, lb<ISettings>().p("exercises").record(result.settings.exercises), "Create custom exercise");
   updateSettings(dispatch, lb<ISettings>().p("exerciseData").pi(exercise.id).p("notes").record(notes), "Update notes");
-  if (program && oldExercise && oldExercise.name !== exercise.name) {
-    const newProgram = Program_changeExerciseName(oldExercise.name, exercise.name, program, {
-      ...settings,
-      exercises: ex,
-    });
-    EditProgram_updateProgram(dispatch, newProgram);
+  if (result.program) {
+    EditProgram_updateProgram(dispatch, result.program);
   }
 }
 

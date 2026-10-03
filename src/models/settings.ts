@@ -405,20 +405,21 @@ export function Settings_getNextTargetType(type: ITargetType, skipPlatesCalculat
   return nextTargetType;
 }
 
+export function Settings_toggleStarred(starred: ISettings["starredExercises"], key: string): ISettings["starredExercises"] {
+  if (starred?.[key]) {
+    const next = { ...starred };
+    delete next[key];
+    return next;
+  }
+  return { ...starred, [key]: true };
+}
+
 export function Settings_toggleStarredExercise(dispatch: IDispatch, key: string): void {
   updateSettings(
     dispatch,
     lb<ISettings>()
       .p("starredExercises")
-      .recordModify((starred) => {
-        if (starred?.[key]) {
-          const next = { ...starred };
-          delete next[key];
-          return next;
-        } else {
-          return { ...starred, [key]: true };
-        }
-      }),
+      .recordModify((starred) => Settings_toggleStarred(starred, key)),
     `Toggle starred exercise ${key}`
   );
 }

@@ -7,10 +7,10 @@ import { lb, LensBuilder } from "lens-shmens";
 import {
   PlannerProgram_generateFullText,
   PlannerProgram_evaluateFull,
-  PlannerProgram_evaluateText,
 } from "../../pages/planner/models/plannerProgram";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
+import { PlannerMode_commitFullText } from "../../pages/planner/models/plannerMode";
 import { IEvaluatedProgram } from "../../models/program";
 import { AppliedTheme_get } from "../../utils/appliedTheme";
 
@@ -42,6 +42,11 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
     }
     expectedRegenRef.current = regen;
     setFulltext(regen);
+    const regenEvaluation = PlannerProgram_evaluateFull(regen, props.settings).evaluatedWeeks;
+    const regenError = regenEvaluation.success ? undefined : regenEvaluation.error;
+    if (props.ui.fullTextError?.message !== regenError?.message) {
+      props.plannerDispatch(lbUi.p("fullTextError").record(regenError), "Update full text error");
+    }
   }, [props.plannerProgram.weeks]);
 
   useEffect(() => {
@@ -81,14 +86,12 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           )}
           onChange={(text) => {
             setFulltext(text);
-            const weeks = PlannerProgram_evaluateText(text);
-            expectedRegenRef.current = PlannerProgram_generateFullText(weeks);
-            const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram_evaluateFull(text, settingsRef.current);
+            const { weeks, error } = PlannerMode_commitFullText(text, settingsRef.current);
+            if (weeks != null) {
+              expectedRegenRef.current = PlannerProgram_generateFullText(weeks);
+            }
             props.plannerDispatch(
-              [
-                lbUi.p("fullTextError").record(evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error),
-                lbProgram.p("weeks").record(weeks),
-              ],
+              [lbUi.p("fullTextError").record(error), ...(weeks != null ? [lbProgram.p("weeks").record(weeks)] : [])],
               "Update full program text"
             );
           }}

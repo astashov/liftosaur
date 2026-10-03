@@ -2,8 +2,20 @@ import "mocha";
 import { expect } from "chai";
 import {
   GridDragAutoScroll_step,
+  GridDragAutoScroll_toViewport,
   IGridAutoScrollStep,
 } from "../src/components/editProgram/editProgramGrid/gridDragAutoScroll";
+
+describe("GridDragAutoScroll_toViewport", () => {
+  it("leaves the position alone when the page has not scrolled", () => {
+    expect(GridDragAutoScroll_toViewport(300, 0)).to.equal(300);
+  });
+
+  it("removes the page scroll, so a still pointer stays still while the page auto-scrolls", () => {
+    expect(GridDragAutoScroll_toViewport(1300, 1000)).to.equal(300);
+    expect(GridDragAutoScroll_toViewport(1340, 1040)).to.equal(300);
+  });
+});
 
 // The scrolling half of every drag: whether the finger is close enough to an edge to scroll, how
 // fast, and when to stop. Only reachable through a live gesture in the app, which is exactly what a

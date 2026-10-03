@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
+import type { NativeScrollEvent } from "react-native";
 import { NavScreenScrollContext } from "../navigation/NavScreenScrollContext";
 import { ProgressiveReveal_onScroll } from "./progressiveReveal";
 
@@ -96,7 +96,7 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
         setCount(step.count);
       }
     };
-    const removeListener = ctx.addScrollListener((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const removeListener = ctx.addScrollListener((e) => {
       lastEvent = e.nativeEvent;
       check();
     });

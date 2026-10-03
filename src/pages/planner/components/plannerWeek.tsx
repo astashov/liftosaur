@@ -1,208 +1,150 @@
-import type { JSX } from "react";
+import { JSX, useState } from "react";
+import { PlannerDescription_afterBlur } from "../models/plannerDescription";
+import { lb } from "lens-shmens";
 import { LinkInlineInput } from "../../../components/inlineInput";
-import { Dialog_confirm } from "../../../utils/dialog";
-import { LinkButton } from "../../../components/linkButton";
-import { CollectionUtils_removeAt } from "../../../utils/collection";
-import { ObjectUtils_clone } from "../../../utils/object";
 import { PlannerDay } from "./plannerDay";
-import { PlannerWeekStats } from "./plannerWeekStats";
-import { IPlannerProgramWeek, IPlannerProgram, ISettings, IPlannerProgramDay } from "../../../types";
+import { IPlannerProgramWeek, IPlannerProgram, ISettings } from "../../../types";
+import {
+  IPlannerStructureResult,
+  PlannerStructure_addDay,
+  PlannerStructure_deleteDayRow,
+  PlannerStructure_deleteWeek,
+} from "../models/plannerStructure";
+import { Dialog_confirm } from "../../../utils/dialog";
+import { IconTrash } from "../../../components/icons/iconTrash";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerUi, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { lb } from "lens-shmens";
-import { Service } from "../../../api/service";
-import { GroupHeader } from "../../../components/groupHeader";
 import { MarkdownEditor } from "../../../components/markdownEditor";
+import { IconPlus2 } from "../../../components/icons/iconPlus2";
+import { IconTimerSmall } from "../../../components/icons/iconTimerSmall";
+import { PlannerStatsUtils_formatDuration, PlannerStatsUtils_summary } from "../models/plannerStatsUtils";
+import { StringUtils_pluralize } from "../../../utils/string";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IPlannerWeekProps {
-  initialWeek: IPlannerProgramWeek;
-  initialDay: IPlannerProgramDay;
   week: IPlannerProgramWeek;
   weekIndex: number;
   program: IPlannerProgram;
   settings: ISettings;
   ui: IPlannerUi;
   exerciseFullNames: string[];
-  evaluatedWeeks: IPlannerEvalResult[][];
-  service: Service;
+  evaluatedDays: IPlannerEvalResult[];
   dispatch: ILensDispatch<IPlannerState>;
+  onStructure: (transform: (planner: IPlannerProgram) => IPlannerStructureResult, desc: string) => boolean;
 }
 
 export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
+  const { week, weekIndex, dispatch } = props;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
-  const showProgramDescription = props.week.description != null;
+  const lbWeek = lbProgram.p("weeks").i(weekIndex);
+  const summary = PlannerStatsUtils_summary(props.evaluatedDays, props.settings);
+  const [isAddingDescription, setIsAddingDescription] = useState(false);
+
   return (
-    <div key={props.weekIndex} className="flex flex-col md:flex-row">
-      <div className="flex-1">
-        <h3 className="mr-2 text-xl font-bold">
+    <div>
+      <div className="flex items-center gap-2 mt-6">
+        <h2 className="flex-1 min-w-0 text-lg font-bold md:text-xl">
           <LinkInlineInput
-            value={props.week.name}
-            onInputString={(v) => {
-              props.dispatch(lbProgram.p("weeks").i(props.weekIndex).p("name").record(v), "Update week name");
-            }}
+            value={week.name}
+            onInputString={(v) => dispatch(lbWeek.p("name").record(v), "Update week name")}
           />
-        </h3>
-        <div className="flex flex-row gap-2 mt-1 mb-4 text-sm">
-          {props.program.weeks.length > 1 && (
-            <div>
-              <LinkButton
-                name="planner-delete-week"
-                onClick={async () => {
-                  if (await Dialog_confirm("Are you sure you want to delete this week?")) {
-                    props.dispatch(
-                      lbProgram.p("weeks").recordModify((weeks) => CollectionUtils_removeAt(weeks, props.weekIndex)),
-                      "Delete week"
-                    );
-                  }
-                }}
-              >
-                Delete Week
-              </LinkButton>
-            </div>
-          )}
-          <div>
-            <LinkButton
-              name="planner-add-week"
-              className="text-sm"
-              onClick={() => {
-                props.dispatch(
-                  lbProgram.p("weeks").recordModify((weeks) => [
-                    ...weeks,
-                    {
-                      ...ObjectUtils_clone(props.initialWeek),
-                      name: `Week ${weeks.length + 1}`,
-                    },
-                  ]),
-                  "Add new week"
+        </h2>
+        {props.program.weeks.length > 1 && (
+          <button
+            className="p-2 nm-planner-delete-week"
+            data-testid="planner-delete-week"
+            aria-label="Delete week"
+            title="Delete week"
+            onClick={async () => {
+              if (await Dialog_confirm(`Delete ${week.name}?`)) {
+                props.onStructure(
+                  (planner) => PlannerStructure_deleteWeek(planner, weekIndex, props.settings),
+                  "Delete week"
                 );
-              }}
-            >
-              Add New Week
-            </LinkButton>
-          </div>
-          <div>
-            <LinkButton
-              name="planner-duplicate-week"
-              className="text-sm"
-              onClick={() => {
-                props.dispatch(
-                  lbProgram.p("weeks").recordModify((weeks) => [
-                    ...weeks,
-                    {
-                      ...ObjectUtils_clone(props.week),
-                      name: `Week ${weeks.length + 1}`,
-                    },
-                  ]),
-                  "Duplicate week"
-                );
-              }}
-            >
-              Duplicate Week
-            </LinkButton>
-          </div>
-          {!showProgramDescription && (
-            <div>
-              <LinkButton
-                className="text-sm"
-                name="planner-add-week-description"
-                onClick={() => {
-                  props.dispatch(
-                    lbProgram.p("weeks").i(props.weekIndex).p("description").record(""),
-                    "Add week description"
-                  );
-                }}
-              >
-                Add Week Description
-              </LinkButton>
-            </div>
-          )}
-        </div>
-
-        {showProgramDescription && (
-          <div className="mb-4">
-            <div className="leading-none">
-              <GroupHeader name="Week Description (Markdown)" />
-            </div>
-            <MarkdownEditor
-              value={props.week.description ?? ""}
-              onChange={(v) => {
-                props.dispatch(
-                  lbProgram.p("weeks").i(props.weekIndex).p("description").record(v),
-                  "Update week description"
-                );
-              }}
-            />
-            <div>
-              <LinkButton
-                className="text-xs"
-                name="planner-delete-week-description"
-                onClick={() => {
-                  props.dispatch(
-                    lbProgram.p("weeks").i(props.weekIndex).p("description").record(undefined),
-                    "Delete week description"
-                  );
-                }}
-              >
-                Delete Week Description
-              </LinkButton>
-            </div>
-          </div>
-        )}
-
-        {props.week.days.map((day, dayIndex) => {
-          return (
-            <div key={dayIndex}>
-              <PlannerDay
-                exerciseFullNames={props.exerciseFullNames}
-                evaluatedWeeks={props.evaluatedWeeks}
-                settings={props.settings}
-                program={props.program}
-                dispatch={props.dispatch}
-                day={day}
-                weekIndex={props.weekIndex}
-                dayIndex={dayIndex}
-                ui={props.ui}
-                lbProgram={lbProgram}
-                service={props.service}
-              />
-            </div>
-          );
-        })}
-        <div className="text-sm">
-          <LinkButton
-            name="planner-add-day"
-            className="text-sm"
-            onClick={() => {
-              props.dispatch(
-                lbProgram
-                  .p("weeks")
-                  .i(props.weekIndex)
-                  .p("days")
-                  .recordModify((days) => [
-                    ...days,
-                    {
-                      ...ObjectUtils_clone(props.initialDay),
-                      name: `Day ${days.length + 1}`,
-                    },
-                  ]),
-                "Add day"
-              );
+              }
             }}
           >
-            Add Day
-          </LinkButton>
-        </div>
+            <IconTrash width={18} height={18} />
+          </button>
+        )}
       </div>
-      <div className="mt-2 ml-0 sm:ml-4 sm:mt-0" style={{ width: "14rem" }}>
-        <div className="sticky" style={{ top: "1rem" }}>
-          <PlannerWeekStats
-            dispatch={props.dispatch}
-            evaluatedDays={props.evaluatedWeeks[props.weekIndex]}
-            settings={props.settings}
+      {week.description != null ? (
+        <div className="mt-2">
+          <MarkdownEditor
+            borderless={true}
+            hasHistory={false}
+            placeholder="Week description in Markdown"
+            autoFocus={isAddingDescription}
+            value={week.description}
+            onChange={(v) => dispatch(lbWeek.p("description").record(v), "Update week description")}
+            onBlur={(v) => {
+              setIsAddingDescription(false);
+              if (PlannerDescription_afterBlur(v) == null) {
+                dispatch(lbWeek.p("description").record(undefined), "Remove empty week description");
+              }
+            }}
           />
         </div>
+      ) : (
+        <button
+          className="mt-2 text-base text-text-link nm-planner-add-week-description"
+          data-testid="planner-add-week-description"
+          onClick={() => {
+            setIsAddingDescription(true);
+            dispatch(lbWeek.p("description").record(""), "Add week description");
+          }}
+        >
+          Add week description
+        </button>
+      )}
+      {summary.exercisesPerDay > 0 && (
+        <div className="flex items-center gap-1 mt-2 text-sm md:hidden text-text-secondary">
+          <span>
+            {summary.exercisesPerDay} {StringUtils_pluralize("exercise", summary.exercisesPerDay)}
+          </span>
+          <IconTimerSmall className="ml-2" />
+          <span>{PlannerStatsUtils_formatDuration(summary.approxTimeMs)}</span>
+        </div>
+      )}
+      <div className="mt-4 -mx-4 md:mx-0">
+        {week.days.map((day, dayIndex) => (
+          <PlannerDay
+            key={dayIndex}
+            exerciseFullNames={props.exerciseFullNames}
+            evaluatedDay={props.evaluatedDays[dayIndex]}
+            settings={props.settings}
+            dispatch={dispatch}
+            day={day}
+            weekIndex={weekIndex}
+            dayIndex={dayIndex}
+            ui={props.ui}
+            lbProgram={lbProgram}
+            onDelete={
+              props.program.weeks.length === 1 && week.days.length > 1
+                ? async () => {
+                    if (await Dialog_confirm(`Delete ${day.name}?`)) {
+                      props.onStructure(
+                        (planner) => PlannerStructure_deleteDayRow(planner, dayIndex, props.settings),
+                        "Delete day"
+                      );
+                    }
+                  }
+                : undefined
+            }
+          />
+        ))}
       </div>
+      <button
+        className="flex items-center justify-center w-full gap-2 py-2.5 text-base font-semibold border rounded-md text-text-link border-border-prominent bg-background-default nm-planner-add-day"
+        data-testid="planner-add-day"
+        onClick={() =>
+          props.onStructure((planner) => PlannerStructure_addDay(planner, weekIndex, props.settings), "Add day")
+        }
+      >
+        <IconPlus2 size={12} color={Tailwind_semantic().text.link} />
+        Add Day
+      </button>
     </div>
   );
 }

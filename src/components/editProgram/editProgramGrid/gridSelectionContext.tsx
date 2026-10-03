@@ -26,7 +26,7 @@ export interface IGridSelectionPayload {
   // Rendered by the dock rather than by the grid because it has to stay put while the grid scrolls,
   // and the footer slot is already the place that does that.
   reuse?: IGridReuseLocator;
-  onEdit: (placement: IProgramGridPlacement) => void;
+  onEdit?: (placement: IProgramGridPlacement) => void;
   onDuplicate: (placement: IProgramGridPlacement) => void;
   onSwap: (placement: IProgramGridPlacement) => void;
   onDelete: (placements: IProgramGridPlacement[]) => void;

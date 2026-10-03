@@ -6,6 +6,9 @@ import { IconSpinner } from "../../components/icons/iconSpinner";
 import { track } from "../../utils/posthog";
 import { Platform_isiOS, Platform_isAndroid } from "../../utils/platform";
 import { Onelink } from "../../components/onelink";
+import { View } from "react-native";
+import { Text } from "../../components/primitives/text";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IPlannerBannerProps {
   account?: IAccount;
@@ -32,7 +35,19 @@ function LoggedInGuideBanner(props: { onAddProgram: () => void; isBannerLoading:
       To use this program:
       <div>
         <Button style={{ width: "18rem" }} kind="purple" name="add-program-to-account" onClick={props.onAddProgram}>
-          {props.isBannerLoading ? <IconSpinner width={20} height={20} /> : "Add this program to your account"}
+          <View>
+            <Text
+              className="text-xs font-semibold text-center text-text-alwayswhite"
+              style={{ opacity: props.isBannerLoading ? 0 : 1 }}
+            >
+              Add this program to your account
+            </Text>
+            {props.isBannerLoading && (
+              <View className="absolute inset-0 items-center justify-center">
+                <IconSpinner width={20} height={20} color={Tailwind_semantic().icon.white} />
+              </View>
+            )}
+          </View>
         </Button>
       </div>
       <div className="font-bold">OR</div>

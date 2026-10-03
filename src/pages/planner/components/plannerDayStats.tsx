@@ -13,6 +13,7 @@ interface IPlannerDayStatsProps {
   evaluatedDay: IPlannerEvalResult;
   dispatch: ILensDispatch<IPlannerState>;
   focusedExercise?: IPlannerUiFocusedExercise;
+  hideTitle?: boolean;
 }
 
 export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
@@ -26,7 +27,7 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
 
   return (
     <View>
-      <Text className="mb-2 text-xl font-bold">Day Stats</Text>
+      {!props.hideTitle && <Text className="mb-2 text-xl font-bold">Day Stats</Text>}
       <PlannerStats
         dispatch={props.dispatch}
         setResults={setResults}

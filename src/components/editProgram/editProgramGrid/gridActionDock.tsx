@@ -12,8 +12,7 @@ import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { useGridSelection } from "./gridSelectionContext";
 import { GridReusePillFloat } from "./gridReusePill";
 import { GridBadge } from "./gridBadge";
-import { StringUtils_pluralize } from "../../../utils/string";
-import { ProgramGrid_orderSuffix } from "../../../pages/planner/models/programGrid";
+import { GridSelectionSummary_build, IGridSelectionAction } from "./gridSelectionSummary";
 
 // Rendered from NavScreenContent's footer slot, so it is anchored above the tab bar and the scroll
 // content is padded by its height — the selection stays reachable no matter where the tapped strip
@@ -64,85 +63,10 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
     return null;
   }
   const props = shown;
-  const target = props.target;
-
-  // Editing and duplicating both address one exercise; deleting is the only thing that reads
-  // naturally over a set, so it is the one action that stays on with several selected.
-  const single = target.kind === "exercises" && target.placements.length === 1 ? target.placements[0] : undefined;
-  const label =
-    target.kind === "day" || target.kind === "week"
-      ? target.name
-      : target.placements.map((p) => `${p.fullName}${ProgramGrid_orderSuffix(p)}`).join(", ");
-  // Distinct exercises, not placements: a placement is one *run* of an exercise, so an undulating
-  // day would otherwise report a count several times its actual size.
-  // Keyed, so an exercise whose active variation differs between weeks counts once rather than once
-  // per spelling.
-  // Neither a week nor a day says anything about itself here beyond its own words: what it holds,
-  // and how far its verbs reach, is what the grid right above the dock is already showing. An
-  // exercise brings the description it is currently on, for the same reason: the strip has no room
-  // for prose, and this is the one place the selection can be read in full.
-  const description =
-    target.kind === "week" || target.kind === "day" ? target.description : (single?.description ?? undefined);
-  const detailsKey =
-    target.kind === "week"
-      ? `week-${target.weekIndex}`
-      : target.kind === "day"
-        ? `day-${target.rowIndexes.join("-")}`
-        : single?.id;
-  // Structural facts only: what the grid can't draw and the strip has no room to say. Everything
-  // else about an exercise is a tap away in the editor.
-  const badges: string[] = [];
-  if (single != null) {
-    if (single.notused) {
-      badges.push(single.isTemplate ? "tmpl" : "unused");
-    }
-    if (single.tags.length > 0) {
-      badges.push(`id ${single.tags.join(", ")}`);
-    }
-  }
-
   // Editing is the one thing you do over and over while laying a program out, so it keeps an icon.
   // The rest are occasional, and four icons plus a name plus badges stopped fitting the strip at
   // large font scales — the name was being truncated to make room for verbs nobody had reached for.
-  //
-  // An action that doesn't apply is left out rather than shown greyed: a menu is read as a list of
-  // what you can do, and a disabled row in one is a worse answer than a shorter list.
-  const overflowActions: IDockAction[] = [];
-  if (target.kind === "week") {
-    overflowActions.push({ label: "Week stats", onPress: () => props.onShowWeekStats(target.weekIndex) });
-    overflowActions.push({ label: "Duplicate week", onPress: () => props.onDuplicateWeek(target.weekIndex) });
-    overflowActions.push({
-      label: "Delete week",
-      isDestructive: true,
-      onPress: () => props.onDeleteWeek(target.weekIndex),
-    });
-  } else if (target.kind === "day") {
-    const rowIndexes = target.rowIndexes;
-    if (rowIndexes.length === 1) {
-      overflowActions.push({ label: "Day stats", onPress: () => props.onShowDayStats(rowIndexes[0]) });
-    }
-    overflowActions.push({
-      label: `Duplicate ${StringUtils_pluralize("day", rowIndexes.length)}`,
-      onPress: () => props.onDuplicateDays(rowIndexes),
-    });
-    overflowActions.push({
-      label: `Delete ${StringUtils_pluralize("day", rowIndexes.length)}`,
-      isDestructive: true,
-      onPress: () => props.onDeleteDays(rowIndexes),
-    });
-  } else {
-    const placements = target.placements;
-    if (single != null) {
-      overflowActions.push({ label: "Exercise stats", onPress: () => props.onShowExerciseStats(single) });
-      overflowActions.push({ label: "Swap exercise", onPress: () => props.onSwap(single) });
-      overflowActions.push({ label: "Duplicate exercise", onPress: () => props.onDuplicate(single) });
-    }
-    overflowActions.push({
-      label: `Delete ${StringUtils_pluralize("exercise", placements.length)}`,
-      isDestructive: true,
-      onPress: () => props.onDelete(placements),
-    });
-  }
+  const summary = GridSelectionSummary_build(props);
 
   return (
     // Opacity as well as the slide: the dock is opaque and sits over the grid's own content, so a
@@ -173,33 +97,23 @@ export const GridActionDock = memo(function GridActionDock(): JSX.Element | null
         {/* Keyed by what is selected, so picking another week or day starts collapsed again rather
           than inheriting however far the last one was opened. */}
         <DockDetails
-          key={detailsKey}
-          name={label}
-          badges={badges}
-          description={description}
-          detail={single?.progression}
+          key={summary.detailsKey}
+          name={summary.label}
+          badges={summary.badges}
+          description={summary.description}
+          detail={summary.detail}
         />
-        <DockButton
-          name="grid-action-edit"
-          label={target.kind === "week" ? "Edit week" : target.kind === "day" ? "Edit day" : "Edit"}
-          disabled={
-            (target.kind === "exercises" && single == null) || (target.kind === "day" && target.rowIndexes.length !== 1)
-          }
-          onPress={() => {
-            if (target.kind === "week") {
-              props.onEditWeek(target.weekIndex);
-            } else if (target.kind === "day") {
-              if (target.rowIndexes.length === 1) {
-                props.onEditDay(target.rowIndexes[0]);
-              }
-            } else if (single != null) {
-              props.onEdit(single);
-            }
-          }}
-        >
-          <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
-        </DockButton>
-        <DockOverflow actions={overflowActions} />
+        {summary.edit && (
+          <DockButton
+            name="grid-action-edit"
+            label={summary.edit.label}
+            disabled={summary.edit.disabled}
+            onPress={summary.edit.onPress}
+          >
+            <IconEdit2 size={24} color={Tailwind_semantic().icon.neutral} />
+          </DockButton>
+        )}
+        <DockOverflow actions={summary.actions} />
       </View>
     </Animated.View>
   );
@@ -246,16 +160,10 @@ function DockDetails(props: { name: string; badges?: string[]; description?: str
   );
 }
 
-interface IDockAction {
-  label: string;
-  isDestructive?: boolean;
-  onPress: () => void;
-}
-
 // The same two-platform overflow the workout screen's exercise card uses (workoutExerciseCard.tsx):
 // a native action sheet, a dropdown on web. Vertical dots, because the dock is a horizontal strip
 // and a horizontal ⋯ reads as more of the same row rather than as something that opens.
-function DockOverflow(props: { actions: IDockAction[] }): JSX.Element | null {
+function DockOverflow(props: { actions: IGridSelectionAction[] }): JSX.Element | null {
   const [isOpen, setIsOpen] = useState(false);
   const actions = props.actions;
   if (actions.length === 0) {

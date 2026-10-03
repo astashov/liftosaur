@@ -22,7 +22,7 @@ import {
   ObjectUtils_filter,
   ObjectUtils_findKeyByExpression,
 } from "../../../utils/object";
-import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
+import { IPlannerExerciseEvaluatorTextWeek, PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import {
   IEvaluatedProgram,
@@ -609,9 +609,24 @@ export function PlannerProgram_evaluateFull(
 }
 
 export function PlannerProgram_evaluateText(fullProgramText: string): IPlannerProgramWeek[] {
-  const evaluator = new PlannerExerciseEvaluatorText(fullProgramText);
   const tree = plannerExerciseParser.parse(fullProgramText);
-  const data = evaluator.evaluate(tree.topNode);
+  return textWeeksToPlanner(new PlannerExerciseEvaluatorText(fullProgramText).evaluate(tree.topNode));
+}
+
+export function PlannerProgram_parseText(fullProgramText: string): IEither<IPlannerProgramWeek[], PlannerSyntaxError> {
+  const evaluator = new PlannerExerciseEvaluatorText(fullProgramText, { isStrict: true });
+  try {
+    const data = evaluator.evaluate(plannerExerciseParser.parse(fullProgramText).topNode);
+    return { success: true, data: textWeeksToPlanner(data) };
+  } catch (e) {
+    if (e instanceof PlannerSyntaxError) {
+      return { success: false, error: e };
+    }
+    throw e;
+  }
+}
+
+function textWeeksToPlanner(data: IPlannerExerciseEvaluatorTextWeek[]): IPlannerProgramWeek[] {
   const weeks: IPlannerProgramWeek[] = data.map((week) => {
     return {
       name: week.name,

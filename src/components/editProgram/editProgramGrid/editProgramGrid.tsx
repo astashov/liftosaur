@@ -17,7 +17,6 @@ import { IPlannerState } from "../../../pages/planner/models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { useRem } from "../../../utils/useRem";
 import { usePerfRenderCount } from "../../../utils/usePerfRenderCount";
-import { IDispatch } from "../../../ducks/types";
 import { ProgramGrid_build } from "../../../pages/planner/models/programGrid";
 import {
   GRID_ADD_WEEK_WIDTH,
@@ -30,7 +29,7 @@ import { useGridReuseLocator } from "./useGridReuseLocator";
 import { GridReusePillFloat } from "./gridReusePill";
 import { useGridPinch } from "./gridPinch";
 import { useGridActions } from "./useGridActions";
-import { useGridNavigation } from "./useGridNavigation";
+import { IGridHost } from "./gridHost";
 import { useGridSelectionState } from "./useGridSelectionState";
 import { useGridDragAutoScroll } from "./gridDragAutoScroll";
 import { IGridActiveGhost, useGridDrags } from "./useGridDrags";
@@ -39,13 +38,13 @@ import { GridRow } from "./gridRow";
 import { GridDragGhost, GridWeekGhost } from "./gridDragGhost";
 import { AddButton, VerticalAddButton } from "./gridAddButton";
 import { useGridStickyHeader } from "./useGridStickyHeader";
+import { GridStickyHeader, GridStickyHeader_isCss } from "./gridStickyHeader";
 import { useGridEditDetails } from "./useGridEditDetails";
 
 interface IEditProgramGridProps {
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
-  programId: string;
-  dispatch: IDispatch;
+  host: IGridHost;
   // Undefined until the user pinches, which is what lets a short program fit the screen by default
   // without freezing that choice the moment they zoom.
   scale?: number;
@@ -76,16 +75,23 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     [weekCount, containerWidth, requestedScale, rem]
   );
   const showScheme = lanes.showScheme;
+  const fittedScale = useMemo(
+    () => ProgramGridGeometry_metrics({ weekCount, containerWidth, rem }).scale,
+    [weekCount, containerWidth, rem]
+  );
 
   const plannerDispatch = props.plannerDispatch;
   const onCommitScale = useCallback(
-    (newScale: number) => {
+    (newScale: number | undefined) => {
+      setPreviewScale(undefined);
       plannerDispatch(lb<IPlannerState>().p("ui").p("gridScale").record(newScale), `Change grid scale to ${newScale}`);
     },
     [plannerDispatch]
   );
-  const { Wrap, scrollAnimatedProps, canPinch } = useGridPinch({
+  const { Wrap, scrollAnimatedProps, canPinch, zoomControl } = useGridPinch({
     scale,
+    isFitted: requestedScale == null,
+    fittedScale,
     onScalePreview: setPreviewScale,
     onScaleCommit: onCommitScale,
   });
@@ -96,14 +102,11 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // Two hooks on purpose: everything that changes the program goes through `actions`, and every one
   // of those goes through a transform. `navigation` changes what is on screen and never touches the
   // program text.
-  const navigation = useGridNavigation({
-    grid,
-    evaluatedProgram,
-    settings,
-    programId: props.programId,
-    dispatch: props.dispatch,
-    plannerDispatch,
-  });
+  const { host } = props;
+  const navigation = useMemo(
+    () => host.createNavigation({ grid, evaluatedProgram, settings, plannerDispatch }),
+    [host, grid, evaluatedProgram, settings, plannerDispatch]
+  );
 
   const actions = useGridActions({
     grid,
@@ -115,6 +118,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
 
   const editDetails = useGridEditDetails({
     grid,
+    openEditDetails: host.openEditDetails,
     onSetWeekDetails: actions.onSetWeekDetails,
     onSetDayDetails: actions.onSetDayDetails,
   });
@@ -140,8 +144,17 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   const horizontalScrollRef = useRef<ScrollView | null>(null);
   const horizontalViewportRef = useRef<View | null>(null);
   const horizontalOffsetRef = useRef(0);
+  const horizontalListenersRef = useRef(new Set<(x: number) => void>());
   const onHorizontalScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
     horizontalOffsetRef.current = e.nativeEvent.contentOffset.x;
+    horizontalListenersRef.current.forEach((listener) => listener(e.nativeEvent.contentOffset.x));
+  }, []);
+  const subscribeHorizontalOffset = useCallback((listener: (x: number) => void) => {
+    horizontalListenersRef.current.add(listener);
+    listener(horizontalOffsetRef.current);
+    return () => {
+      horizontalListenersRef.current.delete(listener);
+    };
   }, []);
   const contentWidthRef = useRef(0);
   contentWidthRef.current = totalWidth + GRID_ADD_WEEK_WIDTH * rem;
@@ -155,7 +168,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
     maxHorizontalScroll,
   });
 
-  const sticky = useGridStickyHeader();
+  const sticky = useGridStickyHeader({ isHeaderInContainer: !GridStickyHeader_isCss });
 
   // Only the ghosts get this, never a row: setting it re-renders the grid at the moment a pan goes
   // live, and every row has to fall through its memo untouched for the pan to survive.
@@ -259,8 +272,47 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
   // Leaving the grid (mode switch, tab change) must take the dock with it.
   useEffect(() => () => publishSelection(undefined), [publishSelection]);
 
+  const weekHeader = (
+    <>
+      <WeekHeaderRow
+        grid={grid}
+        columnWidth={columnWidth}
+        selectedWeek={selectedWeek}
+        onSelectWeek={onSelectWeek}
+        onMoveWeek={actions.onMoveWeek}
+        drags={drags}
+      />
+      {/* Inside the header rather than over the grid: a week ghost is its name, and this
+          is the row of names it is being dragged among. */}
+      {grid.columns.map((column) => (
+        <GridWeekGhost
+          key={column.weekIndex}
+          weekIndex={column.weekIndex}
+          name={column.name}
+          columnWidth={columnWidth}
+          draggedWeek={drags.draggedWeek}
+          ghostX={drags.ghostX}
+          activeGhost={activeGhost}
+        />
+      ))}
+    </>
+  );
+  const reusePill = reuse?.direction === "up" ? <GridReusePillFloat reuse={reuse} /> : undefined;
+
   return (
     <View className="pb-4" onLayout={onLayout} ref={horizontalViewportRef}>
+      {zoomControl}
+      {GridStickyHeader_isCss && (
+        <GridStickyHeader
+          top={sticky.pinTop}
+          width={totalWidth}
+          subscribeHorizontalOffset={subscribeHorizontalOffset}
+          onHeightChange={sticky.onHeaderHeight}
+          below={reusePill}
+        >
+          {weekHeader}
+        </GridStickyHeader>
+      )}
       <Wrap>
         {/* Reanimated's rather than the plain one so a pinch can freeze it from the UI thread —
             see gridPinch.native. */}
@@ -281,33 +333,15 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
             <View style={{ width: totalWidth }} ref={sticky.containerRef} onLayout={sticky.onContainerLayout}>
               {/* Rides down with the scroll to stay at the top of the grid, and paints over the rows
                   it slides across — so it needs a background of its own and an order above them. */}
-              <Animated.View
-                className="bg-background-default"
-                onLayout={sticky.onHeaderLayout}
-                style={{ transform: [{ translateY: sticky.translateY }], zIndex: 2 }}
-              >
-                <WeekHeaderRow
-                  grid={grid}
-                  columnWidth={columnWidth}
-                  selectedWeek={selectedWeek}
-                  onSelectWeek={onSelectWeek}
-                  onMoveWeek={actions.onMoveWeek}
-                  drags={drags}
-                />
-                {/* Inside the header rather than over the grid: a week ghost is its name, and this
-                    is the row of names it is being dragged among. */}
-                {grid.columns.map((column) => (
-                  <GridWeekGhost
-                    key={column.weekIndex}
-                    weekIndex={column.weekIndex}
-                    name={column.name}
-                    columnWidth={columnWidth}
-                    draggedWeek={drags.draggedWeek}
-                    ghostX={drags.ghostX}
-                    activeGhost={activeGhost}
-                  />
-                ))}
-              </Animated.View>
+              {!GridStickyHeader_isCss && (
+                <Animated.View
+                  className="bg-background-default"
+                  onLayout={sticky.onHeaderLayout}
+                  style={{ transform: [{ translateY: sticky.translateY }], zIndex: 2 }}
+                >
+                  {weekHeader}
+                </Animated.View>
+              )}
               {/* The rows and the ghosts share one coordinate space — the geometry's — and it
                   starts here, below the week header. zIndex keeps a ghost dragged past the last row
                   above the "+ Day" strip that follows. */}
@@ -389,13 +423,13 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
           Outside the horizontal scroller, so it stays put while the weeks scroll under it, and on
           the header's own translate so it holds the same edge as the week names it hangs from.
           Above both the header and the rows, since it floats over whatever it covers. */}
-      {reuse?.direction === "up" && (
+      {!GridStickyHeader_isCss && reusePill != null && (
         <Animated.View
           pointerEvents="box-none"
           className="absolute left-0 right-0"
           style={{ top: sticky.headerHeight, transform: [{ translateY: sticky.translateY }], zIndex: 3 }}
         >
-          <GridReusePillFloat reuse={reuse} />
+          {reusePill}
         </Animated.View>
       )}
       <Text className="px-4 pt-2 text-xs text-text-secondary">

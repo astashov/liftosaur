@@ -1,7 +1,5 @@
 import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
-import { Tailwind_semantic } from "../utils/tailwindConfig";
-import { Colors_hexToRgba } from "../utils/colors";
 import { IconCloseCircle } from "./icons/iconCloseCircle";
 import { useActiveGraph } from "./activeGraphContext";
 import { ILineChartHandle } from "./lineChart";
@@ -18,14 +16,9 @@ export function GraphLegendOverlay(props: IGraphLegendOverlayProps): JSX.Element
   }
   return (
     <View
-      className="absolute border rounded-lg left-2 right-2 border-border-cardpurple"
+      className="absolute border rounded-lg left-2 right-2 border-border-cardpurple bg-background-subtlecardpurple/90"
       dataSet={{ graphLegend: "true" }}
-      style={{
-        top: -60,
-        zIndex: 10,
-        padding: 8,
-        backgroundColor: Colors_hexToRgba(Tailwind_semantic().background.subtlecardpurple, 0.9),
-      }}
+      style={{ top: -60, zIndex: 10, padding: 8 }}
     >
       <Pressable onPress={props.onClose} style={{ position: "absolute", top: 4, right: 4, zIndex: 20 }}>
         <IconCloseCircle size={18} />

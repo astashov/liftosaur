@@ -17,6 +17,7 @@ import {
   PlannerStructure_deleteExercises,
   PlannerStructure_addDay,
   PlannerStructure_addWeek,
+  PlannerStructure_addWeekWithDay,
   IPlannerStructureResult,
 } from "../src/pages/planner/models/plannerStructure";
 import {
@@ -1538,6 +1539,33 @@ Squat[1-2] / 3x5 100lb
       }
       expect(result.data.weeks.length).to.equal(before.length + 1);
       expect(result.data.weeks.slice(0, before.length).map((w) => w.name)).to.eql(before);
+    });
+
+    it("appends a week that starts with one empty day, for By Weeks", () => {
+      const planner = plannerOf(`# Week 1
+## Day 1
+Squat / 3x5 100lb
+`);
+      const result = PlannerStructure_addWeekWithDay(planner, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.weeks.map((w) => w.name)).to.eql(["Week 1", "Week 2"]);
+      expect(result.data.weeks[1].days).to.eql([{ name: "Day 1", exerciseText: "" }]);
+    });
+
+    it("names the new week so it does not clash with an existing one", () => {
+      const planner = plannerOf(`# Week 2
+## Day 1
+Squat / 3x5 100lb
+`);
+      const result = PlannerStructure_addWeekWithDay(planner, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+      if (!result.success) {
+        return;
+      }
+      expect(new Set(result.data.weeks.map((w) => w.name)).size).to.equal(2);
     });
   });
 

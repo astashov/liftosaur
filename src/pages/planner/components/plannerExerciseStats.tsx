@@ -5,8 +5,6 @@ import { Text } from "../../../components/primitives/text";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import {
   IExercise,
-  Exercise_findByName,
-  Exercise_find,
   Exercise_targetMuscles,
   Exercise_synergistMuscles,
   Exercise_targetMusclesGroups,
@@ -30,6 +28,7 @@ import { PlannerKey_fromPlannerExercise } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
+import { PlannerSidePanelStats_findExercise } from "../models/plannerSidePanelStats";
 import { useRem } from "../../../utils/useRem";
 
 interface IPlannerExerciseStatsProps {
@@ -44,39 +43,8 @@ interface IPlannerExerciseStatsProps {
   onEditMuscleGroups?: () => void;
 }
 
-export function getExerciseForStats(
-  weekIndex: number,
-  dayIndex: number,
-  exerciseLine: number,
-  evaluatedWeeks: IPlannerEvalResult[][],
-  settings: ISettings
-): { exercise: IExercise; evaluatedExercise: IPlannerProgramExercise } | undefined {
-  const evaluatedWeek = evaluatedWeeks[weekIndex];
-  const evaluatedDay = evaluatedWeek[dayIndex];
-
-  if (!evaluatedDay.success) {
-    return undefined;
-  }
-
-  const evaluatedExercise = evaluatedDay.data.find((e) => e.line === exerciseLine);
-  if (!evaluatedExercise) {
-    return undefined;
-  }
-
-  const customExercises = settings.exercises;
-  let exercise = Exercise_findByName(evaluatedExercise.name, customExercises);
-  if (!exercise) {
-    return undefined;
-  }
-  exercise = Exercise_find({ id: exercise.id, equipment: evaluatedExercise.equipment }, customExercises);
-  if (!exercise) {
-    return undefined;
-  }
-  return { exercise, evaluatedExercise };
-}
-
 export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Element {
-  const result = getExerciseForStats(
+  const result = PlannerSidePanelStats_findExercise(
     props.weekIndex,
     props.dayIndex,
     props.exerciseLine,

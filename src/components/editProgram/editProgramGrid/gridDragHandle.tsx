@@ -1,5 +1,6 @@
 import { JSX, ReactNode, memo, useCallback, useEffect, useRef } from "react";
 import { View, GestureResponderEvent, PointerEvent } from "react-native";
+import { GridDragAutoScroll_toViewport } from "./gridDragAutoScroll";
 
 export interface IGridDragHandleProps {
   children: ReactNode;
@@ -57,9 +58,13 @@ export const GridDragHandle = memo(function GridDragHandle(props: IGridDragHandl
     }
   }, []);
 
+  // The auto-scroll bounds come from measureInWindow, which is viewport-relative on the web. On a
+  // page that scrolls the window (the web planner), page coordinates drift from them by the scroll.
   const positionOf = useCallback(
     (e: { nativeEvent: { pageX: number; pageY: number } }) =>
-      axis === "x" ? e.nativeEvent.pageX : e.nativeEvent.pageY,
+      axis === "x"
+        ? GridDragAutoScroll_toViewport(e.nativeEvent.pageX, window.scrollX)
+        : GridDragAutoScroll_toViewport(e.nativeEvent.pageY, window.scrollY),
     [axis]
   );
 

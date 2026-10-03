@@ -38,6 +38,50 @@ export function PlannerStatsUtils_dayApproxTimeMs(
     }, 0);
 }
 
+export interface IPlannerDaysSummary {
+  days: number;
+  exercisesPerDay: number;
+  approxTimeMs: number;
+}
+
+export function PlannerStatsUtils_summary(evaluatedDays: IPlannerEvalResult[], settings: ISettings): IPlannerDaysSummary {
+  const validDays = evaluatedDays.flatMap((day) => (day.success ? [day.data] : []));
+  if (validDays.length === 0) {
+    return { days: evaluatedDays.length, exercisesPerDay: 0, approxTimeMs: 0 };
+  }
+  const restTimer = settings.timers.workout ?? 180;
+  let exercises = 0;
+  let timeMs = 0;
+  for (const day of validDays) {
+    exercises += day.filter((e) => !e.notused).length;
+    timeMs += PlannerStatsUtils_dayApproxTimeMs(day, restTimer, settings.timers.superset);
+  }
+  return {
+    days: evaluatedDays.length,
+    exercisesPerDay: Math.round(exercises / validDays.length),
+    approxTimeMs: timeMs / validDays.length,
+  };
+}
+
+export function PlannerStatsUtils_programSummary(
+  evaluatedWeeks: IPlannerEvalResult[][],
+  settings: ISettings
+): IPlannerDaysSummary & { daysPerWeek: number } {
+  const allDays = evaluatedWeeks.flat();
+  const daysPerWeek = evaluatedWeeks.reduce((max, week) => Math.max(max, week.length), 0);
+  return { ...PlannerStatsUtils_summary(allDays, settings), daysPerWeek };
+}
+
+export function PlannerStatsUtils_formatDuration(ms: number): string {
+  const totalMinutes = Math.round(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours === 0) {
+    return `${minutes}m`;
+  }
+  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
+}
+
 export function PlannerStatsUtils_calculateSetResults(
   evaluatedDays: IPlannerEvalResult[],
   settings: ISettings

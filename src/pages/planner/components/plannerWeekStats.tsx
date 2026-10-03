@@ -13,6 +13,7 @@ interface IPlannerWeekStatsProps {
   hideTitle?: boolean;
   settings: ISettings;
   onEditSettings?: () => void;
+  editSettingsLabel?: string;
   dispatch: ILensDispatch<IPlannerState>;
 }
 
@@ -28,6 +29,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
       <PlannerStats
         dispatch={props.dispatch}
         onEditSettings={props.onEditSettings}
+        editSettingsLabel={props.editSettingsLabel}
         setResults={setResults}
         settings={settings}
         colorize={true}

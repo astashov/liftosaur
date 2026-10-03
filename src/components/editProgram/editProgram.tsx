@@ -17,6 +17,8 @@ import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
 import { EditProgramV2Full } from "./editProgramV2Full";
 import { EditProgramGrid } from "./editProgramGrid/editProgramGrid";
+import { useAppGridHost } from "./editProgramGrid/useAppGridHost";
+import { PlannerMode_isStructureError } from "../../pages/planner/models/plannerMode";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
@@ -50,6 +52,7 @@ export const EditProgramView = memo(function EditProgramView(
   const planner = program.planner!;
   const { evaluatedWeeks, exerciseFullNames, plannerDispatch } = props;
   const weekIndex = Math.min(ui.weekIndex ?? 0, Math.max(0, planner.weeks.length - 1));
+  const gridHost = useAppGridHost(props.programId, props.dispatch);
 
   const onWeekTabChange = useCallback(
     (newWeekIndex: number) =>
@@ -76,8 +79,7 @@ export const EditProgramView = memo(function EditProgramView(
         <EditProgramGrid
           evaluatedProgram={props.evaluatedProgram}
           settings={props.settings}
-          programId={props.programId}
-          dispatch={props.dispatch}
+          host={gridHost}
           scale={ui.gridScale}
           plannerDispatch={props.plannerDispatch}
         />
@@ -285,6 +287,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           <EditProgramModeSwitchButton
             padding={padding}
             isSelected={mode === "perday"}
+            disabled={mode === "full" && PlannerMode_isStructureError(props.state.ui.fullTextError)}
             name="editor-v2-perday-program"
             onClick={() => {
               props.dispatch(Thunk_log("ls-program-mode-perday"));
