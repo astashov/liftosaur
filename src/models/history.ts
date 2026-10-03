@@ -688,6 +688,36 @@ export function History_collect1RMPersonalRecord(
   };
 }
 
+export interface IRepPersonalRecord {
+  weight: IWeight;
+  historyRecord: IHistoryRecord;
+  set: ISet;
+}
+
+export function History_collectRepPersonalRecords(
+  exerciseType: IExerciseType,
+  unit: IUnit
+): ICollectorFn<IHistoryRecord, { repPersonalRecords: Partial<Record<number, IRepPersonalRecord>> }> {
+  return {
+    fn: (acc, hr) => {
+      const entries = hr.entries.filter((e) => Exercise_eq(e.exercise, exerciseType));
+      for (const set of entries.flatMap((e) => e.sets)) {
+        const reps = set.completedReps ?? 0;
+        if (reps < 2 || reps > 12) {
+          continue;
+        }
+        const weight = set.completedWeight ?? set.weight ?? Weight_build(0, unit);
+        const currentRecord = acc.repPersonalRecords[reps];
+        if (currentRecord == null || Weight_gt(weight, currentRecord.weight)) {
+          acc.repPersonalRecords[reps] = { weight, historyRecord: hr, set };
+        }
+      }
+      return acc;
+    },
+    initial: { repPersonalRecords: {} },
+  };
+}
+
 export function History_findAllMaxSetsPerId(history: IHistoryRecord[]): Partial<Record<string, ISet>> {
   const maxSets: Partial<Record<string, ISet>> = {};
   for (const r of history) {
