@@ -100,7 +100,7 @@ import {
   IapHelpers_getSkus,
   IapHelpers_readReceiptOrJwsIOS,
 } from "../utils/iapHelpers";
-import { StoreRuntime_storeName } from "../utils/storeRuntime";
+import { StoreRuntime_isAndroid, StoreRuntime_isIos, StoreRuntime_storeName } from "../utils/storeRuntime";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
@@ -2287,7 +2287,7 @@ export function Thunk_iapRestoreOnStartup(): IThunk {
 export function Thunk_redeemCoupon(code: string, cb: (success: boolean) => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("redeem-coupon"));
-    const platform = SendMessage_isIos() ? "ios" : SendMessage_isAndroid() ? "android" : undefined;
+    const platform = StoreRuntime_isIos() ? "ios" : StoreRuntime_isAndroid() ? "android" : undefined;
     const result = await load(dispatch, "Claiming coupon", () => env.service.postClaimCoupon(code, platform));
     if (result.success) {
       const { key, expires, appleOffer, googleOffer, affiliate } = result.data;
