@@ -23,7 +23,7 @@ import { UidFactory_generateUid } from "./utils/generator";
 import { Utils_getEnv, Utils_isLocal } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IStorage, VDeletedExerciseDataKeys, VProgramContentSettings } from "../src/types";
+import { IPartialStorage, IStorage, VDeletedSettingsKeys, VWebEditorSettings } from "../src/types";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -1671,20 +1671,33 @@ const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const bodyJson = getBodyJson(event);
   const deviceId = bodyJson.deviceId as string | undefined;
   const version = bodyJson.version as string | undefined;
-  const updateResult = Storage_validate(bodyJson.settings, VProgramContentSettings, "settings");
+  const updateResult = Storage_validate(bodyJson.settings, VWebEditorSettings, "settings");
   if (!updateResult.success) {
     di.log.log("Settings Save: Invalid payload", updateResult.error);
     return ResponseUtils_json(400, event, { error: "Invalid settings" });
   }
-  const deletedKeysResult = Storage_validate(
+  const deletedExerciseDataKeysResult = Storage_validate(
     bodyJson.deletedExerciseDataKeys ?? [],
-    VDeletedExerciseDataKeys,
+    VDeletedSettingsKeys,
     "deletedExerciseDataKeys"
   );
-  if (!deletedKeysResult.success) {
-    di.log.log("Settings Save: Invalid deleted keys", deletedKeysResult.error);
+  const deletedStarredExerciseKeysResult = Storage_validate(
+    bodyJson.deletedStarredExerciseKeys ?? [],
+    VDeletedSettingsKeys,
+    "deletedStarredExerciseKeys"
+  );
+  if (!deletedExerciseDataKeysResult.success || !deletedStarredExerciseKeysResult.success) {
+    di.log.log(
+      "Settings Save: Invalid deleted keys",
+      deletedExerciseDataKeysResult.success ? undefined : deletedExerciseDataKeysResult.error,
+      deletedStarredExerciseKeysResult.success ? undefined : deletedStarredExerciseKeysResult.error
+    );
     return ResponseUtils_json(400, event, { error: "Invalid settings" });
   }
+  const deleted = {
+    exerciseDataKeys: deletedExerciseDataKeysResult.data,
+    starredExerciseKeys: deletedStarredExerciseKeysResult.data,
+  };
   const oldStorageResult = Storage_get(user.storage);
   if (!oldStorageResult.success) {
     di.log.log("Settings Save: Error loading old storage", oldStorageResult.error);
@@ -1699,7 +1712,7 @@ const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     user,
     (old) => ({
       ...old,
-      settings: Settings_applyWebEditorSettings(old.settings, updateResult.data, deletedKeysResult.data),
+      settings: Settings_applyWebEditorSettings(old.settings, updateResult.data, deleted),
     }),
     deviceId || VersionTrackerUtils_SERVER_DEVICE_ID
   );

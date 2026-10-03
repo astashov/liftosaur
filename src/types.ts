@@ -1924,22 +1924,29 @@ export type IProgramContentSettings = Partial<
     timers: Partial<ISettings["timers"]>;
   }
 >;
+export type IWebEditorSettings = Partial<
+  Pick<
+    ISettings,
+    "units" | "planner" | "muscleGroups" | "exerciseData" | "workoutSettings" | "exercises" | "starredExercises"
+  > & {
+    timers: Partial<ISettings["timers"]>;
+  }
+>;
 // Only /api/settings validates against this - the export/import paths keep passing it around unchecked
-const _VProgramContentSettings = v.object({
+const _VWebEditorSettings = v.object({
   units: v.optional(VUnit),
   timers: v.optional(VSettingsTimers),
   planner: v.optional(VPlannerSettings),
   muscleGroups: v.optional(VMuscleGroupsSettings),
   exerciseData: v.optional(v.record(v.string(), v.optional(VExerciseDataValue))),
   workoutSettings: v.optional(VWorkoutSettings),
+  exercises: v.optional(v.record(v.string(), v.optional(VCustomExercise))),
+  starredExercises: v.optional(v.record(VExerciseId, v.optional(v.boolean()))),
 });
-const _VProgramContentSettingsMatches: IEquals<
-  v.InferOutput<typeof _VProgramContentSettings>,
-  IProgramContentSettings
-> = true;
-void _VProgramContentSettingsMatches;
-export const VProgramContentSettings: v.GenericSchema<IProgramContentSettings> = _VProgramContentSettings;
-export const VDeletedExerciseDataKeys: v.GenericSchema<string[]> = v.array(v.string());
+const _VWebEditorSettingsMatches: IEquals<v.InferOutput<typeof _VWebEditorSettings>, IWebEditorSettings> = true;
+void _VWebEditorSettingsMatches;
+export const VWebEditorSettings: v.GenericSchema<IWebEditorSettings> = _VWebEditorSettings;
+export const VDeletedSettingsKeys: v.GenericSchema<string[]> = v.array(v.string());
 
 export type IDayData = {
   week?: number;

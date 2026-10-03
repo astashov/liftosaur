@@ -7,7 +7,7 @@ import {
   IMuscleGeneratorResponse,
   IPlannerProgramWeek,
   IAffiliateData,
-  IProgramContentSettings,
+  IWebEditorSettings,
 } from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
@@ -664,8 +664,9 @@ export class Service {
   }
 
   public async postSaveSettings(args: {
-    settings: IProgramContentSettings;
+    settings: IWebEditorSettings;
     deletedExerciseDataKeys: string[];
+    deletedStarredExerciseKeys?: string[];
     version: string;
     deviceId?: string;
   }): Promise<IEither<undefined, string>> {

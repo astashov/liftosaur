@@ -7,8 +7,19 @@ import {
   Settings_applyExportedProgram,
 } from "../src/models/settings";
 import { Program_create, Program_exportProgram } from "../src/models/program";
-import { IProgramContentSettings, VProgramContentSettings } from "../src/types";
+import { ICustomExercise, IWebEditorSettings, VWebEditorSettings } from "../src/types";
 import { Storage_validate } from "../src/models/storage";
+
+function customExercise(id: string, name: string): ICustomExercise {
+  return {
+    vtype: "custom_exercise",
+    id,
+    name,
+    isDeleted: false,
+    types: [],
+    meta: { bodyParts: [], targetMuscles: [], synergistMuscles: [], sortedEquipment: [] },
+  };
+}
 
 describe("web editor settings", () => {
   describe("Settings_applyWebEditorSettings", () => {
@@ -47,23 +58,25 @@ describe("web editor settings", () => {
     it("removes an exerciseData entry the payload names as deleted", () => {
       const settings = Settings_build();
       settings.exerciseData = { squat: { rm1: undefined }, bench: { rm1: undefined } };
-      const result = Settings_applyWebEditorSettings(settings, { exerciseData: { bench: { rm1: undefined } } }, [
-        "squat",
-      ]);
+      const result = Settings_applyWebEditorSettings(
+        settings,
+        { exerciseData: { bench: { rm1: undefined } } },
+        { exerciseDataKeys: ["squat"] }
+      );
       expect(Object.keys(result.exerciseData)).to.deep.equal(["bench"]);
     });
 
     it("removes a deleted entry even when the payload omits exerciseData entirely", () => {
       const settings = Settings_build();
       settings.exerciseData = { squat: { rm1: undefined } };
-      const result = Settings_applyWebEditorSettings(settings, { units: "kg" }, ["squat"]);
+      const result = Settings_applyWebEditorSettings(settings, { units: "kg" }, { exerciseDataKeys: ["squat"] });
       expect(Object.keys(result.exerciseData)).to.deep.equal([]);
     });
 
     it("does not mutate the settings it was given", () => {
       const settings = Settings_build();
       settings.exerciseData = { squat: { rm1: undefined } };
-      Settings_applyWebEditorSettings(settings, {}, ["squat"]);
+      Settings_applyWebEditorSettings(settings, {}, { exerciseDataKeys: ["squat"] });
       expect(Object.keys(settings.exerciseData)).to.deep.equal(["squat"]);
     });
 
@@ -72,16 +85,64 @@ describe("web editor settings", () => {
       // Storage_validate returns its input rather than valibot's stripped output, so the handler
       // hands the merge a payload that still carries whatever extra keys the browser sent
       const body = { units: "kg", volume: 999, nickname: "hacker" };
-      expect(Storage_validate(body, VProgramContentSettings, "settings").success).to.equal(true);
-      const result = Settings_applyWebEditorSettings(settings, body as IProgramContentSettings);
+      expect(Storage_validate(body, VWebEditorSettings, "settings").success).to.equal(true);
+      const result = Settings_applyWebEditorSettings(settings, body as IWebEditorSettings);
       expect(result.units).to.equal("kg");
       expect(result.volume).to.equal(settings.volume);
       expect(result.nickname).to.equal(settings.nickname);
     });
 
     it("rejects a payload whose whitelisted field has the wrong shape", () => {
-      const result = Storage_validate({ planner: { synergistMultiplier: "a lot" } }, VProgramContentSettings, "s");
+      const result = Storage_validate({ planner: { synergistMultiplier: "a lot" } }, VWebEditorSettings, "s");
       expect(result.success).to.equal(false);
+    });
+
+    it("merges custom exercises, keeping the ones the update omits", () => {
+      const settings = Settings_build();
+      settings.exercises = { a: customExercise("a", "Old A"), b: customExercise("b", "B") };
+      const result = Settings_applyWebEditorSettings(settings, {
+        exercises: { a: customExercise("a", "New A"), c: customExercise("c", "C") },
+      });
+      expect(result.exercises.a?.name).to.equal("New A");
+      expect(result.exercises.b?.name).to.equal("B");
+      expect(result.exercises.c?.name).to.equal("C");
+    });
+
+    it("applies a custom exercise deletion, which is an isDeleted flag", () => {
+      const settings = Settings_build();
+      settings.exercises = { a: customExercise("a", "A") };
+      const result = Settings_applyWebEditorSettings(settings, {
+        exercises: { a: { ...customExercise("a", "A"), isDeleted: true } },
+      });
+      expect(result.exercises.a?.isDeleted).to.equal(true);
+    });
+
+    it("rejects a custom exercise with the wrong shape", () => {
+      const result = Storage_validate({ exercises: { a: { id: "a", name: 5 } } }, VWebEditorSettings, "s");
+      expect(result.success).to.equal(false);
+    });
+
+    it("merges starred exercises and removes the keys named as unstarred", () => {
+      const settings = { ...Settings_build(), starredExercises: { squat: true, bench: true } };
+      const result = Settings_applyWebEditorSettings(
+        settings,
+        { starredExercises: { deadlift: true } },
+        { starredExerciseKeys: ["bench"] }
+      );
+      expect(Object.keys(result.starredExercises || {}).sort()).to.deep.equal(["deadlift", "squat"]);
+    });
+
+    it("unstars even when the user had no starred exercises stored", () => {
+      const settings = Settings_build();
+      const result = Settings_applyWebEditorSettings(settings, {}, { starredExerciseKeys: ["squat"] });
+      expect(result.starredExercises).to.deep.equal({});
+    });
+
+    it("leaves starred exercises untouched for a payload from an older client", () => {
+      const settings = { ...Settings_build(), starredExercises: { squat: true } };
+      const result = Settings_applyWebEditorSettings(settings, { units: "kg" }, { exerciseDataKeys: [] });
+      expect(result.starredExercises).to.equal(settings.starredExercises);
+      expect(result.exercises).to.equal(settings.exercises);
     });
 
     it("round-trips what the web editor sends", () => {

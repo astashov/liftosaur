@@ -8,7 +8,7 @@ import {
   IProgram,
   IExerciseType,
   IWeight,
-  IProgramContentSettings,
+  IWebEditorSettings,
 } from "../types";
 import { Weight_build, Weight_print } from "./weight";
 import { IExportedProgram, Program_evaluate, Program_getAllUsedProgramExercises } from "./program";
@@ -347,18 +347,30 @@ export function Settings_applyExportedProgram(settings: ISettings, exportedProgr
   return result;
 }
 
+function mergeWithDeletions<T>(
+  stored: Record<string, T>,
+  update: Record<string, T> | undefined,
+  deletedKeys: string[] | undefined
+): Record<string, T> {
+  const result = { ...stored, ...update };
+  for (const key of deletedKeys || []) {
+    delete result[key];
+  }
+  return result;
+}
+
 export function Settings_applyWebEditorSettings(
   settings: ISettings,
-  update: IProgramContentSettings,
-  deletedExerciseDataKeys?: string[]
+  update: IWebEditorSettings,
+  deleted?: { exerciseDataKeys?: string[]; starredExerciseKeys?: string[] }
 ): ISettings {
-  // A dictionary merge cannot express a removal, so clearing an exercise override needs its keys
-  // named explicitly - otherwise the stored entry is merged straight back in and the reset is lost
-  const exerciseData =
-    update.exerciseData != null ? { ...settings.exerciseData, ...update.exerciseData } : { ...settings.exerciseData };
-  for (const key of deletedExerciseDataKeys || []) {
-    delete exerciseData[key];
-  }
+  // A dictionary merge cannot express a removal, so clearing an exercise override or unstarring
+  // needs its keys named explicitly - otherwise the stored entry is merged straight back in
+  const exerciseData = mergeWithDeletions(settings.exerciseData, update.exerciseData, deleted?.exerciseDataKeys);
+  const starredExercises =
+    update.starredExercises != null || deleted?.starredExerciseKeys?.length
+      ? mergeWithDeletions(settings.starredExercises || {}, update.starredExercises, deleted?.starredExerciseKeys)
+      : settings.starredExercises;
 
   return {
     ...settings,
@@ -372,10 +384,12 @@ export function Settings_applyWebEditorSettings(
       update.workoutSettings != null
         ? { ...settings.workoutSettings, ...update.workoutSettings }
         : settings.workoutSettings,
+    exercises: update.exercises != null ? { ...settings.exercises, ...update.exercises } : settings.exercises,
+    starredExercises,
   };
 }
 
-export function Settings_webEditorSettingsUpdate(settings: ISettings): IProgramContentSettings {
+export function Settings_webEditorSettingsUpdate(settings: ISettings): IWebEditorSettings {
   return {
     units: settings.units,
     timers: { workout: settings.timers.workout },
