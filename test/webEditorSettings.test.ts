@@ -138,6 +138,15 @@ describe("web editor settings", () => {
       expect(result.starredExercises).to.deep.equal({});
     });
 
+    it("accepts picker-only workout settings and keeps the stored targetType", () => {
+      const body = { workoutSettings: { pickerSort: "similar_muscles" } };
+      expect(Storage_validate(body, VWebEditorSettings, "settings").success).to.equal(true);
+      const settings = Settings_build();
+      settings.workoutSettings = { targetType: "e1rm" };
+      const result = Settings_applyWebEditorSettings(settings, body as IWebEditorSettings);
+      expect(result.workoutSettings).to.deep.equal({ targetType: "e1rm", pickerSort: "similar_muscles" });
+    });
+
     it("leaves starred exercises untouched for a payload from an older client", () => {
       const settings = { ...Settings_build(), starredExercises: { squat: true } };
       const result = Settings_applyWebEditorSettings(settings, { units: "kg" }, { exerciseDataKeys: [] });

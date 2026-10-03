@@ -1925,11 +1925,9 @@ export type IProgramContentSettings = Partial<
   }
 >;
 export type IWebEditorSettings = Partial<
-  Pick<
-    ISettings,
-    "units" | "planner" | "muscleGroups" | "exerciseData" | "workoutSettings" | "exercises" | "starredExercises"
-  > & {
+  Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData" | "exercises" | "starredExercises"> & {
     timers: Partial<ISettings["timers"]>;
+    workoutSettings: Partial<IWorkoutSettings>;
   }
 >;
 // Only /api/settings validates against this - the export/import paths keep passing it around unchecked
@@ -1939,7 +1937,7 @@ const _VWebEditorSettings = v.object({
   planner: v.optional(VPlannerSettings),
   muscleGroups: v.optional(VMuscleGroupsSettings),
   exerciseData: v.optional(v.record(v.string(), v.optional(VExerciseDataValue))),
-  workoutSettings: v.optional(VWorkoutSettings),
+  workoutSettings: v.optional(v.partial(_VWorkoutSettings)),
   exercises: v.optional(v.record(v.string(), v.optional(VCustomExercise))),
   starredExercises: v.optional(v.record(VExerciseId, v.optional(v.boolean()))),
 });
