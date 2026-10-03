@@ -33,7 +33,7 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
+  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40lb");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");
 
   await PlaywrightUtils_finishExercise(page, "pull-up", [1, 1]);

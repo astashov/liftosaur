@@ -41,7 +41,7 @@ Squat / 1x5 135lb, 1x3-5 135lb / warmup: none / progress: custom() {~
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("5");
+  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("5reps");
   await expect(page.getByTestId("input-set-reps-field").nth(1)).toHaveText("3-5");
 
   await PlaywrightUtils_clickAll(page.getByTestId("complete-set"));
@@ -80,8 +80,8 @@ Squat / 1x5 135lb, 1x3-5 135lb / warmup: none / progress: custom() {~
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("5");
+  await expect(page.getByTestId("input-set-reps-field").nth(0)).toHaveText("5reps");
   await expect(page.getByTestId("input-set-reps-field").nth(1)).toHaveText("3-5");
-  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("140");
+  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("140lb");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("140");
 });

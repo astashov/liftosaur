@@ -61,7 +61,7 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
 
   await page.getByTestId("navbar-back").click();
 
-  await expect(page.getByTestId("input-set-weight-field")).toHaveText("150");
+  await expect(page.getByTestId("input-set-weight-field")).toHaveText("150lb");
   await page.getByTestId("complete-set").nth(0).click();
   await expect(page.getByTestId("variable-changes-value-1-rm")).toHaveText("150 lb -> 155 lb");
 

@@ -61,8 +61,8 @@ test("edits sets properly", async ({ page }) => {
 
   await expect(page.getByTestId("entry-bench-press").getByTestId("set-nonstarted")).toHaveCount(2);
   await expect(page.getByTestId("entry-bench-press").getByTestId("set-amrap-nonstarted")).toHaveCount(2);
-  await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(0)).toHaveText("10");
-  await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(0)).toHaveText("100");
+  await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(0)).toHaveText("10reps");
+  await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(0)).toHaveText("100lb");
 
   await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(1)).toHaveText("8");
   await expect(page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(1)).toHaveText("80");
