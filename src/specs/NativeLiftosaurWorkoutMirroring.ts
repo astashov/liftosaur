@@ -13,7 +13,6 @@ export type WorkoutMirroringEvent = {
 export interface Spec extends TurboModule {
   setDesiredWorkout(workoutId: number, status: string, expectWatch: boolean): void;
 
-
   flushPendingEvents(): Promise<void>;
 
   readonly onMirroringEvent: EventEmitter<WorkoutMirroringEvent>;

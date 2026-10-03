@@ -68,7 +68,10 @@ function completeSets(record: IHistoryRecord, random: () => number): void {
   }
 }
 
-function buildHistory(program: IProgram, settings: ReturnType<typeof Settings_build>): { history: IHistoryRecord[]; program: IProgram } {
+function buildHistory(
+  program: IProgram,
+  settings: ReturnType<typeof Settings_build>
+): { history: IHistoryRecord[]; program: IProgram } {
   const random = seededRandom(20260927);
   const stats = Stats_getEmpty();
   const history: IHistoryRecord[] = [];
@@ -114,9 +117,17 @@ function buildStats(): IStorage["stats"] {
     const progress = (weeksOfHistory - week) / weeksOfHistory;
     weight.push({ vtype: "stat", timestamp, value: lb(Math.round((184 - progress * 6) * 10) / 10) });
     if (week % 2 === 0) {
-      waist.push({ vtype: "stat", timestamp, value: { value: Math.round((34.5 - progress * 1.5) * 10) / 10, unit: "in" } });
+      waist.push({
+        vtype: "stat",
+        timestamp,
+        value: { value: Math.round((34.5 - progress * 1.5) * 10) / 10, unit: "in" },
+      });
       chest.push({ vtype: "stat", timestamp, value: { value: Math.round((41 + progress * 1) * 10) / 10, unit: "in" } });
-      bodyfat.push({ vtype: "stat", timestamp, value: { value: Math.round((19 - progress * 2.5) * 10) / 10, unit: "%" } });
+      bodyfat.push({
+        vtype: "stat",
+        timestamp,
+        value: { value: Math.round((19 - progress * 2.5) * 10) / 10, unit: "%" },
+      });
     }
   }
   return {
@@ -133,12 +144,23 @@ function main(): void {
   if (!evaluated.evaluatedWeeks.success) {
     throw new Error(`demo-program.txt does not parse: ${evaluated.evaluatedWeeks.error}`);
   }
-  const planner: IPlannerProgram = { vtype: "planner", name: "Demo Program", weeks: PlannerProgram_evaluateText(programText) };
-  const program: IProgram = { ...Program_create("Demo Program", "demo"), planner, clonedAt: mondayWeeksAgo(weeksOfHistory).getTime() };
+  const planner: IPlannerProgram = {
+    vtype: "planner",
+    name: "Demo Program",
+    weeks: PlannerProgram_evaluateText(programText),
+  };
+  const program: IProgram = {
+    ...Program_create("Demo Program", "demo"),
+    planner,
+    clonedAt: mondayWeeksAgo(weeksOfHistory).getTime(),
+  };
   const { history, program: progressedProgram } = buildHistory(program, settings);
 
   const storage = Storage_getDefault();
-  storage.programs = [progressedProgram, { ...basicBeginnerProgram, clonedAt: mondayWeeksAgo(weeksOfHistory + 8).getTime() }];
+  storage.programs = [
+    progressedProgram,
+    { ...basicBeginnerProgram, clonedAt: mondayWeeksAgo(weeksOfHistory + 8).getTime() },
+  ];
   storage.currentProgramId = progressedProgram.id;
   storage.history = history;
   storage.stats = buildStats();

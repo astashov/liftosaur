@@ -35,7 +35,8 @@ export function ScreenshotsAccounts_open(password: string): IScreenshotsAccounts
       const row =
         existing ??
         UserDao.build(id, email, { passwordHash: await PasswordHash_hash(password), emailVerifiedAt: Date.now() });
-      const key = existing?.storage.subscription.key ?? (await freeUserDao.create(id, Date.now() + fiftyYears, true)).key;
+      const key =
+        existing?.storage.subscription.key ?? (await freeUserDao.create(id, Date.now() + fiftyYears, true)).key;
       const storage = ScreenshotsAccountStorage_build(fixture, { id, email, key, now: Date.now() });
       if (existing == null) {
         await userDao.create(row);

@@ -42,6 +42,8 @@ describe("DesiredHeartRateWorkout_fromProgress", () => {
   });
 
   it("expects the watch only for subscribers, because only they get the watch app launched from the phone", () => {
-    expect(DesiredHeartRateWorkout_fromProgress(buildProgress(0, [[1000, undefined]]), true).expectWatch).to.equal(true);
+    expect(DesiredHeartRateWorkout_fromProgress(buildProgress(0, [[1000, undefined]]), true).expectWatch).to.equal(
+      true
+    );
   });
 });

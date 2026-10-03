@@ -1,8 +1,4 @@
-import {
-  IHeartRateSource,
-  INativeWorkoutMirroringEvent,
-  IRawWorkoutMirroringEvent,
-} from "../utils/workoutMirroring";
+import { IHeartRateSource, INativeWorkoutMirroringEvent, IRawWorkoutMirroringEvent } from "../utils/workoutMirroring";
 
 export const HeartRateReading_staleAfterMs = 15000;
 

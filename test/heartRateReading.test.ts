@@ -12,12 +12,14 @@ const watchReading: IHeartRateReading = { bpm: 120, measuredAt: 1000, source: "w
 
 describe("HeartRateReading_parseEvent", () => {
   it("parses a heart rate event and rounds bpm", () => {
-    expect(HeartRateReading_parseEvent({ type: "heartRate", heartRate: 121.6, measuredAt: 5, source: "phone" })).to.eql({
-      type: "heartRate",
-      bpm: 122,
-      measuredAt: 5,
-      source: "phone",
-    });
+    expect(HeartRateReading_parseEvent({ type: "heartRate", heartRate: 121.6, measuredAt: 5, source: "phone" })).to.eql(
+      {
+        type: "heartRate",
+        bpm: 122,
+        measuredAt: 5,
+        source: "phone",
+      }
+    );
   });
 
   it("drops a heart rate event with a missing field, unknown source or non-positive bpm", () => {
@@ -31,8 +33,14 @@ describe("HeartRateReading_parseEvent", () => {
   });
 
   it("parses a source event, mapping none to undefined", () => {
-    expect(HeartRateReading_parseEvent({ type: "source", source: "watch" })).to.eql({ type: "source", source: "watch" });
-    expect(HeartRateReading_parseEvent({ type: "source", source: "none" })).to.eql({ type: "source", source: undefined });
+    expect(HeartRateReading_parseEvent({ type: "source", source: "watch" })).to.eql({
+      type: "source",
+      source: "watch",
+    });
+    expect(HeartRateReading_parseEvent({ type: "source", source: "none" })).to.eql({
+      type: "source",
+      source: undefined,
+    });
   });
 
   it("drops unknown event types", () => {
@@ -42,7 +50,12 @@ describe("HeartRateReading_parseEvent", () => {
 
 describe("HeartRateReading_apply", () => {
   it("takes a newer reading", () => {
-    const next = HeartRateReading_apply(watchReading, { type: "heartRate", bpm: 130, measuredAt: 2000, source: "watch" });
+    const next = HeartRateReading_apply(watchReading, {
+      type: "heartRate",
+      bpm: 130,
+      measuredAt: 2000,
+      source: "watch",
+    });
     expect(next).to.eql({ bpm: 130, measuredAt: 2000, source: "watch" });
   });
 

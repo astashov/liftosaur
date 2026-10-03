@@ -409,7 +409,8 @@ export function Reps_completedSetKey(set: ISet): string {
   const w = set.completedWeight ? Weight_print(set.completedWeight) : "none";
   const rpe = set.completedRpe ?? -1;
   const setTimer = set.completedSetTimer != null ? Math.round(set.completedSetTimer) : -1;
-  const setTimerLeft = set.isUnilateral && set.completedSetTimerLeft != null ? Math.round(set.completedSetTimerLeft) : -1;
+  const setTimerLeft =
+    set.isUnilateral && set.completedSetTimerLeft != null ? Math.round(set.completedSetTimerLeft) : -1;
   const label = set.label ?? "";
   return `${reps}-${repsLeft}-${w}-${rpe}-${setTimer}-${setTimerLeft}-${label}`;
 }
