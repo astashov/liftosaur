@@ -4,6 +4,7 @@ Those exercises are available in the app by default, prefer to use them if possi
 
 Ab Wheel
 Arch Hang
+Archer Pull Up
 Arnold Press
 Arnold Press, Kettlebell
 Around The World
@@ -77,6 +78,7 @@ Crow Pose
 Crunch, Cable
 Crunch
 Crunch, Leverage Machine
+Dead Bug
 Dead Hang
 Deadlift
 Deadlift, Cable
@@ -140,6 +142,7 @@ Hip Thrust
 Hip Thrust, Band
 Hip Thrust, Bodyweight
 Hip Thrust, Leverage Machine
+Hollow Body Hold
 Incline Bench Press
 Incline Bench Press, Cable
 Incline Bench Press, Dumbbell
@@ -154,6 +157,7 @@ Incline Curl
 Incline Push Up
 Incline Row, Barbell
 Incline Row
+Incline Row, Bodyweight
 Inverted Row
 Jackknife Sit Up
 Jump Squat
@@ -162,6 +166,7 @@ Kettlebell Swing, Dumbbell
 Kettlebell Swing
 Knee Push Up
 Kneeling Pulldown
+Kneeling Ring Ab Rollout
 Knees to Elbows
 Lat Pulldown
 Lat Pulldown, Leverage Machine
@@ -187,6 +192,7 @@ Muscle Up
 Negative Dip
 Negative Pull Up
 Nordic Curl
+Nordic Curl, Band
 Oblique Crunch
 Overhead Press
 Overhead Press, Dumbbell
@@ -234,11 +240,13 @@ Reverse Lunge, Bodyweight
 Reverse Wrist Curl
 Reverse Wrist Curl, Dumbbell
 Reverse Wrist Curl, EZ Bar
+Ring Ab Rollout
 Ring Dip
 Ring Row
 Romanian Deadlift, Barbell
 Romanian Deadlift
 Reverse Hyperextension
+Reverse Hyperextension, Bodyweight
 Reverse Hyperextension, Leverage Machine
 Romanian Deadlift, Bodyweight
 Russian Twist, Cable
@@ -264,6 +272,7 @@ Shoulder Press
 Shoulder Press, Smith Machine
 Shoulder Press, Band
 Shoulder Press, Leverage Machine
+Shoulder Pass Through
 Shoulder Press Parallel Grip
 Shrimp Squat
 Shrug, Barbell
@@ -293,6 +302,7 @@ Single Leg Hip Thrust, Barbell
 Single Leg Hip Thrust
 Single Leg Hip Thrust, Leverage Machine
 Sissy Squat
+Skin the Cat
 Sit Up, Kettlebell
 Sit Up
 Skullcrusher, Barbell

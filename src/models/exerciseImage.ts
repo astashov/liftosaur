@@ -365,6 +365,16 @@ const availableSmallImages = new Set([
   "renegaderow_dumbbell",
   "romaniandeadlift_bodyweight",
   "bulgariansplitsquat_bodyweight",
+  "nordiccurl_band",
+  "inclinerow_bodyweight",
+  "reversehyperextension_bodyweight",
+  "ringabrollout_bodyweight",
+  "kneelingringabrollout_bodyweight",
+  "archerpullup_bodyweight",
+  "skinthecat_bodyweight",
+  "hollowbodyhold_bodyweight",
+  "deadbug_bodyweight",
+  "shoulderpassthrough_band",
 ]);
 
 const availableLargeImages = new Set([
@@ -732,6 +742,16 @@ const availableLargeImages = new Set([
   "renegaderow_dumbbell",
   "romaniandeadlift_bodyweight",
   "bulgariansplitsquat_bodyweight",
+  "nordiccurl_band",
+  "inclinerow_bodyweight",
+  "reversehyperextension_bodyweight",
+  "ringabrollout_bodyweight",
+  "kneelingringabrollout_bodyweight",
+  "archerpullup_bodyweight",
+  "skinthecat_bodyweight",
+  "hollowbodyhold_bodyweight",
+  "deadbug_bodyweight",
+  "shoulderpassthrough_band",
 ]);
 
 export function ExerciseImageUtils_id(type: IExerciseType): string {

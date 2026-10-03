@@ -39,6 +39,25 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  archerpullup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from a bar with a wide overhand grip, about twice shoulder width.\n2. **Body**: Start from a dead hang with straight arms and a slightly hollow body.\n\n## Movement\n1. **Pulling Phase**:\n   - Pull your chin toward one hand, bending only that arm.\n   - Keep the other arm as straight as you can, pushing it along the bar.\n\n2. **Lowering Phase**:\n   - Lower under control back to the dead hang.\n   - Switch sides on the next rep, or do all reps on one side, then the other.\n\n## Key Points\n- The assisting arm stays straight. That is what makes it an archer pull-up.\n- Rest the assisting hand on top of the bar to make it easier.\n- Do the same number of reps on each side.",
+    video: "_LGLKUiQH5k",
+    description:
+      "The Archer Pull Up is a wide-grip pull-up where you pull toward one hand while the other arm stays straight, shifting most of the load onto one side as a step toward the one-arm pull-up.",
+    howto: [
+      {
+        name: "Take a Wide Grip",
+        text: "Hang from a bar with an overhand grip about twice shoulder width and straight arms.",
+      },
+      { name: "Pull to One Side", text: "Pull your chin toward one hand, bending only that arm." },
+      {
+        name: "Keep the Other Arm Straight",
+        text: "Push the assisting arm along the bar and keep it as straight as possible.",
+      },
+      { name: "Lower and Switch", text: "Lower under control to a dead hang, then repeat toward the other hand." },
+    ],
+  },
   archhang_bodyweight: {
     content:
       "## Starting Position\n1. **Grip**: Hang from a pull-up bar with an overhand grip, hands about shoulder-width apart.\n2. **Body**: Start from a passive dead hang with arms straight and shoulders relaxed up by the ears.\n\n## Movement\n1. **Engaging Phase**:\n   - Pull your shoulder blades down and back, away from your ears.\n   - Lift your chest toward the bar and arch the upper back, keeping the arms straight.\n\n2. **Holding Phase**:\n   - Hold the arched, shoulders-engaged position for time.\n   - Keep the core tight and legs still - the arms stay straight throughout.\n\n## Key Points\n- Keep the arms fully straight - this is a scapular and back exercise, not an elbow-bending pull.\n- Drive the chest up toward the bar rather than shrugging the shoulders.\n- Build up to holds of 20-30 seconds before progressing toward negative pull-ups.",
@@ -1887,6 +1906,25 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  deadbug_bodyweight: {
+    content:
+      "## Starting Position\n1. **Body**: Lie on your back with your arms pointing straight up at the ceiling.\n2. **Legs**: Lift your legs with the hips and knees bent to 90 degrees.\n3. **Lower Back**: Press your lower back into the floor and brace your core.\n\n## Movement\n1. **Extending Phase**:\n   - Slowly lower one arm overhead and straighten the opposite leg toward the floor.\n   - Stop just above the floor, keeping the lower back down.\n\n2. **Returning Phase**:\n   - Bring the arm and leg back to the start, then repeat on the other side.\n\n## Key Points\n- Move slowly. Speed hides a lower back that lifts off the floor.\n- Breathe out as you extend.\n- Only go as low as you can while the lower back stays flat.",
+    video: "bxn9FBrt4-A",
+    description:
+      "The Dead Bug is a core stability exercise where you lie on your back and slowly extend the opposite arm and leg while keeping your lower back pressed to the floor.",
+    howto: [
+      {
+        name: "Set Up on Your Back",
+        text: "Lie on your back with your arms pointing up and your hips and knees bent to 90 degrees.",
+      },
+      { name: "Brace Your Core", text: "Press your lower back into the floor and tighten your abs." },
+      {
+        name: "Extend Opposite Limbs",
+        text: "Slowly lower one arm overhead and straighten the opposite leg until both hover just above the floor.",
+      },
+      { name: "Return and Switch", text: "Bring them back to the start and repeat with the other arm and leg." },
+    ],
+  },
   deadhang_bodyweight: {
     content:
       "## Starting Position\n1. **Grip**: Grab the bar with a shoulder-width overhand grip, wrapping your thumbs around.\n2. **Arms**: Let your arms hang fully straight.\n3. **Body**: Keep your legs straight or slightly bent so your feet clear the ground.\n\n## Movement\n1. **Hold Phase**:\n   - Hang with straight arms and let your body relax and lengthen.\n   - Keep your shoulders slightly engaged rather than fully shrugged to your ears.\n   - Breathe steadily and hold for the target time.\n\n2. **Finish**:\n   - Lower to the ground under control once your set time is reached.\n   - Step down rather than dropping to protect your shoulders.\n\n## Key Points\n- Grip firmly with thumbs wrapped for a secure hold.\n- Keep a neutral spine - avoid arching or excessively swinging.\n- Beginners start around 10-20 seconds; work toward 60 seconds or more.",
@@ -3449,6 +3487,25 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  hollowbodyhold_bodyweight: {
+    content:
+      "## Starting Position\n1. **Body**: Lie on your back with your arms overhead and legs straight.\n2. **Lower Back**: Tuck your pelvis and press your lower back into the floor.\n\n## Movement\n1. **Lifting Phase**:\n   - Lift your shoulders, arms and legs a few inches off the floor.\n   - Keep your lower back pressed down and your ribs pulled in.\n\n2. **Holding Phase**:\n   - Hold the banana-shaped position for time while breathing steadily.\n\n## Key Points\n- The lower back stays on the floor. If it lifts, make the hold easier.\n- To make it easier, bend your knees into a tuck or bring your arms to your sides.\n- To make it harder, extend your arms overhead and lower your legs closer to the floor.",
+    video: "W3E2SBg1ViQ",
+    description:
+      "The Hollow Body Hold is a gymnastics core hold where you lie on your back with your lower back pressed to the floor and your arms and legs held just above it.",
+    howto: [
+      { name: "Lie on Your Back", text: "Lie flat with your arms overhead and your legs straight." },
+      { name: "Press Your Lower Back Down", text: "Tuck your pelvis and press your lower back firmly into the floor." },
+      {
+        name: "Lift and Hold",
+        text: "Lift your shoulders, arms and legs off the floor and hold, keeping your lower back down.",
+      },
+      {
+        name: "Adjust the Difficulty",
+        text: "Bend your knees or bring your arms in to make it easier, or reach further and lower your legs to make it harder.",
+      },
+    ],
+  },
   inclinebenchpress_barbell: {
     content:
       "## Setup\n1. **Bench Angle**: Set the bench to an incline of 30 to 45 degrees.\n2. **Barbell Position**: Load the barbell and secure it on the squat rack above the bench.\n3. **Body Position**: Lie back on the bench with your head, shoulders, and buttocks pressed against it.\n\n## Grip\n1. **Hand Placement**: Grip the barbell slightly wider than shoulder-width.\n2. **Wrist Position**: Keep wrists straight and aligned with forearms.\n\n## Execution\n1. **Unrack the Bar**: Lift the barbell off the rack, keeping your elbows slightly bent.\n2. **Lowering**: Lower the bar to your upper chest, maintaining control. Your elbows should be at about a 45-degree angle to your body.\n3. **Pressing**: Push the barbell back up to the starting position, fully extending your arms without locking the elbows.\n\n## Breathing\n- Inhale as you lower the bar.\n- Exhale as you press the bar back up.\n\n## Tips\n- Keep your feet flat on the ground for stability.\n- Avoid arching your back excessively; keep it neutral.\n- Engage your core throughout the movement.\n\n## Safety\n- Use a spotter for heavy lifts.\n- Ensure the barbell is secured with collars.",
@@ -3774,6 +3831,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  inclinerow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hold a bar at chest height, or a pair of rings, with an overhand grip about shoulder-width apart.\n2. **Feet**: Walk your feet forward so your body leans back at about 45 degrees, heels on the floor.\n3. **Body**: Straighten your arms and hold a straight line from heels to head, glutes and core tight.\n\n## Movement\n1. **Pulling Phase**:\n   - Pull your chest to the bar, keeping your elbows close to your body.\n   - Squeeze your shoulder blades together at the top.\n\n2. **Lowering Phase**:\n   - Lower yourself under control until your arms are straight.\n\n## Key Points\n- Keep your body straight. Do not let your hips sag or pike.\n- Walk your feet further forward, or lower the bar, to get closer to horizontal and make it harder.\n- Move on to horizontal inverted rows once you can do 3 sets of 8 close to horizontal.",
+    video: "LR2EnFWpVao",
+    description:
+      "The Bodyweight Incline Row is a row under a chest-high bar or rings with the body leaning back at an angle, the step between vertical rows and horizontal inverted rows.",
+    howto: [
+      {
+        name: "Set the Angle",
+        text: "Hold a chest-high bar or rings and walk your feet forward until your body leans back at about 45 degrees.",
+      },
+      {
+        name: "Brace Your Body",
+        text: "Straighten your arms and hold a straight line from heels to head with your glutes and core tight.",
+      },
+      {
+        name: "Pull to the Bar",
+        text: "Pull your chest to the bar with your elbows close to your body and squeeze your shoulder blades together.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Lower yourself until your arms are fully straight, keeping your body in a straight line.",
+      },
+    ],
+  },
   inclinerow_dumbbell: {
     content:
       "### Setup:\n1. **Bench Position**: Set an incline bench at a 30 to 45-degree angle.\n2. **Dumbbells**: Place a dumbbell on either side of the bench.\n\n### Execution:\n1. **Body Position**:\n   - Lie face down on the bench with your chest against it.\n   - Keep your feet flat on the floor or on the bench for stability.\n   - Allow your arms to hang straight down, holding a dumbbell in each hand.\n\n2. **Grip**: Use a neutral grip (palms facing each other) or an overhand grip (palms facing towards you).\n\n3. **Rowing Motion**:\n   - Engage your core and pull your shoulder blades down and back.\n   - As you exhale, pull the dumbbells towards your torso, keeping your elbows close to your body.\n   - Aim to bring the dumbbells to the lower rib area or your waist.\n\n4. **Controlled Descent**:\n   - Inhale as you lower the dumbbells back to the starting position.\n   - Maintain control, avoiding letting the weights drop quickly.\n\n### Tips:\n- **Alignment**: Keep your head, neck, and spine aligned throughout the movement.\n- **Tempo**: Focus on a steady and controlled tempo, both when pulling and lowering the weights.\n- **Focus on Back Muscles**: Squeeze your shoulder blades together at the top of the movement, emphasizing the engagement of the back muscles.\n\n### Common Mistakes:\n- Lifting too heavy, leading to poor form and potential injury.\n- Allowing the back to arch or the shoulders to rise excessively during the row.\n- Using momentum instead of controlled strength to lift the weights.",
@@ -3976,6 +4058,25 @@ export const exerciseDescriptions: Record<
       {
         name: "Control the Return",
         text: "Slowly allow the band to rise back to the starting position, maintaining control and keeping your back straight throughout.",
+      },
+    ],
+  },
+  kneelingringabrollout_bodyweight: {
+    content:
+      "## Starting Position\n1. **Rings**: Set the rings low, so you can hold them with straight arms while kneeling.\n2. **Knees**: Kneel on a pad with your knees under your hips.\n3. **Body**: Tuck your pelvis, pull your ribs down and squeeze your glutes so your body forms a straight line from knees to head.\n\n## Movement\n1. **Rollout Phase**:\n   - Lean forward from the knees and let the rings move forward and overhead.\n   - Keep your arms straight and your hips extended.\n\n2. **Return Phase**:\n   - Pull the rings back toward your hips with your abs until you are upright on your knees.\n\n## Key Points\n- Do not bend at the hips. The line from knees to head stays straight.\n- Stop the rollout before your lower back starts to sag.\n- Move on to the standing Ring Ab Rollout once 3 sets of 12 feel controlled.",
+    video: "gIzLulhTXn8",
+    description:
+      "The Kneeling Ring Ab Rollout is an easier anti-extension core exercise where you kneel under gymnastics rings and lean forward with straight arms, then pull back up with your abs.",
+    howto: [
+      { name: "Kneel Under the Rings", text: "Set the rings low and kneel on a pad, holding them with straight arms." },
+      { name: "Brace Your Core", text: "Tuck your pelvis, pull your ribs down and squeeze your glutes." },
+      {
+        name: "Roll Out",
+        text: "Lean forward from the knees and let the rings move forward, keeping your arms straight and body in one line.",
+      },
+      {
+        name: "Pull Back",
+        text: "Use your abs to pull the rings back toward your hips until you are upright on your knees.",
       },
     ],
   },
@@ -4593,6 +4694,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Reset and Repeat",
         text: "Step or jump back up to the top position and perform the next controlled negative.",
+      },
+    ],
+  },
+  nordiccurl_band: {
+    content:
+      "## Starting Position\n1. **Band**: Anchor a resistance band high behind you, at a wall bar, rack or door anchor, and hold the other end at your chest or behind your head.\n2. **Knees**: Kneel on a pad with your knees about hip-width apart.\n3. **Ankles**: Anchor your ankles under something sturdy, about a fist's distance above the ankle bone.\n4. **Body**: Extend your hips so your torso and thighs form a straight line, glutes squeezed and core braced.\n\n## Movement\n1. **Lowering Phase**:\n   - Keeping your hips extended, lower your torso toward the floor as slowly as you can.\n   - Let the band take part of the load, but keep the hamstrings working the whole way down.\n   - Do not let your hips fold or hinge back.\n\n2. **Raising Phase**:\n   - For negatives, catch yourself with your hands at the bottom and push back up to the start.\n   - For full reps, pull yourself back up with your hamstrings, using the band for help.\n\n## Key Points\n- Start with negatives: lower slowly, then push back up with your hands.\n- Move to full reps once 3 sets of 8 slow negatives feel solid.\n- Use a lighter band as you get stronger, until you can do Nordic Curls without one.\n- Keep a straight line from knees to head. Piking at the hips takes the work off the hamstrings.",
+    video: "HUXS3S2xSX4",
+    description:
+      "The Banded Nordic Curl is a Nordic Curl with a resistance band anchored overhead that takes part of your body weight, so you can train the full hamstring lowering before you can do it unassisted.",
+    howto: [
+      {
+        name: "Set Up the Band",
+        text: "Anchor a resistance band high behind you and hold the free end at your chest or behind your head.",
+      },
+      {
+        name: "Anchor Your Ankles",
+        text: "Kneel on a pad and hook your ankles under something sturdy, with your hips extended and glutes squeezed.",
+      },
+      {
+        name: "Lower Slowly",
+        text: "Keep a straight line from knees to head and lower your torso toward the floor as slowly as you can, letting the band take part of your weight.",
+      },
+      {
+        name: "Return to the Top",
+        text: "Push back up with your hands for a negative, or pull yourself up with your hamstrings for a full rep.",
       },
     ],
   },
@@ -5644,6 +5770,25 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  reversehyperextension_bodyweight: {
+    content:
+      "## Starting Position\n1. **Body**: Lie face down on a bench, table or box with your hips at the edge and your legs hanging toward the floor.\n2. **Grip**: Hold the sides or the far end of the bench to keep your upper body in place.\n3. **Legs**: Keep your legs together and straight, toes lightly touching the floor.\n\n## Movement\n1. **Lifting Phase**:\n   - Squeeze your glutes and lift both legs behind you until they are in line with your torso.\n   - Keep your legs straight and lift with your hips, not by arching your lower back.\n\n2. **Lowering Phase**:\n   - Lower your legs under control back toward the floor.\n\n## Key Points\n- Lift to a straight line with your body. Swinging higher only arches the lower back.\n- Pause for a moment at the top to make the glutes do the work.\n- Once 3 sets of 12 are easy, add ankle weights or hold a dumbbell between your feet.",
+    video: "ZeRsNzFcQLQ",
+    description:
+      "The Bodyweight Reverse Hyperextension trains the glutes, hamstrings and lower back by lifting straight legs behind you while lying face down on a bench, table or box.",
+    howto: [
+      {
+        name: "Lie on the Bench",
+        text: "Lie face down with your hips at the edge of a bench, table or box, and hold on to keep your upper body still.",
+      },
+      { name: "Let the Legs Hang", text: "Keep your legs straight and together, hanging toward the floor." },
+      {
+        name: "Lift Your Legs",
+        text: "Squeeze your glutes and lift both legs until they are in line with your body, then pause.",
+      },
+      { name: "Lower Under Control", text: "Lower your legs slowly back toward the floor without swinging." },
+    ],
+  },
   reversehyperextension_leveragemachine: {
     content:
       "### Setup\n1. **Position Yourself**: Sit on the reverse hyperextension machine with your hips positioned at the edge of the platform.\n2. **Feet Placement**: Strap your feet into the footpads or secure them under the pads, ensuring a firm grip.\n\n### Execution\n1. **Starting Position**: Keep your legs extended straight down towards the floor. \n2. **Engagement**: Engage your core and squeeze your glutes to stabilize your torso.\n3. **Lift Leg**: Raise your legs up towards the ceiling in a controlled motion, ensuring your hips stay pressed against the pad.\n4. **Peak Contraction**: Hold the top position briefly to maximize glute engagement.\n5. **Lower Back**: Gradually lower your legs back to the starting position, maintaining control throughout the movement.\n\n### Tips for Proper Form\n- **Breathing**: Exhale while lifting your legs and inhale as you lower them.\n- **Avoid Swinging**: Perform the movement slowly to avoid momentum and reduce the risk of injury.\n- **Body Alignment**: Keep your back neutral and avoid arching or rounding during the exercise.\n\n### Common Mistakes\n- **Hip Rolling**: Ensure your hips remain flat against the pad during movement.\n- **Overextending**: Don’t hyperextend your back; focus on glute engagement.\n\n### Benefits\n- Strengthens the posterior chain, particularly the glutes and hamstrings.\n- Improves hip mobility and stability.\n\nMake sure to adjust the machine settings to fit your body proportions for optimal results.",
@@ -5838,6 +5983,25 @@ export const exerciseDescriptions: Record<
       {
         name: "Lower with Control",
         text: "Slowly lower the EZ bar back to the starting position, avoiding momentum and maintaining a neutral spine throughout.",
+      },
+    ],
+  },
+  ringabrollout_bodyweight: {
+    content:
+      "## Starting Position\n1. **Rings**: Set the rings at about hip height.\n2. **Grip**: Stand close to the rings and hold them with straight arms in front of your thighs.\n3. **Body**: Tuck your pelvis, pull your ribs down and squeeze your glutes into a hollow body position.\n\n## Movement\n1. **Rollout Phase**:\n   - Lean forward and let the rings travel forward and up overhead as your body lowers.\n   - Keep your arms straight and your body in one straight line.\n\n2. **Return Phase**:\n   - Pull the rings back down toward your hips with your abs and lats until you are standing again.\n\n## Key Points\n- Keep the hollow body position the whole time. A sagging lower back means you went too far.\n- Higher rings make it easier. Lower rings or elevated feet make it harder.\n- Keep your hands as close together as your shoulder mobility allows.",
+    video: "LBUfnmugKLw",
+    description:
+      "The Ring Ab Rollout is a standing anti-extension core exercise where you lean forward on gymnastics rings with straight arms, then pull yourself back up with your abs.",
+    howto: [
+      { name: "Set the Rings", text: "Hang the rings at about hip height and stand close to them with straight arms." },
+      { name: "Brace Your Core", text: "Tuck your pelvis, pull your ribs down and squeeze your glutes." },
+      {
+        name: "Roll Out",
+        text: "Lean forward and let the rings move forward and overhead, keeping your arms straight and body in one line.",
+      },
+      {
+        name: "Pull Back",
+        text: "Use your abs and lats to pull the rings back toward your hips until you stand upright.",
       },
     ],
   },
@@ -6409,6 +6573,22 @@ export const exerciseDescriptions: Record<
         name: "Return Slowly",
         text: "Extend your arms back to the starting position in a controlled manner, avoiding momentum or rounding your back.",
       },
+    ],
+  },
+  shoulderpassthrough_band: {
+    content:
+      "## Starting Position\n1. **Grip**: Hold a light resistance band with both hands, much wider than shoulder width.\n2. **Body**: Stand tall with the band in front of your hips and your arms straight.\n\n## Movement\n1. **Overhead Phase**:\n   - Raise the band in front of you and over your head, keeping your arms straight.\n\n2. **Behind Phase**:\n   - Continue the arc until the band touches your lower back.\n\n3. **Return Phase**:\n   - Reverse the movement back over your head to the front of your hips.\n\n## Key Points\n- Keep the arms straight. Bending the elbows removes the stretch.\n- Start with a wide grip and bring the hands closer only as your shoulders allow.\n- Move slowly and keep your ribs down, without arching your lower back.",
+    video: "Vwn5hSf3WEg",
+    description:
+      "The Shoulder Pass Through is a band warm-up where you move a resistance band with straight arms from in front of your hips, over your head, to behind your back, opening up the shoulders.",
+    howto: [
+      {
+        name: "Take a Wide Grip",
+        text: "Hold a light band in front of your hips with both hands, much wider than shoulder width.",
+      },
+      { name: "Raise the Band Overhead", text: "Lift the band in front of you and over your head with straight arms." },
+      { name: "Bring It Behind You", text: "Continue the arc until the band reaches your lower back." },
+      { name: "Return to the Front", text: "Reverse the movement over your head back to the start." },
     ],
   },
   shoulderpress_band: {
@@ -7308,6 +7488,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Lower Under Control",
         text: "Return slowly to the starting position while maintaining control and keeping the kettlebell stable above your chest. Exhale on the way up and inhale on the way down.",
+      },
+    ],
+  },
+  skinthecat_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from gymnastics rings or a bar with a shoulder-width grip and straight arms.\n2. **Body**: Start in a dead hang with your legs together.\n\n## Movement\n1. **Tuck Phase**:\n   - Lift your knees to your chest and roll your hips backward, passing your legs between your arms.\n   - Keep your arms straight.\n\n2. **German Hang Phase**:\n   - Continue rotating until your feet point toward the floor behind you and your shoulders are stretched.\n   - Lower only as far as your shoulder mobility allows.\n\n3. **Return Phase**:\n   - Pull your knees back through your arms and reverse the movement to the dead hang.\n\n## Key Points\n- Move slowly. The bottom position puts a large stretch on the shoulders.\n- Keep the arms straight the whole way.\n- The r/bodyweightfitness wiki asks for 5 sets of 2 before you start the Tuck Front Lever row path.",
+    video: "2T_wIiM8x8I",
+    description:
+      "Skin the Cat is a gymnastics rings movement where you rotate your body backward through your arms into a German hang and back, building straight-arm strength and shoulder mobility.",
+    howto: [
+      {
+        name: "Hang From the Rings",
+        text: "Take a shoulder-width grip on the rings or a bar and start in a dead hang with straight arms.",
+      },
+      {
+        name: "Tuck and Rotate",
+        text: "Lift your knees to your chest and roll backward, passing your legs between your arms.",
+      },
+      {
+        name: "Lower Into the German Hang",
+        text: "Keep rotating until your feet point down behind you, stopping where your shoulders allow.",
+      },
+      {
+        name: "Return to the Start",
+        text: "Tuck your knees back through your arms and reverse the movement under control.",
       },
     ],
   },
