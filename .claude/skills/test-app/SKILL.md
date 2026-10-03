@@ -74,7 +74,7 @@ node scripts/dump-rn-state.js --eval "globalThis.state.storage.settings.units"
 ```
 Hermes' `JSON.stringify` drops `undefined`/functions, so you get clean IState. Useful roots:
 `storage` (programs, settings, history, stats), `progress` (in-progress workout),
-`editProgramStates` / `editProgramExerciseStates` (edit buffers). Needs Metro connected — a
+`editProgramStates` (edit buffers). Needs Metro connected — a
 "Fast Refresh disconnected" banner means it dropped; relaunch the app.
 
 ### liftosaur-local MCP (set up the environment)
@@ -105,8 +105,8 @@ variants). State shapes are in `src/types.ts` and `src/models/state.ts`.
   or you'll hit a footer tab.
 - **Inputs commit on blur** — after `ui_type` into a numeric/text field, dismiss the keypad
   (its keyboard-icon) before dumping state, or the change won't be in state yet.
-- **CodeMirror / inlined-HTML WebViews** (e.g. the Liftoscript full-text editor) are ONE opaque
-  a11y node — you can't tap inside. Set that content via the MCP instead.
+- **The Liftoscript editor** is a native text view (Runestone). Set program text via the MCP
+  instead of typing into it.
 - **Reload to sync** MCP-made data: `launch_app(..., terminate_running:true)`.
 - **Verify the DATA, not just the screen** — the screen can look right while state is wrong.
 - Leave the account as you found it (or tell the user what you changed): switch the active

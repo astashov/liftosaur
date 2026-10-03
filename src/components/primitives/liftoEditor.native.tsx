@@ -76,7 +76,7 @@ export interface ILiftoEditorProps extends ILiftoEditorBaseProps {
   showLineNumbers?: boolean;
 }
 
-// Same picks as the web editor's dark chrome in editorWebview.css, expressed semantically so
+// Same picks as the removed WebView editor's dark chrome, expressed semantically so
 // light mode comes out of the same call. The editor view itself stays transparent and the
 // gutter keeps its theme-independent tint, so neither has a color here.
 // `selection` is the one translucent token: iOS draws the selection with UIKit's own

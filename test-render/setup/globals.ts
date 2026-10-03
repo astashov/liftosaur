@@ -6,8 +6,6 @@ g.__API_HOST__ = "https://api3.liftosaur.com";
 g.__ENV__ = "ios-rn";
 g.__COMMIT_HASH__ = "test";
 g.__FULL_COMMIT_HASH__ = "test";
-g.__BUNDLE_VERSION_IOS__ = 1;
-g.__BUNDLE_VERSION_ANDROID__ = 1;
 g.__PERF__ = false;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

@@ -202,8 +202,6 @@
     "node_modules/react-native-share",
     "node_modules/react-native-svg",
     "node_modules/react-native-view-shot",
-    "node_modules/react-native-webview",
-    "node_modules/react-native-webview/node_modules/escape-string-regexp",
     "node_modules/react-native-worklets",
     "node_modules/react-native/node_modules/promise",
     "node_modules/regenerator-runtime",

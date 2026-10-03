@@ -90,11 +90,6 @@ jest.mock("@react-native-clipboard/clipboard", () =>
   require("@react-native-clipboard/clipboard/jest/clipboard-mock.js")
 );
 
-jest.mock("react-native-webview", () => {
-  const { View } = require("react-native");
-  return { WebView: View, default: View };
-});
-
 jest.mock("@react-native-documents/picker", () => ({
   pick: jest.fn().mockResolvedValue([]),
   types: { allFiles: "public.item" },

@@ -67,9 +67,8 @@ interface IPropertyCandidate {
   isOrigin: boolean;
 }
 // Where a shared property gets printed, and which instance it's read from. Those differ because
-// the UI edits shared properties on the first instance only (EditProgramUiHelpers_changeFirstInstance).
-// TODO: once the editProgramExercise UI is gone (the editor sheet edits Liftoscript text directly,
-// so it never goes through here), drop 'exercise' and read the property off the origin instance.
+// the removed editProgramExercise UI edited shared properties on the first instance only.
+// TODO: nothing edits that way now, so drop 'exercise' and read the property off the origin instance.
 type IPropertyTarget = { location: string; exercise: IPlannerProgramExercise };
 type IPropertyTargets = Record<IShareablePropertyName, Record<string, IPropertyTarget>>;
 type IPropertyCandidates = Record<IShareablePropertyName, Record<string, IPropertyCandidate[]>>;

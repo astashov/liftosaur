@@ -19,7 +19,6 @@
     "react-native-safe-area-context": "react-native-safe-area-context",
     "react-native-slider": "@react-native-community/slider",
     "react-native-view-shot": "react-native-view-shot",
-    "react-native-webview": "react-native-webview",
     "RNAppleAuthentication": "@invertase/react-native-apple-authentication",
     "RNCClipboard": "@react-native-clipboard/clipboard",
     "RNDateTimePicker": "@react-native-community/datetimepicker",

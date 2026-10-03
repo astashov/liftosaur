@@ -138,8 +138,8 @@ client on PATH (`~/.local/bin/idb`). Note: `fb-idb` breaks on Python ≥3.13
   targeting over screenshots + coordinates.
 - Android has no idb-based server; keep using `mobile-mcp` (screenshot + coordinate
   taps, package `com.liftosaur.www.twa`) for Android.
-- The embedded Liftoscript editor is still an inlined-HTML WebView — it shows as one
-  opaque native node in the a11y tree; verify editor flows via Playwright-against-web.
+- On native, the Liftoscript editor is a native text view (Runestone on iOS, sora on
+  Android). On web it is CodeMirror.
 - Web verification via Playwright provides richer element detection via snapshots.
 
 ## Architecture Overview
