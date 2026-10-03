@@ -91,4 +91,17 @@ describe("GridSelectionSummary_build", () => {
     expect(summary.edit?.disabled).to.equal(true);
     expect(summary.actions.map((a) => a.label)).to.deep.equal(["Duplicate days", "Delete days"]);
   });
+
+  it("leaves out the stats actions where the stats already show next to the selection", () => {
+    const noStats = { includeStats: false };
+    const exercise = GridSelectionSummary_build(payloadFor({ kind: "exercises", placements: [squat] }, []), noStats);
+    const week = GridSelectionSummary_build(payloadFor({ kind: "week", weekIndex: 0, name: "Week 1" }, []), noStats);
+    const day = GridSelectionSummary_build(
+      payloadFor({ kind: "day", rowIndexes: [0], name: "Day 1", placements: [] }, []),
+      noStats
+    );
+    expect(exercise.actions.map((a) => a.label)).to.deep.equal(["Swap exercise", "Duplicate exercise", "Delete exercise"]);
+    expect(week.actions.map((a) => a.label)).to.deep.equal(["Duplicate week", "Delete week"]);
+    expect(day.actions.map((a) => a.label)).to.deep.equal(["Duplicate day", "Delete day"]);
+  });
 });

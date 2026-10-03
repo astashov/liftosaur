@@ -18,8 +18,12 @@ export interface IGridSelectionSummary {
   actions: IGridSelectionAction[];
 }
 
-export function GridSelectionSummary_build(payload: IGridSelectionPayload): IGridSelectionSummary {
+export function GridSelectionSummary_build(
+  payload: IGridSelectionPayload,
+  options: { includeStats: boolean } = { includeStats: true }
+): IGridSelectionSummary {
   const target = payload.target;
+  const { includeStats } = options;
 
   const single = target.kind === "exercises" && target.placements.length === 1 ? target.placements[0] : undefined;
   const label =
@@ -50,7 +54,9 @@ export function GridSelectionSummary_build(payload: IGridSelectionPayload): IGri
   let edit: IGridSelectionSummary["edit"];
   if (target.kind === "week") {
     edit = { label: "Edit week", disabled: false, onPress: () => payload.onEditWeek(target.weekIndex) };
-    actions.push({ label: "Week stats", onPress: () => payload.onShowWeekStats(target.weekIndex) });
+    if (includeStats) {
+      actions.push({ label: "Week stats", onPress: () => payload.onShowWeekStats(target.weekIndex) });
+    }
     actions.push({ label: "Duplicate week", onPress: () => payload.onDuplicateWeek(target.weekIndex) });
     actions.push({ label: "Delete week", isDestructive: true, onPress: () => payload.onDeleteWeek(target.weekIndex) });
   } else if (target.kind === "day") {
@@ -65,7 +71,7 @@ export function GridSelectionSummary_build(payload: IGridSelectionPayload): IGri
         }
       },
     };
-    if (singleRow != null) {
+    if (singleRow != null && includeStats) {
       actions.push({ label: "Day stats", onPress: () => payload.onShowDayStats(singleRow) });
     }
     actions.push({
@@ -93,7 +99,9 @@ export function GridSelectionSummary_build(payload: IGridSelectionPayload): IGri
           }
         : undefined;
     if (single != null) {
-      actions.push({ label: "Exercise stats", onPress: () => payload.onShowExerciseStats(single) });
+      if (includeStats) {
+        actions.push({ label: "Exercise stats", onPress: () => payload.onShowExerciseStats(single) });
+      }
       actions.push({ label: "Swap exercise", onPress: () => payload.onSwap(single) });
       actions.push({ label: "Duplicate exercise", onPress: () => payload.onDuplicate(single) });
     }

@@ -66,7 +66,9 @@ export function PlannerSidePanelHost(props: {
       tab={tab}
       stats={stats}
       isReorder={isReorder}
-      selection={isReorder && selection != null ? GridSelectionSummary_build(selection) : undefined}
+      selection={
+        isReorder && selection != null ? GridSelectionSummary_build(selection, { includeStats: false }) : undefined
+      }
       copiedUrl={props.copiedUrl}
       isAffiliateLink={props.isAffiliateLink}
       isExportDisabled={props.isExportDisabled}
