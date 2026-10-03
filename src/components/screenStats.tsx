@@ -28,7 +28,6 @@ import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
-import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
 import { DatePicker } from "./datePicker";
@@ -44,12 +43,6 @@ interface IUpdates {
   bodyfat?: IPercentage;
   weight?: IWeight;
   waist?: ILength;
-}
-
-interface IHealthUpdates {
-  bodyfat?: string;
-  weight?: string;
-  waist?: string;
 }
 
 type IValuesRef = React.MutableRefObject<Partial<Record<IStatsKey, string>>>;
@@ -184,8 +177,6 @@ export function ScreenStats(props: IProps): JSX.Element {
       (HealthSync_eligibleForAppleHealth() && syncToAppleHealth) ||
       (HealthSync_eligibleForGoogleHealth() && syncToGoogleHealth)
     ) {
-      const updatesForHealthSync = getUpdatesForHealthSync(updates, timestamp);
-      SendMessage_toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
       props.dispatch(
         Thunk_saveMeasurementsToHealth({
           bodyweight: updates.weight,
@@ -196,20 +187,6 @@ export function ScreenStats(props: IProps): JSX.Element {
       );
     }
     props.dispatch(Thunk_pullScreen());
-  }
-
-  function getUpdatesForHealthSync(updates: IUpdates, timestamp: number): IHealthUpdates {
-    const healthSyncUpdates: IHealthUpdates = {};
-    ObjectUtils_keys(updates).forEach((key) => {
-      if (key === "weight") {
-        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
-      } else if (key === "bodyfat") {
-        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
-      } else if (key === "waist") {
-        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
-      }
-    });
-    return healthSyncUpdates;
   }
 
   useNavOptions({

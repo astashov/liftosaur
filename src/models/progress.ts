@@ -73,7 +73,6 @@ import {
   IProgramExerciseWarmupSet,
 } from "../types";
 import { INativeEffect } from "./nativeEffects";
-import { SendMessage_print } from "../utils/sendMessage";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IPercentage, IScriptErrorHandler, ITimedSetSide } from "../types";
 import { TimedSet_open, TimedSet_recordedFor } from "./timedSet";
@@ -411,7 +410,6 @@ export function Progress_scheduleTimerNotification(
       }
     }
   }
-  SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
   effects.push({
     type: "startTimer",
     params: {

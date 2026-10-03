@@ -16,7 +16,6 @@ import {
   ILiveActivityState,
 } from "./liveActivityState";
 import { INativeEffect } from "../models/nativeEffects";
-import { SendMessage_print } from "./sendMessage";
 import { Subscriptions_hasSubscription } from "./subscriptions";
 import { UrlUtils_build } from "./url";
 
@@ -214,9 +213,6 @@ export function LiveActivityManager_updateLiveActivity(
         : undefined,
     ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
   };
-  SendMessage_print(
-    `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
-  );
   effects.push({ type: "updateLiveActivity", state: attributes });
 }
 

@@ -32,7 +32,6 @@ import {
   History_totalRecordReps,
   History_getStartedEntries,
   History_collectMuscleGroups,
-  History_calories,
 } from "../models/history";
 import { Reps_setWarmupStatus, Reps_setsStatus, Reps_findNextEntryAndSetIndex, Reps_addSet } from "../models/set";
 import { IStorageUpdate2, Sync_getStorageUpdate2 } from "../utils/sync";
@@ -85,11 +84,9 @@ import {
 import { ObjectUtils_keys } from "../utils/object";
 import { Collector } from "../utils/collector";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
-import { SendMessage_toIos } from "../utils/sendMessage";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
 import { INativeEffect, INativeEffectBridges, NativeEffects_apply } from "../models/nativeEffects";
-import { TimerBridge } from "../utils/nativeTimerBridge";
-import { WorkoutBridge } from "../utils/nativeWorkoutBridge";
+import { WatchHostTimerBridge, WatchHostWorkoutBridge } from "./watchHostBridges";
 import { WatchBridge } from "../utils/nativeWatchBridge";
 import { WorkoutMirroring } from "../utils/nativeWorkoutMirroringBridge";
 import { TimedSet_toView, TimedSet_withRecorded } from "../models/timedSet";
@@ -290,8 +287,8 @@ function setToWatchSet(
 
 // Cache validated storage to avoid re-parsing/validating on every call
 const watchBridges: INativeEffectBridges = {
-  timer: new TimerBridge(),
-  workout: new WorkoutBridge(),
+  timer: new WatchHostTimerBridge(),
+  workout: new WatchHostWorkoutBridge(),
   watch: new WatchBridge(),
   mirroring: new WorkoutMirroring(),
 };
@@ -1677,29 +1674,10 @@ class LiftosaurWatch {
     });
   }
 
+  // WorkoutManager.swift still calls this and ignores the result. The finishWorkout message it used to
+  // post had no handler in WatchMessageHandler.swift.
   public static finishWorkoutContinue(storageJson: string): string {
-    return this.getStorage<{ sent: boolean }>(storageJson, (storage) => {
-      const history = storage.history;
-      if (history.length === 0) {
-        return { success: true, data: { sent: false } };
-      }
-
-      const record = history[0];
-      const settings = storage.settings;
-
-      const healthSync = !!settings.appleHealthSyncWorkout;
-      const calories = History_calories(record);
-      const intervals = record.intervals || [[record.startTime, record.endTime || Date.now()]];
-
-      SendMessage_toIos({
-        type: "finishWorkout",
-        healthSync: healthSync ? "true" : "false",
-        calories: `${calories}`,
-        intervals: JSON.stringify(intervals),
-      });
-
-      return { success: true, data: { sent: true } };
-    });
+    return this.getStorage<{ sent: boolean }>(storageJson, () => ({ success: true, data: { sent: false } }));
   }
 
   // Called when storage is updated from external source (phone sync, server)

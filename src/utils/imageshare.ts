@@ -1,11 +1,5 @@
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import * as htmlToImage from "html-to-image";
-import {
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-  SendMessage_toAndroid,
-  SendMessage_toIosAndAndroid,
-} from "./sendMessage";
 import { Dialog_alert } from "./dialog";
 
 export class ImageShareUtils {
@@ -26,30 +20,14 @@ export class ImageShareUtils {
   }
 
   public static async shareToSocial(
-    target: "igstory" | "igfeed" | "tiktok",
-    workoutImage: string,
-    options: { backgroundImage?: string } = {}
-  ): Promise<void> {
-    SendMessage_toIosAndAndroid({
-      type: "share",
-      target,
-      useCustomBackground: options.backgroundImage ? "true" : "false",
-      backgroundImage: options.backgroundImage,
-      workoutImage,
-    });
-  }
+    _target: "igstory" | "igfeed" | "tiktok",
+    _workoutImage: string,
+    _options: { backgroundImage?: string } = {}
+  ): Promise<void> {}
 
   public async shareOrDownload(): Promise<void> {
     if (this.canShareDataUrl()) {
       await this.shareDataURL();
-    } else if (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) {
-      SendMessage_toAndroid({
-        type: "share",
-        target: "image",
-        useCustomBackground: "false",
-        backgroundImage: undefined,
-        workoutImage: this.dataURL,
-      });
     } else {
       this.saveDataURLToFile();
     }

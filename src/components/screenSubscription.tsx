@@ -11,13 +11,6 @@ import { IAppleOffer, IGoogleOffer, INavCommon, IOfferData, ISubscriptionLoading
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
-import {
-  SendMessage_isIos,
-  SendMessage_isAndroid,
-  SendMessage_toIos,
-  SendMessage_iosAppVersion,
-  SendMessage_androidAppVersion,
-} from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
 import { IconBell } from "./icons/iconBell";
 import { IconSpinner } from "./icons/iconSpinner";
@@ -181,11 +174,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
       });
   }
   const hasOffer = !!(monthlyOffer || yearlyOffer);
-  const supportsLifetime =
-    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 8) ||
-    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 15) ||
-    Platform.OS === "ios" ||
-    Platform.OS === "android";
+  const supportsLifetime = Platform.OS === "ios" || Platform.OS === "android";
 
   useNavOptions({ navHidden: true });
 
@@ -248,9 +237,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               <LinkButton
                 name="redeem-coupon"
                 onPress={() => {
-                  if (SendMessage_isIos()) {
-                    SendMessage_toIos({ type: "redeemCoupon" });
-                  } else if (Platform.OS === "ios") {
+                  if (Platform.OS === "ios") {
                     props.dispatch(Thunk_redeemCouponIOS());
                   } else {
                     navigateToModal("couponModal");

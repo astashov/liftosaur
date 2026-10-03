@@ -23,14 +23,6 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import { GroupHeader } from "./groupHeader";
 import { StringUtils_truncate } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
-import {
-  SendMessage_isIos,
-  SendMessage_iosAppVersion,
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-  SendMessage_toIos,
-  SendMessage_toAndroid,
-} from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { navigateToModal } from "../navigation/navigationService";
@@ -60,13 +52,7 @@ interface IProps {
 }
 
 function openExternal(url: string): void {
-  if (SendMessage_isIos()) {
-    SendMessage_toIos({ type: "openUrl", url });
-  } else if (SendMessage_isAndroid()) {
-    SendMessage_toAndroid({ type: "openUrl", url });
-  } else {
-    Linking.openURL(url).catch(() => undefined);
-  }
+  Linking.openURL(url).catch(() => undefined);
 }
 
 function ScreenSettingsInner(props: IProps): JSX.Element {
@@ -305,10 +291,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
           });
         }}
       />
-      {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 6) ||
-        Platform.OS === "ios" ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13) ||
-        Platform.OS === "android") && (
+      {(Platform.OS === "ios" || Platform.OS === "android") && (
         <MenuItemEditable
           type="boolean"
           name="Always On Display"
@@ -324,10 +307,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
           }}
         />
       )}
-      {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 7) ||
-        Platform.OS === "ios" ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14) ||
-        Platform.OS === "android") && (
+      {(Platform.OS === "ios" || Platform.OS === "android") && (
         <View>
           <GroupHeader name="Sound" topPadding={true} />
           <MenuItemEditable
@@ -366,30 +346,29 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
               </View>
             </View>
           </MenuItemWrapper>
-          {Subscriptions_hasSubscription(props.subscription) &&
-            ((SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 17) || Platform.OS === "android") && (
-              <MenuItemEditable
-                type="boolean"
-                name="Ignore Do Not Disturb"
-                value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
-                nextLine={
-                  <View className="mb-2" style={{ marginTop: -8 }}>
-                    <Text className="text-xs text-text-secondary">
-                      Push notification will make a sound even in Silent or Do Not Disturb mode
-                    </Text>
-                  </View>
-                }
-                onChange={(newValue) => {
-                  props.dispatch({
-                    type: "UpdateSettings",
-                    lensRecording: lb<ISettings>()
-                      .p("ignoreDoNotDisturb")
-                      .record(newValue === "true"),
-                    desc: "Toggle ignore DND",
-                  });
-                }}
-              />
-            )}
+          {Subscriptions_hasSubscription(props.subscription) && Platform.OS === "android" && (
+            <MenuItemEditable
+              type="boolean"
+              name="Ignore Do Not Disturb"
+              value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
+              nextLine={
+                <View className="mb-2" style={{ marginTop: -8 }}>
+                  <Text className="text-xs text-text-secondary">
+                    Push notification will make a sound even in Silent or Do Not Disturb mode
+                  </Text>
+                </View>
+              }
+              onChange={(newValue) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>()
+                    .p("ignoreDoNotDisturb")
+                    .record(newValue === "true"),
+                  desc: "Toggle ignore DND",
+                });
+              }}
+            />
+          )}
         </View>
       )}
       {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (

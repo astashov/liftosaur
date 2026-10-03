@@ -1,4 +1,3 @@
-import { SendMessage_isIos, SendMessage_toIos, SendMessage_isAndroid, SendMessage_toAndroid } from "./sendMessage";
 import { UrlUtils_build } from "./url";
 
 declare let __HOST__: string;
@@ -27,21 +26,15 @@ export function getGoogleAccessToken(useBrowserCallback?: boolean): Promise<stri
 
     const windowOpts = "toolbar=no, menubar=no, width=600, height=700, top=100, left=100";
 
-    if (SendMessage_isIos()) {
-      SendMessage_toIos({ type: "signInWithGoogle" });
-    } else if (SendMessage_isAndroid()) {
-      SendMessage_toAndroid({ type: "signInWithGoogle" });
-    } else {
-      if (windowRef == null || windowRef.closed) {
-        windowRef = window.open(url, "google-auth", windowOpts);
-      } else if (windowUrl !== url) {
-        windowRef = window.open(url, "google-auth", windowOpts);
-        if (windowRef != null) {
-          windowRef.focus();
-        }
-      } else {
+    if (windowRef == null || windowRef.closed) {
+      windowRef = window.open(url, "google-auth", windowOpts);
+    } else if (windowUrl !== url) {
+      windowRef = window.open(url, "google-auth", windowOpts);
+      if (windowRef != null) {
         windowRef.focus();
       }
+    } else {
+      windowRef.focus();
     }
 
     receiveMessage = (event) => {

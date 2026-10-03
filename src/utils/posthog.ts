@@ -1,11 +1,5 @@
 import { IEventPayload, Service } from "../api/service";
-import {
-  SendMessage_isIos,
-  SendMessage_isAndroid,
-  SendMessage_iosAppVersion,
-  SendMessage_androidAppVersion,
-  SendMessage_toIosAndAndroid,
-} from "./sendMessage";
+import { WatchHost_isAvailable, WatchHost_send } from "./watchHost";
 import { AppAttribution_get } from "./appAttribution";
 import { EventManager_isAvailable, EventManager_log } from "./eventManager";
 import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
@@ -76,11 +70,8 @@ export function lg(
     userId: tempUserId,
   };
 
-  if (
-    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 13) ||
-    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 22)
-  ) {
-    SendMessage_toIosAndAndroid({
+  if (WatchHost_isAvailable()) {
+    WatchHost_send({
       type: "event",
       data: JSON.stringify(event),
       commithash: event.commithash,

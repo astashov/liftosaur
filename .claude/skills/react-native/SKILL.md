@@ -391,16 +391,6 @@ function openExternal(url: string): void {
 <Pressable onPress={() => openExternal("https://discord.com/...")}><Text>Discord</Text></Pressable>
 ```
 
-## Auto-hidden Features on Native
-
-`SendMessage_isIos()` and `SendMessage_isAndroid()` check `window.webkit.messageHandlers` / `window.JSAndroidBridge` — both return `false` in pure RN. Any code guarded by these checks **auto-hides on native** with no extra work:
-- Vibration toggle
-- Always-On Display
-- Sound section / volume slider
-- Native-app-only buttons
-
-If you want similar behavior to render natively, you'd add a `Platform.OS === "ios" || Platform.OS === "android"` check instead.
-
 ## window.* Gotchas
 
 These don't exist on RN — replace before sharing code:

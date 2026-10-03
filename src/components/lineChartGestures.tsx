@@ -1,6 +1,5 @@
 import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleProp, ViewStyle } from "react-native";
-import { SendMessage_isIosOrAndroid } from "../utils/sendMessage";
 
 function targetIsInsideGraphLegend(target: Node): boolean {
   let el: Node | null = target;
@@ -55,8 +54,6 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
     if (!node || args.isInteractive === false) {
       return;
     }
-
-    const isWebview = SendMessage_isIosOrAndroid();
 
     let dragStart: { clientX: number; xMin: number; xMax: number; moved: boolean } | null = null;
 
@@ -287,9 +284,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
         cancelScrubTimer();
         scrub = null;
         singleTap = null;
-        if (!isWebview) {
-          setFrozen(true);
-        }
+        setFrozen(true);
         return;
       }
       if (scrub && !scrub.active) {
@@ -307,11 +302,9 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
             setFrozen(false);
             lastTapTime = 0;
           } else {
-            if (!isWebview) {
-              const idx = argsRef.current.setCursorAtPx(xPx);
-              if (idx != null) {
-                setFrozen(true);
-              }
+            const idx = argsRef.current.setCursorAtPx(xPx);
+            if (idx != null) {
+              setFrozen(true);
             }
             lastTapTime = now;
             lastTapX = singleTap.startX;

@@ -18,7 +18,6 @@ import { DateUtils_formatHHMMSS } from "../../utils/date";
 import { ObjectUtils_values } from "../../utils/object";
 import { Button } from "../../components/button";
 import { Input } from "../../components/input";
-import { SendMessage_toIos, SendMessage_toAndroid } from "../../utils/sendMessage";
 import { ShareLog_share } from "../../utils/shareLog";
 
 export function NavModalDebug(): JSX.Element {
@@ -76,8 +75,6 @@ export function NavModalDebug(): JSX.Element {
             name="share-device-logs"
             kind="purple"
             onClick={() => {
-              SendMessage_toIos({ type: "shareLog" });
-              SendMessage_toAndroid({ type: "shareLog" });
               ShareLog_share();
             }}
           >

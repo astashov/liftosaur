@@ -83,14 +83,6 @@ import {
   Subscriptions_verifyGooglePurchaseToken,
   Subscriptions_setGooglePurchaseToken,
 } from "../utils/subscriptions";
-import {
-  SendMessage_isIos,
-  SendMessage_toIosWithResult,
-  SendMessage_toIos,
-  SendMessage_print,
-  SendMessage_toAndroid,
-  SendMessage_isAndroid,
-} from "../utils/sendMessage";
 import { IIapPurchase, IIapPurchaseError } from "../utils/iapAdapter";
 import {
   IapHelpers_alertAlreadySubscribed,
@@ -283,19 +275,6 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
       }
       id_token = signInResult.idToken;
       code = signInResult.code ?? "";
-    } else if (SendMessage_isIos()) {
-      const result = await SendMessage_toIosWithResult<{ id_token: string; code: string } | { error: string }>({
-        type: "signInWithApple",
-      });
-      if (!result) {
-        return;
-      }
-      if ("error" in result) {
-        Dialog_alert(result.error);
-        return;
-      } else {
-        ({ id_token, code } = result);
-      }
     } else {
       if (!window.AppleID?.auth) {
         Dialog_alert("Apple Sign In is not available");
@@ -375,7 +354,6 @@ export function Thunk_logOut(cb?: () => void): IThunk {
       // debug session - tearing down the keychain/Google/watch auth here would wipe the admin's own
       // real persisted login.
       if (!isDebugAccount) {
-        SendMessage_toIos({ type: "accountLogout" });
         try {
           await env.keychain.clearAuthToken();
         } catch (e) {
@@ -845,7 +823,6 @@ export function Thunk_completeSetExternal(
     if (!isWarmup) {
       adjustedSetIndex -= entry.warmupSets.length;
     }
-    SendMessage_print(`Main App: complete set entryIndex: ${entryIndex}, setIndex: ${setIndex}`);
     const program = Program_getFullProgram(state, progress.programId);
     const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
     const programExercise = evaluatedProgram
@@ -854,12 +831,10 @@ export function Thunk_completeSetExternal(
 
     const set = isWarmup ? entry.warmupSets[adjustedSetIndex] : entry.sets[adjustedSetIndex];
     if (!set) {
-      SendMessage_print(`Main App: Set not found at index ${adjustedSetIndex}, skipping`);
       dispatch(Thunk_updateLiveActivity(entryIndex, setIndex, restTimer, restTimerSince));
       return;
     }
     if (set.isCompleted) {
-      SendMessage_print(`Main App: Set already completed, refreshing live activity`);
       dispatch(Thunk_updateLiveActivity(entryIndex, setIndex, restTimer, restTimerSince));
       return;
     }
@@ -1167,7 +1142,6 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
         }
 
         updateState(dispatch, [lb<IState>().p("storage").record(mergedStorage)], "Merge watch storage");
-        SendMessage_print("handleWatchStorageMerge: successfully merged watch storage");
 
         const beforeProgress = state.storage.progress?.[0];
         const afterProgress = mergedStorage.progress?.[0];
@@ -1231,11 +1205,8 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
           env.workout.discardWorkout();
         }
         if (wasOnProgressScreen && hadProgress && progressIsNowEmpty) {
-          SendMessage_print("handleWatchStorageMerge: workout finished on watch, navigating to main screen");
           dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
         }
-      } else {
-        SendMessage_print("handleWatchStorageMerge: no changes after merge");
       }
 
       // Sent whether or not the merge changed anything: a record the phone already holds still has to
@@ -1246,7 +1217,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
         env.watch.sendStorageAckToWatch(ackedIds);
       }
     } catch (error) {
-      SendMessage_print(`handleWatchStorageMerge: failed to merge storage: ${error}`);
+      console.error("handleWatchStorageMerge: failed to merge storage", error);
     }
   };
 }
@@ -1417,8 +1388,6 @@ export function Thunk_maybeRequestReview(): IThunk {
         (!lastReviewRequest || now - lastReviewRequest > 1000 * 60 * 60 * 24 * 32)
       ) {
         dispatch(Thunk_postevent("request-review"));
-        SendMessage_toIos({ type: "requestReview" });
-        SendMessage_toAndroid({ type: "requestReview" });
         InAppReview_request();
       }
     } catch (error) {
@@ -1584,19 +1553,6 @@ export function Thunk_pauseWorkout(): IThunk {
 export function Thunk_pauseWorkoutNative(): IThunk {
   return async (dispatch, getState, env) => {
     env.workout.pauseWorkout();
-  };
-}
-
-export function Thunk_saveWorkoutToHealthNative(args: {
-  progress: IHistoryRecord;
-  intervals: [number, number | null][];
-}): IThunk {
-  return async (dispatch, getState, env) => {
-    env.workout.finishWorkout({
-      healthSync: true,
-      calories: History_calories(args.progress),
-      intervals: JSON.stringify(args.intervals),
-    });
   };
 }
 
@@ -2240,7 +2196,7 @@ export function Thunk_fetchInitial(): IThunk {
           env.service,
           getState().storage.subscription
         );
-        if (SendMessage_isIos() || Platform.OS === "ios") {
+        if (Platform.OS === "ios") {
           dispatch(Thunk_restorePurchases());
         }
       } else {
@@ -2249,12 +2205,6 @@ export function Thunk_fetchInitial(): IThunk {
           Subscriptions_setAppleReceipt(dispatch, receipt);
         }
       }
-    }
-    // Modern RN restore-on-load (Platform.OS android/ios) must wait until initConnection() succeeds, so it's
-    // dispatched from the IAP effect in App.native.tsx via Thunk_iapRestoreOnStartup, not here. The legacy WebView
-    // Android app has no env.iap and restores through the native bridge, which doesn't depend on initConnection.
-    if (SendMessage_isAndroid()) {
-      dispatch(Thunk_restorePurchases());
     }
   };
 }
@@ -2541,7 +2491,6 @@ async function handleLogin(
         dispatch({ type: "ReplaceState", state: newState });
       }
       dispatch(Thunk_fetchInitial());
-      SendMessage_toIos({ type: "authChanged", userId: result.user_id });
       if (result.session) {
         const auth: IAuthToken = {
           token: result.session,
@@ -2575,12 +2524,7 @@ interface IIapSubscribeArgs {
   googlePromo?: IGooglePromotionalOffer;
 }
 
-function buildSubscribeThunk(
-  loadingKey: keyof ISubscriptionLoading,
-  messageType: "subscribeMontly" | "subscribeYearly",
-  sku: string,
-  args?: IIapSubscribeArgs
-): IThunk {
+function buildSubscribeThunk(loadingKey: keyof ISubscriptionLoading, sku: string, args?: IIapSubscribeArgs): IThunk {
   return async (dispatch, getState, env) => {
     IapHelpers_setLoading(dispatch, getState, { [loadingKey]: true } as ISubscriptionLoading);
     if (env.iap) {
@@ -2600,19 +2544,16 @@ function buildSubscribeThunk(
         IapHelpers_clearLoading(dispatch);
         console.warn("IAP requestSubscription failed", e);
       }
-    } else {
-      SendMessage_toIos({ type: messageType, offer: JSON.stringify(args?.applePromo) });
-      SendMessage_toAndroid({ type: messageType, offer: JSON.stringify(args?.googlePromo) });
     }
   };
 }
 
 export function Thunk_subscribeMonthly(args?: IIapSubscribeArgs): IThunk {
-  return buildSubscribeThunk("monthly", "subscribeMontly", IapHelpers_getSkus().monthly, args);
+  return buildSubscribeThunk("monthly", IapHelpers_getSkus().monthly, args);
 }
 
 export function Thunk_subscribeYearly(args?: IIapSubscribeArgs): IThunk {
-  return buildSubscribeThunk("yearly", "subscribeYearly", IapHelpers_getSkus().yearly, args);
+  return buildSubscribeThunk("yearly", IapHelpers_getSkus().yearly, args);
 }
 
 export function Thunk_buyLifetime(): IThunk {
@@ -2631,9 +2572,6 @@ export function Thunk_buyLifetime(): IThunk {
         IapHelpers_clearLoading(dispatch);
         console.warn("IAP requestInAppProduct failed", e);
       }
-    } else {
-      SendMessage_toIos({ type: "subscribeLifetime" });
-      SendMessage_toAndroid({ type: "subscribeLifetime" });
     }
   };
 }
@@ -2668,9 +2606,6 @@ export function Thunk_restorePurchases(args?: { interactive?: boolean }): IThunk
           Dialog_alert("Couldn't restore purchases. Please try again later.");
         }
       }
-    } else {
-      SendMessage_toIos({ type: "restoreSubscriptions" });
-      SendMessage_toAndroid({ type: "restoreSubscriptions" });
     }
   };
 }

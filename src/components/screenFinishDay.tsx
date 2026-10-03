@@ -26,12 +26,6 @@ import { Collector } from "../utils/collector";
 import { CollectionUtils_splitIntoNGroups } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { TimeUtils_formatHHMM } from "../utils/time";
-import {
-  SendMessage_isIos,
-  SendMessage_iosAppVersion,
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-} from "../utils/sendMessage";
 import { IconInstagram } from "./icons/iconInstagram";
 import { WorkoutShareButton } from "./workoutShareButton";
 import { IconLink } from "./icons/iconLink";
@@ -96,11 +90,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const muscleGroupsGrouped = CollectionUtils_splitIntoNGroups(muscleGroups, 2);
   const eligibleForCreateProgramDay = props.allPrograms.every((p) => p.id !== record.programId);
 
-  const isMobile =
-    Platform.OS === "ios" ||
-    Platform.OS === "android" ||
-    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
-    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
+  const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
   return (
     <>

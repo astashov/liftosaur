@@ -1,4 +1,3 @@
-import { SendMessage_toIos } from "./sendMessage";
 import { IEither } from "./types";
 
 export async function ClipboardUtils_paste(): Promise<string | undefined> {
@@ -19,16 +18,14 @@ export async function ClipboardUtils_paste(): Promise<string | undefined> {
 }
 
 export async function ClipboardUtils_copy(text: string): Promise<void> {
-  if (!SendMessage_toIos({ type: "copyToClipboard", value: text })) {
-    if (!navigator.clipboard) {
+  if (!navigator.clipboard) {
+    fallbackCopyTextToClipboard(text);
+  } else {
+    try {
+      await copyTextToClipboard(text);
       fallbackCopyTextToClipboard(text);
-    } else {
-      try {
-        await copyTextToClipboard(text);
-        fallbackCopyTextToClipboard(text);
-      } catch (e) {
-        fallbackCopyTextToClipboard(text);
-      }
+    } catch (e) {
+      fallbackCopyTextToClipboard(text);
     }
   }
 }

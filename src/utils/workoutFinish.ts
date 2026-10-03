@@ -11,7 +11,6 @@ import { History_calories, History_pauseWorkout } from "../models/history";
 import { Progress_isFullyEmptyOrFinishedSet } from "../models/progress";
 import { IHistoryRecord, ISettings } from "../types";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
-import { SendMessage_isIos } from "./sendMessage";
 import { Dialog_confirm } from "./dialog";
 
 export interface IWorkoutFinishArgs {
@@ -46,7 +45,7 @@ export async function WorkoutFinish_run(args: IWorkoutFinishArgs): Promise<void>
     dispatch(Thunk_finishProgramDay(progress.id));
     if (isCurrent) {
       dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
-      const isIos = Platform.OS === "ios" || SendMessage_isIos();
+      const isIos = Platform.OS === "ios";
       const healthName = isIos ? "Apple Health" : "Google Health";
       const isHealthEligible =
         (HealthSync_eligibleForAppleHealth() && settings.appleHealthSyncWorkout) ||

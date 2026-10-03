@@ -15,14 +15,8 @@ import { IconHeart } from "../../components/icons/iconHeart";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { Share_generateLink } from "../../models/share";
 import { History_calories, History_pauseWorkout } from "../../models/history";
-import { Thunk_saveWorkoutToHealth, Thunk_saveWorkoutToHealthNative } from "../../ducks/thunks";
+import { Thunk_saveWorkoutToHealth } from "../../ducks/thunks";
 import { LiftohistorySerializer_serialize } from "../../liftohistory/liftohistorySerializer";
-import {
-  SendMessage_isIos,
-  SendMessage_iosAppVersion,
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-} from "../../utils/sendMessage";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../../lib/healthSync";
 import type { IRootStackParamList } from "../types";
 
@@ -37,11 +31,7 @@ export function NavModalWorkoutShare(): JSX.Element {
   const { progressId } = route.params;
 
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
-  const isMobile =
-    Platform.OS === "ios" ||
-    Platform.OS === "android" ||
-    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
-    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
+  const isMobile = Platform.OS === "ios" || Platform.OS === "android";
 
   const replaceWithSocialShare = (type: "igstory" | "igfeed" | "tiktok"): void => {
     navigation.dispatch(StackActions.replace("socialShareModal", { type, progressId }));
@@ -62,7 +52,7 @@ export function NavModalWorkoutShare(): JSX.Element {
     navigation.goBack();
   };
 
-  const isIos = Platform.OS === "ios" || SendMessage_isIos();
+  const isIos = Platform.OS === "ios";
   const healthName = isIos ? "Apple Health" : "Google Health";
   const shouldShowHealthSync = HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth();
 
@@ -99,32 +89,20 @@ export function NavModalWorkoutShare(): JSX.Element {
               description={""}
               icon={<IconHeart size={24} />}
               onClick={() => {
-                // Legacy webview wrapper builds (Platform.OS === "web") sync via the native
-                // finishWorkout bridge message; bare-RN builds write directly through env.health.
-                if (SendMessage_isIos() || SendMessage_isAndroid()) {
-                  dispatch(
-                    Thunk_saveWorkoutToHealthNative({
-                      progress,
-                      intervals: (progress.intervals ?? []).map(([s, e]) => [s, e ?? null]),
-                    })
-                  );
-                  Dialog_alert(`Synced to ${healthName}`);
-                } else {
-                  const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
-                  const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
-                  const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
-                  const startMs = validIntervals[0]?.[0] ?? progress.startTime;
-                  const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? progress.endTime ?? startMs;
-                  dispatch(
-                    Thunk_saveWorkoutToHealth({
-                      startMs,
-                      endMs,
-                      calories: History_calories(progress),
-                      intervals,
-                      successAlert: true,
-                    })
-                  );
-                }
+                const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
+                const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
+                const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
+                const startMs = validIntervals[0]?.[0] ?? progress.startTime;
+                const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? progress.endTime ?? startMs;
+                dispatch(
+                  Thunk_saveWorkoutToHealth({
+                    startMs,
+                    endMs,
+                    calories: History_calories(progress),
+                    intervals,
+                    successAlert: true,
+                  })
+                );
                 onClose();
               }}
             />

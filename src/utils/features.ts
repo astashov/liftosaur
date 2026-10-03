@@ -1,4 +1,3 @@
-import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
 import { StringUtils_hashCode0To1 } from "./string";
 import { Platform } from "react-native";
 
@@ -26,8 +25,8 @@ export function Features_isEnabled(name: keyof typeof Features_features, userid?
   }
   if (
     feature.platform &&
-    ((feature.platform === "ios" && !(SendMessage_isIos() || Platform.OS === "ios")) ||
-      (feature.platform === "android" && !(SendMessage_isAndroid() || Platform.OS === "android")))
+    ((feature.platform === "ios" && Platform.OS !== "ios") ||
+      (feature.platform === "android" && Platform.OS !== "android"))
   ) {
     return false;
   }

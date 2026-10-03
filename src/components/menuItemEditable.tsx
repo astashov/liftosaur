@@ -3,7 +3,6 @@ import { MenuItemWrapper } from "./menuItem";
 import { StringUtils_dashcase } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
-import { SendMessage_isIos } from "../utils/sendMessage";
 import { lg } from "../utils/posthog";
 import { MathUtils_normalizeNumStr } from "../utils/math";
 
@@ -210,7 +209,7 @@ export function MenuItemValue(
             }
             handleChange(props.onChange, props.setPatternError)(e);
           }}
-          type={SendMessage_isIos() ? "number" : "tel"}
+          type="tel"
           step="0.01"
           onFocus={(e) => {
             const target = e.target;

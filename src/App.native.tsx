@@ -32,16 +32,12 @@ const globalAny = globalThis as unknown as {
   __ENV__: string;
   __COMMIT_HASH__: string;
   __FULL_COMMIT_HASH__: string;
-  __BUNDLE_VERSION_IOS__: number;
-  __BUNDLE_VERSION_ANDROID__: number;
 };
 globalAny.__HOST__ = nativeHost;
 globalAny.__API_HOST__ = nativeApiHost;
 globalAny.__ENV__ = Platform.OS === "ios" ? "ios-rn" : "android-rn";
 globalAny.__COMMIT_HASH__ = RN_COMMIT_HASH;
 globalAny.__FULL_COMMIT_HASH__ = RN_FULL_COMMIT_HASH;
-globalAny.__BUNDLE_VERSION_IOS__ = 1;
-globalAny.__BUNDLE_VERSION_ANDROID__ = 1;
 
 interface IRollbarFrame {
   filename?: string;
@@ -207,7 +203,8 @@ import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
 import { DeviceId_get } from "./utils/deviceId";
 import { Persistence } from "./utils/persistence";
-import { AppliedTheme_apply, useAppliedTheme } from "./utils/appliedTheme";
+import { useAppliedTheme } from "./utils/appliedTheme";
+import { Theme_apply } from "./utils/theme";
 import { TextSize_apply, TextSize_resolve, useAppliedTextSize } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
@@ -752,7 +749,7 @@ export function App(): React.JSX.Element {
       const url = new URL(`${__HOST__}/app/`);
       const deviceId = await DeviceId_get();
       const state = await getInitialState(fetch, { localStorage, url, deviceId });
-      AppliedTheme_apply(state.storage.settings.theme);
+      Theme_apply(state.storage.settings.theme);
       TextSize_apply(TextSize_resolve(state.storage.settings));
       if (state.storage.history.length > 0) {
         History_getHomeAggregates(state.storage.history, !!state.storage.settings.startWeekFromMonday);

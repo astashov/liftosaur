@@ -1,9 +1,6 @@
-import { NativeStorage } from "./nativeStorage";
 import { lg } from "./posthog";
 
 type ITransactionMode = "readonly" | "readwrite";
-
-export let nativeStorage: NativeStorage | undefined;
 
 function runTransaction<T>(
   mode: ITransactionMode,
@@ -79,26 +76,10 @@ async function withTransaction<T>(
   }
 }
 
-async function withNative<T>(operation: () => T): Promise<T | undefined> {
-  try {
-    return await operation();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (e: any) {
-    lg("ls-native-storage-error", { json: JSON.stringify(e) });
-    console.error("Native Storage error:", e);
-    return undefined;
-  }
-}
-
 export function IndexedDBUtils_initializeForSafari(): Promise<void> {
   return new Promise((resolve) => {
-    if (nativeStorage == null && NativeStorage.isAvailable()) {
-      nativeStorage = new NativeStorage();
-    }
     if (!window.indexedDB) {
-      if (!NativeStorage.isAvailable()) {
-        window.location.reload();
-      }
+      window.location.reload();
       resolve();
       return;
     }
@@ -123,17 +104,9 @@ export function IndexedDBUtils_initializeForSafari(): Promise<void> {
 
 export function IndexedDBUtils_initialize(): Promise<IDBDatabase | undefined> {
   return new Promise((resolve, reject) => {
-    if (nativeStorage == null && NativeStorage.isAvailable()) {
-      nativeStorage = new NativeStorage();
-    }
-
     if (!window.indexedDB) {
-      if (!NativeStorage.isAvailable()) {
-        window.location.reload();
-        reject(new Error("IndexedDB is not available"));
-      } else {
-        resolve(undefined);
-      }
+      window.location.reload();
+      reject(new Error("IndexedDB is not available"));
       return;
     }
     const connection = window.indexedDB.open("keyval-store");
@@ -155,15 +128,10 @@ export function IndexedDBUtils_initialize(): Promise<IDBDatabase | undefined> {
 }
 
 export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
-  let result: string[] | undefined = undefined;
-  if (nativeStorage != null) {
-    result = await nativeStorage.getAllKeys();
-  } else {
-    result = await withTransaction("readonly", (objectStore) => {
-      const keys = objectStore.getAllKeys();
-      return keys as IDBRequest<string[]>;
-    });
-  }
+  const result = await withTransaction("readonly", (objectStore) => {
+    const keys = objectStore.getAllKeys();
+    return keys as IDBRequest<string[]>;
+  });
   if (result != null) {
     return result;
   } else {
@@ -172,53 +140,27 @@ export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
 }
 
 export async function IndexedDBUtils_get(key: string): Promise<unknown> {
-  let result: unknown = undefined;
   const userid =
     typeof window !== "undefined"
       ? (window.tempUserId ?? (key.startsWith("liftosaur_") ? key.replace("liftosaur_", "") : undefined))
       : undefined;
-  if (nativeStorage != null) {
-    result = await withNative(() => nativeStorage?.get(key));
-    if (result == null) {
-      lg("ls-native-fallback-get", { key }, undefined, userid);
-      const nativeResult = result;
-      result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
-        (results: unknown[] | undefined) => {
-          return results?.[0];
-        }
-      );
-      if (nativeResult !== result) {
-        lg("ls-native-fallback-discrepancy", { key }, undefined, userid);
-      }
-    } else {
-      lg("ls-native-get", { key }, undefined, userid);
+  const result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
+    (results: unknown[] | undefined) => {
+      return results?.[0];
     }
-    return result;
-  } else {
-    result = await withTransaction("readonly", (objectStore) => objectStore.getAll(key)).then(
-      (results: unknown[] | undefined) => {
-        return results?.[0];
-      }
-    );
-    lg("ls-indexeddb-get", { key }, undefined, userid);
-  }
+  );
+  lg("ls-indexeddb-get", { key }, undefined, userid);
   return result;
 }
 
 export async function IndexedDBUtils_remove(key: string): Promise<void> {
-  await Promise.all([
-    withTransaction("readwrite", (objectStore) => objectStore.delete(key)),
-    withNative(() => nativeStorage?.delete(key)),
-  ]);
+  await withTransaction("readwrite", (objectStore) => objectStore.delete(key));
 }
 
 export async function IndexedDBUtils_set(key: string, value?: string): Promise<void> {
-  await Promise.all([
-    withTransaction("readwrite", (objectStore) => {
-      return objectStore.put(value, key);
-    }),
-    withNative(() => nativeStorage?.set(key, value)),
-  ]);
+  await withTransaction("readwrite", (objectStore) => {
+    return objectStore.put(value, key);
+  });
 }
 
 // Unlike IndexedDBUtils_set, REJECTS on transaction failure (e.g. quota abort): the
@@ -228,15 +170,6 @@ export async function IndexedDBUtils_setMany(pairs: Array<[string, string | unde
   if (pairs.length === 0) {
     return;
   }
-  const nativeMirror = withNative(async () => {
-    for (const [key, value] of pairs) {
-      if (value != null) {
-        await nativeStorage?.set(key, value);
-      } else {
-        await nativeStorage?.delete(key);
-      }
-    }
-  });
   try {
     // Single transaction so concurrent tabs always observe a consistent set of shards
     await runTransaction("readwrite", (objectStore) => {
@@ -249,7 +182,5 @@ export async function IndexedDBUtils_setMany(pairs: Array<[string, string | unde
   } catch (e) {
     logIndexedDBError(e);
     throw e;
-  } finally {
-    await nativeMirror;
   }
 }

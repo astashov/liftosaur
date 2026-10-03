@@ -112,11 +112,6 @@ export function RollbarUtils_config(payload?: object): RB.Configuration {
       }
       const id = UidFactory_generateUid(12);
       pld.liftosaur_exception_id = id;
-      pld.lftAndroidVersion = window.lftAndroidVersion;
-      pld.lftAndroidAppVersion = window.lftAndroidAppVersion;
-      pld.lftIosVersion = window.lftIosVersion;
-      pld.lftIosAppVersion = window.lftIosAppVersion;
-      pld.lftSystemDarkMode = window.lftSystemDarkMode;
       const state = Diagnostics_getLastState() ?? window.state;
       const lastActions = Diagnostics_getLastActions();
       const validationErrors = Diagnostics_getLastValidationErrors();

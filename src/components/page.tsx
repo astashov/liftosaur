@@ -354,8 +354,6 @@ function applyThemeBeforePaint(): string {
         var theme;
         if (stored === "dark" || stored === "light") {
           theme = stored;
-        } else if (typeof window.lftSystemDarkMode === "boolean") {
-          theme = window.lftSystemDarkMode ? "dark" : "light";
         } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
           theme = "dark";
         } else {

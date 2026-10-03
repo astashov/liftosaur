@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { useState } from "react";
-import { View, Image } from "react-native";
+import { View, Image, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -9,7 +9,6 @@ import { Text } from "../../components/primitives/text";
 import { Button } from "../../components/button";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
-import { SendMessage_isIos, SendMessage_isAndroid } from "../../utils/sendMessage";
 import { Thunk_log, Thunk_pushScreen } from "../../ducks/thunks";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { HostConfig_resolveUrl } from "../../utils/hostConfig";
@@ -58,12 +57,12 @@ export function NavModalSignupRequest(): JSX.Element {
             already! This is awesome! Consider <Text className="font-bold">signing up</Text> so your workout history
             would be backed up in the cloud.
           </Text>
-          {SendMessage_isIos() && (
+          {Platform.OS === "ios" && (
             <Text className="mt-4 text-center">
               It's a one-click process via <Text className="font-bold">Sign-in with Apple</Text>.
             </Text>
           )}
-          {SendMessage_isAndroid() && (
+          {Platform.OS === "android" && (
             <Text className="mt-4 text-center">
               It's a quick process via <Text className="font-bold">Sign-in with Google</Text>.
             </Text>

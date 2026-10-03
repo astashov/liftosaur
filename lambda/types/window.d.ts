@@ -41,11 +41,6 @@ interface Window {
   loadRollbar: (item: string | number, token: string, key: string) => Promise<void>;
   isUndoing?: boolean;
   webeditor?: boolean;
-  lftAndroidAppVersion?: string;
-  lftIosAppVersion?: string;
-  lftAndroidVersion?: number;
-  lftIosVersion?: string;
-  lftSystemDarkMode?: boolean;
   isPressingShiftCmdCtrl?: boolean;
   AppleID: {
     auth: {

@@ -10,14 +10,6 @@ import {
   Thunk_sync2,
   Thunk_postevent,
   Thunk_log,
-  Thunk_setAppleReceipt,
-  Thunk_setGooglePurchaseToken,
-  Thunk_syncHealthKit,
-  Thunk_pullScreen,
-  Thunk_completeSetExternal,
-  Thunk_updateLiveActivity,
-  Thunk_updateTimer,
-  Thunk_handleWatchStorageMerge,
   Thunk_fetchInitial,
   Thunk_debugTestLogin,
 } from "../ducks/thunks";
@@ -31,8 +23,8 @@ import { WorkoutMirroring } from "../utils/nativeWorkoutMirroringBridge";
 import { HeartRateStore } from "../utils/heartRateStore";
 import { IAudioInterface } from "../lib/audioInterface";
 import { Persistence } from "../utils/persistence";
-import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
-import { IAttributionData, IEnv, IState, updateState } from "../models/state";
+import { Progress_getCurrentProgress } from "../models/progress";
+import { IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
 import { Toast } from "./toast";
 import { useOnloadModals } from "../navigation/useOnloadModals";
@@ -42,8 +34,6 @@ import {
 } from "../utils/subscriptions";
 import { lb } from "lens-shmens";
 import { RestTimer } from "./restTimer";
-import { ImportExporter_handleUniversalLink } from "../lib/importexporter";
-import { SendMessage_toAndroid, SendMessage_toIos, SendMessage_print } from "../utils/sendMessage";
 import { UrlUtils_build } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
@@ -139,11 +129,6 @@ export function AppView(props: IProps): JSX.Element | null {
   useEffect(() => {
     stateRef.current = state;
   });
-  useEffect(() => {
-    SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
-    SendMessage_toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
-  }, [state.storage.settings.alwaysOnDisplay]);
-
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
   }, []);
@@ -258,116 +243,6 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     });
-    window.addEventListener("message", (event) => {
-      if (event.data?.type === "setAppleReceipt") {
-        dispatch(Thunk_setAppleReceipt(event.data.receipt));
-      } else if (event.data?.type === "setGooglePurchaseToken") {
-        dispatch(Thunk_setGooglePurchaseToken(event.data.productId, event.data.token));
-      } else if (event.data?.type === "loaded") {
-        dispatch(Thunk_postevent("loaded"));
-        dispatch(Thunk_syncHealthKit());
-      } else if (event.data?.type === "wake") {
-        dispatch(Thunk_postevent("wake"));
-        queue.clearStaleOperations();
-        dispatch(Thunk_sync2({ force: true }));
-        dispatch(Thunk_syncHealthKit());
-      } else if (event.data?.type === "syncToAppleHealthError") {
-        dispatch(Thunk_postevent("apple-health-error"));
-        Dialog_alert(event.data.error);
-      } else if (event.data?.type === "stopSubscriptionLoading") {
-        updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)], "Stop subscription loading");
-      } else if (event.data?.type === "products") {
-        dispatch(Thunk_postevent("sync-prices"));
-        const newPrices = { ...state.prices, ...event.data.data };
-        const newOffers = { ...state.offers, ...event.data.offers };
-        updateState(
-          dispatch,
-          [lb<IState>().p("prices").record(newPrices), lb<IState>().p("offers").record(newOffers)],
-          "Update prices for products"
-        );
-      } else if (event.data?.type === "universalLink") {
-        ImportExporter_handleUniversalLink(dispatch, event.data.link, client);
-      } else if (event.data?.type === "goBack") {
-        dispatch(Thunk_postevent("go-back"));
-        dispatch(Thunk_pullScreen());
-      } else if (event.data?.type === "attribution") {
-        if (event.data?.data != null && !event.data?.data.isOrganic) {
-          const data = event.data?.data as IAttributionData;
-          const referrer = `${data.mediaSource}_${data.campaign}`;
-          if (state.storage.referrer !== referrer) {
-            dispatch(Thunk_postevent("set-referrer", { referrer }));
-            updateState(dispatch, [lb<IState>().p("storage").p("referrer").record(referrer)], "Set Referrer");
-          }
-        }
-      } else if (event.data?.type === "requestedReview") {
-        dispatch(Thunk_postevent("requested-review"));
-        updateState(
-          dispatch,
-          [
-            lb<IState>()
-              .p("storage")
-              .p("reviewRequests")
-              .recordModify((r) => [...r, Date.now()]),
-          ],
-          "Add review request"
-        );
-      } else if (event.data?.type === "completeSet") {
-        SendMessage_print("Main app: Received completeSet message");
-        const entryIndex = event.data.entryIndex as number;
-        const setIndex = event.data.setIndex as number;
-        const restTimer = event.data.restTimer as number;
-        const restTimerSince = event.data.restTimerSince as number;
-        dispatch(Thunk_completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
-      } else if (event.data?.type === "adjustRestTimer") {
-        const action = event.data.action as "increase" | "decrease";
-        const incomingRestTimer = event.data.restTimer as number;
-        const incomingRestTimerSince = event.data.restTimerSince as number;
-        const entryIndex = event.data.entryIndex as number;
-        const setIndex = event.data.setIndex as number;
-        const progress = stateRef.current.storage.progress[0];
-        const skipLiveActivityUpdate = !!event.data.skipLiveActivityUpdate;
-        if (progress == null) {
-          SendMessage_print("Main app: No active workout to adjust rest timer");
-          return;
-        }
-        const { timer, timerSince } = progress;
-        SendMessage_print(`Main app: ${action === "increase" ? "Increasing" : "Decreasing"} rest timer by 15 seconds`);
-        SendMessage_print(`Main app: Current timer: ${timer}, since: ${timerSince}`);
-        if (timer == null || timerSince == null) {
-          return;
-        }
-        if (incomingRestTimer !== timer || incomingRestTimerSince !== timerSince) {
-          SendMessage_print(
-            `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
-          );
-          if (!skipLiveActivityUpdate) {
-            dispatch(Thunk_updateLiveActivity(entryIndex, setIndex, timer, timerSince));
-          }
-        } else {
-          dispatch(
-            Thunk_updateTimer(
-              action === "increase" ? timer + 15 : Math.max(0, timer - 15),
-              entryIndex,
-              setIndex,
-              skipLiveActivityUpdate
-            )
-          );
-        }
-      } else if (event.data?.type === "timerScheduled") {
-        if (Progress_getCurrentProgress(stateRef.current)?.ui) {
-          SendMessage_print(`Main app: Marking native notification as scheduled`);
-          updateState(
-            dispatch,
-            [Progress_lbProgress().pi("ui", {}).p("nativeNotificationScheduled").record(true)],
-            "Set native notification scheduled"
-          );
-        }
-      } else if (event.data?.type === "watchStorageMerge") {
-        const storageJson = event.data.storage as string;
-        const isLiveActivity = !!event.data.isLiveActivity;
-        dispatch(Thunk_handleWatchStorageMerge(storageJson, isLiveActivity));
-      }
-    });
     const userId = state.user?.id || state.storage.tempUserId;
     Subscriptions_cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
     Subscriptions_cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
@@ -424,9 +299,6 @@ export function AppView(props: IProps): JSX.Element | null {
       window.addEventListener("error", onerror);
       window.addEventListener("unhandledrejection", onunhandledexception);
     }
-    SendMessage_toIos({ type: "loaded", userid: userId });
-    SendMessage_toAndroid({ type: "loaded", userid: userId });
-
     const currentProgram =
       state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
     if (currentProgram != null && currentProgram.planner == null) {
@@ -459,7 +331,6 @@ export function AppView(props: IProps): JSX.Element | null {
       : "first";
 
   const progress = Progress_getCurrentProgress(state);
-  const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   const currentScreenName = navigationRef.isReady()
     ? (navigationRef.getCurrentRoute()?.name as IScreen | undefined)
     : undefined;
@@ -468,16 +339,6 @@ export function AppView(props: IProps): JSX.Element | null {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-        ${lftAndroidSafeInsetTop ? `.safe-area-inset-top { padding-top: ${lftAndroidSafeInsetTop}px; }` : ""}
-        ${
-          lftAndroidSafeInsetBottom ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }` : ""
-        }
-      `,
-          }}
-        />
         <StateContext.Provider value={{ state, dispatch }}>
           <TrackedStateProvider state={state} dispatch={dispatch}>
             <ClickTrackingContext.Provider value={dispatch}>

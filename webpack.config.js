@@ -24,8 +24,6 @@ try {
   fullCommitHash = process.env.CODEBUILD_RESOLVED_SOURCE_VERSION || "unknown";
   commitHash = fullCommitHash.substring(0, 7);
 }
-const bundleVersionIos = 1;
-const bundleVersionAndroid = 1;
 const bundleVersionWatchIos = 1;
 const bundleVersionWatchAndroid = 1;
 
@@ -249,8 +247,6 @@ const mainConfig = {
     new DefinePlugin({
       "process.env.JEST_WORKER_ID": "undefined",
       __DEV__: JSON.stringify(process.env.NODE_ENV !== "production"),
-      __BUNDLE_VERSION_IOS__: bundleVersionIos,
-      __BUNDLE_VERSION_ANDROID__: bundleVersionAndroid,
       __COMMIT_HASH__: JSON.stringify(commitHash),
       __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
       __API_HOST__: JSON.stringify(

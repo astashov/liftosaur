@@ -13,7 +13,6 @@ import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { getNavigationService } from "../../../navigation/navUtils";
 import { CollectionUtils_sort } from "../../../utils/collection";
-import { SendMessage_isIosOrAndroid } from "../../../utils/sendMessage";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -189,7 +188,7 @@ export function PlannerSetSplit(props: {
   textSize?: string;
 }): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
-  const isDesktopWeb = Platform.OS === "web" && !SendMessage_isIosOrAndroid();
+  const isDesktopWeb = Platform.OS === "web";
   const [showTooltip, setShowTooltip] = useState(false);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;

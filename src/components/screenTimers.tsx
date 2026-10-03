@@ -7,12 +7,6 @@ import { ISettingsTimers, ISettings } from "../types";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { GroupHeader } from "./groupHeader";
-import {
-  SendMessage_isIos,
-  SendMessage_iosVersion,
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-} from "../utils/sendMessage";
 
 interface IProps {
   dispatch: IDispatch;
@@ -66,10 +60,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
         valueUnits="sec"
         onChange={onChange("getReady")}
       />
-      {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
-        Platform.OS === "ios" ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19) ||
-        Platform.OS === "android") && (
+      {(Platform.OS === "ios" || Platform.OS === "android") && (
         <>
           <GroupHeader name="Reminders" topPadding={true} />
           <MenuItemEditable

@@ -49,15 +49,6 @@ interface Window {
   isUndoing?: boolean;
   webeditor?: boolean;
   isPressingShiftCmdCtrl?: boolean;
-  lftAndroidVersion?: number;
-  lftAndroidAppVersion?: string;
-  lftAndroidSafeInsetTop?: number;
-  lftAndroidSafeInsetBottom?: number;
-  lftAndroidSafeInsetLeft?: number;
-  lftAndroidSafeInsetRight?: number;
-  lftIosVersion?: string;
-  lftIosAppVersion?: string;
-  lftSystemDarkMode?: boolean;
 
   loadRollbar: (item: string | number, token: string, key: string) => Promise<void>;
 

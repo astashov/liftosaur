@@ -1,11 +1,4 @@
-import {
-  SendMessage_isIos,
-  SendMessage_isAndroid,
-  SendMessage_iosAppVersion,
-  SendMessage_androidAppVersion,
-  SendMessage_iosVersion,
-  SendMessage_androidVersion,
-} from "./sendMessage";
+import { WatchHost_appVersion, WatchHost_isAvailable } from "./watchHost";
 
 export interface IAppAttribution {
   isMobile: boolean;
@@ -17,13 +10,9 @@ export interface IAppAttribution {
 }
 
 export function AppAttribution_get(): IAppAttribution {
-  const isIos = SendMessage_isIos();
-  const isAndroid = SendMessage_isAndroid();
+  const isWatch = WatchHost_isAvailable();
   return {
-    isMobile: isIos || isAndroid,
-    iOSVersion: isIos ? SendMessage_iosAppVersion() : undefined,
-    androidVersion: isAndroid ? SendMessage_androidAppVersion() : undefined,
-    iOSOSVersion: isIos ? SendMessage_iosVersion() : undefined,
-    androidOSVersion: isAndroid ? SendMessage_androidVersion() : undefined,
+    isMobile: isWatch,
+    iOSVersion: isWatch ? WatchHost_appVersion() : undefined,
   };
 }

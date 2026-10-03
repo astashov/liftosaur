@@ -23,7 +23,6 @@ import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { Reps_findNextEntryAndSetIndex } from "../models/set";
 import { Progress_getCurrentProgress } from "../models/progress";
-import { SendMessage_print } from "../utils/sendMessage";
 import { useTrackClick } from "../utils/clickTracking";
 import { useRem, useRemScale } from "../utils/useRem";
 import { TEXT_SIZE_MAX } from "../models/settings";
@@ -146,10 +145,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
         !sentNotification.current
       ) {
         if (!progress.ui?.nativeNotificationScheduled) {
-          SendMessage_print(`Main app: Playing web app notification`);
           props.dispatch(Thunk_playAudioNotification());
-        } else {
-          SendMessage_print(`Main app: Not playing web app notification`);
         }
         sentNotification.current = true;
       } else if (timer != null && timeDifference > timerMs + maxNotificationWindowMs) {
