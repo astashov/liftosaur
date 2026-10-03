@@ -1,7 +1,7 @@
 import { IState } from "./state";
 import { dequal } from "dequal";
 import { Progress_isCurrent } from "./progress";
-import { IDayData, IStatsKey } from "../types";
+import { IStatsKey } from "../types";
 import { Program_getProgram, Program_cleanPlannerProgram } from "./program";
 import { ObjectUtils_isEqual } from "../utils/object";
 
@@ -26,10 +26,6 @@ export type IScreenData =
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
   | { name: "editProgram"; params: { programId: string } }
-  | {
-      name: "editProgramExercise";
-      params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
-    }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "sleepNutrition"; params?: Record<string, never> }
   | { name: "subscription"; params?: Record<string, never> }
@@ -69,38 +65,6 @@ export function Screen_shouldConfirmNavigation(state: IState, currentScreen: ISc
         const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
         if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
           return "Are you sure? Your program changes won't be saved.";
-        }
-      }
-    }
-  }
-
-  if (currentScreen.name === "editProgramExercise") {
-    const exerciseKey = currentScreen.params?.key;
-    const exerciseProgramId = currentScreen.params?.programId;
-    const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
-    const editProgramExerciseState = exerciseStateKey ? state.editProgramExerciseStates[exerciseStateKey] : undefined;
-    if (editProgramExerciseState) {
-      const programId = currentScreen.params?.programId;
-      const editProgramState = programId ? state.editProgramStates[programId] : undefined;
-      if (
-        editProgramState &&
-        editProgramState.current.program.planner &&
-        editProgramExerciseState.current.program.planner
-      ) {
-        if (
-          !ObjectUtils_isEqual(
-            editProgramExerciseState.current.program.planner,
-            editProgramState.current.program.planner
-          )
-        ) {
-          return "Are you sure? Your program exercise changes won't be saved.";
-        }
-      } else {
-        const currentProgram = Program_getProgram(state, editProgramExerciseState.current.program.id);
-        if (currentProgram != null && currentProgram.planner && editProgramExerciseState.current.program.planner) {
-          if (!ObjectUtils_isEqual(currentProgram.planner, editProgramExerciseState.current.program.planner)) {
-            return "Are you sure? Your program exercise changes won't be saved.";
-          }
         }
       }
     }
@@ -164,9 +128,6 @@ export function Screen_tab(screen: IScreen): ITab {
       return "me";
     }
     case "editProgram": {
-      return "program";
-    }
-    case "editProgramExercise": {
       return "program";
     }
     case "measurements": {

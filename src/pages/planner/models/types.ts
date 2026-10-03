@@ -272,32 +272,6 @@ export interface IPlannerUi {
   gridScale?: number;
 }
 
-export interface IPlannerExerciseUiEditSetBottomSheet {
-  exerciseKey: string;
-  dayInWeekIndex: number;
-  setVariationIndex: number;
-  setIndex: number;
-}
-
-export interface IPlannerExerciseUi {
-  modalExercise?: IModalExerciseUi;
-  exercisePickerState?: IExercisePickerState;
-  exercisePickerChange?: "variationAdd" | "variationEdit";
-  exercisePickerVariationIndex?: number;
-  isProgressEnabled?: boolean;
-  isUpdateEnabled?: boolean;
-  isExerciseVariationsEnabled?: boolean;
-  showAddStateVariableModal?: boolean;
-  showEditProgressScriptModal?: boolean;
-  showEditUpdateScriptModal?: boolean;
-  weekIndex: number;
-  editSetBottomSheet?: IPlannerExerciseUiEditSetBottomSheet;
-  modeTabIndex?: number;
-  acrossWeeksTabIndex?: number;
-  pendingNewKey?: string;
-  fromWorkout?: boolean;
-}
-
 export interface IPlannerFullText {
   text: string;
   currentLine?: number;
@@ -310,10 +284,6 @@ export interface IPlannerState extends IUndoRedoState<{ program: IProgram }> {
   deviceId?: string;
   initialEncodedProgram?: string;
   encodedProgram?: string;
-}
-
-export interface IPlannerExerciseState extends IUndoRedoState<{ program: IProgram }> {
-  ui: IPlannerExerciseUi;
 }
 
 export interface IReuseCandidate {

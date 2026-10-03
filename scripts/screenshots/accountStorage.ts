@@ -17,13 +17,6 @@ const tourHelps = [
   "program.addExercise",
   "program.editExercise",
   "program.playground",
-  "editProgramExercise.overview",
-  "editProgramExercise.sets",
-  "editProgramExercise.warmups",
-  "editProgramExercise.progress",
-  "editProgramExercise.update",
-  "editProgramExercise.repeat",
-  "editProgramExercise.reuse",
 ];
 
 export interface IScreenshotsAccount {

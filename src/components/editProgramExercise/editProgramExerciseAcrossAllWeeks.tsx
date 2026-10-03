@@ -12,7 +12,23 @@ import { CollectionUtils_compact } from "../../utils/collection";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
 import { SetUtils_areAllEqual, SetUtils_areEqual } from "../../utils/setUtils";
 import { InputWeight2 } from "../inputWeight2";
-import { InputNumberAddOn } from "./editProgramExerciseSet";
+import { Switch } from "../primitives/switch";
+
+interface IInputNumberAddOnProps {
+  label: string;
+  value: boolean;
+  testID?: string;
+  onChange: (value: boolean) => void;
+}
+
+function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
+  return (
+    <View className="flex-row items-center">
+      <Text className="mr-2 text-sm font-semibold">{props.label}</Text>
+      <Switch value={props.value} testID={props.testID} onValueChange={(v) => props.onChange(v)} />
+    </View>
+  );
+}
 
 interface IEditProgramExerciseAcrossAllWeeksProps {
   weeks: IEvaluatedProgramWeek[];

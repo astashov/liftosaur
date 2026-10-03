@@ -19,7 +19,6 @@ import { NavScreenMain } from "./screens/NavScreenHome";
 import {
   NavScreenPrograms,
   NavScreenEditProgram,
-  NavScreenEditProgramExercise,
   NavScreenMuscles,
   NavScreenOnerms,
   NavScreenProgramSelect,
@@ -114,11 +113,6 @@ import { NavModalWeekStats } from "./modals/NavModalWeekStats";
 import { NavModalDayStats } from "./modals/NavModalDayStats";
 import { NavModalExerciseStats } from "./modals/NavModalExerciseStats";
 import { NavModalEditExerciseChange } from "./modals/NavModalEditExerciseChange";
-import { NavModalEditProgramExerciseSet } from "./modals/NavModalEditProgramExerciseSet";
-import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgramExerciseSuperset";
-import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
-import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
-import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
@@ -266,7 +260,6 @@ function ProgramStackScreen(): JSX.Element {
     <ProgramStack.Navigator screenOptions={navHeaderScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
-      <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
       <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
@@ -287,11 +280,6 @@ function WorkoutStackScreen(): JSX.Element {
       <WorkoutStack.Screen
         name="finishDay"
         component={NavScreenFinishDay}
-        options={{ headerShown: true, header: NavHeader }}
-      />
-      <WorkoutStack.Screen
-        name="editProgramExercise"
-        component={NavScreenEditProgramExercise}
         options={{ headerShown: true, header: NavHeader }}
       />
       <WorkoutStack.Screen
@@ -348,7 +336,6 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="programs" component={NavScreenPrograms} />
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <MeStack.Screen name="onerms" component={NavScreenOnerms} />
-      <MeStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <MeStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <MeStack.Screen name="programPreview" component={NavScreenProgramPreview} />
     </MeStack.Navigator>
@@ -489,19 +476,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
           <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
           <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
-          <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
-          <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
-          <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
-          <RootStack.Screen
-            name="editProgressScriptModal"
-            component={NavModalEditProgressScript}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
-          <RootStack.Screen
-            name="editUpdateScriptModal"
-            component={NavModalEditUpdateScript}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
           <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
           <RootStack.Screen
             name="socialShareModal"

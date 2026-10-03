@@ -54,40 +54,6 @@
   "src/components/editProgramExercise/editProgramExerciseAcrossAllWeeks.tsx": {
     "long-view": "predates the rule"
   },
-  "src/components/editProgramExercise/editProgramExerciseDay.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseNavbar.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseProgress.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseReuseDescriptions.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseReuseSets.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseSet.tsx": {
-    "long-view": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseUpdate.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
-  "src/components/editProgramExercise/editProgramExerciseWarmups.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule"
-  },
-  "src/components/editProgramExercise/progressions/customProgressSettings.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
-  "src/components/editProgramExercise/screenEditProgramExercise.tsx": {
-    "decision-in-view:useCallback#1": "predates the rule"
-  },
   "src/components/equipmentSettings.tsx": {
     "decision-in-view:anonymous#1": "predates the rule",
     "decision-in-view:anonymous#2": "predates the rule",
@@ -190,9 +156,6 @@
     "decision-in-view:useCallback#1": "predates the rule",
     "decision-in-view:useEffect#1": "predates the rule"
   },
-  "src/components/primitives/webviewEditor.native.tsx": {
-    "decision-in-view:useCallback#1": "predates the rule"
-  },
   "src/components/restTimer.tsx": {
     "decision-in-view:useEffect#1": "predates the rule"
   },
@@ -268,9 +231,6 @@
   "src/navigation/modals/NavModalAmrap.tsx": {
     "decision-in-view:cancelAmrap": "predates the rule"
   },
-  "src/navigation/modals/NavModalCreateStateVariable.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
   "src/navigation/modals/NavModalDayLiftoEditor.tsx": {
     "decision-in-view:onDone": "predates the rule"
   },
@@ -280,9 +240,6 @@
   "src/navigation/modals/NavModalEditProgramExercisePicker.tsx": {
     "decision-in-view:useCallback#1": "predates the rule",
     "decision-in-view:useMemo#1": "predates the rule"
-  },
-  "src/navigation/modals/NavModalEditProgressScript.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
   },
   "src/navigation/modals/NavModalEditTarget.tsx": {
     "decision-in-view:useClearOnModalRemove#1": "predates the rule"

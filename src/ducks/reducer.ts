@@ -76,7 +76,6 @@ import { INativeEffect, NativeEffects_withoutWatchWorkout } from "../models/nati
 import { History_resumeWorkout } from "../models/history";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { ProgramRewrite_changedKeys } from "../models/programRewrite";
 import { History_deleteRecords } from "../models/history";
 import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
@@ -189,7 +188,6 @@ export async function getInitialState(
       nosync: nosync || AdminDebug_isDebugAccountId(finalStorage.tempUserId),
       deviceId,
       editProgramStates: {},
-      editProgramExerciseStates: {},
     };
   }
   const newState = buildState({
@@ -487,34 +485,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
             "Update current bodyweight"
           );
           dispatch({ type: "ApplyProgramChangesToProgress" });
-        }
-      }
-    },
-    (dispatch, action, oldState, newState) => {
-      if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
-        const screenData = env.getCurrentScreenData?.();
-        if (!screenData || screenData.name !== "editProgramExercise") {
-          return;
-        }
-        const oldExerciseKey = screenData.params?.key;
-        const oldProgramId = screenData.params?.programId;
-        const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
-        const oldPlannerState = oldExerciseStateKey
-          ? oldState.editProgramExerciseStates[oldExerciseStateKey]
-          : undefined;
-        const newPlannerState = oldExerciseStateKey
-          ? newState.editProgramExerciseStates[oldExerciseStateKey]
-          : undefined;
-        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
-          const changedKeys = ProgramRewrite_changedKeys(
-            oldPlannerState.current.program.planner!,
-            newPlannerState.current.program.planner!,
-            newState.storage.settings
-          );
-          const newKey = changedKeys[oldExerciseKey];
-          if (newKey && env.navigationRef?.isReady()) {
-            env.navigationRef.setParams({ ...screenData.params, key: newKey } as Record<string, unknown>);
-          }
         }
       }
     },

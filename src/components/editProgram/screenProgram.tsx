@@ -166,7 +166,6 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
       return;
     }
     navigateToModal("editProgramExercisePickerModal", {
-      context: "editProgram",
       programId,
       dayData: picker.dayData,
       change: picker.change,

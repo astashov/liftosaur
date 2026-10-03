@@ -21,7 +21,6 @@ import { NavScreenMain } from "./screens/NavScreenHome";
 import {
   NavScreenPrograms,
   NavScreenEditProgram,
-  NavScreenEditProgramExercise,
   NavScreenMuscles,
   NavScreenOnerms,
   NavScreenProgramSelect,
@@ -90,16 +89,11 @@ import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 import { NavModalCustomExercise } from "./modals/NavModalCustomExercise";
 import { NavModalMusclesOverride } from "./modals/NavModalMusclesOverride";
-import { NavModalEditProgramExerciseSet } from "./modals/NavModalEditProgramExerciseSet";
-import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgramExerciseSuperset";
-import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
 import { NavModalTour } from "./modals/NavModalTour";
 import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
 import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
 import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
 import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
-import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
-import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalAccount } from "./modals/NavModalAccount";
 import { NavModalEmailAuth } from "./modals/NavModalEmailAuth";
@@ -219,7 +213,6 @@ function ProgramStackScreen(): JSX.Element {
     <ProgramStack.Navigator screenOptions={screenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
-      <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
       <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
@@ -238,7 +231,6 @@ function WorkoutStackScreen(): JSX.Element {
         getId={({ params }) => String(params?.id ?? 0)}
       />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
-      <WorkoutStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
       <WorkoutStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </WorkoutStack.Navigator>
@@ -283,7 +275,6 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="programPreview" component={NavScreenProgramPreview} />
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <MeStack.Screen name="onerms" component={NavScreenOnerms} />
-      <MeStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <MeStack.Screen name="editProgram" component={NavScreenEditProgram} />
     </MeStack.Navigator>
   );
@@ -387,16 +378,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
           <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
-          <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
-          <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
-          <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
           <RootStack.Screen name="tourModal" component={NavModalTour} />
           <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
           <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
-          <RootStack.Screen name="editProgressScriptModal" component={NavModalEditProgressScript} />
-          <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
           <RootStack.Screen name="emailAuthModal" component={NavModalEmailAuth} />

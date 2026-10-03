@@ -1,6 +1,6 @@
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { IPlannerState, IPlannerExerciseState } from "../pages/planner/models/types";
+import { IPlannerState } from "../pages/planner/models/types";
 import { IDispatch } from "../ducks/types";
 import { Storage_getDefault } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
@@ -129,7 +129,7 @@ export interface IAttributionData {
   ad: string;
 }
 
-export type ITourId = "workout" | "program" | "editProgramExercise";
+export type ITourId = "workout" | "program";
 
 export interface IStateTour {
   id: ITourId;
@@ -194,7 +194,6 @@ export interface IState {
   googleOffer?: IGoogleOffer;
   deviceId: string;
   editProgramStates: Record<string, IPlannerState>;
-  editProgramExerciseStates: Record<string, IPlannerExerciseState>;
   playgroundState?: IProgramPreviewPlaygroundState;
   importPreview?: IImportPreview;
 }
@@ -231,7 +230,6 @@ export function buildState(args: {
     nosync: !!args.nosync,
     deviceId: args.deviceId,
     editProgramStates: {},
-    editProgramExerciseStates: {},
   };
 }
 

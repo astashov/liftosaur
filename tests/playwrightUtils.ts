@@ -244,13 +244,6 @@ export async function PlaywrightUtils_disableTours(page: Page): Promise<void> {
       "program.addExercise",
       "program.editExercise",
       "program.playground",
-      "editProgramExercise.overview",
-      "editProgramExercise.sets",
-      "editProgramExercise.warmups",
-      "editProgramExercise.progress",
-      "editProgramExercise.update",
-      "editProgramExercise.repeat",
-      "editProgramExercise.reuse",
     ];
     (window as any).state.storage.helps.push(...tourHelps);
     // skipintro bypasses the onboarding survey, so on any reload with a program present the

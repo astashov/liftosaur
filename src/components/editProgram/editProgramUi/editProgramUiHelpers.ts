@@ -8,7 +8,6 @@ import {
 import { Dialog_alert } from "../../../utils/dialog";
 import {
   IModalExerciseUi,
-  IPlannerExerciseState,
   IPlannerProgramExercise,
   IPlannerProgramExerciseEvaluatedSet,
   IPlannerState,
@@ -38,33 +37,6 @@ import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { UidFactory_generateUid } from "../../../utils/generator";
-import { Weight_build } from "../../../models/weight";
-
-export function EditProgramUiHelpers_changeFirstInstance(
-  planner: IPlannerProgram,
-  plannerExercise: IPlannerProgramExercise,
-  settings: ISettings,
-  shouldValidate: boolean,
-  cb: (exercise: IPlannerProgramExercise) => void
-): IPlannerProgram {
-  const key = PlannerKey_fromFullName(plannerExercise.fullName, settings.exercises);
-  const result = ProgramRewrite_instances(
-    planner,
-    settings,
-    (evaluated) => {
-      PP_iterate2(evaluated.weeks, (e) => {
-        const aKey = PlannerKey_fromFullName(e.fullName, settings.exercises);
-        if (key === aKey) {
-          cb(e);
-          return true;
-        }
-        return false;
-      });
-    },
-    { validate: shouldValidate }
-  );
-  return plannerOrAlert(result, planner);
-}
 
 function plannerOrAlert(result: IProgramRewriteResult, oldPlanner: IPlannerProgram): IPlannerProgram {
   if ("error" in result) {
@@ -122,21 +94,6 @@ export function EditProgramUiHelpers_changeLabel(
     newModalExercise = { ...modalExerciseUi, exerciseKey: newKey, fullName: newFullName };
     onUiChange(newModalExercise);
   }
-}
-
-export function EditProgramUiHelpers_changeCurrentInstanceExercise(
-  dispatch: ILensDispatch<IPlannerExerciseState>,
-  plannerExercise: IPlannerProgramExercise,
-  settings: ISettings,
-  cb: (exercise: IPlannerProgramExercise) => void
-): void {
-  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-  dispatch(
-    lbProgram.recordModify((program) => {
-      return EditProgramUiHelpers_changeCurrentInstance2(program, plannerExercise, settings, true, cb);
-    }),
-    "Change current exercise instance"
-  );
 }
 
 export function EditProgramUiHelpers_onDaysChange(
@@ -201,27 +158,6 @@ export function EditProgramUiHelpers_changeSets(
     });
   });
   return plannerOrAlert(result, planner);
-}
-
-export function EditProgramUiHelpers_changeCurrentInstance2(
-  planner: IPlannerProgram,
-  plannerExercise: IPlannerProgramExercise,
-  settings: ISettings,
-  shouldValidate: boolean,
-  cb: (exercise: IPlannerProgramExercise) => void
-): IPlannerProgram {
-  const fullName = plannerExercise.fullName;
-  const dayData = plannerExercise.dayData;
-  const isRepeat = !!plannerExercise.isRepeat;
-  return EditProgramUiHelpers_changeCurrentInstance3(
-    planner,
-    fullName,
-    dayData,
-    isRepeat,
-    settings,
-    shouldValidate,
-    cb
-  );
 }
 
 export function EditProgramUiHelpers_changeCurrentInstance3(
@@ -351,56 +287,6 @@ export function EditProgramUiHelpers_duplicateCurrentInstance(
   }
 }
 
-export function EditProgramUiHelpers_changeRepeating(
-  planner: IPlannerProgram,
-  dayData: Required<IDayData>,
-  repeatTo: number,
-  fullName: string,
-  settings: ISettings,
-  shouldValidate: boolean
-): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-
-  let repeatingExercise: IPlannerProgramExercise | undefined;
-  const newRepeating: number[] = [];
-  for (let week = dayData.week; week <= repeatTo; week += 1) {
-    newRepeating.push(week);
-  }
-  const add = [];
-  for (let week = 1; week <= planner.weeks.length; week += 1) {
-    const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayData.dayInWeek - 1];
-    if (targetDay) {
-      const index = targetDay.exercises.findIndex((e) => e.fullName === fullName);
-      let exercise = targetDay.exercises[index] as IPlannerProgramExercise | undefined;
-      if (exercise && week >= dayData.week && !repeatingExercise) {
-        exercise.repeat = newRepeating;
-        exercise.repeating = newRepeating;
-        repeatingExercise = exercise;
-      }
-      if (repeatingExercise && week > dayData.week) {
-        if (week <= repeatTo && index === -1) {
-          exercise = { ...repeatingExercise, isRepeat: true };
-          targetDay.exercises.push(exercise);
-          add.push({ dayData: { ...dayData, week }, fullName, index: targetDay.exercises.length - 1 });
-        } else if (week > repeatTo) {
-          targetDay.exercises.splice(index, 1);
-        }
-      }
-      if (repeatingExercise && week > dayData.week && !exercise?.isRepeat) {
-        break;
-      }
-    }
-  }
-  return EditProgramUiHelpers_validate(
-    shouldValidate,
-    planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ add }),
-    settings
-  );
-}
-
 export function EditProgramUiHelpers_deleteCurrentInstance(
   planner: IPlannerProgram,
   dayData: Required<IDayData>,
@@ -443,95 +329,6 @@ export function EditProgramUiHelpers_deleteCurrentInstance(
     }
   }
   return newPlanner;
-}
-
-export function EditProgramUiHelpers_addInstance(
-  planner: IPlannerProgram,
-  dayData: Required<IDayData>,
-  fullName: string,
-  exerciseType: IExerciseType | undefined,
-  settings: ISettings
-): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-  const { week, dayInWeek } = dayData;
-  const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
-  const { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
-
-  const add = [];
-  if (targetDay) {
-    const newExercise: IPlannerProgramExercise = {
-      fullName: fullName,
-      shortName: fullName,
-      label,
-      key: PlannerKey_fromFullName(fullName, settings.exercises),
-      exerciseType: exerciseType,
-      name: name,
-      id: UidFactory_generateUid(8),
-      dayData: dayData,
-      repeat: [],
-      exerciseIndex: targetDay.exercises.length,
-      repeating: [],
-      order: 0,
-      text: "",
-      tags: [],
-      line: 0,
-      exerciseVariations: [{ exerciseType, name, isCurrent: true }],
-      evaluatedSetVariations: [
-        {
-          sets: [
-            {
-              maxrep: 5,
-              weight: Weight_build(100, settings.units),
-              logRpe: false,
-              isAmrap: false,
-              isQuickAddSet: false,
-              askWeight: false,
-            },
-          ],
-          isCurrent: true,
-        },
-      ],
-      setVariations: [
-        {
-          sets: [
-            {
-              repRange: {
-                isQuickAddSet: false,
-                maxrep: 5,
-                isAmrap: false,
-                numberOfSets: 1,
-              },
-              weight: Weight_build(100, settings.units),
-              logRpe: false,
-              askWeight: false,
-            },
-          ],
-          isCurrent: true,
-        },
-      ],
-      descriptions: { values: [] },
-      globals: {},
-      points: {
-        fullName: {
-          line: 0,
-          offset: 0,
-          from: 0,
-          to: 0,
-        },
-      },
-    };
-    targetDay.exercises.push(newExercise);
-    add.push({ dayData, fullName, index: targetDay.exercises.length });
-  }
-
-  return EditProgramUiHelpers_validate(
-    true,
-    planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ add }),
-    settings
-  );
 }
 
 export function EditProgramUiHelpers_changeCurrentInstancePosition(

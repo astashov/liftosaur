@@ -21,11 +21,8 @@ import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/plann
 import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { Stats_getEmpty } from "../src/models/stats";
-import {
-  EditProgramUiHelpers_changeCurrentInstancePosition,
-  EditProgramUiHelpers_changeFirstInstance,
-} from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
-import { ProgramRewrite_changedKeys } from "../src/models/programRewrite";
+import { EditProgramUiHelpers_changeCurrentInstancePosition } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
+import { ProgramRewrite_changedKeys, ProgramRewrite_instances } from "../src/models/programRewrite";
 import { PlannerProgramExercise_buildProgress } from "../src/pages/planner/models/plannerProgramExercise";
 
 describe("Planner", () => {
@@ -3005,14 +3002,14 @@ Squat / 3x8 100lb
 ## Day 1
 Squat / 3x8 100lb / progress: lp(5lb)`;
       const settings = Settings_build();
-      const { planner, program } = PlannerTestUtils_get(text);
-      const exercise = Program_evaluate(program, settings).weeks[0].days[0].exercises[0];
-      const newPlanner = EditProgramUiHelpers_changeFirstInstance(planner, exercise, settings, false, (e) => {
+      const { planner } = PlannerTestUtils_get(text);
+      const rewrite = ProgramRewrite_instances(planner, settings, (evaluated) => {
         const result = PlannerProgramExercise_buildProgress("lp", ["10lb"]);
         if (result.success) {
-          e.progress = result.data;
+          evaluated.weeks[0].days[0].exercises[0].progress = result.data;
         }
       });
+      const newPlanner = "planner" in rewrite ? rewrite.planner : planner;
       expect(PlannerProgram_generateFullText(newPlanner.weeks).trim()).to.equal(`# Week 1
 ## Day 1
 Squat / 3x8 / 100lb

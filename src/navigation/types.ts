@@ -31,7 +31,6 @@ export type IOnboardingStackParamList = {
 export type IProgramStackParamList = {
   programs: undefined;
   editProgram: { programId: string };
-  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   onerms: undefined;
   programselect: undefined;
   programPreview: undefined;
@@ -41,7 +40,6 @@ export type IProgramStackParamList = {
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
   finishDay: { id: number } | undefined;
-  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   muscles: undefined;
   exerciseStats: undefined;
 };
@@ -73,7 +71,6 @@ export type IMeStackParamList = {
   progress: { id?: number } | undefined;
   onerms: undefined;
   editProgram: { programId: string };
-  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
 };
 
 export type IRootTabParamList = {
@@ -99,9 +96,7 @@ export type IRootStackParamList = {
     ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });
   exercisePickerModal: { progressId: number };
   editProgramExercisePickerModal: {
-    context: "editProgram" | "editProgramExercise";
     programId: string;
-    exerciseStateKey?: string;
     dayData: IShortDayData;
     change: "one" | "all" | "duplicate" | "variationAdd" | "variationEdit";
     variationIndex?: number;
@@ -149,13 +144,8 @@ export type IRootStackParamList = {
   tourModal: undefined;
   editProgramMenuModal: { programId: string };
   programNextDayModal: { programId: string };
-  editProgramExerciseSetModal: { exerciseStateKey: string; programId: string };
-  editProgramExerciseSupersetModal: { exerciseStateKey: string; programId: string; exerciseKey: string };
-  createStateVariableModal: { exerciseStateKey: string; programId: string };
   programImageExportModal: { programId: string };
   programRevisionsModal: { programId: string };
-  editProgressScriptModal: { exerciseStateKey: string; programId: string };
-  editUpdateScriptModal: { exerciseStateKey: string; programId: string };
   monthCalendarModal: undefined;
   accountModal: undefined;
   emailAuthModal: { navigateHomeOnSignIn?: boolean } | undefined;

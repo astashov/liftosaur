@@ -12,11 +12,11 @@ import {
 } from "../../models/program";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
-import { IState, updateState } from "../../models/state";
+import { IState } from "../../models/state";
 import { buildCustomLensDispatch } from "../../ducks/types";
 import { lb } from "lens-shmens";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
+import { IPlannerState } from "../../pages/planner/models/types";
 import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
 import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ObjectUtils_clone } from "../../utils/object";
@@ -25,8 +25,6 @@ import {
   EditProgramUiHelpers_duplicateCurrentInstance,
   EditProgramUiHelpers_changeAllInstances,
 } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
-import { ProgramRewrite_changedKeys } from "../../models/programRewrite";
-import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import type { IRootStackParamList } from "../types";
 import type {
   ICustomExercise,
@@ -48,8 +46,7 @@ function onChangeExercise(
   change: "one" | "all" | "duplicate" | "variationAdd" | "variationEdit",
   variationIndex: number | undefined,
   plannerDispatch: ILensDispatch<IPlannerProgram>,
-  onStopIsUndoing: () => void,
-  onNewKey?: (newKey: string) => void
+  onStopIsUndoing: () => void
 ): void {
   const selectedExercise = selectedExercises[0];
   if (!selectedExercise) {
@@ -85,13 +82,6 @@ function onChangeExercise(
         }
       });
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Change exercise variation");
-      if (onNewKey) {
-        const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
-        const newKey = changedKeys[plannerExercise.key];
-        if (newKey != null) {
-          onNewKey(newKey);
-        }
-      }
     } else if (change === "one") {
       const newPlanner = PlannerProgram_replaceExercise(
         planner,
@@ -121,13 +111,6 @@ function onChangeExercise(
         settings
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
-      if (onNewKey) {
-        const changedKeys = ProgramRewrite_changedKeys(planner, newPlanner, settings);
-        const newKey = changedKeys[plannerExercise.key];
-        if (newKey != null) {
-          onNewKey(newKey);
-        }
-      }
     }
   } else {
     const newPlanner = ObjectUtils_clone(planner);
@@ -168,22 +151,13 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
     name: "editProgramExercisePickerModal";
     params: IRootStackParamList["editProgramExercisePickerModal"];
   }>();
-  const { context, programId, exerciseStateKey, dayData, change, exerciseKey, variationIndex } = route.params;
+  const { programId, dayData, change, exerciseKey, variationIndex } = route.params;
 
-  const isEditProgram = context === "editProgram";
-  const plannerState = isEditProgram
-    ? state.editProgramStates?.[programId]
-    : exerciseStateKey
-      ? state.editProgramExerciseStates?.[exerciseStateKey]
-      : undefined;
-
+  const plannerState = state.editProgramStates?.[programId];
   const program = plannerState?.current.program;
   const planner = program?.planner;
   const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
-
-  const exercisePickerState = isEditProgram
-    ? (plannerState as IPlannerState | undefined)?.ui.exercisePicker?.state
-    : (plannerState as IPlannerExerciseState | undefined)?.ui.exercisePickerState;
+  const exercisePickerState = plannerState?.ui.exercisePicker?.state;
 
   const plannerExercise =
     exerciseKey && evaluatedProgram
@@ -193,66 +167,31 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
   const plannerStateRef = useRef(plannerState);
   plannerStateRef.current = plannerState;
 
-  const { programPlannerDispatch, pickerDispatch, stopIsUndoing } = useMemo(() => {
-    if (isEditProgram) {
-      const base = buildPlannerDispatch(
-        dispatch,
-        lb<IState>().p("editProgramStates").p(programId),
-        () => plannerStateRef.current as IPlannerState
-      );
-      return {
-        programPlannerDispatch: buildCustomLensDispatch(
-          base,
-          lb<IPlannerState>().p("current").p("program").pi("planner")
-        ),
-        pickerDispatch: buildCustomLensDispatch(base, lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")),
-        stopIsUndoing: () => {
-          base(
-            [
-              lb<IPlannerState>()
-                .p("ui")
-                .recordModify((ui) => ({ ...ui, isUndoing: false })),
-            ],
-            "stop-is-undoing"
-          );
-        },
-      };
-    } else {
-      const base = buildPlannerDispatch(
-        dispatch,
-        lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey!),
-        () => plannerStateRef.current as IPlannerExerciseState
-      );
-      return {
-        programPlannerDispatch: buildCustomLensDispatch(
-          base,
-          lb<IPlannerExerciseState>().p("current").p("program").pi("planner")
-        ),
-        pickerDispatch: buildCustomLensDispatch(base, lb<IPlannerExerciseState>().p("ui").pi("exercisePickerState")),
-        stopIsUndoing: () => {
-          base(
-            [
-              lb<IPlannerExerciseState>()
-                .p("ui")
-                .recordModify((ui) => ({ ...ui, isUndoing: false })),
-            ],
-            "stop-is-undoing"
-          );
-        },
-      };
-    }
-  }, [dispatch, programId, exerciseStateKey, isEditProgram]);
-
-  const onNewKey = useCallback(
-    (newKey: string): void => {
-      if (isEditProgram || !exerciseStateKey) {
-        return;
-      }
-      EditProgram_migrateExerciseStateKey(dispatch, programId, exerciseStateKey, newKey);
-    },
-    [dispatch, isEditProgram, exerciseStateKey, programId]
-  );
-  const onNewKeyOrUndefined = !isEditProgram && exerciseStateKey ? onNewKey : undefined;
+  const { base, programPlannerDispatch, pickerDispatch, stopIsUndoing } = useMemo(() => {
+    const plannerBase = buildPlannerDispatch(
+      dispatch,
+      lb<IState>().p("editProgramStates").p(programId),
+      () => plannerStateRef.current as IPlannerState
+    );
+    return {
+      base: plannerBase,
+      programPlannerDispatch: buildCustomLensDispatch(
+        plannerBase,
+        lb<IPlannerState>().p("current").p("program").pi("planner")
+      ),
+      pickerDispatch: buildCustomLensDispatch(plannerBase, lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")),
+      stopIsUndoing: () => {
+        plannerBase(
+          [
+            lb<IPlannerState>()
+              .p("ui")
+              .recordModify((ui) => ({ ...ui, isUndoing: false })),
+          ],
+          "stop-is-undoing"
+        );
+      },
+    };
+  }, [dispatch, programId]);
 
   const settingsRef = useRef(state.storage.settings);
   settingsRef.current = state.storage.settings;
@@ -264,42 +203,8 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
   plannerExerciseRef.current = plannerExercise;
 
   const clearExercisePicker = useCallback((): void => {
-    if (isEditProgram) {
-      const base = buildPlannerDispatch(
-        dispatch,
-        lb<IState>().p("editProgramStates").p(programId),
-        () => plannerStateRef.current as IPlannerState
-      );
-      base(lb<IPlannerState>().p("ui").p("exercisePicker").record(undefined), "Close exercise picker");
-    } else if (exerciseStateKey) {
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .p("editProgramExerciseStates")
-            .recordModify((states) => {
-              const current = states[exerciseStateKey];
-              if (!current) {
-                return states;
-              }
-              return {
-                ...states,
-                [exerciseStateKey]: {
-                  ...current,
-                  ui: {
-                    ...current.ui,
-                    exercisePickerState: undefined,
-                    exercisePickerChange: undefined,
-                    exercisePickerVariationIndex: undefined,
-                  },
-                },
-              };
-            }),
-        ],
-        "Close exercise picker"
-      );
-    }
-  }, [dispatch, isEditProgram, exerciseStateKey, programId]);
+    base(lb<IPlannerState>().p("ui").p("exercisePicker").record(undefined), "Close exercise picker");
+  }, [base]);
   useClearOnModalRemove(clearExercisePicker);
 
   const onClose = useCallback((): void => {
@@ -321,12 +226,11 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
         change,
         variationIndex,
         programPlannerDispatch,
-        stopIsUndoing,
-        onNewKeyOrUndefined
+        stopIsUndoing
       );
       onClose();
     },
-    [dayData, change, variationIndex, programPlannerDispatch, stopIsUndoing, onNewKeyOrUndefined, onClose]
+    [dayData, change, variationIndex, programPlannerDispatch, stopIsUndoing, onClose]
   );
 
   const onChangeCustomExercise = useCallback(
