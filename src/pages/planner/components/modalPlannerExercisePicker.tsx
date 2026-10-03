@@ -44,7 +44,15 @@ export function ModalPlannerExercisePicker(props: {
   };
 
   return (
-    <Modal isFullWidth={true} isFullHeight={true} noPaddings={true} shouldShowClose={false} onClose={onClose}>
+    <Modal
+      isFullWidth={true}
+      isFullHeight={true}
+      noPaddings={true}
+      overflowHidden={true}
+      innerClassName="flex flex-col"
+      shouldShowClose={false}
+      onClose={onClose}
+    >
       <ExercisePickerContent
         settings={settings}
         isLoggedIn={props.isLoggedIn}
