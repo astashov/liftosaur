@@ -1383,11 +1383,21 @@ export function Thunk_maybeRequestReview(): IThunk {
       const reviewRequests = state.storage.reviewRequests;
       const lastReviewRequest = reviewRequests[reviewRequests.length - 1];
       if (
-        history.length > 10 &&
+        history.length >= 5 &&
         reviewRequests.length < 3 &&
         (!lastReviewRequest || now - lastReviewRequest > 1000 * 60 * 60 * 24 * 32)
       ) {
         dispatch(Thunk_postevent("request-review"));
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("reviewRequests")
+              .recordModify((r) => [...r, now]),
+          ],
+          "Add review request"
+        );
         InAppReview_request();
       }
     } catch (error) {
@@ -1407,7 +1417,7 @@ export function Thunk_maybeRequestSignup(): IThunk {
       const lastsignupRequest = signupRequests[signupRequests.length - 1];
       if (
         state.user?.id == null &&
-        history.length > 8 &&
+        history.length >= 3 &&
         signupRequests.length < 3 &&
         (!lastsignupRequest || now - lastsignupRequest > 1000 * 60 * 60 * 24 * 14)
       ) {
