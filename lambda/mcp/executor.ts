@@ -54,6 +54,16 @@ function err(status: number, code: string, message: string): IToolResult {
   return { success: false, error: { status, code, message } };
 }
 
+// Models reuse run_playground's `programText` name in create_program and update_program, so accept both.
+function programTextArg(args: Record<string, unknown>): string | undefined {
+  const text = args.text ?? args.programText;
+  return typeof text === "string" ? text : undefined;
+}
+
+function missingProgramText(): IToolResult {
+  return err(400, "invalid_input", "Missing required parameter 'text' (the Liftoscript program source)");
+}
+
 // Tool args come from LLM clients that routinely deviate from the schema (plain strings instead of
 // JSON arrays, objects instead of arrays), so both the JSON parse AND the shape are validated here —
 // the error restates the expected format so the calling model can self-correct on the next attempt.
@@ -213,18 +223,15 @@ export async function McpToolExecutor_execute(
       return ApiV1_getProgram(userId, user, args.id as string, di);
 
     case "create_program": {
-      const createResult = await ApiV1_createProgram(
-        userId,
-        user,
-        args.name as string,
-        args.text as string,
-        deviceId,
-        di
-      );
+      const createText = programTextArg(args);
+      if (createText == null) {
+        return missingProgramText();
+      }
+      const createResult = await ApiV1_createProgram(userId, user, args.name as string, createText, deviceId, di);
       if (!createResult.success) {
         return createResult;
       }
-      const createStats = ApiV1_programStats(user, args.text as string);
+      const createStats = ApiV1_programStats(user, createText);
       return {
         success: true,
         data: { ...createResult.data, stats: createStats.success ? createStats.data : undefined },
@@ -232,11 +239,15 @@ export async function McpToolExecutor_execute(
     }
 
     case "update_program": {
+      const updateText = programTextArg(args);
+      if (updateText == null) {
+        return missingProgramText();
+      }
       const updateResult = await ApiV1_updateProgram(
         userId,
         user,
         args.id as string,
-        args.text as string,
+        updateText,
         args.name as string | undefined,
         deviceId,
         di
@@ -244,7 +255,7 @@ export async function McpToolExecutor_execute(
       if (!updateResult.success) {
         return updateResult;
       }
-      const updateStats = ApiV1_programStats(user, args.text as string);
+      const updateStats = ApiV1_programStats(user, updateText);
       return {
         success: true,
         data: { ...updateResult.data, stats: updateStats.success ? updateStats.data : undefined },

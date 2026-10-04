@@ -583,6 +583,70 @@ describe("MCP", () => {
       expect(updateData.stats).to.not.be.undefined;
     });
 
+    it("accepts programText as an alias for text in create_program", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const result = await handler(
+        buildMcpEvent(toolCall("create_program", { name: "Test Program", programText }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+      expect(JSON.parse(body.result.content[0].text).id).to.be.a("string");
+    });
+
+    it("returns a tool error when create_program has no text", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("create_program", { name: "Test Program" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("'text'");
+    });
+
+    it("accepts programText as an alias for text in update_program", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_program", { name: "Test Program", text: programText }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const updatedText = "# Week 1\n## Day 1\nSquat / 5x5 / 185lb / progress: lp(10lb)";
+      const updateResult = await handler(
+        buildMcpEvent(toolCall("update_program", { id: createData.id, programText: updatedText }), authHeaders(token)),
+        ctx
+      );
+      expect(updateResult.statusCode).to.equal(200);
+      expect(parseBody(updateResult).result.isError).to.be.undefined;
+
+      const getResult = await handler(
+        buildMcpEvent(toolCall("get_program", { id: createData.id }), authHeaders(token)),
+        ctx
+      );
+      expect(JSON.parse(parseBody(getResult).result.content[0].text).text).to.include("5x5");
+    });
+
+    it("returns a tool error when update_program has no text", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_program", { name: "Test Program", text: programText }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const result = await handler(
+        buildMcpEvent(toolCall("update_program", { id: createData.id }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("'text'");
+    });
+
     it("keeps a vector clock on the planner after an update, attributed to the MCP client", async () => {
       const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
       const createResult = await handler(
