@@ -3,6 +3,8 @@ import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
 import { OauthDao } from "../dao/oauthDao";
 import { UserDao } from "../dao/userDao";
+import { LogDao } from "../dao/logDao";
+import { McpClientSlug_connectAction } from "./mcpClientSlug";
 import { Utils_getEnv, Utils_isLocal } from "../utils";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
@@ -323,7 +325,7 @@ export const postOauthTokenHandler: RouteHandler<
   const oauthDao = new OauthDao(di);
 
   if (grantType === "authorization_code") {
-    return handleAuthCodeGrant(body, oauthDao);
+    return handleAuthCodeGrant(body, oauthDao, di);
   } else if (grantType === "refresh_token") {
     return handleRefreshTokenGrant(body, oauthDao);
   }
@@ -331,7 +333,11 @@ export const postOauthTokenHandler: RouteHandler<
   return oauthError(400, "unsupported_grant_type", "Only authorization_code and refresh_token are supported");
 };
 
-async function handleAuthCodeGrant(body: Record<string, string>, oauthDao: OauthDao): Promise<APIGatewayProxyResult> {
+async function handleAuthCodeGrant(
+  body: Record<string, string>,
+  oauthDao: OauthDao,
+  di: IDI
+): Promise<APIGatewayProxyResult> {
   const { code, client_id, redirect_uri, code_verifier } = body;
 
   if (!code || !client_id || !code_verifier) {
@@ -359,6 +365,8 @@ async function handleAuthCodeGrant(body: Record<string, string>, oauthDao: Oauth
   }
 
   const token = await oauthDao.createToken(client_id, authCode.userId);
+  const client = await oauthDao.getClient(client_id).catch(() => undefined);
+  await new LogDao(di).recordAction(authCode.userId, McpClientSlug_connectAction(client?.clientName));
   return oauthJson(200, {
     access_token: token.token,
     token_type: "Bearer",
