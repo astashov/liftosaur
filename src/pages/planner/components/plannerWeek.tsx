@@ -12,6 +12,7 @@ import {
 } from "../models/plannerStructure";
 import { Dialog_confirm } from "../../../utils/dialog";
 import { IconTrash } from "../../../components/icons/iconTrash";
+import { IconDuplicate2 } from "../../../components/icons/iconDuplicate2";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerUi, IPlannerState } from "../models/types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
@@ -32,6 +33,7 @@ interface IPlannerWeekProps {
   evaluatedDays: IPlannerEvalResult[];
   dispatch: ILensDispatch<IPlannerState>;
   onStructure: (transform: (planner: IPlannerProgram) => IPlannerStructureResult, desc: string) => boolean;
+  onDuplicate: () => void;
 }
 
 export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
@@ -50,6 +52,15 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             onInputString={(v) => dispatch(lbWeek.p("name").record(v), "Update week name")}
           />
         </h2>
+        <button
+          className="p-2 nm-planner-duplicate-week"
+          data-testid="planner-duplicate-week"
+          aria-label="Duplicate week"
+          title="Duplicate week"
+          onClick={props.onDuplicate}
+        >
+          <IconDuplicate2 width={18} height={18} />
+        </button>
         {props.program.weeks.length > 1 && (
           <button
             className="p-2 nm-planner-delete-week"

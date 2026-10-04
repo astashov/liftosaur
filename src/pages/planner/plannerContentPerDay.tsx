@@ -4,7 +4,11 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { IPlannerState, IPlannerUi } from "./models/types";
 import { IPlannerProgram, ISettings } from "../../types";
 import { IPlannerEvalResult } from "./plannerExerciseEvaluator";
-import { IPlannerStructureResult, PlannerStructure_addWeekWithDay } from "./models/plannerStructure";
+import {
+  IPlannerStructureResult,
+  PlannerStructure_addWeekWithDay,
+  PlannerStructure_duplicateWeek,
+} from "./models/plannerStructure";
 import { PlannerWeekSelection_index, PlannerWeekSelection_tabs } from "./models/plannerWeekSelection";
 import { PlannerWeek } from "./components/plannerWeek";
 import { PlannerWeekTabs } from "./components/plannerWeekTabs";
@@ -51,6 +55,15 @@ export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Ele
           evaluatedDays={evaluatedWeeks[weekIndex] ?? []}
           dispatch={dispatch}
           onStructure={props.onStructure}
+          onDuplicate={() => {
+            const isDuplicated = props.onStructure(
+              (planner) => PlannerStructure_duplicateWeek(planner, weekIndex, settings),
+              `Duplicate ${week.name}`
+            );
+            if (isDuplicated) {
+              selectWeek(program.weeks.length);
+            }
+          }}
         />
       )}
     </div>
