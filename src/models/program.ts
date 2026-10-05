@@ -589,7 +589,8 @@ export function Program_runFinishDayScript(
   const diffOtherStates = ObjectUtils_keys(otherStates).reduce<IByTag<IProgramState>>((memo, key) => {
     if (!ObjectUtils_isEqual(otherStates[key], program.states[key])) {
       const diffState = ObjectUtils_keys(otherStates[key]).reduce<IProgramState>((memo2, key2) => {
-        if (!Weight_eq(otherStates[key][key2], program.states[key][key2])) {
+        const oldValue = program.states[key]?.[key2];
+        if (oldValue == null || !Weight_eq(otherStates[key][key2], oldValue)) {
           memo2[key2] = otherStates[key][key2];
         }
         return memo2;

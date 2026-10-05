@@ -576,6 +576,41 @@ Bench Press / 2x10 / 100lb / id: tags(4) / progress: custom(foo: 5) {~
 `);
   });
 
+  it("finishes when a script writes a state var the tagged exercise does not have", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x5 100lb / progress: custom() {~
+  state[4].bar = 5
+  state[5].bar = 5
+~}
+Bench Press / id: tags(4) / 2x5 100lb / progress: custom(foo: 2) {~
+  reps += state.foo
+~}
+Deadlift / id: tags(5) / 2x5 100lb
+`;
+    const { program } = PlannerTestUtils_finish(programText, {
+      completedReps: [
+        [5, 5],
+        [5, 5],
+        [5, 5],
+      ],
+    });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 2x5 / 100lb / progress: custom() {~
+  state[4].bar = 5
+  state[5].bar = 5
+~}
+Bench Press / 2x7 / 100lb / id: tags(4) / progress: custom(foo: 2, bar: 5) {~
+  reps += state.foo
+~}
+Deadlift / 2x5 / 100lb / id: tags(5)
+
+
+`);
+  });
+
   it("properly handles askweights", () => {
     const programText = `# Week 1
 ## Day 1
