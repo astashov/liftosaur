@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { useCallback, useContext, useMemo, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
@@ -29,6 +30,7 @@ const COMPLETE_ICON_SIZE = 48;
 const UNILATERAL_WEIGHT_FLEX = 1.4;
 
 export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps): JSX.Element {
+  const translate = useTranslation();
   const { set, isUnilateral, columnWidths, onEditTarget, onLongPressSet, onDeleteSet } = props;
   const onTargetPress = props.isRoundedWeight ? props.onOpenRoundingInfo : props.onToggleExpand;
   const actions = useMemo<IActionMenuAction[]>(() => {
@@ -277,7 +279,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                   </Text>
                 ) : (
                   <LinkButton name="see-plates-for-each-side" className="text-xs" onClick={props.onOpenSubscription}>
-                    See plates for each side
+                    {translate("See plates for each side")}
                   </LinkButton>
                 )}
               </Pressable>

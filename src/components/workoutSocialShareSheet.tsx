@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View, ScrollView, Pressable, Image, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +26,7 @@ interface IWorkoutShareSheetProps {
 }
 
 export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Element {
+  const translate = useTranslation();
   const workoutShareRef = useRef<View>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number>(0);
@@ -84,7 +86,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                 />
               )}
             </View>
-            <Text className="px-4 pt-2 pb-4 text-base text-center">Default Background</Text>
+            <Text className="px-4 pt-2 pb-4 text-base text-center">{translate("Default Background")}</Text>
           </View>
           <View className="flex-col" style={{ minWidth: frameWidth }}>
             <View className="relative flex-row items-center flex-1">
@@ -109,7 +111,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                   openPhotoPicker({});
                 }}
               >
-                Your photo as background
+                {translate("Your photo as background")}
               </LinkButton>
             </Text>
           </View>
@@ -137,7 +139,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
               }
             }}
           >
-            {isLoading ? <IconSpinner color="white" width={16} height={16} /> : "Share"}
+            {isLoading ? <IconSpinner color="white" width={16} height={16} /> : translate("Share")}
           </Button>
         </View>
       </View>

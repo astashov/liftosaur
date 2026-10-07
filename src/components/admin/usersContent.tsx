@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { HistoryRecordView } from "../historyRecord";
 import { IHistoryRecord, ISettings } from "../../types";
@@ -20,22 +21,26 @@ export interface IProcessedUser {
 }
 
 export function UsersContent(props: IUsersContentProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <div>
-      <h1>Users ({props.users.length})</h1>
+      <h1>
+        {translate("Users (")}
+        {props.users.length})
+      </h1>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left">
-            <th className="w-32 px-2">Name</th>
-            <th className="w-32 px-2">Created</th>
+            <th className="w-32 px-2">{translate("Name")}</th>
+            <th className="w-32 px-2">{translate("Created")}</th>
             <th className="px-2" style={{ width: "240px" }}>
-              Email
+              {translate("Email")}
             </th>
             <th className="px-2" style={{ width: "200px" }}>
-              Programs
+              {translate("Programs")}
             </th>
-            <th className="w-12 px-2">History Records</th>
-            <th className="px-2">Last History</th>
+            <th className="w-12 px-2">{translate("History Records")}</th>
+            <th className="px-2">{translate("Last History")}</th>
           </tr>
         </thead>
         <tbody>

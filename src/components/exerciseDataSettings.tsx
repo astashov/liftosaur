@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -34,6 +35,7 @@ interface IExerciseDataSettingsProps {
 }
 
 function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Element {
+  const translate = useTranslation();
   const fullExercise = props.fullExercise;
 
   return (
@@ -41,6 +43,7 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
       <InputNumber
         type="number"
         label="Default Rounding"
+        displayLabel={translate("Default Rounding")}
         min={0}
         step={0.5}
         max={100}
@@ -49,10 +52,10 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
           EditEquipment_setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
-      <Text className="text-xs text-right text-text-secondary">Used when Equipment is not set</Text>
+      <Text className="text-xs text-right text-text-secondary">{translate("Used when Equipment is not set")}</Text>
       {props.settings.gyms.length > 1 && (
         <View className="mt-2">
-          <GroupHeader name="Equipments for each Gym" />
+          <GroupHeader name="Equipments for each Gym" label={translate("Equipments for each Gym")} />
         </View>
       )}
       {props.settings.gyms.map((gym, i) => {
@@ -70,7 +73,7 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
             name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
             underName={
               props.settings.gyms.length > 1 && props.settings.currentGymId === gym.id ? (
-                <Text className="text-xs leading-none text-text-secondary">current</Text>
+                <Text className="text-xs leading-none text-text-secondary">{translate("current")}</Text>
               ) : undefined
             }
             value={equipment ?? ""}
@@ -91,6 +94,7 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
       <MenuItemEditable
         type="boolean"
         name="Is Unilateral"
+        label={translate("Is Unilateral")}
         value={Exercise_getIsUnilateral(fullExercise, props.settings) ? "true" : "false"}
         onChange={(value) => {
           const isUnilateral = value === "true";
@@ -109,6 +113,7 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
       <MenuItemEditable
         type="boolean"
         name="Two weights (count both)"
+        label={translate("Two weights (count both)")}
         value={Exercise_getVolumeMultiplier(fullExercise, props.settings) === 2 ? "true" : "false"}
         onChange={(value) => {
           const volumeMultiplier = value === "true" ? 2 : 1;

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Fragment, ReactNode, useMemo, useState } from "react";
 import { View, Image, ScrollView, Pressable, Platform, LayoutAnimation } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -54,6 +55,7 @@ interface IScreenSetupEquipmentProps {
 }
 
 export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Element {
+  const translate = useTranslation();
   const currentGym = Equipment_getCurrentGym(props.settings);
   const allEquipment = Equipment_getEquipmentOfGym(props.settings, props.selectedGymId);
   const insets = useSafeAreaInsets();
@@ -72,10 +74,13 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           />
         </View>
         <View className="px-2 -mt-1">
-          <Text className="mb-2 text-xl font-bold text-center text-text-primary">What equipment do you have?</Text>
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">
+            {translate("What equipment do you have?")}
+          </Text>
           <Text className="mb-4 text-sm text-center text-text-secondary">
-            Toggle on the equipment available at your gym. This helps the app round weights to what you can actually
-            load.
+            {translate(
+              "Toggle on the equipment available at your gym. This helps the app round weights to what you can actually load."
+            )}
           </Text>
 
           <View style={{ gap: 8 }}>
@@ -152,7 +157,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             testID="setup-equipment-skip"
             onClick={() => props.dispatch(Thunk_pushScreen("hearaboutus"))}
           >
-            Skip
+            {translate("Skip")}
           </Button>
           <Button
             className="flex-1 ls-onboarding-equipment-setup"
@@ -163,7 +168,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             testID="setup-equipment-continue"
             onClick={() => props.dispatch(Thunk_pushScreen("setupplates"))}
           >
-            Set up plates
+            {translate("Set up plates")}
           </Button>
         </View>
       </View>
@@ -179,10 +184,11 @@ interface IScreenSetupPlatesProps {
 }
 
 export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
+  const translate = useTranslation();
   const currentGym = Equipment_getCurrentGym(props.settings);
   const insets = useSafeAreaInsets();
 
-  useNavOptions({ navTitle: "Set Up Plates" });
+  useNavOptions({ navTitle: translate("Set Up Plates") });
 
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
@@ -219,11 +225,11 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
 
   children.push(
     <View key="intro" className="px-gutter pb-4">
-      <Text className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</Text>
+      <Text className="mb-2 text-xl font-bold text-center text-text-primary">{translate("Set up your plates")}</Text>
       <Text className="text-sm text-center text-text-secondary">
-        Configure the <Text className="text-sm font-bold text-text-secondary">bar weight</Text> and{" "}
-        <Text className="text-sm font-bold text-text-secondary">plates</Text> you have for each equipment type. The app
-        uses this to round program weights to what you can actually load.
+        {translate(
+          "Configure the bar weight and plates for each equipment type. The app rounds program weights to the loads available."
+        )}
       </Text>
     </View>
   );
@@ -281,7 +287,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
         {children}
         {hiddenEquipment.length > 0 && (
           <View className="flex-row flex-wrap mx-4 my-2">
-            <Text className="text-xs">Hidden Equipment: </Text>
+            <Text className="text-xs">{translate("Hidden Equipment:")} </Text>
             {hiddenEquipment.map((e, i) => (
               <Fragment key={e}>
                 {i !== 0 && <Text className="text-xs">, </Text>}
@@ -301,7 +307,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
         )}
         <View className="m-4">
           <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
-            Add New Equipment Type
+            {translate("Add New Equipment Type")}
           </LinkButton>
         </View>
       </ScrollView>
@@ -318,7 +324,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           data-testid="setup-plates-continue"
           testID="setup-plates-continue"
         >
-          Continue
+          {translate("Continue")}
         </Button>
       </View>
     </View>

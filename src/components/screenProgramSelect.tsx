@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode } from "react";
 import { View, Pressable, Image } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -32,6 +33,7 @@ interface IOption {
 }
 
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
+  const translate = useTranslation();
   useNavOptions({ navHidden: true });
   const insets = useSafeAreaInsets();
   const trackClick = useTrackClick();
@@ -40,29 +42,29 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
     {
       key: "builtin",
       icon: <IconDoc width={24} height={24} />,
-      title: "Pick a built-in program",
-      description: "Choose from popular routines like 5/3/1, GZCLP, and more",
+      title: translate("Pick a built-in program"),
+      description: translate("Choose from popular routines like 5/3/1, GZCLP, and more"),
       onClick: () => props.dispatch(Thunk_pushScreen("programs")),
     },
     {
       key: "create",
       icon: <IconEditSquare />,
-      title: "Create a program",
-      description: "Build your own custom routine from scratch",
+      title: translate("Create a program"),
+      description: translate("Build your own custom routine from scratch"),
       onClick: () => navigateToModal("createProgramModal"),
     },
     {
       key: "import",
       icon: <IconLink size={24} />,
-      title: "Import from link",
-      description: "Paste a link from the program web editor",
+      title: translate("Import from link"),
+      description: translate("Paste a link from the program web editor"),
       onClick: () => navigateToModal("importFromLinkModal"),
     },
     {
       key: "adhoc",
       icon: <IconEquipmentKettlebell size={24} />,
-      title: "Go without program",
-      description: "You can run adhoc workouts, and build the program along the way",
+      title: translate("Go without program"),
+      description: translate("You can run adhoc workouts, and build the program along the way"),
       onClick: () => Program_selectProgramAndGoHome(props.dispatch, emptyProgramId),
     },
   ];
@@ -81,9 +83,11 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
           />
         </View>
         <View className="px-2 -mt-1">
-          <Text className="mb-2 text-xl font-bold text-center text-text-primary">Choose your program</Text>
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">
+            {translate("Choose your program")}
+          </Text>
           <Text className="mb-6 text-sm text-center text-text-secondary">
-            How would you like to set up your training?
+            {translate("How would you like to set up your training?")}
           </Text>
 
           <View className="gap-3">

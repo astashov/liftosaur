@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -21,6 +22,7 @@ interface IGraphMuscleGroupProps {
 }
 
 function GraphMuscleGroupInner(props: IGraphMuscleGroupProps): JSX.Element {
+  const translate = useTranslation();
   const [selectedType, setSelectedType] = useState<IVolumeSelectedType>(props.initialType || "volume");
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
@@ -83,7 +85,8 @@ function GraphMuscleGroupInner(props: IGraphMuscleGroupProps): JSX.Element {
           <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             {timestamp != null && selectedType === "volume" && volume != null && (
               <Text className="text-sm">
-                {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
+                {DateUtils_format(new Date(timestamp * 1000))}
+                {translate(", Volume:")}{" "}
                 <Text className="text-sm font-bold">
                   {volume} {units}s
                 </Text>
@@ -91,7 +94,8 @@ function GraphMuscleGroupInner(props: IGraphMuscleGroupProps): JSX.Element {
             )}
             {timestamp != null && selectedType === "sets" && sets != null && (
               <Text className="text-sm">
-                {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="text-sm font-bold">{sets}</Text>
+                {DateUtils_format(new Date(timestamp * 1000))}
+                {translate(", Sets:")} <Text className="text-sm font-bold">{sets}</Text>
               </Text>
             )}
           </GraphLegendOverlay>

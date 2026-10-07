@@ -1,3 +1,5 @@
+import { I18n_exerciseName } from "../i18n/exercises";
+import { useLanguage, useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { StringUtils_capitalize } from "../utils/string";
 import { IEquipment, IExerciseType, ISettings } from "../types";
@@ -21,6 +23,7 @@ interface IExerciseItemProps {
 }
 
 export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
+  const language = useLanguage();
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: props.equipment || e.defaultEquipment };
 
@@ -31,7 +34,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
       </div>
       <div className="flex-1 py-2 text-sm text-left">
         <div>
-          <span className="font-bold">{e.name}</span>,{" "}
+          <span className="font-bold">{I18n_exerciseName(e, props.settings.exercises, language)}</span>,{" "}
           <span className="text-text-secondary">{equipmentName(exerciseType.equipment)}</span>
         </div>
         {props.showMuscles ? (
@@ -45,6 +48,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
 }
 
 function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
+  const translate = useTranslation();
   const { exercise, settings } = props;
   const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((m) =>
     Muscle_getMuscleGroupName(m, settings)
@@ -65,13 +69,13 @@ function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): 
       )}
       {targetMuscleGroups.length > 0 && (
         <div>
-          <span className="text-text-secondary">Target: </span>
+          <span className="text-text-secondary">{translate("Target:")} </span>
           <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
         </div>
       )}
       {synergistMuscleGroups.length > 0 && (
         <div>
-          <span className="text-text-secondary">Synergist: </span>
+          <span className="text-text-secondary">{translate("Synergist:")} </span>
           <span className="font-bold">{synergistMuscleGroups.join(", ")}</span>
         </div>
       )}
@@ -84,6 +88,7 @@ function MuscleView(props: {
   exercise: IExercise;
   settings: ISettings;
 }): JSX.Element {
+  const translate = useTranslation();
   const { exercise, settings } = props;
   const tms = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
   const sms = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
@@ -102,7 +107,7 @@ function MuscleView(props: {
       )}
       {targetMuscles.length > 0 && (
         <div>
-          <span className="text-text-secondary">Target: </span>
+          <span className="text-text-secondary">{translate("Target:")} </span>
           <span className="font-bold">
             {targetMuscles.map((m, i) => {
               return (
@@ -121,7 +126,7 @@ function MuscleView(props: {
       )}
       {synergistMuscles.length > 0 && (
         <div>
-          <span className="text-text-secondary">Synergist: </span>
+          <span className="text-text-secondary">{translate("Synergist:")} </span>
           <span className="font-bold">
             {synergistMuscles.map((m, i) => {
               return (

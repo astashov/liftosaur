@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo, useState } from "react";
 import { View } from "react-native";
 import { TextInput } from "../primitives/textInput";
@@ -14,19 +15,21 @@ interface IProps {
 }
 
 export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [nameError, setNameError] = useState<string | undefined>(undefined);
 
   return (
     <View className="mx-4 mt-4 mb-4">
       <View className="mb-4">
         <Text className="text-sm font-bold">
-          Template Name<Text className="text-text-error"> *</Text>
+          {translate("Template Name")}
+          <Text className="text-text-error"> *</Text>
         </Text>
         <TextInput
           data-testid="exercise-template-name"
           testID="exercise-template-name"
           defaultValue={props.templateName ?? ""}
-          placeholder="My Awesome Template"
+          placeholder={translate("My Awesome Template")}
           placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
           className="px-4 py-2 mt-1 text-base border rounded-lg min-h-scaled-10 bg-background-default border-border-prominent text-text-primary"
           onChangeText={(rawValue) => {
@@ -44,17 +47,19 @@ export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props
         {nameError && <Text className="mt-1 text-xs text-text-error">{nameError}</Text>}
       </View>
       <Text className="my-2 text-sm">
-        <Text className="text-sm">You can choose any name for the template, and it will be saved as </Text>
-        <Text className="text-sm font-bold">"non-used"</Text>
-        <Text className="text-sm"> (i.e. as a template). You can reuse </Text>
-        <Text className="text-sm font-bold">sets</Text>
+        <Text className="text-sm">
+          {translate("You can choose any name for the template, and it will be saved as")}{" "}
+        </Text>
+        <Text className="text-sm font-bold">{translate('"non-used"')}</Text>
+        <Text className="text-sm"> {translate("(i.e. as a template). You can reuse")} </Text>
+        <Text className="text-sm font-bold">{translate("sets")}</Text>
         <Text className="text-sm">, </Text>
-        <Text className="text-sm font-bold">warmup</Text>
+        <Text className="text-sm font-bold">{"warmup"}</Text>
         <Text className="text-sm">, </Text>
-        <Text className="text-sm font-bold">update</Text>
-        <Text className="text-sm"> or </Text>
-        <Text className="text-sm font-bold">progress</Text>
-        <Text className="text-sm"> from this template in your real exercises.</Text>
+        <Text className="text-sm font-bold">{"update"}</Text>
+        <Text className="text-sm"> {translate("or")} </Text>
+        <Text className="text-sm font-bold">{"progress"}</Text>
+        <Text className="text-sm"> {translate("from this template in your real exercises.")}</Text>
       </Text>
     </View>
   );

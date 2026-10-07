@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, LayoutChangeEvent } from "react-native";
 import { useRemScale } from "../../utils/useRem";
@@ -217,6 +218,7 @@ interface IEditProgramNavbarProps {
 }
 
 export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
+  const translate = useTranslation();
   const isValidFull = !props.state.ui.fullTextError;
   const planner = props.state.current.program.planner!;
   const evaluatedWeeks = useMemo(
@@ -335,7 +337,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
               props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
             }}
           >
-            Save
+            {translate("Save")}
           </Button>
         </View>
       </View>

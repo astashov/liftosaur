@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useEffect, useState } from "react";
 import { View, Pressable, Linking, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -56,6 +57,7 @@ function openExternal(url: string): void {
 }
 
 function ScreenSettingsInner(props: IProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("ScreenSettings");
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const osFontScale = useOsFontScale();
@@ -68,26 +70,28 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
 
-  useNavOptions({ navTitle: "Me", navHelpKey: "settings" });
+  useNavOptions({ navTitle: translate("Me"), navHelpKey: "settings" });
 
   return (
     <View className="px-gutter">
       <MenuItem
         shouldShowRightArrow={true}
         name="Program"
+        label={translate("Program")}
         value={props.currentProgramName}
         onClick={() => {
           props.dispatch(Thunk_pushScreen("programs"));
         }}
       />
-      <GroupHeader name="Account" topPadding={true} />
+      <GroupHeader name="Account" label={translate("Account")} topPadding={true} />
       <MenuItem
         name="Account"
+        label={translate("Account")}
         value={
           props.user?.email == null ? (
-            <Text className="text-text-error">Not signed in</Text>
+            <Text className="text-text-error">{translate("Not signed in")}</Text>
           ) : props.user?.email === "noemail@example.com" ? (
-            "Signed In"
+            translate("Signed In")
           ) : (
             StringUtils_truncate(props.user?.email || "", 30)
           )
@@ -98,10 +102,13 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="text"
         name="Nickname"
+        label={translate("Nickname")}
         value={props.settings.nickname || ""}
         nextLine={
           <View className="pb-1" style={{ marginTop: -8 }}>
-            <Text className="text-xs text-text-secondary">Used for profile page if you have an account</Text>
+            <Text className="text-xs text-text-secondary">
+              {translate("Used for profile page if you have an account")}
+            </Text>
           </View>
         }
         onChange={(newValue) => {
@@ -118,6 +125,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Is Profile Page Public?"
+          label={translate("Is Profile Page Public?")}
           value={props.settings.isPublicProfile ? "true" : "false"}
           nextLine={
             props.user?.id && props.settings.isPublicProfile ? (
@@ -133,7 +141,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
                       }
                     }}
                   >
-                    <Text className="text-xs underline text-text-link">Copy Link To Clipboard</Text>
+                    <Text className="text-xs underline text-text-link">{translate("Copy Link To Clipboard")}</Text>
                   </Pressable>
                   <View className="ml-4">
                     <InternalLink
@@ -141,11 +149,11 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
                       href={`/profile/${props.user.id}`}
                       className="text-xs underline text-text-link"
                     >
-                      Open Public Profile Page
+                      {translate("Open Public Profile Page")}
                     </InternalLink>
                   </View>
                 </View>
-                {isCopied && <Text className="text-xs italic text-text-success">Copied!</Text>}
+                {isCopied && <Text className="text-xs italic text-text-success">{translate("Copied!")}</Text>}
               </View>
             ) : undefined
           }
@@ -165,14 +173,16 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
 
       <MenuItem
         name="API Keys"
+        label={translate("API Keys")}
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
       />
 
-      <GroupHeader name="My Measurements" topPadding={true} />
+      <GroupHeader name="My Measurements" label={translate("My Measurements")} topPadding={true} />
       {currentBodyweight && (
         <MenuItem
           name="Bodyweight"
+          label={translate("Bodyweight")}
           value={Weight_print(currentBodyweight)}
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "weight" }))}
@@ -181,6 +191,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       {currentBodyfat && (
         <MenuItem
           name="Bodyfat"
+          label={translate("Bodyfat")}
           value={Weight_print(currentBodyfat)}
           shouldShowRightArrow={true}
           onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "bodyfat" }))}
@@ -188,31 +199,41 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
       <MenuItem
         name="Measurements"
+        label={translate("Measurements")}
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("measurements"))}
       />
       <MenuItem
         name="Sleep & Nutrition"
+        label={translate("Sleep & Nutrition")}
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("sleepNutrition"))}
       />
 
-      <GroupHeader name="Workout" topPadding={true} />
+      <GroupHeader name="Workout" label={translate("Workout")} topPadding={true} />
       <MenuItem
         name="Exercises"
+        label={translate("Exercises")}
         onClick={() => props.dispatch(Thunk_pushScreen("exercises"))}
         shouldShowRightArrow={true}
       />
       <MenuItem
         name="Muscle Groups"
+        label={translate("Muscle Groups")}
         onClick={() => props.dispatch(Thunk_pushScreen("muscleGroups"))}
         shouldShowRightArrow={true}
       />
-      <MenuItem name="Timers" onClick={() => props.dispatch(Thunk_pushScreen("timers"))} shouldShowRightArrow={true} />
+      <MenuItem
+        name="Timers"
+        label={translate("Timers")}
+        onClick={() => props.dispatch(Thunk_pushScreen("timers"))}
+        shouldShowRightArrow={true}
+      />
       {props.settings.gyms.length > 1 && (
         <MenuItemEditable
           type="select"
           name="Current Gym"
+          label={translate("Current Gym")}
           value={props.settings.currentGymId ?? props.settings.gyms[0].id}
           values={props.settings.gyms.map((g) => [g.id, g.name])}
           onChange={(newValue) => {
@@ -229,6 +250,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItem
         shouldShowRightArrow={true}
         name="Available Equipment"
+        label={translate("Available Equipment")}
         onClick={() => {
           if (props.settings.gyms.length > 1) {
             props.dispatch(Thunk_pushScreen("gyms"));
@@ -240,6 +262,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Weight Units"
+        label={translate("Weight Units")}
         value={props.settings.units}
         values={[
           ["kg", "kg"],
@@ -258,6 +281,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Length Units"
+        label={translate("Length Units")}
         value={props.settings.lengthUnits}
         values={[
           ["cm", "cm"],
@@ -276,6 +300,8 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Week starts from:"
+        label={translate("Week starts from:")}
+        valueLabels={{ false: translate("Sunday"), true: translate("Monday") }}
         value={props.settings.startWeekFromMonday ? "true" : "false"}
         values={[
           ["false", "Sunday"],
@@ -295,6 +321,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Always On Display"
+          label={translate("Always On Display")}
           value={props.settings.alwaysOnDisplay ? "true" : "false"}
           onChange={(newValue) => {
             props.dispatch({
@@ -309,10 +336,11 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
       {(Platform.OS === "ios" || Platform.OS === "android") && (
         <View>
-          <GroupHeader name="Sound" topPadding={true} />
+          <GroupHeader name="Sound" label={translate("Sound")} topPadding={true} />
           <MenuItemEditable
             type="boolean"
             name="Vibration"
+            label={translate("Vibration")}
             value={props.settings.vibration ? "true" : "false"}
             onChange={(newValue) => {
               props.dispatch({
@@ -350,11 +378,12 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
             <MenuItemEditable
               type="boolean"
               name="Ignore Do Not Disturb"
+              label={translate("Ignore Do Not Disturb")}
               value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
               nextLine={
                 <View className="mb-2" style={{ marginTop: -8 }}>
                   <Text className="text-xs text-text-secondary">
-                    Push notification will make a sound even in Silent or Do Not Disturb mode
+                    {translate("Push notification will make a sound even in Silent or Do Not Disturb mode")}
                   </Text>
                 </View>
               }
@@ -373,11 +402,12 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
       {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (
         <>
-          <GroupHeader name="Sync" topPadding={true} />
+          <GroupHeader name="Sync" label={translate("Sync")} topPadding={true} />
           {HealthSync_eligibleForGoogleHealth() && (
             <MenuItem
               shouldShowRightArrow={true}
               name="Google Health Connect"
+              label={translate("Google Health Connect")}
               onClick={() => props.dispatch(Thunk_pushScreen("googleHealth"))}
             />
           )}
@@ -385,12 +415,34 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
             <MenuItem
               shouldShowRightArrow={true}
               name="Apple Health"
+              label={translate("Apple Health")}
               onClick={() => props.dispatch(Thunk_pushScreen("appleHealth"))}
             />
           )}
         </>
       )}
-      <GroupHeader name="Appearance" topPadding={true} />
+      <GroupHeader name="Appearance" label={translate("Appearance")} topPadding={true} />
+      <MenuItemEditable
+        type="select"
+        name="Language"
+        label={translate("Language")}
+        valueLabels={{ system: translate("Device language") }}
+        value={props.settings.language ?? "system"}
+        values={[
+          ["system", "Device language"],
+          ["en", "English"],
+          ["fr", "Français"],
+        ]}
+        onChange={(newValue) => {
+          if (newValue === "system" || newValue === "en" || newValue === "fr") {
+            props.dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>().p("language").record(newValue),
+              desc: "Change language",
+            });
+          }
+        }}
+      />
       <MenuItemWrapper name="text-size">
         <View className="py-2">
           <View className="flex-row items-center">
@@ -417,7 +469,9 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
           </View>
           <View className="flex-row items-center justify-between mt-1">
             <Text className="text-xs text-text-secondary">
-              {props.settings.textSize == null ? "Matching your device text size" : "Set in the app"}
+              {props.settings.textSize == null
+                ? translate("Matching your device text size")
+                : translate("Set in the app")}
             </Text>
             {props.settings.textSize != null && (
               <LinkButton
@@ -432,7 +486,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
                   });
                 }}
               >
-                Use device size
+                {translate("Use device size")}
               </LinkButton>
             )}
           </View>
@@ -441,6 +495,8 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="select"
         name="Theme"
+        label={translate("Theme")}
+        valueLabels={{ system: translate("System"), light: translate("Light"), dark: translate("Dark") }}
         value={theme ?? "system"}
         values={[
           ["system", "System"],
@@ -459,25 +515,30 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       />
       {Features_isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
         <>
-          <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
+          <GroupHeader
+            name="Earn money with Liftosaur"
+            label={translate("Earn money with Liftosaur")}
+            topPadding={true}
+          />
           <MenuItem
             expandName={true}
             name="Affiliate Program"
+            label={translate("Affiliate Program")}
             onClick={() => navigateToModal("affiliateModal")}
-            value={props.settings.affiliateEnabled ? "On" : "Off"}
+            value={props.settings.affiliateEnabled ? translate("On") : translate("Off")}
             shouldShowRightArrow={true}
           />
         </>
       )}
-      <GroupHeader name="Import / Export" topPadding={true} />
+      <GroupHeader name="Import / Export" label={translate("Import / Export")} topPadding={true} />
       <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk_exportStorage())}>
         <View className="py-3">
-          <Text className="text-base text-text-primary">Export data to JSON file</Text>
+          <Text className="text-base text-text-primary">{translate("Export data to JSON file")}</Text>
         </View>
       </MenuItemWrapper>
       <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk_exportHistoryToCSV())}>
         <View className="py-3">
-          <Text className="text-base text-text-primary">Export history to CSV file</Text>
+          <Text className="text-base text-text-primary">{translate("Export history to CSV file")}</Text>
         </View>
       </MenuItemWrapper>
       <MenuItemWrapper
@@ -485,7 +546,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         onClick={() => props.dispatch(Thunk_exportProgramsToText())}
       >
         <View className="py-3">
-          <Text className="text-base text-text-primary">Export all programs to text file</Text>
+          <Text className="text-base text-text-primary">{translate("Export all programs to text file")}</Text>
         </View>
       </MenuItemWrapper>
       <ImporterLiftosaurCsv dispatch={props.dispatch} />
@@ -496,24 +557,25 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         onClick={() => navigateToModal("importFromOtherAppsModal")}
       >
         <View className="py-3">
-          <Text className="text-base text-text-primary">Import history from other apps</Text>
+          <Text className="text-base text-text-primary">{translate("Import history from other apps")}</Text>
         </View>
       </MenuItemWrapper>
       {(props.importSessions ?? []).length > 0 && (
         <MenuItem
           shouldShowRightArrow={true}
           name="Recent imports"
+          label={translate("Recent imports")}
           onClick={() => props.dispatch(Thunk_pushScreen("recentImports"))}
         />
       )}
 
-      <GroupHeader name="Miscellaneous" topPadding={true} />
-      <MenuItem name="Changelog" onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />
+      <GroupHeader name="Miscellaneous" label={translate("Miscellaneous")} topPadding={true} />
+      <MenuItem name="Changelog" label={translate("Changelog")} onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("mailto:info@liftosaur.com")}
       >
-        <Text className="text-base text-text-primary">Contact Us</Text>
+        <Text className="text-base text-text-primary">{translate("Contact Us")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
@@ -523,44 +585,44 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
           <View className="pr-2">
             <IconDiscord />
           </View>
-          <Text className="text-base text-text-primary">Discord Server</Text>
+          <Text className="text-base text-text-primary">{translate("Discord Server")}</Text>
         </View>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://www.liftosaur.com/privacy.html")}
       >
-        <Text className="text-base text-text-primary">Privacy Policy</Text>
+        <Text className="text-base text-text-primary">{translate("Privacy Policy")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://www.liftosaur.com/terms.html")}
       >
-        <Text className="text-base text-text-primary">Terms & Conditions</Text>
+        <Text className="text-base text-text-primary">{translate("Terms & Conditions")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://www.liftosaur.com/licenses.html")}
       >
-        <Text className="text-base text-text-primary">Licenses</Text>
+        <Text className="text-base text-text-primary">{translate("Licenses")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://www.liftosaur.com/doc")}
       >
-        <Text className="text-base text-text-primary">Documentation</Text>
+        <Text className="text-base text-text-primary">{translate("Documentation")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://github.com/astashov/liftosaur")}
       >
-        <Text className="text-base text-text-primary">Source Code on Github</Text>
+        <Text className="text-base text-text-primary">{translate("Source Code on Github")}</Text>
       </Pressable>
       <Pressable
         className="py-3 border-b border-border-neutral"
         onPress={() => openExternal("https://github.com/astashov/liftosaur/discussions")}
       >
-        <Text className="text-base text-text-primary">📍 Roadmap</Text>
+        <Text className="text-base text-text-primary">{translate("📍 Roadmap")}</Text>
       </Pressable>
     </View>
   );

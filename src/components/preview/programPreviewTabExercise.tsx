@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
@@ -52,6 +53,7 @@ interface IProgramPreviewTabExerciseProps {
 export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise(
   props: IProgramPreviewTabExerciseProps
 ): JSX.Element {
+  const translate = useTranslation();
   const exercise = useMemo(
     () => Exercise_get(props.entry.exercise, props.settings.exercises),
     [props.entry.exercise, props.settings.exercises]
@@ -121,7 +123,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
             testID="exercise-equipment"
             className="flex-row flex-wrap items-center"
           >
-            <Text className="text-xs text-text-secondary">Equipment: </Text>
+            <Text className="text-xs text-text-secondary">{translate("Equipment:")} </Text>
             <LinkButton
               name="exercise-equipment-picker"
               data-testid="exercise-equipment-picker"
@@ -172,7 +174,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
           {supersetExercise && (
             <View data-testid="exercise-superset" testID="exercise-superset">
               <Text className="text-xs text-text-secondary">
-                Supersets with:{" "}
+                {translate("Supersets with:")}{" "}
                 <Text className="text-xs font-bold text-text-secondary">
                   {Exercise_fullName(supersetExercise, props.settings)}
                 </Text>
@@ -186,13 +188,17 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
       </View>
       {!!exerciseNotes && (
         <View className="mt-1">
-          {!!exerciseNotes && !!description && <GroupHeader name="Exercise Notes" />}
+          {!!exerciseNotes && !!description && (
+            <GroupHeader name="Exercise Notes" label={translate("Exercise Notes")} />
+          )}
           <Markdown className="text-sm" value={exerciseNotes} />
         </View>
       )}
       {!!description && (
         <View className="mt-1">
-          {!!exerciseNotes && !!description && <GroupHeader name="Program Exercise Description" />}
+          {!!exerciseNotes && !!description && (
+            <GroupHeader name="Program Exercise Description" label={translate("Program Exercise Description")} />
+          )}
           <Markdown className="text-sm" value={description} />
         </View>
       )}

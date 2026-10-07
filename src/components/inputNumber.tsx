@@ -8,6 +8,7 @@ import { StringUtils_dashcase } from "../utils/string";
 interface IInputNumberProps {
   value?: number;
   label?: string;
+  displayLabel?: string;
   step?: number;
   min?: number;
   max?: number;
@@ -42,7 +43,11 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
 
   return (
     <View className="w-full">
-      {label && <Text className={`mb-1 ${isLarge ? "text-sm" : "text-xs"} text-text-secondary`}>{label}</Text>}
+      {label && (
+        <Text className={`mb-1 ${isLarge ? "text-sm" : "text-xs"} text-text-secondary`}>
+          {props.displayLabel ?? label}
+        </Text>
+      )}
       <View className="flex-row items-center gap-2">
         <Pressable
           className={buttonCn}

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo as reactMemo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { View, Pressable, Image, Platform } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -76,6 +77,7 @@ function getValues(stats: IStats, key: IStatsKey): IValue[] {
 }
 
 export function StatsList(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const statsKeys: IStatsKey[] = [
     ...ObjectUtils_keys(props.stats.weight).filter((k) => (props.stats.weight[k] || []).length > 0),
     ...ObjectUtils_keys(props.stats.percentage).filter((k) => (props.stats.percentage[k] || []).length > 0),
@@ -108,7 +110,9 @@ export function StatsList(props: IProps): JSX.Element {
             <SvgXml xml={BundledImages_svgXml(ImagePreloader_dynoflex) ?? ""} width={180} height={232} />
           )}
         </View>
-        <Text className="pt-4 pb-6 text-sm text-center text-text-secondary">No measurements added yet</Text>
+        <Text className="pt-4 pb-6 text-sm text-center text-text-secondary">
+          {translate("No measurements added yet")}
+        </Text>
         <View className="items-center">
           <Button
             name="add-measurements"
@@ -117,7 +121,7 @@ export function StatsList(props: IProps): JSX.Element {
             kind="purple"
             onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
           >
-            Add measurements
+            {translate("Add measurements")}
           </Button>
         </View>
       </View>
@@ -145,13 +149,14 @@ export function StatsList(props: IProps): JSX.Element {
           kind="purple"
           onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
         >
-          Add measurements
+          {translate("Add measurements")}
         </Button>
       </View>
-      <GroupHeader name="Selected Measurement Type" />
+      <GroupHeader name="Selected Measurement Type" label={translate("Selected Measurement Type")} />
       <MenuItemEditable
         type="select"
         name="Type"
+        label={translate("Type")}
         value={selectedKey}
         values={statsKeys.map((key) => [key, Stats_name(key)])}
         onChange={(value) => {
@@ -161,6 +166,7 @@ export function StatsList(props: IProps): JSX.Element {
       {Subscriptions_hasSubscription(props.subscription) && (
         <MenuItemEditable
           name="Moving Average Window Size"
+          label={translate("Moving Average Window Size")}
           type="select"
           value={movingAverageWindowSize?.toString() ?? ""}
           values={[
@@ -207,11 +213,11 @@ export function StatsList(props: IProps): JSX.Element {
       </View>
       {values.length === 0 ? (
         <Text className="py-12 text-xl text-center text-text-secondary">
-          No {Stats_name(selectedKey)} measurements added yet
+          {translate("No")} {Stats_name(selectedKey)} {translate("measurements added yet")}
         </Text>
       ) : (
         <>
-          <GroupHeader name="List of measurements" topPadding={false} />
+          <GroupHeader name="List of measurements" label={translate("List of measurements")} topPadding={false} />
           {visibleValues.map((value) => (
             <MeasurementRow
               key={`${selectedKey}-${value.timestamp}`}

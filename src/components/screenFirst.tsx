@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, useEffect, useRef } from "react";
 import { View, Image, Platform, Animated, Easing } from "react-native";
 import { Text } from "./primitives/text";
@@ -30,6 +31,7 @@ const onboardingImages = [
 ];
 
 export function ScreenFirst(props: IProps): JSX.Element {
+  const translate = useTranslation();
   useNavOptions({ navHidden: true });
 
   useEffect(() => {
@@ -51,10 +53,10 @@ export function ScreenFirst(props: IProps): JSX.Element {
               header={
                 <View className="flex-row items-center justify-center">
                   <IconKettlebell color={Tailwind_colors().purple[600]} />
-                  <Text className="ml-1 font-semibold text-text-purple">Weightlifting Programs</Text>
+                  <Text className="ml-1 font-semibold text-text-purple">{translate("Weightlifting Programs")}</Text>
                 </View>
               }
-              bodyText="Start with a pre-built weightlifting program, or create your own."
+              bodyText={translate("Start with a pre-built weightlifting program, or create your own.")}
               image="slide-2-image"
             />,
             <RestSlide
@@ -64,10 +66,10 @@ export function ScreenFirst(props: IProps): JSX.Element {
               header={
                 <View className="flex-row items-center justify-center">
                   <IconWorkoutProgress color={Tailwind_colors().yellow[600]} />
-                  <Text className="ml-1 font-semibold text-icon-yellow">Workout Tracker</Text>
+                  <Text className="ml-1 font-semibold text-icon-yellow">{translate("Workout Tracker")}</Text>
                 </View>
               }
-              bodyText="Log sets with one tap. Your reps and weight adjust automatically."
+              bodyText={translate("Log sets with one tap. Your reps and weight adjust automatically.")}
               image="slide-3-image"
             />,
             <RestSlide
@@ -77,10 +79,10 @@ export function ScreenFirst(props: IProps): JSX.Element {
               header={
                 <View className="flex-row items-center justify-center">
                   <IconEditor color={Tailwind_colors().purple[600]} />
-                  <Text className="ml-1 font-semibold text-text-purple">Program Editor</Text>
+                  <Text className="ml-1 font-semibold text-text-purple">{translate("Program Editor")}</Text>
                 </View>
               }
-              bodyText="Modify or switch any program anytime to fit your goals."
+              bodyText={translate("Modify or switch any program anytime to fit your goals.")}
               image="slide-4-image"
             />,
             <RestSlide
@@ -90,10 +92,10 @@ export function ScreenFirst(props: IProps): JSX.Element {
               header={
                 <View className="flex-row items-center justify-center">
                   <IconTracker color={Tailwind_colors().red[600]} />
-                  <Text className="ml-1 font-semibold text-text-error">Workout History</Text>
+                  <Text className="ml-1 font-semibold text-text-error">{translate("Workout History")}</Text>
                 </View>
               }
-              bodyText="Track your weekly stats to stay on target!"
+              bodyText={translate("Track your weekly stats to stay on target!")}
               image="slide-5-image"
             />,
           ]}
@@ -108,7 +110,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
           onClick={() => props.dispatch(Thunk_pushScreen("units"))}
         >
           <View className="flex-row items-center justify-center">
-            <Text className="text-xs font-semibold text-text-alwayswhite">Get started</Text>
+            <Text className="text-xs font-semibold text-text-alwayswhite">{translate("Get started")}</Text>
             <AnimatedArrow />
           </View>
         </Button>
@@ -119,7 +121,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             kind="transparent-purple"
             onClick={() => navigateToModal("accountModal")}
           >
-            I have an account
+            {translate("I have an account")}
           </Button>
         </View>
       </View>
@@ -159,6 +161,7 @@ function AnimatedArrow(): JSX.Element {
 }
 
 function FirstSlide(): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="relative flex flex-col w-full h-full overflow-hidden bg-white rounded-2xl">
       <Image
@@ -167,18 +170,10 @@ function FirstSlide(): JSX.Element {
         resizeMode="cover"
       />
       <Text className="px-8 pt-24 text-3xl font-bold leading-scaled-9 text-text-alwayswhite">
-        The most powerful weightlifting{" "}
-        <Text className="text-3xl" style={{ color: Tailwind_colors().purple[400] }}>
-          planner
-        </Text>{" "}
-        and{" "}
-        <Text className="text-3xl" style={{ color: Tailwind_colors().red[400] }}>
-          tracker
-        </Text>{" "}
-        app
+        {translate("The most powerful weightlifting planner and tracker app")}
       </Text>
       <Text className="px-8 py-6 text-base text-text-alwayswhite">
-        Build any weightlifting program using a simple scripting language and track your progress.
+        {translate("Build any weightlifting program using a simple scripting language and track your progress.")}
       </Text>
       <View className="flex-1 w-full overflow-hidden">
         {Platform.OS === "web" ? (

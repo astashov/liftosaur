@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -19,6 +20,7 @@ interface IProps {
 }
 
 export function ModalProgramInfoContent(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
   const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
@@ -26,14 +28,16 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
     <>
       <View>
         <Text className="pr-6 text-lg font-bold">
-          {props.hasCustomPrograms ? "Clone" : "Start"}{" "}
+          {props.hasCustomPrograms ? translate("Clone") : translate("Start")}{" "}
           <Link className="text-lg" href={props.program.url}>
             {props.program.name}
           </Link>
         </Text>
       </View>
       <View>
-        <Text className="text-sm text-text-secondary">by {props.program.author}</Text>
+        <Text className="text-sm text-text-secondary">
+          {translate("by")} {props.program.author}
+        </Text>
       </View>
       {formattedTime && (
         <View className="flex-row items-center pb-1">
@@ -41,7 +45,7 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
             <IconWatch />
           </View>
           <Text className="flex-1 text-sm" style={{ paddingTop: 2 }}>
-            Average time of a workout: <Text className="text-sm font-bold">{formattedTime}</Text>
+            {translate("Average time of a workout:")} <Text className="text-sm font-bold">{formattedTime}</Text>
           </Text>
         </View>
       )}
@@ -54,7 +58,7 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
           kind="grayv2"
           onClick={props.onPreview}
         >
-          Preview
+          {translate("Preview")}
         </Button>
         <Button
           name="clone-program"
@@ -63,7 +67,7 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
           testID="clone-program"
           onClick={props.onSelect}
         >
-          {props.hasCustomPrograms ? "Clone" : "Start"}
+          {props.hasCustomPrograms ? translate("Clone") : translate("Start")}
         </Button>
       </View>
     </>

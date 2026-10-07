@@ -8,6 +8,7 @@ import { IconHelp } from "./icons/iconHelp";
 
 interface IProps {
   name: string;
+  label?: string;
   help?: JSX.Element;
   size?: "small" | "large";
   children?: ReactNode;
@@ -64,7 +65,7 @@ export function GroupHeader(props: IProps): JSX.Element {
             props.highlighted ? "text-text-purple" : "text-text-secondary"
           }`}
         >
-          {name}
+          {props.label ?? name}
         </Text>
         {props.nameAddOn}
       </View>

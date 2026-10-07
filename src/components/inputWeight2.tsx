@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -210,6 +211,7 @@ interface IPlatesCalculatorProps {
 }
 
 export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
+  const translate = useTranslation();
   const { plates, totalWeight: weight } = Weight_calculatePlates(
     props.weight,
     props.settings,
@@ -223,13 +225,13 @@ export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCal
       </View>
       <View>
         <Text className="text-xs text-text-secondary">
-          Plates:{" "}
+          {translate("Plates:")}{" "}
           <Text
             className={`text-xs font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
             data-testid="plates-list"
             testID="plates-list"
           >
-            {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None"}
+            {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : translate("None")}
           </Text>
         </Text>
       </View>

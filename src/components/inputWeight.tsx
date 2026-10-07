@@ -13,6 +13,7 @@ import { InputWeightUnit } from "./inputWeightUnit";
 interface IInputWeightProps {
   value: IWeight | IPercentage;
   label?: string;
+  displayLabel?: string;
   exerciseType?: IExerciseType;
   units?: (IUnit | "%")[];
   settings: ISettings;
@@ -62,7 +63,9 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
   return (
     <View className="w-full">
       {props.label && (
-        <Text className={`mb-1 ${isLarge ? "text-sm" : "text-xs"} text-text-secondary`}>{props.label}</Text>
+        <Text className={`mb-1 ${isLarge ? "text-sm" : "text-xs"} text-text-secondary`}>
+          {props.displayLabel ?? props.label}
+        </Text>
       )}
       <View className="flex-row items-center gap-2">
         <Pressable

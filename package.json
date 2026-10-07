@@ -247,6 +247,7 @@
     "react-native-in-app-review": "^4.4.2",
     "react-native-inappbrowser-reborn": "^3.7.1",
     "react-native-keychain": "^10.0.0",
+    "react-native-localize": "^3.7.2",
     "react-native-mmkv": "^4.3.1",
     "react-native-nitro-modules": "^0.35.0",
     "react-native-pager-view": "^8.0.1",

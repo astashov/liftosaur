@@ -1,3 +1,4 @@
+import { I18nProvider } from "../i18n/context";
 import { JSX, useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { ActiveSheetHeightProvider } from "../navigation/ActiveSheetHeightContext";
@@ -337,40 +338,42 @@ export function AppView(props: IProps): JSX.Element | null {
   const screensWithoutTimer: IScreen[] = ["subscription"];
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <StateContext.Provider value={{ state, dispatch }}>
-          <TrackedStateProvider state={state} dispatch={dispatch}>
-            <ClickTrackingContext.Provider value={dispatch}>
-              <ModalStateProvider>
-                <ActiveSheetHeightProvider>
-                  <AppContext.Provider value={{ service, isApp: true }}>
-                    <NavigationContainer
-                      ref={navigationRef}
-                      onReady={() => setIsNavReady(true)}
-                      onStateChange={onNavigationStateChange}
-                      documentTitle={{ enabled: false }}
-                      theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-                    >
-                      <AppNavigator initialScreen={initialScreen} />
-                    </NavigationContainer>
-                  </AppContext.Provider>
-                </ActiveSheetHeightProvider>
-              </ModalStateProvider>
-            </ClickTrackingContext.Provider>
-          </TrackedStateProvider>
-        </StateContext.Provider>
-        {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-          <RestTimer
-            progress={progress}
-            dispatch={dispatch}
-            settings={state.storage.settings}
-            subscription={state.storage.subscription}
-          />
-        )}
-        <Notification dispatch={dispatch} notification={state.notification} />
-        <Toast toast={state.toast} dispatch={dispatch} />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <I18nProvider language={state.storage.settings.language}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <StateContext.Provider value={{ state, dispatch }}>
+            <TrackedStateProvider state={state} dispatch={dispatch}>
+              <ClickTrackingContext.Provider value={dispatch}>
+                <ModalStateProvider>
+                  <ActiveSheetHeightProvider>
+                    <AppContext.Provider value={{ service, isApp: true }}>
+                      <NavigationContainer
+                        ref={navigationRef}
+                        onReady={() => setIsNavReady(true)}
+                        onStateChange={onNavigationStateChange}
+                        documentTitle={{ enabled: false }}
+                        theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+                      >
+                        <AppNavigator initialScreen={initialScreen} />
+                      </NavigationContainer>
+                    </AppContext.Provider>
+                  </ActiveSheetHeightProvider>
+                </ModalStateProvider>
+              </ClickTrackingContext.Provider>
+            </TrackedStateProvider>
+          </StateContext.Provider>
+          {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+            <RestTimer
+              progress={progress}
+              dispatch={dispatch}
+              settings={state.storage.settings}
+              subscription={state.storage.subscription}
+            />
+          )}
+          <Notification dispatch={dispatch} notification={state.notification} />
+          <Toast toast={state.toast} dispatch={dispatch} />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </I18nProvider>
   );
 }

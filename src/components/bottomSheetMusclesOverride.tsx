@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -88,6 +89,7 @@ export function getInitialMusclesAndMultipliers(exercise: IExercise, settings: I
 export type IBottomSheetMusclesOverrideContentProps = Omit<IBottomSheetMusclesOverrideProps, "isHidden">;
 
 export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOverrideContentProps): JSX.Element {
+  const translate = useTranslation();
   const exercise = Exercise_get(props.exerciseType, props.settings.exercises);
   const [musclesAndMultipliers, setMusclesAndMultipliers] = useState(
     getInitialMusclesAndMultipliers(exercise, props.settings)
@@ -141,12 +143,12 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
               data-testid="save-muscle-overrides"
               onClick={handleSave}
             >
-              Save
+              {translate("Save")}
             </Button>
           </View>
           <View className="absolute top-0 left-0 right-0 items-center" pointerEvents="box-none">
             <View>
-              <Text className="font-semibold">Override Muscles</Text>
+              <Text className="font-semibold">{translate("Override Muscles")}</Text>
               <View className="items-center">
                 <LinkButton
                   data-testid="toggle-muscle-overrides"
@@ -161,7 +163,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
                     })
                   }
                 >
-                  + Add Muscles
+                  {translate("+ Add Muscles")}
                 </LinkButton>
               </View>
             </View>
@@ -195,6 +197,7 @@ export function MusclesOverrideList(props: {
   settings: ISettings;
   dispatch?: IDispatch;
 }): JSX.Element {
+  const translate = useTranslation();
   const { musclesAndMultipliers, setMusclesAndMultipliers } = props;
   return (
     <>
@@ -202,18 +205,24 @@ export function MusclesOverrideList(props: {
         <Nux id="muscle-override-help" helps={props.helps} dispatch={props.dispatch}>
           <View>
             <Text className="text-xs">
-              Here you can override the muscles for this exercise. This affects how the volume / number of sets is
-              calculated for this exercise.
+              {translate(
+                "Here you can override the muscles for this exercise. This affects how the volume / number of sets is calculated for this exercise."
+              )}
             </Text>
             <Text className="text-xs">
-              For each muscle, you can set a multiplier - from <Text className="text-xs font-bold">0</Text> to{" "}
-              <Text className="text-xs font-bold">1</Text>. If it's 1 - it's a{" "}
-              <Text className="text-xs font-bold">target muscle</Text>, and we count each set as a full one when we
-              calculate the volume. If it's less 1 - it's a <Text className="text-xs font-bold">synergist</Text> muscle,
-              and we apply the specified multiplier to the number of sets.
+              {translate("For each muscle, you can set a multiplier - from")}{" "}
+              <Text className="text-xs font-bold">0</Text> {translate("to")}{" "}
+              <Text className="text-xs font-bold">1</Text>
+              {translate(". If it's 1 - it's a")}{" "}
+              <Text className="text-xs font-bold">{translate("target muscle")}</Text>
+              {translate(
+                ", and we count each set as a full one when we calculate the volume. If it's less 1 - it's a"
+              )}{" "}
+              <Text className="text-xs font-bold">{translate("synergist")}</Text>{" "}
+              {translate("muscle, and we apply the specified multiplier to the number of sets.")}
             </Text>
             <Text className="text-xs">
-              These multipliers takes precedence over the default target/synergist multiplier.
+              {translate("These multipliers takes precedence over the default target/synergist multiplier.")}
             </Text>
           </View>
         </Nux>

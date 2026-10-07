@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View, Pressable, Image } from "react-native";
 import { Text } from "./primitives/text";
@@ -16,6 +17,7 @@ interface IProps {
 }
 
 export function ScreenUnitSelector(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const selectedButtonCls = "bg-button-primarybackground border-button-primarybackground";
   const unselectedButtonCls = "bg-background-default border-border-neutral";
 
@@ -32,10 +34,11 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
               resizeMode="contain"
             />
           </View>
-          <Text className="px-6 pt-4 text-2xl font-semibold text-center">Pick your units</Text>
+          <Text className="px-6 pt-4 text-2xl font-semibold text-center">{translate("Pick your units")}</Text>
           <Text className="px-6 py-4 text-base text-center">
-            Your chosen units will be the default, but you can override them or change them in{" "}
-            <Text className="font-bold">Settings</Text> or <Text className="font-bold">per equipment</Text> anytime.
+            {translate(
+              "Your chosen units will be the default, but you can change them in Settings or per equipment anytime."
+            )}
           </Text>
           <View className="flex-row px-6">
             <Pressable
@@ -47,7 +50,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
               <Text
                 className={`text-sm font-semibold text-center ${props.settings.units === "lb" ? "text-text-alwayswhite" : "text-text-purple"}`}
               >
-                Pounds (lb)
+                {translate("Pounds (lb)")}
               </Text>
             </Pressable>
             <Pressable
@@ -59,7 +62,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
               <Text
                 className={`text-sm font-semibold text-center ${props.settings.units === "kg" ? "text-text-alwayswhite" : "text-text-purple"}`}
               >
-                Kilograms (kg)
+                {translate("Kilograms (kg)")}
               </Text>
             </Pressable>
           </View>
@@ -72,7 +75,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
           kind="purple"
           onClick={() => props.dispatch(Thunk_pushScreen("setupequipment"))}
         >
-          Continue
+          {translate("Continue")}
         </Button>
       </View>
     </View>

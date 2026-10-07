@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -27,8 +28,9 @@ interface IProps {
 }
 
 export function ScreenGyms(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const gyms = props.settings.gyms;
-  useNavOptions({ navTitle: "Gyms" });
+  useNavOptions({ navTitle: translate("Gyms") });
 
   return (
     <View className="px-gutter">
@@ -40,7 +42,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
             addons={
               gym.id === props.settings.currentGymId ? (
                 <View className="pb-1" style={{ marginTop: -8 }}>
-                  <Text className="text-xs text-text-secondary">current</Text>
+                  <Text className="text-xs text-text-secondary">{translate("current")}</Text>
                 </View>
               ) : undefined
             }
@@ -120,7 +122,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
       })}
       <View className="mt-1">
         <LinkButton name="new-gym" onClick={() => navigateToModal("newGymModal")}>
-          Add Gym
+          {translate("Add Gym")}
         </LinkButton>
       </View>
     </View>

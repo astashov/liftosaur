@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { Button } from "./button";
@@ -60,6 +61,7 @@ interface IModalAmrapContentProps {
 }
 
 export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
+  const translate = useTranslation();
   const progress = props.progress;
   const { entryIndex, setIndex } = props.amrapModal;
   const entry = progress.entries[entryIndex];
@@ -132,6 +134,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
               <InputNumber
                 size="lg"
                 label="Completed reps (left)"
+                displayLabel={translate("Completed reps (left)")}
                 value={repsLeftInputValue ?? 0}
                 data-testid="modal-amrap-left-input"
                 testID="modal-amrap-left-input"
@@ -167,6 +170,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
             size="lg"
             exerciseType={entry?.exercise || props.programExercise?.exerciseType}
             label="Weight"
+            displayLabel={translate("Weight")}
             units={["kg", "lb"]}
             value={weightInputValue || Weight_build(0, props.settings.units)}
             data-testid="modal-amrap-weight-input"
@@ -183,6 +187,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           <InputNumber
             size="lg"
             label="Completed RPE"
+            displayLabel={translate("Completed RPE")}
             value={rpeInputValue ?? 0}
             data-testid="modal-rpe-input"
             testID="modal-rpe-input"
@@ -223,7 +228,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
             onDone();
           }}
         >
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="modal-amrap-submit"
@@ -246,7 +251,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
             onDone(amrapValue, amrapLeftValue, rpeValue, weightValue, userVarInputValues);
           }}
         >
-          Done
+          {translate("Done")}
         </Button>
       </View>
     </View>
@@ -259,9 +264,14 @@ interface IUserPromptedStateVarsProps {
 }
 
 export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <>
-      <GroupHeader size="large" name="Enter new state variables values" />
+      <GroupHeader
+        size="large"
+        name="Enter new state variables values"
+        label={translate("Enter new state variables values")}
+      />
       {ObjectUtils_keys(props.userVarInputValues).map((key, i) => {
         return (
           <UserPromptedStateVar

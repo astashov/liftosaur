@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
@@ -154,6 +155,7 @@ interface IEditProgramDayContentViewProps {
 const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
   props: IEditProgramDayContentViewProps
 ): JSX.Element {
+  const translate = useTranslation();
   const { evaluatedDay } = props;
   const duration = TimeUtils_formatHOrMin(
     PlannerStatsUtils_dayApproxTimeMs(
@@ -235,7 +237,7 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
                 );
               }}
             >
-              {allExercisesCollapsed ? "Expand" : "Collapse"} all exercises
+              {allExercisesCollapsed ? translate("Expand") : translate("Collapse")} {translate("all exercises")}
             </LinkButton>
           </View>
         )}
@@ -306,7 +308,7 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
                 }}
               >
                 <IconPlus2 size={12} />
-                <Text className="ml-2 text-sm text-text-link font-semibold">Add Exercise</Text>
+                <Text className="ml-2 text-sm text-text-link font-semibold">{translate("Add Exercise")}</Text>
               </Button>
             </View>
           </View>

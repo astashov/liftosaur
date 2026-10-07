@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { lb } from "lens-shmens";
@@ -19,6 +20,7 @@ interface ISetTimerEditContentProps {
 }
 
 export function SetTimerEditContent(props: ISetTimerEditContentProps): JSX.Element {
+  const translate = useTranslation();
   const { set, entryIndex, setIndex, isUnilateral, dispatch } = props;
   const initialSeconds = set.completedSetTimer ?? set.setTimer ?? 0;
   const initialLeftSeconds = set.completedSetTimerLeft ?? set.setTimer ?? 0;
@@ -122,8 +124,8 @@ export function SetTimerEditContent(props: ISetTimerEditContentProps): JSX.Eleme
 
   return (
     <View>
-      <Text className="pb-2 font-bold">Edit recorded time</Text>
-      <Text className="pb-2 text-xs text-text-secondary">(in mm:ss)</Text>
+      <Text className="pb-2 font-bold">{translate("Edit recorded time")}</Text>
+      <Text className="pb-2 text-xs text-text-secondary">{translate("(in mm:ss)")}</Text>
       {isUnilateral && (
         <View className="pb-2">
           {durationRow(
@@ -152,10 +154,10 @@ export function SetTimerEditContent(props: ISetTimerEditContentProps): JSX.Eleme
           className="mr-3"
           onClick={onClear}
         >
-          Clear
+          {translate("Clear")}
         </Button>
         <Button name="set-timer-edit-submit" data-testid="set-timer-edit-submit" kind="purple" onClick={onSave}>
-          Save
+          {translate("Save")}
         </Button>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useState, useMemo, useCallback } from "react";
 import { View, Pressable } from "react-native";
 import { TextInput } from "../primitives/textInput";
@@ -23,6 +24,7 @@ interface IProps {
 export type IExerciseCloneLibraryContentProps = Omit<IProps, "isHidden"> & { bare?: boolean };
 
 export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentProps): JSX.Element {
+  const translate = useTranslation();
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
   const exercises = useMemo(() => {
@@ -48,11 +50,13 @@ export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentP
   const header = (
     <SheetDragHandle>
       <View collapsable={false} className="px-gutter pb-2">
-        <Text className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</Text>
+        <Text className="pt-1 pb-3 text-base font-semibold text-center">
+          {translate("Pick Exercise To Clone From")}
+        </Text>
         <View className="flex-row items-center gap-2 p-2 rounded-lg bg-background-neutral">
           <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
           <TextInput
-            placeholder="Search by name"
+            placeholder={translate("Search by name")}
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             className="flex-1 text-sm text-text-secondary"
             style={{ paddingVertical: 0, includeFontPadding: false }}

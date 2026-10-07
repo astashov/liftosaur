@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useContext, useState } from "react";
 import { View, Pressable, Image, Platform } from "react-native";
 import { TextInput } from "../primitives/textInput";
@@ -72,6 +73,7 @@ async function confirmAsync(message: string): Promise<boolean> {
 }
 
 export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
+  const translate = useTranslation();
   const appContext = useContext(AppContext);
   const service =
     appContext.service ?? (typeof window !== "undefined" ? new Service(fetch.bind(window)) : new Service(fetch));
@@ -141,12 +143,13 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
       <View>
         <View className="items-center pb-2">
           <LinkButton className="text-xs" name="clone-builtin-exercise" onPress={openCloneLibrary}>
-            Clone from another exercise
+            {translate("Clone from another exercise")}
           </LinkButton>
         </View>
         <View>
           <Text className="pb-1 text-sm">
-            Name<Text className="text-text-error"> *</Text>
+            {translate("Name")}
+            <Text className="text-text-error"> *</Text>
           </Text>
           <TextInput
             data-testid="custom-exercise-name-input"
@@ -173,7 +176,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 />
               </Pressable>
               <LinkButton name="custom-exercise-change-image" className="text-xs" onPress={openImageSourceAction}>
-                Change Image
+                {translate("Change Image")}
               </LinkButton>
             </View>
           ) : (
@@ -184,7 +187,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               buttonSize="md"
               onPress={openImageSourceAction}
             >
-              Add image
+              {translate("Add image")}
             </Button>
           )}
         </View>
@@ -225,7 +228,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               ) : (
                 <>
                   <IconAi color={Tailwind_semantic().icon.blue} />
-                  <Text className="ml-1 text-sm">Autofill Muscles and Types</Text>
+                  <Text className="ml-1 text-sm">{translate("Autofill Muscles and Types")}</Text>
                 </>
               )}
             </View>
@@ -238,7 +241,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             name="target-muscles"
             bottomSheetTitle="Target Muscles"
             muscleKey="targetMuscles"
-            label="Target Muscles"
+            label={translate("Target Muscles")}
             selectedMuscles={editCustomExercise.meta.targetMuscles}
             onSelect={(muscle) => {
               const current = new Set(editCustomExercise.meta.targetMuscles);
@@ -267,7 +270,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             name="synergist-muscles"
             bottomSheetTitle="Synergist Muscles"
             muscleKey="synergistMuscles"
-            label="Synergist Muscles"
+            label={translate("Synergist Muscles")}
             selectedMuscles={editCustomExercise.meta.synergistMuscles}
             onSelect={(muscle) => {
               const current = new Set(editCustomExercise.meta.synergistMuscles);
@@ -306,8 +309,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         {!props.hideNotes && (
           <View className="pt-2 pb-4">
             <Text className="pb-1 text-sm text-text-primary">
-              <Text className="text-sm">Exercise Notes</Text>
-              <Text className="text-xs text-text-secondary"> (optional)</Text>
+              <Text className="text-sm">{translate("Exercise Notes")}</Text>
+              <Text className="text-xs text-text-secondary"> {translate("(optional)")}</Text>
             </Text>
             <MarkdownEditor
               value={notes ?? ""}
@@ -337,7 +340,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               props.onGoBack("Delete custom exercise");
             }}
           >
-            Delete Exercise
+            {translate("Delete Exercise")}
           </Button>
         </View>
       )}
@@ -348,10 +351,10 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           isHidden={!showImageBottomSheet}
         >
           <View className="p-4">
-            <Text className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</Text>
+            <Text className="text-xs text-center text-text-secondary">{translate("Prefer 2:3 aspect ratio")}</Text>
             <BottomSheetItem
               name="from-image-library"
-              title="From Image Library"
+              title={translate("From Image Library")}
               onClick={() => {
                 setShowImageBottomSheet(false);
                 setShowImageLibrary(true);
@@ -360,7 +363,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             {Platform.OS !== "web" ? (
               <BottomSheetItem
                 name="upload-image"
-                title="Upload Image"
+                title={translate("Upload Image")}
                 onClick={() => {
                   if (!props.isLoggedIn) {
                     Dialog_alert("You need to be logged in to upload custom exercise images");
@@ -391,7 +394,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                   <BottomSheetItem
                     name="upload-image"
                     icon={isUploading ? <IconSpinner width={18} height={18} /> : undefined}
-                    title="Upload Image"
+                    title={translate("Upload Image")}
                     onClick={() => {
                       if (!props.isLoggedIn) {
                         Dialog_alert("You need to be logged in to upload custom exercise images");
@@ -414,7 +417,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         >
           <View className="p-4">
             <BottomSheetItem
-              title="From Camera"
+              title={translate("From Camera")}
               name="from-camera"
               icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} />}
               isFirst={true}
@@ -432,7 +435,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               }}
             />
             <BottomSheetItem
-              title="From Photo Library"
+              title={translate("From Photo Library")}
               name="from-photo-library"
               icon={isUploading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} />}
               description="Pick photo from your photo library"
@@ -514,6 +517,7 @@ interface IExercisePickerCustomExerciseTypesProps {
 }
 
 function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseTypesProps): JSX.Element {
+  const translate = useTranslation();
   const [isOpened, setIsOpened] = useState<boolean>(false);
   const selectedValues = ObjectUtils_keys(props.types).filter((k) => props.types[k].isSelected);
 
@@ -532,8 +536,8 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
   return (
     <View className="w-full">
       <Text className="pb-1 text-sm text-text-primary">
-        <Text className="text-sm">Types</Text>
-        <Text className="text-xs text-text-secondary"> (optional)</Text>
+        <Text className="text-sm">{translate("Types")}</Text>
+        <Text className="text-xs text-text-secondary"> {translate("(optional)")}</Text>
       </Text>
       <Pressable onPress={openPicker}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={selectedValues} />
@@ -547,7 +551,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
           isHidden={!isOpened}
         >
           <View className="flex-1 px-4" style={{ marginTop: -12 }}>
-            <Text className="pt-6 pb-3 text-base font-semibold text-center">Types</Text>
+            <Text className="pt-6 pb-3 text-base font-semibold text-center">{translate("Types")}</Text>
             <View className="flex-1 pb-4">
               <ExercisePickerOptions
                 values={props.types}
@@ -572,7 +576,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
                   setIsOpened(false);
                 }}
               >
-                Done
+                {translate("Done")}
               </Button>
             </View>
           </View>
@@ -595,6 +599,7 @@ interface IExercisePickerCustomExerciseMusclesProps {
 }
 
 function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExerciseMusclesProps): JSX.Element {
+  const translate = useTranslation();
   const [isOpened, setIsOpened] = useState<boolean>(false);
 
   const openMusclesModal = useModal("exerciseMusclesPickerModal", (muscles) => {
@@ -617,7 +622,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
     <View className="w-full">
       <Text className="pb-1 text-sm text-text-primary">
         <Text className="text-sm">{props.label}</Text>
-        <Text className="text-xs text-text-secondary"> (optional)</Text>
+        <Text className="text-xs text-text-secondary"> {translate("(optional)")}</Text>
       </Text>
       <Pressable onPress={openPicker} data-testid={`select-${props.name}`} testID={`select-${props.name}`}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
@@ -651,7 +656,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
                   setIsOpened(false);
                 }}
               >
-                Done
+                {translate("Done")}
               </Button>
             </View>
           </View>

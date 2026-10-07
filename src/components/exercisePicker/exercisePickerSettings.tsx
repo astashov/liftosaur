@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
@@ -19,6 +20,7 @@ interface IProps {
 }
 
 export function ExercisePickerSettings(props: IProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="flex-1 pb-4">
       <View className="flex-row items-center py-4 mt-2">
@@ -38,12 +40,13 @@ export function ExercisePickerSettings(props: IProps): JSX.Element {
         >
           <IconBack />
         </Pressable>
-        <Text className="flex-1 pr-12 font-bold text-center">Settings</Text>
+        <Text className="flex-1 pr-12 font-bold text-center">{translate("Settings")}</Text>
       </View>
       <View className="px-4">
         <MenuItemEditable
           type="boolean"
           name="Keep existing program exercise logic when pick adhoc exercise"
+          label={translate("Keep existing program exercise logic when pick adhoc exercise")}
           value={props.settings.workoutSettings.shouldKeepProgramExerciseId ? "true" : "false"}
           onChange={(v) => {
             props.onChange({

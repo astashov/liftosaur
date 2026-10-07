@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import MarkdownIt from "markdown-it";
@@ -41,6 +42,7 @@ interface IProps {
 }
 
 export function Markdown(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
@@ -90,7 +92,7 @@ export function Markdown(props: IProps): JSX.Element {
             className="text-xs font-normal"
             onClick={() => setIsTruncated(!isTruncated)}
           >
-            {isTruncated ? "Show more" : "Show less"}
+            {isTruncated ? translate("Show more") : translate("Show less")}
           </LinkButton>
         </div>
       )}

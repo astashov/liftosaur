@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, memo, useCallback } from "react";
 import { View } from "react-native";
 import Animated, { useAnimatedStyle } from "react-native-reanimated";
@@ -52,6 +53,7 @@ export interface IGridRowProps {
 }
 
 export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element {
+  const translate = useTranslation();
   const rem = useRem();
   const { grid, rowIndex, lanes, rowHeight } = props;
   const row = grid.rows[rowIndex];
@@ -252,7 +254,7 @@ export const GridRow = memo(function GridRow(props: IGridRowProps): JSX.Element 
             >
               {ProgramGrid_hasDay(row, column.weekIndex) && (
                 <AddButton
-                  label="Exercise"
+                  label={translate("Exercise")}
                   testID={`grid-add-exercise-${column.weekIndex}-${rowIndex}`}
                   onPress={() => props.onAddExercise(column.weekIndex, rowIndex)}
                 />

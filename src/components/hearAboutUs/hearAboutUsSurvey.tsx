@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, ReactNode, useRef, useState } from "react";
 import { View, Pressable, Image, ScrollView, Platform } from "react-native";
 import { TextInput } from "../primitives/textInput";
@@ -86,17 +87,19 @@ function sourceIcon(source: IHearAboutUsSource, color: string): ReactNode {
 }
 
 function Mascot({ size }: { size: number }): JSX.Element {
+  const translate = useTranslation();
   return (
     <Image
       source={{ uri: ImagePreloader_uri("/images/dino-scope.png") }}
       style={{ width: size, height: size }}
       resizeMode="contain"
-      accessibilityLabel="Liftosaur mascot with a telescope"
+      accessibilityLabel={translate("Liftosaur mascot with a telescope")}
     />
   );
 }
 
 function SkipButton({ onPress }: { onPress: () => void }): JSX.Element {
+  const translate = useTranslation();
   return (
     <LinkButton
       name="hear-about-us-skip"
@@ -104,12 +107,13 @@ function SkipButton({ onPress }: { onPress: () => void }): JSX.Element {
       className="text-sm ls-hear-about-us-skip p-2"
       onPress={onPress}
     >
-      Skip
+      {translate("Skip")}
     </LinkButton>
   );
 }
 
 export function HearAboutUsSurvey(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [step, setStep] = useState<1 | 2>(props.initialAnswer?.source ? 2 : 1);
   const [source, setSource] = useState<IHearAboutUsSource | undefined>(
     props.initialAnswer?.source as IHearAboutUsSource | undefined
@@ -166,7 +170,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
               className="p-2 text-sm ls-hear-about-us-skip"
               onPress={skipPress}
             >
-              Skip
+              {translate("Skip")}
             </LinkButton>,
           ],
           navOnBack: () => {
@@ -187,10 +191,12 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
           <Mascot size={64} />
           <View className="flex-1">
             {!isScreen && (
-              <Text className="mb-1 text-xl font-bold text-text-primary">How did you hear about Liftosaur?</Text>
+              <Text className="mb-1 text-xl font-bold text-text-primary">
+                {translate("How did you hear about Liftosaur?")}
+              </Text>
             )}
             <Text className="text-sm font-semibold text-text-secondary">
-              It'd really help us out - just a tap or two.
+              {translate("It'd really help us out - just a tap or two.")}
             </Text>
           </View>
           {!isScreen && <SkipButton onPress={skipPress} />}
@@ -226,7 +232,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
               testID="hear-about-us-later"
               onPress={() => props.onMaybeLater?.()}
             >
-              <Text className="text-sm font-bold text-text-secondary">Maybe later</Text>
+              <Text className="text-sm font-bold text-text-secondary">{translate("Maybe later")}</Text>
             </Pressable>
           </View>
         )}
@@ -276,7 +282,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
       {drill?.kind === "chips" && drill.freeformPlaceholder != null && (
         <View className="mt-5">
           <Text className="mb-2 text-xs font-bold uppercase text-text-disabled" style={{ letterSpacing: 0.8 }}>
-            Or type it in
+            {translate("Or type it in")}
           </Text>
           <FreeformInput
             placeholder={drill.freeformPlaceholder}
@@ -307,7 +313,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
         testID="hear-about-us-done"
         onPress={() => complete("")}
       >
-        Done
+        {translate("Done")}
       </Button>
       <View className="items-center mt-2">
         <Pressable
@@ -316,7 +322,7 @@ export function HearAboutUsSurvey(props: IProps): JSX.Element {
           testID="hear-about-us-skip-step"
           onPress={() => complete("")}
         >
-          <Text className="text-sm font-bold text-text-secondary">Skip this step</Text>
+          <Text className="text-sm font-bold text-text-secondary">{translate("Skip this step")}</Text>
         </Pressable>
       </View>
     </View>

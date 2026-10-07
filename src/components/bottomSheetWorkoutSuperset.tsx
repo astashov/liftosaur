@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Fragment } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -22,6 +23,7 @@ export interface IBottomSheetWorkoutSupersetContentProps {
 }
 
 export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupersetContentProps): JSX.Element {
+  const translate = useTranslation();
   const supersetGroups = Progress_getSupersetGroups(props.progress.entries);
 
   const openTextInput = useModal("textInputModal", (name) => {
@@ -32,7 +34,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
   return (
     <View className="flex-1 bg-background-default">
       <View className="pb-2">
-        <Text className="text-lg font-semibold text-center">Select Superset Group</Text>
+        <Text className="text-lg font-semibold text-center">{translate("Select Superset Group")}</Text>
       </View>
       <View className="pb-4">
         <Pressable
@@ -45,7 +47,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
             props.onClose();
           }}
         >
-          <Text className="font-bold">None</Text>
+          <Text className="font-bold">{translate("None")}</Text>
         </Pressable>
         {ObjectUtils_entriesNonnull(supersetGroups).map(([name, entries]) => {
           const isSelected = props.entry.superset === name;
@@ -99,7 +101,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
           data-testid="superset-create-group"
           testID="superset-create-group"
         >
-          Create New Group
+          {translate("Create New Group")}
         </Button>
       </View>
     </View>

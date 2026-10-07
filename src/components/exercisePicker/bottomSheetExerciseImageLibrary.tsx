@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useEffect, useMemo, useState, useCallback } from "react";
 import { View, Image } from "react-native";
 import { TextInput } from "../primitives/textInput";
@@ -40,6 +41,7 @@ function getExerciseIdFromImageUrl(url: string): string | undefined {
 }
 
 export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentProps): JSX.Element {
+  const translate = useTranslation();
   const [isLoading, setIsLoading] = useState<boolean>(props.isLoggedIn);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [search, setSearch] = useState<string>("");
@@ -102,7 +104,7 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
     <>
       {(isLoading || filteredUploadedImages.length > 0) && (
         <>
-          <GroupHeader name="Uploaded Images" />
+          <GroupHeader name="Uploaded Images" label={translate("Uploaded Images")} />
           {isLoading ? (
             <View className="items-center py-4">
               <IconSpinner width={18} height={18} />
@@ -133,7 +135,7 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
               );
             })
           )}
-          <GroupHeader name="Built-in Images" topPadding={true} />
+          <GroupHeader name="Built-in Images" label={translate("Built-in Images")} topPadding={true} />
         </>
       )}
     </>
@@ -142,11 +144,11 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
   const header = (
     <SheetDragHandle>
       <View collapsable={false} className="px-gutter pb-2">
-        <Text className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise Image</Text>
+        <Text className="pt-1 pb-3 text-base font-semibold text-center">{translate("Pick Exercise Image")}</Text>
         <View className="flex-row items-center gap-2 p-2 rounded-lg bg-background-neutral">
           <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
           <TextInput
-            placeholder="Search by name"
+            placeholder={translate("Search by name")}
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             className="flex-1 text-sm text-text-secondary"
             style={{ paddingVertical: 0, includeFontPadding: false }}

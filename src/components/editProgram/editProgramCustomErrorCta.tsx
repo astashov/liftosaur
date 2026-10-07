@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { Pressable } from "react-native";
 import { lb } from "lens-shmens";
@@ -16,6 +17,7 @@ interface IPlannerEditorCustomCtaProps {
 }
 
 export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): JSX.Element {
+  const translate = useTranslation();
   const details = props.err.details;
   if (details.type !== "unknownExercise") {
     return <></>;
@@ -51,7 +53,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
       <Text
         className={`inline-block underline ${props.isInvertedColors ? "text-text-alwayswhite" : "text-xs text-text-error"}`}
       >
-        Add custom exercise
+        {translate("Add custom exercise")}
       </Text>
     </Pressable>
   );

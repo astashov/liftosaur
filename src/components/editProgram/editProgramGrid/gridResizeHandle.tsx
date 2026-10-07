@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, memo, useCallback, useRef } from "react";
 import { View, GestureResponderEvent } from "react-native";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
@@ -22,6 +23,7 @@ interface IGridResizeHandleProps {
 // react-native-gesture-handler is stubbed to no-ops on web (utils/rnStubs/gestureHandler.js), so
 // this uses the responder system, which react-native-web implements in full.
 export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResizeHandleProps): JSX.Element {
+  const translate = useTranslation();
   const { columnWidth, onResize, onResizeEnd } = props;
   const startXRef = useRef(0);
   const isResizingRef = useRef(false);
@@ -66,7 +68,7 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
         } as object
       }
       testID="grid-resize-handle"
-      accessibilityLabel="Drag to change how many weeks this repeats for"
+      accessibilityLabel={translate("Drag to change how many weeks this repeats for")}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
       onResponderGrant={onGrant}
