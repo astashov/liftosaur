@@ -142,6 +142,18 @@ Liftosaur is available in ChatGPT's Plugin Directory. You don't need to enable D
 
 Plugin availability depends on your ChatGPT plan, region, and workspace settings. If **Connect** is disabled by your workspace administrator, ask them to enable Liftosaur for your role. See [OpenAI's guide to plugins in ChatGPT](https://help.openai.com/en/articles/20001256-plugins-in-chatgpt-and-codex) for more details.
 
+### Gemini (gemini.google.com)
+
+Gemini connects to Liftosaur as a custom app in Gemini Spark, its agent mode. You need a Google AI Pro or Ultra plan, a personal Google account, and an age of 18+. Google allows custom apps only in the US and only in English. The **Keep Activity** setting must be on.
+
+1. On the web, open [gemini.google.com/apps](https://gemini.google.com/apps) and scroll down to **Custom apps for Spark**
+2. Paste `https://www.liftosaur.com/mcp` into the link field and click **Next**
+3. Check the box that you accept the risks of a custom app and click **Connect**
+4. Click **Agree and continue**, then sign in with your Liftosaur account
+5. In **Save your custom app**, click **Connect**
+
+Custom apps work only in Spark, not in a regular Gemini chat. Switch the sidebar from **Chat** to **Spark**, then mention the app in your request, for example `@Liftosaur Mcp fetch my last workout`. After you connect it on the web, it also works in the Gemini mobile app.
+
 ### Gemini CLI
 
 Gemini CLI supports remote MCP servers via `settings.json`.
