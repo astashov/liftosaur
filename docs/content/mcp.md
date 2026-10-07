@@ -5,7 +5,7 @@ shortDescription: "Connect AI assistants like Claude or ChatGPT to Liftosaur - c
 order: 2
 category: "Integrations"
 datePublished: "2026-03-07"
-dateModified: "2026-08-24"
+dateModified: "2026-10-07"
 ---
 
 ## What is MCP?
@@ -50,25 +50,26 @@ Most clients that let you set custom headers (Claude Code, config-file setups) s
 
 ### Claude.ai (Web)
 
-1. Open [claude.ai](https://claude.ai)
-2. Go to **Settings** -> **Connectors**
-3. Click **Add custom connector** at the bottom
-4. Paste the URL: `https://www.liftosaur.com/mcp`
-5. Click **Add**
-6. You'll be redirected to sign in with your Liftosaur account
+Liftosaur is in the Claude connectors directory. You don't need to paste the MCP server URL.
+
+1. Open [Liftosaur in the Claude directory](https://claude.ai/directory/liftosaur), or open [claude.ai](https://claude.ai), go to **Customize** -> **Connectors**, and search for **Liftosaur**
+2. Click **Connect**
+3. Sign in with your Liftosaur account and approve access
 
 After that, Liftosaur tools will be available in your conversations. You can also add it from the chat input - click the **Search and tools** menu, then **Add connectors**.
 
+The connector is linked to your Claude account, so it also shows up in Claude Desktop, the Claude mobile apps, and Claude Code.
+
 ### Claude Desktop
 
-#### Option A: Via Settings UI
+#### Option A: Via the connectors directory
 
 1. Open Claude Desktop
-2. Go to **Settings** -> **Connectors**
-3. Click **Add custom connector**
-4. Paste the URL: `https://www.liftosaur.com/mcp`
-5. Click **Add**
-6. You'll be redirected to sign in with your Liftosaur account
+2. Go to **Customize** -> **Connectors**
+3. Search for **Liftosaur** and click **Connect**
+4. Sign in with your Liftosaur account and approve access
+
+If you already connected Liftosaur on claude.ai, skip this - it's already there.
 
 #### Option B: Via config file
 
@@ -113,13 +114,15 @@ To use an API key instead of the OAuth browser flow, pass it as a header via `mc
 
 ### Claude Code
 
-Run this command in your terminal:
+If you log in to Claude Code with your claude.ai account, connectors you added on claude.ai are available automatically. Connect Liftosaur on claude.ai first (see above), then run `/mcp` in Claude Code - you'll see it as **claude.ai Liftosaur**. This doesn't work when Claude Code uses an Anthropic API key or a cloud provider (Bedrock, Vertex) instead of a claude.ai login.
+
+To add the server directly instead, run this command in your terminal:
 
 ```bash
 claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp
 ```
 
-That's it. Claude Code will prompt for authentication on first use.
+Claude Code will prompt for authentication on first use.
 
 To authenticate with an API key instead of the OAuth browser flow, pass it as a header:
 

@@ -132,8 +132,8 @@ To check balance, ask for `get_program_stats`. It returns volume per muscle grou
 
 Any MCP client can use the same server. The URL is `https://www.liftosaur.com/mcp`.
 
-- **Claude.ai and Claude Desktop**: go to **Settings → Connectors**, click **Add custom connector**, and paste the URL. A browser window opens to sign in with your Liftosaur account.
-- **Claude Code**: run `claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp`.
+- **Claude.ai and Claude Desktop**: Liftosaur is in the [Claude connectors directory](https://claude.ai/directory/liftosaur). Go to **Customize → Connectors**, search for **Liftosaur**, and click **Connect**. A browser window opens to sign in with your Liftosaur account.
+- **Claude Code**: if you log in with your claude.ai account, the connector from claude.ai is already there. Run `/mcp` to see it. Otherwise run `claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp`.
 - **Gemini CLI**: add the server to `~/.gemini/settings.json` with `"httpUrl": "https://www.liftosaur.com/mcp"`, then run `/mcp auth liftosaur`.
 
 Sign-in uses OAuth 2.1. The client opens a browser window once, and then refreshes the token on its own. Command-line clients and config-file setups can skip the browser and send an [API key](/features/api) as `Authorization: Bearer lftsk_your_key_here` instead. Every client's exact steps are in the [MCP server docs](/doc/mcp).
