@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect } from "react";
 import { View, Pressable, Platform, Image, AppState } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -120,6 +121,7 @@ function planLabel(plan?: ISubscriptionPlanKind): string {
 }
 
 export function ScreenSubscription(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const insets = useSafeAreaInsets();
   const isIos = StoreRuntime_isIos();
   const isNative = StoreRuntime_isNative();
@@ -186,7 +188,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         <SubscriptionHero />
         <View className="flex-1 items-center justify-center px-gutter" style={{ paddingBottom: insets.bottom + 16 }}>
           <IconSpinner width={24} height={24} />
-          <Text className="mt-3 text-sm text-text-secondary">Checking your subscription…</Text>
+          <Text className="mt-3 text-sm text-text-secondary">{translate("Checking your subscription…")}</Text>
         </View>
       </NavScreenContent>
     );
@@ -245,7 +247,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 }}
                 className="text-sm font-bold"
               >
-                Redeem coupon
+                {translate("Redeem coupon")}
               </LinkButton>
             </View>
           ) : (
@@ -260,7 +262,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                   props.dispatch(Thunk_restorePurchases({ interactive: true }));
                 }}
               >
-                Restore Subscription
+                {translate("Restore Subscription")}
               </LinkButton>
             ) : (
               <InternalLink
@@ -268,7 +270,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 href="/terms.html"
                 className="text-sm font-bold underline text-text-link"
               >
-                Terms of use
+                {translate("Terms of use")}
               </InternalLink>
             )}
           </View>
@@ -276,12 +278,17 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         {isPitch && (
           <>
             <Text className="mt-2 mb-4 text-xs text-text-secondary">
-              You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
-              {!hasOffer ? " after initial 14 days free trial period" : ""}) or lifetime - one-time payment, that gives
-              access to those features without recurring charges in the future.
+              {translate(
+                "You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year"
+              )}
+              {!hasOffer ? translate(" after initial 14 days free trial period") : ""}
+              {translate(
+                ") or lifetime - one-time payment, that gives access to those features without recurring charges in the future."
+              )}
             </Text>
             <Text className="mb-4 text-xs text-text-secondary">
-              You can cancel subscriptions any time via {StoreRuntime_storeName()} subscriptions management.
+              {translate("You can cancel subscriptions any time via")} {StoreRuntime_storeName()}{" "}
+              {translate("subscriptions management.")}
             </Text>
           </>
         )}
@@ -293,7 +300,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 href="/terms.html"
                 className="text-sm font-bold text-center underline text-text-link"
               >
-                Terms of use
+                {translate("Terms of use")}
               </InternalLink>
             </View>
           </View>
@@ -304,6 +311,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
 }
 
 function SubscriptionHero(): JSX.Element {
+  const translate = useTranslation();
   const insets = useSafeAreaInsets();
   return (
     <View className="bg-background-cardpurple w-full" style={{ paddingTop: insets.top, height: 280 }}>
@@ -321,7 +329,7 @@ function SubscriptionHero(): JSX.Element {
         source={{ uri: ImagePreloader_uri("/images/subscriptionhero.png") }}
         style={{ width: "80%", aspectRatio: 879 / 516 }}
         resizeMode="contain"
-        accessibilityLabel="Liftosaur Premium features"
+        accessibilityLabel={translate("Liftosaur Premium features")}
       />
       <View className="absolute right-4 bottom-0">
         <IconDinoSunglasses width={102} height={136} />
@@ -331,9 +339,10 @@ function SubscriptionHero(): JSX.Element {
 }
 
 function PitchHeader(): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="py-4">
-      <Text className="text-lg font-semibold">Upgrade your workout routine with Liftosaur Premium:</Text>
+      <Text className="text-lg font-semibold">{translate("Upgrade your workout routine with Liftosaur Premium:")}</Text>
     </View>
   );
 }
@@ -400,11 +409,13 @@ function FeatureList(props: { isIos: boolean }): JSX.Element {
 }
 
 function ClaimFreeAccess(props: { dispatch: IDispatch }): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="flex-row items-center px-2">
       <View className="flex-1">
         <Text className="text-xs text-text-secondary">
-          You were granted the <Text className="font-bold">free access</Text> to Liftosaur!
+          {translate("You were granted the")} <Text className="font-bold">{translate("free access")}</Text>{" "}
+          {translate("to Liftosaur!")}
         </Text>
       </View>
       <View>
@@ -415,7 +426,7 @@ function ClaimFreeAccess(props: { dispatch: IDispatch }): JSX.Element {
           testID="button-subscription-free"
           buttonSize="lg"
         >
-          Get it!
+          {translate("Get it!")}
         </Button>
       </View>
     </View>
@@ -437,13 +448,14 @@ interface IPurchaseCardsProps {
 }
 
 function PurchaseCards(props: IPurchaseCardsProps): JSX.Element {
+  const translate = useTranslation();
   const trialNote = !props.hasOffer ? "Free 14-day trial" : undefined;
   return (
     <View>
       <PlanCard
         testID="button-subscription-yearly"
         highlighted={true}
-        title="Start with Yearly"
+        title={translate("Start with Yearly")}
         subtitle={trialNote}
         price={props.yearlyOffer ? props.yearlyOffer.formattedPrice : props.yearlyPrice}
         oldPrice={props.yearlyOffer ? props.yearlyPrice : undefined}
@@ -463,7 +475,7 @@ function PurchaseCards(props: IPurchaseCardsProps): JSX.Element {
       />
       <PlanCard
         testID="button-subscription-monthly"
-        title="Start with Monthly"
+        title={translate("Start with Monthly")}
         subtitle={trialNote}
         price={props.monthlyOffer ? props.monthlyOffer.formattedPrice : props.monthlyPrice}
         oldPrice={props.monthlyOffer ? props.monthlyPrice : undefined}
@@ -483,8 +495,8 @@ function PurchaseCards(props: IPurchaseCardsProps): JSX.Element {
       {props.supportsLifetime && (
         <PlanCard
           testID="button-subscription-lifetime"
-          title="Lifetime"
-          subtitle="One-time payment"
+          title={translate("Lifetime")}
+          subtitle={translate("One-time payment")}
           price={props.lifetimePrice}
           loading={!!props.subscriptionLoading?.lifetime}
           onPress={() => {
@@ -498,7 +510,9 @@ function PurchaseCards(props: IPurchaseCardsProps): JSX.Element {
         />
       )}
       {props.hasOffer && (
-        <Text className="pt-1 text-xs text-center text-text-secondary">Discount applies for the first year</Text>
+        <Text className="pt-1 text-xs text-center text-text-secondary">
+          {translate("Discount applies for the first year")}
+        </Text>
       )}
     </View>
   );
@@ -514,6 +528,7 @@ interface IManagementActionsProps {
 }
 
 function ManagementActions(props: IManagementActionsProps): JSX.Element {
+  const translate = useTranslation();
   const { plan } = props;
   const isAndroid = StoreRuntime_isNative() && !StoreRuntime_isIos();
 
@@ -521,7 +536,8 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
     return (
       <View>
         <Text className="text-xs text-center text-text-secondary">
-          Manage your subscription from the Liftosaur mobile app, or your {StoreRuntime_storeName()} account.
+          {translate("Manage your subscription from the Liftosaur mobile app, or your")} {StoreRuntime_storeName()}{" "}
+          {translate("account.")}
         </Text>
       </View>
     );
@@ -553,17 +569,21 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
           style={{ borderRadius: 16 }}
           data-testid="subscription-pending-switch"
         >
-          <Text className="text-base font-bold text-text-primary">Switching to {planLabel(plan.pendingPlan)}</Text>
+          <Text className="text-base font-bold text-text-primary">
+            {translate("Switching to")} {planLabel(plan.pendingPlan)}
+          </Text>
           <Text className="text-xs text-text-secondary">
             {plan.expirationDate
               ? `Takes effect on ${DateUtils_format(plan.expirationDate, true)}.`
-              : "Takes effect at your next renewal."}
+              : translate("Takes effect at your next renewal.")}
           </Text>
           {isAndroid && (
             // Google Play has no API to cancel a queued deferred plan change, and re-purchasing the
             // current product is rejected as a no-op replacement. The only way to revert is from the
             // Play subscription manager.
-            <Text className="text-xs text-text-secondary">To cancel the switch, manage it in Google Play.</Text>
+            <Text className="text-xs text-text-secondary">
+              {translate("To cancel the switch, manage it in Google Play.")}
+            </Text>
           )}
           {currentPlan && (
             <View className="pt-2">
@@ -583,7 +603,7 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
                     }
                   }}
                 >
-                  {isAndroid ? "Manage in Google Play" : `Keep ${planLabel(currentPlan)}`}
+                  {isAndroid ? translate("Manage in Google Play") : `Keep ${planLabel(currentPlan)}`}
                 </LinkButton>
               )}
             </View>
@@ -605,7 +625,7 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
       {props.supportsLifetime && (
         <PlanCard
           testID="button-subscription-lifetime"
-          title="Lifetime"
+          title={translate("Lifetime")}
           subtitle={lifetimeDisabledReason}
           price={props.lifetimePrice}
           disabled={true}
@@ -621,7 +641,7 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
             testID="button-subscription-resubscribe"
             onPress={() => props.dispatch(Thunk_openManageSubscriptions())}
           >
-            Resubscribe
+            {translate("Resubscribe")}
           </Button>
         </View>
       )}
@@ -633,7 +653,7 @@ function ManagementActions(props: IManagementActionsProps): JSX.Element {
             testID="button-cancel-subscription"
             onPress={() => props.dispatch(Thunk_openManageSubscriptions())}
           >
-            Cancel subscription
+            {translate("Cancel subscription")}
           </LinkButton>
         </View>
       )}

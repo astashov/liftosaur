@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback, useState } from "react";
 import { View, Pressable, Platform, ActionSheetIOS, Modal as RNModal } from "react-native";
 import { Text } from "./primitives/text";
@@ -19,6 +20,7 @@ export interface IActionMenuProps {
 }
 
 export function ActionMenu(props: IActionMenuProps): JSX.Element {
+  const translate = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const { onOpenChange } = props;
 
@@ -108,7 +110,7 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
                 </Pressable>
               ))}
               <Pressable className="px-4 py-4" onPress={close}>
-                <Text className="text-base text-center text-text-secondary">Cancel</Text>
+                <Text className="text-base text-center text-text-secondary">{translate("Cancel")}</Text>
               </Pressable>
             </Pressable>
           </Pressable>

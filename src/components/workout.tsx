@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import {
   JSX,
   ReactNode,
@@ -102,6 +103,7 @@ interface IWorkoutViewProps {
 }
 
 function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("Workout");
   const selectedEntry = props.progress.entries[props.progress.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
@@ -266,7 +268,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
           <View>
             {showReorderHint && (
               <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-reorder-hint">
-                Long-tap a thumbnail to reorder
+                {translate("Long-tap a thumbnail to reorder")}
               </Text>
             )}
           </View>
@@ -428,6 +430,7 @@ interface IWorkoutHeaderProps {
 }
 
 function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("WorkoutHeader");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menu = props.renderMenu?.(setIsMenuOpen);
@@ -456,7 +459,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
             debounceMs={1000}
             maxLength={4095}
             name="workout-notes"
-            placeholder="Add workout notes here..."
+            placeholder={translate("Add workout notes here...")}
             value={props.progress.notes}
             onChangeText={(text) => {
               Progress_editNotes(props.dispatch, props.progress.id, text);

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -65,6 +66,7 @@ export function getHealthDataForGraph(coll: IStatsHealthValue[], key: IStatsHeal
 }
 
 function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
+  const translate = useTranslation();
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
   const movingAverageWindowSize = props.movingAverageWindowSize;
 
@@ -156,7 +158,7 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
                 {movingAvg != null && (
                   <Text className="text-sm text-text-secondary">
                     {" "}
-                    (Avg. {movingAvg} {props.units})
+                    {translate("(Avg.")} {movingAvg} {props.units})
                   </Text>
                 )}
               </Text>

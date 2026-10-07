@@ -1,3 +1,5 @@
+import { useTranslation } from "../i18n/context";
+import { ITranslationKey } from "../i18n";
 import { JSX, memo, useMemo } from "react";
 import { Pressable } from "react-native";
 import { lb } from "lens-shmens";
@@ -26,7 +28,7 @@ interface IWorkoutMenuProps {
   onOpenChange?: (isOpen: boolean) => void;
 }
 
-const labels: Record<IWorkoutMenuAction, string> = {
+const labels: Record<IWorkoutMenuAction, ITranslationKey> = {
   editDay: "Edit Program Day",
   muscles: "Day Muscles",
   notes: "Show Workout Notes",
@@ -37,6 +39,7 @@ const labels: Record<IWorkoutMenuAction, string> = {
 };
 
 function WorkoutMenuInner(props: IWorkoutMenuProps): JSX.Element {
+  const translate = useTranslation();
   const { progress, program, allPrograms, dispatch, onShare, onConvertToProgram, onDelete } = props;
   const showWorkoutNotes = !!props.settings.workoutSettings.showWorkoutNotes;
   const trackClick = useTrackClick();
@@ -109,12 +112,12 @@ function WorkoutMenuInner(props: IWorkoutMenuProps): JSX.Element {
   const actions = useMemo<IActionMenuAction[]>(
     () =>
       actionIds.map((id) => ({
-        label: id === "notes" && showWorkoutNotes ? "Hide Workout Notes" : labels[id],
+        label: translate(id === "notes" && showWorkoutNotes ? "Hide Workout Notes" : labels[id]),
         onPress: handlers[id],
         destructive: id === "delete",
         testID: `workout-menu-${id}`,
       })),
-    [actionIds.join(","), handlers, showWorkoutNotes]
+    [actionIds.join(","), handlers, showWorkoutNotes, translate]
   );
 
   return (

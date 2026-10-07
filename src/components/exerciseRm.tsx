@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -18,6 +19,7 @@ interface IExerciseRMProps {
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
+  const translate = useTranslation();
   const rm = Exercise_onerm(props.exercise, props.settings);
   const displayValue = props.displayValue ?? `${rm.value}`;
 
@@ -64,7 +66,8 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
       />
       <View>
         <Text className="text-xs italic font-normal text-right">
-          Available in Liftoscript as <Text className="font-bold">{props.rmKey}</Text> variable
+          {translate("Available in Liftoscript as")} <Text className="font-bold">{props.rmKey}</Text>{" "}
+          {translate("variable")}
         </Text>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -31,6 +32,7 @@ export type IBottomSheetEditTargetContentProps = Omit<IBottomSheetEditTargetProp
 };
 
 export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps): JSX.Element {
+  const translate = useTranslation();
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableSetTimer, setEnableSetTimer] = useState(set.setTimer != null);
@@ -40,14 +42,14 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
 
   return (
     <View className="px-gutter pt-2 pb-4">
-      <Text className="py-2 text-base font-semibold text-center">Edit Set Target</Text>
+      <Text className="py-2 text-base font-semibold text-center">{translate("Edit Set Target")}</Text>
       <MenuItemWrapper name="edit-set-target-reps">
         <View className="flex-row items-center py-2">
           <View className="flex-1">
-            <Text className="text-sm font-semibold">Reps</Text>
+            <Text className="text-sm font-semibold">{translate("Reps")}</Text>
           </View>
           <View className="flex-row items-center gap-2">
-            <Text className="text-xs text-text-secondary">Min</Text>
+            <Text className="text-xs text-text-secondary">{translate("Min")}</Text>
             <View className="mr-2">
               <InputNumber2
                 width={2.5}
@@ -72,7 +74,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 step={1}
               />
             </View>
-            <Text className="text-xs text-text-secondary">Max</Text>
+            <Text className="text-xs text-text-secondary">{translate("Max")}</Text>
             <View className="mr-3">
               <InputNumber2
                 width={2.5}
@@ -98,7 +100,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
               />
             </View>
             <View className="flex-row items-center">
-              <Text className="mr-1 text-xs">AMRAP?</Text>
+              <Text className="mr-1 text-xs">{translate("AMRAP?")}</Text>
               <Switch
                 value={set.isAmrap}
                 testID="edit-target-amrap"
@@ -114,7 +116,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
       <MenuItemWrapper name="edit-set-target-weight">
         <View className="flex-row items-center py-2">
           <View className="flex-1">
-            <Text className="text-sm font-semibold">Weight</Text>
+            <Text className="text-sm font-semibold">{translate("Weight")}</Text>
           </View>
           <View className="flex-row items-center gap-2">
             <View className="flex-row items-center mr-3">
@@ -156,7 +158,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
               </Text>
             </View>
             <View className="flex-row items-center">
-              <Text className="mr-1 text-xs">Ask?</Text>
+              <Text className="mr-1 text-xs">{translate("Ask?")}</Text>
               <Switch
                 value={set.askWeight}
                 testID="edit-target-ask-weight"
@@ -175,6 +177,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
             size="sm"
             type="boolean"
             name="Enable RPE?"
+            label={translate("Enable RPE?")}
             value={set.rpe != null ? "true" : "false"}
             onChange={() => {
               setEnableRpe(true);
@@ -214,7 +217,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 />
               </View>
               <View className="flex-row items-center">
-                <Text className="mr-1 text-xs">Log?</Text>
+                <Text className="mr-1 text-xs">{translate("Log?")}</Text>
                 <Switch
                   value={set.logRpe}
                   testID="edit-target-log-rpe"
@@ -248,6 +251,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
             size="sm"
             type="boolean"
             name="Enable Set Timer?"
+            label={translate("Enable Set Timer?")}
             value={set.setTimer != null ? "true" : "false"}
             onChange={() => {
               setEnableSetTimer(true);
@@ -259,7 +263,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
         <MenuItemWrapper name="edit-set-target-set-timer">
           <View className="flex-row items-center py-1">
             <View className="flex-1">
-              <Text className="text-sm font-semibold">Set Timer</Text>
+              <Text className="text-sm font-semibold">{translate("Set Timer")}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <View className="flex-row items-center mr-3">
@@ -271,7 +275,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                   }
                   keyboardAddon={
                     <View className="flex-row items-center py-2">
-                      <Text className="mr-2 text-sm font-semibold">Count up past target?</Text>
+                      <Text className="mr-2 text-sm font-semibold">{translate("Count up past target?")}</Text>
                       <Switch
                         value={!!set.isOverflowSetTimer}
                         testID="edit-target-overflow-set-timer"
@@ -331,6 +335,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
             size="sm"
             type="boolean"
             name="Enable Custom Rest Timer?"
+            label={translate("Enable Custom Rest Timer?")}
             value={set.timer ? "true" : "false"}
             onChange={() => {
               setEnableTimer(true);
@@ -341,7 +346,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
         <MenuItemWrapper name="edit-set-target-timer">
           <View className="flex-row items-center py-1">
             <View className="flex-1">
-              <Text className="text-sm font-semibold">Rest Timer</Text>
+              <Text className="text-sm font-semibold">{translate("Rest Timer")}</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <View className="flex-row items-center mr-3">
@@ -432,7 +437,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
             );
           }}
         >
-          Save
+          {translate("Save")}
         </Button>
       </View>
     </View>

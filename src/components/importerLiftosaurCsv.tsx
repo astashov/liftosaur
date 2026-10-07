@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -13,6 +14,7 @@ interface IImporterLiftosaurCsvProps {
 }
 
 export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Element {
+  const translate = useTranslation();
   const [showHelp, setShowHelp] = useState(false);
 
   const onPress = useCallback(async () => {
@@ -29,7 +31,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
         <View className="flex-row">
           <View className="flex-1">
             <Pressable className="py-2" onPress={onPress}>
-              <Text className="text-base text-text-primary">Import history from CSV file</Text>
+              <Text className="text-base text-text-primary">{translate("Import history from CSV file")}</Text>
             </Pressable>
           </View>
           <View className="items-center justify-center ml-2">
@@ -45,7 +47,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
               href="https://www.liftosaur.com/liftosaur_example_csv.zip"
               className="text-xs text-center font-bold underline text-text-link"
             >
-              Download an example and instructions how to format a CSV file.
+              {translate("Download an example and instructions how to format a CSV file.")}
             </InternalLink>
           </View>
         )}

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { useProgressiveCount, useProgressiveItems } from "../utils/useProgressiveItems";
@@ -144,6 +145,7 @@ interface INextDayPickerProps {
 }
 
 export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
+  const translate = useTranslation();
   const { allPrograms, settings } = props;
   const [currentProgramId, setCurrentProgramId] = useState(props.initialCurrentProgramId);
   const programsValues = useMemo<[string, string][]>(() => allPrograms.map((p) => [p.id, p.name]), [allPrograms]);
@@ -171,7 +173,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
   if (!currentProgram || !evaluatedProgram) {
     return (
       <View className="mx-4">
-        <Text>No Programs</Text>
+        <Text>{translate("No Programs")}</Text>
       </View>
     );
   }
@@ -183,6 +185,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
           <MenuItemEditable
             type="select"
             name="Program"
+            label={translate("Program")}
             value={evaluatedProgram.id}
             values={programsValues}
             onChange={handleProgramChange}

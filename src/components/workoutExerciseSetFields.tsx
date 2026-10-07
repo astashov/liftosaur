@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -30,6 +31,7 @@ interface IWorkoutExerciseSetTargetProps {
 }
 
 export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
+  const translate = useTranslation();
   const cls = StyledText_cls(useRem());
   const sizeClass = props.sizeClass ?? "text-sm";
   switch (props.setType) {
@@ -49,7 +51,7 @@ export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps):
       const built = builder.build();
       return (
         <View>
-          <Text className="text-xs text-text-secondary">Warmup</Text>
+          <Text className="text-xs text-text-secondary">{translate("Warmup")}</Text>
           <FastText text={built.text} fragments={built.fragments} {...cls(`${sizeClass} text-text-primary`)} />
         </View>
       );
@@ -112,11 +114,11 @@ export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps):
       return (
         <View>
           {aSet.label ? <Text className="text-xs text-text-secondary">{aSet.label}</Text> : null}
-          {props.setType === "adhoc" && <Text className="text-xs text-text-secondary">Ad-hoc</Text>}
+          {props.setType === "adhoc" && <Text className="text-xs text-text-secondary">{translate("Ad-hoc")}</Text>}
           {hasTarget ? (
             <FastText text={built.text} fragments={built.fragments} {...cls(`${sizeClass} text-text-primary`)} />
           ) : (
-            <Text className={sizeClass}>None</Text>
+            <Text className={sizeClass}>{translate("None")}</Text>
           )}
         </View>
       );
@@ -130,10 +132,11 @@ interface IWorkoutExerciseLastSetProps {
 }
 
 export function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Element {
+  const translate = useTranslation();
   const cls = StyledText_cls(useRem());
   const set = props.set;
   if (set == null) {
-    return <Text className="text-xs text-text-secondary">No last set</Text>;
+    return <Text className="text-xs text-text-secondary">{translate("No last set")}</Text>;
   }
   const statusColor = WorkoutExerciseUtils_setsStatusToTextColorValue(Reps_setsStatus([set]));
   const semibold = { ...cls("font-semibold"), color: statusColor };
@@ -330,12 +333,13 @@ interface IWorkoutExercisePlatesCalculatorProps {
 }
 
 function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
+  const translate = useTranslation();
   const sizeClass = props.sizeClass ?? "text-sm";
   const setWeight = props.set.weight;
   if (setWeight == null) {
     return (
       <Text className={`${sizeClass} font-semibold`} data-testid="plates-list" testID="plates-list">
-        None
+        {translate("None")}
       </Text>
     );
   }
@@ -366,6 +370,7 @@ interface IWorkoutExerciseE1RMSetProps {
 }
 
 function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Element {
+  const translate = useTranslation();
   const cls = StyledText_cls(useRem());
   const sizeClass = props.sizeClass ?? "text-sm";
   const set = props.set;
@@ -374,7 +379,7 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   const reps = Reps_avgUnilateralCompletedReps(set) ?? set.reps;
   const rpe = set.completedRpe ?? set.rpe ?? 10;
   if (weight == null || Weight_isPct(weight) || reps == null) {
-    return <Text className={sizeClass}>Unknown</Text>;
+    return <Text className={sizeClass}>{translate("Unknown")}</Text>;
   }
   const e1RM = Weight_getOneRepMax(weight, reps, rpe);
   const built = new StyledText().add(n(e1RM.value), cls("font-semibold")).add(e1RM.unit, cls("text-xs")).build();

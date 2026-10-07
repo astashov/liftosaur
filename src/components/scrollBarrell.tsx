@@ -4,6 +4,7 @@ import { StringUtils_dashcase, StringUtils_truncate } from "../utils/string";
 interface IProps {
   isExpanded: boolean;
   values: [string, string][];
+  labelOverrides?: Record<string, string>;
   defaultSelectedValue: string | null | undefined;
   numberOfVisibleItems: number;
   itemHeight: number;
@@ -115,7 +116,7 @@ export function ScrollBarrell(props: IProps): JSX.Element {
               barrelRef.current?.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >
-            {StringUtils_truncate(label, 35)}
+            {StringUtils_truncate(props.labelOverrides?.[value] ?? label, 35)}
           </button>
         ))}
         {Array.apply(null, Array(numberOfDummyItems)).map((_, i) => (

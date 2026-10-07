@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -68,6 +69,7 @@ interface IViewProps {
 }
 
 export function ProgressStateChangesView(props: IViewProps): JSX.Element | null {
+  const translate = useTranslation();
   const diffState = props.diffState ?? {};
   const diffVars = props.diffVars ?? {};
   const prints = props.prints ?? [];
@@ -88,8 +90,8 @@ export function ProgressStateChangesView(props: IViewProps): JSX.Element | null 
       <View>
         {hasDiffVars && <ExerciseChanges diffVars={diffVars} isSuppressed={props.isSuppressed} />}
         {hasDiffState && <StateVariablesChanges diffState={diffState} isSuppressed={props.isSuppressed} />}
-        {prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
-        {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
+        {prints.length > 0 && <Prints title={translate("Progress Prints")} prints={prints} />}
+        {updatePrints.length > 0 && <Prints title={translate("Update Prints")} prints={updatePrints} />}
       </View>
       {onSuppressProgress && (
         <View>
@@ -102,7 +104,7 @@ export function ProgressStateChangesView(props: IViewProps): JSX.Element | null 
               onSuppressProgress(!props.isSuppressed);
             }}
           >
-            {props.isSuppressed ? "Enable" : "Suppress"}
+            {props.isSuppressed ? translate("Enable") : translate("Suppress")}
           </LinkButton>
         </View>
       )}
@@ -117,11 +119,12 @@ function ExerciseChanges({
   diffVars: Record<string, string | undefined>;
   isSuppressed?: boolean;
 }): JSX.Element | null {
+  const translate = useTranslation();
   if (ObjectUtils_isNotEmpty(diffVars)) {
     const strike = isSuppressed ? strikeThrough : undefined;
     return (
       <View>
-        <Text className="text-xs font-bold">Exercise Changes</Text>
+        <Text className="text-xs font-bold">{translate("Exercise Changes")}</Text>
         <View data-testid="variable-changes" testID="variable-changes">
           {ObjectUtils_keys(diffVars).map((key) => (
             <View
@@ -159,12 +162,13 @@ function StateVariablesChanges({
   diffState: Record<string, string | undefined>;
   isSuppressed?: boolean;
 }): JSX.Element | null {
+  const translate = useTranslation();
   if (ObjectUtils_isNotEmpty(diffState)) {
     const strike = isSuppressed ? strikeThrough : undefined;
     return (
       <View>
         <Text style={strike} className="text-xs font-bold">
-          State Variables changes
+          {translate("State Variables changes")}
         </Text>
         <View data-testid="state-changes" testID="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (

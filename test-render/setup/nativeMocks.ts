@@ -280,3 +280,5 @@ jest.mock("react-native-fs", () => ({
   unlink: jest.fn().mockResolvedValue(undefined),
   readDir: jest.fn().mockResolvedValue([]),
 }));
+
+jest.mock("react-native-localize", () => require("react-native-localize/mock"));

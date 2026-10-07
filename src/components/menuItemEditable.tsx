@@ -10,11 +10,13 @@ type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select"
 
 interface IMenuItemEditableValueProps {
   name: string;
+  label?: string;
   prefix?: ReactNode;
   type: IMenuItemType;
   value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
+  valueLabels?: Record<string, string>;
   onChange?: (v?: string, e?: React.SyntheticEvent) => void;
   onInput?: (v: string) => void;
   pattern?: string;
@@ -71,19 +73,20 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               data-testid={`menu-item-name-${StringUtils_dashcase(props.name)}`}
               className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             >
-              <div className={props.size === "sm" ? "text-sm" : ""}>{props.name}</div>
+              <div className={props.size === "sm" ? "text-sm" : ""}>{props.label ?? props.name}</div>
               {props.underName}
             </span>
           )}
           <div className="flex-1" style={{ minWidth: "3rem" }}>
             <MenuItemValue
-              name={props.name}
+              name={props.label ?? props.name}
               maxLength={props.maxLength}
               type={props.type}
               value={props.value}
               pattern={props.pattern}
               patternMessage={props.patternMessage}
               values={props.values}
+              valueLabels={props.valueLabels}
               setPatternError={setPatternError}
               onChange={onChange}
             />
@@ -115,6 +118,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             numberOfVisibleItems={numberOfVisibleItems}
             isExpanded={isExpanded}
             values={props.values || []}
+            labelOverrides={props.valueLabels}
             defaultSelectedValue={props.value}
             onSelect={(v) => onChange(v)}
           />
@@ -137,7 +141,7 @@ export function MenuItemValue(
       >
         {(props.values || []).map(([key, value]) => (
           <option key={key} value={key}>
-            {value}
+            {props.valueLabels?.[key] ?? value}
           </option>
         ))}
       </select>
@@ -150,7 +154,7 @@ export function MenuItemValue(
         className="flex-1 py-2 pl-2 text-right text-text-link"
         style={{ minHeight: "2.5rem" }}
       >
-        {keyValue && keyValue[1]}
+        {keyValue && (props.valueLabels?.[keyValue[0]] ?? keyValue[1])}
       </div>
     );
   } else if (props.type === "text") {

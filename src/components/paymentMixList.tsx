@@ -1,7 +1,9 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import type { IPaymentMixEntry } from "../../lambda/utils/paymentMix";
 
 export function PaymentMixList(props: { mix: IPaymentMixEntry[] }): JSX.Element {
+  const translate = useTranslation();
   if (props.mix.length === 0) {
     return <span className="text-gray-400">—</span>;
   }
@@ -13,7 +15,11 @@ export function PaymentMixList(props: { mix: IPaymentMixEntry[] }): JSX.Element 
           {entry.count > 1 && <span className="ml-1 text-gray-400">×{entry.count}</span>}
           {entry.trials > 0 && (
             <span className="ml-1 text-gray-400">
-              ({entry.trials === entry.count ? "trial" : `${entry.trials} trial${entry.trials > 1 ? "s" : ""}`})
+              (
+              {entry.trials === entry.count
+                ? translate("trial")
+                : `${entry.trials} trial${entry.trials > 1 ? "s" : ""}`}
+              )
             </span>
           )}
           <span className="ml-2 font-medium text-gray-900">

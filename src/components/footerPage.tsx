@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { IconInstagramFlat } from "./icons/iconInstagramFlat";
 import { IconYoutube } from "./icons/iconYoutube";
@@ -24,6 +25,7 @@ const footerLinks: [string, string][] = [
 ];
 
 export function FooterPage(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const maxWidth = props.maxWidth != null ? `${props.maxWidth}px` : "800px";
   return (
     <footer className="mt-8 ">
@@ -37,7 +39,7 @@ export function FooterPage(props: IProps): JSX.Element {
             <div className="shrink-0">
               <div className="pt-8 text-3xl font-bold text-text-alwayswhite md:pt-0">Liftosaur</div>
               <div className="flex items-center gap-4 mt-5">
-                <span className="text-sm text-text-alwayswhite">Follow us:</span>
+                <span className="text-sm text-text-alwayswhite">{translate("Follow us:")}</span>
                 <a
                   href="https://www.instagram.com/liftosaurapp"
                   target="_blank"
@@ -56,7 +58,7 @@ export function FooterPage(props: IProps): JSX.Element {
                 </a>
               </div>
               <div className="mt-4 text-sm text-text-alwayswhite">
-                Questions?{" "}
+                {translate("Questions?")}{" "}
                 <a href="mailto:info@liftosaur.com" className="text-purple-300 underline">
                   info@liftosaur.com
                 </a>
@@ -83,7 +85,7 @@ export function FooterPage(props: IProps): JSX.Element {
                     (window as unknown as { lftConsent?: { open: () => void } }).lftConsent?.open();
                   }}
                 >
-                  Privacy Settings
+                  {translate("Privacy Settings")}
                 </a>
               </div>
             </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, Ref, forwardRef, useState } from "react";
 import { View, LayoutChangeEvent } from "react-native";
 import { SvgUri } from "./primitives/svg";
@@ -327,6 +328,7 @@ interface IProgressionProps {
 }
 
 export function Progression(props: IProgressionProps): JSX.Element | null {
+  const translate = useTranslation();
   const type = PlannerProgramExercise_progressionType(props.exercise);
   if (type == null) {
     return null;
@@ -335,14 +337,14 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
     case "linear":
       return (
         <Text className="text-sm">
-          <Text className="text-sm font-bold">Linear Progression:</Text>
+          <Text className="text-sm font-bold">{translate("Linear Progression:")}</Text>
           <Text className="text-sm"> </Text>
           <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
           {(type.successesRequired || 0 > 1) && (
             <Text className="text-sm">
-              <Text className="text-sm"> after </Text>
+              <Text className="text-sm"> {translate("after")} </Text>
               <Text className="text-sm font-bold text-text-success">{type.successesRequired}</Text>
-              <Text className="text-sm"> successes</Text>
+              <Text className="text-sm"> {translate("successes")}</Text>
             </Text>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
@@ -353,9 +355,9 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
           )}
           {type.decrease != null && type.decrease.value > 0 && (
             <Text className="text-sm">
-              <Text className="text-sm"> after </Text>
+              <Text className="text-sm"> {translate("after")} </Text>
               <Text className="text-sm font-bold text-text-error">{type.failuresRequired}</Text>
-              <Text className="text-sm"> failures</Text>
+              <Text className="text-sm"> {translate("failures")}</Text>
             </Text>
           )}
           <Text className="text-sm">.</Text>
@@ -364,23 +366,23 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
     case "double":
       return (
         <Text className="text-sm">
-          <Text className="text-sm font-bold">Double Progression</Text>
+          <Text className="text-sm font-bold">{translate("Double Progression")}</Text>
           <Text className="text-sm">: </Text>
           <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
-          <Text className="text-sm"> within </Text>
+          <Text className="text-sm"> {translate("within")} </Text>
           <Text className="text-sm font-bold">{type.minReps}</Text>
           <Text className="text-sm">-</Text>
           <Text className="text-sm font-bold">{type.maxReps}</Text>
-          <Text className="text-sm"> rep range.</Text>
+          <Text className="text-sm"> {translate("rep range.")}</Text>
         </Text>
       );
     case "sumreps":
       return (
         <Text className="text-sm">
-          <Text className="text-sm font-bold">Sum Reps Progression</Text>
+          <Text className="text-sm font-bold">{translate("Sum Reps Progression")}</Text>
           <Text className="text-sm">: </Text>
           <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
-          <Text className="text-sm"> if sum of all reps is at least </Text>
+          <Text className="text-sm"> {translate("if sum of all reps is at least")} </Text>
           <Text className="text-sm font-bold">{type.reps}</Text>
           <Text className="text-sm">.</Text>
         </Text>
@@ -388,7 +390,7 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
     case "custom":
       return (
         <Text className="text-sm">
-          <Text className="text-sm font-bold">Custom Progression</Text>
+          <Text className="text-sm font-bold">{translate("Custom Progression")}</Text>
         </Text>
       );
   }

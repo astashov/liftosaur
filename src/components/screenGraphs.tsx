@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
@@ -30,6 +31,7 @@ const navRightButtons = [
 ];
 
 export function ScreenGraphs(): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("ScreenGraphs");
   const trackedState = useTrackedState();
   const dispatch = useTrackedDispatch();
@@ -99,7 +101,7 @@ export function ScreenGraphs(): JSX.Element {
   );
 
   useNavOptions({
-    navTitle: "Graphs",
+    navTitle: translate("Graphs"),
     navHelpKey: "graphs",
     navRightButtons,
   });
@@ -156,7 +158,7 @@ export function ScreenGraphs(): JSX.Element {
     return (
       <View className="p-8">
         <Text className="text-2xl font-bold text-center text-gray-600">
-          Select graphs you want to display by tapping filter icon at right top corner.
+          {translate("Select graphs you want to display by tapping filter icon at right top corner.")}
         </Text>
       </View>
     );

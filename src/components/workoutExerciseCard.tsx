@@ -1,3 +1,5 @@
+import { I18n_exerciseName } from "../i18n/exercises";
+import { useLanguage, useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useMemo, useRef, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -93,6 +95,8 @@ interface IWorkoutExerciseCardProps {
 type IKebabAction = "edit" | "swap" | "superset" | "notes" | "remove";
 
 function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
+  const language = useLanguage();
+  const translate = useTranslation();
   usePerfRenderCount("WorkoutExerciseCard");
   usePerfWhyRender("sets-grid", props as unknown as Record<string, unknown>);
   const trackClick = useTrackClick();
@@ -259,14 +263,14 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const kebabActions = useMemo<Array<{ action: IKebabAction; label: string }>>(() => {
     const actions: Array<{ action: IKebabAction; label: string }> = [];
     if (programExercise && programExerciseId) {
-      actions.push({ action: "edit", label: "Edit Program Exercise" });
+      actions.push({ action: "edit", label: translate("Edit Program Exercise") });
     }
-    actions.push({ action: "swap", label: "Swap Exercise" });
-    actions.push({ action: "superset", label: "Edit Superset" });
+    actions.push({ action: "swap", label: translate("Swap Exercise") });
+    actions.push({ action: "superset", label: translate("Edit Superset") });
     actions.push({ action: "notes", label: showExerciseNotes ? "Hide Exercise Notes" : "Show Exercise Notes" });
-    actions.push({ action: "remove", label: "Remove Exercise" });
+    actions.push({ action: "remove", label: translate("Remove Exercise") });
     return actions;
-  }, [programExercise, programExerciseId, showExerciseNotes]);
+  }, [programExercise, programExerciseId, showExerciseNotes, translate]);
 
   const helps = props.helps;
   const [expansionOverride, setExpansionOverride] = useState<IWorkoutSetExpansionOverride>(undefined);
@@ -415,11 +419,14 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               onPress={onPressExerciseStats}
               onLayout={onTitleLayout}
             >
-              <Text className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
+              <Text className="pr-1 text-lg font-bold">
+                {I18n_exerciseName(exercise, props.settings.exercises, language) +
+                  Exercise_nameWithEquipment(exercise, props.settings).slice(exercise.name.length)}
+              </Text>
               <IconArrowRight />
             </Pressable>
             <View data-testid="exercise-equipment" className="flex-row flex-wrap items-center">
-              <Text className="text-sm text-text-secondary">Equipment: </Text>
+              <Text className="text-sm text-text-secondary">{translate("Equipment:")} </Text>
               <LinkButton
                 name="exercise-equipment-picker"
                 data-testid="exercise-equipment-picker"
@@ -436,7 +443,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 testID="exercise-superset"
                 className="flex-row flex-wrap items-center"
               >
-                <Text className="text-sm text-text-secondary">Supersets with: </Text>
+                <Text className="text-sm text-text-secondary">{translate("Supersets with:")} </Text>
                 <LinkButton
                   name="exercise-superset-picker"
                   data-testid="exercise-superset-picker"
@@ -491,7 +498,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                       <View>
                         <IconEdit2 size={22} />
                       </View>
-                      <Text className="whitespace-nowrap">Edit Program Exercise</Text>
+                      <Text className="whitespace-nowrap">{translate("Edit Program Exercise")}</Text>
                     </View>
                   </DropdownMenuItem>
                 )}
@@ -503,13 +510,13 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 >
                   <View className="flex-row items-center gap-2">
                     <IconSwap size={18} />
-                    <Text className="whitespace-nowrap">Swap Exercise</Text>
+                    <Text className="whitespace-nowrap">{translate("Swap Exercise")}</Text>
                   </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem data-testid="exercise-superset" testID="exercise-superset" onClick={onKebabSuperset}>
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconReorder size={18} />
-                    <Text className="whitespace-nowrap">Edit Superset</Text>
+                    <Text className="whitespace-nowrap">{translate("Edit Superset")}</Text>
                   </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -520,7 +527,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconNotebook size={18} />
                     <Text className="whitespace-nowrap">
-                      {showExerciseNotes ? "Hide Exercise Notes" : "Show Exercise Notes"}
+                      {showExerciseNotes ? translate("Hide Exercise Notes") : translate("Show Exercise Notes")}
                     </Text>
                   </View>
                 </DropdownMenuItem>
@@ -531,7 +538,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 >
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconTrash width={15} height={18} />
-                    <Text className="whitespace-nowrap">Remove Exercise</Text>
+                    <Text className="whitespace-nowrap">{translate("Remove Exercise")}</Text>
                   </View>
                 </DropdownMenuItem>
               </DropdownMenu>
@@ -540,13 +547,17 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         </View>
         {!!exerciseNotes && (
           <View className="mt-1">
-            {!!exerciseNotes && !!description && <GroupHeader name="Exercise Notes" />}
+            {!!exerciseNotes && !!description && (
+              <GroupHeader name="Exercise Notes" label={translate("Exercise Notes")} />
+            )}
             <Markdown value={exerciseNotes} />
           </View>
         )}
         {!!description && (
           <View className="mt-1">
-            {!!exerciseNotes && !!description && <GroupHeader name="Program Exercise Description" />}
+            {!!exerciseNotes && !!description && (
+              <GroupHeader name="Program Exercise Description" label={translate("Program Exercise Description")} />
+            )}
             <Markdown value={description} />
           </View>
         )}
@@ -568,7 +579,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               id="exercise-notes"
               maxLength={4095}
               name="exercise-notes"
-              placeholder="Add workout notes for this exercise here..."
+              placeholder={translate("Add workout notes for this exercise here...")}
               value={props.entry.notes}
               onChangeText={onChangeNotes}
               className="mt-1"

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useState } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Text } from "../primitives/text";
@@ -45,17 +46,18 @@ interface IProps {
 export const exercisePickerSortNames = {
   name_asc: "Name, A to Z",
   similar_muscles: "Similar Muscles",
-};
+} as const;
 
 type IFilterValue = { label: string; isSelected: boolean; disabledReason?: string };
 
 export function ExercisePickerFilter(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const sortValues: Record<IExercisePickerSort, IFilterValue> = {
-    name_asc: { label: exercisePickerSortNames.name_asc, isSelected: props.state.sort === "name_asc" },
+    name_asc: { label: translate(exercisePickerSortNames.name_asc), isSelected: props.state.sort === "name_asc" },
     similar_muscles: {
-      label: exercisePickerSortNames.similar_muscles,
+      label: translate(exercisePickerSortNames.similar_muscles),
       isSelected: props.state.sort === "similar_muscles",
-      disabledReason: props.state.exerciseType != null ? undefined : "Enabled only for swap/edit",
+      disabledReason: props.state.exerciseType != null ? undefined : translate("Enabled only for swap/edit"),
     },
   };
   const gymEquipment = Equipment_getCurrentGym(props.settings).equipment;
@@ -67,7 +69,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
         isSelected: props.state.filters.equipment?.includes(equipment) ?? false,
         disabledReason:
           !props.settings.workoutSettings.shouldShowInvisibleEquipment && gymEquipment[equipment]?.isDeleted
-            ? "Hidden"
+            ? translate("Hidden")
             : undefined,
       };
       return memo;
@@ -105,12 +107,12 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
         >
           <IconBack />
         </Pressable>
-        <Text className="flex-1 pr-12 font-bold text-center">Filter and sort</Text>
+        <Text className="flex-1 pr-12 font-bold text-center">{translate("Filter and sort")}</Text>
       </View>
       <ScrollView className="flex-1">
         <Filter
           name="sort"
-          title="Sort by"
+          title={translate("Sort by")}
           values={sortValues}
           onChange={(value) => {
             props.onChangeSettings({
@@ -126,6 +128,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
           <MenuItemEditable
             type="boolean"
             name="Show only available equipment"
+            label={translate("Show only available equipment")}
             value={props.settings.workoutSettings.shouldShowInvisibleEquipment ? "false" : "true"}
             onChange={(v) => {
               props.onChangeSettings({
@@ -148,7 +151,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
         </View>
         <Filter
           name="equipment"
-          title="Equipment"
+          title={translate("Equipment")}
           values={equipmentValues}
           onChange={(value) => {
             props.dispatch(
@@ -168,7 +171,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
         />
         <Filter
           name="type"
-          title="Type"
+          title={translate("Type")}
           values={typeValues}
           onChange={(value) => {
             props.dispatch(
@@ -200,6 +203,7 @@ interface IFilterProps<T extends string> {
 }
 
 function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
+  const translate = useTranslation();
   const selectedValues = ObjectUtils_values(props.values).filter((v) => v.isSelected);
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   return (
@@ -208,7 +212,7 @@ function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
         <View className="flex-1">
           <Text>
             <Text>{props.title}: </Text>
-            <Text className="font-semibold">{selectedValues.map((v) => v.label).join(", ") || "All"}</Text>
+            <Text className="font-semibold">{selectedValues.map((v) => v.label).join(", ") || translate("All")}</Text>
           </Text>
         </View>
         <View className="px-2">{isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}</View>
@@ -225,6 +229,7 @@ interface IFilterMusclesProps {
 }
 
 function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
+  const translate = useTranslation();
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   const selectedMuscleGroups = ExercisePickerUtils_getSelectedMuscleGroupNames(selectedValues, props.settings);
@@ -234,8 +239,8 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
       <Pressable className="flex-row items-center pb-1" onPress={() => setIsExpanded(!isExpanded)}>
         <View className="flex-1">
           <Text>
-            <Text>Muscles: </Text>
-            <Text className="font-semibold">{selectedMuscleGroups.join(", ") || "All"}</Text>
+            <Text>{translate("Muscles:")} </Text>
+            <Text className="font-semibold">{selectedMuscleGroups.join(", ") || translate("All")}</Text>
           </Text>
         </View>
         <View className="px-2">{isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}</View>
@@ -247,7 +252,7 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
           color="purple"
           tabs={[
             {
-              label: "Muscle Groups",
+              label: translate("Muscle Groups"),
               children: () => {
                 const muscleGroups = Muscle_getAvailableMuscleGroups(props.settings).reduce<
                   Record<IScreenMuscle, IFilterValue>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { ISettings, IExerciseType, IExercisePickerState } from "../../types";
@@ -12,10 +13,11 @@ interface IExercisePickerCurrentExerciseProps {
 }
 
 export function ExercisePickerCurrentExercise(props: IExercisePickerCurrentExerciseProps): JSX.Element {
+  const translate = useTranslation();
   const exercise = Exercise_get(props.exerciseType, props.settings.exercises);
   return (
     <View className="mx-4 mb-3">
-      <GroupHeader name="Current Exercise" />
+      <GroupHeader name="Current Exercise" label={translate("Current Exercise")} />
       <View className="px-2 border bg-background-cardpurple border-border-cardpurple rounded-2xl">
         <ExercisePickerExerciseItem
           exercise={exercise}

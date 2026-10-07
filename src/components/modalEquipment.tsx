@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
@@ -32,6 +33,7 @@ interface IModalEquipmentProps {
 export type IModalEquipmentContentProps = Omit<IModalEquipmentProps, "onClose">;
 
 export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.Element {
+  const translate = useTranslation();
   const trackClick = useTrackClick();
   const availableEquipment = ObjectUtils_filter(Equipment_getCurrentGym(props.settings).equipment, (k, v) => {
     return !v?.isDeleted;
@@ -50,6 +52,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
       <MenuItemEditable
         type="select"
         name="Equipment"
+        label={translate("Equipment")}
         value={currentEquipment ?? ""}
         values={[
           ["", "None"],
@@ -74,6 +77,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           <InputNumber
             type="number"
             label="Default Rounding"
+            displayLabel={translate("Default Rounding")}
             min={0}
             step={0.5}
             max={100}
@@ -84,7 +88,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           />
         ) : (
           <View>
-            <GroupHeader name="Equipment Settings" topPadding={true} />
+            <GroupHeader name="Equipment Settings" label={translate("Equipment Settings")} topPadding={true} />
             <EquipmentSettingsValues
               lensDispatch={buildDispatch(props.dispatch)}
               dispatch={props.dispatch}

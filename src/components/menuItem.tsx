@@ -9,6 +9,7 @@ import { StringUtils_dashcase } from "../utils/string";
 interface IMenuItemProps {
   prefix?: ReactNode;
   name: string;
+  label?: string;
   isBorderless?: boolean;
   value?: string | JSX.Element;
   expandName?: boolean;
@@ -67,7 +68,7 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
         <View className="flex-row items-center gap-2 flex-1">
           <View className={`py-3 ${props.expandValue ? undefined : "flex-1"}`}>
             <View className="flex-row items-center">
-              <Text className="text-base text-text-primary">{props.name}</Text>
+              <Text className="text-base text-text-primary">{props.label ?? props.name}</Text>
             </View>
             {props.addons != null && <View className="pt-1">{props.addons}</View>}
           </View>

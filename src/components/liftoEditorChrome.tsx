@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
@@ -61,11 +62,12 @@ export function useLiftoEditorHintDismissed(): [boolean, (dismissed: boolean) =>
 }
 
 export function LiftoEditorCrumbs(props: { controller: ILiftoEditorController }): JSX.Element {
+  const translate = useTranslation();
   const { controller } = props;
   const levels = controller.context?.levels ?? [];
   const semantic = Tailwind_semantic();
   if (levels.length === 0) {
-    return <Text className="text-sm text-text-secondary">Tap a token to focus</Text>;
+    return <Text className="text-sm text-text-secondary">{translate("Tap a token to focus")}</Text>;
   }
   return (
     <View className="flex-row flex-wrap items-center py-1">
@@ -110,6 +112,7 @@ export function LiftoEditorPillRail(props: {
   onPreview?: () => void;
   isPreviewing?: boolean;
 }): JSX.Element {
+  const translate = useTranslation();
   const { controller } = props;
   const iconScale = useRem() / 16;
   const pillRailRef = useRef<ScrollView>(null);
@@ -139,7 +142,9 @@ export function LiftoEditorPillRail(props: {
             </Pressable>
           );
         })}
-        {controller.pills.length === 0 ? <Text className="text-xs text-text-secondary py-1.5">No actions</Text> : null}
+        {controller.pills.length === 0 ? (
+          <Text className="text-xs text-text-secondary py-1.5">{translate("No actions")}</Text>
+        ) : null}
       </FadeScrollView>
       {/* Same w-scaled-10 centered column as the hint bar's dismiss and the dock's close, so the three
           right-edge affordances share a vertical axis despite differing icon widths. */}

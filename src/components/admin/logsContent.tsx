@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../../utils/date";
 import { CollectionUtils_sort, CollectionUtils_compact } from "../../utils/collection";
@@ -9,6 +10,7 @@ export interface ILogsContentProps {
 }
 
 export function LogsContent(props: ILogsContentProps): JSX.Element {
+  const translate = useTranslation();
   const lastWeek = Object.keys(props.logs).filter((k) => {
     const payload = props.logs[k]!;
     return payload.logs.some((l) => {
@@ -37,12 +39,13 @@ export function LogsContent(props: ILogsContentProps): JSX.Element {
   return (
     <div>
       <h1>
-        Logs ({Object.keys(props.logs).length}, {lastWeek.length})
+        {translate("Logs (")}
+        {Object.keys(props.logs).length}, {lastWeek.length})
       </h1>
       <table className="logs">
         <tr>
-          <th>Name</th>
-          <th>Actions</th>
+          <th>{translate("Name")}</th>
+          <th>{translate("Actions")}</th>
         </tr>
         {sortedLogs.map((key) => {
           const payload = props.logs[key]!;

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -14,6 +15,7 @@ interface IModalCouponContentProps {
 }
 
 export function ModalCouponContent(props: IModalCouponContentProps): JSX.Element {
+  const translate = useTranslation();
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,10 +46,10 @@ export function ModalCouponContent(props: IModalCouponContentProps): JSX.Element
 
   return (
     <View>
-      <Text className="pt-4 pb-2 text-lg font-bold">Redeem Code</Text>
+      <Text className="pt-4 pb-2 text-lg font-bold">{translate("Redeem Code")}</Text>
       <Input
         identifier="modal-coupon-code"
-        label="Code"
+        label={translate("Code")}
         labelSize="xs"
         maxLength={8}
         autoCapitalize="characters"
@@ -60,7 +62,7 @@ export function ModalCouponContent(props: IModalCouponContentProps): JSX.Element
       />
       <View className="items-center mt-4">
         <Button name="redeem-coupon" kind="purple" disabled={isLoading} onClick={onSubmit}>
-          {isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Redeem"}
+          {isLoading ? <IconSpinner color="white" width={18} height={18} /> : translate("Redeem")}
         </Button>
       </View>
     </View>

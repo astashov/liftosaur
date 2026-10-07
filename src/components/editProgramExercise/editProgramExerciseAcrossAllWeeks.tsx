@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
@@ -43,6 +44,7 @@ interface IEditProgramExerciseAcrossAllWeeksProps {
 }
 
 export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcrossAllWeeksProps): JSX.Element {
+  const translate = useTranslation();
   function change(setData: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
     props.onChange((planner) =>
       EditProgramUiHelpers_changeSets(planner, props.plannerExercise.key, setData, props.settings, (set) => {
@@ -53,7 +55,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
 
   const tabs = [
     {
-      label: "Reps",
+      label: translate("Reps"),
       children: () => (
         <Tab
           weeks={props.weeks}
@@ -114,7 +116,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
     ),
   });
   tabs.push({
-    label: "Timers",
+    label: translate("Timers"),
     children: () => (
       <Tab
         weeks={props.weeks}
@@ -158,6 +160,7 @@ interface ITabProps {
 }
 
 function Tab(props: ITabProps): JSX.Element {
+  const translate = useTranslation();
   const groups: Record<string, IDaySetData[]> = {};
   PP_iterate2(props.weeks, (exercise, weekIndex, dayInWeekIndex) => {
     if (exercise.key !== props.plannerExercise.key) {
@@ -210,7 +213,9 @@ function Tab(props: ITabProps): JSX.Element {
         if (!exercise) {
           return (
             <View key={key}>
-              <Text>Exercise not found for key: {props.plannerExercise.key}</Text>
+              <Text>
+                {translate("Exercise not found for key:")} {props.plannerExercise.key}
+              </Text>
             </View>
           );
         }
@@ -246,6 +251,7 @@ interface IGroupLabelProps {
 }
 
 function GroupLabel(props: IGroupLabelProps): JSX.Element {
+  const translate = useTranslation();
   const groupSetVariationsPerWeekDay: Record<string, Set<number>> = {};
   for (const setData of props.group) {
     const key = `${setData.week}-${setData.dayInWeek}`;
@@ -285,7 +291,7 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
   });
 
   if (props.allWeeksEqual && props.allDaysEqual && allSetVariationsEqual && allSetsEqual) {
-    return <Text className="text-sm">All Sets</Text>;
+    return <Text className="text-sm">{translate("All Sets")}</Text>;
   }
 
   const parts = props.group.map<[string, number][]>((setData) => {
@@ -328,13 +334,14 @@ interface IValueProps {
 }
 
 function RepsValue(props: IValueProps): JSX.Element {
+  const translate = useTranslation();
   const { group, set, change } = props;
   return (
     <View className="flex-row items-center gap-1">
       {set.minrep != null && (
         <>
           <View className="items-center">
-            <Text className="text-xs text-text-secondary">Min Reps</Text>
+            <Text className="text-xs text-text-secondary">{translate("Min Reps")}</Text>
             <View>
               <InputNumber2
                 width={3.5}
@@ -360,7 +367,9 @@ function RepsValue(props: IValueProps): JSX.Element {
         </>
       )}
       <View className="items-center">
-        <Text className="text-xs text-text-secondary">{set.minrep != null ? "Max Reps" : "Reps"}</Text>
+        <Text className="text-xs text-text-secondary">
+          {set.minrep != null ? translate("Max Reps") : translate("Reps")}
+        </Text>
         <View>
           <InputNumber2
             width={3.5}
@@ -372,7 +381,7 @@ function RepsValue(props: IValueProps): JSX.Element {
             keyboardAddon={
               <View className="py-2">
                 <InputNumberAddOn
-                  label="Is AMRAP?"
+                  label={translate("Is AMRAP?")}
                   value={set.isAmrap}
                   onChange={(value) => {
                     change(group, (s) => (s.isAmrap = value));
@@ -392,10 +401,11 @@ function RepsValue(props: IValueProps): JSX.Element {
 }
 
 function WeightsValue(props: IValueProps): JSX.Element {
+  const translate = useTranslation();
   const { group, set, change } = props;
   return (
     <View className="items-center">
-      <Text className="text-xs text-text-secondary">Weight</Text>
+      <Text className="text-xs text-text-secondary">{translate("Weight")}</Text>
       <View>
         <InputWeight2
           name="set-weight"
@@ -415,7 +425,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
           settings={props.settings}
           addOn={() => (
             <InputNumberAddOn
-              label="Ask Weight?"
+              label={translate("Ask Weight?")}
               value={set.askWeight}
               onChange={(value) => {
                 change(group, (s) => (s.askWeight = value));
@@ -429,6 +439,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
 }
 
 function RpeValue(props: IValueProps): JSX.Element {
+  const translate = useTranslation();
   const { group, set, change } = props;
   return (
     <View className="items-center">
@@ -444,7 +455,7 @@ function RpeValue(props: IValueProps): JSX.Element {
           keyboardAddon={
             <View className="py-2">
               <InputNumberAddOn
-                label="Log RPE?"
+                label={translate("Log RPE?")}
                 value={set.isAmrap}
                 onChange={(value) => {
                   change(group, (s) => (s.logRpe = value));
@@ -464,10 +475,11 @@ function RpeValue(props: IValueProps): JSX.Element {
 }
 
 function TimerValue(props: IValueProps): JSX.Element {
+  const translate = useTranslation();
   const { group, set, change } = props;
   return (
     <View className="items-center">
-      <Text className="text-xs text-text-secondary">Timer</Text>
+      <Text className="text-xs text-text-secondary">{translate("Timer")}</Text>
       <View>
         <InputNumber2
           width={3.5}

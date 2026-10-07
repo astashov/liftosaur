@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { IStats, ISettings, ISubscription, IStatsKey } from "../types";
 import { IDispatch } from "../ducks/types";
@@ -15,10 +16,11 @@ interface IProps {
 }
 
 export function ScreenMeasurements(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const { settings, stats, dispatch } = props;
   const initialKey = props.initialKey;
 
-  useNavOptions({ navTitle: "Measurements", navHelpKey: "measurements" });
+  useNavOptions({ navTitle: translate("Measurements"), navHelpKey: "measurements" });
 
   return (
     <>

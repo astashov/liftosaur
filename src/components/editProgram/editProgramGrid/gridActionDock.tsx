@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, memo, useEffect, useRef, useState } from "react";
 import { Animated, Platform, View } from "react-native";
 import { Text } from "../../primitives/text";
@@ -164,6 +165,7 @@ function DockDetails(props: { name: string; badges?: string[]; description?: str
 // a native action sheet, a dropdown on web. Vertical dots, because the dock is a horizontal strip
 // and a horizontal ⋯ reads as more of the same row rather than as something that opens.
 function DockOverflow(props: { actions: IGridSelectionAction[] }): JSX.Element | null {
+  const translate = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const actions = props.actions;
   if (actions.length === 0) {
@@ -190,7 +192,7 @@ function DockOverflow(props: { actions: IGridSelectionAction[] }): JSX.Element |
   };
   return (
     <View className="relative">
-      <DockButton name="grid-action-more" label="More actions" onPress={onPress}>
+      <DockButton name="grid-action-more" label={translate("More actions")} onPress={onPress}>
         <IconKebab isVertical={true} color={Tailwind_semantic().icon.neutral} />
       </DockButton>
       {Platform.OS === "web" && isOpen && (

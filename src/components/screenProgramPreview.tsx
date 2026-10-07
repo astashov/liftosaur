@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useMemo } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
@@ -18,9 +19,10 @@ interface IProps {
 }
 
 export function ScreenProgramPreview(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const program = props.programs.filter((p) => p.id === props.selectedProgramId)[0];
 
-  useNavOptions({ navTitle: "Program Preview" });
+  useNavOptions({ navTitle: translate("Program Preview") });
 
   const { dispatch, programs, selectedProgramId } = props;
   const programValues = useMemo(() => programs.map((p): [string, string] => [p.id, p.name]), [programs]);
@@ -30,6 +32,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
         <MenuItemEditable
           type="select"
           name="Program"
+          label={translate("Program")}
           value={selectedProgramId}
           values={programValues}
           onChange={(value) => {
@@ -44,7 +47,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
         />
       </View>
     ),
-    [selectedProgramId, programValues, dispatch]
+    [selectedProgramId, programValues, dispatch, translate]
   );
 
   return (
