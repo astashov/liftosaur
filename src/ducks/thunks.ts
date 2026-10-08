@@ -113,6 +113,7 @@ import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importF
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
 import { lg } from "../utils/posthog";
+import { WatchStorageAccount_isOtherAccount } from "../models/watchStorageAccount";
 import { RollbarUtils_config } from "../utils/rollbar";
 import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
@@ -1099,6 +1100,13 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
     try {
       const watchStorage: IStorage = runMigrations(JSON.parse(storageJson));
       const state = getState();
+      if (WatchStorageAccount_isOtherAccount(state.storage, watchStorage)) {
+        lg("ls-watch-merge-other-account", {
+          phoneUserId: state.storage.tempUserId,
+          watchUserId: watchStorage.tempUserId,
+        });
+        return;
+      }
 
       const phoneHistoryLen = state.storage.history?.length ?? 0;
       const watchHistoryLen = watchStorage.history?.length ?? 0;

@@ -22,6 +22,7 @@ import {
 } from "../models/program";
 import { Exercise_get, Exercise_getIsUnilateral, Exercise_toKey } from "../models/exercise";
 import { Storage_validateStorage, Storage_updateVersions, Storage_mergeStorage } from "../models/storage";
+import { WatchStorageAccount_isOtherAccount } from "../models/watchStorageAccount";
 import {
   History_isPaused,
   History_pauseWorkout,
@@ -616,7 +617,9 @@ class LiftosaurWatch {
     try {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
-      const merged = Storage_mergeStorage(currentStorage, incomingStorage, deviceId);
+      const merged = WatchStorageAccount_isOtherAccount(currentStorage, incomingStorage)
+        ? incomingStorage
+        : Storage_mergeStorage(currentStorage, incomingStorage, deviceId);
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
       cachedStorageVersion += 1;
