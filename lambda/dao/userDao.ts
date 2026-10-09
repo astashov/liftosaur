@@ -881,10 +881,10 @@ export class UserDao {
       const toIsApple = toUser.appleId != null;
 
       const token = toIsApple ? toUser.appleId : toUser.googleId;
-      if (toIsApple) {
+      if (token != null && toIsApple) {
         fromUser.appleId = token;
         delete fromUser.googleId;
-      } else {
+      } else if (token != null) {
         fromUser.googleId = token;
         delete fromUser.appleId;
       }

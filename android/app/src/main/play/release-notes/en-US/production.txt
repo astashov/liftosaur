@@ -1,1 +1,1 @@
-Redesigned the workout screen. Decluttered it, and now expanding the current set row to make it readable from distance, and also easier to tap the checkmark to complete set.
+Trying to fix the animation glitch on the workout screen when expanding set sticks

@@ -618,7 +618,7 @@ class LiftosaurWatch {
       const currentStorage = JSON.parse(currentStorageJson) as IStorage;
       const incomingStorage = JSON.parse(incomingStorageJson) as IStorage;
       const merged = WatchStorageAccount_isOtherAccount(currentStorage, incomingStorage)
-        ? incomingStorage
+        ? runMigrations(incomingStorage)
         : Storage_mergeStorage(currentStorage, incomingStorage, deviceId);
       // Update cache with merged result so next operation doesn't need to re-validate
       cachedStorage = merged;
