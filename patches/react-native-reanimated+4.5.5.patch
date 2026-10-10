@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+index f9711f4..35f5ed0 100644
+--- a/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
++++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/LayoutAnimations/LayoutAnimationsProxy_Legacy.cpp
+@@ -55,6 +55,17 @@ std::optional<MountingTransaction> LayoutAnimationsProxy_Legacy::pullTransaction
+     if (layoutAnimationIt == layoutAnimations_.end() || !layoutAnimationIt->second.isSettled()) {
+       continue;
+     }
++    // The last progress frame is dropped once the animation settles, so without
++    // this the native view stays one frame short of the committed layout, or at
++    // its start layout when no frame landed (Android "Remove animations").
++    const auto &settled = layoutAnimationIt->second;
++    const auto nodeIt = nodeForTag_.find(tag);
++    const bool isExiting = nodeIt != nodeForTag_.end() && nodeIt->second->isMutationNode();
++    const bool isEntering = settled.opacity.has_value();
++    if ((settled.isViewAlreadyMounted || !isEntering) && !isExiting) {
++      filteredMutations.push_back(
++          ShadowViewMutation::UpdateMutation(settled.currentView, settled.finalView, settled.parentTag));
++    }
+     layoutAnimations_.erase(layoutAnimationIt);
+     updateMap.erase(tag);
+   }
