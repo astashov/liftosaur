@@ -67,12 +67,12 @@ import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage, IScriptErrorHandler } from "../types";
 import {
-  ProgramExercise_approxTimeMs,
   ProgramExercise_applyVariables,
   ProgramExercise_doesUse1RM,
   ProgramExercise_doesUseRPE,
 } from "./programExercise";
 import { Thunk_pushScreen } from "../ducks/thunks";
+import { WorkoutTimeEstimate_dayMs } from "./workoutTimeEstimate";
 import type { INavigateOpts } from "../navigation/navigationService";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder_encodeIntoUrl } from "../utils/encoder";
@@ -615,9 +615,20 @@ export function Program_dayAverageTimeMs(program: IEvaluatedProgram, settings: I
 }
 
 export function Program_dayApproxTimeMs(programDay: IEvaluatedProgramDay, settings: ISettings): number {
-  return Program_getProgramDayUsedExercises(programDay).reduce((acc, e) => {
-    return acc + ProgramExercise_approxTimeMs(e, settings);
-  }, 0);
+  const exercises = Program_getProgramDayUsedExercises(programDay).map((e) => ({
+    superset: e.superset?.name,
+    isUnilateral: Exercise_getIsUnilateral(e.exerciseType, settings),
+    sets: (PlannerProgramExercise_currentEvaluatedSetVariation(e)?.sets ?? []).map((set) => ({
+      reps: set.maxrep,
+      timer: set.timer,
+      setTimer: set.setTimer,
+      auto: set.auto,
+    })),
+  }));
+  return WorkoutTimeEstimate_dayMs(exercises, {
+    rest: settings.timers.workout || 0,
+    superset: settings.timers.superset ?? undefined,
+  });
 }
 
 export function Program_getProgramExerciseForKeyAndShortDayData(

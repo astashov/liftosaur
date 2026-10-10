@@ -159,7 +159,7 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
     PlannerStatsUtils_dayApproxTimeMs(
       evaluatedDay.success ? evaluatedDay.data : [],
       props.settings.timers.workout || 0,
-      props.settings.timers.superset
+      props.settings
     )
   );
   const { weekIndex, dayIndex } = props;

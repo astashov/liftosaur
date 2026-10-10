@@ -511,7 +511,7 @@ export function ProgramGrid_build(program: IEvaluatedProgram, settings: ISetting
         const day = week.days[rowIndex];
         return day == null
           ? undefined
-          : PlannerStatsUtils_dayApproxTimeMs(day.exercises, settings.timers.workout || 0, settings.timers.superset);
+          : PlannerStatsUtils_dayApproxTimeMs(day.exercises, settings.timers.workout || 0, settings);
       }),
     });
   }

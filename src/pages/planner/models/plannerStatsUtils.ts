@@ -4,6 +4,7 @@ import {
   Exercise_targetMusclesGroups,
   Exercise_synergistMusclesGroupMultipliers,
   Exercise_synergistMusclesGroups,
+  Exercise_getIsUnilateral,
 } from "../../../models/exercise";
 import { IPlannerProgramExercise, IPlannerProgramExerciseRepRange, ISetResults, ISetSplit } from "./types";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
@@ -11,31 +12,31 @@ import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise_sets } from "./plannerProgramExercise";
 import { Weight_build } from "../../../models/weight";
 import { Muscle_getAvailableMuscleGroups } from "../../../models/muscle";
-import { ProgramSet_approxRestTimer, ProgramSet_approxSetTimeMs } from "../../../models/programSet";
+import { IWorkoutTimeEstimateSet, WorkoutTimeEstimate_dayMs } from "../../../models/workoutTimeEstimate";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
 export function PlannerStatsUtils_dayApproxTimeMs(
   exercises: IPlannerProgramExercise[],
   restTimer: number,
-  supersetTimer?: number
+  settings: ISettings
 ): number {
-  return exercises
+  const estimateExercises = exercises
     .filter((e) => !e.notused)
-    .reduce((acc, e) => {
-      const exerciseSupersetTimer = e.superset != null ? supersetTimer : undefined;
-      return (
-        acc +
-        PlannerProgramExercise_sets(e).reduce((acc2, set) => {
-          const repRange = set.repRange;
-          if (!repRange) {
-            return acc2;
-          }
-          const timer = ProgramSet_approxRestTimer(set, restTimer ?? 0, exerciseSupersetTimer);
-          return acc2 + repRange.numberOfSets * ProgramSet_approxSetTimeMs(repRange.maxrep ?? 0, timer);
-        }, 0)
-      );
-    }, 0);
+    .map((e) => ({
+      superset: e.superset?.name,
+      isUnilateral: e.exerciseType != null && Exercise_getIsUnilateral(e.exerciseType, settings),
+      sets: PlannerProgramExercise_sets(e).flatMap((set) => {
+        const { repRange, timer, setTimer, auto } = set;
+        return repRange
+          ? Array<IWorkoutTimeEstimateSet>(repRange.numberOfSets).fill({ reps: repRange.maxrep, timer, setTimer, auto })
+          : [];
+      }),
+    }));
+  return WorkoutTimeEstimate_dayMs(estimateExercises, {
+    rest: restTimer,
+    superset: settings.timers.superset ?? undefined,
+  });
 }
 
 export interface IPlannerDaysSummary {
@@ -44,7 +45,10 @@ export interface IPlannerDaysSummary {
   approxTimeMs: number;
 }
 
-export function PlannerStatsUtils_summary(evaluatedDays: IPlannerEvalResult[], settings: ISettings): IPlannerDaysSummary {
+export function PlannerStatsUtils_summary(
+  evaluatedDays: IPlannerEvalResult[],
+  settings: ISettings
+): IPlannerDaysSummary {
   const validDays = evaluatedDays.flatMap((day) => (day.success ? [day.data] : []));
   if (validDays.length === 0) {
     return { days: evaluatedDays.length, exercisesPerDay: 0, approxTimeMs: 0 };
@@ -54,7 +58,7 @@ export function PlannerStatsUtils_summary(evaluatedDays: IPlannerEvalResult[], s
   let timeMs = 0;
   for (const day of validDays) {
     exercises += day.filter((e) => !e.notused).length;
-    timeMs += PlannerStatsUtils_dayApproxTimeMs(day, restTimer, settings.timers.superset);
+    timeMs += PlannerStatsUtils_dayApproxTimeMs(day, restTimer, settings);
   }
   return {
     days: evaluatedDays.length,

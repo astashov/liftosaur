@@ -1,10 +1,6 @@
 import { IProgramState, IProgramExerciseWarmupSet, ISettings, IProgramSet, IPercentage } from "../types";
 import { IEvaluatedProgram, Program_getProgramDayExercises } from "./program";
-import {
-  ProgramSet_approxTimeMs,
-  ProgramSet_isEligibleForInferredWeight,
-  ProgramSet_getEvaluatedWeight,
-} from "./programSet";
+import { ProgramSet_isEligibleForInferredWeight, ProgramSet_getEvaluatedWeight } from "./programSet";
 import { IWeight } from "../types";
 import { ObjectUtils_keys, ObjectUtils_values, ObjectUtils_clone } from "../utils/object";
 import { Weight_print, Weight_printOrNumber, Weight_isPct, Weight_build, Weight_applyOp, Weight_is } from "./weight";
@@ -21,7 +17,6 @@ import {
 import {
   PlannerProgramExercise_getStateMetadata,
   PlannerProgramExercise_sets,
-  PlannerProgramExercise_currentEvaluatedSetVariation,
   PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
@@ -80,15 +75,6 @@ export function ProgramExercise_groupWarmupsSets(
     lastKey = key;
   }
   return groups;
-}
-
-export function ProgramExercise_approxTimeMs(programExercise: IPlannerProgramExercise, settings: ISettings): number {
-  return (
-    PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets.reduce(
-      (memo, set) => memo + ProgramSet_approxTimeMs(set, settings, programExercise.superset != null),
-      0
-    ) || 0
-  );
 }
 
 export function ProgramExercise_doesUse1RM(programExercise: IPlannerProgramExercise): boolean {
