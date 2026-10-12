@@ -14,7 +14,7 @@ import { IconDoc } from "../../components/icons/iconDoc";
 import { IconHeart } from "../../components/icons/iconHeart";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { Share_generateLink } from "../../models/share";
-import { History_calories, History_pauseWorkout } from "../../models/history";
+import { WorkoutOutcome_healthPayload } from "../../models/workoutOutcome";
 import { Thunk_saveWorkoutToHealth } from "../../ducks/thunks";
 import { LiftohistorySerializer_serialize } from "../../liftohistory/liftohistorySerializer";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../../lib/healthSync";
@@ -89,17 +89,10 @@ export function NavModalWorkoutShare(): JSX.Element {
               description={""}
               icon={<IconHeart size={24} />}
               onClick={() => {
-                const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
-                const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
-                const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
-                const startMs = validIntervals[0]?.[0] ?? progress.startTime;
-                const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? progress.endTime ?? startMs;
                 dispatch(
                   Thunk_saveWorkoutToHealth({
-                    startMs,
-                    endMs,
-                    calories: History_calories(progress),
-                    intervals,
+                    ...WorkoutOutcome_healthPayload(progress),
+                    source: "finish",
                     successAlert: true,
                   })
                 );

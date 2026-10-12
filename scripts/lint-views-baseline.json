@@ -276,9 +276,6 @@
   "src/navigation/modals/NavModalPlaygroundEditExercise.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"
   },
-  "src/navigation/modals/NavModalWorkoutShare.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
   "src/navigation/screens/NavScreenProgram.native.tsx": {
     "decision-in-view:React.useEffect#1": "predates the rule",
     "decision-in-view:React.useLayoutEffect#1": "predates the rule"

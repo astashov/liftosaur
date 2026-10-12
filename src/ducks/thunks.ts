@@ -60,7 +60,8 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { CollectionUtils_compact, CollectionUtils_setAt } from "../utils/collection";
 import { ImportExporter_exportStorage, ImportExporter_getExportedProgram } from "../lib/importexporter";
 import { Storage_mergeStorage, Storage_isChanged, Storage_get, Storage_setAffiliate } from "../models/storage";
-import { History_exportAsCSV, History_calories, History_pauseWorkoutState } from "../models/history";
+import { History_exportAsCSV, History_pauseWorkoutState } from "../models/history";
+import type { IHealthWorkoutPayload } from "../utils/healthAdapter";
 import { ImportSession_apply, ImportSession_findEditedRecordIds, ImportSession_undo } from "../models/importSession";
 import { ImportFileError } from "../utils/importTypes";
 import { StringUtils_pluralize } from "../utils/string";
@@ -595,34 +596,41 @@ async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: 
   }
 }
 
-export function Thunk_saveWorkoutToHealth(args: {
-  startMs: number;
-  endMs: number;
-  calories: number;
-  intervals: [number, number | null][];
-  successAlert?: boolean;
-}): IThunk {
+export function Thunk_saveWorkoutToHealth(
+  args: IHealthWorkoutPayload & { source: "finish" | "merge"; successAlert?: boolean }
+): IThunk {
   return async (dispatch, getState, env) => {
     if (!env.health || AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
       return;
     }
     const platform = Platform.OS === "ios" ? "apple" : "google";
+    if (args.source === "merge" && platform !== "apple") {
+      return;
+    }
     dispatch(Thunk_postevent(`submit-workout-${platform}-health`));
     dispatch(
       Thunk_postevent(`storing-workout-to-${platform}-health`, {
         intervalsCount: args.intervals.length,
+        source: args.source,
       })
     );
     try {
       await env.health.saveWorkout(args);
-      dispatch(Thunk_postevent(`success-workout-${platform}-health`));
+      dispatch(Thunk_postevent(`success-workout-${platform}-health`, { source: args.source }));
       if (args.successAlert) {
         Dialog_alert(`Synced to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
       }
     } catch (e) {
       console.warn("Failed to save workout to Health", e);
-      dispatch(Thunk_postevent(`fail-workout-${platform}-health`, { error: (e as Error)?.message ?? "unknown" }));
-      Dialog_alert(`Couldn't save workout to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+      dispatch(
+        Thunk_postevent(`fail-workout-${platform}-health`, {
+          error: (e as Error)?.message ?? "unknown",
+          source: args.source,
+        })
+      );
+      if (args.source === "finish") {
+        Dialog_alert(`Couldn't save workout to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+      }
     }
   };
 }
@@ -1539,11 +1547,25 @@ export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
   };
 }
 
-export function Thunk_finishProgramDay(id: number): IThunk {
-  return async (dispatch, getState) => {
-    const state = getState();
-    const progress = Progress_getProgressById(state, id);
-    const isCurrent = progress ? Progress_isCurrent(progress) : false;
+export function Thunk_finishProgramDay(args: {
+  id: number;
+  startTime: number;
+  healthSync: boolean;
+  onStale: () => void;
+}): IThunk {
+  return async (dispatch, getState, env) => {
+    const { id, startTime, healthSync } = args;
+    const progress = Progress_getProgressById(getState(), id);
+    if (progress == null || progress.startTime !== startTime) {
+      args.onStale();
+      return;
+    }
+    const isCurrent = Progress_isCurrent(progress);
+    env.workout.pauseWorkout();
+    if (isCurrent) {
+      dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
+      env.workout.finishWorkout();
+    }
     const { navigateTo, goBack } = await getNavigationService();
     // Navigate before dispatch so the progress screen unmounts before
     // FallbackScreen can detect null progress and redirect to home.
@@ -1553,11 +1575,11 @@ export function Thunk_finishProgramDay(id: number): IThunk {
     // ScreenRemovalCleanup's "state" event also fires post-commit, so the save
     // lands before the removed screen's edit state gets cleaned up.
     if (isCurrent) {
-      navigateTo("finishDay", progress ? { id: progress.startTime } : undefined, { tab: "workout" });
+      navigateTo("finishDay", { id: progress.startTime }, { tab: "workout" });
     } else {
       goBack();
     }
-    dispatch({ type: "FinishProgramDayAction", id });
+    dispatch({ type: "FinishProgramDayAction", id, startTime, healthSync });
   };
 }
 
@@ -1565,29 +1587,6 @@ export function Thunk_pauseWorkout(): IThunk {
   return async (dispatch, getState, env) => {
     env.workout.pauseWorkout();
     History_pauseWorkoutState(dispatch);
-  };
-}
-
-export function Thunk_pauseWorkoutNative(): IThunk {
-  return async (dispatch, getState, env) => {
-    env.workout.pauseWorkout();
-  };
-}
-
-export function Thunk_finishWorkoutNative(args: {
-  progress: IHistoryRecord;
-  shouldSyncToHealth: boolean;
-  intervals: [number, number | null][];
-  onDone: (watchSaved: boolean) => void;
-}): IThunk {
-  return async (dispatch, getState, env) => {
-    env.workout.finishWorkout({
-      healthSync: args.shouldSyncToHealth,
-      calories: History_calories(args.progress),
-      intervals: JSON.stringify(args.intervals),
-    });
-    const watchSaved = await env.watch.sendFinishWorkoutToWatch(args.shouldSyncToHealth);
-    args.onDone(watchSaved);
   };
 }
 

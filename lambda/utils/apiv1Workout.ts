@@ -38,6 +38,7 @@ import {
   Progress_stopTimerPure,
 } from "../../src/models/progress";
 import { History_finishProgramDay } from "../../src/models/history";
+import { WorkoutOutcome_add } from "../../src/models/workoutOutcome";
 import { Reps_addSet } from "../../src/models/set";
 import { Weight_print, Weight_calculatePlates, Weight_parsePct } from "../../src/models/weight";
 import { Exercise_get, Exercise_toKey, Exercise_getIsUnilateral } from "../../src/models/exercise";
@@ -992,6 +993,12 @@ export async function ApiV1_finishWorkout(
       ...old,
       progress: [],
       history: [record, ...(old.history || []).filter((h) => h.id !== record.id)],
+      workoutOutcomes: WorkoutOutcome_add(old.workoutOutcomes, {
+        id: record.id,
+        outcome: "finish",
+        healthSync: false,
+        endTime: record.endTime ?? finishTime,
+      }),
       settings: {
         // Finish-day scripts emit only `{rm1}` per exercise, but IExerciseDataValue also holds rounding,
         // equipment overrides and notes — a shallow merge would drop those for every exercise whose 1RM moved.
@@ -1031,7 +1038,20 @@ export async function ApiV1_discardWorkout(
   if (live.startTime !== parsed.output.startTime) {
     return err(409, "workout_mismatch", "The workout in progress is not the one you asked to discard");
   }
-  await new UserDao(di).applyStorageUpdate(user, (old) => ({ ...old, progress: [] }), identity.deviceId);
+  await new UserDao(di).applyStorageUpdate(
+    user,
+    (old) => ({
+      ...old,
+      progress: [],
+      workoutOutcomes: WorkoutOutcome_add(old.workoutOutcomes, {
+        id: live.startTime,
+        outcome: "discard",
+        healthSync: false,
+        endTime: Date.now(),
+      }),
+    }),
+    identity.deviceId
+  );
   return ok({ discarded: true });
 }
 

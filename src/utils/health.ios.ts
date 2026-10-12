@@ -39,6 +39,7 @@ import {
 } from "./healthDaily";
 import { ILength, ILengthUnit, IPercentage, IUnit, IWeight } from "../types";
 import { HealthIosAnchors_decode, HealthIosAnchors_encode, IHealthIosAnchors } from "./healthIosAnchors";
+import { HealthSyncIdConflict_isSupersededByWatch } from "./healthSyncIdConflict";
 
 const BODY_MASS = "HKQuantityTypeIdentifierBodyMass" satisfies QuantityTypeIdentifierWriteable;
 const BODY_FAT = "HKQuantityTypeIdentifierBodyFatPercentage" satisfies QuantityTypeIdentifierWriteable;
@@ -171,25 +172,32 @@ export class HealthAdapter implements IHealthAdapter {
           ]
         : [];
     const totals = calories > 0 ? { energyBurned: calories } : undefined;
+    const workoutMeta = {
+      liftosaur: true,
+      HKMetadataKeySyncIdentifier: args.syncId,
+      HKMetadataKeySyncVersion: 1,
+    } as AnyMap;
+    const save = async (): Promise<void> => {
+      try {
+        await saveWorkoutSample(
+          WorkoutActivityType.traditionalStrengthTraining,
+          quantities,
+          start,
+          end,
+          totals,
+          workoutMeta
+        );
+      } catch (e) {
+        if (!HealthSyncIdConflict_isSupersededByWatch(e)) {
+          throw e;
+        }
+      }
+    };
     try {
-      await saveWorkoutSample(
-        WorkoutActivityType.traditionalStrengthTraining,
-        quantities,
-        start,
-        end,
-        totals,
-        LIFTOSAUR_META
-      );
+      await save();
     } catch {
       await requestAuthorization({ toRead: [], toShare: WORKOUT_WRITE_TYPES });
-      await saveWorkoutSample(
-        WorkoutActivityType.traditionalStrengthTraining,
-        quantities,
-        start,
-        end,
-        totals,
-        LIFTOSAUR_META
-      );
+      await save();
     }
   }
 

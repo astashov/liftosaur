@@ -83,6 +83,7 @@ import {
   History_finishProgramDay,
   History_findLastEntryForExerciseType,
 } from "./history";
+import { WorkoutOutcome_add } from "./workoutOutcome";
 import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment_getUnitForExerciseType } from "./equipment";
@@ -2694,7 +2695,8 @@ export function Progress_forceUpdateEntryIndex(dispatch: IDispatch): void {
 export function Progress_finishWorkout(
   effects: INativeEffect[],
   storage: IStorage,
-  progress: IHistoryRecord
+  progress: IHistoryRecord,
+  healthSync: boolean
 ): IStorage {
   const settings = storage.settings;
   const programIndex = storage.programs.findIndex((p) => p.id === progress.programId)!;
@@ -2725,6 +2727,14 @@ export function Progress_finishWorkout(
     ...storage,
     progress: Progress_isCurrent(progress) ? [] : storage.progress,
     history: newHistory,
+    workoutOutcomes: Progress_isCurrent(progress)
+      ? WorkoutOutcome_add(storage.workoutOutcomes, {
+          id: historyRecord.id,
+          outcome: "finish",
+          healthSync,
+          endTime: historyRecord.endTime ?? Date.now(),
+        })
+      : storage.workoutOutcomes,
     programs: newPrograms,
     settings: {
       ...storage.settings,

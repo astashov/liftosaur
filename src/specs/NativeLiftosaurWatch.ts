@@ -43,8 +43,6 @@ export interface Spec extends TurboModule {
   sendNoAuthToWatch(): Promise<void>;
   sendClearAuthToWatch(): Promise<void>;
   clearWatchStorage(): Promise<void>;
-  sendFinishWorkoutToWatch(saveToHealth: boolean): Promise<boolean>;
-  sendDiscardWorkoutToWatch(): Promise<void>;
   requestWatchLogs(): Promise<string>;
 
   isWatchPaired(): boolean;

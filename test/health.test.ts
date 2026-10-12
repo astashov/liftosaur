@@ -210,6 +210,8 @@ describe("Health", () => {
           [1700000000000, 1700000001000],
           [1700000002000, 1700000003600],
         ],
+        syncId: "liftosaur-workout-1700000000000",
+        source: "finish",
       }),
     ]);
 
@@ -224,7 +226,16 @@ describe("Health", () => {
     await enableAppleHealth(mockReducer);
     sinon.stub(healthAdapter, "saveWorkout").rejects(new Error("denied"));
 
-    await mockReducer.run([Thunk_saveWorkoutToHealth({ startMs: 1, endMs: 2, calories: 0, intervals: [] })]);
+    await mockReducer.run([
+      Thunk_saveWorkoutToHealth({
+        startMs: 1,
+        endMs: 2,
+        calories: 0,
+        intervals: [],
+        syncId: "liftosaur-workout-1",
+        source: "finish",
+      }),
+    ]);
   });
 
   it("saveMeasurementsToHealth: forwards payload to adapter", async () => {
@@ -328,6 +339,8 @@ describe("Health", () => {
         endMs: 1700000003600,
         calories: 250,
         intervals: [[1700000000000, 1700000001000]],
+        syncId: "liftosaur-workout-1700000000000",
+        source: "finish",
       }),
     ]);
 
@@ -350,6 +363,8 @@ describe("Health", () => {
         endMs: 2,
         calories: 0,
         intervals: [],
+        syncId: "liftosaur-workout-1",
+        source: "finish",
       }),
     ]);
 
