@@ -342,8 +342,13 @@ class LiftosaurEngine {
         _ = await callRaw("invalidateStorageCache")
     }
 
-    func finishWorkout(storageJson: String, deviceId: String) async -> Result<String, EngineError> {
-        await callMutation("finishWorkout", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
+    func finishWorkout(storageJson: String, deviceId: String, healthSync: Bool) async -> Result<String, EngineError> {
+        await callMutation("finishWorkout", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(healthSync)"])
+    }
+
+    func healthSessionDecision(storageJson: String, binding: WatchHealthBinding?, nowMs: Double, hasSession: Bool) async -> Result<WatchHealthDecision, EngineError> {
+        let bindingJson = binding.flatMap { try? JSONEncoder().encode($0) }.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        return await call("healthSessionDecision", globals: [("__lft_s", storageJson)], args: [str(bindingJson), "\(Int64(nowMs))", "\(hasSession)"])
     }
 
     func getFinishWorkoutSummary(storageJson: String) async -> Result<WatchFinishWorkoutSummary?, EngineError> {

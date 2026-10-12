@@ -27,12 +27,6 @@ export class WatchBridge implements IWatchBridge {
 
   public clearWatchStorage(): void {}
 
-  public sendFinishWorkoutToWatch(_saveToHealth: boolean): Promise<boolean> {
-    return Promise.resolve(false);
-  }
-
-  public sendDiscardWorkoutToWatch(): void {}
-
   public requestWatchLogs(): Promise<string> {
     return Promise.resolve("");
   }

@@ -10,8 +10,7 @@ export type INativeEffect =
   | { type: "updateLiveActivity"; state: ILiveActivityState }
   | { type: "resumeWorkout"; reminder: number; isStart: boolean; hasSubscription: boolean }
   | { type: "pauseWorkout" }
-  | { type: "discardWorkout" }
-  | { type: "sendDiscardWorkoutToWatch" };
+  | { type: "discardWorkout" };
 
 export interface INativeEffectBridges {
   timer: ITimerBridge;
@@ -50,9 +49,6 @@ export function NativeEffects_apply(bridges: INativeEffectBridges, effects: read
         break;
       case "discardWorkout":
         bridges.workout.discardWorkout();
-        break;
-      case "sendDiscardWorkoutToWatch":
-        bridges.watch.sendDiscardWorkoutToWatch();
         break;
       default:
         exhausted(effect);

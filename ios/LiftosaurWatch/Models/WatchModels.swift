@@ -263,3 +263,19 @@ struct WatchHealthSettings: Codable {
     let appleHealthSyncWorkout: Bool
     let healthConfirmation: Bool
 }
+
+struct WatchHealthBinding: Codable, Equatable {
+    var id: Double?
+    var missingSince: Double?
+}
+
+struct WatchHealthDecision: Codable {
+    enum Kind: String, Codable {
+        case none, start, keep, end
+    }
+    let type: Kind
+    let binding: WatchHealthBinding?
+    let save: Bool?
+    let endTime: Double?
+    let reason: String?
+}

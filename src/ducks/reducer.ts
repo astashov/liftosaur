@@ -65,7 +65,7 @@ import {
 import { UrlUtils_build } from "../utils/url";
 import { DateUtils_formatHHMMSS } from "../utils/date";
 import { IReducerOnAction } from "./types";
-import { Thunk_sync2, Thunk_checkSetTimer } from "./thunks";
+import { Thunk_sync2, Thunk_checkSetTimer, Thunk_saveWorkoutToHealth } from "./thunks";
 import { PushRegistration_identityChanged } from "../utils/pushRegistration";
 import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collection";
 import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
@@ -77,6 +77,7 @@ import { History_resumeWorkout } from "../models/history";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { History_deleteRecords } from "../models/history";
+import { WorkoutOutcome_add, WorkoutOutcome_healthSaves } from "../models/workoutOutcome";
 import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
@@ -289,6 +290,8 @@ export type ICloseSetTimerAction = {
 export type IFinishProgramDayAction = {
   type: "FinishProgramDayAction";
   id: number;
+  startTime: number;
+  healthSync: boolean;
 };
 
 export type IStartProgramDayAction = {
@@ -549,6 +552,27 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         }, 200);
       }
     },
+    (dispatch, action, oldState, newState) => {
+      if (oldState.storage.workoutOutcomes === newState.storage.workoutOutcomes || typeof action === "function") {
+        return;
+      }
+      const isOwnFinish = action.type === "FinishProgramDayAction";
+      const isMerge =
+        action.type === "UpdateState" &&
+        (action.desc === "Merge watch storage" || action.desc === "Merge synced storage");
+      if (!isOwnFinish && !isMerge) {
+        return;
+      }
+      const payloads = WorkoutOutcome_healthSaves(
+        oldState.storage.workoutOutcomes,
+        newState.storage.workoutOutcomes,
+        newState.storage.history,
+        Date.now()
+      );
+      for (const payload of payloads) {
+        dispatch(Thunk_saveWorkoutToHealth({ ...payload, source: isOwnFinish ? "finish" : "merge" }));
+      }
+    },
   ];
 }
 
@@ -723,10 +747,10 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
     };
   } else if (action.type === "FinishProgramDayAction") {
     const progress = Progress_getProgressById(state, action.id);
-    if (progress == null) {
+    if (progress == null || progress.startTime !== action.startTime) {
       return state;
     }
-    const newStorage = Progress_finishWorkout(effects, state.storage, progress);
+    const newStorage = Progress_finishWorkout(effects, state.storage, progress, action.healthSync);
     return {
       ...state,
       storage: newStorage,
@@ -756,13 +780,18 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
     if (progress != null) {
       if (Progress_isCurrent(progress)) {
         effects.push({ type: "discardWorkout" });
-        effects.push({ type: "sendDiscardWorkoutToWatch" });
         return {
           ...state,
           storage: {
             ...state.storage,
             history: state.storage.history.filter((h) => h.id !== progress.id),
             progress: [],
+            workoutOutcomes: WorkoutOutcome_add(state.storage.workoutOutcomes, {
+              id: progress.startTime,
+              outcome: "discard",
+              healthSync: false,
+              endTime: Date.now(),
+            }),
           },
         };
       }

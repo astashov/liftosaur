@@ -26,6 +26,7 @@ export interface IHealthWorkoutPayload {
   endMs: number;
   calories: number;
   intervals: [number, number | null][];
+  syncId: string;
 }
 
 export interface IHealthMeasurementsPayload {

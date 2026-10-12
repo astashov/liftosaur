@@ -75,8 +75,8 @@ export class MockWorkoutBridge implements IWorkoutBridge {
     this.log.record("workout", "resumeWorkout", opts);
   }
 
-  public finishWorkout(opts: { healthSync: boolean; calories: number; intervals: string }): void {
-    this.log.record("workout", "finishWorkout", opts);
+  public finishWorkout(): void {
+    this.log.record("workout", "finishWorkout");
   }
 
   public discardWorkout(): void {
@@ -116,7 +116,6 @@ export class MockWorkoutBridge implements IWorkoutBridge {
 }
 
 export class MockWatchBridge implements IWatchBridge {
-  public finishWorkoutResult: boolean = false;
   public watchAppInstalled: boolean = true;
   private handler: ((event: INativeWatchEvent) => void) | undefined = undefined;
 
@@ -163,15 +162,6 @@ export class MockWatchBridge implements IWatchBridge {
 
   public clearWatchStorage(): void {
     this.log.record("watch", "clearWatchStorage");
-  }
-
-  public async sendFinishWorkoutToWatch(saveToHealth: boolean): Promise<boolean> {
-    this.log.record("watch", "sendFinishWorkoutToWatch", saveToHealth);
-    return this.finishWorkoutResult;
-  }
-
-  public sendDiscardWorkoutToWatch(): void {
-    this.log.record("watch", "sendDiscardWorkoutToWatch");
   }
 
   public async requestWatchLogs(): Promise<string> {

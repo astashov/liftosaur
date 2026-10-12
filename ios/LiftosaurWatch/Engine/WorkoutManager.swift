@@ -23,12 +23,6 @@ enum HealthIntent {
     case startFromPhone(HKWorkoutConfiguration) // phone initiated a workout (startWatchApp toHandle)
 }
 
-private enum ActiveWorkoutState {
-    case storageUnavailable    // engine/storage not ready yet — true state unknown, don't touch the session
-    case none                  // storage ready, no active workout
-    case active
-}
-
 @MainActor
 class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     static let shared = WorkoutManager()
@@ -306,17 +300,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await withHealthLock {
             switch intent {
             case .sync:
-                switch await currentActiveWorkoutState() {
-                case .storageUnavailable:
-                    // Can't tell whether a workout is active (e.g. cold launch before the engine
-                    // finishes loading). Do nothing rather than risk ending a recovered session as
-                    // a false orphan — loadActiveWorkout fires another .sync once storage is ready.
-                    Logger.sync.info(">>> reconcile(.sync): storage/engine not ready, skipping")
-                case .none:
-                    await HealthKitManager.shared.reconcileSession(hasActiveWorkout: false)
-                case .active:
-                    await HealthKitManager.shared.reconcileSession(hasActiveWorkout: true)
-                }
+                await reconcileFromStorage()
             case .finish(let save):
                 // The workout is over — authoritative. Recover first so a session left running
                 // across a relaunch (not yet held locally) is actually ended.
@@ -326,25 +310,37 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
                 _ = await HealthKitManager.shared.recoverActiveSession()
                 await HealthKitManager.shared.endWorkoutSession(save: false)
             case .startFromPhone(let configuration):
-                // Recover first so a cross-launch orphan is found and torn down
-                // (startWorkoutSessionFromPhone ends an existing session) before we create the new
-                // one — otherwise HealthKit may reject the new session or the orphan keeps running.
-                _ = await HealthKitManager.shared.recoverActiveSession()
+                // Reconcile first so a session whose workout already has an outcome is saved or
+                // discarded per that outcome, before startWorkoutSessionFromPhone replaces it.
+                await reconcileFromStorage()
                 await HealthKitManager.shared.startWorkoutSessionFromPhone(configuration: configuration)
             }
         }
     }
 
-    private func currentActiveWorkoutState() async -> ActiveWorkoutState {
-        guard let engine = engine, let storageJson = loadStorage() else {
-            return .storageUnavailable
-        }
-        switch await engine.getProgress(storageJson: storageJson) {
-        case .success(let workout):
-            return workout != nil ? .active : .none
-        case .failure:
-            // Engine error — real state unknown, so treat as unavailable, not "no workout".
-            return .storageUnavailable
+    private func reconcileFromStorage() async {
+        let healthKit = HealthKitManager.shared
+        _ = await healthKit.recoverActiveSession()
+        let endThenStartPasses = 2
+        for _ in 0..<endThenStartPasses {
+            guard let engine = engine, let storageJson = loadStorage() else {
+                Logger.sync.info(">>> reconcile: storage/engine not ready, skipping")
+                return
+            }
+            let decisionResult = await engine.healthSessionDecision(
+                storageJson: storageJson,
+                binding: healthKit.binding,
+                nowMs: Date().timeIntervalSince1970 * 1000,
+                hasSession: healthKit.hasSession
+            )
+            guard case .success(let decision) = decisionResult else {
+                Logger.sync.error(">>> reconcile: engine decision failed, skipping")
+                return
+            }
+            guard let result = await healthKit.applyInsideHealthLock(decision) else { return }
+            var extra = ["saved": String(result.saved), "trigger": decision.reason ?? "none"]
+            if let reason = result.reason { extra["reason"] = reason }
+            WatchEventManager.shared.logNativeEvent(name: "watch-hk-finish", extra: extra)
         }
     }
 
@@ -386,8 +382,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             return
         }
         Logger.workout.info(" discardWorkout: storage mutation succeeded")
-        // End HealthKit session in background - don't block navigation
-        Task { await reconcileHealth(.discard) }
+        Task { await reconcileHealth(.sync) }
         WatchConnectivityManager.shared.sendEndWorkout()
         // Refresh the next workout before clearing activeWorkout, so the complication
         // reflects the real next workout instead of the just-discarded one.
@@ -415,7 +410,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isFinishingWorkout = true
         let updatedStorage = await withStorageMutation(
             operation: { engine, storageJson, deviceId in
-                await engine.finishWorkout(storageJson: storageJson, deviceId: deviceId)
+                await engine.finishWorkout(storageJson: storageJson, deviceId: deviceId, healthSync: saveToHealth)
             },
             operationName: "finish workout"
         )
@@ -445,12 +440,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         // After the summary has read history[0], never before it.
         await WatchSyncManager.shared.pruneStoredHistory()
 
-        Task {
-            let result = await finishHealthSession(save: saveToHealth)
-            var extra = ["saved": String(result.saved), "trigger": "watch"]
-            if let reason = result.reason { extra["reason"] = reason }
-            WatchEventManager.shared.logNativeEvent(name: "watch-hk-finish", extra: extra)
-        }
+        Task { await reconcileHealth(.sync) }
         WatchConnectivityManager.shared.sendEndWorkout()
         activeWorkout = nil
         workoutStartTime = nil

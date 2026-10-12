@@ -47,7 +47,8 @@ export async function SyncTestUtils_startWorkout(mockReducer: MockReducer<IState
 }
 
 export async function SyncTestUtils_finishWorkout(mockReducer: MockReducer<IState, IAction, IEnv>): Promise<void> {
-  await mockReducer.run([{ type: "FinishProgramDayAction", id: 0 }]);
+  const startTime = mockReducer.state.storage.progress?.[0]?.startTime ?? 0;
+  await mockReducer.run([{ type: "FinishProgramDayAction", id: 0, startTime, healthSync: false }]);
 }
 
 export async function SyncTestUtils_logWorkout(

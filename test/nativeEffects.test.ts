@@ -112,7 +112,7 @@ describe("Native effects", () => {
   it("stops the timer when a workout is finished", () => {
     const progress = buildProgress(`# Week 1\n## Day 1\nSquat / 3x5 100lb / 60s\n`);
     const effects: INativeEffect[] = [];
-    Progress_finishWorkout(effects, { ...Storage_getDefault(), progress: [progress] }, progress);
+    Progress_finishWorkout(effects, { ...Storage_getDefault(), progress: [progress] }, progress, false);
     expect(types(effects)).to.eql(["stopTimer"]);
   });
 
@@ -218,14 +218,12 @@ describe("Native effects", () => {
     NativeEffects_apply(bridges, [
       { type: "stopTimer" },
       { type: "discardWorkout" },
-      { type: "sendDiscardWorkoutToWatch" },
       { type: "pauseWorkout" },
       { type: "resumeWorkout", reminder: 30, isStart: true, hasSubscription: true },
     ]);
     expect(bridges.log.names()).to.eql([
       "timer.stopTimer",
       "workout.discardWorkout",
-      "watch.sendDiscardWorkoutToWatch",
       "workout.pauseWorkout",
       "workout.resumeWorkout",
     ]);

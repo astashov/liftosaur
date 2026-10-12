@@ -1,13 +1,6 @@
 import { Platform } from "react-native";
 import { IDispatch } from "../ducks/types";
-import {
-  Thunk_finishProgramDay,
-  Thunk_finishWorkoutNative,
-  Thunk_pauseWorkoutNative,
-  Thunk_postevent,
-  Thunk_saveWorkoutToHealth,
-} from "../ducks/thunks";
-import { History_calories, History_pauseWorkout } from "../models/history";
+import { Thunk_finishProgramDay } from "../ducks/thunks";
 import { Progress_isFullyEmptyOrFinishedSet } from "../models/progress";
 import { IHistoryRecord, ISettings } from "../types";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
@@ -25,6 +18,17 @@ function nextPaint(): Promise<void> {
   return new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 }
 
+async function askHealthSync(settings: ISettings): Promise<boolean> {
+  const isEligible =
+    (HealthSync_eligibleForAppleHealth() && settings.appleHealthSyncWorkout) ||
+    (HealthSync_eligibleForGoogleHealth() && settings.googleHealthSyncWorkout);
+  if (!isEligible) {
+    return false;
+  }
+  const healthName = Platform.OS === "ios" ? "Apple Health" : "Google Health";
+  return !settings.healthConfirmation || Dialog_confirm(`Do you want to sync this workout to ${healthName}?`);
+}
+
 export async function WorkoutFinish_run(args: IWorkoutFinishArgs): Promise<void> {
   const { progress, settings, dispatch, isCurrent, setIsFinishing } = args;
   const isFullyFinished = isCurrent && Progress_isFullyEmptyOrFinishedSet(progress);
@@ -38,48 +42,18 @@ export async function WorkoutFinish_run(args: IWorkoutFinishArgs): Promise<void>
       return;
     }
   }
+  const healthSync = isCurrent && (await askHealthSync(settings));
   setIsFinishing(true);
   try {
     await nextPaint();
-    dispatch(Thunk_pauseWorkoutNative());
-    dispatch(Thunk_finishProgramDay(progress.id));
-    if (isCurrent) {
-      dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
-      const isIos = Platform.OS === "ios";
-      const healthName = isIos ? "Apple Health" : "Google Health";
-      const isHealthEligible =
-        (HealthSync_eligibleForAppleHealth() && settings.appleHealthSyncWorkout) ||
-        (HealthSync_eligibleForGoogleHealth() && settings.googleHealthSyncWorkout);
-      const shouldSyncToHealth =
-        isHealthEligible &&
-        (!settings.healthConfirmation || (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
-      const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
-      const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
-      dispatch(
-        Thunk_finishWorkoutNative({
-          progress,
-          shouldSyncToHealth: !!shouldSyncToHealth,
-          intervals,
-          onDone: (watchSaved) => {
-            if (shouldSyncToHealth && !watchSaved) {
-              const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
-              const startMs = validIntervals[0]?.[0] ?? progress.startTime;
-              const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
-              dispatch(
-                Thunk_saveWorkoutToHealth({
-                  startMs,
-                  endMs,
-                  calories: History_calories(progress),
-                  intervals,
-                })
-              );
-            } else if (watchSaved) {
-              dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
-            }
-          },
-        })
-      );
-    }
+    dispatch(
+      Thunk_finishProgramDay({
+        id: progress.id,
+        startTime: progress.startTime,
+        healthSync,
+        onStale: () => setIsFinishing(false),
+      })
+    );
     // isFinishing stays true on success: Thunk_finishProgramDay defers the 1-2s blocking commit past
     // `await getNavigationService()` and navigates away first, so clearing here would drop the
     // spinner right before the freeze it masks.

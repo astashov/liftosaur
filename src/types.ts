@@ -1801,6 +1801,24 @@ const _VImportSessionMatches: IEquals<v.InferOutput<typeof _VImportSession>, IIm
 void _VImportSessionMatches;
 export const VImportSession: v.GenericSchema<IImportSession> = _VImportSession;
 
+export interface IWorkoutOutcome {
+  vtype: "workout_outcome";
+  id: number;
+  outcome: "finish" | "discard";
+  healthSync: boolean;
+  endTime: number;
+}
+const _VWorkoutOutcome = v.object({
+  vtype: v.literal("workout_outcome"),
+  id: v.number(),
+  outcome: v.union([v.literal("finish"), v.literal("discard")]),
+  healthSync: v.boolean(),
+  endTime: v.number(),
+});
+const _VWorkoutOutcomeMatches: IEquals<v.InferOutput<typeof _VWorkoutOutcome>, IWorkoutOutcome> = true;
+void _VWorkoutOutcomeMatches;
+export const VWorkoutOutcome: v.GenericSchema<IWorkoutOutcome> = _VWorkoutOutcome;
+
 export interface IHearAboutUs {
   result?: {
     source: string;
@@ -1853,6 +1871,7 @@ interface IStorageRaw {
   landingPage?: string;
   attribution?: string;
   importSessions?: IImportSession[];
+  workoutOutcomes?: IWorkoutOutcome[];
   // Localized store prices (displayPrice strings keyed by product id) captured on a native device,
   // synced so the web paywall can show the user's real prices instead of hardcoded US defaults.
   subscriptionPrices?: Partial<Record<string, string>>;
@@ -1884,6 +1903,7 @@ const _VStorage = v.object({
   landingPage: v.optional(v.string()),
   attribution: v.optional(v.string()),
   importSessions: v.optional(v.array(VImportSession)),
+  workoutOutcomes: v.optional(v.array(VWorkoutOutcome)),
   subscriptionPrices: v.optional(v.record(v.string(), v.optional(v.string()))),
   _versions: v.optional(v.unknown()),
 });
@@ -1978,6 +1998,7 @@ export const ATOMIC_TYPES = [
   "affiliate",
   "muscle_groups_settings",
   "import_session",
+  "workout_outcome",
 ] as const;
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
@@ -2042,6 +2063,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   graphs: "id",
   muscle_groups_settings: "vtype",
   import_session: "id",
+  workout_outcome: "id",
 };
 
 export const DICTIONARY_FIELDS = [
@@ -2069,6 +2091,7 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
     "subscription.google": 14 * 24 * 60 * 60 * 1000,
     history: 180 * 24 * 60 * 60 * 1000,
     progress: 30 * 24 * 60 * 60 * 1000,
+    workoutOutcomes: 30 * 24 * 60 * 60 * 1000,
   },
   typeValidators: {
     progress: vIs(VHistoryRecord),

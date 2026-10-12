@@ -73,20 +73,6 @@ export class WatchBridge implements IWatchBridge {
     NativeLiftosaurWatch!.clearWatchStorage().catch(() => {});
   }
 
-  public sendFinishWorkoutToWatch(saveToHealth: boolean): Promise<boolean> {
-    if (!this.isAvailable()) {
-      return Promise.resolve(false);
-    }
-    return NativeLiftosaurWatch!.sendFinishWorkoutToWatch(saveToHealth).catch(() => false);
-  }
-
-  public sendDiscardWorkoutToWatch(): void {
-    if (!this.isAvailable()) {
-      return;
-    }
-    NativeLiftosaurWatch!.sendDiscardWorkoutToWatch().catch(() => {});
-  }
-
   public requestWatchLogs(): Promise<string> {
     if (!this.isAvailable()) {
       return Promise.resolve("");

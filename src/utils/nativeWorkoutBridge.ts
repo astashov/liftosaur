@@ -11,7 +11,7 @@ export class WorkoutBridge implements IWorkoutBridge {
 
   public resumeWorkout(_opts: { reminder: number; isStart: boolean; hasSubscription: boolean }): void {}
 
-  public finishWorkout(_opts: { healthSync: boolean; calories: number; intervals: string }): void {}
+  public finishWorkout(): void {}
 
   public discardWorkout(): void {}
 

@@ -76,10 +76,10 @@ describe("Native effect ordering", () => {
     expect(store.bridges.log.names()).to.contain("timer.startTimer");
   });
 
-  it("deleting a workout discards it on the phone and then on the watch", () => {
+  it("deleting a workout discards it on the phone", () => {
     const store = buildStore(`# Week 1\n## Day 1\nSquat / 3x5 100lb / 60s\n`);
     store.reduce({ type: "DeleteProgress", id: 0 });
-    expect(store.bridges.log.names()).to.eql(["workout.discardWorkout", "watch.sendDiscardWorkoutToWatch"]);
+    expect(store.bridges.log.names()).to.eql(["workout.discardWorkout"]);
   });
 
   it("resuming a paused workout reaches the workout bridge through the reducer", () => {

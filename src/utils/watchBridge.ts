@@ -38,8 +38,6 @@ export interface IWatchBridge {
   sendNoAuthToWatch(): void;
   sendClearAuthToWatch(): void;
   clearWatchStorage(): void;
-  sendFinishWorkoutToWatch(saveToHealth: boolean): Promise<boolean>;
-  sendDiscardWorkoutToWatch(): void;
   requestWatchLogs(): Promise<string>;
   isWatchPaired(): boolean;
 }

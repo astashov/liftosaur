@@ -23,7 +23,7 @@ export type INativeWorkoutBridgeLiveActivityAction = {
 export interface IWorkoutBridge {
   pauseWorkout(): void;
   resumeWorkout(opts: { reminder: number; isStart: boolean; hasSubscription: boolean }): void;
-  finishWorkout(opts: { healthSync: boolean; calories: number; intervals: string }): void;
+  finishWorkout(): void;
   discardWorkout(): void;
   updateLiveActivity(state: ILiveActivityState): void;
   subscribeToLiveActivityActions(handler: (event: INativeWorkoutBridgeLiveActivityAction) => void): () => void;

@@ -65,6 +65,8 @@ import {
   Weight_is,
   Weight_isPct,
 } from "../models/weight";
+import { WorkoutOutcome_add } from "../models/workoutOutcome";
+import { IWatchHealthBinding, IWatchHealthDecision, WatchHealthDecision_decide } from "../models/watchHealthDecision";
 import {
   Progress_finishWorkout,
   Progress_completeSetAction,
@@ -546,7 +548,7 @@ class LiftosaurWatch {
     });
   }
 
-  public static finishWorkout(storageJson: string, deviceId: string): string {
+  public static finishWorkout(storageJson: string, deviceId: string, healthSync: boolean = false): string {
     return this.modifyStorage(storageJson, deviceId, (storage, effects) => {
       const progress = storage.progress?.[0];
       if (!progress) {
@@ -554,7 +556,7 @@ class LiftosaurWatch {
       }
       lg("watch-finish-workout", { workout: JSON.stringify(progress) });
       lg("ls-finish-workout");
-      const newStorage = Progress_finishWorkout(effects, storage, progress);
+      const newStorage = Progress_finishWorkout(effects, storage, progress, healthSync);
       return { success: true, data: newStorage };
     });
   }
@@ -591,8 +593,40 @@ class LiftosaurWatch {
   public static discardWorkout(storageJson: string, deviceId: string): string {
     return this.modifyStorage(storageJson, deviceId, (storage) => {
       lg("watch-discard-workout");
-      const updatedStorage: IStorage = { ...storage, progress: [] };
+      const progress = storage.progress?.[0];
+      const updatedStorage: IStorage = {
+        ...storage,
+        progress: [],
+        workoutOutcomes:
+          progress != null
+            ? WorkoutOutcome_add(storage.workoutOutcomes, {
+                id: progress.startTime,
+                outcome: "discard",
+                healthSync: false,
+                endTime: Date.now(),
+              })
+            : storage.workoutOutcomes,
+      };
       return { success: true, data: updatedStorage };
+    });
+  }
+
+  public static healthSessionDecision(
+    storageJson: string,
+    bindingJson: string,
+    nowMs: number,
+    hasSession: boolean
+  ): string {
+    return this.getStorage<IWatchHealthDecision>(storageJson, (storage) => {
+      const binding = bindingJson ? (JSON.parse(bindingJson) as IWatchHealthBinding) : undefined;
+      const decision = WatchHealthDecision_decide({
+        progress: storage.progress?.[0],
+        outcomes: storage.workoutOutcomes ?? [],
+        binding,
+        hasSession,
+        nowMs,
+      });
+      return { success: true, data: decision };
     });
   }
 

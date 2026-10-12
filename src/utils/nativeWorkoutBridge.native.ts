@@ -48,7 +48,7 @@ export class WorkoutBridge implements IWorkoutBridge {
     this.currentReminderDuration = opts.reminder > 0 ? opts.reminder : null;
   }
 
-  public finishWorkout(_opts: { healthSync: boolean; calories: number; intervals: string }): void {
+  public finishWorkout(): void {
     NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
     this.currentReminderDuration = null;
     this.timer.cancelReminder();
