@@ -59,21 +59,23 @@ Read the full writeup on the [r/bodyweightfitness wiki](https://www.reddit.com/r
 The six main exercises are chosen to cover every fundamental movement pattern with compound, multi-joint work:
 
 - **Pull-up progression** ([{Scapular Pull Up}] -> [{Arch Hang}] -> [{Negative Pull Up}] -> [{Pull Up}]) is the vertical pull - lats, upper back, biceps. The early rungs build the scapular control and eccentric strength you need before you can do a full pull-up.
-- **Squat progression** ([{Assisted Squat}] -> [{Squat, Bodyweight}] -> [{Split Squat, Bodyweight}] -> [{Bulgarian Split Squat, Bodyweight}] -> [{Shrimp Squat}] -> [{Pistol Squat}]) is the knee-dominant leg pattern. It moves from two-leg to single-leg to load each leg progressively without weights, ending on the full pistol squat (which you can then load with a held dumbbell).
-- **Dip progression** ([{Support Hold}] -> [{Negative Dip}] -> [{Chest Dip}]) is the vertical push - chest, triceps, front delts. The support hold teaches the top position before you lower into full dips.
-- **Hinge progression** ([{Romanian Deadlift, Bodyweight}] -> [{Single Leg Deadlift, Bodyweight}] -> [{Nordic Curl}]) is the hip-dominant leg pattern for hamstrings and glutes, ending in one of the hardest bodyweight hamstring exercises there is.
-- **Row progression** ([{Vertical Row}] -> [{Inverted Row}] -> [{Wide Row}]) is the horizontal pull. Rows are the non-negotiable backbone of the routine - they build the mid-back that pressing alone neglects and keep the shoulders healthy.
+- **Squat progression** ([{Assisted Squat}] -> [{Squat, Bodyweight}] -> [{Split Squat, Bodyweight}] -> [{Bulgarian Split Squat, Bodyweight}] -> [{Shrimp Squat}]) is the knee-dominant leg pattern. It moves from two-leg to single-leg to load each leg progressively without weights. Shrimp squats have three levels - beginner, intermediate and advanced - before you add weight. Pistol squats are the wiki's alternate path.
+- **Dip progression** ([{Support Hold}] -> [{Negative Dip}] -> [{Chest Dip}]) is the vertical push - chest, triceps, front delts. The support hold teaches the top position before you lower into full dips; build it up to 60 seconds.
+- **Hinge progression** ([{Romanian Deadlift, Bodyweight}] -> [{Single Leg Deadlift, Bodyweight}] -> [{Nordic Curl, Band}] -> [{Nordic Curl}]) is the hip-dominant leg pattern for hamstrings and glutes. The band takes part of your weight on the nordic curls - start with banded negatives, then full banded reps, then lighter bands - so you can bridge the big jump to one of the hardest bodyweight hamstring exercises.
+- **Row progression** ([{Vertical Row}] -> [{Incline Row, Bodyweight}] -> [{Inverted Row}] -> [{Wide Row}]) is the horizontal pull. Rows are the non-negotiable backbone of the routine - they build the mid-back that pressing alone neglects and keep the shoulders healthy.
 - **Push-up progression** ([{Wall Push Up}] -> [{Incline Push Up}] -> [{Push Up}] -> [{Diamond Push Up}] -> [{Pseudo Planche Push Up}]) is the horizontal push - chest, triceps, front delts, and a lot of core.
 
-The pairing is deliberate: a pull is always supersetted with a leg movement (or a push with a hinge), so the working muscle of one exercise rests fully during the other. The core triplet targets the three jobs of the trunk - resisting extension ([{Plank}] -> [{Ab Wheel}] -> [{Dragon Flag}]), resisting rotation ([{Pallof Press}] -> [{Copenhagen Plank}] -> [{Renegade Row}]), and producing extension ([{Superman}] -> [{Reverse Hyperextension}] -> [{Back Extension, Bodyweight}]).
+The pairing is deliberate: a pull is always supersetted with a leg movement (or a push with a hinge), so the working muscle of one exercise rests fully during the other. The core triplet targets the three jobs of the trunk - resisting extension ([{Plank}] -> [{Kneeling Ring Ab Rollout}] -> [{Ring Ab Rollout}], or an [{Ab Wheel}] if you have no rings), resisting rotation ([{Pallof Press}], with the [{Copenhagen Plank}] as the alternate path), and producing extension ([{Reverse Hyperextension, Bodyweight}], with [{Back Extension, Bodyweight}] as an alternate).
+
+The warm-up includes [{Shoulder Pass Through}] and [{Dead Bug}] as logged exercises. Do squat sky reaches and wrist prep alongside them.
 
 If you have a barbell and rack, the RR recommends swapping the squat and hinge progressions for real [{Squat}] and [{Romanian Deadlift, Barbell}]/[{Deadlift}] once you've mastered the bodyweight basics - added weight is simply a more scalable way to load the legs.
 
 ## Set & Rep Scheme
 
 - **Main six exercises**: 3 sets of 5-8 reps. Start any new movement at 3x5, add a rep to every set each session, and once you hit 3x8 with good form you graduate to the next harder movement (back to 3x5).
-- **Core triplet**: 3 sets of 8-12 reps, same double-progression logic - cap 3x12, then graduate.
-- **Isometric holds**: Some rungs (arch hangs, support holds, planks, Copenhagen planks) are timed holds, not reps. The app runs a set timer for these - you hold, and each session it adds 5 seconds to the target until you reach 30 seconds, then you graduate to the next movement.
+- **Core triplet**: 3 sets of 8-12 reps, same double-progression logic - cap 3x12, then graduate. The Pallof press and reverse hyperextension have no harder rung - at 3x12, use a stronger band or add ankle weights.
+- **Isometric holds**: Some rungs (arch hangs, support holds, planks) are timed holds, not reps. The app runs a set timer for these - you hold, and each session it adds 5 seconds to the target until you reach 30 seconds (60 seconds for the support hold), then you graduate to the next movement.
 - **Intensity**: Every set is taken to roughly one rep short of failure - "failure minus 1." Don't grind the first sets to total failure or your later sets collapse. If your pull-up max is 8, do 7-7-7, not 8-6-5.
 - **Tempo**: The RR prescribes a 10X0 tempo - 1 second down, no pause, explode up, no pause. Controlled eccentrics are where a lot of the strength is built.
 
@@ -97,10 +99,10 @@ By then you're no longer a beginner - you've built real strength and muscle - so
 - **A bar to row on** - low bar, gymnastics rings, a sturdy table, even a knotted bedsheet in a door. This is mandatory.
 - **A pull-up bar** - once you reach the pull-up rungs (monkey bars, doorway bar, rings).
 - **Parallel bars** for dips - or two sturdy chairs, the corner of a kitchen counter, or rings. Ring dips are a valid alternate path.
-- **A band** for the Pallof press.
-- **A bench, box, or sturdy edge** for reverse hyperextensions, back extensions, Copenhagen planks, and dragon flags.
-- **An ab wheel** (or gymnastics rings) once you reach the ab-wheel rung of the core triplet.
-- **A pair of dumbbells** - not needed to start, but used for renegade rows and to load the top rung of every ladder once you outgrow bodyweight (weighted pull-ups/dips, goblet pistol squats, weighted back extensions, etc.).
+- **Resistance bands** for the shoulder warm-up, the Pallof press, and the banded nordic curls.
+- **A bench, box, or sturdy edge** for reverse hyperextensions.
+- **Gymnastics rings** for ab rollouts once you graduate from the plank (an ab wheel works too).
+- **A pair of dumbbells or a weight vest** - not needed to start, but used to load the top rung of every ladder once you outgrow bodyweight (weighted pull-ups, dips, rows and shrimp squats).
 - Nothing else is required to begin - the early rungs are all pure bodyweight.
 
 ## Rest Times
@@ -155,25 +157,23 @@ It's already there. Pull-ups and rows hit the biceps and forearms hard through g
 
 ### What do I do about the isometric holds like planks and support holds?
 
-The app handles them as timed sets - it runs a set timer while you hold the position, so you don't count reps. Each session the target grows by 5 seconds until you reach a 30-second hold across all 3 sets, at which point the program automatically graduates you to the next, harder movement in that slot.
+The app handles them as timed sets - it runs a set timer while you hold the position, so you don't count reps. Each session the target grows by 5 seconds until you reach a 30-second hold (60 seconds for the support hold) across all 3 sets, at which point the program automatically graduates you to the next, harder movement in that slot.
 
 ```liftoscript
 # Week 1
-// **Warm-up (5-10 min):** shoulder band dislocates, squat sky reaches, wrist prep,
-// deadbugs. Add arch hangs once you reach Negative Pull Ups, and support holds once
-// you reach Negative Dips.
 ## Day 1
 /// Rep ladders: add a rep each session; at the top of the range graduate to the next movement, or
-/// (on the final rung) start adding weight.
+/// on the final rung add weight. With `addWeight: 0lb` the final rung stays at the top of the range.
 rrProgress / used: none / 3x5 0lb / 90s / warmup: none / progress: custom(topVar: 4, addWeight: 5lb, minReps: 5, maxReps: 8) {~
   if (completedReps >= reps) {
     if (reps >= state.maxReps) {
-      if (exerciseVariationIndex >= state.topVar) {
-        weights += state.addWeight
-      } else {
+      if (exerciseVariationIndex < state.topVar) {
         exerciseVariationIndex += 1
+        reps = state.minReps
+      } else if (state.addWeight > 0lb) {
+        weights += state.addWeight
+        reps = state.minReps
       }
-      reps = state.minReps
     } else {
       reps += 1
     }
@@ -198,14 +198,15 @@ rrHold / used: none / 3x1 0lb 20s|60s / 3x8 0lb 60s / warmup: none / progress: c
     setVariationIndex = 2
     if (completedReps >= reps) {
       if (reps >= state.maxReps) {
-        if (exerciseVariationIndex >= state.topVar) {
-          weights += state.addWeight
-        } else {
+        if (exerciseVariationIndex < state.topVar) {
           var.next = exerciseVariationIndex + 1
           exerciseVariationIndex = var.next
           setVariationIndex = var.next == state.holdRung ? 1 : 2
+          reps[*:*:2:*] = state.minReps
+        } else if (state.addWeight > 0lb) {
+          weights += state.addWeight
+          reps[*:*:2:*] = state.minReps
         }
-        reps[*:*:2:*] = state.minReps
       } else {
         reps[*:*:2:*] += 1
       }
@@ -213,33 +214,48 @@ rrHold / used: none / 3x1 0lb 20s|60s / 3x8 0lb 60s / warmup: none / progress: c
   }
 ~}
 
+// **Warm-up (5-10 min).** Also do squat sky reaches and wrist prep. Add arch hangs once you reach
+// Negative Pull Ups, support holds once you reach Negative Dips, easier squats once you reach
+// Bulgarian Split Squats, and easier hinges once you reach banded Nordic Curls.
+Shoulder Pass Through / 1x10 / 30s / warmup: none
+
+Dead Bug / 1x1 30s|30s / warmup: none
+
 // **First Pair.** Pull-up progression - vertical pull. Pick the hardest rung you can do for 3x5, add a rep
 // each session, graduate at 3x8. Arch Hang is a timed hold - hold 20-30s per set, graduate at 30s.
 Scapular Pull Up | Arch Hang | Negative Pull Up | Pull Up / 3x1 0lb 20s|90s / ! 3x5 0lb 90s / warmup: none / superset: A / progress: custom(topVar: 4, holdRung: 2) { ...rrHold }
 
-// Squat progression. *If you have a barbell, swap this for barbell Squats once you've mastered the basic squat.*
-Assisted Squat | Squat, Bodyweight | Split Squat, Bodyweight | Bulgarian Split Squat, Bodyweight | Shrimp Squat | Pistol Squat / 3x5 0lb / 90s / warmup: none / superset: A / progress: custom(topVar: 6, addWeight: 10lb) { ...rrProgress }
+// Squat progression. On Shrimp Squats, work from beginner (knee and toes leave the floor together) to
+// intermediate (only the knee touches) to advanced (hold your heel) before you add weight.
+// *If you have a barbell, swap this for barbell Squats once you've mastered the basic squat.*
+Assisted Squat | Squat, Bodyweight | Split Squat, Bodyweight | Bulgarian Split Squat, Bodyweight | Shrimp Squat / 3x5 0lb / 90s / warmup: none / superset: A / progress: custom(topVar: 5, addWeight: 10lb) { ...rrProgress }
 
-// **Second Pair.** Dip progression - vertical push. Support Hold is a timed hold - hold 20-30s, graduate at 30s.
-Support Hold | Negative Dip | Chest Dip / 3x1 0lb 20s|90s / 3x5 0lb 90s / warmup: none / superset: B / progress: custom(topVar: 3, holdRung: 1) { ...rrHold }
+// **Second Pair.** Dip progression - vertical push. Support Hold is a timed hold - build up to 60s, then
+// move to Negative Dips.
+Support Hold | Negative Dip | Chest Dip / 3x1 0lb 20s|90s / 3x5 0lb 90s / warmup: none / superset: B / progress: custom(topVar: 3, holdRung: 1, holdTarget: 60) { ...rrHold }
 
-// Hinge progression - hamstrings and glutes. *With a barbell, swap for Romanian Deadlifts / Deadlifts.*
-Romanian Deadlift, Bodyweight | Single Leg Deadlift, Bodyweight | Nordic Curl / 3x5 0lb / 90s / warmup: none / superset: B / progress: custom(topVar: 3, addWeight: 10lb) { ...rrProgress }
+// Hinge progression - hamstrings and glutes. Banded Nordic Curls: start with negatives only (lower slowly,
+// push back up with your hands), then do full reps, then use lighter bands until you can do them without one.
+// *With a barbell, swap for Romanian Deadlifts / Deadlifts.*
+Romanian Deadlift, Bodyweight | Single Leg Deadlift, Bodyweight | Nordic Curl, Band | Nordic Curl / 3x5 0lb / 90s / warmup: none / superset: B / progress: custom(topVar: 4, addWeight: 10lb) { ...rrProgress }
 
-// **Third Pair.** Row progression - horizontal pull.
-Vertical Row | Inverted Row | Wide Row / 3x5 0lb / 90s / warmup: none / superset: C / progress: custom(topVar: 3) { ...rrProgress }
+// **Third Pair.** Row progression - horizontal pull. On Incline Rows, lower the bar or walk your feet
+// forward to get closer to horizontal.
+Vertical Row | Incline Row, Bodyweight | Inverted Row | Wide Row / 3x5 0lb / 90s / warmup: none / superset: C / progress: custom(topVar: 4) { ...rrProgress }
 
 // Push-up progression - horizontal push.
 Wall Push Up | Incline Push Up | Push Up | Diamond Push Up | Pseudo Planche Push Up / 3x5 0lb / 90s / warmup: none / superset: C / progress: custom(topVar: 5) { ...rrProgress }
 
 // **Core Triplet** (3x8-12). Anti-Extension. Plank is a timed hold - hold 20-30s, graduate at 30s.
-// Ab Wheel: start kneeling, then progress to standing rollouts before graduating to the Dragon Flag.
-Plank | Ab Wheel | Dragon Flag / 3x1 0lb 20s|60s / 3x8 0lb 60s / warmup: none / superset: D / progress: custom(topVar: 3, holdRung: 1, minReps: 8, maxReps: 12) { ...rrHold }
+// Ring Ab Rollouts: higher rings are easier, lower rings or elevated feet are harder. No rings? Use an
+// Ab Wheel, kneeling first and then standing.
+Plank | Kneeling Ring Ab Rollout | Ring Ab Rollout / 3x1 0lb 20s|60s / 3x8 0lb 60s / warmup: none / superset: D / progress: custom(topVar: 3, holdRung: 1, minReps: 8, maxReps: 12, addWeight: 0lb) { ...rrHold }
 
-// Anti-Rotation - Banded Pallof Press, then Copenhagen Plank (a timed hold - hold 20-30s, graduate at 30s),
-// then the Renegade Row as the loadable endpoint (add weight once you cap 3x12).
-Pallof Press | Copenhagen Plank | Renegade Row / 3x1 0lb 20s|60s / ! 3x8 0lb 60s / warmup: none / superset: D / progress: custom(topVar: 3, holdRung: 2, minReps: 8, maxReps: 12) { ...rrHold }
+// Anti-Rotation. Banded Pallof Press, pause with the arms fully extended. Once you hit 3x12, use a
+// stronger band or stand further from the anchor. Alternate path: the Copenhagen Plank progression.
+Pallof Press / 3x8 0lb / 60s / warmup: none / superset: D / progress: custom(topVar: 1, minReps: 8, maxReps: 12, addWeight: 0lb) { ...rrProgress }
 
-// Extension - Superman -> Reverse Hyperextension -> Back Extension (hold a plate to load once you cap 3x12).
-Superman | Reverse Hyperextension | Back Extension, Bodyweight / 3x8 0lb / 60s / warmup: none / superset: D / progress: custom(topVar: 3, minReps: 8, maxReps: 12) { ...rrProgress }
+// Extension. Reverse Hyperextension on a bench, table or box. Once you hit 3x12, add ankle weights or
+// hold a dumbbell between your feet. Alternate paths: arch body progression, or Back Extensions.
+Reverse Hyperextension, Bodyweight / 3x8 0lb / 60s / warmup: none / superset: D / progress: custom(topVar: 1, minReps: 8, maxReps: 12, addWeight: 0lb) { ...rrProgress }
 ```
