@@ -1,6 +1,6 @@
 import { JSX, useEffect, useState } from "react";
 import { View, ScrollView, Pressable, Platform } from "react-native";
-import { Service } from "../../api/service";
+import { IServiceAdminTarget, Service } from "../../api/service";
 import { Dialog_confirm } from "../../utils/dialog";
 import { ActionSheet_show } from "../../utils/actionSheet";
 import { Button } from "../../components/button";
@@ -19,6 +19,7 @@ interface IModalPlannerProgramRevisionsProps {
   client: Window["fetch"];
   programId: string;
   revisions: string[];
+  admin?: IServiceAdminTarget;
   onClose: () => void;
   onRestore: (text: string) => void;
 }
@@ -44,7 +45,7 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
     if (state[revision]) {
       return;
     }
-    const result = service.getProgramRevision(props.programId, revision);
+    const result = service.getProgramRevision(props.programId, revision, props.admin);
     setState((prevState) => ({
       ...prevState,
       [revision]: { isLoading: true, promise: result },

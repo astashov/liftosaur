@@ -6,7 +6,7 @@ import type { IAllScreenParamList } from "../navigation/types";
 
 import { getNavigationService } from "../navigation/navUtils";
 import RB from "rollbar";
-import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
+import { IGetStorageResponse, IPostSyncResponse, Service, Service_adminTarget } from "../api/service";
 import { lb } from "lens-shmens";
 import {
   Program_getProgram,
@@ -1635,7 +1635,7 @@ export function Thunk_fetchPrograms(): IThunk {
 export function Thunk_fetchRevisions(programId: string, cb: () => void): IThunk {
   return async (dispatch, getState, env) => {
     const programRevisions = await load(dispatch, "Loading revisions", () =>
-      env.service.getProgramRevisions(programId)
+      env.service.getProgramRevisions(programId, Service_adminTarget(getState().adminKey, getState().user?.id))
     );
     if (programRevisions.success) {
       updateState(

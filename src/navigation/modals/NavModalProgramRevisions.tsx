@@ -11,6 +11,7 @@ import { lb } from "lens-shmens";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { PlannerProgram_evaluateText } from "../../pages/planner/models/plannerProgram";
 import type { IRootStackParamList } from "../types";
+import { Service_adminTarget } from "../../api/service";
 
 export function NavModalProgramRevisions(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -55,6 +56,7 @@ export function NavModalProgramRevisions(): JSX.Element {
           programId={programId}
           client={service.client}
           revisions={revisions}
+          admin={Service_adminTarget(state.adminKey, state.user?.id)}
           onClose={onClose}
           onRestore={(text) => {
             window.isUndoing = true;

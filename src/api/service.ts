@@ -195,6 +195,25 @@ export interface ISubscriptionServerDetails {
   pendingProduct?: string;
 }
 
+export interface IServiceAdminTarget {
+  userId: string;
+  adminKey: string;
+}
+
+export function Service_adminTarget(adminKey?: string, userId?: string): IServiceAdminTarget | undefined {
+  return adminKey != null && userId != null ? { userId, adminKey } : undefined;
+}
+
+function Service_withAdminTarget(rawUrl: string, admin?: IServiceAdminTarget): string {
+  if (admin == null) {
+    return rawUrl;
+  }
+  const url = UrlUtils_build(rawUrl);
+  url.searchParams.set("userid", admin.userId);
+  url.searchParams.set("key", admin.adminKey);
+  return url.toString();
+}
+
 export class Service {
   public readonly client: Window["fetch"];
 
@@ -477,9 +496,13 @@ export class Service {
     return undefined;
   }
 
-  public async getProgramRevisions(programId: string): Promise<IEither<string[], IServiceError>> {
+  public async getProgramRevisions(
+    programId: string,
+    admin?: IServiceAdminTarget
+  ): Promise<IEither<string[], IServiceError>> {
     try {
-      const result = await this.client(`${__API_HOST__}/api/programrevisions/${programId}`, {
+      const url = Service_withAdminTarget(`${__API_HOST__}/api/programrevisions/${programId}`, admin);
+      const result = await this.client(url, {
         method: "GET",
         credentials: "include",
       });
@@ -498,8 +521,13 @@ export class Service {
     }
   }
 
-  public async getProgramRevision(programId: string, revision: string): Promise<IEither<string, string>> {
-    const result = await this.client(`${__API_HOST__}/api/programrevision/${programId}/${revision}`, {
+  public async getProgramRevision(
+    programId: string,
+    revision: string,
+    admin?: IServiceAdminTarget
+  ): Promise<IEither<string, string>> {
+    const url = Service_withAdminTarget(`${__API_HOST__}/api/programrevision/${programId}/${revision}`, admin);
+    const result = await this.client(url, {
       method: "GET",
       credentials: "include",
     });

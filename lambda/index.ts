@@ -296,6 +296,20 @@ async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<s
   return userId;
 }
 
+async function getAdminTargetOrCurrentUserId(
+  event: APIGatewayProxyEvent,
+  di: IDI,
+  params: { key?: string; userid?: string }
+): Promise<{ userId?: string; isAdmin?: boolean; error?: "invalid_admin_key" }> {
+  if (params.userid == null) {
+    return { userId: await getCurrentUserId(event, di) };
+  }
+  if (params.key != null && params.key === (await di.secrets.getApiKey())) {
+    return { userId: params.userid, isAdmin: true };
+  }
+  return { error: "invalid_admin_key" };
+}
+
 async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Promise<ILimitedUserDao | undefined> {
   const userId = await getCurrentUserId(event, di);
   if (userId != null) {
@@ -709,21 +723,11 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   match,
 }) => {
   const { event, di } = payload;
-  const querystringParams = event.queryStringParameters || {};
-  let userId;
-  const passAdminKey = match.params.key != null && match.params.key === (await di.secrets.getApiKey());
-  // A userid request with an invalid/missing admin key must hard-fail, not silently fall back to
-  // the caller's own session - otherwise an admin with a stale key gets their own data mislabeled
-  // as the target's.
-  if (match.params.userid != null && !passAdminKey) {
-    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
-  }
   // Admin reads must NOT mint a target-user session cookie - that would leave the caller
   // authenticated as the target. Admin clients pass key+userid on every request instead.
-  if (passAdminKey && match.params.userid != null) {
-    userId = querystringParams.userid;
-  } else {
-    userId = await getCurrentUserId(event, di);
+  const { userId, isAdmin, error } = await getAdminTargetOrCurrentUserId(event, di, match.params);
+  if (error === "invalid_admin_key") {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
   }
   let keyResult: { key: string; isClaimed: boolean } | undefined;
   if (match.params.tempuserid) {
@@ -734,7 +738,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     const userDao = new UserDao(di);
     const user = await userDao.getById(userId, { historyLimit: match.params.historylimit });
     if (user != null) {
-      if (passAdminKey && match.params.storageid) {
+      if (isAdmin && match.params.storageid) {
         const storageDao = new StorageDao(di);
         const loadedStorage = await storageDao.get(user.id, match.params.storageid);
         if (loadedStorage) {
@@ -1495,18 +1499,9 @@ const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   match: { params },
 }) => {
   const { event, di } = payload;
-  let userId: string | undefined;
-  const passAdminKey = params.key != null && params.key === (await di.secrets.getApiKey());
-  // A userid request with an invalid/missing admin key must hard-fail, not fall back to the
-  // caller's own session.
-  if (params.userid != null && !passAdminKey) {
+  const { userId, error } = await getAdminTargetOrCurrentUserId(event, di, params);
+  if (error === "invalid_admin_key") {
     return ResponseUtils_json(401, event, { error: "Invalid admin key" });
-  }
-  if (passAdminKey && params.userid != null) {
-    userId = params.userid;
-  } else {
-    const user = await getCurrentLimitedUser(event, di);
-    userId = user?.id;
   }
   if (userId != null) {
     const userDao = new UserDao(di);
@@ -2642,12 +2637,9 @@ const getUserAffiliatesHandler: RouteHandler<
   typeof getUserAffiliatesEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  let currentUserId = await getCurrentUserId(event, di);
-  if (params.key && params.userid) {
-    const apiKey = await di.secrets.getApiKey();
-    if (params.key === apiKey) {
-      currentUserId = params.userid;
-    }
+  const { userId: currentUserId, error } = await getAdminTargetOrCurrentUserId(event, di, params);
+  if (error === "invalid_admin_key") {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
   }
   if (!currentUserId) {
     const baseHeaders = ResponseUtils_getHeaders(event);
@@ -3071,14 +3063,20 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   }
 };
 
-const getProgramRevisionsEndpoint = Endpoint.build("/api/programrevisions/:programid");
+const getProgramRevisionsEndpoint = Endpoint.build("/api/programrevisions/:programid", {
+  key: "string?",
+  userid: "string?",
+});
 const getProgramRevisionsHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
   typeof getProgramRevisionsEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  const currentUserId = await getCurrentUserId(event, di);
+  const { userId: currentUserId, error } = await getAdminTargetOrCurrentUserId(event, di, params);
+  if (error === "invalid_admin_key") {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
   if (currentUserId == null) {
     const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
     di.log.log(
@@ -3108,14 +3106,20 @@ const getProgramRevisionsHandler: RouteHandler<
   }
 };
 
-const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision");
+const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision", {
+  key: "string?",
+  userid: "string?",
+});
 const getProgramRevisionHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
   typeof getProgramRevisionEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  const currentUserId = await getCurrentUserId(event, di);
+  const { userId: currentUserId, error } = await getAdminTargetOrCurrentUserId(event, di, params);
+  if (error === "invalid_admin_key") {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
   if (currentUserId == null) {
     return ResponseUtils_json(401, event, { error: "not_authorized" });
   }
