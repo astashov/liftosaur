@@ -13,12 +13,12 @@ import {
   Weight_eq,
   Weight_rpeMultiplier,
   Weight_multiply,
-  Weight_calculatePlates,
-  Weight_formatOneSide,
+  Weight_realizeLoad,
   Weight_isPct,
   Weight_getOneRepMax,
 } from "../models/weight";
 import { Exercise_onerm } from "../models/exercise";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 
 export type IWorkoutSetType = "program" | "warmup" | "adhoc";
 
@@ -304,6 +304,7 @@ export function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFi
           set={props.set}
           settings={props.settings}
           exerciseType={props.exerciseType}
+          isWarmup={props.setType === "warmup"}
           sizeClass={props.sizeClass}
         />
       );
@@ -326,34 +327,25 @@ interface IWorkoutExercisePlatesCalculatorProps {
   set: ISet;
   settings: ISettings;
   exerciseType: IExerciseType;
+  isWarmup: boolean;
   sizeClass?: string;
 }
 
 function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculatorProps): JSX.Element {
   const sizeClass = props.sizeClass ?? "text-sm";
   const setWeight = props.set.weight;
-  if (setWeight == null) {
-    return (
-      <Text className={`${sizeClass} font-semibold`} data-testid="plates-list" testID="plates-list">
-        None
-      </Text>
-    );
-  }
-
-  const { plates, totalWeight: weight } = Weight_calculatePlates(
-    props.set.completedWeight ?? setWeight,
-    props.settings,
-    setWeight.unit,
-    props.exerciseType
-  );
-  const formattedPlates = plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None";
+  const load =
+    setWeight != null
+      ? Weight_realizeLoad(props.set.completedWeight ?? setWeight, props.settings, props.exerciseType, props.isWarmup)
+      : undefined;
+  const text = EquipmentLoadText_line(load);
   return (
     <Text
-      className={`${sizeClass} font-semibold ${Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}`}
+      className={`${sizeClass} font-semibold ${text === "" || load?.exact ? "text-text-primary" : "text-text-error"}`}
       data-testid="plates-list"
       testID="plates-list"
     >
-      {formattedPlates}
+      {text !== "" ? text : "None"}
     </Text>
   );
 }

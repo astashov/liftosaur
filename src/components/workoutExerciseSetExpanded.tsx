@@ -262,7 +262,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 onPress={props.onToggleExpand}
                 onLongPress={onLongPressSet}
               >
-                {isSubscribed && props.platesLine.isMatch ? (
+                {isSubscribed && props.platesLine.isMatch && props.platesLine.sidePlates.length > 0 ? (
                   <PlatesBar plates={props.platesLine.sidePlates} />
                 ) : (
                   <IconBarbellPlates size={isSubscribed ? 24 : 17} />

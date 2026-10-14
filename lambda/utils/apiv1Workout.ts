@@ -40,7 +40,8 @@ import {
 import { History_finishProgramDay } from "../../src/models/history";
 import { WorkoutOutcome_add } from "../../src/models/workoutOutcome";
 import { Reps_addSet } from "../../src/models/set";
-import { Weight_print, Weight_calculatePlates, Weight_parsePct } from "../../src/models/weight";
+import { Weight_print, Weight_parsePct, Weight_realizeLoad, Weight_loadPlates } from "../../src/models/weight";
+import { IEquipmentLoadInstruction } from "../../src/models/equipmentLoadSolver";
 import { Exercise_get, Exercise_toKey, Exercise_getIsUnilateral } from "../../src/models/exercise";
 import { ExerciseImageUtils_url } from "../../src/models/exerciseImage";
 import {
@@ -70,6 +71,7 @@ export interface IWorkoutSet {
   weight: string | null;
   originalWeight: string | null;
   plates: { weight: string; num: number }[];
+  loading: { unit: IUnit; instruction: IEquipmentLoadInstruction; total: string; exact: boolean } | null;
   rpe: number | null;
   logRpe: boolean;
   askWeight: boolean;
@@ -244,10 +246,9 @@ function serializeSet(
   isSuperset: boolean
 ): IWorkoutSet {
   const weightForPlates = set.completedWeight ?? set.weight;
-  const plates =
-    weightForPlates != null
-      ? Weight_calculatePlates(weightForPlates, settings, weightForPlates.unit, exerciseType).plates
-      : [];
+  const load =
+    weightForPlates != null ? Weight_realizeLoad(weightForPlates, settings, exerciseType, isWarmup) : undefined;
+  const plates = load != null ? Weight_loadPlates(load) : [];
   return {
     setId: set.id,
     index: set.index,
@@ -258,6 +259,10 @@ function serializeSet(
     weight: set.weight != null ? Weight_print(set.weight) : null,
     originalWeight: set.originalWeight != null ? Weight_print(set.originalWeight) : null,
     plates: plates.map((p) => ({ weight: Weight_print(p.weight), num: p.num })),
+    loading:
+      load?.instruction != null
+        ? { unit: load.unit, instruction: load.instruction, total: Weight_print(load.total), exact: load.exact }
+        : null,
     rpe: set.rpe ?? null,
     logRpe: !!set.logRpe,
     askWeight: !!set.askWeight,

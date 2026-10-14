@@ -4,15 +4,16 @@ import {
   equipments,
   IAllEquipment,
   ISettings,
-  IWeight,
   IUnit,
   IExerciseType,
   IGym,
+  IEquipmentSetup,
 } from "../types";
-import { CollectionUtils_sort, CollectionUtils_concatBy } from "../utils/collection";
+import { EquipmentSetup_fromLegacy, EquipmentSetup_legacyHash } from "./equipmentSetup";
+import { CollectionUtils_concatBy } from "../utils/collection";
 import { ObjectUtils_keys, ObjectUtils_filter } from "../utils/object";
 import { equipmentName, Exercise_toKey } from "./exercise";
-import { Weight_build, Weight_compare } from "./weight";
+import { Weight_build } from "./weight";
 
 export function Equipment_build(name: string): IEquipmentData {
   return {
@@ -103,6 +104,13 @@ export function Equipment_getEquipmentDataForExerciseType(
   return equipment ? currentGym.equipment[equipment] : undefined;
 }
 
+export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, unit: IUnit): IEquipmentSetup {
+  if (data.setup != null && data.setupLegacyHash === EquipmentSetup_legacyHash(data)) {
+    return data.setup;
+  }
+  return EquipmentSetup_fromLegacy(data, unit, settings.currentBodyweight != null);
+}
+
 export function Equipment_getUnitOrDefaultForExerciseType(settings: ISettings, exerciseType?: IExerciseType): IUnit {
   const equipment = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
   return equipment?.unit ?? settings.units;
@@ -121,15 +129,6 @@ export function Equipment_getEquipmentData(settings: ISettings, key: string): IE
 export function Equipment_currentEquipment(settings: ISettings): IAllEquipment {
   const currentGym = settings.gyms.find((g) => g.id === settings.currentGymId) ?? settings.gyms[0];
   return currentGym?.equipment;
-}
-
-export function Equipment_smallestPlate(equipmentData: IEquipmentData, unit: IUnit): IWeight {
-  return (
-    CollectionUtils_sort(
-      equipmentData.plates.filter((p) => p.weight.unit === unit),
-      (a, b) => Weight_compare(a.weight, b.weight)
-    )[0]?.weight || Weight_build(1, unit)
-  );
 }
 
 export function Equipment_mergeEquipment(

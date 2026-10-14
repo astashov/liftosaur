@@ -261,7 +261,12 @@ export function useLiftoEditorController(
       keyboardAddon:
         evaluatedWeight != null ? (
           <View className="px-4 py-2">
-            <PlatesCalculator weight={evaluatedWeight} settings={settings} exerciseType={exerciseType} />
+            <PlatesCalculator
+              weight={evaluatedWeight}
+              settings={settings}
+              exerciseType={exerciseType}
+              isWarmup={LiftoEditorSession_isInWarmup(sess)}
+            />
           </View>
         ) : undefined,
       enableCalculator: isWeight,

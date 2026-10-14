@@ -311,8 +311,8 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     dispatch(Thunk_pushScreen("subscription"));
   }, [dispatch]);
   const platesLine = useMemo(
-    () => (props.isExpanded ? WorkoutSetPlates_line(set, settings, exerciseType) : undefined),
-    [props.isExpanded, set, settings, exerciseType]
+    () => (props.isExpanded ? WorkoutSetPlates_line(set, settings, exerciseType, type === "warmup") : undefined),
+    [props.isExpanded, set, settings, exerciseType, type]
   );
   const onEditTarget = useCallback(() => {
     trackClick("workout-set-edit");

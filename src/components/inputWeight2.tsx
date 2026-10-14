@@ -10,14 +10,13 @@ import {
   Weight_increment,
   Weight_decrement,
   Weight_buildAny,
-  Weight_calculatePlates,
-  Weight_eq,
-  Weight_formatOneSide,
+  Weight_realizeLoad,
 } from "../models/weight";
 import { IconBarbellSide } from "./icons/iconBarbellSide";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 
 interface IInputWeight2Props {
   value: IWeight | IPercentage | undefined;
@@ -207,15 +206,12 @@ interface IPlatesCalculatorProps {
   weight: IWeight;
   settings: ISettings;
   exerciseType: IExerciseType;
+  isWarmup?: boolean;
 }
 
 export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
-  const { plates, totalWeight: weight } = Weight_calculatePlates(
-    props.weight,
-    props.settings,
-    props.weight.unit,
-    props.exerciseType
-  );
+  const load = Weight_realizeLoad(props.weight, props.settings, props.exerciseType, !!props.isWarmup);
+  const text = EquipmentLoadText_line(load);
   return (
     <View className="flex-row items-center w-full gap-1">
       <View>
@@ -225,11 +221,11 @@ export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCal
         <Text className="text-xs text-text-secondary">
           Plates:{" "}
           <Text
-            className={`text-xs font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
+            className={`text-xs font-semibold ${text === "" || load?.exact ? "text-text-primary" : "text-text-error"}`}
             data-testid="plates-list"
             testID="plates-list"
           >
-            {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None"}
+            {text !== "" ? text : "None"}
           </Text>
         </Text>
       </View>

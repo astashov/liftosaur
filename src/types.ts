@@ -1432,6 +1432,142 @@ export const VGraph = v.union([
 ]);
 export type IGraph = v.InferOutput<typeof VGraph>;
 
+export interface IWeightRange {
+  from: number;
+  to: number;
+  step: number;
+}
+const _VWeightRange = v.object({ from: v.number(), to: v.number(), step: v.number() });
+const _VWeightRangeMatches: IEquals<v.InferOutput<typeof _VWeightRange>, IWeightRange> = true;
+void _VWeightRangeMatches;
+
+export interface IPlateCount {
+  weight: number;
+  num: number;
+}
+const _VPlateCount = v.object({ weight: v.number(), num: v.number() });
+const _VPlateCountMatches: IEquals<v.InferOutput<typeof _VPlateCount>, IPlateCount> = true;
+void _VPlateCountMatches;
+
+export interface IEquipmentSetupBase {
+  unit: IUnit;
+  rounding?: "down" | "nearest";
+  direction?: "adds" | "assists";
+  bodyweight?: { share?: number };
+}
+const _equipmentSetupBaseEntries = {
+  unit: VUnit,
+  rounding: v.optional(v.picklist(["down", "nearest"])),
+  direction: v.optional(v.picklist(["adds", "assists"])),
+  bodyweight: v.optional(v.object({ share: v.optional(v.number()) })),
+};
+
+export interface IStackSetup extends IEquipmentSetupBase {
+  type: "stack";
+  base?: number;
+  ranges: IWeightRange[];
+  builtin?: number[];
+  addOn?: IPlateCount[];
+  skipAddOnsInWarmups?: boolean;
+  pullRatio?: number;
+}
+const _VStackSetup = v.object({
+  ..._equipmentSetupBaseEntries,
+  type: v.literal("stack"),
+  base: v.optional(v.number()),
+  ranges: v.array(_VWeightRange),
+  builtin: v.optional(v.array(v.number())),
+  addOn: v.optional(v.array(_VPlateCount)),
+  skipAddOnsInWarmups: v.optional(v.boolean()),
+  pullRatio: v.optional(v.number()),
+});
+const _VStackSetupMatches: IEquals<v.InferOutput<typeof _VStackSetup>, IStackSetup> = true;
+void _VStackSetupMatches;
+
+export interface IEquipmentHorn {
+  name: string;
+  ratio: number;
+}
+
+export interface IPlatesSetup extends IEquipmentSetupBase {
+  type: "plates";
+  base: number;
+  plates: IPlateCount[];
+  sides: number;
+  horns?: IEquipmentHorn[];
+  warmupPlates?: number[];
+}
+const _VPlatesSetup = v.object({
+  ..._equipmentSetupBaseEntries,
+  type: v.literal("plates"),
+  base: v.number(),
+  plates: v.array(_VPlateCount),
+  sides: v.number(),
+  horns: v.optional(v.array(v.object({ name: v.string(), ratio: v.number() }))),
+  warmupPlates: v.optional(v.array(v.number())),
+});
+const _VPlatesSetupMatches: IEquals<v.InferOutput<typeof _VPlatesSetup>, IPlatesSetup> = true;
+void _VPlatesSetupMatches;
+
+export interface IFixedSetup extends IEquipmentSetupBase {
+  type: "fixed";
+  ranges: IWeightRange[];
+  values: number[];
+  addOn?: IPlateCount[];
+}
+const _VFixedSetup = v.object({
+  ..._equipmentSetupBaseEntries,
+  type: v.literal("fixed"),
+  ranges: v.array(_VWeightRange),
+  values: v.array(v.number()),
+  addOn: v.optional(v.array(_VPlateCount)),
+});
+const _VFixedSetupMatches: IEquals<v.InferOutput<typeof _VFixedSetup>, IFixedSetup> = true;
+void _VFixedSetupMatches;
+
+export interface IElectricSetup extends IEquipmentSetupBase {
+  type: "electric";
+  min: number;
+  max: number;
+  step: number;
+}
+const _VElectricSetup = v.object({
+  ..._equipmentSetupBaseEntries,
+  type: v.literal("electric"),
+  min: v.number(),
+  max: v.number(),
+  step: v.number(),
+});
+const _VElectricSetupMatches: IEquals<v.InferOutput<typeof _VElectricSetup>, IElectricSetup> = true;
+void _VElectricSetupMatches;
+
+export interface IEquipmentBand {
+  name: string;
+  color?: string;
+  weight: number;
+  num: number;
+}
+
+export interface IBandsSetup extends IEquipmentSetupBase {
+  type: "bands";
+  bands: IEquipmentBand[];
+  combine: boolean;
+}
+const _VBandsSetup = v.object({
+  ..._equipmentSetupBaseEntries,
+  type: v.literal("bands"),
+  bands: v.array(v.object({ name: v.string(), color: v.optional(v.string()), weight: v.number(), num: v.number() })),
+  combine: v.boolean(),
+});
+const _VBandsSetupMatches: IEquals<v.InferOutput<typeof _VBandsSetup>, IBandsSetup> = true;
+void _VBandsSetupMatches;
+
+export type IEquipmentSetup = IStackSetup | IPlatesSetup | IFixedSetup | IElectricSetup | IBandsSetup;
+const _VEquipmentSetup = v.variant("type", [_VStackSetup, _VPlatesSetup, _VFixedSetup, _VElectricSetup, _VBandsSetup]);
+const _VEquipmentSetupMatches: IEquals<v.InferOutput<typeof _VEquipmentSetup>, IEquipmentSetup> = true;
+void _VEquipmentSetupMatches;
+export const VEquipmentSetup: v.GenericSchema<IEquipmentSetup> = _VEquipmentSetup;
+
 export interface IEquipmentData {
   vtype: "equipment_data";
   bar: { lb: IWeight; kg: IWeight };
@@ -1446,6 +1582,8 @@ export interface IEquipmentData {
   useBodyweightForBar?: boolean;
   isAssisting?: boolean;
   notes?: string;
+  setup?: IEquipmentSetup;
+  setupLegacyHash?: string;
 }
 const _VEquipmentData = v.object({
   vtype: v.literal("equipment_data"),
@@ -1461,6 +1599,8 @@ const _VEquipmentData = v.object({
   useBodyweightForBar: v.optional(v.boolean()),
   isAssisting: v.optional(v.boolean()),
   notes: v.optional(v.string()),
+  setup: v.optional(_VEquipmentSetup),
+  setupLegacyHash: v.optional(v.string()),
 });
 const _VEquipmentDataMatches: IEquals<v.InferOutput<typeof _VEquipmentData>, IEquipmentData> = true;
 void _VEquipmentDataMatches;

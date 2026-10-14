@@ -1,5 +1,5 @@
 import { ObjectUtils_keys, ObjectUtils_values, ObjectUtils_filter } from "../utils/object";
-import { Weight_build, Weight_gt, Weight_multiply, Weight_roundConvertTo, Weight_convertTo } from "./weight";
+import { Weight_build, Weight_gt, Weight_multiply, Weight_roundWarmup, Weight_convertTo } from "./weight";
 import {
   IExerciseId,
   IEquipment,
@@ -4258,9 +4258,10 @@ function warmup(
       if (shouldSkipThreshold || (weight != null && Weight_gt(weight, programExerciseWarmupSet.threshold))) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
-        if (typeof value !== "number" || weight != null) {
+        const isPercentageOfAssistance = typeof value === "number" && weight != null && weight.value < 0;
+        if ((typeof value !== "number" || weight != null) && !isPercentageOfAssistance) {
           const warmupWeight = typeof value === "number" ? Weight_multiply(weight!, value) : value;
-          const roundedWeight = Weight_roundConvertTo(warmupWeight, settings, unit, exerciseType);
+          const roundedWeight = Weight_roundWarmup(warmupWeight, settings, unit, exerciseType, weight);
           memo.push({
             vtype: "set",
             index,

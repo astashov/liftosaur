@@ -493,6 +493,30 @@ Squat / 3x5 / 100lb`;
       expect(upd.data.data.plates).to.deep.equal([{ weight: "45lb", num: 6 }]);
     });
 
+    it("keeps a stored setup when updating plates over REST", async () => {
+      const gymId = await firstGymId();
+      const stored = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      const gym = stored.storage.settings.gyms.find((g: any) => g.id === gymId);
+      gym.equipment.barbell.setup = {
+        type: "plates",
+        unit: "lb",
+        base: 45,
+        plates: [{ weight: 45, num: 8 }],
+        sides: 2,
+      };
+      gym.equipment.barbell.setupLegacyHash = "v1:old";
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: stored });
+
+      const upd = await req("PUT", `/api/v1/gyms/${gymId}/equipment/barbell`, {
+        plates: [{ weight: "45lb", num: 6 }],
+      });
+      expect(upd.status).to.equal(200);
+      const after = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      const barbell = after.storage.settings.gyms.find((g: any) => g.id === gymId).equipment.barbell;
+      expect(barbell.setup.type).to.equal("plates");
+      expect(barbell.setupLegacyHash).to.equal("v1:old");
+    });
+
     it("routes /gyms/:id/equipment distinctly from /gyms/:id", async () => {
       const gymId = await firstGymId();
       const equip = await req("GET", `/api/v1/gyms/${gymId}/equipment/barbell`);
@@ -1190,6 +1214,7 @@ Deadlift / 1x5 / 200lb`;
           "isAmrap",
           "isUnilateral",
           "isWarmup",
+          "loading",
           "logRpe",
           "minReps",
           "originalWeight",
@@ -1202,6 +1227,8 @@ Deadlift / 1x5 / 200lb`;
           "weight",
         ].sort()
       );
+      const loading = workout.entries[0].sets[0].loading;
+      expect(Object.keys(loading).sort()).to.deep.equal(["exact", "instruction", "total", "unit"]);
       // entryId is the exercise key plus any label — the docs say so, because it isn't unique.
       expect(workout.entries[0].entryId).to.equal("squat_barbell");
       expect(workout.entries[0].exerciseId).to.equal("squat_barbell");

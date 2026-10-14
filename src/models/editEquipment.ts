@@ -2,7 +2,7 @@ import { lb } from "lens-shmens";
 import { IState, updateState } from "./state";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IEquipment, ISettings } from "../types";
-import { Equipment_getEquipmentIdForExerciseType, Equipment_getEquipmentData } from "./equipment";
+import { Equipment_getEquipmentIdForExerciseType } from "./equipment";
 import { Exercise_toKey } from "./exercise";
 
 export function EditEquipment_setEquipmentForExercise(
@@ -36,10 +36,7 @@ export function EditEquipment_setEquipmentForExercise(
     ],
     "Update equipment"
   );
-  const currentUnit =
-    (oldEquipment ? Equipment_getEquipmentData(settings, oldEquipment)?.unit : undefined) ?? settings.units;
-  const newUnit = (equipment ? Equipment_getEquipmentData(settings, equipment)?.unit : undefined) ?? settings.units;
-  if (currentUnit !== newUnit) {
+  if (oldEquipment !== equipment) {
     dispatch({
       type: "ApplyProgramChangesToProgress",
       programExerciseIds: programExerciseIds,

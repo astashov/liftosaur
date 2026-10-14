@@ -1,7 +1,9 @@
 import { IExerciseType, ISet, ISettings, IWeight } from "../types";
 import { Equipment_getEquipmentNameForExerciseType } from "../models/equipment";
 import { Exercise_get } from "../models/exercise";
-import { Weight_calculatePlates, Weight_eq, Weight_formatOneSide, Weight_oneSidePlates } from "../models/weight";
+import { Weight_build, Weight_realizeLoad } from "../models/weight";
+import { IEquipmentLoad } from "../models/equipmentLoadSolver";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 
 export interface IWorkoutSetPlatesLine {
   plates: string;
@@ -9,10 +11,21 @@ export interface IWorkoutSetPlatesLine {
   isMatch: boolean;
 }
 
+function sidePlatesOf(load: IEquipmentLoad): IWeight[] {
+  const instruction = load.instruction;
+  if (instruction?.type !== "plates" || instruction.horns.length !== 1) {
+    return [];
+  }
+  return [...instruction.horns[0].plates]
+    .sort((a, b) => b.weight - a.weight)
+    .flatMap((p) => new Array<IWeight>(p.num).fill(Weight_build(p.weight, load.unit)));
+}
+
 export function WorkoutSetPlates_line(
   set: ISet,
   settings: ISettings,
-  exerciseType: IExerciseType
+  exerciseType: IExerciseType,
+  isWarmup: boolean
 ): IWorkoutSetPlatesLine | undefined {
   const target = set.completedWeight ?? set.weight;
   if (target == null) {
@@ -22,13 +35,10 @@ export function WorkoutSetPlates_line(
   if (Equipment_getEquipmentNameForExerciseType(settings, exercise) == null) {
     return undefined;
   }
-  const { plates, totalWeight } = Weight_calculatePlates(target, settings, target.unit, exerciseType);
-  if (plates.length === 0) {
+  const load = Weight_realizeLoad(target, settings, exerciseType, isWarmup);
+  const text = EquipmentLoadText_line(load);
+  if (load == null || text === "") {
     return undefined;
   }
-  return {
-    plates: Weight_formatOneSide(settings, plates, exerciseType),
-    sidePlates: Weight_oneSidePlates(settings, plates, exerciseType),
-    isMatch: Weight_eq(totalWeight, target),
-  };
+  return { plates: text, sidePlates: sidePlatesOf(load), isMatch: load.exact };
 }

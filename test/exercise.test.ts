@@ -9,8 +9,19 @@ import {
   Exercise_findById,
   Exercise_findIdByName,
   Exercise_findByNameAndEquipment,
+  Exercise_getWarmupSets,
 } from "../src/models/exercise";
-import { IAllCustomExercises, ICustomExercise } from "../src/types";
+import {
+  IAllCustomExercises,
+  ICustomExercise,
+  IExerciseType,
+  IProgramExerciseWarmupSet,
+  ISettings,
+  IWeight,
+} from "../src/types";
+import { Settings_build } from "../src/models/settings";
+import { EquipmentSetup_save } from "../src/models/equipmentSetup";
+import { Weight_build } from "../src/models/weight";
 
 function buildCustom(id: string, name: string, isDeleted: boolean): ICustomExercise {
   return {
@@ -166,5 +177,63 @@ describe("Exercise — custom exercises named 'X' and 'X, <Equipment>' coexist",
       "custom-full": buildCustom("custom-full", "Squat, Barbell", false),
     };
     expect(Exercise_findByNameAndEquipment("Squat, Barbell", fullOnly)?.id).to.eql("squat");
+  });
+});
+
+describe("Exercise — warmup rounding", () => {
+  const squat: IExerciseType = { id: "squat", equipment: "barbell" };
+  const threshold = Weight_build(0, "lb");
+
+  function settingsWithWarmupPlates(): ISettings {
+    const settings = Settings_build();
+    settings.units = "lb";
+    settings.gyms[0].equipment.barbell = EquipmentSetup_save(settings.gyms[0].equipment.barbell!, {
+      type: "plates",
+      unit: "lb",
+      base: 45,
+      plates: [
+        { weight: 45, num: 8 },
+        { weight: 25, num: 4 },
+        { weight: 10, num: 4 },
+        { weight: 2.5, num: 4 },
+      ],
+      sides: 2,
+      warmupPlates: [45, 25],
+    });
+    return settings;
+  }
+
+  function warmupWeights(
+    settings: ISettings,
+    working: IWeight,
+    sets: IProgramExerciseWarmupSet[],
+    exerciseType: IExerciseType = squat
+  ): number[] {
+    return Exercise_getWarmupSets(exerciseType, working, settings, sets).map((s) => s.weight!.value);
+  }
+
+  it("uses only the warmup plates", () => {
+    const settings = settingsWithWarmupPlates();
+    expect(warmupWeights(settings, Weight_build(225, "lb"), [{ reps: 5, value: 0.8, threshold }])).to.eql([145]);
+  });
+
+  it("never rounds a warmup above the first working weight", () => {
+    const settings = settingsWithWarmupPlates();
+    const setup = settings.gyms[0].equipment.barbell!.setup!;
+    settings.gyms[0].equipment.barbell = EquipmentSetup_save(settings.gyms[0].equipment.barbell!, {
+      ...setup,
+      rounding: "nearest",
+    });
+    expect(warmupWeights(settings, Weight_build(180, "lb"), [{ reps: 3, value: 1, threshold }])).to.eql([145]);
+  });
+
+  it("skips percentage warmups when the working weight is negative assistance", () => {
+    const settings = Settings_build();
+    const sets: IProgramExerciseWarmupSet[] = [
+      { reps: 5, value: 0.5, threshold: Weight_build(-1000, "lb") },
+      { reps: 5, value: Weight_build(-40, "lb"), threshold: Weight_build(-1000, "lb") },
+    ];
+    const pulldown: IExerciseType = { id: "latPulldown", equipment: "cable" };
+    expect(warmupWeights(settings, Weight_build(-20, "lb"), sets, pulldown)).to.eql([-40]);
   });
 });

@@ -57,8 +57,7 @@ import { getLatestMigrationVersion } from "../migrations/migrations";
 import { runMigrations, unrunMigrations } from "../migrations/runner";
 import { ExerciseImageUtils_url } from "../models/exerciseImage";
 import {
-  Weight_calculatePlates,
-  Weight_formatOneSide,
+  Weight_realizeLoad,
   Weight_increment,
   Weight_decrement,
   Weight_round,
@@ -66,6 +65,7 @@ import {
   Weight_isPct,
 } from "../models/weight";
 import { WorkoutOutcome_add } from "../models/workoutOutcome";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 import { IWatchHealthBinding, IWatchHealthDecision, WatchHealthDecision_decide } from "../models/watchHealthDecision";
 import {
   Progress_finishWorkout,
@@ -256,10 +256,10 @@ function setToWatchSet(
   let plates: string | undefined;
   const weightForPlates = set.completedWeight ?? set.weight;
   if (weightForPlates) {
-    const unit = weightForPlates.unit;
-    const { plates: platesArr } = Weight_calculatePlates(weightForPlates, settings, unit, exerciseType);
-    if (platesArr.length > 0) {
-      plates = Weight_formatOneSide(settings, platesArr, exerciseType);
+    const load = Weight_realizeLoad(weightForPlates, settings, exerciseType, isWarmup);
+    const text = EquipmentLoadText_line(load);
+    if (text !== "") {
+      plates = text;
     }
   }
   return {
@@ -1234,7 +1234,7 @@ class LiftosaurWatch {
     w = currentWeight;
     for (let i = 0; i < countDown; i++) {
       const prevW = Weight_decrement(w, settings, exerciseType);
-      if (prevW.value === w.value || prevW.value <= 0) {
+      if (prevW.value === w.value) {
         break;
       }
       weightsDown.unshift(prevW.value);

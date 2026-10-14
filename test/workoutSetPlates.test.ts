@@ -20,7 +20,7 @@ describe("WorkoutSetPlates", () => {
   const settings = Settings_build();
 
   it("formats one side for a barbell exercise and flags an exact match", () => {
-    expect(WorkoutSetPlates_line(set(135), settings, { id: "squat", equipment: "barbell" })).to.eql({
+    expect(WorkoutSetPlates_line(set(135), settings, { id: "squat", equipment: "barbell" }, false)).to.eql({
       plates: "45",
       sidePlates: [{ value: 45, unit: "lb" }],
       isMatch: true,
@@ -28,13 +28,17 @@ describe("WorkoutSetPlates", () => {
   });
 
   it("prefers the completed weight and flags a weight the plates cannot reach", () => {
-    const line = WorkoutSetPlates_line(set(135, 137), settings, { id: "squat", equipment: "barbell" });
+    const line = WorkoutSetPlates_line(set(135, 137), settings, { id: "squat", equipment: "barbell" }, false);
     expect(line?.isMatch).to.eql(false);
   });
 
   it("returns nothing without a weight, without equipment, or when the bar alone is enough", () => {
-    expect(WorkoutSetPlates_line(set(undefined), settings, { id: "squat", equipment: "barbell" })).to.eql(undefined);
-    expect(WorkoutSetPlates_line(set(135), settings, { id: "pushUp", equipment: "bodyweight" })).to.eql(undefined);
-    expect(WorkoutSetPlates_line(set(45), settings, { id: "squat", equipment: "barbell" })).to.eql(undefined);
+    expect(WorkoutSetPlates_line(set(undefined), settings, { id: "squat", equipment: "barbell" }, false)).to.eql(
+      undefined
+    );
+    expect(WorkoutSetPlates_line(set(135), settings, { id: "pushUp", equipment: "bodyweight" }, false)).to.eql(
+      undefined
+    );
+    expect(WorkoutSetPlates_line(set(45), settings, { id: "squat", equipment: "barbell" }, false)).to.eql(undefined);
   });
 });

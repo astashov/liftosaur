@@ -126,6 +126,8 @@ const EQUIPMENT_FIELD_POLICY = {
   similarTo: "writable",
   useBodyweightForBar: "writable",
   isAssisting: "writable",
+  setup: "internal",
+  setupLegacyHash: "internal",
 } as const satisfies Record<keyof IEquipmentData, IEquipmentFieldPolicy>;
 
 export type IWritableEquipmentField = {
@@ -172,7 +174,7 @@ function applyEquipmentInput(base: IEquipmentData, input: IEquipmentUpdateInput)
   if (!validated.success) {
     return err(400, "invalid_input", issuesToMessage(validated.issues));
   }
-  return ok(validated.output);
+  return ok(merged);
 }
 
 interface IEquipmentResponse {

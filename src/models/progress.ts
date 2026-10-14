@@ -26,12 +26,12 @@ import {
   Weight_rpeMultiplier,
   Weight_convertToWeight,
   Weight_display,
-  Weight_calculatePlates,
-  Weight_formatOneSide,
+  Weight_realizeLoad,
   Weight_rpePct,
   Weight_evaluateWeight,
   Weight_op,
 } from "./weight";
+import { EquipmentLoadText_line } from "./equipmentLoadText";
 import { DateUtils_fromYYYYMMDD, DateUtils_fromYYYYMMDDStr } from "../utils/date";
 import { lf, lb, LensBuilder } from "lens-shmens";
 import { ObjectUtils_isEqual, ObjectUtils_entriesNonnull, ObjectUtils_keys, ObjectUtils_clone } from "../utils/object";
@@ -404,10 +404,11 @@ export function Progress_scheduleTimerNotification(
         aSet.weight != null ? Weight_display(aSet.weight) : undefined,
       ]).join(", ");
       if (aSet.weight != null) {
-        const { plates } = Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
-        const formattedPlates = plates.length > 0 ? Weight_formatOneSide(settings, plates, exercise) : "None";
+        const isWarmup = nextEntry.warmupSets.indexOf(aSet) !== -1;
+        const load = Weight_realizeLoad(aSet.weight, settings, nextEntry.exercise, isWarmup);
+        const loadText = EquipmentLoadText_line(load);
         bodyHeader = "Plates per side";
-        body = formattedPlates;
+        body = loadText !== "" ? loadText : "None";
       }
     }
   }

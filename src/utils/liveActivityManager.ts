@@ -4,7 +4,8 @@ import { Program_evaluate, Program_getProgramExercise } from "../models/program"
 import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
 import { Progress_shouldShowAmrapModal, Progress_getNextEntry, Progress_getActiveSetTimer } from "../models/progress";
 import { Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
-import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../models/weight";
+import { Weight_realizeLoad, Weight_print } from "../models/weight";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { TimedSet_toView } from "../models/timedSet";
@@ -52,9 +53,10 @@ export function LiveActivityManager_getLiveActivityEntry(
   }
   const isNextSetWarmup = setIndex < entry.warmupSets.length;
   const weightForPlates = set.completedWeight ?? set.weight;
-  const plates = weightForPlates
-    ? Weight_calculatePlates(weightForPlates, settings, weightForPlates.unit || settings.units, entry.exercise)
+  const load = weightForPlates
+    ? Weight_realizeLoad(weightForPlates, settings, entry.exercise, isNextSetWarmup)
     : undefined;
+  const loadText = EquipmentLoadText_line(load);
   let exerciseImageUrl = ExerciseImageUtils_url(exercise, "small", settings);
   if (exerciseImageUrl) {
     exerciseImageUrl = UrlUtils_build(exerciseImageUrl, __HOST__)?.toString();
@@ -91,8 +93,7 @@ export function LiveActivityManager_getLiveActivityEntry(
     targetWeight: set.weight ? `${Weight_print(set.weight)}${set.askWeight ? "+" : ""}` : undefined,
     targetRPE: set.rpe != null ? `${n(set.rpe)}${set.logRpe ? "+" : ""}` : undefined,
     targetTimer: set.timer != null ? set.timer.toString() : undefined,
-    plates:
-      (plates?.plates || []).length > 0 ? Weight_formatOneSide(settings, plates?.plates || [], entry.exercise) : "None",
+    plates: loadText !== "" ? loadText : "None",
     currentWeight: currentWeight != null ? Weight_print(currentWeight) : undefined,
     currentReps: currentReps != null ? currentReps.toString() : undefined,
     isWarmup: isNextSetWarmup,
