@@ -84,6 +84,13 @@ export type IPostSyncResponse =
     }
   | {
       type: "error";
+      error: "account_mismatch";
+      email: string;
+      user_id: string;
+      key?: string;
+    }
+  | {
+      type: "error";
       error: string;
       key?: string;
     };

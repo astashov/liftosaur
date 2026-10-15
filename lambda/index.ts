@@ -16,6 +16,7 @@ import {
   PushSync_validateRegistration,
 } from "./utils/pushSync";
 import { DirtySyncRead_args } from "./utils/dirtySyncRead";
+import { SyncAccountGuard_decide } from "./utils/syncAccountGuard";
 import { HistoryIds_parse } from "../src/utils/historyIds";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
@@ -612,6 +613,22 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
     const userDao = new UserDao(di);
     const limitedUser = await userDao.getLimitedById(userId);
     if (limitedUser != null) {
+      const guardArgs = { cookieUserId: userId, tempUserId: params.tempuserid };
+      let guard = SyncAccountGuard_decide(guardArgs);
+      if (guard === "lookup") {
+        const tempUserIsAccount = (await userDao.getLimitedById(params.tempuserid!)) != null;
+        guard = SyncAccountGuard_decide({ ...guardArgs, tempUserIsAccount });
+      }
+      if (guard === "mismatch") {
+        di.log.log(`sync2-account-mismatch {"tempuserid":"${params.tempuserid}"}`);
+        return response(409, {
+          type: "error",
+          error: "account_mismatch",
+          email: limitedUser.email,
+          user_id: limitedUser.id,
+          key,
+        });
+      }
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");

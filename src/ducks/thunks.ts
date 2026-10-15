@@ -126,6 +126,11 @@ import {
   SyncBaseline_fromServer,
   SyncBaseline_needsFetch,
 } from "../utils/syncBaseline";
+import {
+  ISyncAccountMismatch,
+  SyncAccountMismatch_fromResponse,
+  SyncAccountMismatch_plan,
+} from "../utils/syncAccountMismatch";
 import { runMigrations } from "../migrations/runner";
 import { HistoryDelta_sortNewestFirst } from "../utils/historyDelta";
 import { PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
@@ -494,6 +499,14 @@ async function _sync2(
     }
     return "done";
   }
+  async function switchedAccount(result: IPostSyncResponse): Promise<boolean> {
+    const mismatch = SyncAccountMismatch_fromResponse(result);
+    if (mismatch == null) {
+      return false;
+    }
+    await switchToSyncAccount(dispatch, getState, env, state.storage.tempUserId, mismatch);
+    return true;
+  }
   const fetchReason = SyncBaseline_needsFetch(state.lastSynced, state.storage.tempUserId, Date.now());
   if (fetchReason != null) {
     dispatch(
@@ -512,7 +525,7 @@ async function _sync2(
       deviceId: state.deviceId,
       history: { mode: "none" },
     });
-    if (signal?.aborted) {
+    if (signal?.aborted || (await switchedAccount(result))) {
       return;
     }
     if (handleResponse(result, { kind: "fetch" }) === "baseline-fetched") {
@@ -538,11 +551,38 @@ async function _sync2(
         deviceId: state.deviceId,
         history: { mode: "delta", local: { history: state.storage.history, versions: state.storage._versions } },
       });
-      if (signal?.aborted) {
+      if (signal?.aborted || (await switchedAccount(result))) {
         return;
       }
       handleResponse(result, { kind: "upload", sent: sentStorage });
     }
+  }
+}
+
+async function switchToSyncAccount(
+  dispatch: IDispatch,
+  getState: () => IState,
+  env: IEnv,
+  sentTempUserId: string,
+  mismatch: ISyncAccountMismatch
+): Promise<void> {
+  dispatch(Thunk_postevent("sync-account-mismatch", { localUserId: sentTempUserId, serverUserId: mismatch.userId }));
+  await env.persistence.flushSave();
+  const localCopy = await env.persistence.load(`liftosaur_${mismatch.userId}`);
+  const localStorageResult = localCopy?.storage != null ? Storage_get(localCopy.storage) : undefined;
+  const plan = SyncAccountMismatch_plan({
+    sentTempUserId,
+    currentTempUserId: getState().storage.tempUserId,
+    hasLocalCopy: localStorageResult?.success === true && localStorageResult.data.tempUserId === mismatch.userId,
+  });
+  if (plan === "load-local" && localCopy != null) {
+    const newState = await getInitialState(env.service.client, { localStorage: localCopy, deviceId: getState().deviceId });
+    newState.user = { id: mismatch.userId, email: mismatch.email };
+    dispatch({ type: "ReplaceState", state: newState });
+    dispatch(Thunk_fetchInitial());
+  } else if (plan === "fetch-server") {
+    const result = await env.service.getStorage(mismatch.userId);
+    await handleLogin(dispatch, result, env, sentTempUserId);
   }
 }
 
