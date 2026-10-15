@@ -261,7 +261,7 @@ async function handleToolCall(
       body: JSON.stringify({ error: "unauthorized" }),
       headers: {
         "content-type": "application/json",
-        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
+        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource/mcp"`,
       },
     };
   }
@@ -297,7 +297,7 @@ async function handleToolCall(
       body: JSON.stringify({ error: "unauthorized" }),
       headers: {
         "content-type": "application/json",
-        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
+        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource/mcp"`,
       },
     };
   }

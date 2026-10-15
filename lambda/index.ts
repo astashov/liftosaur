@@ -221,6 +221,7 @@ import {
 } from "./mcp/handler";
 import {
   getProtectedResourceEndpoint,
+  getProtectedResourceMcpEndpoint,
   getProtectedResourceHandler,
   getAuthServerMetadataEndpoint,
   getAuthServerMetadataHandler,
@@ -4017,6 +4018,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)
       .get(getProtectedResourceEndpoint, getProtectedResourceHandler)
+      .get(getProtectedResourceMcpEndpoint, getProtectedResourceHandler)
       .get(getAuthServerMetadataEndpoint, getAuthServerMetadataHandler)
       .post(postOauthRegisterEndpoint, postOauthRegisterHandler)
       .get(getOauthAuthorizeEndpoint, getOauthAuthorizeHandler)

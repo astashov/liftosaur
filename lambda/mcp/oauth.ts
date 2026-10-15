@@ -83,6 +83,8 @@ async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<s
 // --- GET /.well-known/oauth-protected-resource ---
 
 export const getProtectedResourceEndpoint = Endpoint.build("/.well-known/oauth-protected-resource");
+// RFC 9728 puts the metadata for `/mcp` at this path. Kelivo rejects the root one; older clients only read the root.
+export const getProtectedResourceMcpEndpoint = Endpoint.build("/.well-known/oauth-protected-resource/mcp");
 export const getProtectedResourceHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,

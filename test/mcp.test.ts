@@ -386,7 +386,15 @@ describe("MCP", () => {
     it("returns 401 with WWW-Authenticate header", async () => {
       const result = await handler(buildMcpEvent(toolCall("list_programs")), ctx);
       expect(result.statusCode).to.equal(401);
-      expect(result.headers!["www-authenticate"]).to.include("oauth-protected-resource");
+      expect(result.headers!["www-authenticate"]).to.include("/.well-known/oauth-protected-resource/mcp");
+    });
+
+    it("serves protected resource metadata for /mcp at the root and at the path-suffixed URL", async () => {
+      for (const path of ["/.well-known/oauth-protected-resource", "/.well-known/oauth-protected-resource/mcp"]) {
+        const result = await handler(buildEvent({ method: "GET", path }), ctx);
+        expect(result.statusCode).to.equal(200);
+        expect(JSON.parse(result.body).resource).to.match(/\/mcp$/);
+      }
     });
 
     it("authenticates a tool call with an API key", async () => {
