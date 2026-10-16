@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 
@@ -12,6 +13,7 @@ export function renderAdminHtml(el: JSX.Element): string {
 }
 
 export function AdminHtml(props: IProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <html lang="en">
       <head>
@@ -40,10 +42,10 @@ export function AdminHtml(props: IProps): JSX.Element {
             <div className="top-nav-right">
               <ul className="top-nav-menu">
                 <li>
-                  <a href={`/admin/logs?key=${props.apiKey}`}>Logs</a>
+                  <a href={`/admin/logs?key=${props.apiKey}`}>{translate("Logs")}</a>
                 </li>
                 <li>
-                  <a href={`/admin/users?key=${props.apiKey}`}>Users</a>
+                  <a href={`/admin/users?key=${props.apiKey}`}>{translate("Users")}</a>
                 </li>
               </ul>
             </div>

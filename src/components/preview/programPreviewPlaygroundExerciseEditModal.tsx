@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
@@ -27,6 +28,7 @@ interface IProgramPreviewPlaygroundExerciseEditModalProps {
 export function ProgramPreviewPlaygroundExerciseEditContent(
   props: IProgramPreviewPlaygroundExerciseEditModalProps
 ): JSX.Element | null {
+  const translate = useTranslation();
   const programExercise = props.programExercise;
   const state = PlannerProgramExercise_getState(props.programExercise);
   const stateMetadata = PlannerProgramExercise_getStateMetadata(props.programExercise);
@@ -56,7 +58,7 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
       )}
       {(hasStateVariables || props.hideVariables) && (
         <>
-          <Text className="mb-2 text-lg font-bold text-center">Edit state variables</Text>
+          <Text className="mb-2 text-lg font-bold text-center">{translate("Edit state variables")}</Text>
           {hasStateVariables ? (
             <ProgramStateVariables
               settings={props.settings}
@@ -67,7 +69,7 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
             />
           ) : (
             <View className="px-4 py-2">
-              <Text className="text-sm italic text-center text-text-secondary">No state variables</Text>
+              <Text className="text-sm italic text-center text-text-secondary">{translate("No state variables")}</Text>
             </View>
           )}
         </>
@@ -91,7 +93,7 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
           data-testid="modal-edit-mode-save-statvars"
           testID="modal-edit-mode-save-statvars"
         >
-          Done
+          {translate("Done")}
         </Button>
       </View>
     </View>
@@ -117,6 +119,7 @@ interface IStateProps {
 }
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       {ObjectUtils_keys(props.state).map((stateKey, i) => {
@@ -131,7 +134,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             nextLine={
               props.stateMetadata?.[stateKey]?.userPrompted ? (
                 <View style={{ marginTop: -12 }} className="mb-1">
-                  <Text className="text-xs text-text-secondary">User Prompted</Text>
+                  <Text className="text-xs text-text-secondary">{translate("User Prompted")}</Text>
                 </View>
               ) : undefined
             }

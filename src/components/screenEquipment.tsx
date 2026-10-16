@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, findNodeHandle, LayoutAnimation } from "react-native";
 import { Text } from "./primitives/text";
@@ -37,6 +38,7 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 }
 
 export function ScreenEquipment(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const scrollCtx = useContext(NavScreenScrollContext);
   const scrollRef = scrollCtx?.scrollRef;
   const expandedItemRef = useRef<View>(null);
@@ -68,7 +70,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
     );
   }, []);
 
-  useNavOptions({ navTitle: "Equipment Settings", navHelpKey: "plates" });
+  useNavOptions({ navTitle: translate("Equipment Settings"), navHelpKey: "plates" });
 
   const selectedGym = props.settings.gyms.find((g) => g.id === props.selectedGymId) ?? props.settings.gyms[0];
   const lensDispatch = useMemo(() => buildLensDispatch(props.dispatch), [props.dispatch]);
@@ -97,6 +99,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
         <MenuItemEditable
           type="text"
           name="Gym Name"
+          label={translate("Gym Name")}
           value={selectedGym.name}
           onChange={(name) => {
             if (name?.trim()) {
@@ -122,7 +125,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
     children.push(
       <View key="manage-gyms" className="px-2 mb-2 items-end">
         <LinkButton className="text-sm" name="add-new-gym" onClick={() => props.dispatch(Thunk_pushScreen("gyms"))}>
-          Manage Gyms
+          {translate("Manage Gyms")}
         </LinkButton>
       </View>
     );
@@ -177,7 +180,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
       {children}
       {hiddenEquipment.length > 0 && (
         <View className="flex-row flex-wrap mx-4 my-2">
-          <Text className="text-xs">Hidden Equipment: </Text>
+          <Text className="text-xs">{translate("Hidden Equipment:")} </Text>
           {hiddenEquipment.map((e, i) => (
             <View key={e} className="flex-row">
               {i !== 0 && <Text className="text-xs">, </Text>}
@@ -197,7 +200,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
       )}
       <View className="m-4">
         <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
-          Add New Equipment Type
+          {translate("Add New Equipment Type")}
         </LinkButton>
       </View>
     </NavScreenContent>

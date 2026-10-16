@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useState, useCallback, useMemo } from "react";
 import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
@@ -38,6 +39,7 @@ interface IProps {
 }
 
 export function BuiltinProgramsList(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [filter, setFilter] = useState<IProgramFilter>({});
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const searchLower = (props.search || "").toLowerCase();
@@ -65,7 +67,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const listHeader = (
     <View className="pt-4">
       <Text className="pb-4">
-        I've been lifting for{" "}
+        {translate("I've been lifting for")}{" "}
         <SelectLink
           name="builtin-filter-age"
           className="font-semibold"
@@ -74,7 +76,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           emptyLabel="any time"
           value={filter.age}
         />
-        . I can work out{" "}
+        {translate(". I can work out")}{" "}
         <SelectLink
           name="builtin-filter-frequency"
           className="font-semibold"
@@ -83,7 +85,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           emptyLabel="any number days a week"
           value={filter.frequency}
         />{" "}
-        for{" "}
+        {translate("for")}{" "}
         <SelectLink
           name="builtin-filter-duration"
           className="font-semibold"
@@ -92,7 +94,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           emptyLabel="any time"
           value={filter.duration}
         />
-        . My goal is{" "}
+        {translate(". My goal is")}{" "}
         <SelectLink
           name="builtin-filter-goal"
           className="font-semibold"
@@ -104,7 +106,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
         .
       </Text>
       <Text className="pb-4">
-        Sort ascending by:{" "}
+        {translate("Sort ascending by:")}{" "}
         <SelectLink
           name="builtin-sort"
           className="font-semibold"
@@ -119,7 +121,9 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
 
   const listEmpty = (
     <View className="px-6 py-8">
-      <Text className="text-lg text-center text-text-secondarysubtle">No programs found with selected filters</Text>
+      <Text className="text-lg text-center text-text-secondarysubtle">
+        {translate("No programs found with selected filters")}
+      </Text>
     </View>
   );
 
@@ -151,6 +155,7 @@ interface IBuiltInProgramProps {
 }
 
 const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
+  const translate = useTranslation();
   const { entry, hasCustomPrograms } = props;
   const allEquipment = useMemo(() => Equipment_currentEquipment(props.settings), [props.settings]);
   const equipment = useMemo(
@@ -182,7 +187,9 @@ const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps)
           {entry.duration && (
             <View className="flex-row items-center">
               <IconWatch />
-              <Text className="pl-1 text-sm">{entry.duration} mins</Text>
+              <Text className="pl-1 text-sm">
+                {entry.duration} {translate("mins")}
+              </Text>
             </View>
           )}
         </View>

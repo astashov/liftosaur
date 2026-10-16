@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -26,6 +27,7 @@ interface IWeightRoundingInfoContentProps {
 }
 
 export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps): JSX.Element {
+  const translate = useTranslation();
   const { set, exerciseType, settings } = props;
   const originalWeight = set.originalWeight;
   const weight = set.weight;
@@ -39,7 +41,7 @@ export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps
 
   return (
     <View testID="weight-rounding-info">
-      <Text className="pb-1 text-base font-bold">Why is the weight adjusted?</Text>
+      <Text className="pb-1 text-base font-bold">{translate("Why is the weight adjusted?")}</Text>
       {originalWeight != null && weight != null && (
         <Text className="pb-3 text-lg" testID="weight-rounding-headline">
           <Text className="text-lg line-through text-text-secondary">{Weight_display(originalWeight)}</Text>
@@ -49,12 +51,14 @@ export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps
       )}
       {Weight_isPct(originalWeight) && evaluatedWeight != null && (
         <Text className="pb-2 text-sm">
-          The program sets the target as a percentage of your 1RM:{" "}
-          <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(originalWeight)}</Text> of{" "}
+          {translate("The program sets the target as a percentage of your 1RM:")}{" "}
+          <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(originalWeight)}</Text>{" "}
+          {translate("of")}{" "}
           <Text className="text-sm font-semibold text-syntax-weight">
             {Weight_display(Weight_convertTo(Exercise_onerm(exerciseType, settings), unit))}
           </Text>{" "}
-          is <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(evaluatedWeight)}</Text>.
+          {translate("is")}{" "}
+          <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(evaluatedWeight)}</Text>.
         </Text>
       )}
       {!Weight_isPct(originalWeight) &&
@@ -62,13 +66,16 @@ export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps
         originalWeight.unit !== unit &&
         evaluatedWeight != null && (
           <Text className="pb-2 text-sm">
-            The program's weight is in <Text className="text-sm font-semibold">{originalWeight.unit}</Text> — converted
-            to <Text className="text-sm font-semibold">{unit}</Text> it's{" "}
+            {translate("The program's weight is in")}{" "}
+            <Text className="text-sm font-semibold">{originalWeight.unit}</Text> {translate("— converted to")}{" "}
+            <Text className="text-sm font-semibold">{unit}</Text> {translate("it's")}{" "}
             <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(evaluatedWeight)}</Text>.
           </Text>
         )}
       <Text className="pb-2 text-sm">
-        The app adjusts the program's exact weight to match what you can actually load with your equipment.
+        {translate(
+          "The app adjusts the program's exact weight to match what you can actually load with your equipment."
+        )}
       </Text>
       <WeightRoundingEquipmentExplanation
         settings={settings}
@@ -79,13 +86,18 @@ export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps
       />
       {equipmentData?.isAssisting && (
         <View className="p-3 mt-2 border rounded-lg border-border-cardyellow bg-background-cardyellow">
-          <Text className="text-sm font-bold">This equipment is marked as "Is Assisting".</Text>
+          <Text className="text-sm font-bold">{translate('This equipment is marked as "Is Assisting".')}</Text>
           <Text className="pt-1 text-sm">
-            Added weight is <Text className="text-sm font-semibold">subtracted</Text> from the total — like an assisted
-            pull-up machine, where more weight makes the exercise easier. That can make the working weight much lower
-            than the target, or even <Text className="text-sm font-semibold">0</Text>. If that's not how{" "}
-            <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : "this equipment"}</Text> works,
-            turn off "Is Assisting" in the equipment settings.
+            {translate("Added weight is")} <Text className="text-sm font-semibold">{translate("subtracted")}</Text>{" "}
+            {translate(
+              "from the total — like an assisted pull-up machine, where more weight makes the exercise easier. That can make the working weight much lower than the target, or even"
+            )}{" "}
+            <Text className="text-sm font-semibold">0</Text>
+            {translate(". If that's not how")}{" "}
+            <Text className="text-sm font-bold">
+              {equipmentName ? `"${equipmentName}"` : translate("this equipment")}
+            </Text>{" "}
+            {translate('works, turn off "Is Assisting" in the equipment settings.')}
           </Text>
         </View>
       )}
@@ -102,6 +114,7 @@ interface IWeightRoundingEquipmentExplanationProps {
 }
 
 function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExplanationProps): JSX.Element {
+  const translate = useTranslation();
   const { settings, exerciseType, unit, targetWeight, equipmentName } = props;
   const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
 
@@ -109,17 +122,19 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
     const rounding = Exercise_defaultRounding(exerciseType, settings);
     return (
       <Text className="text-sm">
-        This exercise has no equipment set up, so the weight is rounded to the nearest{" "}
+        {translate("This exercise has no equipment set up, so the weight is rounded to the nearest")}{" "}
         <Text className="text-sm font-semibold text-syntax-weight">
           {n(rounding)}
           {unit}
         </Text>
-        . You can change the rounding or assign equipment in the exercise settings.
+        {translate(". You can change the rounding or assign equipment in the exercise settings.")}
       </Text>
     );
   }
 
-  const name = <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : "This equipment"}</Text>;
+  const name = (
+    <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : translate("This equipment")}</Text>
+  );
 
   if (equipmentData.isFixed) {
     const fixed = CollectionUtils_sort(
@@ -128,7 +143,7 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
     );
     return (
       <Text className="text-sm">
-        {name} uses fixed weights
+        {name} {translate("uses fixed weights")}
         {fixed.length > 0 ? (
           <>
             : <Text className="text-sm font-semibold text-text-purple">{fixed.map((w) => n(w.value)).join(", ")}</Text>{" "}
@@ -137,8 +152,9 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
         ) : (
           ", but none are set up for your current unit"
         )}
-        . The app picks the heaviest one that doesn't exceed the target — or the lightest one, if they're all heavier.
-        You can edit the list in the equipment settings.
+        {translate(
+          ". The app picks the heaviest one that doesn't exceed the target — or the lightest one, if they're all heavier. You can edit the list in the equipment settings."
+        )}
       </Text>
     );
   }
@@ -148,21 +164,24 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
   const platesResult = targetWeight ? Weight_calculatePlates(targetWeight, settings, unit, exerciseType) : undefined;
   return (
     <Text className="text-sm">
-      {name} uses{" "}
+      {name} {translate("uses")}{" "}
       {usesBodyweight ? (
         <>
-          your bodyweight (<Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text>
-          ) as the base weight
+          {translate("your bodyweight (")}
+          <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text>
+          {translate(") as the base weight")}
         </>
       ) : (
         <>
-          a <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text> bar
+          a <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text>{" "}
+          {translate("bar")}
         </>
       )}
       {platesResult != null ? (
         <>
           {" "}
-          {equipmentData.isAssisting ? "minus" : "plus"} the plates you have available
+          {equipmentData.isAssisting ? translate("minus") : translate("plus")}{" "}
+          {translate("the plates you have available")}
           {platesResult.plates.length > 0 ? (
             <>
               {" "}
@@ -170,18 +189,18 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
               <Text className="text-sm font-semibold text-text-purple">
                 {Weight_formatOneSide(settings, platesResult.plates, exerciseType)}
               </Text>{" "}
-              per side)
+              {translate("per side)")}
             </>
           ) : (
-            <Text className="text-sm text-text-purple"> (no plates fit here)</Text>
+            <Text className="text-sm text-text-purple"> {translate("(no plates fit here)")}</Text>
           )}
-          , so the closest loadable weight is{" "}
+          {translate(", so the closest loadable weight is")}{" "}
           <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(platesResult.totalWeight)}</Text>
         </>
       ) : (
-        <> plus the plates you have available</>
+        <> {translate("plus the plates you have available")}</>
       )}
-      . You can edit the bar weight and available plates in the equipment settings.
+      {translate(". You can edit the bar weight and available plates in the equipment settings.")}
     </Text>
   );
 }

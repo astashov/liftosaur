@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "./primitives/text";
@@ -44,6 +45,7 @@ export interface ILiftoEditorStateVarsSheetProps {
 }
 
 export function LiftoEditorStateVarsSheet(props: ILiftoEditorStateVarsSheetProps): JSX.Element {
+  const translate = useTranslation();
   const [vars, setVars] = useState<ILiftoEditorStateVar[]>(() => LiftoEditorStateVars_fromEntries(props.entries));
   const rows = LiftoEditorStateVars_rows(vars, props.defaults, props.defaultsMetadata);
   const openCreate = useModal("createStateVarModal", (created) => {
@@ -64,25 +66,28 @@ export function LiftoEditorStateVarsSheet(props: ILiftoEditorStateVarsSheetProps
   return (
     <View>
       <Text className="text-xs text-text-secondary">
-        Values the progress script remembers between workouts. Read and changed via{" "}
-        <Text className="text-xs font-bold">state.name</Text> in the script.
+        {translate("Values the progress script remembers between workouts. Read and changed via")}{" "}
+        <Text className="text-xs font-bold">state.name</Text> {translate("in the script.")}
       </Text>
       {props.sourceName != null && (
         <Text className="pt-2 text-xs text-text-secondary">
-          Progress is reused from <Text className="text-xs font-bold">{props.sourceName}</Text>. Changing a value here
-          overrides it for this exercise only.
+          {translate("Progress is reused from")} <Text className="text-xs font-bold">{props.sourceName}</Text>
+          {translate(". Changing a value here overrides it for this exercise only.")}
         </Text>
       )}
       {props.hasUnparsed && (
         <Text className="pt-2 text-xs text-text-error">
-          There's something in this progress' arguments that isn't a state variable, so saving from here would drop it.
-          Fix the line in the editor first.
+          {translate(
+            "There's something in this progress' arguments that isn't a state variable, so saving from here would drop it. Fix the line in the editor first."
+          )}
         </Text>
       )}
       <View className="mt-3 border rounded-lg bg-background-cardpurple border-border-cardpurple">
         {rows.length === 0 && (
           <View className="p-3">
-            <Text className="text-xs text-text-secondary">This progress has no state variables yet.</Text>
+            <Text className="text-xs text-text-secondary">
+              {translate("This progress has no state variables yet.")}
+            </Text>
           </View>
         )}
         {rows.map((row) => (
@@ -105,7 +110,7 @@ export function LiftoEditorStateVarsSheet(props: ILiftoEditorStateVarsSheetProps
               className="w-full text-sm"
               onClick={() => openCreate({ existingNames: rows.map((r) => r.name) })}
             >
-              + Add State Variable
+              {translate("+ Add State Variable")}
             </Button>
           </View>
         )}
@@ -117,7 +122,7 @@ export function LiftoEditorStateVarsSheet(props: ILiftoEditorStateVarsSheetProps
           disabled={props.hasUnparsed}
           onClick={() => props.onDone(LiftoEditorStateVars_print(vars))}
         >
-          Save
+          {translate("Save")}
         </Button>
       </View>
     </View>
@@ -135,6 +140,7 @@ interface IStateVarRowProps {
 }
 
 function StateVarRow(props: IStateVarRowProps): JSX.Element {
+  const translate = useTranslation();
   const { row } = props;
   const isInherited = row.defaultValue != null;
   const isOverridden = isInherited && row.isDeclared;
@@ -144,10 +150,12 @@ function StateVarRow(props: IStateVarRowProps): JSX.Element {
         <View className="flex-1">
           {/* No leading-none: a line box the size of the font clips Poppins' ascenders. */}
           <Text>{row.name}</Text>
-          {row.userPrompted && <Text className="text-xs text-text-secondary">User prompted</Text>}
-          {isInherited && !isOverridden && <Text className="text-xs text-text-secondary">Reused</Text>}
+          {row.userPrompted && <Text className="text-xs text-text-secondary">{translate("User prompted")}</Text>}
+          {isInherited && !isOverridden && <Text className="text-xs text-text-secondary">{translate("Reused")}</Text>}
           {isOverridden && row.defaultValue != null && (
-            <Text className="text-xs text-text-secondary">Overrides {Weight_print(row.defaultValue)}</Text>
+            <Text className="text-xs text-text-secondary">
+              {translate("Overrides")} {Weight_print(row.defaultValue)}
+            </Text>
           )}
         </View>
         <View>
@@ -188,7 +196,7 @@ function StateVarRow(props: IStateVarRowProps): JSX.Element {
         <View className="items-end" style={{ width: 48 }}>
           {isOverridden ? (
             <LinkButton className="text-xs" name={`state-var-reset-${row.name}`} onClick={props.onReset}>
-              Reset
+              {translate("Reset")}
             </LinkButton>
           ) : isInherited ? null : (
             <Pressable

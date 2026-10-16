@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -15,25 +16,26 @@ interface IProps {
 }
 
 export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.Element {
+  const translate = useTranslation();
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
 
   return (
     <View>
-      <Text className="pb-2 text-xl font-bold text-center">Create Program</Text>
+      <Text className="pb-2 text-xl font-bold text-center">{translate("Create Program")}</Text>
       <Input
         identifier="modal-create-program"
-        label="Program Name"
+        label={translate("Program Name")}
         required={true}
         requiredMessage="Please enter a program name"
-        placeholder="My Awesome Routine"
+        placeholder={translate("My Awesome Routine")}
         changeType="oninput"
         changeHandler={setResult}
         handleRef={inputHandle}
       />
       <View className="flex-row justify-center mt-4" style={{ gap: 12 }}>
         <Button name="modal-create-program-cancel" kind="grayv2" onClick={props.onClose}>
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="modal-create-program-submit"
@@ -50,7 +52,7 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
             }
           }}
         >
-          {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Create"}
+          {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : translate("Create")}
         </Button>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
@@ -16,7 +17,8 @@ interface IProps {
 }
 
 export function ScreenExercises(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Exercises", navHelpKey: "exercises" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Exercises"), navHelpKey: "exercises" });
 
   return (
     <View className="px-gutter">

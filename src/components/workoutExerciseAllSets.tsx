@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
 import Animated from "react-native-reanimated";
@@ -87,6 +88,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
 }
 
 function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("WorkoutExerciseAllSets");
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
@@ -203,12 +205,14 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
     <View className="overflow-hidden">
       {props.onTargetClick && showTargetHint && (
         <Text className="px-4 pb-1 text-xs text-text-secondary" testID="workout-target-hint">
-          Tap "{targetLabel}" to switch values
+          {translate('Tap "')}
+          {targetLabel}
+          {translate('" to switch values')}
         </Text>
       )}
       <View className="flex-row items-center pb-1 border-b border-border-neutral">
         <View className="items-center" style={{ width: columnWidths.set }}>
-          <Text className="text-xs text-text-secondary">Set</Text>
+          <Text className="text-xs text-text-secondary">{translate("Set")}</Text>
         </View>
         <View className="flex-1 flex-row">
           <Pressable onPress={props.onTargetClick} className="flex-row items-center py-2 pr-4 -my-2" hitSlop={8}>
@@ -221,7 +225,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
           </Pressable>
         </View>
         <View className="items-center" style={{ width: columnWidths.reps }}>
-          <Text className="text-xs text-text-secondary">Reps</Text>
+          <Text className="text-xs text-text-secondary">{translate("Reps")}</Text>
         </View>
         <View style={{ width: columnWidths.separator }} />
         <View className="items-center" style={{ width: columnWidths.weight }}>
@@ -297,7 +301,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
       <Animated.View layout={WorkoutLayoutTransition}>
         {showExpandHint && (
           <Text className="px-4 pt-1 text-xs text-text-secondary" testID="workout-expand-hint">
-            Tap a set to expand or collapse it
+            {translate("Tap a set to expand or collapse it")}
           </Text>
         )}
 
@@ -337,7 +341,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
               onPress={onAddWarmupSet}
             >
               <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
-              <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
+              <Text className="ml-2 text-xs font-semibold text-text-link">{translate("Add Warmup Set")}</Text>
             </Pressable>
           </View>
           <View className="flex-1">
@@ -348,7 +352,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
               onPress={onAddSet}
             >
               <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
-              <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
+              <Text className="ml-2 text-xs font-semibold text-text-link">{translate("Add Set")}</Text>
             </Pressable>
           </View>
         </View>

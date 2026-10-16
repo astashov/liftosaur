@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { TextInput, ITextInput } from "./primitives/textInput";
@@ -13,11 +14,13 @@ type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select"
 
 interface IMenuItemEditableValueProps {
   name: string;
+  label?: string;
   prefix?: ReactNode;
   type: IMenuItemType;
   value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
+  valueLabels?: Record<string, string>;
   onChange?: (v?: string) => void;
   onInput?: (v: string) => void;
   pattern?: string;
@@ -58,17 +61,18 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
               props.isNameBold ? "font-bold" : ""
             } text-text-primary`}
           >
-            {props.name}
+            {props.label ?? props.name}
           </Text>
           {props.underName}
         </View>
         <View className="items-end">
           <MenuItemValue
-            name={props.name}
+            name={props.label ?? props.name}
             maxLength={props.maxLength}
             type={props.type}
             value={props.value}
             values={props.values}
+            valueLabels={props.valueLabels}
             setPatternError={() => undefined}
             onChange={props.onChange}
             onInput={props.onInput}
@@ -103,11 +107,15 @@ export function MenuItemValue(
     onInput?: (v: string) => void;
   } & IMenuItemEditableValueProps
 ): JSX.Element | null {
+  const translate = useTranslation();
   if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
-    const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
+    const currentLabel =
+      props.valueLabels?.[props.value ?? ""] ?? (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
 
     const showPicker = (): void => {
-      const options = (props.values || []).map(([, label]) => label).concat("Cancel");
+      const options = (props.values || [])
+        .map(([key, label]) => props.valueLabels?.[key] ?? label)
+        .concat(translate("Cancel"));
       ActionSheet_show({ options, cancelButtonIndex: options.length - 1 }, (buttonIndex) => {
         if (buttonIndex != null && buttonIndex < (props.values || []).length) {
           const selected = (props.values || [])[buttonIndex];
@@ -120,7 +128,7 @@ export function MenuItemValue(
 
     return (
       <Pressable onPress={showPicker} className="px-2 py-1 border rounded border-border-neutral bg-background-default">
-        <Text className="text-text-primary">{currentLabel || "Select..."}</Text>
+        <Text className="text-text-primary">{currentLabel || translate("Select...")}</Text>
       </Pressable>
     );
   }

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -70,6 +71,7 @@ const changePasswordErrorMessages: Record<string, string> = {
 };
 
 export function ChangePasswordForm(props: { service: Service; onDone: () => void }): JSX.Element {
+  const translate = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [done, setDone] = useState(false);
@@ -100,10 +102,10 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
   if (done) {
     return (
       <View className="items-center py-4">
-        <Text className="text-center text-text-secondary">Your password has been updated.</Text>
+        <Text className="text-center text-text-secondary">{translate("Your password has been updated.")}</Text>
         <View className="items-center mt-4">
           <Button name="change-password-done" kind="purple" onClick={() => props.onDone()}>
-            Done
+            {translate("Done")}
           </Button>
         </View>
       </View>
@@ -113,7 +115,7 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
   return (
     <View>
       <Input
-        label="Current password"
+        label={translate("Current password")}
         identifier="change-password-current"
         type="password"
         changeType="oninput"
@@ -126,11 +128,11 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
         }}
       />
       <Text className="mt-1 text-xs text-text-secondary">
-        Leave blank if you sign in with Google or Apple and haven't set a password yet.
+        {translate("Leave blank if you sign in with Google or Apple and haven't set a password yet.")}
       </Text>
       <View className="mt-3">
         <Input
-          label="New password"
+          label={translate("New password")}
           identifier="change-password-new"
           type="password"
           changeType="oninput"
@@ -145,7 +147,7 @@ export function ChangePasswordForm(props: { service: Service; onDone: () => void
       </View>
       <View className="mt-3">
         <Input
-          label="Repeat new password"
+          label={translate("Repeat new password")}
           identifier="change-password-repeat"
           type="password"
           changeType="oninput"
@@ -187,6 +189,7 @@ interface IAccountLoggedInViewProps {
 }
 
 function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
+  const translate = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const { account, service } = props;
@@ -194,11 +197,11 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
   if (showChangePassword) {
     return (
       <View>
-        <Text className="mb-4 text-lg font-bold text-center">Change Password</Text>
+        <Text className="mb-4 text-lg font-bold text-center">{translate("Change Password")}</Text>
         <ChangePasswordForm service={service} onDone={() => setShowChangePassword(false)} />
         <View className="items-center mt-4">
           <LinkButton name="change-password-back" className="text-xs" onPress={() => setShowChangePassword(false)}>
-            Back
+            {translate("Back")}
           </LinkButton>
         </View>
       </View>
@@ -207,7 +210,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
 
   return (
     <View>
-      <Text className="mb-4 text-lg font-bold text-center">Current Account</Text>
+      <Text className="mb-4 text-lg font-bold text-center">{translate("Current Account")}</Text>
       {isLoading ? (
         <View className="items-center my-4">
           <IconSpinner width={48} height={48} />
@@ -238,7 +241,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
           {account.name && <Text className="text-xs text-text-secondary">id: {account.id}</Text>}
           {account.email !== "noemail@example.com" && (
             <Text className="text-xs text-text-secondary">
-              Signed in as <Text className="text-xs font-bold text-text-secondary">{account.email}</Text>
+              {translate("Signed in as")} <Text className="text-xs font-bold text-text-secondary">{account.email}</Text>
             </Text>
           )}
           <View className="items-center mt-4">
@@ -262,7 +265,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
                 }
               }}
             >
-              Sign Out
+              {translate("Sign Out")}
             </Button>
             <View className="mt-3">
               <LinkButton
@@ -270,7 +273,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
                 className="text-sm"
                 onPress={() => setShowChangePassword(true)}
               >
-                Change password
+                {translate("Change password")}
               </LinkButton>
             </View>
           </View>
@@ -289,6 +292,7 @@ interface IAccountLoggedOutViewProps {
 }
 
 function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
+  const translate = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
 
@@ -301,7 +305,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
 
   return (
     <View>
-      <Text className="mb-4 text-lg font-bold text-center">Account</Text>
+      <Text className="mb-4 text-lg font-bold text-center">{translate("Account")}</Text>
       {isLoading ? (
         <View className="items-center my-4">
           <IconSpinner width={48} height={48} />
@@ -311,7 +315,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
           <EmailAuthForm service={props.service} redirectUrl={props.redirectUrl} onSignIn={props.onSignIn} />
           <View className="items-center mt-4">
             <LinkButton name="email-auth-back" className="text-xs" onPress={() => setShowEmailForm(false)}>
-              Back to sign in options
+              {translate("Back to sign in options")}
             </LinkButton>
           </View>
         </View>
@@ -357,7 +361,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
             <View>
               <IconGoogle />
             </View>
-            <Text className="flex-1 ml-2 text-base text-center">Sign in with Google</Text>
+            <Text className="flex-1 ml-2 text-base text-center">{translate("Sign in with Google")}</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center w-full px-4 py-3 mt-2 bg-black rounded-lg nm-sign-in-with-apple"
@@ -398,7 +402,9 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
             <View style={{ marginTop: -3 }}>
               <IconApple />
             </View>
-            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">Sign in with Apple</Text>
+            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">
+              {translate("Sign in with Apple")}
+            </Text>
           </Pressable>
           <EmailAuthButton onPress={props.onOpenEmailAuth || (() => setShowEmailForm(true))} />
         </View>
@@ -408,10 +414,11 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
 }
 
 export function EmailAuthButton(props: { onPress: () => void }): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="items-center mt-3">
       <LinkButton name="menu-item-login-email" className="text-xs" onPress={props.onPress}>
-        or use email login
+        {translate("or use email login")}
       </LinkButton>
     </View>
   );
@@ -442,6 +449,7 @@ interface IEmailAuthFormProps {
 }
 
 export function EmailAuthForm(props: IEmailAuthFormProps): JSX.Element {
+  const translate = useTranslation();
   const [mode, setMode] = useState<IEmailAuthMode>("signin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -540,7 +548,7 @@ export function EmailAuthForm(props: IEmailAuthFormProps): JSX.Element {
   return (
     <View className="mt-2">
       <Input
-        label="Email"
+        label={translate("Email")}
         identifier="email-auth-email"
         type="email"
         changeType="oninput"
@@ -555,7 +563,7 @@ export function EmailAuthForm(props: IEmailAuthFormProps): JSX.Element {
       {mode !== "forgot" && (
         <View className="mt-2">
           <Input
-            label="Password"
+            label={translate("Password")}
             identifier="email-auth-password"
             type="password"
             changeType="oninput"
@@ -595,17 +603,17 @@ export function EmailAuthForm(props: IEmailAuthFormProps): JSX.Element {
       <View className="flex-row justify-between mt-4 gap-4">
         {mode !== "signin" && (
           <LinkButton name="email-auth-mode-signin" className="text-sm" onPress={() => switchMode("signin")}>
-            Sign in
+            {translate("Sign in")}
           </LinkButton>
         )}
         {mode !== "signup" && (
           <LinkButton name="email-auth-mode-signup" className="text-sm" onPress={() => switchMode("signup")}>
-            Create account
+            {translate("Create account")}
           </LinkButton>
         )}
         {mode !== "forgot" && (
           <LinkButton name="email-auth-mode-forgot" className="text-sm" onPress={() => switchMode("forgot")}>
-            Forgot password?
+            {translate("Forgot password?")}
           </LinkButton>
         )}
       </View>

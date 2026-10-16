@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -42,6 +43,7 @@ function getNativeShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): R
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
+  const translate = useTranslation();
   const semantic = Tailwind_semantic();
   const activeColor = semantic.icon.purple;
   const inactiveColor = semantic.icon.neutral;
@@ -62,7 +64,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           name="home"
           currentTab={currentTab}
           icon={(isActive) => <IconHome size={20} isSelected={isActive} />}
-          text="Home"
+          text={translate("Home")}
           onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
         />
         <FooterButton
@@ -70,7 +72,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           currentTab={currentTab}
           icon={(isActive) => <IconDoc2 isSelected={isActive} />}
           hasDot={hasErrorsInProgram}
-          text="Program"
+          text={translate("Program")}
           onClick={() => props.dispatch(Thunk_pushToEditProgram())}
         />
         <View className="items-center flex-1">
@@ -92,14 +94,14 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             numberOfLines={1}
             className={`text-2xs pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}
           >
-            Workout
+            {translate("Workout")}
           </Text>
         </View>
         <FooterButton
           name="graphs"
           currentTab={currentTab}
           icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
-          text="Graphs"
+          text={translate("Graphs")}
           onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
         />
         <FooterButton
@@ -115,7 +117,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                   : Tailwind_colors().red[600];
             return <IconMe isSelected={isActive} color={color} />;
           }}
-          text="Me"
+          text={translate("Me")}
           onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
         />
       </View>

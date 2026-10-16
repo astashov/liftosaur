@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { FastText } from "../primitives/fastText";
@@ -46,7 +47,10 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
 }
 
 function CustomUpdateLabel(): JSX.Element {
-  return <FastText text="Custom Update" {...StyledText_cls(useRem())("text-xs text-text-primary font-bold")} />;
+  const translate = useTranslation();
+  return (
+    <FastText text={translate("Custom Update")} {...StyledText_cls(useRem())("text-xs text-text-primary font-bold")} />
+  );
 }
 
 function ReusingLine(props: { fullName?: string }): JSX.Element {

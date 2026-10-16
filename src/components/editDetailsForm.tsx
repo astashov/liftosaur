@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { GroupHeader } from "./groupHeader";
@@ -22,17 +23,14 @@ export function EditDetailsForm(props: {
   onCancel: () => void;
   onSubmit: (result: { name: string; description?: string }) => void;
 }): JSX.Element {
+  const translate = useTranslation();
   const { data } = props;
   const [typedNameResult, setTypedNameResult] = useState<IEither<string, Set<IValidationError>>>();
   const descriptionRef = useRef<string | undefined>(undefined);
   const inputHandle = useRef<IInputHandle>(null);
 
   const name =
-    typedNameResult == null
-      ? data.name.trim()
-      : typedNameResult.success
-        ? typedNameResult.data.trim()
-        : undefined;
+    typedNameResult == null ? data.name.trim() : typedNameResult.success ? typedNameResult.data.trim() : undefined;
 
   const onSubmit = (): void => {
     if (!name) {
@@ -75,7 +73,7 @@ export function EditDetailsForm(props: {
           className="mr-3"
           onClick={props.onCancel}
         >
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           kind="purple"

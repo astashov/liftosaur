@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { Modal, View } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -21,6 +22,7 @@ export function PromptHost(): JSX.Element | null {
 }
 
 function PromptModal(props: { request: IPromptRequest; onDismissed: () => void }): JSX.Element {
+  const translate = useTranslation();
   const valueRef = useRef<string>("");
   const isClosing = useRef(false);
 
@@ -54,10 +56,10 @@ function PromptModal(props: { request: IPromptRequest; onDismissed: () => void }
             />
             <View className="flex-row justify-end mt-4">
               <Pressable className="px-4 py-2" onPress={() => finish(undefined)}>
-                <Text className="text-base text-text-secondary">Cancel</Text>
+                <Text className="text-base text-text-secondary">{translate("Cancel")}</Text>
               </Pressable>
               <Pressable className="px-4 py-2" onPress={() => finish(valueRef.current)}>
-                <Text className="text-base font-bold text-text-link">OK</Text>
+                <Text className="text-base font-bold text-text-link">{translate("OK")}</Text>
               </Pressable>
             </View>
           </Pressable>

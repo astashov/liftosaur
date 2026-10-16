@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { ISettings } from "../types";
@@ -20,7 +21,8 @@ interface IProps {
 }
 
 export function ScreenMuscleGroups(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Muscle Groups" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Muscle Groups") });
 
   return (
     <View className="px-gutter">

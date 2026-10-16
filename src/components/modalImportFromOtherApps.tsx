@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -15,6 +16,7 @@ interface IModalImportFromOtherAppsContentProps {
 }
 
 export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherAppsContentProps): JSX.Element {
+  const translate = useTranslation();
   const onUploadHevy = useCallback(async () => {
     const contents = await FileImport_pickFile("csv");
     if (contents == null) {
@@ -28,9 +30,13 @@ export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherApps
 
   return (
     <View>
-      <GroupHeader size="large" name="Import history from other apps" />
+      <GroupHeader
+        size="large"
+        name="Import history from other apps"
+        label={translate("Import history from other apps")}
+      />
       <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onUploadHevy}>
-        <Text className="py-3">Upload CSV file from Hevy</Text>
+        <Text className="py-3">{translate("Upload CSV file from Hevy")}</Text>
       </MenuItemWrapper>
     </View>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
@@ -60,6 +61,7 @@ interface IMusclesTypeViewProps {
 }
 
 export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
+  const translate = useTranslation();
   const type = props.type;
   const muscleData = ObjectUtils_keys(props.points.screenMusclePoints[type]).reduce<
     Partial<Record<IScreenMuscle, IMuscleStyle>>
@@ -80,7 +82,10 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
         </View>
       </View>
       <View className="px-4">
-        <GroupHeader name="Muscles used, relatively to each other" />
+        <GroupHeader
+          name="Muscles used, relatively to each other"
+          label={translate("Muscles used, relatively to each other")}
+        />
         {CollectionUtils_sort(
           ObjectUtils_keys(muscleData),
           (a, b) => (muscleData[b]?.opacity || 0) - (muscleData[a]?.opacity || 0)
@@ -143,7 +148,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                       <Text className="text-base font-bold">{Exercise_get(e, props.settings.exercises).name}</Text>
                       <View className="flex-row">
                         <View data-testid="target-muscles-list" testID="target-muscles-list" className="flex-1">
-                          <Text className="text-sm text-text-secondary">Target</Text>
+                          <Text className="text-sm text-text-secondary">{translate("Target")}</Text>
                           {targetScreenMusclesWithPercentage.map(([m, val]) => (
                             <Text key={m}>
                               {m}: {val.toFixed(1)}%
@@ -151,7 +156,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                           ))}
                         </View>
                         <View data-testid="synergist-muscles-list" testID="synergist-muscles-list" className="flex-1">
-                          <Text className="text-sm text-text-secondary">Synergist</Text>
+                          <Text className="text-sm text-text-secondary">{translate("Synergist")}</Text>
                           {synergistScreenMusclesWithPercentage.map(([m, val]) => (
                             <Text key={m}>
                               {m}: {val.toFixed(1)}%

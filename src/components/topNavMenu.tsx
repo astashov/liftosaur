@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
@@ -26,6 +27,7 @@ export function TopNavMenu(props: {
   mobileRight?: JSX.Element;
   isWhite?: boolean;
 }): JSX.Element {
+  const translate = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const isLoggedIn = props.isLoggedIn;
@@ -101,7 +103,7 @@ export function TopNavMenu(props: {
                       setIsAccountModalOpen(true);
                     }}
                   >
-                    Sign Out
+                    {translate("Sign Out")}
                   </button>
                 ) : (
                   <button
@@ -111,7 +113,7 @@ export function TopNavMenu(props: {
                       setIsAccountModalOpen(true);
                     }}
                   >
-                    Sign In
+                    {translate("Sign In")}
                   </button>
                 )}
               </div>
@@ -195,6 +197,7 @@ interface IDesktopNavProps {
 }
 
 function DesktopNav(props: IDesktopNavProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <div className={`mb-4 w-full hidden md:block ${props.isWhite ? "" : "border-b border-background-neutral"}`}>
       <div
@@ -265,7 +268,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
                 onClick={() => props.onAccountClick()}
                 className={`text-sm font-medium ${props.isWhite ? "text-text-alwayswhite" : "text-text-secondary"} no-underline hover:underline whitespace-nowrap`}
               >
-                Sign In
+                {translate("Sign In")}
               </button>
             )}
             <ThemeToggle isWhite={props.isWhite} />

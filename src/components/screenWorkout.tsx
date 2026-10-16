@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { Platform, InteractionManager, View } from "react-native";
 import { useTrackClick } from "../utils/clickTracking";
@@ -39,6 +40,7 @@ interface IScreenWorkoutProps {
 }
 
 function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
+  const translate = useTranslation();
   usePerfRenderCount("ScreenWorkout");
   const progress = props.progress;
   const program = props.program;
@@ -148,12 +150,12 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const isCurrent = Progress_isCurrent(progress);
   const onDeletePress = useCallback(async (): Promise<void> => {
     const confirmed = await Dialog_confirm(
-      `Are you sure you want to delete this ${isCurrent ? "ONGOING" : "PAST"} workout?`
+      translate(isCurrent ? "Delete the ongoing workout?" : "Delete this past workout?")
     );
     if (confirmed) {
       dispatch(Thunk_deleteProgress(progress.id));
     }
-  }, [dispatch, isCurrent, progress.id]);
+  }, [dispatch, isCurrent, progress.id, translate]);
 
   const onDeletePressHandler = useCallback(() => {
     trackClick("workout-delete");

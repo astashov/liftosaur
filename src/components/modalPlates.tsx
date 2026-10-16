@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -13,12 +14,13 @@ interface IProps {
 }
 
 export function ModalPlatesContent(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
 
   return (
     <View>
-      <Text className="mb-4 text-lg font-bold">Enter new plate weight</Text>
+      <Text className="mb-4 text-lg font-bold">{translate("Enter new plate weight")}</Text>
       <Input
         identifier="plate"
         type="number"
@@ -31,7 +33,7 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
       />
       <View className="flex-row justify-between gap-3 mt-4">
         <Button name="modal-new-plate-weight-cancel" kind="grayv2" onClick={props.onClose}>
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="modal-new-plate-weight-submit"
@@ -49,7 +51,7 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
             inputHandle.current?.touch();
           }}
         >
-          Add
+          {translate("Add")}
         </Button>
       </View>
     </View>

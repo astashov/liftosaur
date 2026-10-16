@@ -1,3 +1,5 @@
+import { I18n_exerciseName } from "../i18n/exercises";
+import { useLanguage, useTranslation } from "../i18n/context";
 import { JSX, memo, useMemo, useState } from "react";
 import { View } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -64,6 +66,7 @@ function buildExercises(exerciseTypes: IExerciseType[], settings: ISettings): IE
 }
 
 export function ExercisesList(props: IExercisesListProps): JSX.Element {
+  const translate = useTranslation();
   const { settings, program, history, dispatch } = props;
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
@@ -169,7 +172,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           defaultValue={filter}
           autoCapitalize="none"
           autoCorrect={false}
-          placeholder="Filter by name"
+          placeholder={translate("Filter by name")}
           placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
           onChangeText={(t) => setFilter(t)}
           returnKeyType="search"
@@ -177,7 +180,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         <Multiselect
           id="filtertypes"
           label=""
-          placeholder="Filter by type"
+          placeholder={translate("Filter by type")}
           values={filterOptions}
           initialSelectedValues={new Set()}
           onChange={(ft) => setFilterTypes(Array.from(ft))}
@@ -185,20 +188,30 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
       </View>
       <View className="items-end">
         <LinkButton name="create-custom-exercise" onClick={() => navigateToModal("customExerciseModal", {})}>
-          Create custom exercise
+          {translate("Create custom exercise")}
         </LinkButton>
       </View>
 
-      {visibleCustom.length > 0 && <GroupHeader name="Custom Exercises" topPadding={true} />}
+      {visibleCustom.length > 0 && (
+        <GroupHeader name="Custom Exercises" label={translate("Custom Exercises")} topPadding={true} />
+      )}
       {visibleCustom.map((exercise) => (
         <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
 
-      {visibleProgram.length > 0 && <GroupHeader name="Current program exercises" topPadding={true} />}
+      {visibleProgram.length > 0 && (
+        <GroupHeader
+          name="Current program exercises"
+          label={translate("Current program exercises")}
+          topPadding={true}
+        />
+      )}
       {visibleProgram.map((exercise) => (
         <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
-      {visibleHistoryEx.length > 0 && <GroupHeader name="Exercises from history" topPadding={true} />}
+      {visibleHistoryEx.length > 0 && (
+        <GroupHeader name="Exercises from history" label={translate("Exercises from history")} topPadding={true} />
+      )}
       {visibleHistoryEx.map((exercise) => (
         <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
@@ -232,6 +245,8 @@ function areExerciseItemPropsEqual(prev: IExerciseItemProps, next: IExerciseItem
 }
 
 const ExerciseItem = memo(function ExerciseItem(props: IExerciseItemProps): JSX.Element {
+  const language = useLanguage();
+  const translate = useTranslation();
   return (
     <MenuItemWrapper
       name={props.exercise.name}
@@ -252,18 +267,21 @@ const ExerciseItem = memo(function ExerciseItem(props: IExerciseItemProps): JSX.
           </View>
         </View>
         <View className="flex-1 py-2">
-          <Text className="text-base text-text-primary">{props.exercise.name}</Text>
+          <Text className="text-base text-text-primary">
+            {I18n_exerciseName(props.exercise, props.settings.exercises, language)}
+          </Text>
           <View className="flex-row text-xs text-text-secondary">
             <Text className="mr-2 text-xs text-text-secondary">
               <Text className="text-xs font-bold text-text-secondary">1RM:</Text> {Weight_print(props.exercise.rm1)},
             </Text>
             {props.exercise.equipmentName ? (
               <Text className="text-xs text-text-secondary">
-                <Text className="text-xs font-bold text-text-secondary">Equipment:</Text> {props.exercise.equipmentName}
+                <Text className="text-xs font-bold text-text-secondary">{translate("Equipment:")}</Text>{" "}
+                {props.exercise.equipmentName}
               </Text>
             ) : (
               <Text className="text-xs text-text-secondary">
-                <Text className="text-xs font-bold text-text-secondary">Default rounding:</Text>{" "}
+                <Text className="text-xs font-bold text-text-secondary">{translate("Default rounding:")}</Text>{" "}
                 {props.exercise.defaultRounding}
               </Text>
             )}

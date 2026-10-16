@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -15,13 +16,14 @@ interface IProps {
 }
 
 export function ScreenRecentImports(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Recent Imports" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Recent Imports") });
   const importSessions = [...(props.importSessions ?? [])].reverse();
 
   return (
     <View className="px-gutter">
       {importSessions.length === 0 ? (
-        <Text className="py-8 text-center text-text-secondary">No recent imports</Text>
+        <Text className="py-8 text-center text-text-secondary">{translate("No recent imports")}</Text>
       ) : (
         importSessions.map((session) => (
           <View key={session.id} className="flex-row items-center py-3 border-b border-border-neutral">
@@ -40,7 +42,7 @@ export function ScreenRecentImports(props: IProps): JSX.Element {
               </Text>
             </View>
             <LinkButton name={`undo-import-${session.id}`} onClick={() => props.dispatch(Thunk_undoImport(session.id))}>
-              Undo
+              {translate("Undo")}
             </LinkButton>
           </View>
         ))

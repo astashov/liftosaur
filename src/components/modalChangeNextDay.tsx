@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, View } from "react-native";
 import { Text } from "./primitives/text";
@@ -23,6 +24,7 @@ interface IModalChangeNextDayProps {
 type IDayEntry = [string, string];
 
 export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.Element {
+  const translate = useTranslation();
   const { allPrograms, settings, stats, onSelect, onClose } = props;
   const [currentProgramId, setCurrentProgramId] = useState(props.initialCurrentProgramId);
 
@@ -115,10 +117,10 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
 
   const header = (
     <View>
-      <Text className="mb-1 text-lg font-semibold text-center">Change Next Workout</Text>
+      <Text className="mb-1 text-lg font-semibold text-center">{translate("Change Next Workout")}</Text>
       <View className="items-center">
         <LinkButton name="change-next-day-empty-program" className="mb-2 text-xs" onPress={handleEmptyProgram}>
-          Go without a program
+          {translate("Go without a program")}
         </LinkButton>
       </View>
       {allPrograms.length > 1 && (
@@ -126,6 +128,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
           <MenuItemEditable
             type="select"
             name="Program"
+            label={translate("Program")}
             value={currentProgram?.id ?? ""}
             values={programsValues}
             onChange={handleProgramChange}
@@ -140,7 +143,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
       <View className="flex-1">
         {header}
         <View className="mx-4">
-          <Text>No Programs</Text>
+          <Text>{translate("No Programs")}</Text>
         </View>
       </View>
     );

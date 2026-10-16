@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useMemo } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -19,7 +20,6 @@ import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
 import { Exercise_toKey } from "../models/exercise";
 import { SimpleMarkdown } from "./simpleMarkdown";
-import { StringUtils_pluralize } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
 import { Thunk_startProgramDay, Thunk_editHistoryRecord } from "../ducks/thunks";
@@ -48,6 +48,7 @@ function getNativeCardShadow(): Record<string, unknown> {
 }
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
+  const translate = useTranslation();
   const { historyRecord, dispatch } = props;
   const isCurrent = Progress_isCurrent(historyRecord);
   const description = isCurrent ? props.programDay?.description : undefined;
@@ -152,7 +153,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                   className="w-full"
                   onPress={handleCardPress}
                 >
-                  Continue
+                  {translate("Continue")}
                 </Button>
               )}
             </View>
@@ -169,13 +170,14 @@ interface IHistoryRecordStats {
 }
 
 function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
+  const translate = useTranslation();
   const record = props.historyRecord;
   const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
   const totalWeight = History_totalRecordWeight(record, props.settings);
   const totalReps = History_totalRecordReps(record);
   const totalSets = History_totalRecordSets(record);
-  const setsUnit = StringUtils_pluralize("set", totalSets);
-  const repsUnit = StringUtils_pluralize("rep", totalReps);
+  const setsUnit = translate(totalSets === 1 ? "set" : "sets");
+  const repsUnit = translate(totalReps === 1 ? "rep" : "reps");
 
   return (
     <View className="flex-row justify-between mt-4">

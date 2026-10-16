@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../../ducks/types";
@@ -17,7 +18,8 @@ interface IProps {
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Edit Program" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Edit Program") });
 
   const fetchFn =
     typeof window !== "undefined"
@@ -29,9 +31,10 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
   return (
     <View className="px-4">
       <MigrationBanner program={props.editProgram} settings={props.settings} client={fetchFn} />
-      <GroupHeader name="Current Program" />
+      <GroupHeader name="Current Program" label={translate("Current Program")} />
       <MenuItem
         name="Program"
+        label={translate("Program")}
         value={props.editProgram.name}
         expandValue={true}
         shouldShowRightArrow={true}

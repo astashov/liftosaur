@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 import { View, Pressable } from "react-native";
@@ -138,6 +139,7 @@ function getData(
 }
 
 function GraphExerciseInner(props: IGraphProps): JSX.Element {
+  const translate = useTranslation();
   usePerfWhyRender("graph", props as unknown as Record<string, unknown>);
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
   const eqName = equipmentName(props.exercise.equipment);
@@ -152,13 +154,13 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const series: ILineChartSeries[] = useMemo(
     () => [
       {
-        label: "Weight",
+        label: translate("Weight"),
         show: selectedType === "weight",
         color: Tailwind_colors().red[500],
         width: 1.5,
       },
       {
-        label: "Reps",
+        label: translate("Reps"),
         show: false,
         color: Tailwind_colors().yellow[500],
         width: 1,
@@ -176,13 +178,13 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
         width: 1.5,
       },
       {
-        label: "Bodyweight",
+        label: translate("Bodyweight"),
         show: true,
         color: Tailwind_colors().green[500],
         width: 1,
       },
     ],
-    [selectedType, props.isWithOneRm]
+    [selectedType, props.isWithOneRm, translate]
   );
 
   const yearSec = 365 * 24 * 60 * 60;
@@ -220,7 +222,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
                 setSelectedType(v as IExerciseSelectedType);
               }}
               options={[
-                { value: "weight", label: "Max Weight" },
+                { value: "weight", label: translate("Max Weight") },
                 { value: "volume", label: "Volume" },
               ]}
               className="p-2 text-xs text-right bg-background-default"
@@ -273,6 +275,7 @@ interface IGraphExerciseLegendProps {
 }
 
 function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | null {
+  const translate = useTranslation();
   const { cursorIdx, data, units } = props;
   if (cursorIdx == null) {
     return null;
@@ -321,7 +324,7 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
             <>
               <Text className="text-sm">
                 {DateUtils_format(date)}, <Text className="text-sm font-bold">{weight}</Text> {units}s x{" "}
-                <Text className="text-sm font-bold">{reps}</Text> reps
+                <Text className="text-sm font-bold">{reps}</Text> {translate("reps")}
                 {props.isWithOneRm && onerm != null && (
                   <Text className="text-sm">
                     , e1RM = <Text className="text-sm font-bold">{onerm.toFixed(2)}</Text> {units}s
@@ -330,21 +333,22 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
               </Text>
               {!!(props.record && props.dispatch) && (
                 <Pressable onPress={onWorkoutPress}>
-                  <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
+                  <Text className="ml-2 text-sm font-bold underline text-text-link">{translate("Workout")}</Text>
                 </Pressable>
               )}
             </>
           ) : (
             <>
               <Text className="text-sm">
-                {DateUtils_format(date)}, Volume:{" "}
+                {DateUtils_format(date)}
+                {translate(", Volume:")}{" "}
                 <Text className="text-sm font-bold">
                   {volume} {units}s
                 </Text>
               </Text>
               {!!(props.record && props.dispatch) && (
                 <Pressable onPress={onWorkoutPress}>
-                  <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
+                  <Text className="ml-2 text-sm font-bold underline text-text-link">{translate("Workout")}</Text>
                 </Pressable>
               )}
             </>
@@ -352,7 +356,8 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
         </View>
       ) : bodyweight != null ? (
         <Text className="text-sm">
-          {DateUtils_format(date)}, Bodyweight - <Text className="text-sm font-bold">{bodyweight}</Text> {units}
+          {DateUtils_format(date)}
+          {translate(", Bodyweight -")} <Text className="text-sm font-bold">{bodyweight}</Text> {units}
         </Text>
       ) : null}
       {!!(entryNotes.length > 0 || props.record?.notes) && (
@@ -364,7 +369,7 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
           ))}
           {!!props.record?.notes && (
             <Text className="text-xs text-text-secondary">
-              <Text className="text-xs font-bold">Workout: </Text>
+              <Text className="text-xs font-bold">{translate("Workout:")} </Text>
               {props.record.notes}
             </Text>
           )}

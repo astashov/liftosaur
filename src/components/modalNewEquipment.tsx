@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -11,15 +12,16 @@ interface IProps {
 }
 
 export function ModalNewEquipmentContent(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
 
   return (
     <View>
-      <Text className="mb-4 text-lg font-bold">Enter new equipment name</Text>
+      <Text className="mb-4 text-lg font-bold">{translate("Enter new equipment name")}</Text>
       <Input
         identifier="equipment-name"
-        label="Equipment name"
+        label={translate("Equipment name")}
         required={true}
         requiredMessage="Please enter a name for the equipment"
         type="text"
@@ -30,7 +32,7 @@ export function ModalNewEquipmentContent(props: IProps): JSX.Element {
       />
       <View className="flex-row justify-between gap-3 mt-4">
         <Button name="add-equipment-cancel" kind="grayv2" onClick={props.onClose}>
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="add-equipment-submit"
@@ -43,7 +45,7 @@ export function ModalNewEquipmentContent(props: IProps): JSX.Element {
             }
           }}
         >
-          Add
+          {translate("Add")}
         </Button>
       </View>
     </View>

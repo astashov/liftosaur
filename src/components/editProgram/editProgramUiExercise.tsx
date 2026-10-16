@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
@@ -84,6 +85,7 @@ interface IEditProgramUiExerciseViewProps {
 export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView(
   props: IEditProgramUiExerciseViewProps
 ): JSX.Element {
+  const translate = useTranslation();
   const { weekIndex, dayIndex, exerciseIndex, isCollapsed } = props;
   const exercise = Exercise_findByName(props.plannerExercise.name, props.settings.exercises);
 
@@ -127,7 +129,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
             </View>
             {props.plannerExercise.notused && (
               <View className="px-1 ml-3 rounded bg-background-darkgray">
-                <Text className="text-xs font-bold text-text-alwayswhite">UNUSED</Text>
+                <Text className="text-xs font-bold text-text-alwayswhite">{translate("UNUSED")}</Text>
               </View>
             )}
             <Pressable
@@ -254,6 +256,7 @@ interface IEditProgramUiExerciseContentViewProps {
 export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerciseContentView(
   props: IEditProgramUiExerciseContentViewProps
 ): JSX.Element {
+  const translate = useTranslation();
   const plannerExercise = props.plannerExercise;
   const exercise = props.exercise;
   const exerciseType = exercise != null ? { id: exercise.id, equipment: props.plannerExercise.equipment } : undefined;
@@ -298,7 +301,7 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
                   {displayWarmupSets.flat().length > 0 && (
                     <>
                       <View data-testid="ui-warmups-sets" testID="ui-warmups-sets">
-                        <Text className="pb-1 text-xs text-left text-text-secondary">Warmups</Text>
+                        <Text className="pb-1 text-xs text-left text-text-secondary">{translate("Warmups")}</Text>
                         <View>
                           <View>
                             {displayWarmupSets.map((g, gi) => (
@@ -311,8 +314,12 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
                     </>
                   )}
                   <View data-testid="ui-workout-sets" testID="ui-workout-sets">
-                    <Text className="pb-1 text-xs text-left text-text-secondary">Workout</Text>
-                    {reusingSets && <Text className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</Text>}
+                    <Text className="pb-1 text-xs text-left text-text-secondary">{translate("Workout")}</Text>
+                    {reusingSets && (
+                      <Text className="pb-1 text-xs text-text-secondary">
+                        {translate("Reusing")} {reusingSets}
+                      </Text>
+                    )}
                     <PerfProfiler id="ExerciseView.setVariations" onRender={onExerciseProfile}>
                       <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
                     </PerfProfiler>

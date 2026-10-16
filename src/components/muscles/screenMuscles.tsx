@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { IPoints } from "../../models/muscle";
@@ -17,7 +18,8 @@ interface IProps {
 }
 
 export function ScreenMuscles(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Muscles Map", navSubtitle: props.title, navHelpKey: props.helpKey });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Muscles Map"), navSubtitle: props.title, navHelpKey: props.helpKey });
 
   return <MusclesView title={props.title} points={props.points} settings={props.settings} />;
 }

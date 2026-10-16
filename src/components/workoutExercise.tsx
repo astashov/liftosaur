@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -59,6 +60,7 @@ interface IWorkoutExerciseProps {
 }
 
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("WorkoutExercise");
   // Stabilize the exercise reference by identity: props.entry.exercise gets rebuilt (value-identical,
   // new ref) on every set completion, and it feeds GraphExercise/ExerciseHistory and their O(history)
@@ -190,7 +192,9 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
         {((props.prevData?.count ?? 0) > 1 || showPrs) && (
           <View className="items-center mt-2">
             <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
-              {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
+              {props.settings.workoutSettings.shouldHideGraphs
+                ? translate("Show Graphs and PRs")
+                : translate("Hide Graphs and PRs")}
             </LinkButton>
           </View>
         )}

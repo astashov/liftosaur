@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -30,6 +31,7 @@ interface IProps {
 }
 
 export function ScreenApiKeys(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [keys, setKeys] = useState<IApiKey[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const newKeyNameRef = useRef("");
@@ -80,28 +82,32 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
     setTimeout(() => setCopiedKey(undefined), 2000);
   };
 
-  useNavOptions({ navTitle: "API Keys" });
+  useNavOptions({ navTitle: translate("API Keys") });
 
   return (
     <View className="px-gutter">
       {!isLoggedIn ? (
         <View className="py-8">
           <Text className="mb-4 text-center text-text-secondary">
-            API keys let you integrate Liftosaur with external tools, LLMs, and MCP servers. You can read and edit your
-            workout history and programs, and simulate workouts via the playground endpoint.
+            {translate(
+              "API keys let you integrate Liftosaur with external tools, LLMs, and MCP servers. You can read and edit your workout history and programs, and simulate workouts via the playground endpoint."
+            )}
           </Text>
-          <Text className="text-center text-text-secondary">You need to log in first to manage API keys.</Text>
+          <Text className="text-center text-text-secondary">
+            {translate("You need to log in first to manage API keys.")}
+          </Text>
           <View className="items-center mt-4">
             <Button kind="purple" name="login-for-api" onClick={() => props.dispatch(Thunk_pushScreen("account"))}>
-              Log in
+              {translate("Log in")}
             </Button>
           </View>
         </View>
       ) : !isSubscribed ? (
         <View className="py-8">
           <Text className="mb-4 text-center text-text-secondary">
-            API keys let you integrate Liftosaur with external tools, LLMs, and MCP servers. You can read and edit your
-            workout history and programs, and simulate workouts via the playground endpoint.
+            {translate(
+              "API keys let you integrate Liftosaur with external tools, LLMs, and MCP servers. You can read and edit your workout history and programs, and simulate workouts via the playground endpoint."
+            )}
           </Text>
           <View className="items-center">
             <Button
@@ -109,19 +115,19 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
               name="subscribe-for-api"
               onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
             >
-              Subscribe to unlock
+              {translate("Subscribe to unlock")}
             </Button>
           </View>
         </View>
       ) : (
         <>
-          <GroupHeader name="Create New Key" />
+          <GroupHeader name="Create New Key" label={translate("Create New Key")} />
           <View className="flex-row items-center gap-2 pb-2">
             <View className="flex-1">
               <Input
                 type="text"
                 inputSize="sm"
-                placeholder="Key name"
+                placeholder={translate("Key name")}
                 changeHandler={(result) => {
                   if (result.success) {
                     newKeyNameRef.current = result.data;
@@ -133,19 +139,19 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
               {isCreating ? (
                 <IconSpinner color="white" width={18} height={18} />
               ) : (
-                <Text className="text-text-alwayswhite font-semibold">Create</Text>
+                <Text className="text-text-alwayswhite font-semibold">{translate("Create")}</Text>
               )}
             </Button>
           </View>
           {createError && <Text className="pb-2 text-xs text-text-error">{createError}</Text>}
 
-          <GroupHeader name="Your Keys" topPadding={true} />
+          <GroupHeader name="Your Keys" label={translate("Your Keys")} topPadding={true} />
           {isLoading ? (
             <View className="items-center py-4">
               <IconSpinner width={40} height={40} />
             </View>
           ) : keys.length === 0 ? (
-            <Text className="py-4 text-center text-text-secondary">No API keys yet</Text>
+            <Text className="py-4 text-center text-text-secondary">{translate("No API keys yet")}</Text>
           ) : (
             keys.map((apiKey) => (
               <View key={apiKey.key} className="py-2 border-b border-border-neutral">
@@ -154,13 +160,13 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
                     <Text className="font-bold">{apiKey.name}</Text>
                     <Text className="text-xs text-text-secondary">{apiKey.key}</Text>
                     <Text className="text-xs text-text-secondary">
-                      Created {new Date(apiKey.createdAt).toLocaleDateString()}
+                      {translate("Created")} {new Date(apiKey.createdAt).toLocaleDateString()}
                     </Text>
                   </View>
                   <View className="flex-row gap-4 ml-2 shrink-0">
                     <Pressable testID="copy-api-key" data-testid="copy-api-key" onPress={() => handleCopy(apiKey.key)}>
                       <Text className="text-xs underline text-text-link">
-                        {copiedKey === apiKey.key ? "Copied!" : "Copy"}
+                        {copiedKey === apiKey.key ? translate("Copied!") : translate("Copy")}
                       </Text>
                     </Pressable>
                     <Pressable
@@ -168,7 +174,7 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
                       data-testid="delete-api-key"
                       onPress={() => handleDelete(apiKey.key)}
                     >
-                      <Text className="text-xs underline text-text-error">Delete</Text>
+                      <Text className="text-xs underline text-text-error">{translate("Delete")}</Text>
                     </Pressable>
                   </View>
                 </View>

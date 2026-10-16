@@ -1612,6 +1612,7 @@ void _VMuscleGroupsSettingsMatches;
 export const VMuscleGroupsSettings: v.GenericSchema<IMuscleGroupsSettings> = _VMuscleGroupsSettings;
 
 export interface ISettings {
+  language?: "system" | "en" | "fr";
   timers: ISettingsTimers;
   gyms: IGym[];
   deletedGyms?: string[];
@@ -1663,6 +1664,7 @@ export interface ISettings {
   affiliateEnabled?: boolean;
 }
 const _VSettings = v.object({
+  language: v.optional(v.picklist(["system", "en", "fr"])),
   timers: VSettingsTimers,
   gyms: v.array(VGym),
   deletedGyms: v.optional(v.array(v.string())),

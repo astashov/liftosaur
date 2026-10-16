@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useRef, useState } from "react";
 import { Platform, Pressable, View } from "react-native";
 import { Text, TextRaw, Text_resolveFontFamily } from "./primitives/text";
@@ -52,6 +53,7 @@ interface ISetTimerBannerContentProps {
 }
 
 export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.Element | null {
+  const translate = useTranslation();
   const { progress, dispatch, setTimerModal, settings, onClose, isPlayground } = props;
   const { entryIndex, setIndex, startedAt } = setTimerModal;
   const sideLabel =
@@ -154,7 +156,7 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
           subtitle={
             <View className="flex-row items-center flex-wrap">
               <Text className="text-text-secondary text-sm">
-                Set {setIndex + 1} of {entry.sets.length}
+                {translate("Set")} {setIndex + 1} {translate("of")} {entry.sets.length}
               </Text>
               {sideLabel != null && (
                 <Text
@@ -172,10 +174,10 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
         <GetReadyRing secondsLeft={getReadyLeft} total={getReadyTotal} target={target} onPress={onStartNow} />
         <View className="mt-6 gap-2">
           <Button name="set-timer-start-now" data-testid="set-timer-start-now" kind="purple" onPress={onStartNow}>
-            Start now
+            {translate("Start now")}
           </Button>
           <Button name="set-timer-discard" data-testid="set-timer-discard" kind="transparent-purple" onPress={onClose}>
-            Discard &amp; close
+            {translate("Discard & close")}
           </Button>
         </View>
       </View>
@@ -190,7 +192,7 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
         subtitle={
           <View className="flex-row items-center flex-wrap">
             <Text className="text-text-secondary text-sm">
-              Set {setIndex + 1} of {entry.sets.length}
+              {translate("Set")} {setIndex + 1} {translate("of")} {entry.sets.length}
               {" - "}
             </Text>
             <WorkoutExerciseSetTarget set={set} setType="program" />
@@ -217,7 +219,9 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
           {elapsedLabel}
         </Text>
         <Text className="text-text-secondary">
-          of <Text className="font-semibold text-syntax-timer">{TimeUtils_formatMMSS(target * 1000)}</Text> target
+          {translate("of")}{" "}
+          <Text className="font-semibold text-syntax-timer">{TimeUtils_formatMMSS(target * 1000)}</Text>{" "}
+          {translate("target")}
         </Text>
       </View>
       <ProgressBar pct={pct} />
@@ -243,11 +247,12 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
             kind="lightpurple"
             onPress={onLogKeepTiming}
           >
-            Log {elapsedLabel}, keep timing
+            {translate("Log")} {elapsedLabel}
+            {translate(", keep timing")}
           </Button>
         )}
         <Button name="set-timer-discard" data-testid="set-timer-discard" kind="transparent-purple" onPress={onClose}>
-          Discard &amp; close
+          {translate("Discard & close")}
         </Button>
       </View>
     </View>
@@ -278,6 +283,7 @@ function arcPath(center: number, radius: number, fromAngle: number, toAngle: num
 }
 
 function GetReadyRing(props: { secondsLeft: number; total: number; target: number; onPress: () => void }): JSX.Element {
+  const translate = useTranslation();
   const { secondsLeft, total, target } = props;
   const semantic = Tailwind_semantic();
   const stroke = 10;
@@ -343,8 +349,12 @@ function GetReadyRing(props: { secondsLeft: number; total: number; target: numbe
           </TextRaw>
         </View>
       </Pressable>
-      <Text className="text-lg font-bold text-text-cardyellow">Get Ready</Text>
-      {target > 0 && <Text className="text-sm text-text-secondary">then {TimeUtils_formatMMSS(target * 1000)}</Text>}
+      <Text className="text-lg font-bold text-text-cardyellow">{translate("Get Ready")}</Text>
+      {target > 0 && (
+        <Text className="text-sm text-text-secondary">
+          {translate("then")} {TimeUtils_formatMMSS(target * 1000)}
+        </Text>
+      )}
     </View>
   );
 }

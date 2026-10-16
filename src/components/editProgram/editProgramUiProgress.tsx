@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { FastText } from "../primitives/fastText";
@@ -74,6 +75,7 @@ interface IProgressionProps {
 }
 
 function Progression(props: IProgressionProps): JSX.Element {
+  const translate = useTranslation();
   const cls = StyledText_cls(useRem());
   const base = cls("text-xs text-text-primary");
   const bold = cls("font-bold");
@@ -156,10 +158,10 @@ function Progression(props: IProgressionProps): JSX.Element {
       const built = builder.build();
       return (
         <View>
-          <FastText text="Custom Progression" {...cls("text-xs text-text-primary font-bold")} />
+          <FastText text={translate("Custom Progression")} {...cls("text-xs text-text-primary font-bold")} />
           {entries.length > 0 && (
             <View>
-              <FastText text="State variables:" {...cls("text-xs text-text-secondary")} />
+              <FastText text={translate("State variables:")} {...cls("text-xs text-text-secondary")} />
               <View className="ml-4">
                 <FastText text={built.text} fragments={built.fragments} {...base} />
               </View>

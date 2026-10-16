@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -22,6 +23,7 @@ interface IModalDayFromAdhocContentProps {
 }
 
 export function ModalDayFromAdhocContent(props: IModalDayFromAdhocContentProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <>
       <View className="justify-center pb-2">
@@ -32,11 +34,11 @@ export function ModalDayFromAdhocContent(props: IModalDayFromAdhocContentProps):
           className="text-sm text-center"
           onClick={props.onCreateProgram}
         >
-          Create a new program with this workout
+          {translate("Create a new program with this workout")}
         </LinkButton>
       </View>
       <View className="items-center justify-center mx-4 mb-1">
-        <Text className="text-sm">or select day to add after in the existing program:</Text>
+        <Text className="text-sm">{translate("or select day to add after in the existing program:")}</Text>
       </View>
       <NextDayPicker
         initialCurrentProgramId={props.initialCurrentProgramId}

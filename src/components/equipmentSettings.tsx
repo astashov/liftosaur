@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Fragment, Ref, useState } from "react";
 import { View, Platform, LayoutAnimation, UIManager } from "react-native";
 import { Pressable } from "./primitives/pressable";
@@ -67,6 +68,7 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 }
 
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
+  const translate = useTranslation();
   const lensDispatch = buildLensDispatch(props.dispatch);
   const hiddenEquipment = ObjectUtils_keys(props.allEquipment).filter((e) => {
     const eq = props.allEquipment[e];
@@ -104,7 +106,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         })}
       {hiddenEquipment.length > 0 && (
         <View className="flex-row flex-wrap mx-4 my-2">
-          <Text className="text-xs">Hidden Equipment: </Text>
+          <Text className="text-xs">{translate("Hidden Equipment:")} </Text>
           {hiddenEquipment.map((e, i) => (
             <Fragment key={e}>
               {i !== 0 && <Text className="text-xs">, </Text>}
@@ -126,7 +128,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
       )}
       <View className="m-4">
         <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
-          Add New Equipment Type
+          {translate("Add New Equipment Type")}
         </LinkButton>
       </View>
     </View>
@@ -229,12 +231,14 @@ interface IEquipmentRowBodyProps<T> {
 }
 
 export function EquipmentRowBody<T>(props: IEquipmentRowBodyProps<T>): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="px-2 border border-t-0 bg-background-default rounded-b-xl border-border-neutral">
       <View className="px-2">
         {props.equipmentData.name && (
           <MenuItemEditable
             name="Name"
+            label={translate("Name")}
             type="text"
             value={props.equipmentData.name}
             onChange={(newValue?: string) => {
@@ -263,6 +267,7 @@ export function EquipmentRowBody<T>(props: IEquipmentRowBodyProps<T>): JSX.Eleme
 }
 
 function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISettings }): JSX.Element {
+  const translate = useTranslation();
   const { equipmentData, settings } = props;
   const unit = equipmentData.unit ?? settings.units;
 
@@ -272,7 +277,7 @@ function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISet
       (a, b) => Weight_compare(a, b)
     );
     if (fixedWeights.length === 0) {
-      return <Text className="text-xs text-text-secondary">Fixed weights</Text>;
+      return <Text className="text-xs text-text-secondary">{translate("Fixed weights")}</Text>;
     }
     const display = fixedWeights.slice(0, 10).map((w) => Weight_print(w));
     return (
@@ -299,7 +304,7 @@ function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISet
   }
 
   if (parts.length === 0) {
-    return <Text className="text-xs text-text-secondary">No plates configured</Text>;
+    return <Text className="text-xs text-text-secondary">{translate("No plates configured")}</Text>;
   }
   return <Text className="text-xs text-text-secondary">{parts.join(" · ")}</Text>;
 }
@@ -361,10 +366,12 @@ interface IEquipmentSettingsValuesProps<T> {
 }
 
 export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<T>): JSX.Element {
+  const translate = useTranslation();
   return (
     <>
       <MenuItemEditable
         name="Is Fixed Weight"
+        label={translate("Is Fixed Weight")}
         type="boolean"
         value={props.equipmentData.isFixed ? "true" : "false"}
         onChange={(newValue?: string) => {
@@ -376,6 +383,7 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
       />
       <MenuItemEditable
         name="Unit"
+        label={translate("Unit")}
         type="select"
         value={props.equipmentData.unit ?? ""}
         values={[
@@ -432,6 +440,7 @@ interface IEquipmentSettingsFixedProps<T> {
 }
 
 function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.Element {
+  const translate = useTranslation();
   const { equipmentData } = props;
   const units = equipmentData.unit ?? props.settings.units;
   const fixed = CollectionUtils_sort(
@@ -472,7 +481,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
         name="add-new-fixed-weight"
         onClick={() => navigateToModal("newFixedWeightModal", { equipment: props.name })}
       >
-        Add New Fixed Weight
+        {translate("Add New Fixed Weight")}
       </LinkButton>
     </View>
   );
@@ -489,6 +498,7 @@ interface IEquipmentSettingsPlatesProps<T> {
 }
 
 function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JSX.Element {
+  const translate = useTranslation();
   const { equipmentData, settings } = props;
   const units = equipmentData.unit ?? settings.units;
   const barWeight = equipmentData.bar[units];
@@ -503,11 +513,16 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
     <View className="mb-4">
       {equipmentData.useBodyweightForBar ? (
         <View className="opacity-50">
-          <MenuItem name="Bar" value={currentBodyweight != null ? Weight_print(currentBodyweight) : "None"} />
+          <MenuItem
+            name="Bar"
+            label={translate("Bar")}
+            value={currentBodyweight != null ? Weight_print(currentBodyweight) : "None"}
+          />
         </View>
       ) : (
         <MenuItemEditable
           name="Bar"
+          label={translate("Bar")}
           type="number"
           value={barWeight.value.toString()}
           valueUnits={barWeight.unit}
@@ -524,6 +539,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       )}
       <MenuItemEditable
         name="Bodyweight for Bar"
+        label={translate("Bodyweight for Bar")}
         type="boolean"
         value={equipmentData.useBodyweightForBar ? "true" : "false"}
         onChange={(newValue?: string) => {
@@ -535,9 +551,10 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       />
       <MenuItemEditable
         name="Is assisting?"
+        label={translate("Is assisting?")}
         underName={
           <Text className="text-xs text-text-secondary">
-            If it should reduce total weight, e.g. for assisted pullups
+            {translate("If it should reduce total weight, e.g. for assisted pullups")}
           </Text>
         }
         type="boolean"
@@ -551,6 +568,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       />
       <MenuItemEditable
         name="Sides"
+        label={translate("Sides")}
         type="number"
         value={equipmentData.multiplier.toString()}
         onChange={(newValue?: string) => {
@@ -576,7 +594,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           }
         }}
       />
-      <GroupHeader topPadding={true} name="Notes" />
+      <GroupHeader topPadding={true} name="Notes" label={translate("Notes")} />
       <View style={{ marginLeft: -4, marginRight: -4 }}>
         <MarkdownEditorBorderless
           debounceMs={500}
@@ -631,7 +649,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         name="add-new-plate-weight"
         onClick={() => navigateToModal("newPlateModal", { equipment: props.name })}
       >
-        Add New Plate Weight
+        {translate("Add New Plate Weight")}
       </LinkButton>
     </View>
   );

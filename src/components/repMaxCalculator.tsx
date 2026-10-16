@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -13,6 +14,7 @@ interface IRepMaxCalculatorProps {
 }
 
 export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
+  const translate = useTranslation();
   const [knownReps, setKnownReps] = useState<string>("5");
   const [knownRpe, setKnownRpe] = useState<string>("10");
   const [knownWeight, setKnownWeight] = useState<string>("200");
@@ -35,13 +37,15 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
 
   return (
     <View>
-      <Text className="mb-4 text-xl font-bold text-center">Rep Max Calculator</Text>
-      <Text className="mb-2">Enter the weight you lift for number of reps and RPE. For Rep Max, use 10 RPE.</Text>
+      <Text className="mb-4 text-xl font-bold text-center">{translate("Rep Max Calculator")}</Text>
+      <Text className="mb-2">
+        {translate("Enter the weight you lift for number of reps and RPE. For Rep Max, use 10 RPE.")}
+      </Text>
       <View className="flex-row items-center mb-4 gap-2">
         <View className="flex-1">
           <Input
             type="number"
-            label="Reps"
+            label={translate("Reps")}
             data-testid="rep-max-calculator-known-reps"
             testID="rep-max-calculator-known-reps"
             identifier="rep-max-calculator-known-reps"
@@ -82,7 +86,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <View className="flex-1">
           <Input
             type="number"
-            label="Weight"
+            label={translate("Weight")}
             data-testid="rep-max-calculator-known-weight"
             testID="rep-max-calculator-known-weight"
             identifier="rep-max-calculator-known-weight"
@@ -100,7 +104,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         </View>
         <Text>{props.unit}</Text>
       </View>
-      <Text className="mb-2">Now enter the Reps & RPE you want to find out your weight for:</Text>
+      <Text className="mb-2">{translate("Now enter the Reps & RPE you want to find out your weight for:")}</Text>
       <View className="flex-row items-center mb-4 gap-2">
         <View className="flex-1">
           <Input
@@ -109,7 +113,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             testID="rep-max-calculator-target-reps"
             identifier="rep-max-calculator-target-reps"
             value={targetReps}
-            label="Reps"
+            label={translate("Reps")}
             min={1}
             max={24}
             changeType="oninput"
@@ -171,7 +175,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             testID="rep-max-calculator-submit"
             onClick={() => props.onSelect(weight)}
           >
-            Use it!
+            {translate("Use it!")}
           </Button>
         </View>
       </View>

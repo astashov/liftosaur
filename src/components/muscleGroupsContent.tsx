@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Fragment, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -33,6 +34,7 @@ interface IProps {
 }
 
 export function MuscleGroupsContent(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const visibleMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
   const hiddenMuscleGroups = Muscle_getHiddenMuscleGroups(props.settings);
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
@@ -122,12 +124,12 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           className="text-sm"
           onClick={handleAddMuscleGroup}
         >
-          Add custom muscle group
+          {translate("Add custom muscle group")}
         </LinkButton>
       </View>
       {hiddenMuscleGroups.length > 0 && (
         <View className="flex-row flex-wrap pb-6">
-          <Text className="text-xs text-text-secondary">Unhide muscle groups: </Text>
+          <Text className="text-xs text-text-secondary">{translate("Unhide muscle groups:")} </Text>
           {hiddenMuscleGroups.map((muscleGroup, i) => {
             const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
             const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);

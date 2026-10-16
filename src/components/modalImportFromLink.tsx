@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -6,12 +7,13 @@ import { Input, IInputHandle, IValidationError } from "./input";
 import { IEither } from "../utils/types";
 
 export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) => void }): JSX.Element {
+  const translate = useTranslation();
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
 
   return (
     <View>
-      <Text className="mb-2 text-lg font-bold">Paste link from /program web editor</Text>
+      <Text className="mb-2 text-lg font-bold">{translate("Paste link from /program web editor")}</Text>
       <Input
         required={true}
         requiredMessage="Please paste a link"
@@ -24,7 +26,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
       />
       <View className="flex-row justify-between mt-4" style={{ gap: 12 }}>
         <Button name="modal-import-from-link-cancel" kind="grayv2" onClick={() => props.onSubmit(undefined)}>
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="modal-import-from-link-submit"
@@ -37,7 +39,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
             }
           }}
         >
-          Add
+          {translate("Add")}
         </Button>
       </View>
     </View>

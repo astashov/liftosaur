@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,6 +30,7 @@ export interface IBottomSheetNextWorkoutContentProps {
 }
 
 export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutContentProps): JSX.Element {
+  const translate = useTranslation();
   const insets = useSafeAreaInsets();
   const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
@@ -44,14 +46,18 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
 
   return (
     <View>
-      <Text className="pb-4 text-lg font-semibold text-center">New Workout</Text>
+      <Text className="pb-4 text-lg font-semibold text-center">{translate("New Workout")}</Text>
       {doesProgressNotMatchProgram && (
         <Text className="mb-1 text-xs text-center text-text-secondary">
-          You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
+          {translate(
+            "You currently have ongoing workout. Finish it first to see newly chosen program or a different day."
+          )}
         </Text>
       )}
       {Program_isEmpty(props.currentProgram) && (
-        <Text className="mb-1 text-xs text-center text-text-secondary">No program currently selected.</Text>
+        <Text className="mb-1 text-xs text-center text-text-secondary">
+          {translate("No program currently selected.")}
+        </Text>
       )}
       {programDay && nextHistoryRecord && (
         <HistoryRecordView
@@ -74,7 +80,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
         >
           <View className="flex-row items-center">
             <IconSwap color={Tailwind_colors().blue[400]} size={16} />
-            <Text className="pl-1 text-sm font-bold underline text-text-link">Select next workout</Text>
+            <Text className="pl-1 text-sm font-bold underline text-text-link">{translate("Select next workout")}</Text>
           </View>
         </LinkButton>
         <LinkButton
@@ -87,7 +93,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
         >
           <View className="flex-row items-center">
             <IconPlus2 color={Tailwind_colors().blue[400]} size={16} />
-            <Text className="pl-1 text-sm font-bold underline text-text-link">Ad-Hoc Workout</Text>
+            <Text className="pl-1 text-sm font-bold underline text-text-link">{translate("Ad-Hoc Workout")}</Text>
           </View>
         </LinkButton>
       </View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, useWindowDimensions, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
@@ -35,6 +36,7 @@ export function ActionSheetHost(): JSX.Element | null {
 }
 
 function ActionSheetModal(props: { request: IActionSheetRequest; onDismissed: () => void }): JSX.Element {
+  const translate = useTranslation();
   const { options, cancelButtonIndex, destructiveButtonIndex, title } = props.request.options;
   const windowHeight = useWindowDimensions().height;
   const insets = useSafeAreaInsets();
@@ -207,7 +209,7 @@ function ActionSheetModal(props: { request: IActionSheetRequest; onDismissed: ()
               onPress={() => animateClose(cancelButtonIndex)}
             >
               <Text className="text-base text-center text-text-secondary">
-                {cancelButtonIndex != null ? options[cancelButtonIndex] : "Cancel"}
+                {cancelButtonIndex != null ? options[cancelButtonIndex] : translate("Cancel")}
               </Text>
             </Pressable>
           </Animated.View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -22,10 +23,11 @@ interface IPersonalRecordItems {
 }
 
 export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
+  const translate = useTranslation();
   if (History_getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
     return (
       <View className="items-center px-4 pt-8 pb-4">
-        <Text>No new personal records this time</Text>
+        <Text>{translate("No new personal records this time")}</Text>
       </View>
     );
   }
@@ -55,10 +57,12 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
 
   return (
     <View>
-      <Text className="pb-1 text-sm font-bold text-yellow-600">{"\u{1F3C6}"} Personal Records</Text>
+      <Text className="pb-1 text-sm font-bold text-yellow-600">
+        {"\u{1F3C6}"} {translate("Personal Records")}
+      </Text>
       {ObjectUtils_keys(items.maxWeight).length > 0 && (
         <>
-          <Text className="my-1 text-xs text-text-secondary">Max Weight</Text>
+          <Text className="my-1 text-xs text-text-secondary">{translate("Max Weight")}</Text>
           <View className="pb-2">
             {ObjectUtils_keys(items.maxWeight).map((exerciseKey) => {
               const exerciseType = Exercise_fromKey(exerciseKey);
@@ -80,7 +84,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     </Text>
                     {item.prev != null && (
                       <Text className="text-xs italic text-text-secondarysubtle">
-                        (was {item.prev.completedReps || 0} {"\u00D7"}{" "}
+                        {translate("(was")} {item.prev.completedReps || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
                         )}
@@ -96,7 +100,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
       )}
       {ObjectUtils_keys(items.max1RM).length > 0 && (
         <>
-          <Text className="my-1 text-xs text-text-secondary">Max Estimated One Rep Max</Text>
+          <Text className="my-1 text-xs text-text-secondary">{translate("Max Estimated One Rep Max")}</Text>
           <View className="pb-2">
             {ObjectUtils_keys(items.max1RM).map((exerciseKey) => {
               const exerciseType = Exercise_fromKey(exerciseKey);
@@ -133,7 +137,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     </Text>
                     {item.prev != null && previous1RM && (
                       <Text className="text-xs italic text-text-secondarysubtle">
-                        (was <Text className="text-xs font-bold">{Weight_display(previous1RM)}</Text>,{" "}
+                        {translate("(was")} <Text className="text-xs font-bold">{Weight_display(previous1RM)}</Text>,{" "}
                         {Reps_avgUnilateralCompletedReps(item.prev) || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -15,6 +16,7 @@ interface IProps {
 }
 
 function LockerInner(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const isSubscribed = Subscriptions_hasSubscription(props.subscription);
 
   if (isSubscribed) {
@@ -32,13 +34,13 @@ function LockerInner(props: IProps): JSX.Element {
     >
       <View className="mx-auto text-center" style={{ maxWidth: 192 }}>
         <Text>
-          Get <Text className="font-bold text-icon-yellow">Premium</Text> to unlock{" "}
-          <Text className="font-bold">{props.topic}</Text>
+          {translate("Get")} <Text className="font-bold text-icon-yellow">{translate("Premium")}</Text>{" "}
+          {translate("to unlock")} <Text className="font-bold">{props.topic}</Text>
         </Text>
       </View>
       <View className="pt-1 items-center">
         <Button name="unlock" kind="purple" onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}>
-          Unlock
+          {translate("Unlock")}
         </Button>
       </View>
     </View>

@@ -2,7 +2,6 @@ import type { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { ITab } from "../models/screen";
-import { StringUtils_dashcase } from "../utils/string";
 
 export interface IProps {
   name: ITab;
@@ -16,7 +15,7 @@ export interface IProps {
 
 export function FooterButton(props: IProps): JSX.Element {
   const isActive = props.name === props.currentTab;
-  const dataCy = `footer-${StringUtils_dashcase(props.text)}`;
+  const dataCy = `footer-${props.name}`;
   return (
     <Pressable
       className="items-center flex-1 px-0.5"

@@ -1,3 +1,5 @@
+import { I18n_exerciseName } from "../../i18n/exercises";
+import { useLanguage, useTranslation } from "../../i18n/context";
 import { memo } from "react";
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
@@ -38,6 +40,7 @@ interface IExerciseItemProps {
 export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseItem(
   props: IExerciseItemProps
 ): JSX.Element {
+  const language = useLanguage();
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
   const key = Exercise_toKey(e);
@@ -78,7 +81,10 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
               />
             </View>
           )}
-          <ExerciseNameLine name={e.name} equipment={exerciseType.equipment} />
+          <ExerciseNameLine
+            name={I18n_exerciseName(e, props.settings.exercises, language)}
+            equipment={exerciseType.equipment}
+          />
         </Pressable>
         <Pressable
           data-testid={`custom-exercise-${StringUtils_dashcase(e.name)}`}
@@ -188,6 +194,7 @@ function MuscleView(props: {
   exercise: IExercise;
   settings: ISettings;
 }): JSX.Element {
+  const translate = useTranslation();
   const { exercise, settings } = props;
   const tms = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
   const sms = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
@@ -198,10 +205,10 @@ function MuscleView(props: {
 
   return (
     <View>
-      {types.length > 0 && <LabeledItemsLine label="Type" items={[{ text: types.join(", ") }]} />}
+      {types.length > 0 && <LabeledItemsLine label={translate("Type")} items={[{ text: types.join(", ") }]} />}
       {targetMuscles.length > 0 && (
         <LabeledItemsLine
-          label="Target"
+          label={translate("Target")}
           items={targetMuscles.map((m) => ({
             text: m,
             isMatch: tms.length === 0 ? undefined : tms.indexOf(m) !== -1,
@@ -210,7 +217,7 @@ function MuscleView(props: {
       )}
       {synergistMuscles.length > 0 && (
         <LabeledItemsLine
-          label="Synergist"
+          label={translate("Synergist")}
           items={synergistMuscles.map((m) => ({
             text: m,
             isMatch: sms.length === 0 ? undefined : sms.indexOf(m) !== -1,
@@ -226,6 +233,7 @@ export function MuscleGroupsView(props: {
   exercise: IExercise;
   settings: ISettings;
 }): JSX.Element {
+  const translate = useTranslation();
   const { exercise, settings } = props;
   const tms: string[] = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
   const sms: string[] = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
@@ -238,10 +246,10 @@ export function MuscleGroupsView(props: {
 
   return (
     <View>
-      {types.length > 0 && <LabeledItemsLine label="Type" items={[{ text: types.join(", ") }]} />}
+      {types.length > 0 && <LabeledItemsLine label={translate("Type")} items={[{ text: types.join(", ") }]} />}
       {targetMuscleGroups.length > 0 && (
         <LabeledItemsLine
-          label="Target"
+          label={translate("Target")}
           items={targetMuscleGroups.map((m) => {
             const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
             return {
@@ -253,7 +261,7 @@ export function MuscleGroupsView(props: {
       )}
       {synergistMuscleGroups.length > 0 && (
         <LabeledItemsLine
-          label="Synergist"
+          label={translate("Synergist")}
           items={synergistMuscleGroups.map((m) => {
             const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
             return {

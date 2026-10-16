@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -11,6 +12,7 @@ interface IImporterProgramProps {
 }
 
 export function ImporterProgram(props: IImporterProgramProps): JSX.Element {
+  const translate = useTranslation();
   const onPress = useCallback(async () => {
     const contents = await FileImport_pickFile("json");
     if (contents == null) {
@@ -27,7 +29,7 @@ export function ImporterProgram(props: IImporterProgramProps): JSX.Element {
   return (
     <MenuItemWrapper name="Import program from JSON file" onClick={onPress}>
       <View className="py-3">
-        <Text className="text-base text-text-primary">Import program from JSON file</Text>
+        <Text className="text-base text-text-primary">{translate("Import program from JSON file")}</Text>
       </View>
     </MenuItemWrapper>
   );

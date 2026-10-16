@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { SvgUri, SvgXml } from "react-native-svg";
@@ -57,7 +58,8 @@ interface IProps {
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Congratulations!" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Congratulations!") });
 
   const recordById =
     props.historyRecordId != null ? props.history.find((h) => h.id === props.historyRecordId) : undefined;
@@ -107,24 +109,24 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <Text className="text-base">{record.dayName}</Text>
         </View>
         <View className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark" testID="totals-summary">
-          <GroupHeader name="Totals" />
+          <GroupHeader name="Totals" label={translate("Totals")} />
           <View className="flex-row gap-2">
             <View className="flex-1">
               <Text className="text-sm">
-                <Text className="mr-1">🕐</Text> Time:{" "}
+                <Text className="mr-1">🕐</Text> {translate("Time:")}{" "}
                 <Text className="font-bold">{TimeUtils_formatHHMM(History_workoutTime(record))} h</Text>
               </Text>
               <Text className="text-sm">
-                <Text className="mr-1">🏋</Text> Volume:{" "}
+                <Text className="mr-1">🏋</Text> {translate("Volume:")}{" "}
                 <Text className="font-bold">{Weight_display(totalWeight)}</Text>
               </Text>
             </View>
             <View className="flex-1">
               <Text className="text-sm">
-                <Text className="mr-1">💪</Text> Sets: <Text className="font-bold">{totalSets}</Text>
+                <Text className="mr-1">💪</Text> {translate("Sets:")} <Text className="font-bold">{totalSets}</Text>
               </Text>
               <Text className="text-sm">
-                <Text className="mr-1">🔄</Text> Reps: <Text className="font-bold">{totalReps}</Text>
+                <Text className="mr-1">🔄</Text> {translate("Reps:")} <Text className="font-bold">{totalReps}</Text>
               </Text>
             </View>
           </View>
@@ -132,7 +134,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
         {startedEntries.length > 0 && (
           <View className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" testID="completed-exercises">
-            <GroupHeader name="Exercises" />
+            <GroupHeader name="Exercises" label={translate("Exercises")} />
             {startedEntries.map((entry, i) => {
               return (
                 <HistoryEntryView
@@ -149,7 +151,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         )}
 
         <View className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" testID="sets-per-muscle-group">
-          <GroupHeader name="Sets per muscle group" />
+          <GroupHeader name="Sets per muscle group" label={translate("Sets per muscle group")} />
           <View className="flex-row gap-4">
             {muscleGroupsGrouped.map((group, gi) => {
               return (
@@ -178,7 +180,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         )}
 
         {eligibleForCreateProgramDay && (
-          <Text className="mx-2 my-1 text-xs text-text-secondary">You can create a program day from this workout</Text>
+          <Text className="mx-2 my-1 text-xs text-text-secondary">
+            {translate("You can create a program day from this workout")}
+          </Text>
         )}
 
         <View className="flex-row w-full gap-4 pt-4">
@@ -194,7 +198,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                   navigateToModal("dayFromAdhocModal", { historyRecordId: record.id });
                 }}
               >
-                Create Program Day
+                {translate("Create Program Day")}
               </Button>
             </View>
           )}
@@ -210,7 +214,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                 props.dispatch(Thunk_maybeRequestSignup());
               }}
             >
-              Continue
+              {translate("Continue")}
             </Button>
           </View>
         </View>
@@ -228,10 +232,11 @@ interface IMobileShareProps {
 }
 
 function MobileShare(props: IMobileShareProps): JSX.Element {
+  const translate = useTranslation();
   const historyRecordId = props.record.id;
   return (
     <View className="px-gutter py-4">
-      <GroupHeader name="Share it!" />
+      <GroupHeader name="Share it!" label={translate("Share it!")} />
       <View className="flex-row justify-between gap-4">
         <View className="items-center">
           <Pressable
@@ -270,12 +275,12 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             onPress={() => {
               const text = LiftohistorySerializer_serialize(props.record, props.settings);
               ClipboardUtils_copy(text);
-              Dialog_alert("Copied!");
+              Dialog_alert(translate("Copied!"));
             }}
           >
             <IconDoc />
           </Pressable>
-          <Text className="text-xs text-text-secondary">Text</Text>
+          <Text className="text-xs text-text-secondary">{translate("Text")}</Text>
         </View>
         <View className="items-center">
           <WorkoutShareButton
@@ -284,7 +289,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             settings={props.settings}
             icon={<IconKebab />}
           />
-          <Text className="text-xs text-text-secondary">More</Text>
+          <Text className="text-xs text-text-secondary">{translate("More")}</Text>
         </View>
       </View>
       <View className="items-center mt-1">
@@ -294,13 +299,13 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             if (props.userId) {
               const link = Share_generateLink(props.userId, props.record.id);
               ClipboardUtils_copy(link);
-              Dialog_alert("Copied!");
+              Dialog_alert(translate("Copied!"));
             } else {
               Dialog_alert("You should be logged in to copy link to a workout");
             }
           }}
         >
-          or just copy a link
+          {translate("or just copy a link")}
         </LinkButton>
       </View>
     </View>
@@ -315,12 +320,13 @@ interface IWebappShareProps {
 }
 
 function WebappShare(props: IWebappShareProps): JSX.Element {
+  const translate = useTranslation();
   const [copiedLink, setCopiedLink] = useState<string | undefined>(undefined);
   const userId = props.userId;
 
   return (
     <View className="px-gutter py-4">
-      <GroupHeader name="Share it!" />
+      <GroupHeader name="Share it!" label={translate("Share it!")} />
       <View className="flex-row justify-between gap-4">
         <View className="items-center">
           <WorkoutShareButton
@@ -329,7 +335,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
             settings={props.settings}
             icon={<IconPicture />}
           />
-          <Text className="text-xs text-text-secondary">Image</Text>
+          <Text className="text-xs text-text-secondary">{translate("Image")}</Text>
         </View>
         <View className="items-center">
           <Pressable
@@ -338,12 +344,12 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
             onPress={() => {
               const text = LiftohistorySerializer_serialize(props.record, props.settings);
               ClipboardUtils_copy(text);
-              Dialog_alert("Copied!");
+              Dialog_alert(translate("Copied!"));
             }}
           >
             <IconDoc />
           </Pressable>
-          <Text className="text-xs text-text-secondary">Text</Text>
+          <Text className="text-xs text-text-secondary">{translate("Text")}</Text>
         </View>
         <View className="items-center">
           <Pressable
@@ -362,13 +368,13 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
           </Pressable>
           {copiedLink ? (
             <View className="flex-row">
-              <Text className="text-xs text-text-secondary">Copied: </Text>
+              <Text className="text-xs text-text-secondary">{translate("Copied:")} </Text>
               <InternalLink name="shared-workout-link" href={copiedLink} className="font-bold underline text-text-link">
-                Link
+                {translate("Link")}
               </InternalLink>
             </View>
           ) : (
-            <Text className="text-xs text-text-secondary">Copy Link</Text>
+            <Text className="text-xs text-text-secondary">{translate("Copy Link")}</Text>
           )}
         </View>
       </View>

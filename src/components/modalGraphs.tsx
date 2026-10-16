@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, Fragment, memo, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -45,6 +46,7 @@ interface IModalGraphsProps {
 }
 
 export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("ModalGraphsContent");
   const trackedState = useTrackedState();
   const dispatch = useTrackedDispatch();
@@ -110,10 +112,11 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
 
   return (
     <View className="py-4">
-      <GroupHeader name="Settings" isExpanded={true}>
+      <GroupHeader name="Settings" label={translate("Settings")} isExpanded={true}>
         <MenuItemEditable
           type="select"
           name="Default exercise graph type"
+          label={translate("Default exercise graph type")}
           value={settings.graphsSettings.defaultType || "weight"}
           values={graphExerciseSelectedTypes.map((t) => [t, StringUtils_capitalize(t)])}
           onChange={(v) => {
@@ -132,6 +135,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         <MenuItemEditable
           type="select"
           name="Default muscle group graph type"
+          label={translate("Default muscle group graph type")}
           value={settings.graphsSettings.defaultMuscleGroupType || "volume"}
           values={graphMuscleGroupSelectedTypes.map((t) => [t, StringUtils_capitalize(t)])}
           onChange={(v) => {
@@ -150,6 +154,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Same range for X axis for all graphs"
+          label={translate("Same range for X axis for all graphs")}
           value={settings.graphsSettings.isSameXAxis ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
@@ -166,6 +171,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           <MenuItemEditable
             type="boolean"
             name="Add bodyweight to all graphs"
+            label={translate("Add bodyweight to all graphs")}
             value={settings.graphsSettings.isWithBodyweight ? "true" : "false"}
             onChange={(v) =>
               updateSettings(
@@ -182,6 +188,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Add calculated 1RM to graphs"
+          label={translate("Add calculated 1RM to graphs")}
           value={settings.graphsSettings.isWithOneRm ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
@@ -197,6 +204,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Add program lines to graphs"
+          label={translate("Add program lines to graphs")}
           value={settings.graphsSettings.isWithProgramLines ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
@@ -211,7 +219,9 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         />
       </GroupHeader>
       <View className="relative" data-testid="modal-graphs" testID="modal-graphs">
-        {graphs.length > 0 && <GroupHeader topPadding={true} name="Selected Graphs" />}
+        {graphs.length > 0 && (
+          <GroupHeader topPadding={true} name="Selected Graphs" label={translate("Selected Graphs")} />
+        )}
         <DraggableList2
           items={graphs}
           element={(graph, i, handle) => {
@@ -256,7 +266,11 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         />
         {exercises.length > 0 && (
           <>
-            <GroupHeader topPadding={true} name="Available Exercise Graphs" />
+            <GroupHeader
+              topPadding={true}
+              name="Available Exercise Graphs"
+              label={translate("Available Exercise Graphs")}
+            />
             {exercises.map((e) => {
               return (
                 <Pressable
@@ -274,7 +288,11 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         )}
         {availableMuscleGroups.length > 0 && (
           <>
-            <GroupHeader name="Available Muscle Groups Graphs" topPadding={true} />
+            <GroupHeader
+              name="Available Muscle Groups Graphs"
+              label={translate("Available Muscle Groups Graphs")}
+              topPadding={true}
+            />
             {availableMuscleGroups.map((muscleGroup) => {
               return (
                 <Pressable
@@ -290,7 +308,9 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             })}
           </>
         )}
-        {hasAvailableStats && <GroupHeader name="Available Stats Graphs" topPadding={true} />}
+        {hasAvailableStats && (
+          <GroupHeader name="Available Stats Graphs" label={translate("Available Stats Graphs")} topPadding={true} />
+        )}
         {statsWeightKeys.map((statsKey) => {
           return (
             <MenuItem
@@ -320,7 +340,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
         })}
         {!hasAvailableStats && exercises.length === 0 && graphs.length === 0 && (
           <Text className="mt-3 text-base italic text-text-secondary">
-            You haven't tracked any workouts or measurements yet.
+            {translate("You haven't tracked any workouts or measurements yet.")}
           </Text>
         )}
       </View>
@@ -358,9 +378,12 @@ const MuscleGroupPreview = memo(function MuscleGroupPreviewInner(props: {
   muscleGroup: string;
   settings: ISettings;
 }): JSX.Element {
+  const translate = useTranslation();
   return (
     <View className="flex-1 py-3">
-      <Text className="text-sm">{Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly Volume</Text>
+      <Text className="text-sm">
+        {Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} {translate("Weekly Volume")}
+      </Text>
     </View>
   );
 });

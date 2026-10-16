@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useEffect, useState } from "react";
 import { View, Pressable, Platform, AppState } from "react-native";
 import { Text } from "./primitives/text";
@@ -54,6 +55,7 @@ interface IProps {
 }
 
 export function ScreenAccount(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [otherAccounts, setOtherAccounts] = useState<IAccount[]>([]);
   const [isOtherAccountsEditMode, setIsOtherAccountsEditMode] = useState<boolean>(false);
 
@@ -116,7 +118,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
     }
   }, []);
 
-  useNavOptions({ navTitle: "Account", navHelpKey: "account" });
+  useNavOptions({ navTitle: translate("Account"), navHelpKey: "account" });
 
   const premiumCard = buildPremiumCard(plan);
 
@@ -135,7 +137,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
   return (
     <View className="px-gutter">
-      <GroupHeader name="Current Account" />
+      <GroupHeader name="Current Account" label={translate("Current Account")} />
       <MenuItem
         isBorderless={true}
         expandName={true}
@@ -165,11 +167,12 @@ export function ScreenAccount(props: IProps): JSX.Element {
             {props.email ? (
               props.email === "noemail@example.com" ? null : (
                 <Text className="text-xs text-text-secondary">
-                  Signed in as <Text className="text-sm font-bold text-text-secondary">{props.email}</Text>
+                  {translate("Signed in as")}{" "}
+                  <Text className="text-sm font-bold text-text-secondary">{props.email}</Text>
                 </Text>
               )
             ) : (
-              <Text className="text-xs text-text-error">Not signed in to cloud</Text>
+              <Text className="text-xs text-text-error">{translate("Not signed in to cloud")}</Text>
             )}
           </View>
         }
@@ -183,7 +186,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             className="ls-logout"
             onClick={() => props.dispatch(Thunk_logOut())}
           >
-            Sign Out
+            {translate("Sign Out")}
           </Button>
           <View className="mt-3">
             <LinkButton
@@ -191,7 +194,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               className="text-sm"
               onPress={() => navigateToModal("changePasswordModal")}
             >
-              Change password
+              {translate("Change password")}
             </LinkButton>
           </View>
         </View>
@@ -207,7 +210,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             <View>
               <IconGoogle />
             </View>
-            <Text className="flex-1 ml-2 text-base text-center">Sign in with Google</Text>
+            <Text className="flex-1 ml-2 text-base text-center">{translate("Sign in with Google")}</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center w-full px-4 py-3 mt-2 bg-black rounded-lg nm-sign-in-with-apple"
@@ -216,14 +219,21 @@ export function ScreenAccount(props: IProps): JSX.Element {
             <View style={{ marginTop: -3 }}>
               <IconApple />
             </View>
-            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">Sign in with Apple</Text>
+            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">
+              {translate("Sign in with Apple")}
+            </Text>
           </Pressable>
           <EmailAuthButton onPress={() => navigateToModal("emailAuthModal")} />
         </View>
       )}
-      <GroupHeader name="🌟 Liftosaur Premium" topPadding={true} />
+      <GroupHeader name="🌟 Liftosaur Premium" label={translate("🌟 Liftosaur Premium")} topPadding={true} />
       {isLoadingSubscription ? (
-        <MenuItem name="Checking your subscription…" expandName={true} value={<IconSpinner width={18} height={18} />} />
+        <MenuItem
+          name="Checking your subscription…"
+          label={translate("Checking your subscription…")}
+          expandName={true}
+          value={<IconSpinner width={18} height={18} />}
+        />
       ) : (
         <>
           <MenuItem
@@ -245,7 +255,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 className="text-sm text-text-error"
                 onClick={() => props.dispatch(Thunk_openManageSubscriptions())}
               >
-                Cancel subscription
+                {translate("Cancel subscription")}
               </LinkButton>
             </View>
           )}
@@ -253,6 +263,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
       )}
       <GroupHeader
         name="Other local accounts"
+        label={translate("Other local accounts")}
         topPadding={true}
         rightAddOn={
           otherAccounts.length > 0 ? (
@@ -262,7 +273,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
                 setIsOtherAccountsEditMode(!isOtherAccountsEditMode);
               }}
             >
-              {isOtherAccountsEditMode ? "Finish Editing" : "Edit"}
+              {isOtherAccountsEditMode ? translate("Finish Editing") : translate("Edit")}
             </LinkButton>
           ) : undefined
         }
@@ -319,7 +330,8 @@ export function ScreenAccount(props: IProps): JSX.Element {
               {account.name ? <Text className="-mt-1 text-xs text-text-secondary">{`id: ${account.id}`}</Text> : null}
               {account.email && account.email !== "noemail@example.com" && (
                 <Text className="text-xs text-text-secondary">
-                  Was logged in as <Text className="text-sm font-bold text-text-secondary">{account.email}</Text>
+                  {translate("Was logged in as")}{" "}
+                  <Text className="text-sm font-bold text-text-secondary">{account.email}</Text>
                 </Text>
               )}
             </View>
@@ -338,9 +350,9 @@ export function ScreenAccount(props: IProps): JSX.Element {
           }
         }}
       >
-        Create New Local Account
+        {translate("Create New Local Account")}
       </LinkButton>
-      <GroupHeader name="Delete current account" topPadding={true} />
+      <GroupHeader name="Delete current account" label={translate("Delete current account")} topPadding={true} />
       <View>
         <Button
           name="account-delete"
@@ -360,7 +372,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             }
           }}
         >
-          Delete Current Local Account
+          {translate("Delete Current Local Account")}
         </Button>
       </View>
       {props.email && (
@@ -388,7 +400,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
               }
             }}
           >
-            Delete Current Cloud Account
+            {translate("Delete Current Cloud Account")}
           </Button>
         </View>
       )}

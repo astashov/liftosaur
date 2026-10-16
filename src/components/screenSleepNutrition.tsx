@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useCallback, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -46,7 +47,8 @@ function formatHealthValue(key: IStatsHealthKey, value: number): string {
 }
 
 export function ScreenSleepNutrition(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Sleep & Nutrition" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Sleep & Nutrition") });
 
   const keysWithData = statsHealthDef.filter((key) => (props.stats.health?.[key] || []).length > 0);
 
@@ -54,8 +56,9 @@ export function ScreenSleepNutrition(props: IProps): JSX.Element {
     return (
       <View className="px-gutter">
         <Text className="py-16 text-center text-text-secondary">
-          No sleep or nutrition data yet. Enable syncing in your Apple Health or Google Health settings, and it will
-          appear here as it's imported.
+          {translate(
+            "No sleep or nutrition data yet. Enable syncing in your Apple Health or Google Health settings, and it will appear here as it's imported."
+          )}
         </Text>
       </View>
     );
@@ -92,6 +95,7 @@ interface IHealthMetricListProps {
 }
 
 function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
+  const translate = useTranslation();
   const { statsKey, stats, settings, subscription, dispatch } = props;
   const [showHidden, setShowHidden] = useState(false);
   const all = stats.health?.[statsKey] || [];
@@ -99,7 +103,9 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
   if (all.length === 0) {
     return (
       <View className="px-gutter">
-        <Text className="py-12 text-center text-text-secondary">No {Stats_name(statsKey)} data yet</Text>
+        <Text className="py-12 text-center text-text-secondary">
+          {translate("No")} {Stats_name(statsKey)} {translate("data yet")}
+        </Text>
       </View>
     );
   }
@@ -137,7 +143,9 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
         )}
       </View>
       {visible.length === 0 ? (
-        <Text className="py-8 text-center text-text-secondary">All {Stats_name(statsKey)} records are hidden</Text>
+        <Text className="py-8 text-center text-text-secondary">
+          {translate("All")} {Stats_name(statsKey)} {translate("records are hidden")}
+        </Text>
       ) : (
         visible.map((value) => (
           <HealthMetricRow
@@ -158,7 +166,8 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
             onPress={() => setShowHidden((s) => !s)}
           >
             <Text className="text-center text-text-link">
-              {showHidden ? "Hide" : "Show"} {hidden.length} hidden {hidden.length === 1 ? "record" : "records"}
+              {showHidden ? translate("Hide") : translate("Show")} {hidden.length} {translate("hidden")}{" "}
+              {hidden.length === 1 ? translate("record") : translate("records")}
             </Text>
           </Pressable>
           {showHidden &&

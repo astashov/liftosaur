@@ -1,3 +1,4 @@
+import { I18nProvider } from "./i18n/context";
 import "../global.css";
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { ActivityIndicator, AppState, InteractionManager, Linking, NativeModules, Platform, View } from "react-native";
@@ -676,63 +677,65 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
   const screensWithoutTimer: IScreen[] = ["subscription"];
 
   return (
-    <AppContext.Provider value={{ service, isApp: true, heartRate: env.heartRate }}>
-      <StateContext.Provider value={{ state, dispatch }}>
-        <TrackedStateProvider state={state} dispatch={dispatch}>
-          <ClickTrackingContext.Provider value={dispatch}>
-            <ModalStateProvider>
-              <ActiveSheetHeightProvider>
-                <SheetBackdropProvider>
-                  <CustomKeyboardProvider>
-                    <SystemBars style="auto" />
-                    <NavigationContainer
-                      ref={navigationRef}
-                      theme={transparentNavTheme}
-                      onStateChange={() => {
-                        const route = navigationRef.getCurrentRoute();
-                        setCurrentScreenName(route?.name as IScreen | undefined);
-                        PerfNavTracker_handleStateChange(route?.name);
-                        if (route?.key !== lastRouteKeyRef.current) {
-                          PerfFrameSampler_flush(lastScreenNameRef.current);
-                          PerfScorecard_onScreenChange(route?.name);
-                          lastRouteKeyRef.current = route?.key;
-                          lastScreenNameRef.current = route?.name;
-                        }
-                      }}
-                      onReady={() => {
-                        const route = navigationRef.getCurrentRoute();
-                        setCurrentScreenName(route?.name as IScreen | undefined);
-                        setIsNavReady(true);
-                        PerfNavTracker_handleStateChange(route?.name);
-                        if (route?.key !== lastRouteKeyRef.current) {
-                          PerfFrameSampler_flush(lastScreenNameRef.current);
-                          PerfScorecard_onScreenChange(route?.name);
-                          lastRouteKeyRef.current = route?.key;
-                          lastScreenNameRef.current = route?.name;
-                        }
-                      }}
-                    >
-                      <AppNavigator initialScreen={initialScreen} />
-                    </NavigationContainer>
-                    {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-                      <RestTimer
-                        progress={progress}
-                        dispatch={dispatch}
-                        settings={state.storage.settings}
-                        subscription={state.storage.subscription}
-                      />
-                    )}
-                    <ActionSheetHost />
-                    <PromptHost />
-                    <Toast toast={state.toast} dispatch={dispatch} />
-                  </CustomKeyboardProvider>
-                </SheetBackdropProvider>
-              </ActiveSheetHeightProvider>
-            </ModalStateProvider>
-          </ClickTrackingContext.Provider>
-        </TrackedStateProvider>
-      </StateContext.Provider>
-    </AppContext.Provider>
+    <I18nProvider language={state.storage.settings.language}>
+      <AppContext.Provider value={{ service, isApp: true, heartRate: env.heartRate }}>
+        <StateContext.Provider value={{ state, dispatch }}>
+          <TrackedStateProvider state={state} dispatch={dispatch}>
+            <ClickTrackingContext.Provider value={dispatch}>
+              <ModalStateProvider>
+                <ActiveSheetHeightProvider>
+                  <SheetBackdropProvider>
+                    <CustomKeyboardProvider>
+                      <SystemBars style="auto" />
+                      <NavigationContainer
+                        ref={navigationRef}
+                        theme={transparentNavTheme}
+                        onStateChange={() => {
+                          const route = navigationRef.getCurrentRoute();
+                          setCurrentScreenName(route?.name as IScreen | undefined);
+                          PerfNavTracker_handleStateChange(route?.name);
+                          if (route?.key !== lastRouteKeyRef.current) {
+                            PerfFrameSampler_flush(lastScreenNameRef.current);
+                            PerfScorecard_onScreenChange(route?.name);
+                            lastRouteKeyRef.current = route?.key;
+                            lastScreenNameRef.current = route?.name;
+                          }
+                        }}
+                        onReady={() => {
+                          const route = navigationRef.getCurrentRoute();
+                          setCurrentScreenName(route?.name as IScreen | undefined);
+                          setIsNavReady(true);
+                          PerfNavTracker_handleStateChange(route?.name);
+                          if (route?.key !== lastRouteKeyRef.current) {
+                            PerfFrameSampler_flush(lastScreenNameRef.current);
+                            PerfScorecard_onScreenChange(route?.name);
+                            lastRouteKeyRef.current = route?.key;
+                            lastScreenNameRef.current = route?.name;
+                          }
+                        }}
+                      >
+                        <AppNavigator initialScreen={initialScreen} />
+                      </NavigationContainer>
+                      {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+                        <RestTimer
+                          progress={progress}
+                          dispatch={dispatch}
+                          settings={state.storage.settings}
+                          subscription={state.storage.subscription}
+                        />
+                      )}
+                      <ActionSheetHost />
+                      <PromptHost />
+                      <Toast toast={state.toast} dispatch={dispatch} />
+                    </CustomKeyboardProvider>
+                  </SheetBackdropProvider>
+                </ActiveSheetHeightProvider>
+              </ModalStateProvider>
+            </ClickTrackingContext.Provider>
+          </TrackedStateProvider>
+        </StateContext.Provider>
+      </AppContext.Provider>
+    </I18nProvider>
   );
 }
 

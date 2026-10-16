@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
@@ -15,12 +16,14 @@ interface IProps {
 }
 
 export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Apple Health" });
+  const translate = useTranslation();
+  useNavOptions({ navTitle: translate("Apple Health") });
 
   return (
     <View className="px-gutter">
       <MenuItemEditable
         name="Sync Workouts"
+        label={translate("Sync Workouts")}
         type="boolean"
         value={props.settings.appleHealthSyncWorkout ? "true" : "false"}
         onChange={(newValue?: string) => {
@@ -35,6 +38,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
       />
       <MenuItemEditable
         name="Confirm each workout sync?"
+        label={translate("Confirm each workout sync?")}
         type="boolean"
         value={props.settings.healthConfirmation ? "true" : "false"}
         onChange={(newValue?: string) => {
@@ -49,6 +53,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
       />
       <MenuItemEditable
         name="Sync Measurements"
+        label={translate("Sync Measurements")}
         type="boolean"
         value={props.settings.appleHealthSyncMeasurements ? "true" : "false"}
         onChange={(newValue?: string) => {
@@ -63,6 +68,7 @@ export function ScreenAppleHealthSettings(props: IProps): JSX.Element {
       />
       <MenuItemEditable
         name="Sync Sleep & Nutrition"
+        label={translate("Sync Sleep & Nutrition")}
         type="boolean"
         value={props.settings.appleHealthSyncSleepNutrition ? "true" : "false"}
         onChange={(newValue?: string) => {

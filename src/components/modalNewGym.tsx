@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -11,18 +12,20 @@ interface IProps {
 }
 
 export function ModalNewGymContent(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [value, setValue] = useState("");
 
   return (
     <View>
-      <Text className="mb-2 text-lg font-bold">New Gym</Text>
+      <Text className="mb-2 text-lg font-bold">{translate("New Gym")}</Text>
       <Text className="mb-4 text-xs text-text-secondary">
-        You can add a new gym with a set of exercises, and when you switch between gyms, the exercises will use the
-        equipment from the selected gym.
+        {translate(
+          "You can add a new gym with a set of exercises, and when you switch between gyms, the exercises will use the equipment from the selected gym."
+        )}
       </Text>
       <TextInput
         autoFocus
-        placeholder="Home Gym"
+        placeholder={translate("Home Gym")}
         placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
         value={value}
         onChangeText={setValue}
@@ -30,7 +33,7 @@ export function ModalNewGymContent(props: IProps): JSX.Element {
       />
       <View className="flex-row justify-between gap-3 mt-4">
         <Button name="add-gym-cancel" kind="grayv2" onClick={props.onClose}>
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="add-gym-submit"
@@ -41,7 +44,7 @@ export function ModalNewGymContent(props: IProps): JSX.Element {
             }
           }}
         >
-          Add
+          {translate("Add")}
         </Button>
       </View>
     </View>

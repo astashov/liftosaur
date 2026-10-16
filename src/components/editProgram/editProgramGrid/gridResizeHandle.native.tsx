@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -26,6 +27,7 @@ interface IGridResizeHandleProps {
 }
 
 export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResizeHandleProps): JSX.Element {
+  const translate = useTranslation();
   const { columnWidth, onResize, onResizeEnd } = props;
   const gesture = useMemo(
     () =>
@@ -53,7 +55,7 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
         className="absolute items-center justify-center"
         style={[{ width: props.width, left: props.left, top: props.top, height: props.height }, followStyle]}
         testID="grid-resize-handle"
-        accessibilityLabel="Drag to change how many weeks this repeats for"
+        accessibilityLabel={translate("Drag to change how many weeks this repeats for")}
       >
         <View
           style={{

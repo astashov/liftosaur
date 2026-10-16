@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -17,6 +18,7 @@ interface IModalDateContentProps {
 }
 
 export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
+  const translate = useTranslation();
   const initialDate = new Date(Date.parse(props.date));
   const hours = Math.floor(props.time / 3600000);
   const hoursStr = hours.toString().padStart(2, "0");
@@ -29,10 +31,10 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
 
   return (
     <View>
-      <Text className="pb-2 font-bold">Please enter new date</Text>
+      <Text className="pb-2 font-bold">{translate("Please enter new date")}</Text>
       <DatePicker testID="modal-date-picker" value={dateTimestamp} onChange={setDateTimestamp} />
-      <Text className="pt-2 font-bold">Please enter workout length</Text>
-      <Text className="pb-2 text-xs text-text-secondary">(in hh:mm)</Text>
+      <Text className="pt-2 font-bold">{translate("Please enter workout length")}</Text>
+      <Text className="pb-2 text-xs text-text-secondary">{translate("(in hh:mm)")}</Text>
       <View className="flex-row items-center">
         <View className="flex-1">
           <Input
@@ -78,7 +80,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
             props.onDone?.();
           }}
         >
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           name="modal-date-submit"
@@ -99,7 +101,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
             props.onDone?.();
           }}
         >
-          Save
+          {translate("Save")}
         </Button>
       </View>
     </View>

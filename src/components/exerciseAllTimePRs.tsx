@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -18,6 +19,7 @@ interface IExerciseAllTimePRsProps {
 }
 
 function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
+  const translate = useTranslation();
   const { maxWeight, max1RM } = props;
   const trackClick = useTrackClick();
 
@@ -27,10 +29,11 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
       testID="exercise-stats-pr"
       className="px-4 py-2 bg-background-cardpurple rounded-2xl"
     >
-      <GroupHeader topPadding={false} name="🏆 Personal Records" />
+      <GroupHeader topPadding={false} name="🏆 Personal Records" label={translate("🏆 Personal Records")} />
       {maxWeight && (
         <MenuItem
           name="Max Weight"
+          label={translate("Max Weight")}
           expandName={true}
           onClick={() => {
             trackClick("exercise-pr-record");
@@ -64,6 +67,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
             }
           }}
           name="Max 1RM"
+          label={translate("Max 1RM")}
           value={
             <View>
               <Text className="text-text-primary text-right" data-testid="one-rm-value" testID="one-rm-value">

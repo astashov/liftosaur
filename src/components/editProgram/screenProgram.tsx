@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, Platform } from "react-native";
 import { Pressable } from "../primitives/pressable";
@@ -99,6 +100,11 @@ interface IProps {
 }
 
 export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Element {
+  const translate = useTranslation();
+  const localizedTabLabels = useMemo(
+    () => TAB_LABELS_RO.map((label) => translate(label as "Edit" | "Preview" | "Playground")),
+    [translate]
+  );
   usePerfRenderCount("ScreenProgram");
   usePerfRenderTrace("ScreenProgram");
   const plannerState = props.plannerState;
@@ -207,11 +213,11 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
 
   const navOptions = useMemo(
     () => ({
-      navTitle: "Program",
+      navTitle: translate("Program"),
       navHelpTourId: programTourConfig.id,
       navRightButtons,
     }),
-    [navRightButtons]
+    [navRightButtons, translate]
   );
   useNavOptions(navOptions);
 
@@ -358,8 +364,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
         <View className="pb-4">
           <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={dispatch}>
             <Text className="text-xs">
-              Playground lets you test the program logic. You can finish workouts here and see how reps, weights, sets
-              change. Everything you do here is ephemeral, and doesn't change any settings, workouts or programs.
+              {translate(
+                "Playground lets you test the program logic. You can finish workouts here and see how reps, weights, sets change. Everything you do here is ephemeral, and doesn't change any settings, workouts or programs."
+              )}
             </Text>
           </Nux>
           <ProgramPreviewPlayground
@@ -453,7 +460,8 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
               />
             </PerfProfiler>
             <OuterTabBar
-              labels={TAB_LABELS_RO}
+              labels={localizedTabLabels}
+              identifiers={TAB_LABELS_RO}
               activeIndex={tabIndex}
               pinnedIndex={hasEvalErrors ? EDIT_TAB_INDEX : undefined}
               onChange={onChangeTab}
@@ -511,6 +519,7 @@ const WeekTabBar = memo(function WeekTabBar(props: IWeekTabBarProps): JSX.Elemen
 
 interface IOuterTabBarProps {
   labels: readonly string[];
+  identifiers?: readonly string[];
   activeIndex: number;
   // Set while the program can't be evaluated: this tab is flagged as the one holding the
   // errors, and the rest - which would render an empty program - are dimmed and inert.
@@ -526,10 +535,10 @@ const OuterTabBar = memo(function OuterTabBar(props: IOuterTabBarProps): JSX.Ele
         const isSelected = props.activeIndex === index;
         const isPinned = props.pinnedIndex === index;
         const isDisabled = props.pinnedIndex != null && !isPinned;
-        const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
+        const nameClass = `tab-${StringUtils_dashcase((props.identifiers?.[index] ?? label).toLowerCase())}`;
         return (
           <Pressable
-            key={label}
+            key={props.identifiers?.[index] ?? label}
             className="px-2 pb-1"
             data-testid={nameClass}
             testID={nameClass}
@@ -563,6 +572,7 @@ interface IEditProgramHeaderProps {
 }
 
 const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
+  const translate = useTranslation();
   const evaluatedProgram = props.evaluatedProgram;
   const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
   const duration = TimeUtils_formatHOrMin(time);
@@ -610,7 +620,7 @@ const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHea
         </View>
       </View>
       <View className="flex-row items-center mt-1">
-        <Text className="text-xs font-bold text-text-secondary">Next Day: </Text>
+        <Text className="text-xs font-bold text-text-secondary">{translate("Next Day:")} </Text>
         <LinkButton
           data-testid="change-program-day"
           testID="change-program-day"

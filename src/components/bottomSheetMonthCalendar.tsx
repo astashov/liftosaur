@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
@@ -18,6 +19,7 @@ export interface IBottomSheetMonthCalendarContentProps {
 }
 
 export function BottomSheetMonthCalendarContent(props: IBottomSheetMonthCalendarContentProps): JSX.Element {
+  const translate = useTranslation();
   const monthCalendarRef = useRef<IMonthCalendarRef>(null);
   const dayNames = props.startWeekFromMonday
     ? ["M", "T", "W", "T", "F", "S", "S"]
@@ -29,7 +31,7 @@ export function BottomSheetMonthCalendarContent(props: IBottomSheetMonthCalendar
         <View collapsable={false}>
           <View className="px-3 pt-4">
             <LinkButton name="this-week" onPress={() => monthCalendarRef.current?.scrollToSelected()}>
-              This week
+              {translate("This week")}
             </LinkButton>
           </View>
           <View className="flex-row justify-around py-2 mx-3 border-b border-background-subtle">

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View, ScrollView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,10 +39,11 @@ interface IScreen1RMProps {
 }
 
 export function Screen1RM(props: IScreen1RMProps): JSX.Element {
+  const translate = useTranslation();
   const [exerciseTypes] = useState<IExerciseType[]>(Settings_getExercisesWithUnset1RMs(props.program, props.settings));
   const insets = useSafeAreaInsets();
 
-  useNavOptions({ navTitle: "Set 1 Rep Maxes" });
+  useNavOptions({ navTitle: translate("Set 1 Rep Maxes") });
 
   return (
     <View className="flex-1 bg-background-default">
@@ -53,30 +55,31 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
       >
         <View className="px-gutter pb-2">
           <Text className="text-sm">
-            The selected program uses <Text className="text-sm font-bold">1RM</Text> -{" "}
-            <Text className="text-sm font-bold">1 Rep Max</Text> weights - it calculates set weights based on what
-            weight you can do for 1 rep max.
+            {translate("The selected program uses")} <Text className="text-sm font-bold">1RM</Text> -{" "}
+            <Text className="text-sm font-bold">{translate("1 Rep Max")}</Text>{" "}
+            {translate("weights - it calculates set weights based on what weight you can do for 1 rep max.")}
           </Text>
         </View>
         <View className="px-gutter pb-2">
           <Text className="text-sm">
-            Enter your <Text className="text-sm font-bold">1 Rep Max</Text> for the following exercises. If you don't
-            know it, but you know <Text className="text-sm font-bold">N rep max</Text> (for example, you remember you
-            were able to do only 5 reps with 185lb) - use the{" "}
-            <Text className="text-sm font-bold">1 Rep Max calculator in the keyboard</Text>.
+            {translate("Enter your")} <Text className="text-sm font-bold">{translate("1 Rep Max")}</Text>{" "}
+            {translate("for the following exercises. If you don't know it, but you know")}{" "}
+            <Text className="text-sm font-bold">{translate("N rep max")}</Text>{" "}
+            {translate("(for example, you remember you were able to do only 5 reps with 185lb) - use the")}{" "}
+            <Text className="text-sm font-bold">{translate("1 Rep Max calculator in the keyboard")}</Text>.
           </Text>
         </View>
         <View className="px-gutter pb-4">
           <Text className="text-sm font-bold text-text-secondary">
-            You can skip it - and do it later during your first workout!
+            {translate("You can skip it - and do it later during your first workout!")}
           </Text>
         </View>
         <View className="flex-row pb-1 border-b border-background-subtle">
           <View className="flex-1 pl-4">
-            <Text className="text-xs text-text-secondary">Exercise</Text>
+            <Text className="text-xs text-text-secondary">{translate("Exercise")}</Text>
           </View>
           <View className="pr-4 w-scaled-36">
-            <Text className="text-xs text-center text-text-secondary">1 Rep Max</Text>
+            <Text className="text-xs text-center text-text-secondary">{translate("1 Rep Max")}</Text>
           </View>
         </View>
         {exerciseTypes.map((exerciseType) => {
@@ -143,7 +146,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
           data-testid="continue-1rms"
           testID="continue-1rms"
         >
-          Continue
+          {translate("Continue")}
         </Button>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, MutableRefObject, useState } from "react";
 import { View } from "react-native";
 import type RB from "rollbar";
@@ -19,6 +20,7 @@ interface IWorkoutFinishButtonProps {
 }
 
 function WorkoutFinishButtonInner(props: IWorkoutFinishButtonProps): JSX.Element {
+  const translate = useTranslation();
   const isCurrent = props.isCurrent;
   const [isFinishing, setIsFinishing] = useState(false);
   return (
@@ -44,7 +46,7 @@ function WorkoutFinishButtonInner(props: IWorkoutFinishButtonProps): JSX.Element
           if (typeof Rollbar !== "undefined" && Rollbar != null) {
             Rollbar.error(error instanceof Error ? error : new Error(String(error)));
           }
-          Dialog_alert("Something went wrong finishing your workout. Please try again.");
+          Dialog_alert(translate("Something went wrong finishing your workout. Please try again."));
         });
       }}
     >
@@ -53,9 +55,9 @@ function WorkoutFinishButtonInner(props: IWorkoutFinishButtonProps): JSX.Element
           <IconSpinner width={20} height={20} color={Tailwind_colors().white} />
         </View>
       ) : isCurrent ? (
-        "Finish"
+        translate("Finish")
       ) : (
-        "Save"
+        translate("Save")
       )}
     </Button>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
@@ -29,6 +30,7 @@ interface IEditProgramViewProps {
 }
 
 export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element {
+  const translate = useTranslation();
   const ui = props.state.ui;
   const program = props.state.current.program;
   const planner = program.planner!;
@@ -139,7 +141,7 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
               );
             }}
           >
-            {allDaysCollapsed ? "Expand" : "Collapse"} all days
+            {allDaysCollapsed ? translate("Expand") : translate("Collapse")} {translate("all days")}
           </LinkButton>
         </View>
       </View>

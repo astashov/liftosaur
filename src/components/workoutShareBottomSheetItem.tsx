@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { IHistoryRecord, ISettings } from "../types";
@@ -15,13 +16,14 @@ interface IWorkoutShareBottomSheetItemProps {
 }
 
 export function WorkoutShareBottomSheetItem(props: IWorkoutShareBottomSheetItemProps): JSX.Element {
+  const translate = useTranslation();
   const workoutShareRef = useRef<View>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   return (
     <View className="relative overflow-hidden">
       <BottomSheetItem
         name="share-to-image"
-        title="Share Image..."
+        title={translate("Share Image...")}
         description={""}
         icon={isLoading ? <IconSpinner height={24} width={24} /> : <IconPicture size={24} />}
         onClick={async () => {

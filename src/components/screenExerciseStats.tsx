@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -55,6 +56,7 @@ interface IProps {
 }
 
 export function ScreenExerciseStats(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const exerciseType = props.exerciseType;
   const { settings, dispatch, history: rawHistory, currentProgram } = props;
 
@@ -104,7 +106,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
 
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
-  useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
+  useNavOptions({ navTitle: translate("Exercise Stats"), navHelpKey: "exerciseStats" });
 
   const onOverrideMuscles = useCallback(() => {
     navigateToModal("musclesOverrideModal", { exerciseType });
@@ -167,7 +169,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   return (
     <View className="px-gutter">
       <Text className="text-xl font-bold">{fullName}</Text>
-      <Text className="text-xs text-text-secondary">{isCustom ? "Custom exercise" : "Built-in exercise"}</Text>
+      <Text className="text-xs text-text-secondary">
+        {isCustom ? translate("Custom exercise") : translate("Built-in exercise")}
+      </Text>
       <View className="py-2">
         <MuscleGroupsView exercise={fullExercise} settings={settings} onOverride={onOverrideMuscles} />
       </View>
@@ -175,7 +179,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         <View className="flex-row mb-2">
           <View className="flex-1">
             <LinkButton className="text-sm" name="edit-custom-exercise-stats" onClick={onEditCustomExercise}>
-              Edit
+              {translate("Edit")}
             </LinkButton>
           </View>
           <View>
@@ -184,13 +188,13 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               className="text-sm text-text-error"
               onClick={onDeleteCustomExercise}
             >
-              Delete Exercise
+              {translate("Delete Exercise")}
             </LinkButton>
           </View>
         </View>
       )}
 
-      <GroupHeader name="Notes" />
+      <GroupHeader name="Notes" label={translate("Notes")} />
       <View style={{ marginHorizontal: -4 }}>
         <MarkdownEditorBorderless
           debounceMs={500}
@@ -253,6 +257,7 @@ interface IMuscleGroupsViewProps {
 }
 
 export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGroupsViewProps): JSX.Element {
+  const translate = useTranslation();
   const { exercise, settings } = props;
   const targetMuscles = useMemo(() => Exercise_targetMuscles(exercise, settings), [exercise, settings]);
   const synergistMuscles = useMemo(
@@ -288,7 +293,7 @@ export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGro
           className="text-xs"
           onClick={props.onOverride}
         >
-          Override Muscles
+          {translate("Override Muscles")}
         </LinkButton>
       </View>
       <Pressable onPress={onToggleMuscles}>
@@ -303,7 +308,7 @@ export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGro
         {targetMuscleGroups.length > 0 && (
           <View>
             <Text className="text-xs">
-              <Text className="text-xs text-text-secondary">Target: </Text>
+              <Text className="text-xs text-text-secondary">{translate("Target:")} </Text>
               <Text className="text-xs font-bold">
                 {showMuscles ? targetMuscles.join(", ") : targetMuscleGroups.join(", ")}
               </Text>
@@ -313,7 +318,7 @@ export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGro
         {synergistMuscleGroups.length > 0 && (
           <View>
             <Text className="text-xs">
-              <Text className="text-xs text-text-secondary">Synergist: </Text>
+              <Text className="text-xs text-text-secondary">{translate("Synergist:")} </Text>
               <Text className="text-xs font-bold">
                 {showMuscles ? synergistMuscles.join(", ") : synergistMuscleGroups.join(", ")}
               </Text>

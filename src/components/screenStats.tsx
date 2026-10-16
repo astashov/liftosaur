@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -48,6 +49,7 @@ interface IUpdates {
 type IValuesRef = React.MutableRefObject<Partial<Record<IStatsKey, string>>>;
 
 export function ScreenStats(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const { statsEnabled, lengthUnits, units } = props.settings;
   const [cleared, setCleared] = useState(false);
   const lastWeightStats: Partial<Record<keyof IStatsWeight, IWeight>> = cleared
@@ -190,7 +192,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   }
 
   useNavOptions({
-    navTitle: "Add Measurements",
+    navTitle: translate("Add Measurements"),
     navHelpKey: "stats",
     navRightButtons: [
       <Pressable
@@ -208,7 +210,7 @@ export function ScreenStats(props: IProps): JSX.Element {
   return (
     <View className="px-gutter">
       <Text className="py-2 text-sm text-text-secondary">
-        All fields are optional, input only the fields you want this time. Empty fields won't be added.
+        {translate("All fields are optional, input only the fields you want this time. Empty fields won't be added.")}
       </Text>
       <View className="items-center">
         <Button
@@ -222,11 +224,11 @@ export function ScreenStats(props: IProps): JSX.Element {
             setClearKey((k) => k + 1);
           }}
         >
-          Clear All Fields
+          {translate("Clear All Fields")}
         </Button>
       </View>
       <View className="flex-row items-center justify-center my-2">
-        <Text className="mr-2 text-xs text-text-secondary">Date</Text>
+        <Text className="mr-2 text-xs text-text-secondary">{translate("Date")}</Text>
         <DatePicker testID="input-stats-add-date" value={pickedTimestamp ?? Date.now()} onChange={setPickedTimestamp} />
       </View>
       {statsEnabled.length.neck && (
@@ -234,6 +236,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="neck"
             label="Neck"
+            displayLabel={translate("Neck")}
             defaultValue={lastLengthStats.neck?.value}
             unit={lengthUnits}
             clearKey={clearKey}
@@ -246,6 +249,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="weight"
             label="Bodyweight"
+            displayLabel={translate("Bodyweight")}
             defaultValue={lastWeightStats.weight?.value}
             unit={units}
             clearKey={clearKey}
@@ -258,6 +262,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="bodyfat"
             label="Bodyfat"
+            displayLabel={translate("Bodyfat")}
             defaultValue={lastPercentageStats.bodyfat?.value}
             unit="%"
             clearKey={clearKey}
@@ -270,6 +275,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="shoulders"
             label="Shoulders"
+            displayLabel={translate("Shoulders")}
             defaultValue={lastLengthStats.shoulders?.value}
             unit={lengthUnits}
             clearKey={clearKey}
@@ -284,6 +290,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="bicepLeft"
                 label="Bicep Left"
+                displayLabel={translate("Bicep Left")}
                 defaultValue={lastLengthStats.bicepLeft?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -296,6 +303,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="bicepRight"
                 label="Bicep Right"
+                displayLabel={translate("Bicep Right")}
                 defaultValue={lastLengthStats.bicepRight?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -312,6 +320,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="forearmLeft"
                 label="Forearm Left"
+                displayLabel={translate("Forearm Left")}
                 defaultValue={lastLengthStats.forearmLeft?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -324,6 +333,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="forearmRight"
                 label="Forearm Right"
+                displayLabel={translate("Forearm Right")}
                 defaultValue={lastLengthStats.forearmRight?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -338,6 +348,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="chest"
             label="Chest"
+            displayLabel={translate("Chest")}
             defaultValue={lastLengthStats.chest?.value}
             unit={lengthUnits}
             clearKey={clearKey}
@@ -350,6 +361,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="waist"
             label="Waist"
+            displayLabel={translate("Waist")}
             defaultValue={lastLengthStats.waist?.value}
             unit={lengthUnits}
             clearKey={clearKey}
@@ -362,6 +374,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           <StatInput
             name="hips"
             label="Hips"
+            displayLabel={translate("Hips")}
             defaultValue={lastLengthStats.hips?.value}
             unit={lengthUnits}
             clearKey={clearKey}
@@ -376,6 +389,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="thighLeft"
                 label="Thigh Left"
+                displayLabel={translate("Thigh Left")}
                 defaultValue={lastLengthStats.thighLeft?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -388,6 +402,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="thighRight"
                 label="Thigh Right"
+                displayLabel={translate("Thigh Right")}
                 defaultValue={lastLengthStats.thighRight?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -404,6 +419,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="calfLeft"
                 label="Calf Left"
+                displayLabel={translate("Calf Left")}
                 defaultValue={lastLengthStats.calfLeft?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -416,6 +432,7 @@ export function ScreenStats(props: IProps): JSX.Element {
               <StatInput
                 name="calfRight"
                 label="Calf Right"
+                displayLabel={translate("Calf Right")}
                 defaultValue={lastLengthStats.calfRight?.value}
                 unit={lengthUnits}
                 clearKey={clearKey}
@@ -429,6 +446,7 @@ export function ScreenStats(props: IProps): JSX.Element {
         <View>
           <MenuItemEditable
             name="Sync to Apple Health"
+            label={translate("Sync to Apple Health")}
             type="boolean"
             value={syncToAppleHealth ? "true" : "false"}
             onChange={(newValue?: string) => {
@@ -441,6 +459,7 @@ export function ScreenStats(props: IProps): JSX.Element {
         <View>
           <MenuItemEditable
             name="Sync to Google Health Connect"
+            label={translate("Sync to Google Health Connect")}
             type="boolean"
             value={syncToGoogleHealth ? "true" : "false"}
             onChange={(newValue?: string) => {
@@ -459,7 +478,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           kind="purple"
           onClick={save}
         >
-          Done
+          {translate("Done")}
         </Button>
       </View>
     </View>
@@ -467,6 +486,7 @@ export function ScreenStats(props: IProps): JSX.Element {
 }
 
 interface IStatInputProps {
+  displayLabel?: string;
   name: IStatsKey;
   label: string;
   defaultValue?: number | string;
@@ -506,7 +526,7 @@ function StatInput(props: IStatInputProps): JSX.Element {
   return (
     <Input
       key={`${props.name}-${props.clearKey}`}
-      label={`${props.label} (${props.unit})`}
+      label={`${props.displayLabel ?? props.label} (${props.unit})`}
       labelSize="xs"
       defaultValue={props.defaultValue}
       type={"number"}

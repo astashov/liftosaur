@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
@@ -32,6 +33,7 @@ interface IWeekInsightsProps {
 }
 
 export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
+  const translate = useTranslation();
   const isCurrentWeek =
     DateUtils_firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
@@ -54,7 +56,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         <View className="flex-row items-center h-scaled-8 gap-1" style={{ marginBottom: 3 }}>
           <IconCrown size={16} color={Tailwind_colors().yellow[600]} />
           <Text className="text-sm font-semibold text-icon-yellow" style={{ marginTop: 3 }}>
-            See Week Insights
+            {translate("See Week Insights")}
           </Text>
         </View>
       </Pressable>
@@ -86,7 +88,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
                 })
               }
             >
-              Show More
+              {translate("Show More")}
             </LinkButton>
           </View>
         </View>
@@ -149,6 +151,7 @@ export interface IWeekInsightsDetailsProps {
 }
 
 export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
+  const translate = useTranslation();
   const setResults = props.setResults;
   const hasPersonalRecords = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
@@ -166,7 +169,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       </View>
       <View>
         <Text className="text-sm">
-          <Text className="text-sm text-text-secondary">Strength: </Text>
+          <Text className="text-sm text-text-secondary">{translate("Strength:")} </Text>
           <Text
             className={`text-sm ${colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}`}
           >
@@ -177,7 +180,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       </View>
       <View>
         <Text className="text-sm">
-          <Text className="text-sm text-text-secondary">Hypertrophy: </Text>
+          <Text className="text-sm text-text-secondary">{translate("Hypertrophy:")} </Text>
           <Text
             className={`text-sm ${colorPctValue(
               setResults.total,
@@ -193,7 +196,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       <View className="flex-row mt-2">
         <View className="flex-1 gap-1">
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Upper:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Upper:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.upper}
               settings={props.settings}
@@ -202,7 +205,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
             />
           </Text>
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Lower:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Lower:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.lower}
               settings={props.settings}
@@ -211,7 +214,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
             />
           </Text>
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Core:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Core:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.core}
               settings={props.settings}
@@ -222,7 +225,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         </View>
         <View className="flex-1">
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Push:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Push:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.push}
               settings={props.settings}
@@ -231,7 +234,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
             />
           </Text>
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Pull:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Pull:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.pull}
               settings={props.settings}
@@ -240,7 +243,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
             />
           </Text>
           <Text className="text-sm">
-            <Text className="text-sm text-text-secondary">Legs:</Text>{" "}
+            <Text className="text-sm text-text-secondary">{translate("Legs:")}</Text>{" "}
             <PlannerSetSplit
               split={setResults.legs}
               settings={props.settings}
@@ -279,7 +282,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
           name="week-insights-show-planner-settings"
           onPress={props.onOpenPlannerSettings}
         >
-          Change Set Range Settings
+          {translate("Change Set Range Settings")}
         </LinkButton>
       </View>
     </View>

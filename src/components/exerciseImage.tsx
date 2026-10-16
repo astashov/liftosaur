@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, memo, useState } from "react";
 import { View, Image } from "react-native";
 import { Text } from "./primitives/text";
@@ -42,6 +43,7 @@ function areExerciseImagePropsEqual(prev: IProps, next: IProps): boolean {
 }
 
 export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Element | null {
+  const translate = useTranslation();
   const { size } = props;
   const remScale = useRemScale();
   const exercise = Exercise_get(props.exerciseType, props.settings?.exercises || {});
@@ -152,7 +154,7 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
       </>
     ) : (
       <ExerciseNoImage size={props.size}>
-        <Text>No exercise image</Text>
+        <Text>{translate("No exercise image")}</Text>
       </ExerciseNoImage>
     );
   }
@@ -163,10 +165,13 @@ function ExerciseImageAuxiliary(props: {
   isError: boolean;
   isLoading: boolean;
 }): JSX.Element | null {
+  const translate = useTranslation();
   if (props.isError) {
     return (
       <ExerciseNoImage size={props.size}>
-        <Text className="text-xs leading-normal text-center text-red-700">Error fetching the exercise image</Text>
+        <Text className="text-xs leading-normal text-center text-red-700">
+          {translate("Error fetching the exercise image")}
+        </Text>
       </ExerciseNoImage>
     );
   } else if (props.isLoading) {

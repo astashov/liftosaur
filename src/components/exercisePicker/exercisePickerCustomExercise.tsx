@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View, Pressable, ScrollView, Platform } from "react-native";
 import { Text } from "../primitives/text";
@@ -27,6 +28,7 @@ interface IExercisePickerCustomExercise2Props {
 }
 
 export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercise2Props): JSX.Element {
+  const translate = useTranslation();
   const isEdited = !props.originalExercise || !ObjectUtils_isEqual(props.exercise, props.originalExercise);
   const isValid = Exercise_nameError(props.exercise.name) == null;
   const [notes, setNotes] = useState<string | undefined>(
@@ -63,11 +65,13 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
                 props.onGoBack("Save custom exercise");
               }}
             >
-              Save
+              {translate("Save")}
             </Button>
           </View>
           <View className="absolute top-0 left-0 right-0 items-center py-2" pointerEvents="none">
-            <Text className="font-semibold">{props.exercise ? "Edit" : "Create"} Custom Exercise</Text>
+            <Text className="font-semibold">
+              {props.exercise ? translate("Edit") : translate("Create")} {translate("Custom Exercise")}
+            </Text>
           </View>
         </View>
       </SheetDragHandle>

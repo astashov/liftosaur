@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../../primitives/text";
@@ -19,6 +20,7 @@ interface IModalCreateStateVariableProps {
 export type IStateVariableType = "number" | IUnit | IPercentageUnit;
 
 export function ModalCreateStateVariableContent(props: IModalCreateStateVariableProps): JSX.Element {
+  const translate = useTranslation();
   const [name, setName] = useState<string>("");
   const [type, setType] = useState<IStateVariableType | undefined>(undefined);
   const [showTypeError, setShowTypeError] = useState<boolean>(false);
@@ -35,12 +37,14 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
   return (
     <View className="items-center pb-4 bg-background-default">
       <Text className="mb-2 text-xs text-text-secondary">
-        You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
-        via <Text className="text-xs font-bold">state.yourVariable</Text> in the script.
+        {translate(
+          "You can use state variables to store values between workouts, or parameterize your progress scripts. Use them via"
+        )}{" "}
+        <Text className="text-xs font-bold">state.yourVariable</Text> {translate("in the script.")}
       </Text>
       <View className="w-full">
         <Input
-          label="Variable name"
+          label={translate("Variable name")}
           identifier="create-state-variable-name"
           // Scripts reference the name verbatim ('state.increment'), so an autocapitalized
           // first letter is a typo the user can't see. On input, not on blur: Create can be
@@ -59,9 +63,9 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
       <View className="w-full pt-2">
         <InputSelect
           name="create-state-variable-type"
-          label="Type"
+          label={translate("Type")}
           expandValue={true}
-          placeholder="Select a type"
+          placeholder={translate("Select a type")}
           values={typeValues}
           value={type}
           onChange={(v) => {
@@ -74,14 +78,19 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
             }
           }}
         />
-        {showTypeError && <Text className="text-xs text-text-error">Please select a type for the variable.</Text>}
+        {showTypeError && (
+          <Text className="text-xs text-text-error">{translate("Please select a type for the variable.")}</Text>
+        )}
       </View>
       <MenuItemEditable
         name="User Prompted?"
+        label={translate("User Prompted?")}
         type="boolean"
         nextLine={
           <View className="pb-2" style={{ marginTop: -8 }}>
-            <Text className="text-xs text-text-secondary">Will be asked for value at the end of workout</Text>
+            <Text className="text-xs text-text-secondary">
+              {translate("Will be asked for value at the end of workout")}
+            </Text>
           </View>
         }
         value={isUserPrompted ? "true" : "false"}
@@ -107,7 +116,7 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
             props.onClose();
           }}
         >
-          Create
+          {translate("Create")}
         </Button>
       </View>
     </View>

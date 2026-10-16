@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
@@ -25,13 +26,14 @@ interface IProps {
 }
 
 function ExpandableSection(props: { title: string; items: string[] }): JSX.Element {
+  const translate = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   return (
     <View className="pt-1">
       <Text className="text-sm text-text-secondary">
         ⚠ {props.title}{" "}
         <LinkButton className="text-sm" onPress={() => setIsExpanded(!isExpanded)} name="expand-section-import-preview">
-          {isExpanded ? "Hide" : "Show"}
+          {isExpanded ? translate("Hide") : translate("Show")}
         </LinkButton>
       </Text>
       {isExpanded && (
@@ -52,6 +54,7 @@ function formatRowError(error: IImportRowError): string {
 }
 
 export function ScreenImportPreview(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const { result, source } = props.preview;
   // Duplicate detection runs over ALL parsed records (against existing history).
   const summary = useMemo(() => ImportUtils_summarize(result, props.history), [result, props.history]);
@@ -99,7 +102,7 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
   };
 
   useNavOptions({
-    navTitle: "Import Preview",
+    navTitle: translate("Import Preview"),
     navRightButtons: [
       <Button
         kind="purple"
@@ -109,7 +112,7 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
         disabled={recordsToImport.length === 0}
         onClick={onImport}
       >
-        Import
+        {translate("Import")}
       </Button>,
     ],
   });
@@ -135,7 +138,8 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
         ListHeaderComponent={
           <View className="px-gutter pb-4">
             <Text className="text-base font-semibold">
-              Import {importSummary.workoutCount} {StringUtils_pluralize("workout", importSummary.workoutCount)}
+              {translate("Import")} {importSummary.workoutCount}{" "}
+              {StringUtils_pluralize("workout", importSummary.workoutCount)}
             </Text>
             {importSummary.minStartTime != null && importSummary.maxStartTime != null && (
               <Text className="text-sm text-text-secondary">
@@ -172,14 +176,15 @@ export function ScreenImportPreview(props: IProps): JSX.Element {
               <View className="pt-1">
                 <Pressable>
                   <Text className="text-sm text-text-secondary">
-                    ⚠ {summary.duplicateIds.size} {summary.duplicateIds.size === 1 ? "workout looks" : "workouts look"}{" "}
-                    like duplicates of existing history{" "}
+                    ⚠ {summary.duplicateIds.size}{" "}
+                    {summary.duplicateIds.size === 1 ? translate("workout looks") : translate("workouts look")}{" "}
+                    {translate("like duplicates of existing history")}{" "}
                     <LinkButton
                       name="toggle-duplicate-import-preview"
                       className="text-sm"
                       onPress={() => setShouldSkipDuplicates(!shouldSkipDuplicates)}
                     >
-                      {shouldSkipDuplicates ? "Skipped - Include?" : "Included - Skip?"}
+                      {shouldSkipDuplicates ? translate("Skipped - Include?") : translate("Included - Skip?")}
                     </LinkButton>
                   </Text>
                 </Pressable>

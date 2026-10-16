@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../i18n/context";
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -55,6 +56,7 @@ interface IEditProgramGridProps {
 // programGridGeometry, the edits in plannerStructure via useGridActions, and each drag in
 // useGridDragSession — see lambda/scripts/archdocs/program-grid.md.
 export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgramGridProps): JSX.Element {
+  const translate = useTranslation();
   usePerfRenderCount("EditProgramGrid");
   const rem = useRem();
   const { evaluatedProgram, settings } = props;
@@ -402,7 +404,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
                     className="justify-center"
                   >
                     <AddButton
-                      label="Day"
+                      label={translate("Day")}
                       testID={`grid-add-day-${column.weekIndex}`}
                       onPress={() => actions.onAddDay(column.weekIndex)}
                     />
@@ -411,7 +413,7 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
               </View>
             </View>
             <View style={{ width: GRID_ADD_WEEK_WIDTH * rem, padding: GRID_DAY_BOX_INSET * rem }}>
-              <VerticalAddButton label="Week" testID="grid-add-week" onPress={actions.onAddWeek} />
+              <VerticalAddButton label={translate("Week")} testID="grid-add-week" onPress={actions.onAddWeek} />
             </View>
           </View>
         </Reanimated.ScrollView>
@@ -433,7 +435,8 @@ export const EditProgramGrid = memo(function EditProgramGrid(props: IEditProgram
         </Animated.View>
       )}
       <Text className="px-4 pt-2 text-xs text-text-secondary">
-        Long-press a day, an exercise or a week to move it{canPinch ? ". Pinch to zoom" : ""}
+        {translate("Long-press a day, an exercise or a week to move it")}
+        {canPinch ? translate(". Pinch to zoom") : ""}
       </Text>
     </View>
   );

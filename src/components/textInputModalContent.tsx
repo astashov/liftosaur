@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { GroupHeader } from "./groupHeader";
@@ -13,6 +14,7 @@ interface ITextInputModalContentProps {
 }
 
 export function TextInputModalContent(props: ITextInputModalContentProps): JSX.Element {
+  const translate = useTranslation();
   const { data } = props;
   const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
   const inputHandle = useRef<IInputHandle>(null);
@@ -57,7 +59,7 @@ export function TextInputModalContent(props: ITextInputModalContentProps): JSX.E
           className="mr-3"
           onClick={props.onClose}
         >
-          Cancel
+          {translate("Cancel")}
         </Button>
         <Button
           kind="purple"

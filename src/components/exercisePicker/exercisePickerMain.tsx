@@ -1,3 +1,5 @@
+import { I18n_exerciseName } from "../../i18n/exercises";
+import { useLanguage, useTranslation } from "../../i18n/context";
 import { JSX, Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRemScale } from "../../utils/useRem";
 import { FitText_fontSize } from "../../utils/fitText";
@@ -121,6 +123,8 @@ interface ITabDef {
 }
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
+  const translate = useTranslation();
+  const language = useLanguage();
   const remScale = useRemScale();
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
   const {
@@ -141,26 +145,26 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
   const title =
     mode === "workout"
       ? exerciseType
-        ? "Swap Exercise"
-        : "Add Exercises"
+        ? translate("Swap Exercise")
+        : translate("Add Exercises")
       : exerciseType || templateName
-        ? "Edit Exercise"
-        : "Add Exercise";
+        ? translate("Edit Exercise")
+        : translate("Add Exercise");
 
   const tabs = useMemo<ITabDef[]>(() => {
     if (mode === "workout") {
-      const result: ITabDef[] = [{ label: "Ad-hoc Exercise", index: 0 }];
+      const result: ITabDef[] = [{ label: translate("Ad-hoc Exercise"), index: 0 }];
       if (evaluatedProgram) {
-        result.push({ label: "From Program", index: 1 });
+        result.push({ label: translate("From Program"), index: 1 });
       }
       return result;
     }
-    const result: ITabDef[] = [{ label: "Exercise", index: 0 }];
+    const result: ITabDef[] = [{ label: translate("Exercise"), index: 0 }];
     if (!hideTemplate) {
-      result.push({ label: "Template", index: 1 });
+      result.push({ label: translate("Template"), index: 1 });
     }
     return result;
-  }, [mode, evaluatedProgram, hideTemplate]);
+  }, [mode, evaluatedProgram, hideTemplate, translate]);
 
   const selectedTab = Math.min(state.selectedTab ?? 0, tabs.length - 1);
 
@@ -190,15 +194,19 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
     if (search) {
-      result = useRankOrdering
+      const translatedMatches = result.filter((exercise) =>
+        Exercise_matchesQuery({ ...exercise, name: I18n_exerciseName(exercise, settings.exercises, language) }, search)
+      );
+      const originalMatches = useRankOrdering
         ? Exercise_filterAndRankByQuery(result, search)
-        : result.filter((e) => Exercise_matchesQuery(e, search));
+        : result.filter((exercise) => Exercise_matchesQuery(exercise, search));
+      result = [...originalMatches, ...translatedMatches.filter((exercise) => !originalMatches.includes(exercise))];
     }
     if (!useRankOrdering) {
       result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
     }
     return result;
-  }, [search, useRankOrdering, filters, sort, settings, exerciseType]);
+  }, [search, useRankOrdering, filters, sort, settings, exerciseType, language]);
 
   const customExercises = useMemo(() => {
     const exercises = ExercisePickerUtils_filterCustomExercises(settings.exercises, filters);
@@ -680,7 +688,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           return (
             <View className="px-4 pb-1" onLayout={onLabelLayout}>
               <Input
-                label="Label"
+                label={translate("Label")}
                 defaultValue={state.label}
                 isLabelOutside={true}
                 changeType={"oninput"}
@@ -727,7 +735,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   style={[{ height: 18, justifyContent: "flex-end" }, stickyLabelStyle]}
                 >
                   <Text numberOfLines={1} className="px-4 text-xs text-center text-text-secondary">
-                    <Text className="text-xs text-text-secondary">Current Exercise: </Text>
+                    <Text className="text-xs text-text-secondary">{translate("Current Exercise:")} </Text>
                     <Text className="text-xs font-bold">{currentExerciseName}</Text>
                   </Text>
                 </Animated.View>
@@ -754,7 +762,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   style={[{ height: 18, justifyContent: "flex-end" }, stickyLabelStyle]}
                 >
                   <Text numberOfLines={1} className="px-4 text-xs text-center text-text-secondary">
-                    <Text className="text-xs text-text-secondary">Current Exercise: </Text>
+                    <Text className="text-xs text-text-secondary">{translate("Current Exercise:")} </Text>
                     <Text className="text-xs font-bold">{currentExerciseName}</Text>
                   </Text>
                 </Animated.View>
@@ -789,6 +797,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 onToggle={() => setIsRecentCollapsed((v) => !v)}
                 leftExpandIcon={true}
                 name="Recent"
+                label={translate("Recent")}
                 headerClassName="mx-4"
               />
             </View>
@@ -801,6 +810,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 onToggle={() => setIsCustomCollapsed((v) => !v)}
                 leftExpandIcon={true}
                 name="Custom Exercises"
+                label={translate("Custom Exercises")}
                 headerClassName="mx-4"
                 rightAddOn={
                   <LinkButton
@@ -810,7 +820,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                     name="create-custom-exercise"
                     onPress={onCreateCustom}
                   >
-                    Create
+                    {translate("Create")}
                   </LinkButton>
                 }
               />
@@ -844,6 +854,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 onToggle={() => setIsBuiltinCollapsed((v) => !v)}
                 leftExpandIcon={true}
                 name="Built-in Exercises"
+                label={translate("Built-in Exercises")}
                 headerClassName="mx-4"
               />
             </View>
@@ -941,6 +952,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       isRecentCollapsed,
       isCustomCollapsed,
       isBuiltinCollapsed,
+      ,
+      translate,
     ]
   );
 
@@ -1100,6 +1113,7 @@ const SearchInput = memo(function SearchInput(props: {
   dispatch: ILensDispatch<IExercisePickerState>;
   search?: string;
 }): JSX.Element {
+  const translate = useTranslation();
   const { dispatch, search } = props;
   const [localSearch, setLocalSearch] = useState<string>(search ?? "");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1134,7 +1148,7 @@ const SearchInput = memo(function SearchInput(props: {
     <View className="flex-row items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
       <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
       <TextInput
-        placeholder="Search by name"
+        placeholder={translate("Search by name")}
         placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
         className="flex-1 text-sm text-text-secondary"
         style={{ paddingVertical: 0, includeFontPadding: false }}
@@ -1149,6 +1163,7 @@ const SearchInput = memo(function SearchInput(props: {
 });
 
 const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
+  const translate = useTranslation();
   const { dispatch, search, sort, filters, settings } = props;
   const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
   const isFiltered = filterNames.length > 0;
@@ -1190,8 +1205,8 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
       </View>
       <View className="mx-4">
         <Text className="text-xs text-text-secondary">
-          <Text className="text-xs text-text-secondary">Sorted by: </Text>
-          <Text className="text-xs font-bold text-text-secondary">{exercisePickerSortNames[sort]}</Text>
+          <Text className="text-xs text-text-secondary">{translate("Sorted by:")} </Text>
+          <Text className="text-xs font-bold text-text-secondary">{translate(exercisePickerSortNames[sort])}</Text>
           {filterNames.length > 0 && (
             <Text className="text-xs text-text-secondary">
               {", Filters: "}
@@ -1206,7 +1221,7 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
         </Text>
         {filterNames.length > 0 && (
           <LinkButton name="clear-filters" className="text-xs" onPress={onClearFilters}>
-            Clear
+            {translate("Clear")}
           </LinkButton>
         )}
       </View>
@@ -1347,6 +1362,7 @@ interface IProgramExerciseRowProps {
 }
 
 const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerciseRowProps): JSX.Element {
+  const translate = useTranslation();
   const { exercise, exerciseType, isMultiselect, isSelected, isItemDisabled, isAllDisabled, settings, onChoose } =
     props;
   const choose = useCallback(() => {
@@ -1363,7 +1379,9 @@ const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerc
 
   const dayContent = (
     <View>
-      <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
+      <Text className="px-1 pb-1 text-xs text-text-secondary">
+        {translate("Day")} {exercise.dayData.dayInWeek}
+      </Text>
       {displayGroups.map((g, gi) => (
         <HistoryRecordSet key={gi} sets={g} isNext={true} units={settings.units} />
       ))}
@@ -1412,6 +1430,7 @@ interface IBottomButtonProps {
 }
 
 function BottomButton(props: IBottomButtonProps): JSX.Element {
+  const translate = useTranslation();
   const { state, settings, evaluatedProgram } = props;
   const selectedExercises = useMemo(
     () =>
@@ -1444,21 +1463,21 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
       >
         {state.mode === "workout"
           ? state.exerciseType
-            ? "Swap Exercise"
+            ? translate("Swap Exercise")
             : selectedExercises.length > 0
               ? `Add to this workout${selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}`
-              : "Close"
+              : translate("Close")
           : state.exerciseType || state.templateName
-            ? `Save ${state.selectedTab === 1 ? "Template" : "Exercise"}`
+            ? `Save ${state.selectedTab === 1 ? translate("Template") : translate("Exercise")}`
             : selectedExercises.length > 0
               ? state.selectedTab === 1
-                ? "Add Template"
+                ? translate("Add Template")
                 : // Counted, because adding to a program is multi-select too now and the button is
                   // the only place that says how many are about to land in the day.
                   `Add ${StringUtils_pluralize("Exercise", selectedExercises.length)}${
                     selectedExercises.length > 1 ? ` (${selectedExercises.length})` : ""
                   }`
-              : "Close"}
+              : translate("Close")}
       </Button>
       {!(state.mode === "program" && state.selectedTab === 1) && selectedExercises.length > 0 && (
         <Text className="text-xs text-text-secondary">

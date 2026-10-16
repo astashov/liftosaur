@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, useMemo, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -46,6 +47,7 @@ interface IProps {
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const program = props.program;
   const settings = props.settings;
   const evaluatedProgram = useMemo(() => Program_evaluate(program, settings), [program, settings]);
@@ -96,7 +98,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
                 testID="program-author"
                 className="text-sm font-bold uppercase text-text-secondary"
               >
-                By {program.author}
+                {translate("By")} {program.author}
               </Text>
             )}
             <View className="flex-row items-start py-1">
@@ -104,7 +106,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
                 <IconWatch />
               </View>
               <Text className="flex-1 ml-1">
-                Average time to finish a workout:{" "}
+                {translate("Average time to finish a workout:")}{" "}
                 <Text className="font-bold">
                   {TimeUtils_formatHHMM(Program_dayAverageTimeMs(evaluatedProgram, settings))}
                 </Text>
@@ -129,7 +131,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         </View>
       </View>
     ),
-    [headerContent, program, evaluatedProgram, settings, isWeb]
+    [headerContent, program, evaluatedProgram, settings, isWeb, translate]
   );
 
   if (!isWeb) {

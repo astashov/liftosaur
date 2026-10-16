@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, ReactNode, useMemo, useState } from "react";
 import { View, Platform } from "react-native";
 import { Text } from "./primitives/text";
@@ -20,6 +21,7 @@ interface IProgramPreviewOrPlaygroundProps {
 }
 
 export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundProps): JSX.Element {
+  const translate = useTranslation();
   const [isPlayground, setIsPlayground] = useState<boolean>(false);
   const isWeb = Platform.OS === "web";
   const { headerContent, isMobile, settings, onChangeUnit } = props;
@@ -34,13 +36,14 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
             {isMobile ? (
               <MenuItemEditable
                 name="Enable Playground"
+                label={translate("Enable Playground")}
                 type="boolean"
                 value={isPlayground ? "true" : "false"}
                 onChange={(v) => setIsPlayground(v === "true")}
               />
             ) : (
               <View className="flex-row items-center">
-                <Text className="mr-2">Enable Playground:</Text>
+                <Text className="mr-2">{translate("Enable Playground:")}</Text>
                 <MenuItemValue
                   type="desktop-select"
                   setPatternError={() => undefined}
@@ -53,7 +56,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
                   onChange={(newValue) => setIsPlayground(newValue === "true")}
                 />
                 <View className="flex-row items-center ml-4">
-                  <Text className="mr-2">Units:</Text>
+                  <Text className="mr-2">{translate("Units:")}</Text>
                   <MenuItemValue
                     name="Units"
                     setPatternError={() => undefined}
@@ -77,6 +80,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
           <View className="mx-4 mt-2" pointerEvents="box-none">
             <MenuItemEditable
               name="Enable Playground"
+              label={translate("Enable Playground")}
               type="boolean"
               value={isPlayground ? "true" : "false"}
               onChange={(v) => setIsPlayground(v === "true")}
@@ -85,14 +89,15 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         )}
         {isPlayground && (
           <Text className="py-2 mx-4 text-sm" pointerEvents="none">
-            Playground mode emulates the workout, you can complete sets by tapping on squares below, and see how the
-            program logic works. Some programs may do nothing, some may update the weights, some may switch to different
-            set schemes. You can adjust your weights and other variables by clicking on the <IconEditSquare /> icon.
+            {translate(
+              "Playground mode emulates the workout, you can complete sets by tapping on squares below, and see how the program logic works. Some programs may do nothing, some may update the weights, some may switch to different set schemes. You can adjust your weights and other variables by clicking on the"
+            )}{" "}
+            <IconEditSquare /> {translate("icon.")}
           </Text>
         )}
       </View>
     ),
-    [headerContent, isWeb, isMobile, isPlayground, unitsValue, onChangeUnit]
+    [headerContent, isWeb, isMobile, isPlayground, unitsValue, onChangeUnit, translate]
   );
 
   return (

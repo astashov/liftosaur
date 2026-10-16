@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import { JSX, useState } from "react";
 import { View, Pressable } from "react-native";
 import { TextInput } from "./primitives/textInput";
@@ -29,13 +30,14 @@ interface IProps {
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
+  const translate = useTranslation();
   const [search, setSearch] = useState("");
   const [selectedTab, setSelectedTab] = useState(0);
   const hasCustomPrograms = props.customPrograms.length > 0;
   const remScale = useRemScale();
 
   useNavOptions({
-    navTitle: "Choose a program",
+    navTitle: translate("Choose a program"),
     navRightButtons: [
       <LinkButton
         key="import"
@@ -43,7 +45,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
         name="import-program"
         onClick={() => navigateToModal("importFromLinkModal")}
       >
-        Import
+        {translate("Import")}
       </LinkButton>,
     ],
   });
@@ -58,7 +60,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           <TextInput
             className="w-full py-2 pr-4 border rounded-lg pl-9 border-border-neutral bg-background-default text-text-primary"
             style={{ fontSize: 15 * remScale }}
-            placeholder="Search by name"
+            placeholder={translate("Search by name")}
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             defaultValue=""
             onChangeText={(text) => setSearch(text)}
@@ -143,6 +145,7 @@ interface IFooterProps {
 const FOOTER_SUBTITLE_MAX_SCALE = 1.25;
 
 function Footer(props: IFooterProps): JSX.Element {
+  const translate = useTranslation();
   const insets = useSafeAreaInsets();
   const remScale = useRemScale();
   return (
@@ -156,7 +159,7 @@ function Footer(props: IFooterProps): JSX.Element {
         testID="create-program"
         onPress={props.onCreate}
       >
-        <Text className="text-sm font-semibold text-text-link">Create New Program</Text>
+        <Text className="text-sm font-semibold text-text-link">{translate("Create New Program")}</Text>
       </Pressable>
       <View style={{ width: 1 }} className="bg-background-subtle" />
       <Pressable
@@ -165,9 +168,9 @@ function Footer(props: IFooterProps): JSX.Element {
         testID="empty-program"
         onPress={props.onEmpty}
       >
-        <Text className="text-sm font-semibold text-text-link">Go Without Program</Text>
+        <Text className="text-sm font-semibold text-text-link">{translate("Go Without Program")}</Text>
         {remScale <= FOOTER_SUBTITLE_MAX_SCALE && (
-          <Text className="text-xs text-gray-500">and build your program along the way</Text>
+          <Text className="text-xs text-gray-500">{translate("and build your program along the way")}</Text>
         )}
       </Pressable>
     </View>

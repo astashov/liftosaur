@@ -1,3 +1,4 @@
+import { useTranslation } from "../i18n/context";
 import type { JSX } from "react";
 import { Modal } from "./modal";
 import { Text } from "./primitives/text";
@@ -15,10 +16,11 @@ interface IModalProgramNextDayProps {
 }
 
 export function ModalProgramNextDayContent(props: IModalProgramNextDayProps): JSX.Element {
+  const translate = useTranslation();
   return (
     <>
       <View className="mb-1 text-center">
-        <Text className="text-lg font-semibold text-center">Change Next Day</Text>
+        <Text className="text-lg font-semibold text-center">{translate("Change Next Day")}</Text>
       </View>
       <NextDayPicker
         stats={props.stats}
