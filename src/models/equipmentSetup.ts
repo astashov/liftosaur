@@ -47,12 +47,12 @@ function weightsIn(weights: IWeight[], unit: IUnit): number[] {
   return weights.filter((w) => w.unit === unit).map((w) => w.value);
 }
 
-export function EquipmentSetup_fromLegacy(data: IEquipmentData, unit: IUnit, hasBodyweight: boolean): IEquipmentSetup {
+export function EquipmentSetup_fromLegacy(data: IEquipmentData, unit: IUnit): IEquipmentSetup {
   if (data.isFixed) {
     const fixedUnit = data.unit ?? unit;
     return { type: "fixed", unit: fixedUnit, ranges: [], values: weightsIn(data.fixed, fixedUnit) };
   }
-  const usesBodyweight = !!data.useBodyweightForBar && hasBodyweight;
+  const usesBodyweight = !!data.useBodyweightForBar;
   return {
     type: "plates",
     unit,

@@ -74,8 +74,19 @@ describe("EquipmentSetup", () => {
       expectParity(settingsWith("barbell", { useBodyweightForBar: true }, w(176, "lb")), "barbell", "lb");
     });
 
-    it("matches with bodyweight turned on but not logged", () => {
-      expectParity(settingsWith("barbell", { useBodyweightForBar: true }), "barbell", "lb");
+    it("keeps bodyweight turned on through an edit when none is logged", () => {
+      const settings = settingsWith("barbell", { useBodyweightForBar: true });
+      const data = settings.gyms[0].equipment.barbell!;
+      const setup = Equipment_getSetup(data, settings, "lb");
+      if (setup.type !== "plates") {
+        throw new Error("expected a plates setup");
+      }
+      expect(setup.base).to.equal(0);
+      expect(setup.bodyweight).to.eql({});
+      const edited = EquipmentSetup_save(data, { ...setup, sides: 1 });
+      expect(edited.useBodyweightForBar).to.equal(true);
+      const load = EquipmentLoadSolver_select(setup, w(225, "lb"), { bodyweight: Equipment_bodyweight(settings) });
+      expect(load.total.value).to.be.within(220, 225);
     });
 
     it("matches on assisting with bodyweight", () => {

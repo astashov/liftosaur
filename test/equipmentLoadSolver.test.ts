@@ -119,6 +119,26 @@ describe("EquipmentLoadSolver", () => {
       expect(EquipmentLoadText_format(load)).to.equal("Top 45/25 · Middle 10/10");
     });
 
+    it("prefers a closer split over an exact first-pass split", () => {
+      const setup: IEquipmentSetup = {
+        type: "plates",
+        unit: "kg",
+        base: 0,
+        plates: [
+          { weight: 20, num: 4 },
+          { weight: 10, num: 2 },
+        ],
+        sides: 2,
+        horns: [
+          { name: "Top", ratio: 3 },
+          { name: "Middle", ratio: 1 },
+        ],
+      };
+      expect(EquipmentLoadText_format(EquipmentLoadSolver_select(setup, w(100, "kg"), {}))).to.equal(
+        "Top 20/20 · Middle 10"
+      );
+    });
+
     it("draws no horn bars when nothing is loaded or the setup has no plates", () => {
       expect(EquipmentLoadText_hornBars(EquipmentLoadSolver_select(prime, w(0), {}))).to.equal(undefined);
       const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };

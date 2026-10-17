@@ -113,7 +113,7 @@ export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, un
   if (data.setup != null && !Equipment_legacyChanged(data)) {
     return data.setup;
   }
-  return EquipmentSetup_fromLegacy(data, unit, settings.currentBodyweight != null);
+  return EquipmentSetup_fromLegacy(data, unit);
 }
 
 export function Equipment_setupOf(data: IEquipmentData, settings: ISettings): IEquipmentSetup {

@@ -34,7 +34,7 @@ export function EquipmentEditorBands(props: IEquipmentEditorSectionProps<IBandsS
       <EquipmentEditorCard title="Bands · what each counts as">
         {setup.bands.map((band, index) => (
           <EquipmentEditorBandRow
-            key={index}
+            key={`${index}-${band.name}`}
             band={band}
             index={index}
             unit={setup.unit}
