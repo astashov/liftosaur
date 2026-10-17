@@ -368,6 +368,60 @@ Squat / 2x5 / 100lb
 `);
   });
 
+  it("does not copy inherited descriptions into later weeks after finishing", () => {
+    const programText = `# Week 1
+## Day 1
+// How to squat
+Squat / 2x5 100lb
+
+# Week 2
+## Day 1
+Squat / 2x5 110lb`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+// How to squat
+Squat / 2x5 / 100lb
+
+
+# Week 2
+## Day 1
+Squat / 2x5 / 110lb
+
+
+`);
+    const evaluated = Program_evaluate(program, Settings_build());
+    expect(evaluated.weeks[1].days[0].exercises[0].descriptions.values.map((d) => d.value)).to.eql(["How to squat"]);
+  });
+
+  it("keeps a later week's own description after finishing", () => {
+    const programText = `# Week 1
+## Day 1
+// How to squat
+Squat / 2x5 100lb
+
+# Week 2
+## Day 1
+// Go heavier
+Squat / 2x5 110lb`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+// How to squat
+Squat / 2x5 / 100lb
+
+
+# Week 2
+## Day 1
+// Go heavier
+Squat / 2x5 / 110lb
+
+
+`);
+  });
+
   it("compacts repeated exercises", () => {
     const programText = `# Week 1
 ## Day 1
@@ -2653,13 +2707,14 @@ Squat / 1x1
 
 # Week 2
 ## Day 1
-// Description
 Squat / 1x1
 // ...Squat
 Bench Press / 1x1
 
 
 `);
+    const bench = Program_evaluate(program, Settings_build()).weeks[1].days[0].exercises[1];
+    expect(bench.descriptions.values.map((d) => d.value)).to.eql(["Description"]);
   });
 
   describe("Set timers", () => {

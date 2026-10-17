@@ -93,6 +93,23 @@ export class ProgramToPlanner {
     return this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
   }
 
+  private isInheritedDescription(exercise: IPlannerProgramExercise, weekIndex: number, dayInWeekIndex: number): boolean {
+    for (let i = weekIndex - 1; i >= 0; i -= 1) {
+      const day = this.program.weeks[i]?.days[dayInWeekIndex];
+      if (day == null) {
+        return false;
+      }
+      const lastWeekExercise = day.exercises.find((e) => e.key === exercise.key);
+      if (lastWeekExercise != null) {
+        return (
+          exercise.descriptions.reuse?.fullName === lastWeekExercise.descriptions.reuse?.fullName &&
+          ObjectUtils_isEqual(exercise.descriptions.values, lastWeekExercise.descriptions.values)
+        );
+      }
+    }
+    return false;
+  }
+
   private getCurrentDescriptionIndex(key: string, weekIndex: number, dayInWeekIndex: number): number {
     const exercise = this.getCurrentDescriptionExercise(key, weekIndex, dayInWeekIndex);
     const descriptions = exercise?.descriptions.values || [];
@@ -521,7 +538,8 @@ export class ProgramToPlanner {
 
                 if (
                   !finishedToAddDescription &&
-                  (evalExercise.descriptions.reuse || evalExercise.descriptions.values.length > 0)
+                  (evalExercise.descriptions.reuse || evalExercise.descriptions.values.length > 0) &&
+                  !this.isInheritedDescription(evalExercise, weekIndex, dayInWeekIndex)
                 ) {
                   const result = this.addExerciseDescriptions(
                     evalExercise,
