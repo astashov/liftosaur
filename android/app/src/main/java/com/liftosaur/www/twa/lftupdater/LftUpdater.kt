@@ -53,7 +53,7 @@ object LftUpdater {
     }
 
     private fun performCheck(context: Context): Map<String, Any?> {
-        val runtimeVersion = BuildConfig.VERSION_CODE.toString()
+        val runtimeVersion = LftUpdaterPath.runtimeVersion()
         val manifestEndpoint = manifestUrl(context)
         Log.i(TAG, "fetching manifest: url=$manifestEndpoint platform=android rv=$runtimeVersion channel=$CHANNEL")
         val (body, contentType) = httpGetManifest(manifestEndpoint, runtimeVersion)

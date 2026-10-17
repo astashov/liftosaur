@@ -125,8 +125,8 @@ android {
         applicationId "com.liftosaur.www.twa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 155
-        versionName "155.0"
+        versionCode 156
+        versionName "156.0"
         buildConfigField "boolean", "DISABLE_OTA", "${disableOta}"
     }
     buildFeatures {
