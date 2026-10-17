@@ -3,13 +3,17 @@ package com.liftosaur.www.twa.lftupdater
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import com.liftosaur.www.twa.BuildConfig
 import java.io.File
 
 object LftUpdaterPath {
     private const val TAG = "LftUpdater"
     private const val PREFS_NAME = "LftUpdater"
     private const val KEY_ACTIVE_UPDATE_ID = "activeUpdateId"
+    private const val KEY_ACTIVE_RUNTIME_VERSION = "activeRuntimeVersion"
     const val BUNDLE_NAME = "index.android.bundle"
+
+    fun runtimeVersion(): String = BuildConfig.VERSION_CODE.toString()
 
     fun otaRoot(context: Context): File = File(context.filesDir, "ota")
     fun activeDir(context: Context): File = File(otaRoot(context), "active")
@@ -17,13 +21,20 @@ object LftUpdaterPath {
 
     fun effectiveBundleFilePath(context: Context): String? {
         val f = activeBundleFile(context)
-        return if (f.exists()) {
-            Log.i(TAG, "effectiveBundleFilePath: using OTA bundle at ${f.absolutePath} (id=${activeUpdateId(context) ?: "<none>"})")
-            f.absolutePath
-        } else {
+        if (!f.exists()) {
             Log.i(TAG, "effectiveBundleFilePath: using embedded bundle")
-            null
+            return null
         }
+        // filesDir survives Play updates, so the previous binary's OTA JS would run against new native code.
+        val stored = activeRuntimeVersion(context)
+        val current = runtimeVersion()
+        if (stored != current) {
+            Log.w(TAG, "discarding active bundle built for runtimeVersion ${stored ?: "<none>"} (now $current)")
+            revertToEmbedded(context)
+            return null
+        }
+        Log.i(TAG, "effectiveBundleFilePath: using OTA bundle at ${f.absolutePath} (id=${activeUpdateId(context) ?: "<none>"})")
+        return f.absolutePath
     }
 
     private fun prefs(context: Context): SharedPreferences =
@@ -31,6 +42,9 @@ object LftUpdaterPath {
 
     fun activeUpdateId(context: Context): String? =
         prefs(context).getString(KEY_ACTIVE_UPDATE_ID, null)
+
+    fun activeRuntimeVersion(context: Context): String? =
+        prefs(context).getString(KEY_ACTIVE_RUNTIME_VERSION, null)
 
     fun setActive(context: Context, updateId: String, srcBundle: File) {
         val root = otaRoot(context)
@@ -50,7 +64,10 @@ object LftUpdaterPath {
         if (!staging.renameTo(active)) {
             throw IllegalStateException("atomic rename failed")
         }
-        prefs(context).edit().putString(KEY_ACTIVE_UPDATE_ID, updateId).apply()
+        prefs(context).edit()
+            .putString(KEY_ACTIVE_UPDATE_ID, updateId)
+            .putString(KEY_ACTIVE_RUNTIME_VERSION, runtimeVersion())
+            .apply()
         Log.i(TAG, "setActive: id=$updateId replacedPrevious=$hadPrevious path=${active.absolutePath}")
     }
 
@@ -58,7 +75,7 @@ object LftUpdaterPath {
         val active = activeDir(context)
         val hadActive = active.exists()
         if (hadActive) active.deleteRecursively()
-        prefs(context).edit().remove(KEY_ACTIVE_UPDATE_ID).apply()
+        prefs(context).edit().remove(KEY_ACTIVE_UPDATE_ID).remove(KEY_ACTIVE_RUNTIME_VERSION).apply()
         Log.i(TAG, "revertToEmbedded: hadActive=$hadActive")
     }
 }
