@@ -1,15 +1,31 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 import {
   startpage,
   PlaywrightUtils_disableSubscriptions,
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
-  PlaywrightUtils_clickAll,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_typeKeyboard,
 } from "./playwrightUtils";
 
+async function fillNumber(page: Page, testId: string, value: string): Promise<void> {
+  await PlaywrightUtils_typeKeyboard(page, page.locator(`[data-testid="${testId}"]:visible`).first(), value);
+}
+
+async function pickEquipment(page: Page, name: string): Promise<void> {
+  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
+  await page.getByTestId(`scroll-barrel-item-${name}`).scrollIntoViewIfNeeded();
+  await page.getByTestId(`scroll-barrel-item-${name}`).click();
+  await page.waitForTimeout(500);
+}
+
+async function closeModal(page: Page): Promise<void> {
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
+}
+
 test("custom equipment", async ({ page }) => {
+  page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
@@ -25,59 +41,47 @@ test("custom equipment", async ({ page }) => {
 ## Day 1
 Bicep Curl / 1x5 20lb / warmup: none`
   );
-
   await page.getByTestId("save-program").click();
 
-  await page.getByTestId("footer-workout").click();
-  await page.getByTestId("start-workout").click();
-
-  await PlaywrightUtils_clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
-
-  await page.getByTestId("finish-workout").click();
-  await page.getByTestId("finish-day-continue").click();
-
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
-
   await page.getByRole("button", { name: "Add New Equipment Type" }).click();
-  await page.getByTestId("equipment-name-input").clear();
-  await page.getByTestId("equipment-name-input").type("Boom");
-  await page.getByRole("button", { name: "Add", exact: true }).click();
-  await page.getByTestId("group-header-boom").click();
-
-  await page.getByRole("button", { name: "Add New Plate Weight" }).click();
-  await page.getByTestId("plate-input").clear();
-  await page.getByTestId("plate-input").type("8");
-  await page.getByTestId("add-plate").click();
-  await page.getByTestId("menu-item-value-8-lb").clear();
-  await page.getByTestId("menu-item-value-8-lb").type("6");
+  await page.getByTestId("equipment-name-input").fill("Boom");
+  await page.getByTestId("add-equipment-submit").click();
+  await expect(page.locator(`[data-testid="equipment-editor"]:visible`)).toHaveCount(1);
+  await fillNumber(page, "input-equipment-base-field", "0");
+  await fillNumber(page, "input-equipment-try-weight-field", "20");
+  await expect(page.locator(`[data-testid="equipment-try-result"]:visible`)).toHaveText("10");
+  await page.locator(`[data-testid="navbar-back"]:visible`).click();
+  await expect(page.getByTestId("group-header-boom")).toContainText("Plates");
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
+  await page.getByTestId("exercise-equipment-picker").click();
+  await pickEquipment(page, "boom");
+  await closeModal(page);
+  await expect(page.getByTestId("set-plates-list")).toHaveText("10");
 
   await page.getByTestId("exercise-equipment-picker").click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-boom").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-boom").click();
-  await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await fillNumber(page, "input-equipment-base-field", "10");
+  await closeModal(page);
+  await expect(page.getByTestId("set-plates-list")).toHaveText("5");
 
-  await expect(page.getByTestId("set-plates-list")).toHaveText("10/10");
-
-  await page.getByTestId("exercise-name").click();
-  await expect(page.getByTestId("menu-item-value-equipment")).toHaveText("Boom");
+  await page.getByTestId("exercise-equipment-picker").click();
+  await page.getByTestId("equipment-copy-this").click();
+  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("Bicep Curl");
+  await fillNumber(page, "input-equipment-base-field", "0");
+  await closeModal(page);
+  await expect(page.getByTestId("set-plates-list")).toHaveText("10");
 
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
-  await page.getByTestId("group-header-boom").click();
-
-  page.on("dialog", (dialog) => dialog.accept());
+  await expect(page.getByTestId("group-header-boom")).toContainText("10 lb base");
   await page.getByTestId("delete-equipment-boom").click();
-
   await expect(page.getByTestId("group-header-boom")).toHaveCount(0);
+  await page.getByTestId("delete-equipment-bicep-curl").click();
 
   await page.getByTestId("footer-workout").click();
-
   await page.getByTestId("exercise-equipment-picker").click();
   await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("None");
 });

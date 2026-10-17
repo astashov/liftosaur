@@ -9,20 +9,23 @@ import {
   Weight_evaluateWeight,
   Weight_convertTo,
   Weight_calculatePlates,
-  Weight_formatOneSide,
 } from "../models/weight";
 import { Exercise_onerm, Exercise_defaultRounding } from "../models/exercise";
 import {
   Equipment_getEquipmentDataForExerciseType,
   Equipment_getEquipmentNameForExerciseType,
+  Equipment_getSetup,
   Equipment_getUnitOrDefaultForExerciseType,
 } from "../models/equipment";
-import { CollectionUtils_sort } from "../utils/collection";
+import { EquipmentSetup_summary } from "../models/equipmentSetup";
+import { EquipmentLoadText_line } from "../models/equipmentLoadText";
+import { Button } from "./button";
 
 interface IWeightRoundingInfoContentProps {
   set: ISet;
   exerciseType: IExerciseType;
   settings: ISettings;
+  onEditEquipment?: () => void;
 }
 
 export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps): JSX.Element {
@@ -77,16 +80,11 @@ export function WeightRoundingInfoContent(props: IWeightRoundingInfoContentProps
         targetWeight={evaluatedWeight ?? weight}
         equipmentName={equipmentName}
       />
-      {equipmentData?.isAssisting && (
-        <View className="p-3 mt-2 border rounded-lg border-border-cardyellow bg-background-cardyellow">
-          <Text className="text-sm font-bold">This equipment is marked as "Is Assisting".</Text>
-          <Text className="pt-1 text-sm">
-            Added weight is <Text className="text-sm font-semibold">subtracted</Text> from the total — like an assisted
-            pull-up machine, where more weight makes the exercise easier. That can make the working weight much lower
-            than the target, or even <Text className="text-sm font-semibold">0</Text>. If that's not how{" "}
-            <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : "this equipment"}</Text> works,
-            turn off "Is Assisting" in the equipment settings.
-          </Text>
+      {equipmentData != null && props.onEditEquipment != null && (
+        <View className="pt-3">
+          <Button kind="purple" buttonSize="md" name="rounding-edit-equipment" onClick={props.onEditEquipment}>
+            Edit equipment
+          </Button>
         </View>
       )}
     </View>
@@ -120,68 +118,33 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
   }
 
   const name = <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : "This equipment"}</Text>;
-
-  if (equipmentData.isFixed) {
-    const fixed = CollectionUtils_sort(
-      equipmentData.fixed.filter((w) => w.unit === (equipmentData.unit ?? unit)),
-      (a, b) => a.value - b.value
-    );
-    return (
-      <Text className="text-sm">
-        {name} uses fixed weights
-        {fixed.length > 0 ? (
-          <>
-            : <Text className="text-sm font-semibold text-text-purple">{fixed.map((w) => n(w.value)).join(", ")}</Text>{" "}
-            <Text className="text-sm font-semibold text-text-purple">{equipmentData.unit ?? unit}</Text>
-          </>
-        ) : (
-          ", but none are set up for your current unit"
-        )}
-        . The app picks the heaviest one that doesn't exceed the target — or the lightest one, if they're all heavier.
-        You can edit the list in the equipment settings.
-      </Text>
-    );
-  }
-
-  const usesBodyweight = equipmentData.useBodyweightForBar && settings.currentBodyweight != null;
-  const barWeight = usesBodyweight && settings.currentBodyweight ? settings.currentBodyweight : equipmentData.bar[unit];
-  const platesResult = targetWeight ? Weight_calculatePlates(targetWeight, settings, unit, exerciseType) : undefined;
+  const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? unit);
+  const load =
+    targetWeight != null ? Weight_calculatePlates(targetWeight, settings, unit, exerciseType).load : undefined;
+  const instruction = EquipmentLoadText_line(load);
   return (
-    <Text className="text-sm">
-      {name} uses{" "}
-      {usesBodyweight ? (
-        <>
-          your bodyweight (<Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text>
-          ) as the base weight
-        </>
-      ) : (
-        <>
-          a <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(barWeight)}</Text> bar
-        </>
+    <View>
+      <Text className="text-sm">
+        {name} is set up as{" "}
+        <Text className="text-sm font-semibold text-text-purple">{EquipmentSetup_summary(setup)}</Text>.
+        {load != null && instruction !== "" && (
+          <>
+            {" "}
+            The closest weight it can load is{" "}
+            <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(load.total)}</Text>:{" "}
+            <Text className="text-sm font-semibold text-text-purple">{instruction}</Text>.
+          </>
+        )}{" "}
+        {(setup.rounding ?? "down") === "down"
+          ? "It rounds the number on the machine down."
+          : "It rounds to the closest weight it can load."}
+      </Text>
+      {setup.direction === "assists" && (
+        <Text className="pt-2 text-sm">
+          This equipment <Text className="text-sm font-semibold">helps you up</Text>: more weight on the machine makes
+          the set easier.
+        </Text>
       )}
-      {platesResult != null ? (
-        <>
-          {" "}
-          {equipmentData.isAssisting ? "minus" : "plus"} the plates you have available
-          {platesResult.plates.length > 0 ? (
-            <>
-              {" "}
-              (
-              <Text className="text-sm font-semibold text-text-purple">
-                {Weight_formatOneSide(settings, platesResult.plates, exerciseType)}
-              </Text>{" "}
-              per side)
-            </>
-          ) : (
-            <Text className="text-sm text-text-purple"> (no plates fit here)</Text>
-          )}
-          , so the closest loadable weight is{" "}
-          <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(platesResult.totalWeight)}</Text>
-        </>
-      ) : (
-        <> plus the plates you have available</>
-      )}
-      . You can edit the bar weight and available plates in the equipment settings.
-    </Text>
+    </View>
   );
 }

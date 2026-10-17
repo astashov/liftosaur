@@ -1,14 +1,7 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type {
-  IDayData,
-  IEquipment,
-  IExerciseType,
-  IHistoryRecord,
-  IScreenMuscle,
-  IShortDayData,
-  IStatsKey,
-} from "../types";
+import type { IDayData, IExerciseType, IHistoryRecord, IScreenMuscle, IShortDayData, IStatsKey } from "../types";
 import type { IHelpKey } from "../components/help/helpRegistry";
+import type { IEquipmentWeightList } from "../models/equipmentSetupEdit";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -21,6 +14,7 @@ export type IOnboardingStackParamList = {
   units: undefined;
   setupequipment: undefined;
   setupplates: undefined;
+  equipmentDetail: { gymId: string; equipmentId: string };
   hearaboutus: undefined;
   programselect: undefined;
   programs: undefined;
@@ -54,6 +48,7 @@ export type IMeStackParamList = {
   account: undefined;
   timers: undefined;
   plates: undefined;
+  equipmentDetail: { gymId: string; equipmentId: string };
   gyms: undefined;
   exercises: undefined;
   appleHealth: undefined;
@@ -123,9 +118,8 @@ export type IRootStackParamList = {
     | { context: "preview"; programId: string };
   couponModal: undefined;
   newGymModal: undefined;
-  newEquipmentModal: undefined;
-  newPlateModal: { equipment: IEquipment };
-  newFixedWeightModal: { equipment: IEquipment };
+  newEquipmentModal: { gymId: string; linkExercise?: IExerciseType } | undefined;
+  newPlateModal: { gymId: string; equipmentId: string; list: IEquipmentWeightList };
   createProgramModal: { adhocProgressId?: number; adhocHistoryRecordId?: number } | undefined;
   importFromLinkModal: undefined;
   affiliateModal: undefined;

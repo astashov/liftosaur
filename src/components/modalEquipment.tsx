@@ -1,56 +1,64 @@
 import type { JSX } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
 import { MenuItemEditable } from "./menuItemEditable";
-import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
+import { Equipment_activeIdForExercise, Equipment_getCurrentGym } from "../models/equipment";
 import { IExerciseType, IHistoryEntry, ISettings, IStats } from "../types";
 import { ObjectUtils_filter, ObjectUtils_keys } from "../utils/object";
 import { equipmentName, Exercise_eq, Exercise_defaultRounding } from "../models/exercise";
 import {
+  EditEquipment_copyForExercise,
   EditEquipment_setEquipmentForExercise,
   EditEquipment_setDefaultRoundingForExercise,
 } from "../models/editEquipment";
 import { CollectionUtils_compact } from "../utils/collection";
 import { InputNumber } from "./inputNumber";
-import { EquipmentSettingsValues } from "./equipmentSettings";
-import { ILensRecordingPayload, lb } from "lens-shmens";
-import { IState } from "../models/state";
-import { ILensDispatch } from "../utils/useLensReducer";
-import { GroupHeader } from "./groupHeader";
+import { LinkButton } from "./linkButton";
 import { useTrackClick } from "../utils/clickTracking";
+import { navigateToModal } from "../navigation/navigationService";
+import { EquipmentEditor, EquipmentEditorDock } from "./equipmentEditor/equipmentEditor";
 
-interface IModalEquipmentProps {
+export interface IModalEquipmentContentProps {
   settings: ISettings;
   stats: IStats;
   exercise: IExerciseType;
   entries: IHistoryEntry[];
-  onClose: () => void;
   dispatch: IDispatch;
 }
 
-export type IModalEquipmentContentProps = Omit<IModalEquipmentProps, "onClose">;
+export function ModalEquipmentDock(props: IModalEquipmentContentProps): JSX.Element | null {
+  const { gymId, equipmentId } = Equipment_activeIdForExercise(props.settings, props.exercise);
+  const data = equipmentId != null ? Equipment_getCurrentGym(props.settings).equipment[equipmentId] : undefined;
+  if (equipmentId == null || data == null) {
+    return null;
+  }
+  return (
+    <EquipmentEditorDock
+      gymId={gymId}
+      equipmentId={equipmentId}
+      data={data}
+      settings={props.settings}
+      dispatch={props.dispatch}
+    />
+  );
+}
 
 export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.Element {
   const trackClick = useTrackClick();
-  const availableEquipment = ObjectUtils_filter(Equipment_getCurrentGym(props.settings).equipment, (k, v) => {
-    return !v?.isDeleted;
-  });
-  let currentEquipment = Equipment_getEquipmentIdForExerciseType(props.settings, props.exercise);
-  if (currentEquipment != null && availableEquipment[currentEquipment] == null) {
-    currentEquipment = undefined;
-  }
+  const gym = Equipment_getCurrentGym(props.settings);
+  const availableEquipment = ObjectUtils_filter(gym.equipment, (k, v) => !v?.isDeleted);
+  const { gymId, equipmentId } = Equipment_activeIdForExercise(props.settings, props.exercise);
+  const data = equipmentId != null ? availableEquipment[equipmentId] : undefined;
   const programExerciseIds = CollectionUtils_compact(
     props.entries.filter((e) => Exercise_eq(e.exercise, props.exercise)).map((e) => e.programExerciseId)
   );
 
-  const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   return (
-    <View data-testid="modal-equipment" testID="modal-equipment" className="pb-6">
+    <View data-testid="modal-equipment" testID="modal-equipment" className="px-4 pb-6">
       <MenuItemEditable
         type="select"
         name="Equipment"
-        value={currentEquipment ?? ""}
+        value={equipmentId ?? ""}
         values={[
           ["", "None"],
           ...ObjectUtils_keys(availableEquipment).map<[string, string]>((k) => [
@@ -65,12 +73,34 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
             value === "" ? undefined : value,
             programExerciseIds,
             props.dispatch,
-            props.settings
+            props.settings,
+            gymId
           );
         }}
       />
+      <View className="flex-row justify-end py-1" style={{ gap: 16 }}>
+        {equipmentId != null && (
+          <LinkButton
+            className="text-sm"
+            name="equipment-copy-this"
+            onClick={() => {
+              trackClick("equipment-modal-copy");
+              EditEquipment_copyForExercise(props.dispatch, props.settings, gymId, equipmentId, props.exercise);
+            }}
+          >
+            Copy this one
+          </LinkButton>
+        )}
+        <LinkButton
+          className="text-sm"
+          name="equipment-new"
+          onClick={() => navigateToModal("newEquipmentModal", { gymId, linkExercise: props.exercise })}
+        >
+          New equipment
+        </LinkButton>
+      </View>
       <View className="mt-2">
-        {currentEquipment == null ? (
+        {equipmentId == null || data == null ? (
           <InputNumber
             type="number"
             label="Default Rounding"
@@ -78,56 +108,18 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
             step={0.5}
             max={100}
             value={Exercise_defaultRounding(props.exercise, props.settings)}
-            onUpdate={(value) => {
-              EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
-            }}
+            onUpdate={(value) => EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value)}
           />
         ) : (
-          <View>
-            <GroupHeader name="Equipment Settings" topPadding={true} />
-            <EquipmentSettingsValues
-              lensDispatch={buildDispatch(props.dispatch)}
-              dispatch={props.dispatch}
-              lensPrefix={lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("gyms")
-                .findBy("id", currentGymId)
-                .p("equipment")
-                .get()}
-              allEquipment={availableEquipment}
-              stats={props.stats}
-              settings={props.settings}
-              equipment={currentEquipment}
-              equipmentData={availableEquipment[currentEquipment]!}
-            />
-          </View>
+          <EquipmentEditor
+            gymId={gymId}
+            equipmentId={equipmentId}
+            data={data}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
         )}
       </View>
     </View>
   );
-}
-
-export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
-  return (
-    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
-      <ModalEquipmentContent
-        settings={props.settings}
-        stats={props.stats}
-        exercise={props.exercise}
-        entries={props.entries}
-        dispatch={props.dispatch}
-      />
-    </Modal>
-  );
-}
-
-function buildDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
-  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
-    originalDispatch({
-      type: "UpdateState",
-      lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
-      desc,
-    });
-  };
 }

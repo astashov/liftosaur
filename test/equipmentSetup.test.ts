@@ -1,13 +1,18 @@
 import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
-import { Equipment_getEquipmentDataForExerciseType, Equipment_getSetup } from "../src/models/equipment";
+import {
+  Equipment_bodyweight,
+  Equipment_getEquipmentDataForExerciseType,
+  Equipment_getSetup,
+} from "../src/models/equipment";
 import { EquipmentLoadSolver_select } from "../src/models/equipmentLoadSolver";
 import {
   EquipmentSetup_convertUnit,
   EquipmentSetup_save,
   EquipmentSetup_summary,
   EquipmentSetup_toLegacy,
+  EquipmentSetup_validate,
 } from "../src/models/equipmentSetup";
 import { IEquipmentData, IEquipmentSetup, IExerciseType, ISettings, IUnit, IWeight } from "../src/types";
 import { LegacyPlates_calculate } from "./legacyPlates";
@@ -261,6 +266,80 @@ describe("EquipmentSetup", () => {
     });
   });
 
+  describe("validation", () => {
+    it("accepts a normal stack and rejects broken ranges", () => {
+      const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+      expect(EquipmentSetup_validate(stack)).to.eql([]);
+      expect(EquipmentSetup_validate({ ...stack, ranges: [{ from: 10, to: 200, step: 0 }] })).to.eql([
+        "A step must be above 0.",
+      ]);
+      expect(EquipmentSetup_validate({ ...stack, ranges: [{ from: 200, to: 10, step: 10 }] })).to.eql([
+        "A range can't start above its end (200 → 10).",
+      ]);
+      expect(EquipmentSetup_validate({ ...stack, ranges: [] })).to.eql(["Add at least one range to the stack."]);
+      expect(EquipmentSetup_validate({ ...stack, pullRatio: 0 })).to.eql(["The pull ratio must be above 0."]);
+    });
+
+    it("rejects fractional counts, zero sides and horns without a ratio", () => {
+      const plates: IEquipmentSetup = {
+        type: "plates",
+        unit: "lb",
+        base: 45,
+        plates: [{ weight: 45, num: 2.5 }],
+        sides: 0,
+        horns: [{ name: "Top", ratio: 0 }],
+      };
+      expect(EquipmentSetup_validate(plates)).to.eql([
+        "Sides must be a whole number, 1 or more.",
+        "Plate counts must be whole numbers.",
+        "At least one horn needs a ratio above 0.",
+      ]);
+    });
+
+    it("caps add-on combinations at the solver's limit", () => {
+      const stack: IEquipmentSetup = {
+        type: "stack",
+        unit: "lb",
+        ranges: [{ from: 10, to: 200, step: 10 }],
+        addOn: [
+          { weight: 0.5, num: 8 },
+          { weight: 5, num: 4 },
+        ],
+      };
+      expect(EquipmentSetup_validate(stack)).to.eql([]);
+      const huge = {
+        ...stack,
+        addOn: [
+          { weight: 0.5, num: 50 },
+          { weight: 1, num: 50 },
+        ],
+      };
+      expect(EquipmentSetup_validate(huge)).to.eql([
+        "Too many added plates to combine. Remove some sizes or lower their counts.",
+      ]);
+    });
+
+    it("checks the bodyweight share", () => {
+      const fixed: IEquipmentSetup = {
+        type: "fixed",
+        unit: "lb",
+        ranges: [],
+        values: [20],
+        bodyweight: { share: 1.5 },
+      };
+      expect(EquipmentSetup_validate(fixed)).to.eql(["The share of bodyweight must be above 0% and at most 100%."]);
+    });
+  });
+
+  describe("bodyweight", () => {
+    it("uses the logged bodyweight, or 80 kg when none is logged", () => {
+      const settings = Settings_build();
+      expect(Equipment_bodyweight(settings)).to.eql(w(80, "kg"));
+      settings.currentBodyweight = w(176, "lb");
+      expect(Equipment_bodyweight(settings)).to.eql(w(176, "lb"));
+    });
+  });
+
   describe("summary", () => {
     it("describes a cable stack in one line", () => {
       const setup: IEquipmentSetup = {
@@ -271,6 +350,13 @@ describe("EquipmentSetup", () => {
         pullRatio: 0.5,
       };
       expect(EquipmentSetup_summary(setup)).to.equal("Weight stack · 10–200 by 10 · half · +5/10");
+    });
+
+    it("lists fixed weights without a plus when there are no ranges", () => {
+      const setup: IEquipmentSetup = { type: "fixed", unit: "lb", ranges: [], values: [10, 15] };
+      expect(EquipmentSetup_summary(setup)).to.equal("Fixed weights · 10, 15");
+      const withRange: IEquipmentSetup = { ...setup, ranges: [{ from: 20, to: 50, step: 5 }] };
+      expect(EquipmentSetup_summary(withRange)).to.equal("Fixed weights · 20–50 by 5 · +10, 15");
     });
   });
 });

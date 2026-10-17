@@ -9,6 +9,7 @@ import { ScreenAccount as ScreenAccountComponent } from "../../components/screen
 import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screenApiKeys";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
 import { ScreenEquipment } from "../../components/screenEquipment";
+import { ScreenEquipmentDetail } from "../../components/screenEquipmentDetail";
 import { ScreenGyms as ScreenGymsComponent } from "../../components/screenGyms";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
 import { ScreenAppleHealthSettings as ScreenAppleHealthSettingsComponent } from "../../components/screenAppleHealthSettings";
@@ -92,6 +93,19 @@ export function NavScreenTimers(): JSX.Element {
     <NavScreenContent>
       <ScreenTimersComponent navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />
     </NavScreenContent>
+  );
+}
+
+export function NavScreenEquipmentDetail(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const route = useRoute<{ key: string; name: "equipmentDetail"; params: { gymId: string; equipmentId: string } }>();
+  return (
+    <ScreenEquipmentDetail
+      gymId={route.params.gymId}
+      equipmentId={route.params.equipmentId}
+      settings={state.storage.settings}
+      dispatch={dispatch}
+    />
   );
 }
 

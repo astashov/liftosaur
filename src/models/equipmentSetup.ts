@@ -277,6 +277,103 @@ function bodyweightText(setup: IEquipmentSetup): string | undefined {
   return setup.bodyweight != null ? "+ bodyweight" : undefined;
 }
 
+const MAX_COMBINATIONS = 2000;
+
+function isNumber(value: number): boolean {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function rangeErrors(ranges: IWeightRange[]): string[] {
+  const errors: string[] = [];
+  for (const range of ranges) {
+    if (!isNumber(range.from) || !isNumber(range.to) || !isNumber(range.step)) {
+      errors.push("Every range needs a start, an end and a step.");
+    } else if (range.step <= 0) {
+      errors.push("A step must be above 0.");
+    } else if (range.from > range.to) {
+      errors.push(`A range can't start above its end (${range.from} → ${range.to}).`);
+    } else if (range.from < 0) {
+      errors.push("Weights can't be negative.");
+    }
+  }
+  return errors;
+}
+
+function countErrors(items: { weight: number; num: number }[], what: string): string[] {
+  const errors: string[] = [];
+  for (const item of items) {
+    if (!isNumber(item.weight) || item.weight <= 0) {
+      errors.push(`Every ${what} needs a weight above 0.`);
+    } else if (!Number.isInteger(item.num) || item.num < 0) {
+      errors.push(`${what[0].toUpperCase()}${what.slice(1)} counts must be whole numbers.`);
+    }
+  }
+  return errors;
+}
+
+function combinationCount(items: { num: number }[]): number {
+  return items.reduce((memo, item) => memo * (Math.max(0, item.num) + 1), 1);
+}
+
+function combinationErrors(items: { num: number }[], what: string): string[] {
+  return combinationCount(items) > MAX_COMBINATIONS
+    ? [`Too many ${what} to combine. Remove some sizes or lower their counts.`]
+    : [];
+}
+
+function typeErrors(setup: IEquipmentSetup): string[] {
+  switch (setup.type) {
+    case "stack": {
+      const pullRatio = setup.pullRatio ?? 1;
+      return [
+        ...(setup.ranges.length === 0 ? ["Add at least one range to the stack."] : []),
+        ...rangeErrors(setup.ranges),
+        ...(!isNumber(pullRatio) || pullRatio <= 0 ? ["The pull ratio must be above 0."] : []),
+        ...((setup.builtin ?? []).some((b) => !isNumber(b) || b <= 0) ? ["Built-in weights must be above 0."] : []),
+        ...countErrors(setup.addOn ?? [], "added plate"),
+        ...combinationErrors(setup.addOn ?? [], "added plates"),
+      ];
+    }
+    case "plates": {
+      const horns = setup.horns ?? [];
+      return [
+        ...(!isNumber(setup.base) || setup.base < 0 ? ["The base weight can't be negative."] : []),
+        ...(!Number.isInteger(setup.sides) || setup.sides < 1 ? ["Sides must be a whole number, 1 or more."] : []),
+        ...countErrors(setup.plates, "plate"),
+        ...(horns.some((h) => !isNumber(h.ratio) || h.ratio < 0) ? ["Horn ratios can't be negative."] : []),
+        ...(horns.length > 0 && !horns.some((h) => h.ratio > 0) ? ["At least one horn needs a ratio above 0."] : []),
+      ];
+    }
+    case "fixed":
+      return [
+        ...(setup.ranges.length === 0 && setup.values.length === 0 ? ["Add at least one weight."] : []),
+        ...rangeErrors(setup.ranges),
+        ...(setup.values.some((v) => !isNumber(v) || v <= 0) ? ["Single weights must be above 0."] : []),
+        ...countErrors(setup.addOn ?? [], "added plate"),
+        ...combinationErrors(setup.addOn ?? [], "added plates"),
+      ];
+    case "electric":
+      return rangeErrors([{ from: setup.min, to: setup.max, step: setup.step }]);
+    case "bands":
+      return [
+        ...(setup.bands.length === 0 ? ["Add at least one band."] : []),
+        ...countErrors(setup.bands, "band"),
+        ...(setup.combine ? combinationErrors(setup.bands, "bands") : []),
+      ];
+  }
+}
+
+export function EquipmentSetup_validate(setup: IEquipmentSetup): string[] {
+  const share = setup.bodyweight?.share;
+  const errors = [
+    ...typeErrors(setup),
+    ...(share != null && (!isNumber(share) || share <= 0 || share > 1)
+      ? ["The share of bodyweight must be above 0% and at most 100%."]
+      : []),
+  ];
+  return Array.from(new Set(errors));
+}
+
 export function EquipmentSetup_summary(setup: IEquipmentSetup): string {
   const parts: (string | undefined)[] = [];
   switch (setup.type) {
@@ -297,7 +394,9 @@ export function EquipmentSetup_summary(setup: IEquipmentSetup): string {
     }
     case "fixed":
       parts.push("Fixed weights", rangesText(setup.ranges));
-      parts.push(setup.values.length > 0 ? `+${setup.values.join(", ")}` : undefined);
+      parts.push(
+        setup.values.length > 0 ? `${setup.ranges.length > 0 ? "+" : ""}${setup.values.join(", ")}` : undefined
+      );
       break;
     case "electric":
       parts.push("Electric", `${setup.min}–${setup.max} by ${setup.step}`);

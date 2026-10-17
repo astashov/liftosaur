@@ -7,6 +7,7 @@ import { NavScreenContent } from "../NavScreenContent";
 import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
 import { ScreenEquipment } from "../../components/screenEquipment";
+import { ScreenEquipmentDetail } from "../../components/screenEquipmentDetail";
 import { ScreenGyms as ScreenGymsComponent } from "../../components/screenGyms";
 import { ScreenAppleHealthSettings as ScreenAppleHealthSettingsComponent } from "../../components/screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings as ScreenGoogleHealthSettingsComponent } from "../../components/screenGoogleHealthSettings";
@@ -124,6 +125,22 @@ export function NavScreenPlates(): React.JSX.Element {
         selectedGymId={state.selectedGymId}
         dispatch={dispatch}
         settings={untrack(state.storage.settings)}
+      />
+    </View>
+  );
+}
+
+export function NavScreenEquipmentDetail(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const route = useRoute<{ key: string; name: "equipmentDetail"; params: { gymId: string; equipmentId: string } }>();
+  return (
+    <View className="flex-1 bg-background-default">
+      <ScreenEquipmentDetail
+        gymId={route.params.gymId}
+        equipmentId={route.params.equipmentId}
+        settings={state.storage.settings}
+        dispatch={dispatch}
       />
     </View>
   );

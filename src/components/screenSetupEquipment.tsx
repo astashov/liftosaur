@@ -1,23 +1,21 @@
-import { JSX, Fragment, ReactNode, useMemo, useState } from "react";
-import { View, Image, ScrollView, Pressable, Platform, LayoutAnimation } from "react-native";
+import { JSX } from "react";
+import { View, Image, ScrollView, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
 import { Switch } from "./primitives/switch";
-import { LinkButton } from "./linkButton";
 import { IDispatch } from "../ducks/types";
-import { IAllEquipment, ISettings, IStats } from "../types";
+import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { Button } from "./button";
-import { EquipmentRowBody, EquipmentRowHeader, equipmentToIcon } from "./equipmentSettings";
+import { EquipmentList, equipmentToIcon } from "./equipmentList";
 import { Equipment_getCurrentGym, Equipment_getEquipmentData, Equipment_getEquipmentOfGym } from "../models/equipment";
 import { equipmentName } from "../models/exercise";
-import { ILensRecordingPayload, lb } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
 import { ImagePreloader_uri } from "../utils/imagePreloader";
 import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
-import { ILensDispatch } from "../utils/useLensReducer";
 import { navigateToModal } from "../navigation/navigationService";
 
 function getFooterShadowStyle(): Record<string, unknown> {
@@ -33,16 +31,6 @@ function getFooterShadowStyle(): Record<string, unknown> {
     android: { elevation: 4 },
     default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
   }) as Record<string, unknown>;
-}
-
-function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
-  return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
-    originalDispatch({
-      type: "UpdateState",
-      lensRecording: Array.isArray(lensRecording) ? lensRecording : [lensRecording],
-      desc,
-    });
-  };
 }
 
 interface IScreenSetupEquipmentProps {
@@ -184,90 +172,6 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
 
   useNavOptions({ navTitle: "Set Up Plates" });
 
-  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
-
-  const lensDispatch = useMemo(() => buildLensDispatch(props.dispatch), [props.dispatch]);
-  const lensPrefix = useMemo(
-    () => lb<IState>().p("storage").p("settings").p("gyms").findBy("id", currentGym.id).p("equipment").get(),
-    [currentGym.id]
-  );
-
-  const toggleExpanded = (key: string): void => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpandedMap((m) => ({ ...m, [key]: !m[key] }));
-  };
-
-  const allEquipment = currentGym.equipment;
-  const visibleKeys = ObjectUtils_keys(allEquipment).filter((e) => !allEquipment[e]?.isDeleted);
-  const hiddenEquipment = ObjectUtils_keys(allEquipment).filter((e) => {
-    const eq = allEquipment[e];
-    return !eq?.name && eq?.isDeleted;
-  });
-
-  const children: ReactNode[] = [];
-  const stickyIndices: number[] = [];
-
-  children.push(
-    <View key="image" className="items-center p-4">
-      <Image
-        source={{ uri: ImagePreloader_uri("/images/dinoplates.png") }}
-        style={{ width: 220, height: 208 }}
-        resizeMode="contain"
-      />
-    </View>
-  );
-
-  children.push(
-    <View key="intro" className="px-gutter pb-4">
-      <Text className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</Text>
-      <Text className="text-sm text-center text-text-secondary">
-        Configure the <Text className="text-sm font-bold text-text-secondary">bar weight</Text> and{" "}
-        <Text className="text-sm font-bold text-text-secondary">plates</Text> you have for each equipment type. The app
-        uses this to round program weights to what you can actually load.
-      </Text>
-    </View>
-  );
-
-  visibleKeys.forEach((key) => {
-    const equipmentData = allEquipment[key];
-    if (!equipmentData) {
-      return;
-    }
-    const isExpanded = !!expandedMap[key];
-    const headerIndex = children.length;
-    stickyIndices.push(headerIndex);
-    children.push(
-      <View key={`${key}-header`} className={`mx-2 ${isExpanded ? "" : "mb-6"}`}>
-        <EquipmentRowHeader
-          lensPrefix={lensPrefix}
-          lensDispatch={lensDispatch}
-          equipment={key}
-          equipmentData={equipmentData}
-          allEquipment={allEquipment}
-          settings={props.settings}
-          isExpanded={isExpanded}
-          onToggle={() => toggleExpanded(key)}
-        />
-      </View>
-    );
-    if (isExpanded) {
-      children.push(
-        <View key={`${key}-body`} className="mx-2 mb-6">
-          <EquipmentRowBody
-            lensPrefix={lensPrefix}
-            lensDispatch={lensDispatch}
-            dispatch={props.dispatch}
-            equipment={key}
-            equipmentData={equipmentData}
-            allEquipment={allEquipment}
-            settings={props.settings}
-            stats={props.stats}
-          />
-        </View>
-      );
-    }
-  });
-
   return (
     <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
       <ScrollView
@@ -276,34 +180,32 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
         automaticallyAdjustKeyboardInsets
         keyboardShouldPersistTaps="never"
         keyboardDismissMode="interactive"
-        stickyHeaderIndices={stickyIndices}
       >
-        {children}
-        {hiddenEquipment.length > 0 && (
-          <View className="flex-row flex-wrap mx-4 my-2">
-            <Text className="text-xs">Hidden Equipment: </Text>
-            {hiddenEquipment.map((e, i) => (
-              <Fragment key={e}>
-                {i !== 0 && <Text className="text-xs">, </Text>}
-                <LinkButton
-                  className="text-xs"
-                  name={`show-equipment-${e}`}
-                  onClick={() => {
-                    const lensRecording = lensPrefix.then(lb<IAllEquipment>().pi(e).p("isDeleted").get()).record(false);
-                    lensDispatch(lensRecording, `Show equipment ${e}`);
-                  }}
-                >
-                  {equipmentName(e, allEquipment)}
-                </LinkButton>
-              </Fragment>
-            ))}
-          </View>
-        )}
-        <View className="m-4">
-          <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
-            Add New Equipment Type
-          </LinkButton>
+        <View className="items-center p-4">
+          <Image
+            source={{ uri: ImagePreloader_uri("/images/dinoplates.png") }}
+            style={{ width: 220, height: 208 }}
+            resizeMode="contain"
+          />
         </View>
+        <View className="px-gutter pb-4">
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</Text>
+          <Text className="text-sm text-center text-text-secondary">
+            Tap an equipment to set up its <Text className="text-sm font-bold text-text-secondary">bar</Text> and{" "}
+            <Text className="text-sm font-bold text-text-secondary">plates</Text>, or its weight stack. The app uses
+            this to round program weights to what you can actually load.
+          </Text>
+        </View>
+        <EquipmentList
+          gymId={currentGym.id}
+          allEquipment={currentGym.equipment}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          onOpen={(equipmentId) =>
+            props.dispatch(Thunk_pushScreen("equipmentDetail", { gymId: currentGym.id, equipmentId }))
+          }
+          onAdd={() => navigateToModal("newEquipmentModal", { gymId: currentGym.id })}
+        />
       </ScrollView>
       <View
         className="absolute bottom-0 left-0 right-0 px-4 pt-4 bg-background-default"

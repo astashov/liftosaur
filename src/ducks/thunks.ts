@@ -107,6 +107,7 @@ import {
   Progress_isCurrent,
   Progress_stop,
   Progress_scheduleTimerNotification,
+  Progress_lbProgress,
 } from "../models/progress";
 import { Reps_findNextEntryAndSetIndex } from "../models/set";
 import { INativeEffect, NativeEffects_apply } from "../models/nativeEffects";
@@ -1363,6 +1364,18 @@ export function Thunk_pushToEditProgramExercise(
   };
 }
 
+export function Thunk_openEquipmentModal(progressId: number, exerciseType: IExerciseType): IThunk {
+  return async (dispatch) => {
+    updateState(
+      dispatch,
+      [Progress_lbProgress(progressId).pi("ui", {}).p("equipmentModal").record({ exerciseType })],
+      "change-equipment"
+    );
+    const { navigateToModal } = await getNavigationService();
+    navigateToModal("equipmentModal", { context: "workout", progressId });
+  };
+}
+
 // The workout screen's day-level edit, and the Program screen's eventually. Takes the absolute
 // day number the workout already carries rather than a dayData, so nothing here has to know how
 // weeks are laid out.
@@ -1408,6 +1421,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       "programPreview",
       "setupequipment",
       "setupplates",
+      "equipmentDetail",
       "hearaboutus",
       "programselect",
     ];

@@ -5,6 +5,7 @@ import {
   IAllEquipment,
   ISettings,
   IUnit,
+  IWeight,
   IExerciseType,
   IGym,
   IEquipmentSetup,
@@ -104,11 +105,33 @@ export function Equipment_getEquipmentDataForExerciseType(
   return equipment ? currentGym.equipment[equipment] : undefined;
 }
 
+export function Equipment_legacyChanged(data: IEquipmentData): boolean {
+  return data.setup != null && data.setupLegacyHash !== EquipmentSetup_legacyHash(data);
+}
+
 export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, unit: IUnit): IEquipmentSetup {
-  if (data.setup != null && data.setupLegacyHash === EquipmentSetup_legacyHash(data)) {
+  if (data.setup != null && !Equipment_legacyChanged(data)) {
     return data.setup;
   }
   return EquipmentSetup_fromLegacy(data, unit, settings.currentBodyweight != null);
+}
+
+export function Equipment_setupOf(data: IEquipmentData, settings: ISettings): IEquipmentSetup {
+  return Equipment_getSetup(data, settings, data.unit ?? settings.units);
+}
+
+export function Equipment_activeIdForExercise(
+  settings: ISettings,
+  exerciseType: IExerciseType
+): { gymId: string; equipmentId?: string } {
+  const gym = Equipment_getCurrentGym(settings);
+  const equipmentId = Equipment_getEquipmentIdForExerciseType(settings, exerciseType, gym.id);
+  const data = equipmentId != null ? gym.equipment[equipmentId] : undefined;
+  return { gymId: gym.id, equipmentId: data != null && !data.isDeleted ? equipmentId : undefined };
+}
+
+export function Equipment_bodyweight(settings: ISettings): IWeight {
+  return settings.currentBodyweight ?? { value: 80, unit: "kg" };
 }
 
 export function Equipment_getUnitOrDefaultForExerciseType(settings: ISettings, exerciseType?: IExerciseType): IUnit {

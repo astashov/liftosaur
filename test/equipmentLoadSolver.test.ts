@@ -7,7 +7,11 @@ import {
   EquipmentLoadSolver_realize,
   EquipmentLoadSolver_select,
 } from "../src/models/equipmentLoadSolver";
-import { EquipmentLoadText_format } from "../src/models/equipmentLoadText";
+import {
+  EquipmentLoadText_format,
+  EquipmentLoadText_hornBars,
+  EquipmentLoadText_tryResult,
+} from "../src/models/equipmentLoadText";
 import { IEquipmentSetup, IPlateCount, IUnit, IWeight } from "../src/types";
 
 function w(value: number, unit: IUnit = "lb"): IWeight {
@@ -89,6 +93,34 @@ describe("EquipmentLoadSolver", () => {
         ],
       });
       expect(EquipmentLoadText_format(load)).to.equal("Top 3x45/5/2.5 · Middle 45/2.5");
+      const bars = EquipmentLoadText_hornBars(load) ?? [];
+      expect(bars.map((b) => [b.name, b.text, b.plates.map((p) => p.value)])).to.eql([
+        ["Top", "3x45/5/2.5", [45, 45, 45, 5, 2.5]],
+        ["Middle", "45/2.5", [45, 2.5]],
+      ]);
+    });
+
+    it("finds a split close to the ratios when the closest first horn starves the next one", () => {
+      const setup: IEquipmentSetup = {
+        type: "plates",
+        unit: "lb",
+        base: 45,
+        plates: [...barbellPlates, { weight: 1.25, num: 2 }],
+        sides: 2,
+        horns: [
+          { name: "Top", ratio: 3 },
+          { name: "Middle", ratio: 1 },
+        ],
+      };
+      const load = EquipmentLoadSolver_select(setup, w(225), {});
+      expect(load.exact).to.equal(true);
+      expect(EquipmentLoadText_format(load)).to.equal("Top 45/25 · Middle 10/10");
+    });
+
+    it("draws no horn bars when nothing is loaded or the setup has no plates", () => {
+      expect(EquipmentLoadText_hornBars(EquipmentLoadSolver_select(prime, w(0), {}))).to.equal(undefined);
+      const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+      expect(EquipmentLoadText_hornBars(EquipmentLoadSolver_select(stack, w(50), {}))).to.equal(undefined);
     });
 
     it("hands out the side's plates when loading horn by horn misses the total", () => {
@@ -432,6 +464,39 @@ describe("EquipmentLoadSolver", () => {
       expect(Date.now() - startedAt).to.be.lessThan(500);
       expect(Math.min(...values)).to.equal(0);
       expect(Math.max(...values)).to.equal(70);
+    });
+
+    it("describes a try-a-weight result", () => {
+      const exact = EquipmentLoadSolver_select(cableStack, w(57.5), {});
+      expect(EquipmentLoadText_tryResult(cableStack, exact, w(57.5))).to.eql({
+        main: "Pin 110 + 5",
+        handle: "= 57.5 lb at the handle",
+        status: "exact",
+      });
+      const simple: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+      const under = EquipmentLoadSolver_select(simple, w(57.5), {});
+      expect(EquipmentLoadText_tryResult(simple, under, w(57.5))).to.eql({
+        main: "Pin 50",
+        handle: "= 50 lb",
+        difference: "7.5 lb under 57.5 · rounded down",
+        status: "under",
+      });
+      const nearest: IEquipmentSetup = { ...simple, rounding: "nearest" };
+      const over = EquipmentLoadSolver_select(nearest, w(57.5), {});
+      expect(EquipmentLoadText_tryResult(nearest, over, w(57.5)).difference).to.equal(
+        "2.5 lb over 57.5 · closest you can load"
+      );
+      const belowMin = EquipmentLoadSolver_select(simple, w(5), {});
+      expect(EquipmentLoadText_tryResult(simple, belowMin, w(5)).difference).to.equal(
+        "5 lb over 5 · lightest you can load"
+      );
+      const assisted: IEquipmentSetup = { ...simple, direction: "assists", bodyweight: {} };
+      const assistedLoad = EquipmentLoadSolver_select(assisted, w(105), { bodyweight: w(180) });
+      expect(EquipmentLoadText_tryResult(assisted, assistedLoad, w(105)).difference).to.equal(
+        "5 lb over 105 · assistance rounded down"
+      );
+      const empty = EquipmentLoadSolver_select({ type: "fixed", unit: "lb", ranges: [], values: [] }, w(30), {});
+      expect(EquipmentLoadText_tryResult(simple, empty, w(30))).to.eql({ main: "Nothing to load", status: "none" });
     });
 
     it("stays fast with very large add-on inventories", () => {

@@ -10,6 +10,7 @@ import { Text } from "../components/primitives/text";
 interface IProps {
   children: ReactNode;
   header?: string;
+  footer?: ReactNode;
   onClose: () => void;
 }
 
@@ -62,6 +63,7 @@ export function KeyboardSheet(props: IProps): JSX.Element {
                 {props.children}
               </Animated.ScrollView>
             </View>
+            {props.footer}
           </NavScreenScrollContext.Provider>
         </CustomKeyboardProvider>
       </TransparentModal>

@@ -45,6 +45,7 @@ const STEP_OFFSET = 0.001;
 const CONVERSION_TOLERANCE = 0.25;
 const MAX_STEPS = 10000;
 const MAX_COMBINATIONS = 2000;
+const MAX_SPLIT_STEPS = 200;
 
 function clean(value: number): number {
   return Math.round(value * 1e6) / 1e6;
@@ -309,31 +310,105 @@ function splitByHorns(
   const total = platesTotal(plates);
   const ratioSum = loaded.reduce((memo, h) => memo + h.ratio, 0);
   const shares = loaded.map((h) => (total * h.ratio) / ratioSum);
-  const byHorn = loadHornByHorn(inventory, total, loaded, shares) ?? handOut(plates, loaded, shares);
+  const split = loadHornByHorn(inventory, total, shares) ?? closestSplit(inventory, total, shares, { steps: 0 });
+  const byHorn = split != null ? new Map(loaded.map((h, i) => [h, split.plates[i]])) : handOut(plates, loaded, shares);
   return horns.map((h) => ({ name: h.name, plates: byHorn.get(h) ?? [] }));
 }
 
 function loadHornByHorn(
   inventory: IPlateCount[],
   total: number,
-  horns: IEquipmentHorn[],
   shares: number[]
-): Map<IEquipmentHorn, IPlateCount[]> | undefined {
-  const result = new Map<IEquipmentHorn, IPlateCount[]>();
+): { plates: IPlateCount[][] } | undefined {
+  const plates: IPlateCount[][] = [];
   let remaining = inventory;
   let loadedSoFar = 0;
-  for (let i = 0; i < horns.length; i++) {
-    const isLast = i === horns.length - 1;
-    const goal = isLast ? total - loadedSoFar : shares[i];
+  for (let i = 0; i < shares.length; i++) {
+    const isLast = i === shares.length - 1;
+    const goal = isLast ? clean(total - loadedSoFar) : shares[i];
     const picked = largestPlatesAtMost(remaining, goal) ?? [];
     if (isLast && Math.abs(platesTotal(picked) - goal) > EPSILON) {
       return undefined;
     }
-    result.set(horns[i], picked);
+    plates.push(picked);
     loadedSoFar = clean(loadedSoFar + platesTotal(picked));
     remaining = subtractPlates(remaining, picked);
   }
+  return { plates };
+}
+
+function plateSubsets(inventory: IPlateCount[], maxTotal: number): { plates: IPlateCount[]; total: number }[] {
+  let result: { plates: IPlateCount[]; total: number }[] = [{ plates: [], total: 0 }];
+  for (const type of inventory.filter((p) => p.num > 0 && p.weight > 0)) {
+    const next: { plates: IPlateCount[]; total: number }[] = [];
+    for (const subset of result) {
+      for (let count = 0; count <= type.num; count += 1) {
+        const total = clean(subset.total + type.weight * count);
+        if (total > maxTotal + EPSILON || next.length >= MAX_COMBINATIONS) {
+          break;
+        }
+        next.push({
+          plates: count > 0 ? [...subset.plates, { weight: type.weight, num: count }] : subset.plates,
+          total,
+        });
+      }
+    }
+    result = next;
+  }
   return result;
+}
+
+function plateCount(plates: IPlateCount[]): number {
+  return plates.reduce((memo, p) => memo + p.num, 0);
+}
+
+function compareHeavierFirst(a: IPlateCount[], b: IPlateCount[]): number {
+  const weights = Array.from(new Set([...a, ...b].map((p) => p.weight))).sort((x, y) => y - x);
+  for (const weight of weights) {
+    const diff = (b.find((p) => p.weight === weight)?.num ?? 0) - (a.find((p) => p.weight === weight)?.num ?? 0);
+    if (diff !== 0) {
+      return diff;
+    }
+  }
+  return 0;
+}
+
+function closestSplit(
+  inventory: IPlateCount[],
+  total: number,
+  shares: number[],
+  budget: { steps: number }
+): { plates: IPlateCount[][]; deviation: number } | undefined {
+  if (shares.length === 1) {
+    const picked = largestPlatesAtMost(inventory, total) ?? [];
+    return Math.abs(platesTotal(picked) - total) > EPSILON
+      ? undefined
+      : { plates: [picked], deviation: Math.abs(total - shares[0]) };
+  }
+  const candidates = plateSubsets(inventory, total).sort(
+    (a, b) =>
+      Math.abs(a.total - shares[0]) - Math.abs(b.total - shares[0]) ||
+      plateCount(a.plates) - plateCount(b.plates) ||
+      compareHeavierFirst(a.plates, b.plates)
+  );
+  let best: { plates: IPlateCount[][]; deviation: number } | undefined;
+  for (const candidate of candidates) {
+    const deviation = Math.abs(candidate.total - shares[0]);
+    if ((best != null && deviation >= best.deviation - EPSILON) || budget.steps >= MAX_SPLIT_STEPS) {
+      break;
+    }
+    budget.steps += 1;
+    const rest = closestSplit(
+      subtractPlates(inventory, candidate.plates),
+      clean(total - candidate.total),
+      shares.slice(1),
+      budget
+    );
+    if (rest != null && (best == null || deviation + rest.deviation < best.deviation - EPSILON)) {
+      best = { plates: [candidate.plates, ...rest.plates], deviation: deviation + rest.deviation };
+    }
+  }
+  return best;
 }
 
 function handOut(plates: IPlateCount[], horns: IEquipmentHorn[], shares: number[]): Map<IEquipmentHorn, IPlateCount[]> {

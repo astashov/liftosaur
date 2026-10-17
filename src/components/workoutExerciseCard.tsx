@@ -36,7 +36,11 @@ import { IWorkoutExerciseSetsExpansion } from "./workoutExerciseAllSets";
 import { CollectionUtils_removeAt } from "../utils/collection";
 import { IconCog2 } from "./icons/iconCog2";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { Thunk_pushExerciseStatsScreen, Thunk_pushToEditProgramExercise } from "../ducks/thunks";
+import {
+  Thunk_openEquipmentModal,
+  Thunk_pushExerciseStatsScreen,
+  Thunk_pushToEditProgramExercise,
+} from "../ducks/thunks";
 import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
 import {
   WorkoutExerciseUtils_getBgColor50,
@@ -133,12 +137,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const pickerSort = settings.workoutSettings.pickerSort;
 
   const openEquipmentModal = useCallback((): void => {
-    updateProgress(
-      dispatch,
-      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record({ exerciseType: entryExercise })],
-      "change-equipment"
-    );
-    navigateToModal("equipmentModal", { context: "workout", progressId });
+    dispatch(Thunk_openEquipmentModal(progressId, entryExercise));
   }, [dispatch, entryExercise, progressId]);
 
   const openSupersetPicker = useCallback((): void => {

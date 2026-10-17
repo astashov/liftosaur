@@ -54,11 +54,6 @@
   "src/components/editProgramExercise/editProgramExerciseAcrossAllWeeks.tsx": {
     "long-view": "predates the rule"
   },
-  "src/components/equipmentSettings.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule",
-    "long-view": "predates the rule"
-  },
   "src/components/exercisePicker/exercisePickerCustomExerciseContent.tsx": {
     "decision-in-view:anonymous#1": "predates the rule",
     "decision-in-view:anonymous#2": "predates the rule",
@@ -162,9 +157,6 @@
   "src/components/screenAccount.tsx": {
     "long-view": "predates the rule"
   },
-  "src/components/screenEquipment.tsx": {
-    "decision-in-view:useEffect#1": "predates the rule"
-  },
   "src/components/screenGraphs.tsx": {
     "decision-in-view:useTimedMemo#1": "predates the rule",
     "decision-in-view:useTimedMemo#2": "predates the rule"
@@ -263,12 +255,6 @@
   },
   "src/navigation/modals/NavModalMusclesOverride.tsx": {
     "decision-in-view:onSave": "predates the rule"
-  },
-  "src/navigation/modals/NavModalNewEquipment.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
-  "src/navigation/modals/NavModalNewFixedWeight.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
   },
   "src/navigation/modals/NavModalPlates.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"

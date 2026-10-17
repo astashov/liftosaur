@@ -14,9 +14,10 @@ appId: ${APP_ID}
 - takeScreenshot: equipment-and-gyms-list
 - tapOn:
     id: group-header-barbell
+- waitForAnimationToEnd
 - takeScreenshot: equipment-and-gyms-barbell
 - tapOn:
-    id: group-header-barbell
+    id: navbar-back
 - scrollUntilVisible:
     element:
       id: group-header-kettlebell
@@ -24,14 +25,10 @@ appId: ${APP_ID}
     centerElement: true
 - tapOn:
     id: group-header-kettlebell
-- scrollUntilVisible:
-    element:
-      id: add-new-fixed-weight
-    direction: DOWN
-    centerElement: true
+- waitForAnimationToEnd
 - takeScreenshot: equipment-and-gyms-fixed
 - tapOn:
-    id: group-header-kettlebell
+    id: navbar-back
 - scrollUntilVisible:
     element:
       id: delete-equipment-smith-machine
@@ -48,10 +45,14 @@ appId: ${APP_ID}
 - tapOn:
     id: add-new-equipment
 - tapOn:
-    point: 50%, 86%
+    id: equipment-name-input
 - inputText: "Safety Squat Bar"
 - tapOn:
     id: add-equipment-submit
+- waitForAnimationToEnd
+- takeScreenshot: equipment-and-gyms-custom-detail
+- tapOn:
+    id: navbar-back
 - scrollUntilVisible:
     element:
       id: add-new-equipment

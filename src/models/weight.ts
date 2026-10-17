@@ -6,6 +6,7 @@ import {
   Equipment_getUnitOrDefaultForExerciseType,
   Equipment_getEquipmentDataForExerciseType,
   Equipment_getSetup,
+  Equipment_bodyweight,
 } from "./equipment";
 import {
   EquipmentLoadSolver_next,
@@ -204,7 +205,7 @@ function stepWeight(
   const equipmentData = exerciseType ? Equipment_getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
   if (equipmentData != null) {
     const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit);
-    const query = { bodyweight: settings.currentBodyweight };
+    const query = { bodyweight: Equipment_bodyweight(settings) };
     const rounded = EquipmentLoadSolver_select(setup, weight, query).total;
     return direction === 1
       ? EquipmentLoadSolver_next(setup, rounded, query)
@@ -317,7 +318,7 @@ function calculateLoad(
     return { plates: [], totalWeight: rounded };
   }
   const setup = Equipment_getSetup(equipmentData, settings, units);
-  const load = EquipmentLoadSolver_select(setup, allWeight, { bodyweight: settings.currentBodyweight, warmup });
+  const load = EquipmentLoadSolver_select(setup, allWeight, { bodyweight: Equipment_bodyweight(settings), warmup });
   return { plates: Weight_loadPlates(load), totalWeight: load.total, load };
 }
 
@@ -356,7 +357,7 @@ export function Weight_realizeLoad(
   }
   const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit);
   return EquipmentLoadSolver_realize(setup, weight, {
-    bodyweight: settings.currentBodyweight,
+    bodyweight: Equipment_bodyweight(settings),
     ...(isWarmup ? { warmup: {} } : {}),
   });
 }

@@ -11,6 +11,7 @@ import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygr
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { IHistoryRecord } from "../../types";
 import type { IRootStackParamList } from "../types";
+import { Thunk_openEquipmentModal } from "../../ducks/thunks";
 
 export function NavModalRoundingInfo(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -77,10 +78,25 @@ export function NavModalRoundingInfo(): JSX.Element {
     navigation.goBack();
   };
 
+  const params = route.params;
+  const onEditEquipment =
+    params.context === "workout"
+      ? (): void => {
+          const progressId = params.progressId;
+          navigation.goBack();
+          setTimeout(() => dispatch(Thunk_openEquipmentModal(progressId, entry.exercise)), 50);
+        }
+      : undefined;
+
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <FormSheet>
-        <WeightRoundingInfoContent set={set} exerciseType={entry.exercise} settings={settings} />
+        <WeightRoundingInfoContent
+          set={set}
+          exerciseType={entry.exercise}
+          settings={settings}
+          onEditEquipment={onEditEquipment}
+        />
       </FormSheet>
     </ModalScreenContainer>
   );

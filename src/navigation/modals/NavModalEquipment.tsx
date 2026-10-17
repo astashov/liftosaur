@@ -1,9 +1,8 @@
 import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { ModalScreenContainer } from "../ModalScreenContainer";
-import { FormSheet } from "../FormSheet";
-import { ModalEquipmentContent } from "../../components/modalEquipment";
+import { KeyboardSheet } from "../KeyboardSheet";
+import { ModalEquipmentContent, ModalEquipmentDock } from "../../components/modalEquipment";
 import { Progress_lbProgress } from "../../models/progress";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -39,18 +38,17 @@ function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
     return <></>;
   }
 
+  const contentProps = {
+    settings: state.storage.settings,
+    stats: state.storage.stats,
+    exercise: exerciseType,
+    entries: progress.entries,
+    dispatch,
+  };
   return (
-    <ModalScreenContainer onClose={onClose} isFullWidth>
-      <FormSheet>
-        <ModalEquipmentContent
-          settings={state.storage.settings}
-          stats={state.storage.stats}
-          exercise={exerciseType}
-          entries={progress.entries}
-          dispatch={dispatch}
-        />
-      </FormSheet>
-    </ModalScreenContainer>
+    <KeyboardSheet onClose={onClose} footer={<ModalEquipmentDock {...contentProps} />}>
+      <ModalEquipmentContent {...contentProps} />
+    </KeyboardSheet>
   );
 }
 
@@ -91,18 +89,17 @@ function NavModalEquipmentPreview(props: { programId: string }): JSX.Element {
     return <></>;
   }
 
+  const contentProps = {
+    settings: state.storage.settings,
+    stats: state.storage.stats,
+    exercise: exerciseType,
+    entries: [],
+    dispatch,
+  };
   return (
-    <ModalScreenContainer onClose={onClose} isFullWidth>
-      <FormSheet>
-        <ModalEquipmentContent
-          settings={state.storage.settings}
-          stats={state.storage.stats}
-          exercise={exerciseType}
-          entries={[]}
-          dispatch={dispatch}
-        />
-      </FormSheet>
-    </ModalScreenContainer>
+    <KeyboardSheet onClose={onClose} footer={<ModalEquipmentDock {...contentProps} />}>
+      <ModalEquipmentContent {...contentProps} />
+    </KeyboardSheet>
   );
 }
 

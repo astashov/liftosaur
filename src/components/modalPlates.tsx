@@ -8,6 +8,7 @@ import { IUnit } from "../types";
 
 interface IProps {
   units: IUnit;
+  title: string;
   onSelect: (value: number) => void;
   onClose: () => void;
 }
@@ -18,13 +19,13 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
 
   return (
     <View>
-      <Text className="mb-4 text-lg font-bold">Enter new plate weight</Text>
+      <Text className="mb-4 text-lg font-bold">{props.title}</Text>
       <Input
         identifier="plate"
         type="number"
         required={true}
         requiredMessage="Please enter a plate weight"
-        placeholder={`Plate weight in ${props.units}`}
+        placeholder={`Weight in ${props.units}`}
         changeType="oninput"
         changeHandler={setResult}
         handleRef={inputHandle}

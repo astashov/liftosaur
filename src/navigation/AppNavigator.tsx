@@ -43,6 +43,7 @@ import {
   NavScreenAccount,
   NavScreenTimers,
   NavScreenPlates,
+  NavScreenEquipmentDetail,
   NavScreenGyms,
   NavScreenExercises,
   NavScreenAppleHealth,
@@ -73,7 +74,6 @@ import { NavModalCoupon } from "./modals/NavModalCoupon";
 import { NavModalNewGym } from "./modals/NavModalNewGym";
 import { NavModalNewEquipment } from "./modals/NavModalNewEquipment";
 import { NavModalPlates } from "./modals/NavModalPlates";
-import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
 import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalAffiliate } from "./modals/NavModalAffiliate";
@@ -183,6 +183,7 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
+      <OnboardingStack.Screen name="equipmentDetail" component={NavScreenEquipmentDetail} />
       <OnboardingStack.Screen
         name="hearaboutus"
         component={NavScreenHearAboutUs}
@@ -259,6 +260,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />
       <MeStack.Screen name="plates" component={NavScreenPlates} />
+      <MeStack.Screen name="equipmentDetail" component={NavScreenEquipmentDetail} />
       <MeStack.Screen name="gyms" component={NavScreenGyms} />
       <MeStack.Screen name="exercises" component={NavScreenExercises} />
       <MeStack.Screen name="appleHealth" component={NavScreenAppleHealth} />
@@ -362,7 +364,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
           <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
           <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
-          <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
