@@ -8,6 +8,7 @@ import { UidFactory_generateUid } from "./generator";
 import { Progress_getEntryId } from "../models/progress";
 import { History_generateId } from "../models/history";
 import { Storage_validate } from "../models/storage";
+import { DateUtils_parseNamedMonthDateTime } from "./date";
 import {
   IImportResult,
   IImportRowError,
@@ -289,31 +290,11 @@ const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "Wrist Roller": ["Wrist Roller", "bodyweight"],
 };
 
-const hevyMonths = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-
-// Hermes only parses ISO 8601 dates, so Hevy's "13 Mar 2026, 15:22" format must be parsed manually
 function parseHevyDate(raw: string | undefined): number | undefined {
   if (!raw) {
     return undefined;
   }
-  const match = raw.match(/^(\d{1,2}) ([A-Za-z]{3}) (\d{4}),? (\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (match) {
-    const month = hevyMonths.indexOf(match[2].toLowerCase());
-    if (month !== -1) {
-      const ts = new Date(
-        Number(match[3]),
-        month,
-        Number(match[1]),
-        Number(match[4]),
-        Number(match[5]),
-        Number(match[6] ?? 0)
-      ).getTime();
-      if (!isNaN(ts)) {
-        return ts;
-      }
-    }
-  }
-  const ts = new Date(raw).getTime();
+  const ts = DateUtils_parseNamedMonthDateTime(raw) ?? new Date(raw).getTime();
   return isNaN(ts) ? undefined : ts;
 }
 

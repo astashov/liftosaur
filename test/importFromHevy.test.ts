@@ -74,6 +74,38 @@ describe("ImportFromHevy", () => {
     expect(record.endTime).to.equal(new Date(2026, 2, 13, 16, 0).getTime());
   });
 
+  it("parses the US 12-hour Hevy date format without relying on Date string parsing", () => {
+    const realDate = Date;
+    class HermesDate extends realDate {
+      constructor(a?: string | number, b?: number, c?: number, d?: number, e?: number, f?: number) {
+        if (typeof a === "string") {
+          super(NaN);
+        } else if (b == null) {
+          super(a ?? realDate.now());
+        } else {
+          super(a!, b, c ?? 1, d ?? 0, e ?? 0, f ?? 0);
+        }
+      }
+    }
+    global.Date = HermesDate as DateConstructor;
+    try {
+      const result = ImportFromHevy_convertHevyCsvToHistoryRecords(
+        buildCsv(
+          row({ start_time: '"Oct 7, 2026, 8:30 AM"', end_time: '"Oct 7, 2026, 12:05 PM"' }),
+          row({ start_time: '"Oct 8, 2026, 12:10 AM"', end_time: '"Oct 8, 2026, 1:00 AM"' })
+        ),
+        buildSettings()
+      );
+      expect(result.errors).to.eql([]);
+      expect(result.historyRecords.map((r) => [r.startTime, r.endTime])).to.eql([
+        [new realDate(2026, 9, 7, 8, 30).getTime(), new realDate(2026, 9, 7, 12, 5).getTime()],
+        [new realDate(2026, 9, 8, 0, 10).getTime(), new realDate(2026, 9, 8, 1, 0).getTime()],
+      ]);
+    } finally {
+      global.Date = realDate;
+    }
+  });
+
   it("leaves weight undefined for a bodyweight set instead of fabricating 0kg", () => {
     const result = ImportFromHevy_convertHevyCsvToHistoryRecords(
       buildCsv(row({ exercise_title: "Pull Up", weight_lbs: "", weight_kg: "", reps: "10" })),

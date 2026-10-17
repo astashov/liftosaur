@@ -113,6 +113,79 @@ export function DateUtils_parseYYYYMMDDHHMM(dateStr: string): Date | undefined {
   return undefined;
 }
 
+const monthNames = [
+  "january",
+  "february",
+  "march",
+  "april",
+  "may",
+  "june",
+  "july",
+  "august",
+  "september",
+  "october",
+  "november",
+  "december",
+];
+
+function monthIndexFromName(word: string): number | undefined {
+  if (word.length < 3) {
+    return undefined;
+  }
+  const index = monthNames.findIndex((name) => name.startsWith(word));
+  return index === -1 ? undefined : index;
+}
+
+// Hermes only parses ISO 8601 strings, so locale formats like "Oct 17, 2026, 8:30 AM" need this
+export function DateUtils_parseNamedMonthDateTime(dateStr: string): number | undefined {
+  const tokens = dateStr.toLowerCase().match(/\d+:\d+(?::\d+)?|[a-z]+|\d+/g) ?? [];
+  let year: number | undefined;
+  let month: number | undefined;
+  let day: number | undefined;
+  let time: number[] | undefined;
+  let meridiem: string | undefined;
+  for (const token of tokens) {
+    if (token.includes(":")) {
+      if (time != null) {
+        return undefined;
+      }
+      time = token.split(":").map(Number);
+    } else if (token === "am" || token === "pm") {
+      if (meridiem != null) {
+        return undefined;
+      }
+      meridiem = token;
+    } else if (/^[a-z]/.test(token)) {
+      if (month != null) {
+        return undefined;
+      }
+      month = monthIndexFromName(token);
+      if (month == null) {
+        return undefined;
+      }
+    } else if (token.length === 4 && year == null) {
+      year = Number(token);
+    } else if (token.length <= 2 && day == null) {
+      day = Number(token);
+    } else {
+      return undefined;
+    }
+  }
+  if (year == null || month == null || day == null || time == null) {
+    return undefined;
+  }
+  const [rawHour, minute, second = 0] = time;
+  if (meridiem != null ? rawHour < 1 || rawHour > 12 : rawHour > 23) {
+    return undefined;
+  }
+  const hour = meridiem != null ? (rawHour % 12) + (meridiem === "pm" ? 12 : 0) : rawHour;
+  if (minute > 59 || second > 59) {
+    return undefined;
+  }
+  const date = new Date(year, month, day, hour, minute, second);
+  return date.getDate() === day ? date.getTime() : undefined;
+}
+
 export function DateUtils_formatYYYYMMDDHHMM(date: Date | string | number, separator: string = ""): string {
   const d = new Date(date);
   let seconds = `${d.getSeconds()}`;
