@@ -74,6 +74,30 @@ describe("EquipmentSetup", () => {
       expectParity(settingsWith("barbell", { useBodyweightForBar: true }, w(176, "lb")), "barbell", "lb");
     });
 
+    it("lists plates heaviest first, from old data and on save", () => {
+      const settings = settingsWith("barbell", {
+        plates: [
+          { weight: w(10, "lb"), num: 4 },
+          { weight: w(45, "lb"), num: 8 },
+          { weight: w(2.5, "lb"), num: 4 },
+        ],
+      });
+      const data = settings.gyms[0].equipment.barbell!;
+      const setup = Equipment_getSetup(data, settings, "lb");
+      expect(setup.type === "plates" ? setup.plates.map((p) => p.weight) : []).to.eql([45, 10, 2.5]);
+      const stack: IEquipmentSetup = {
+        type: "stack",
+        unit: "lb",
+        ranges: [{ from: 10, to: 200, step: 10 }],
+        addOn: [
+          { weight: 1.25, num: 1 },
+          { weight: 5, num: 1 },
+        ],
+      };
+      const saved = EquipmentSetup_save(data, stack).setup;
+      expect(saved?.type === "stack" ? saved.addOn?.map((p) => p.weight) : []).to.eql([5, 1.25]);
+    });
+
     it("keeps bodyweight turned on through an edit when none is logged", () => {
       const settings = settingsWith("barbell", { useBodyweightForBar: true });
       const data = settings.gyms[0].equipment.barbell!;

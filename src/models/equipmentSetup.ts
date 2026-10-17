@@ -57,7 +57,9 @@ export function EquipmentSetup_fromLegacy(data: IEquipmentData, unit: IUnit): IE
     type: "plates",
     unit,
     base: usesBodyweight ? 0 : data.bar[unit].value,
-    plates: data.plates.filter((p) => p.weight.unit === unit).map((p) => ({ weight: p.weight.value, num: p.num })),
+    plates: heaviestFirst(
+      data.plates.filter((p) => p.weight.unit === unit).map((p) => ({ weight: p.weight.value, num: p.num }))
+    ),
     sides: data.multiplier || 1,
     ...(data.isAssisting ? { direction: "assists" as const } : {}),
     ...(usesBodyweight ? { bodyweight: {} } : {}),
@@ -177,7 +179,24 @@ export function EquipmentSetup_legacyHash(data: IEquipmentData): string {
   return `${LEGACY_HASH_VERSION}:${StringUtils_hashString(canonical)}`;
 }
 
-export function EquipmentSetup_save(data: IEquipmentData, setup: IEquipmentSetup): IEquipmentData {
+function heaviestFirst(plates: IPlateCount[]): IPlateCount[] {
+  return [...plates].sort((a, b) => b.weight - a.weight);
+}
+
+export function EquipmentSetup_sortPlates(setup: IEquipmentSetup): IEquipmentSetup {
+  switch (setup.type) {
+    case "plates":
+      return { ...setup, plates: heaviestFirst(setup.plates) };
+    case "stack":
+    case "fixed":
+      return setup.addOn != null ? { ...setup, addOn: heaviestFirst(setup.addOn) } : setup;
+    default:
+      return setup;
+  }
+}
+
+export function EquipmentSetup_save(data: IEquipmentData, unsortedSetup: IEquipmentSetup): IEquipmentData {
+  const setup = EquipmentSetup_sortPlates(unsortedSetup);
   const saved: IEquipmentData = { ...data, ...EquipmentSetup_toLegacy(setup), setup };
   return { ...saved, setupLegacyHash: EquipmentSetup_legacyHash(saved) };
 }
