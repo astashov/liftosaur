@@ -1,6 +1,6 @@
 import { CollectionUtils_sort, CollectionUtils_compressArray } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType } from "../types";
+import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType, IEquipmentSetup } from "../types";
 import { n, MathUtils_roundTo005, MathUtils_round, MathUtils_roundFloat, MathUtils_roundTo000005 } from "../utils/math";
 import {
   Equipment_getUnitOrDefaultForExerciseType,
@@ -345,17 +345,27 @@ export function Weight_roundWarmup(
   return calculateLoad(converted, settings, unit, exerciseType, { firstWorkingWeight }).totalWeight;
 }
 
+export function Weight_setupForExercise(
+  weight: IWeight,
+  settings: ISettings,
+  exerciseType: IExerciseType
+): IEquipmentSetup | undefined {
+  const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
+  return equipmentData != null
+    ? Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit)
+    : undefined;
+}
+
 export function Weight_realizeLoad(
   weight: IWeight,
   settings: ISettings,
   exerciseType: IExerciseType,
   isWarmup: boolean
 ): IEquipmentLoad | undefined {
-  const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
-  if (equipmentData == null) {
+  const setup = Weight_setupForExercise(weight, settings, exerciseType);
+  if (setup == null) {
     return undefined;
   }
-  const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit);
   return EquipmentLoadSolver_realize(setup, weight, {
     bodyweight: Equipment_bodyweight(settings),
     ...(isWarmup ? { warmup: {} } : {}),

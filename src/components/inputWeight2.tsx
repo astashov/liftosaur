@@ -10,13 +10,13 @@ import {
   Weight_increment,
   Weight_decrement,
   Weight_buildAny,
-  Weight_realizeLoad,
 } from "../models/weight";
 import { IconBarbellSide } from "./icons/iconBarbellSide";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
-import { EquipmentLoadText_line } from "../models/equipmentLoadText";
+import { WorkoutSetPlates_picture } from "../utils/workoutSetPlates";
+import { EquipmentLoadPicture } from "./equipmentLoadPicture";
 
 interface IInputWeight2Props {
   value: IWeight | IPercentage | undefined;
@@ -210,24 +210,21 @@ interface IPlatesCalculatorProps {
 }
 
 export const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
-  const load = Weight_realizeLoad(props.weight, props.settings, props.exerciseType, !!props.isWarmup);
-  const text = EquipmentLoadText_line(load);
+  const picture = WorkoutSetPlates_picture(props.weight, props.settings, props.exerciseType, !!props.isWarmup);
   return (
     <View className="flex-row items-center w-full gap-1">
       <View>
         <IconBarbellSide size={13} color={Tailwind_colors().blue[400]} />
       </View>
-      <View>
-        <Text className="text-xs text-text-secondary">
-          Plates:{" "}
-          <Text
-            className={`text-xs font-semibold ${text === "" || load?.exact ? "text-text-primary" : "text-text-error"}`}
-            data-testid="plates-list"
-            testID="plates-list"
-          >
-            {text !== "" ? text : "None"}
+      <Text className="text-xs text-text-secondary">Plates:</Text>
+      <View className="flex-1">
+        {picture != null ? (
+          <EquipmentLoadPicture picture={picture} size="sm" testID="plates-list" highlightMismatch={true} />
+        ) : (
+          <Text className="text-xs font-semibold text-text-primary" data-testid="plates-list" testID="plates-list">
+            None
           </Text>
-        </Text>
+        )}
       </View>
     </View>
   );

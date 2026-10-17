@@ -42,6 +42,16 @@
     "iron": { "light": "@colors.lightgray.800", "dark": "@colors.lightgray.200" },
     "bar": { "light": "@colors.lightgray.400", "dark": "@colors.lightgray.600" }
   },
+  "band": {
+    "yellow": { "light": "#F0C419", "dark": "#F5CC2E" },
+    "red": { "light": "#D7322E", "dark": "#E04440" },
+    "blue": { "light": "#1F55C4", "dark": "#3B6FDB" },
+    "green": { "light": "#2E9C4B", "dark": "#3DB05C" },
+    "black": { "light": "#1F1F1F", "dark": "#4A4A4A" },
+    "purple": { "light": "#7B3FC4", "dark": "#9461D9" },
+    "orange": { "light": "#E8771E", "dark": "#F08A33" },
+    "gray": { "light": "#8A8A8A", "dark": "#9A9A9A" }
+  },
   "graph": {
     "blue": { "light": "@colors.blue.500", "dark": "@colors.blue.400" },
     "red": { "light": "@colors.red.500", "dark": "@colors.red.400" },

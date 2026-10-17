@@ -21,15 +21,16 @@ describe("WorkoutSetPlates", () => {
 
   it("formats one side for a barbell exercise and flags an exact match", () => {
     expect(WorkoutSetPlates_line(set(135), settings, { id: "squat", equipment: "barbell" }, false)).to.eql({
-      plates: "45",
-      sidePlates: [{ value: 45, unit: "lb" }],
-      isMatch: true,
+      text: "45",
+      exact: true,
+      bars: [{ name: undefined, plates: [{ value: 45, unit: "lb" }], text: "45" }],
+      chips: undefined,
     });
   });
 
   it("prefers the completed weight and flags a weight the plates cannot reach", () => {
     const line = WorkoutSetPlates_line(set(135, 137), settings, { id: "squat", equipment: "barbell" }, false);
-    expect(line?.isMatch).to.eql(false);
+    expect(line?.exact).to.eql(false);
   });
 
   it("returns nothing without a weight, without equipment, or when the bar alone is enough", () => {

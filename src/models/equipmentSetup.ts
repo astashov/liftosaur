@@ -357,6 +357,9 @@ function typeErrors(setup: IEquipmentSetup): string[] {
     case "bands":
       return [
         ...(setup.bands.length === 0 ? ["Add at least one band."] : []),
+        ...setup.bands
+          .filter((b, i) => setup.bands.findIndex((other) => other.name === b.name) !== i)
+          .map((b) => `Two bands are named ${b.name}.`),
         ...countErrors(setup.bands, "band"),
         ...(setup.combine ? combinationErrors(setup.bands, "bands") : []),
       ];

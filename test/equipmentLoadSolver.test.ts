@@ -8,8 +8,10 @@ import {
   EquipmentLoadSolver_select,
 } from "../src/models/equipmentLoadSolver";
 import {
+  EquipmentLoadText_bandChips,
   EquipmentLoadText_format,
   EquipmentLoadText_hornBars,
+  EquipmentLoadText_picture,
   EquipmentLoadText_tryResult,
 } from "../src/models/equipmentLoadText";
 import { IEquipmentSetup, IPlateCount, IUnit, IWeight } from "../src/types";
@@ -390,6 +392,33 @@ describe("EquipmentLoadSolver", () => {
       expect(EquipmentLoadText_format(EquipmentLoadSolver_select(bands, w(65), {}))).to.equal("Blue + Red");
       const single = EquipmentLoadSolver_select({ ...bands, combine: false }, w(65), {});
       expect(EquipmentLoadText_format(single)).to.equal("Blue");
+    });
+
+    it("colors the dock's band chips from the setup, gray when a band has no color", () => {
+      const bands: IEquipmentSetup = {
+        type: "bands",
+        unit: "lb",
+        bands: [
+          { name: "Light", color: "yellow", weight: 10, num: 1 },
+          { name: "Mid", weight: 25, num: 2 },
+        ],
+        combine: true,
+      };
+      expect(EquipmentLoadText_bandChips(EquipmentLoadSolver_select(bands, w(60), {}), bands)).to.eql([
+        { name: "Mid", num: 2, color: "gray" },
+        { name: "Light", num: 1, color: "yellow" },
+      ]);
+      expect(EquipmentLoadText_bandChips(EquipmentLoadSolver_select(prime, w(135), {}), prime)).to.equal(undefined);
+      expect(EquipmentLoadText_picture(EquipmentLoadSolver_select(bands, w(60), {}), bands)).to.eql({
+        text: "2 × Mid + Light",
+        exact: true,
+        bars: undefined,
+        chips: [
+          { name: "Mid", num: 2, color: "gray" },
+          { name: "Light", num: 1, color: "yellow" },
+        ],
+      });
+      expect(EquipmentLoadText_picture(undefined, bands)).to.equal(undefined);
     });
   });
 

@@ -10,10 +10,8 @@ import {
   EquipmentLoadSolver_select,
   IEquipmentLoadQuery,
 } from "../../models/equipmentLoadSolver";
-import { EquipmentLoadText_hornBars, EquipmentLoadText_tryResult } from "../../models/equipmentLoadText";
-import { PlatesBar } from "../platesBar";
-
-const BAR_HEIGHTS = [32, 22, 18];
+import { EquipmentLoadText_picture, EquipmentLoadText_tryResult } from "../../models/equipmentLoadText";
+import { EquipmentLoadPicture } from "../equipmentLoadPicture";
 
 interface IProps {
   setup: IEquipmentSetup;
@@ -36,7 +34,7 @@ export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
   const target: IWeight = { value, unit: props.setup.unit };
   const load = EquipmentLoadSolver_select(props.setup, target, query);
   const result = EquipmentLoadText_tryResult(props.setup, load, target);
-  const bars = EquipmentLoadText_hornBars(load);
+  const picture = EquipmentLoadText_picture(load, props.setup);
   return (
     <View className="px-4 py-3 border-t border-border-neutral bg-background-default">
       <GroupHeader name="Try a weight" />
@@ -65,24 +63,8 @@ export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
           }}
         />
         <View className="flex-1">
-          {bars != null ? (
-            bars.map((bar, index) => (
-              <View key={index} className="flex-row items-center" style={{ gap: 8 }}>
-                {bar.name != null && (
-                  <Text className="w-14 text-xs text-text-secondary" numberOfLines={1}>
-                    {bar.name}
-                  </Text>
-                )}
-                <PlatesBar plates={bar.plates} height={BAR_HEIGHTS[Math.min(bars.length, BAR_HEIGHTS.length) - 1]} />
-                <Text
-                  className="flex-1 text-sm font-bold"
-                  numberOfLines={1}
-                  testID={bar.name != null ? `equipment-try-horn-${index}` : "equipment-try-result"}
-                >
-                  {bar.text}
-                </Text>
-              </View>
-            ))
+          {picture != null ? (
+            <EquipmentLoadPicture picture={picture} size="lg" testID="equipment-try-result" />
           ) : (
             <Text className="text-base font-bold" testID="equipment-try-result">
               {result.main}

@@ -86,7 +86,7 @@ export function useEquipmentEditorCommon(props: IProps): { cards: JSX.Element; a
           }
         >
           <MenuItemEditable
-            name="Unit"
+            name="Weights in"
             type="select"
             isBorderless={true}
             value={setup.unit}

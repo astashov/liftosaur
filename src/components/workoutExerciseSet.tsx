@@ -35,7 +35,8 @@ import { Weight_eq } from "../models/weight";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
 import { IWorkoutSetPreviousLine } from "../utils/workoutSetPrevious";
-import { IWorkoutSetPlatesLine, WorkoutSetPlates_line } from "../utils/workoutSetPlates";
+import { WorkoutSetPlates_line } from "../utils/workoutSetPlates";
+import { IEquipmentLoadPicture } from "../models/equipmentLoadText";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IWorkoutSetType } from "./workoutExerciseSetFields";
 import { WorkoutExerciseSetCompact } from "./workoutExerciseSetCompact";
@@ -152,7 +153,7 @@ export interface IWorkoutExerciseSetBodyProps {
   onLongPressSet?: () => void;
   onDeleteSet: () => void;
   onMenuOpenChange?: (isOpen: boolean) => void;
-  platesLine?: IWorkoutSetPlatesLine;
+  platesLine?: IEquipmentLoadPicture;
   onOpenSubscription: () => void;
 }
 

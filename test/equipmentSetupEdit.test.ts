@@ -14,7 +14,12 @@ import {
   EquipmentSetupEdit_changeType,
   EquipmentSetupEdit_default,
   EquipmentSetupEdit_defaultWarmupPlates,
+  EquipmentSetupEdit_addBand,
   EquipmentSetupEdit_addHorn,
+  EquipmentSetupEdit_bandColor,
+  EquipmentSetupEdit_bandColorName,
+  EquipmentSetupEdit_removeBand,
+  EquipmentSetupEdit_updateBand,
   EquipmentSetupEdit_removeHorn,
   EquipmentSetupEdit_parseType,
   EquipmentSetupEdit_removeValue,
@@ -166,7 +171,8 @@ describe("EquipmentSetupEdit", () => {
       undefined,
     ]);
     expect(EquipmentSetupEdit_parseType("plates")).to.equal("plates");
-    expect(EquipmentSetupEdit_parseType("bands")).to.equal(undefined);
+    expect(EquipmentSetupEdit_parseType("bands")).to.equal("bands");
+    expect(EquipmentSetupEdit_parseType("chains")).to.equal(undefined);
     expect(EquipmentSetupEdit_typeName("fixed")).to.equal("Fixed weights");
   });
 
@@ -236,6 +242,39 @@ describe("EquipmentSetupEdit", () => {
     ];
     expect(EquipmentSetupEdit_hornPercents(horns)).to.eql([50, 25, 25]);
     expect(EquipmentSetupEdit_hornPercents([{ name: "Top", ratio: 0 }])).to.eql([0]);
+  });
+
+  it("adds, edits and removes bands", () => {
+    const setup = EquipmentSetupEdit_default("bands", "lb");
+    const bands = setup.type === "bands" ? setup.bands : [];
+    expect(bands.map((b) => [b.name, b.color, b.weight])).to.eql([
+      ["Yellow", "yellow", 10],
+      ["Red", "red", 25],
+      ["Blue", "blue", 40],
+      ["Green", "green", 60],
+      ["Black", "black", 80],
+    ]);
+    const added = EquipmentSetupEdit_addBand(bands, "lb");
+    expect(added[5]).to.eql({ name: "Band 6", color: "purple", weight: 90, num: 1 });
+    expect(EquipmentSetupEdit_addBand([], "kg")).to.eql([{ name: "Band 1", color: "yellow", weight: 5, num: 1 }]);
+    expect(EquipmentSetupEdit_updateBand(added, 5, { name: "  Purple ", num: 2 })[5]).to.eql({
+      name: "Purple",
+      color: "purple",
+      weight: 90,
+      num: 2,
+    });
+    expect(EquipmentSetupEdit_updateBand(added, 5, { name: " " })).to.equal(added);
+    expect(EquipmentSetupEdit_updateBand(added, 5, { weight: 0 })).to.equal(added);
+    expect(EquipmentSetupEdit_updateBand(added, 5, { num: 1.5 })).to.equal(added);
+    expect(EquipmentSetupEdit_removeBand(added, 0).map((b) => b.name)).to.eql([
+      "Red",
+      "Blue",
+      "Green",
+      "Black",
+      "Band 6",
+    ]);
+    expect(EquipmentSetupEdit_bandColor({ color: "teal" })).to.equal("gray");
+    expect(EquipmentSetupEdit_bandColorName("orange")).to.equal("Orange");
   });
 
   it("allows up to three horns", () => {

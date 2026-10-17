@@ -267,6 +267,19 @@ describe("EquipmentSetup", () => {
   });
 
   describe("validation", () => {
+    it("rejects two bands with the same name", () => {
+      const bands: IEquipmentSetup = {
+        type: "bands",
+        unit: "lb",
+        bands: [
+          { name: "Red", weight: 25, num: 1 },
+          { name: "Red", weight: 40, num: 1 },
+        ],
+        combine: true,
+      };
+      expect(EquipmentSetup_validate(bands)).to.eql(["Two bands are named Red."]);
+    });
+
     it("accepts a normal stack and rejects broken ranges", () => {
       const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
       expect(EquipmentSetup_validate(stack)).to.eql([]);

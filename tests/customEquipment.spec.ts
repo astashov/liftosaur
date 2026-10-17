@@ -85,3 +85,32 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.getByTestId("exercise-equipment-picker").click();
   await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("None");
 });
+
+test("bands equipment", async ({ page }) => {
+  page.on("dialog", (dialog) => dialog.accept());
+  await page.goto(startpage + "?skipintro=1&nosync=true");
+  await PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
+  await PlaywrightUtils_disableSubscriptions(page);
+
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-available-equipment").click();
+  await page.getByRole("button", { name: "Add New Equipment Type" }).click();
+  await page.getByTestId("equipment-name-input").fill("Loops");
+  await page.getByTestId("menu-item-value-type").click();
+  await page.getByTestId("scroll-barrel-item-bands").scrollIntoViewIfNeeded();
+  await page.getByTestId("scroll-barrel-item-bands").click();
+  await page.waitForTimeout(500);
+  await page.getByTestId("add-equipment-submit").click();
+  await expect(page.locator(`[data-testid="equipment-editor"]:visible`)).toHaveCount(1);
+
+  await fillNumber(page, "input-equipment-try-weight-field", "65");
+  await expect(page.locator(`[data-testid="equipment-try-result"]:visible`)).toHaveText("Green");
+  await page.locator(`[data-testid="menu-item-value-combine-bands"]:visible`).click();
+  await expect(page.locator(`[data-testid="equipment-try-result"]:visible`)).toHaveText("Blue + Red");
+
+  await page.locator(`[data-testid="equipment-add-band"]:visible`).click();
+  await expect(page.locator(`[data-testid="equipment-band-name-5"]:visible`)).toHaveValue("Band 6");
+  await page.locator(`[data-testid="navbar-back"]:visible`).click();
+  await expect(page.getByTestId("group-header-loops")).toContainText("Yellow, Red, Blue, Green, Black, Band 6");
+});

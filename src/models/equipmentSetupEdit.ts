@@ -14,6 +14,17 @@ import { Weight_convertTo } from "./weight";
 type IEquipmentSetupType = IEquipmentSetup["type"];
 
 export type IEquipmentBodyweightMode = "adds" | "assists";
+export type IEquipmentBandColor = "yellow" | "red" | "blue" | "green" | "black" | "purple" | "orange" | "gray";
+export const EquipmentSetupEdit_bandColors: IEquipmentBandColor[] = [
+  "yellow",
+  "red",
+  "blue",
+  "green",
+  "black",
+  "purple",
+  "orange",
+  "gray",
+];
 export type IEquipmentWeightList = "plates" | "addOn" | "builtin" | "values";
 
 const DEFAULT_HORN_NAMES = ["Top", "Middle", "Low"];
@@ -22,12 +33,15 @@ const NEW_PLATE_COUNT = 2;
 const DEFAULT_WARMUP_PLATE_SIZES = 2;
 const EXAMPLE_LOAD_LB = 45;
 const EXAMPLE_LOAD_KG = 20;
+const NEW_BAND_STEP_LB = 10;
+const NEW_BAND_STEP_KG = 5;
 
 export const EquipmentSetupEdit_types: { type: IEquipmentSetupType; label: string; description: string }[] = [
   { type: "stack", label: "Weight stack", description: "Cable columns and stack machines" },
   { type: "plates", label: "Plates", description: "Barbells, plate-loaded machines, dip belts" },
   { type: "fixed", label: "Fixed weights", description: "Dumbbells, kettlebells, fixed barbells" },
   { type: "electric", label: "Electric", description: "Voltra, Tonal" },
+  { type: "bands", label: "Bands", description: "Resistance bands, band-assisted pull-ups" },
 ];
 
 export function EquipmentSetupEdit_typeName(type: IEquipmentSetupType): string {
@@ -62,8 +76,54 @@ function defaultPlates(unit: IUnit): IPlateCount[] {
 
 function defaultBands(unit: IUnit): IEquipmentBand[] {
   const weights = unit === "lb" ? [10, 25, 40, 60, 80] : [5, 10, 20, 30, 40];
-  const names = ["Yellow", "Red", "Blue", "Green", "Black"];
-  return names.map((name, i) => ({ name, weight: weights[i], num: 1 }));
+  const colors: IEquipmentBandColor[] = ["yellow", "red", "blue", "green", "black"];
+  return colors.map((color, i) => ({
+    name: EquipmentSetupEdit_bandColorName(color),
+    color,
+    weight: weights[i],
+    num: 1,
+  }));
+}
+
+export function EquipmentSetupEdit_bandColorName(color: IEquipmentBandColor): string {
+  return color[0].toUpperCase() + color.slice(1);
+}
+
+export function EquipmentSetupEdit_bandColor(band: { color?: string }): IEquipmentBandColor {
+  return EquipmentSetupEdit_bandColors.find((c) => c === band.color) ?? "gray";
+}
+
+export function EquipmentSetupEdit_addBand(bands: IEquipmentBand[], unit: IUnit): IEquipmentBand[] {
+  const names = bands.map((b) => b.name);
+  let index = bands.length + 1;
+  while (names.indexOf(`Band ${index}`) !== -1) {
+    index += 1;
+  }
+  const usedColors = bands.map((b) => b.color);
+  const color = EquipmentSetupEdit_bandColors.find((c) => usedColors.indexOf(c) === -1) ?? "gray";
+  const heaviest = bands.reduce((memo, b) => Math.max(memo, b.weight), 0);
+  const weight = heaviest + (unit === "lb" ? NEW_BAND_STEP_LB : NEW_BAND_STEP_KG);
+  return [...bands, { name: `Band ${index}`, color, weight, num: 1 }];
+}
+
+export function EquipmentSetupEdit_updateBand(
+  bands: IEquipmentBand[],
+  index: number,
+  patch: Partial<IEquipmentBand>
+): IEquipmentBand[] {
+  const name = patch.name?.trim();
+  const isValid =
+    (patch.name == null || !!name) &&
+    (patch.weight == null || patch.weight > 0) &&
+    (patch.num == null || (patch.num >= 1 && Number.isInteger(patch.num)));
+  if (!isValid || bands[index] == null) {
+    return bands;
+  }
+  return bands.map((band, i) => (i === index ? { ...band, ...patch, ...(name != null ? { name } : {}) } : band));
+}
+
+export function EquipmentSetupEdit_removeBand(bands: IEquipmentBand[], index: number): IEquipmentBand[] {
+  return bands.filter((_, i) => i !== index);
 }
 
 export function EquipmentSetupEdit_default(type: IEquipmentSetupType, unit: IUnit): IEquipmentSetup {

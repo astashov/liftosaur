@@ -43,6 +43,16 @@
       "iron": "#364756",
       "bar": "#778999"
     },
+    "band": {
+      "yellow": "#F0C419",
+      "red": "#D7322E",
+      "blue": "#1F55C4",
+      "green": "#2E9C4B",
+      "black": "#1F1F1F",
+      "purple": "#7B3FC4",
+      "orange": "#E8771E",
+      "gray": "#8A8A8A"
+    },
     "graph": {
       "blue": "#2A97B0",
       "red": "#FF543E",
@@ -208,6 +218,16 @@
       "whiteoutline": "#778999",
       "iron": "#C9D1D8",
       "bar": "#4F5C6B"
+    },
+    "band": {
+      "yellow": "#F5CC2E",
+      "red": "#E04440",
+      "blue": "#3B6FDB",
+      "green": "#3DB05C",
+      "black": "#4A4A4A",
+      "purple": "#9461D9",
+      "orange": "#F08A33",
+      "gray": "#9A9A9A"
     },
     "graph": {
       "blue": "#45B3CB",

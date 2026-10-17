@@ -1,6 +1,7 @@
 import { IEquipmentSetup, IPlateCount, IWeight } from "../types";
 import { CollectionUtils_compressArray } from "../utils/collection";
 import { IEquipmentLoad, IEquipmentLoadInstruction } from "./equipmentLoadSolver";
+import { EquipmentSetupEdit_bandColor, IEquipmentBandColor } from "./equipmentSetupEdit";
 
 function singlePlates(plates: IPlateCount[]): number[] {
   return [...plates].sort((a, b) => b.weight - a.weight).flatMap((p) => new Array<number>(p.num).fill(p.weight));
@@ -14,6 +15,50 @@ export interface IEquipmentHornBar {
   name?: string;
   plates: IWeight[];
   text: string;
+}
+
+export interface IEquipmentLoadPicture {
+  text: string;
+  exact: boolean;
+  bars?: IEquipmentHornBar[];
+  chips?: IEquipmentBandChip[];
+}
+
+export function EquipmentLoadText_picture(
+  load: IEquipmentLoad | undefined,
+  setup: IEquipmentSetup | undefined
+): IEquipmentLoadPicture | undefined {
+  const text = EquipmentLoadText_line(load);
+  if (load == null || text === "") {
+    return undefined;
+  }
+  return {
+    text,
+    exact: load.exact,
+    bars: EquipmentLoadText_hornBars(load),
+    chips: setup != null ? EquipmentLoadText_bandChips(load, setup) : undefined,
+  };
+}
+
+export interface IEquipmentBandChip {
+  name: string;
+  num: number;
+  color: IEquipmentBandColor;
+}
+
+export function EquipmentLoadText_bandChips(
+  load: IEquipmentLoad,
+  setup: IEquipmentSetup
+): IEquipmentBandChip[] | undefined {
+  const instruction = load.instruction;
+  if (instruction?.type !== "bands" || setup.type !== "bands" || instruction.bands.length === 0) {
+    return undefined;
+  }
+  return instruction.bands.map((b) => ({
+    name: b.name,
+    num: b.num,
+    color: EquipmentSetupEdit_bandColor(setup.bands.find((s) => s.name === b.name) ?? {}),
+  }));
 }
 
 export function EquipmentLoadText_hornBars(load: IEquipmentLoad): IEquipmentHornBar[] | undefined {

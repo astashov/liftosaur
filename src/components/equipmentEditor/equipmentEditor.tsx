@@ -26,6 +26,7 @@ import { EditEquipment_setText, EditEquipment_update } from "../../models/editEq
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { useEquipmentEditorCommon } from "./equipmentEditorCommon";
 import { EquipmentEditorElectric, EquipmentEditorFixed } from "./equipmentEditorFixed";
+import { EquipmentEditorBands } from "./equipmentEditorBands";
 import { EquipmentEditorPlates } from "./equipmentEditorPlates";
 import { EquipmentEditorStack } from "./equipmentEditorStack";
 import { EquipmentEditorTryWeight } from "./equipmentEditorTryWeight";
@@ -137,6 +138,7 @@ export function EquipmentEditor(props: IEquipmentEditorProps): JSX.Element {
         {setup.type === "plates" && <EquipmentEditorPlates {...sectionProps} setup={setup} />}
         {setup.type === "fixed" && <EquipmentEditorFixed {...sectionProps} setup={setup} />}
         {setup.type === "electric" && <EquipmentEditorElectric {...sectionProps} setup={setup} />}
+        {setup.type === "bands" && <EquipmentEditorBands {...sectionProps} setup={setup} />}
       </View>
     </View>
   );

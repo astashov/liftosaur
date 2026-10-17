@@ -7,7 +7,7 @@ import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { IconPlayCircle } from "./icons/iconPlayCircle";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { IconBarbellPlates } from "./icons/iconBarbellPlates";
-import { PlatesBar } from "./platesBar";
+import { EquipmentLoadPicture } from "./equipmentLoadPicture";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { LinkButton } from "./linkButton";
@@ -262,23 +262,22 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
                 onPress={props.onToggleExpand}
                 onLongPress={onLongPressSet}
               >
-                {isSubscribed && props.platesLine.isMatch && props.platesLine.sidePlates.length > 0 ? (
-                  <PlatesBar plates={props.platesLine.sidePlates} />
-                ) : (
-                  <IconBarbellPlates size={isSubscribed ? 24 : 17} />
-                )}
                 {isSubscribed ? (
-                  <Text
-                    className={`text-2xl font-semibold ${props.platesLine.isMatch ? "text-text-primary" : "text-text-error"}`}
-                    data-testid="set-plates-list"
-                    testID="set-plates-list"
-                  >
-                    {props.platesLine.plates}
-                  </Text>
+                  <View className="flex-1">
+                    <EquipmentLoadPicture
+                      picture={props.platesLine}
+                      size="xl"
+                      testID="set-plates-list"
+                      highlightMismatch={true}
+                    />
+                  </View>
                 ) : (
-                  <LinkButton name="see-plates-for-each-side" className="text-xs" onClick={props.onOpenSubscription}>
-                    See plates for each side
-                  </LinkButton>
+                  <>
+                    <IconBarbellPlates size={17} />
+                    <LinkButton name="see-plates-for-each-side" className="text-xs" onClick={props.onOpenSubscription}>
+                      See plates for each side
+                    </LinkButton>
+                  </>
                 )}
               </Pressable>
             )}

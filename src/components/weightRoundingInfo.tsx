@@ -18,7 +18,8 @@ import {
   Equipment_getUnitOrDefaultForExerciseType,
 } from "../models/equipment";
 import { EquipmentSetup_summary } from "../models/equipmentSetup";
-import { EquipmentLoadText_line } from "../models/equipmentLoadText";
+import { EquipmentLoadText_picture } from "../models/equipmentLoadText";
+import { EquipmentLoadPicture } from "./equipmentLoadPicture";
 import { Button } from "./button";
 
 interface IWeightRoundingInfoContentProps {
@@ -121,24 +122,28 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
   const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? unit);
   const load =
     targetWeight != null ? Weight_calculatePlates(targetWeight, settings, unit, exerciseType).load : undefined;
-  const instruction = EquipmentLoadText_line(load);
+  const picture = EquipmentLoadText_picture(load, setup);
   return (
     <View>
       <Text className="text-sm">
         {name} is set up as{" "}
-        <Text className="text-sm font-semibold text-text-purple">{EquipmentSetup_summary(setup)}</Text>.
-        {load != null && instruction !== "" && (
-          <>
-            {" "}
-            The closest weight it can load is{" "}
-            <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(load.total)}</Text>:{" "}
-            <Text className="text-sm font-semibold text-text-purple">{instruction}</Text>.
-          </>
-        )}{" "}
+        <Text className="text-sm font-semibold text-text-purple">{EquipmentSetup_summary(setup)}</Text>.{" "}
         {(setup.rounding ?? "down") === "down"
           ? "It rounds the number on the machine down."
           : "It rounds to the closest weight it can load."}
+        {load != null && picture != null && (
+          <>
+            {" "}
+            The closest weight it can load is{" "}
+            <Text className="text-sm font-semibold text-syntax-weight">{Weight_display(load.total)}</Text>:
+          </>
+        )}
       </Text>
+      {picture != null && (
+        <View className="pt-2">
+          <EquipmentLoadPicture picture={picture} size="md" testID="rounding-info-loading" />
+        </View>
+      )}
       {setup.direction === "assists" && (
         <Text className="pt-2 text-sm">
           This equipment <Text className="text-sm font-semibold">helps you up</Text>: more weight on the machine makes
