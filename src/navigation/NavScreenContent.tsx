@@ -21,7 +21,9 @@ export function NavScreenContent(props: {
   keyboardDismissMode?: "none" | "on-drag" | "interactive";
   // Android only (iOS gets it from automaticallyAdjustKeyboardInsets). Opt-in because it
   // lengthens the scroll content on every screen that turns it on, keyboard up or not.
-  avoidSystemKeyboard?: boolean;
+  // "reveal" also scrolls the focused TextInput above the keyboard. The program editor keeps
+  // `true` because it reveals its native editor's caret itself.
+  avoidSystemKeyboard?: boolean | "reveal";
 }): JSX.Element {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
@@ -91,7 +93,9 @@ export function NavScreenContent(props: {
     >
       {children}
       <Animated.View style={{ height: animatedKeyboardHeight }} />
-      {props.avoidSystemKeyboard === true && Platform.OS === "android" ? <SystemKeyboardSpacer /> : null}
+      {props.avoidSystemKeyboard && Platform.OS === "android" ? (
+        <SystemKeyboardSpacer scrollRef={props.avoidSystemKeyboard === "reveal" ? scrollRef : undefined} />
+      ) : null}
     </Animated.ScrollView>
   );
 

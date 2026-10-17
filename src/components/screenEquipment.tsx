@@ -173,7 +173,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
   });
 
   return (
-    <NavScreenContent stickyHeaderIndices={stickyIndices}>
+    <NavScreenContent stickyHeaderIndices={stickyIndices} avoidSystemKeyboard="reveal">
       {children}
       {hiddenEquipment.length > 0 && (
         <View className="flex-row flex-wrap mx-4 my-2">
