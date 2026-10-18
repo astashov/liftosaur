@@ -37,7 +37,7 @@ export interface IProgramDetailsContentProps {
 
 export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.Element {
   const { program, indexEntry } = props;
-  const settings = props.units ? { ...Settings_build(), units: props.units } : Settings_build();
+  const settings = Settings_build(props.units);
   const fullProgram = Program_fullProgram(ObjectUtils_clone(program), settings);
   const evaluatedProgram = Program_evaluate(ObjectUtils_clone(program), settings);
   const descriptionText = props.fullDescription || program.description;

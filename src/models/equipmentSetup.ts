@@ -14,7 +14,7 @@ import { Weight_smartConvert } from "./weight";
 
 type ILegacyFields = Pick<
   IEquipmentData,
-  "bar" | "multiplier" | "plates" | "fixed" | "isFixed" | "useBodyweightForBar" | "isAssisting" | "unit"
+  "bar" | "multiplier" | "plates" | "fixed" | "isFixed" | "useBodyweightForBar" | "isAssisting"
 >;
 
 const LEGACY_HASH_VERSION = "v1";
@@ -109,7 +109,6 @@ function legacyStepPlates(setup: IEquipmentSetup, bar: number, step: number, cou
     isFixed: false,
     useBodyweightForBar: setup.bodyweight != null,
     isAssisting: legacyAssisting(setup, bar),
-    unit: setup.unit,
   };
 }
 
@@ -123,7 +122,6 @@ function legacyFixed(setup: IEquipmentSetup, values: number[]): ILegacyFields {
     isFixed: true,
     useBodyweightForBar: setup.bodyweight != null,
     isAssisting: legacyAssisting(setup, 0),
-    unit: setup.unit,
   };
 }
 
@@ -152,7 +150,6 @@ export function EquipmentSetup_toLegacy(setup: IEquipmentSetup): ILegacyFields {
         isFixed: false,
         useBodyweightForBar: setup.bodyweight != null,
         isAssisting: legacyAssisting(setup, setup.base),
-        unit: setup.unit,
       };
     case "stack":
       return stackToLegacy(setup);

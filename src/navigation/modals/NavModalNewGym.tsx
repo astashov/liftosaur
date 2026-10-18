@@ -4,13 +4,10 @@ import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { ModalNewGymContent } from "../../components/modalNewGym";
-import { IState, updateState } from "../../models/state";
-import { lb } from "lens-shmens";
-import { UidFactory_generateUid } from "../../utils/generator";
-import { Settings_defaultEquipment } from "../../models/settings";
+import { EditEquipment_addGym } from "../../models/editEquipment";
 
 export function NavModalNewGym(): JSX.Element {
-  const { dispatch } = useAppState();
+  const { state, dispatch } = useAppState();
   const navigation = useNavigation();
 
   const onClose = (): void => {
@@ -23,20 +20,7 @@ export function NavModalNewGym(): JSX.Element {
         <ModalNewGymContent
           onClose={onClose}
           onSelect={(name) => {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .recordModify((oldGyms) => {
-                    const id = `gym-${UidFactory_generateUid(8)}`;
-                    return [...oldGyms, { vtype: "gym" as const, id, name, equipment: Settings_defaultEquipment() }];
-                  }),
-              ],
-              "Add new gym"
-            );
+            EditEquipment_addGym(dispatch, name, state.storage.settings.units);
             onClose();
           }}
         />

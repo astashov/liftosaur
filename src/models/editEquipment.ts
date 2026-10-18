@@ -1,8 +1,9 @@
 import { ILensRecordingPayload, Lens, lb } from "lens-shmens";
 import { IState, updateState } from "./state";
 import { IDispatch } from "../ducks/types";
-import { IAllEquipment, IExerciseType, IEquipment, IEquipmentSetup, ISettings } from "../types";
+import { IAllEquipment, IExerciseType, IEquipment, IEquipmentSetup, ISettings, IUnit } from "../types";
 import { Equipment_getEquipmentIdForExerciseType, Equipment_setupOf } from "./equipment";
+import { EquipmentDefaults_build } from "./equipmentDefaults";
 import { Exercise_get, Exercise_toKey } from "./exercise";
 import { UidFactory_generateUid } from "../utils/generator";
 import { EquipmentSetup_validate } from "./equipmentSetup";
@@ -84,7 +85,7 @@ export function EditEquipment_create(
   linkExercise?: IExerciseType
 ): string {
   const id = newEquipmentId();
-  const data = EquipmentSetupEdit_newEquipment(EquipmentSetupEdit_default(type, settings.units), name);
+  const data = EquipmentSetupEdit_newEquipment(EquipmentSetupEdit_default(type, settings.units), name, settings.units);
   updateState(
     dispatch,
     [
@@ -109,7 +110,7 @@ export function EditEquipment_copyForExercise(
   }
   const id = newEquipmentId();
   const name = Exercise_get(exerciseType, settings.exercises).name;
-  const data = EquipmentSetupEdit_newEquipment(Equipment_setupOf(source, settings), name);
+  const data = EquipmentSetupEdit_newEquipment(Equipment_setupOf(source, settings), name, settings.units);
   updateState(
     dispatch,
     [
@@ -125,7 +126,8 @@ export function EditEquipment_update(
   dispatch: IDispatch,
   gymId: string,
   equipmentId: string,
-  next: IEquipmentSetup
+  next: IEquipmentSetup,
+  appUnit: IUnit
 ): string[] {
   const errors = EquipmentSetup_validate(next);
   if (errors.length > 0) {
@@ -136,12 +138,28 @@ export function EditEquipment_update(
     [
       gymEquipmentLens(gymId).recordModify((all) => {
         const current = all[equipmentId];
-        return current == null ? all : { ...all, [equipmentId]: EquipmentSetupEdit_apply(current, next) };
+        return current == null ? all : { ...all, [equipmentId]: EquipmentSetupEdit_apply(current, next, appUnit) };
       }),
     ],
     "Update equipment setup"
   );
   return [];
+}
+
+export function EditEquipment_addGym(dispatch: IDispatch, name: string, unit: IUnit): void {
+  const id = `gym-${UidFactory_generateUid(8)}`;
+  const equipment = EquipmentDefaults_build(unit);
+  updateState(
+    dispatch,
+    [
+      lb<IState>()
+        .p("storage")
+        .p("settings")
+        .p("gyms")
+        .recordModify((gyms) => [...gyms, { vtype: "gym" as const, id, name, equipment }]),
+    ],
+    "Add new gym"
+  );
 }
 
 export function EditEquipment_setDeleted(

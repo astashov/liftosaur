@@ -40,7 +40,7 @@ export function NavModalPlates(): JSX.Element {
             onClose();
             if (data != null) {
               const next = EquipmentSetupEdit_addWeight(Equipment_setupOf(data, settings), list, value);
-              const errors = EditEquipment_update(dispatch, gymId, equipmentId, next);
+              const errors = EditEquipment_update(dispatch, gymId, equipmentId, next, settings.units);
               if (errors.length > 0) {
                 Dialog_alert(errors[0]);
               }

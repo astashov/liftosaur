@@ -33,7 +33,7 @@ import {
   EquipmentSetupEdit_setPlateCount,
   EquipmentSetupEdit_updateRange,
 } from "../src/models/equipmentSetupEdit";
-import { EquipmentSetup_validate } from "../src/models/equipmentSetup";
+import { EquipmentSetup_convertUnit, EquipmentSetup_validate } from "../src/models/equipmentSetup";
 import { Equipment_getSetup, Equipment_legacyChanged } from "../src/models/equipment";
 import { Settings_build } from "../src/models/settings";
 import { IEquipmentSetup, IStackSetup, IWeightRange } from "../src/types";
@@ -228,9 +228,9 @@ describe("EquipmentSetupEdit", () => {
       dispatches += 1;
     };
     const broken: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 0 }] };
-    expect(EditEquipment_update(dispatch, gym.id, "cable", broken)).to.eql(["A step must be above 0."]);
+    expect(EditEquipment_update(dispatch, gym.id, "cable", broken, "lb")).to.eql(["A step must be above 0."]);
     expect(dispatches).to.equal(0);
-    expect(EditEquipment_update(dispatch, gym.id, "cable", EquipmentSetupEdit_default("stack", "lb"))).to.eql([]);
+    expect(EditEquipment_update(dispatch, gym.id, "cable", EquipmentSetupEdit_default("stack", "lb"), "lb")).to.eql([]);
     expect(dispatches).to.equal(1);
   });
 
@@ -332,16 +332,28 @@ describe("EquipmentSetupEdit", () => {
 
   it("writes setup and old fields together and keeps what the editor does not own", () => {
     const setup: IStackSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
-    const created = EquipmentSetupEdit_newEquipment(setup, "Lat pulldown");
+    const created = EquipmentSetupEdit_newEquipment(setup, "Lat pulldown", "lb");
     expect(created.name).to.equal("Lat pulldown");
     expect(Equipment_getSetup(created, Settings_build(), "lb")).to.eql(setup);
     const edited = EquipmentSetupEdit_apply(
       { ...created, notes: "Seat 4", isDeleted: false },
-      { ...setup, pullRatio: 0.5 }
+      { ...setup, pullRatio: 0.5 },
+      "lb"
     );
     expect(edited.notes).to.equal("Seat 4");
     expect(edited.isDeleted).to.equal(false);
     expect(Equipment_legacyChanged(edited)).to.equal(false);
     expect(Equipment_legacyChanged({ ...edited, plates: [] })).to.equal(true);
+  });
+
+  it("pins the unit only when the setup differs from the app unit", () => {
+    const setup: IStackSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+    expect(EquipmentSetupEdit_newEquipment(setup, "Lat pulldown", "lb").unit).to.equal(undefined);
+    const pinned = EquipmentSetupEdit_newEquipment(setup, "Lat pulldown", "kg");
+    expect(pinned.unit).to.equal("lb");
+    expect(Equipment_legacyChanged(pinned)).to.equal(false);
+    const unpinned = EquipmentSetupEdit_apply(pinned, EquipmentSetup_convertUnit(setup, "kg", "convert"), "kg");
+    expect(unpinned.unit).to.equal(undefined);
+    expect(Equipment_legacyChanged(unpinned)).to.equal(false);
   });
 });

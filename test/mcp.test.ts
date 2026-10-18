@@ -1533,7 +1533,7 @@ describe("MCP", () => {
 
     it("404s when updating a non-existent equipment", async () => {
       const gymId = await firstGymId();
-      const res = await callTool("update_equipment", { gymId, id: "band", isDeleted: false });
+      const res = await callTool("update_equipment", { gymId, id: "equipment-missing", isDeleted: false });
       expect(res.isError).to.equal(true);
       expect(res.content[0].text).to.include("not found");
     });

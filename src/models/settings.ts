@@ -1,7 +1,6 @@
 import {
   ISettings,
   IPlannerSettings,
-  IAllEquipment,
   IAllCustomExercises,
   ITargetType,
   targetTypes,
@@ -9,8 +8,10 @@ import {
   IExerciseType,
   IWeight,
   IWebEditorSettings,
+  IUnit,
 } from "../types";
-import { Weight_build, Weight_print } from "./weight";
+import { EquipmentDefaults_build } from "./equipmentDefaults";
+import { Weight_print } from "./weight";
 import { IExportedProgram, Program_evaluate, Program_getAllUsedProgramExercises } from "./program";
 import { ObjectUtils_filter, ObjectUtils_pick } from "../utils/object";
 import { lb } from "lens-shmens";
@@ -34,221 +35,10 @@ export function Settings_programContentBuild(): Pick<ISettings, "timers" | "unit
   };
 }
 
-export function Settings_defaultEquipment(): IAllEquipment {
-  return {
-    barbell: {
-      vtype: "equipment_data",
-      multiplier: 2,
-      bar: {
-        lb: Weight_build(45, "lb"),
-        kg: Weight_build(20, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(45, "lb"), num: 8 },
-        { weight: Weight_build(25, "lb"), num: 4 },
-        { weight: Weight_build(10, "lb"), num: 4 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(20, "kg"), num: 8 },
-        { weight: Weight_build(10, "kg"), num: 4 },
-        { weight: Weight_build(5, "kg"), num: 4 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    trapbar: {
-      vtype: "equipment_data",
-      multiplier: 2,
-      bar: {
-        lb: Weight_build(45, "lb"),
-        kg: Weight_build(20, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(45, "lb"), num: 8 },
-        { weight: Weight_build(25, "lb"), num: 4 },
-        { weight: Weight_build(10, "lb"), num: 4 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(20, "kg"), num: 8 },
-        { weight: Weight_build(10, "kg"), num: 4 },
-        { weight: Weight_build(5, "kg"), num: 4 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    leverageMachine: {
-      vtype: "equipment_data",
-      multiplier: 1,
-      bar: {
-        lb: Weight_build(0, "lb"),
-        kg: Weight_build(0, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(45, "lb"), num: 8 },
-        { weight: Weight_build(25, "lb"), num: 4 },
-        { weight: Weight_build(10, "lb"), num: 4 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(20, "kg"), num: 8 },
-        { weight: Weight_build(10, "kg"), num: 4 },
-        { weight: Weight_build(5, "kg"), num: 4 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    smith: {
-      vtype: "equipment_data",
-      multiplier: 2,
-      bar: {
-        lb: Weight_build(45, "lb"),
-        kg: Weight_build(20, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(45, "lb"), num: 8 },
-        { weight: Weight_build(25, "lb"), num: 4 },
-        { weight: Weight_build(10, "lb"), num: 4 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(20, "kg"), num: 8 },
-        { weight: Weight_build(10, "kg"), num: 4 },
-        { weight: Weight_build(5, "kg"), num: 4 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    dumbbell: {
-      vtype: "equipment_data",
-      multiplier: 2,
-      bar: {
-        lb: Weight_build(10, "lb"),
-        kg: Weight_build(5, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(10, "lb"), num: 8 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(5, "kg"), num: 8 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [
-        Weight_build(10, "lb"),
-        Weight_build(15, "lb"),
-        Weight_build(20, "lb"),
-        Weight_build(25, "lb"),
-        Weight_build(30, "lb"),
-        Weight_build(35, "lb"),
-        Weight_build(40, "lb"),
-        Weight_build(4, "kg"),
-        Weight_build(6, "kg"),
-        Weight_build(8, "kg"),
-        Weight_build(10, "kg"),
-        Weight_build(12, "kg"),
-        Weight_build(14, "kg"),
-        Weight_build(20, "kg"),
-      ],
-      isFixed: false,
-    },
-    ezbar: {
-      vtype: "equipment_data",
-      multiplier: 2,
-      bar: {
-        lb: Weight_build(20, "lb"),
-        kg: Weight_build(10, "kg"),
-      },
-      plates: [
-        { weight: Weight_build(45, "lb"), num: 8 },
-        { weight: Weight_build(25, "lb"), num: 4 },
-        { weight: Weight_build(10, "lb"), num: 4 },
-        { weight: Weight_build(5, "lb"), num: 4 },
-        { weight: Weight_build(2.5, "lb"), num: 4 },
-        { weight: Weight_build(1.25, "lb"), num: 2 },
-        { weight: Weight_build(20, "kg"), num: 8 },
-        { weight: Weight_build(10, "kg"), num: 4 },
-        { weight: Weight_build(5, "kg"), num: 4 },
-        { weight: Weight_build(2.5, "kg"), num: 4 },
-        { weight: Weight_build(1.25, "kg"), num: 4 },
-        { weight: Weight_build(0.5, "kg"), num: 2 },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    cable: {
-      vtype: "equipment_data",
-      multiplier: 1,
-      bar: {
-        lb: Weight_build(0, "lb"),
-        kg: Weight_build(0, "kg"),
-      },
-      plates: [
-        {
-          weight: Weight_build(10, "lb"),
-          num: 20,
-        },
-        {
-          weight: Weight_build(5, "lb"),
-          num: 10,
-        },
-        {
-          weight: Weight_build(5, "kg"),
-          num: 20,
-        },
-        {
-          weight: Weight_build(2.5, "kg"),
-          num: 10,
-        },
-      ],
-      fixed: [],
-      isFixed: false,
-    },
-    kettlebell: {
-      vtype: "equipment_data",
-      multiplier: 1,
-      bar: {
-        lb: Weight_build(0, "lb"),
-        kg: Weight_build(0, "kg"),
-      },
-      plates: [],
-      fixed: [
-        Weight_build(10, "lb"),
-        Weight_build(15, "lb"),
-        Weight_build(20, "lb"),
-        Weight_build(25, "lb"),
-        Weight_build(30, "lb"),
-        Weight_build(35, "lb"),
-        Weight_build(40, "lb"),
-        Weight_build(4, "kg"),
-        Weight_build(8, "kg"),
-        Weight_build(12, "kg"),
-        Weight_build(16, "kg"),
-        Weight_build(24, "kg"),
-      ],
-      isFixed: true,
-    },
-  };
-}
-
-export function Settings_build(): ISettings {
+export function Settings_build(units: IUnit = "lb"): ISettings {
   return {
     ...Settings_programContentBuild(),
+    units,
     graphsSettings: {
       isSameXAxis: false,
       isWithBodyweight: false,
@@ -264,7 +54,7 @@ export function Settings_build(): ISettings {
         vtype: "gym",
         id: "default",
         name: "Main",
-        equipment: Settings_defaultEquipment(),
+        equipment: EquipmentDefaults_build(units),
       },
     ],
     // Builds before 2026-09-26 require deletedGyms in VSettings. Drop with its removal migration.

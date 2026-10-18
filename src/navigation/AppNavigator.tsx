@@ -183,7 +183,11 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
-      <OnboardingStack.Screen name="equipmentDetail" component={NavScreenEquipmentDetail} />
+      <OnboardingStack.Screen
+        name="equipmentDetail"
+        component={NavScreenEquipmentDetail}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <OnboardingStack.Screen
         name="hearaboutus"
         component={NavScreenHearAboutUs}

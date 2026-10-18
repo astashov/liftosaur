@@ -5,12 +5,14 @@ import {
   EquipmentLoadSolver_previous,
   EquipmentLoadSolver_reachable,
   EquipmentLoadSolver_realize,
+  EquipmentLoadSolver_sampleWeight,
   EquipmentLoadSolver_select,
 } from "../src/models/equipmentLoadSolver";
 import {
   EquipmentLoadText_bandChips,
   EquipmentLoadText_format,
   EquipmentLoadText_hornBars,
+  EquipmentLoadText_isNewlyExact,
   EquipmentLoadText_picture,
   EquipmentLoadText_tryResult,
 } from "../src/models/equipmentLoadText";
@@ -563,6 +565,66 @@ describe("EquipmentLoadSolver", () => {
       const startedAt = Date.now();
       EquipmentLoadSolver_select(setup, w(500), {});
       expect(Date.now() - startedAt).to.be.lessThan(500);
+    });
+  });
+
+  describe("newly exact", () => {
+    it("is true only when the load turns exact after not being exact", () => {
+      expect(EquipmentLoadText_isNewlyExact(false, true)).to.equal(true);
+      expect(EquipmentLoadText_isNewlyExact(undefined, true)).to.equal(false);
+      expect(EquipmentLoadText_isNewlyExact(true, true)).to.equal(false);
+      expect(EquipmentLoadText_isNewlyExact(false, false)).to.equal(false);
+      expect(EquipmentLoadText_isNewlyExact(true, false)).to.equal(false);
+    });
+  });
+
+  describe("sample weight", () => {
+    it("loads one heaviest plate per side on a barbell", () => {
+      expect(EquipmentLoadSolver_sampleWeight(barbell, {})).to.eql(w(135));
+      const kgBarbell: IEquipmentSetup = {
+        type: "plates",
+        unit: "kg",
+        base: 20,
+        plates: [
+          { weight: 20, num: 6 },
+          { weight: 10, num: 2 },
+        ],
+        sides: 2,
+      };
+      expect(EquipmentLoadSolver_sampleWeight(kgBarbell, {})).to.eql(w(60, "kg"));
+    });
+
+    it("puts one plate on every horn, using the heaviest plate there are enough of", () => {
+      expect(EquipmentLoadSolver_sampleWeight(prime, {})).to.eql(w(270));
+      const fewBig: IEquipmentSetup = {
+        ...prime,
+        plates: [
+          { weight: 45, num: 2 },
+          { weight: 25, num: 6 },
+        ],
+      };
+      expect(EquipmentLoadSolver_sampleWeight(fewBig, {})).to.eql(w(150));
+    });
+
+    it("adds bodyweight for a dip belt", () => {
+      const belt: IEquipmentSetup = { ...barbell, base: 0, sides: 1, bodyweight: {} };
+      expect(EquipmentLoadSolver_sampleWeight(belt, { bodyweight: w(180) })).to.eql(w(225));
+    });
+
+    it("takes the middle reachable weight for other types", () => {
+      const dumbbells: IEquipmentSetup = {
+        type: "fixed",
+        unit: "lb",
+        ranges: [{ from: 5, to: 100, step: 5 }],
+        values: [],
+      };
+      expect(EquipmentLoadSolver_sampleWeight(dumbbells, {})).to.eql(w(55));
+      const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+      expect(EquipmentLoadSolver_sampleWeight(stack, {})).to.eql(w(110));
+    });
+
+    it("falls back to the base when there are no plates", () => {
+      expect(EquipmentLoadSolver_sampleWeight({ ...barbell, plates: [] }, {})).to.eql(w(45));
     });
   });
 });

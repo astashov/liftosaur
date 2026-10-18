@@ -148,6 +148,10 @@ export function EquipmentLoadText_tryResult(
   };
 }
 
+export function EquipmentLoadText_isNewlyExact(wasExact: boolean | undefined, isExact: boolean): boolean {
+  return wasExact === false && isExact;
+}
+
 function roundingReason(setup: IEquipmentSetup, isOver: boolean): string {
   if (setup.rounding === "nearest") {
     return "closest you can load";

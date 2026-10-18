@@ -109,11 +109,15 @@ export function Equipment_legacyChanged(data: IEquipmentData): boolean {
   return data.setup != null && data.setupLegacyHash !== EquipmentSetup_legacyHash(data);
 }
 
-export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, unit: IUnit): IEquipmentSetup {
+export function Equipment_setupIn(data: IEquipmentData, unit: IUnit): IEquipmentSetup {
   if (data.setup != null && !Equipment_legacyChanged(data)) {
     return data.setup;
   }
   return EquipmentSetup_fromLegacy(data, unit);
+}
+
+export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, unit: IUnit): IEquipmentSetup {
+  return Equipment_setupIn(data, unit);
 }
 
 export function Equipment_setupOf(data: IEquipmentData, settings: ISettings): IEquipmentSetup {

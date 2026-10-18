@@ -78,8 +78,8 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           );
         }}
       />
-      <View className="flex-row justify-end py-1" style={{ gap: 16 }}>
-        {equipmentId != null && (
+      <View className="flex-row justify-between py-1" style={{ gap: 16 }}>
+        {equipmentId != null ? (
           <LinkButton
             className="text-sm"
             name="equipment-copy-this"
@@ -90,6 +90,8 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           >
             Copy this one
           </LinkButton>
+        ) : (
+          <View />
         )}
         <LinkButton
           className="text-sm"

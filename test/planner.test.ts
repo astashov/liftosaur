@@ -15,8 +15,9 @@ import {
 } from "./utils/plannerTestUtils";
 import { Program_evaluate, Program_nextHistoryRecord, Program_runAllFinishDayScripts } from "../src/models/program";
 import { ProgramToPlanner } from "../src/models/programToPlanner";
-import { IPlannerProgram, ISettings, IStats, IUnit } from "../src/types";
-import { Settings_build, Settings_defaultEquipment } from "../src/models/settings";
+import { IPlannerProgram, ISettings, IStats } from "../src/types";
+import { Settings_build } from "../src/models/settings";
+import { EquipmentLegacyDefaults_all } from "../src/models/equipmentLegacyDefaults";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
 import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
@@ -169,7 +170,7 @@ Squat / 1x5 100lb / 2x8 150kg / progress: custom(increase: 5lb) {~
 ## Day 2
 Squat / 3x5 / 4x8 / 100lb
 `;
-    const settings = { ...Settings_build(), units: "kg" as IUnit };
+    const settings = Settings_build("kg");
     const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] }, settings);
     const kgProgram = PlannerProgram_switchToUnit(program.planner!, settings);
     const newText = PlannerProgram_generateFullText(kgProgram.weeks);
@@ -2441,7 +2442,7 @@ Squat / 2x5 / 100lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(weights[1])
 ~}`;
-    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
+    const equipment = ObjectUtils_clone(EquipmentLegacyDefaults_all());
     equipment.barbell!.plates = [
       { weight: Weight_build(10, "lb"), num: 2 },
       { weight: Weight_build(25, "lb"), num: 2 },
@@ -2472,7 +2473,7 @@ Squat / 1x10 / 115lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(105)
 ~}`;
-    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
+    const equipment = ObjectUtils_clone(EquipmentLegacyDefaults_all());
     equipment.barbell!.isFixed = true;
     equipment.barbell!.fixed = [Weight_build(45, "lb"), Weight_build(100, "lb"), Weight_build(120, "lb")];
     const settings: ISettings = {

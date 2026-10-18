@@ -9,6 +9,7 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IVersions } from "../models/versionTracker";
 import { Settings_build } from "../models/settings";
 import { Progress_getEntryId } from "../models/progress";
+import { EquipmentUnits_attachSetups } from "../models/equipmentUnits";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -255,7 +256,7 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (storage.settings.gyms && storage.settings.gyms.length === 0) {
       storage.settings.gyms.push({
-        ...Settings_build().gyms[0],
+        ...Settings_build(storage.settings.units).gyms[0],
       });
     }
     return storage;
@@ -471,6 +472,11 @@ export const migrations = {
     if (workoutSettings.showExerciseNotes == null) {
       workoutSettings.showExerciseNotes = records.some((r) => r.entries.some((e) => !!e.notes));
     }
+    return storage;
+  },
+  "20261018120000_attach_equipment_setups": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    storage.settings.gyms = EquipmentUnits_attachSetups(storage.settings.gyms || [], storage.settings.units);
     return storage;
   },
 };

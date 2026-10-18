@@ -9,6 +9,7 @@ import { IconEquipmentCable } from "./icons/iconEquipmentCable";
 import { IconEquipmentDumbbell } from "./icons/iconEquipmentDumbbell";
 import { IconEquipmentEzBar } from "./icons/iconEquipmentEzBar";
 import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
+import { IconEquipmentBand } from "./icons/iconEquipmentBand";
 import { IconEquipmentLeverageMachine } from "./icons/iconEquipmentLeverageMachine";
 import { IconEquipmentSmith } from "./icons/iconEquipmentSmith";
 import { IconEquipmentTrapbar } from "./icons/iconEquipmentTrapbar";
@@ -31,6 +32,7 @@ export const equipmentToIcon: Record<string, () => JSX.Element> = {
   ezbar: () => <IconEquipmentEzBar />,
   cable: () => <IconEquipmentCable />,
   kettlebell: () => <IconEquipmentKettlebell />,
+  band: () => <IconEquipmentBand />,
 };
 
 interface IEquipmentListProps {

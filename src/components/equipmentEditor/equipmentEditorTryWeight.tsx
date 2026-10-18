@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { GroupHeader } from "../groupHeader";
 import { Text } from "../primitives/text";
@@ -7,10 +7,16 @@ import { IEquipmentSetup, IWeight } from "../../types";
 import {
   EquipmentLoadSolver_next,
   EquipmentLoadSolver_previous,
+  EquipmentLoadSolver_sampleWeight,
   EquipmentLoadSolver_select,
   IEquipmentLoadQuery,
 } from "../../models/equipmentLoadSolver";
-import { EquipmentLoadText_picture, EquipmentLoadText_tryResult } from "../../models/equipmentLoadText";
+import {
+  EquipmentLoadText_isNewlyExact,
+  EquipmentLoadText_picture,
+  EquipmentLoadText_tryResult,
+} from "../../models/equipmentLoadText";
+import { ExactLoadHaptic_play } from "../../utils/exactLoadHaptic";
 import { EquipmentLoadPicture } from "../equipmentLoadPicture";
 
 interface IProps {
@@ -20,8 +26,21 @@ interface IProps {
 }
 
 export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
-  const [value, setValue] = useState<number>(props.setup.unit === "lb" ? 135 : 60);
-  if (props.errors.length > 0) {
+  const query: IEquipmentLoadQuery = { bodyweight: props.bodyweight };
+  const [value, setValue] = useState<number>(() =>
+    props.errors.length > 0 ? 0 : EquipmentLoadSolver_sampleWeight(props.setup, query).value
+  );
+  const target: IWeight = { value, unit: props.setup.unit };
+  const load = props.errors.length > 0 ? undefined : EquipmentLoadSolver_select(props.setup, target, query);
+  const isExact = load?.exact ?? false;
+  const wasExactRef = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    if (EquipmentLoadText_isNewlyExact(wasExactRef.current, isExact)) {
+      ExactLoadHaptic_play();
+    }
+    wasExactRef.current = isExact;
+  }, [isExact]);
+  if (props.errors.length > 0 || load == null) {
     return (
       <View className="px-4 py-3 border-t border-border-neutral bg-background-default">
         <Text className="text-sm text-text-error" testID="equipment-error">
@@ -30,9 +49,6 @@ export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
       </View>
     );
   }
-  const query: IEquipmentLoadQuery = { bodyweight: props.bodyweight };
-  const target: IWeight = { value, unit: props.setup.unit };
-  const load = EquipmentLoadSolver_select(props.setup, target, query);
   const result = EquipmentLoadText_tryResult(props.setup, load, target);
   const picture = EquipmentLoadText_picture(load, props.setup);
   return (

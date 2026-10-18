@@ -16,6 +16,7 @@ import {
 } from "../src/models/equipmentSetup";
 import { IEquipmentData, IEquipmentSetup, IExerciseType, ISettings, IUnit, IWeight } from "../src/types";
 import { LegacyPlates_calculate } from "./legacyPlates";
+import { EquipmentLegacyDefaults_all } from "../src/models/equipmentLegacyDefaults";
 
 function w(value: number, unit: IUnit): IWeight {
   return { value, unit };
@@ -38,8 +39,14 @@ function expectParity(settings: ISettings, equipment: string, unit: IUnit): void
   }
 }
 
-function settingsWith(equipment: string, change: Partial<IEquipmentData>, bodyweight?: IWeight): ISettings {
+function legacySettings(): ISettings {
   const settings = Settings_build();
+  settings.gyms[0].equipment = EquipmentLegacyDefaults_all();
+  return settings;
+}
+
+function settingsWith(equipment: string, change: Partial<IEquipmentData>, bodyweight?: IWeight): ISettings {
+  const settings = legacySettings();
   settings.gyms[0].equipment[equipment] = { ...settings.gyms[0].equipment[equipment]!, ...change };
   settings.currentBodyweight = bodyweight;
   return settings;
@@ -60,7 +67,7 @@ describe("EquipmentSetup", () => {
     for (const equipment of defaults) {
       for (const unit of ["lb", "kg"] as const) {
         it(`matches on default ${equipment} in ${unit}`, () => {
-          expectParity(Settings_build(), equipment, unit);
+          expectParity(legacySettings(), equipment, unit);
         });
       }
     }

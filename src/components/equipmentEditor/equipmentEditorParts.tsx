@@ -1,5 +1,6 @@
 import { JSX, ReactNode, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { Text } from "../primitives/text";
 import { InputNumber2 } from "../inputNumber2";
 import { IconTrash } from "../icons/iconTrash";
@@ -15,6 +16,13 @@ import {
   EquipmentSetupEdit_updateRange,
 } from "../../models/equipmentSetupEdit";
 
+const CARD_ANIMATION_MS = 220;
+const isNative = Platform.OS !== "web";
+const CardEntering = isNative ? FadeIn.duration(CARD_ANIMATION_MS).easing(Easing.linear) : undefined;
+const CardExiting = isNative ? FadeOut.duration(CARD_ANIMATION_MS).easing(Easing.linear) : undefined;
+const CardLayout = isNative ? LinearTransition.duration(CARD_ANIMATION_MS).easing(Easing.linear) : undefined;
+const CardClip = isNative ? ({ overflow: "hidden" } as const) : undefined;
+
 export function EquipmentEditorCard(props: {
   title?: string;
   right?: ReactNode;
@@ -22,16 +30,18 @@ export function EquipmentEditorCard(props: {
   children: ReactNode;
 }): JSX.Element {
   return (
-    <View className="px-4 mb-3 border rounded-xl border-border-cardpurple bg-background-subtlecardpurple">
-      {(props.title != null || props.right != null) && (
-        <View className="flex-row items-center justify-between pt-3" style={{ marginRight: -8 }}>
-          <Text className="text-xs text-text-secondary">{props.title}</Text>
-          {props.right}
-        </View>
-      )}
-      {props.children}
-      {props.help != null && <Text className="pb-3 text-xs text-text-secondary">{props.help}</Text>}
-    </View>
+    <Animated.View entering={CardEntering} exiting={CardExiting} layout={CardLayout}>
+      <View className="px-4 mb-3 border rounded-xl border-border-cardpurple bg-background-subtlecardpurple">
+        {(props.title != null || props.right != null) && (
+          <View className="flex-row items-center justify-between pt-3" style={{ marginRight: -8 }}>
+            <Text className="text-xs text-text-secondary">{props.title}</Text>
+            {props.right}
+          </View>
+        )}
+        {props.children}
+        {props.help != null && <Text className="pb-3 text-xs text-text-secondary">{props.help}</Text>}
+      </View>
+    </Animated.View>
   );
 }
 
@@ -46,13 +56,17 @@ export function EquipmentEditorActions(props: { actions: IEquipmentEditorAction[
     return null;
   }
   return (
-    <View className="px-4 mb-3 border rounded-xl border-border-cardpurple bg-background-subtlecardpurple">
-      {props.actions.map((action, index) => (
-        <View key={action.name} className={index < props.actions.length - 1 ? "border-b border-border-cardpurple" : ""}>
-          <AddButton name={action.name} label={action.label} onClick={action.onClick} />
-        </View>
-      ))}
-    </View>
+    <Animated.View entering={CardEntering} exiting={CardExiting} layout={CardLayout} style={CardClip}>
+      <View className="px-4 mb-3 border rounded-xl border-border-cardpurple bg-background-subtlecardpurple">
+        {props.actions.map((action, index) => (
+          <Animated.View key={action.name} entering={CardEntering} exiting={CardExiting} layout={CardLayout}>
+            <View className={index < props.actions.length - 1 ? "border-b border-border-cardpurple" : ""}>
+              <AddButton name={action.name} label={action.label} onClick={action.onClick} />
+            </View>
+          </Animated.View>
+        ))}
+      </View>
+    </Animated.View>
   );
 }
 

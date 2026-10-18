@@ -1,4 +1,13 @@
-import { IBandsSetup, IEquipmentHorn, IEquipmentSetup, IPlateCount, IUnit, IWeight, IWeightRange } from "../types";
+import {
+  IBandsSetup,
+  IEquipmentHorn,
+  IEquipmentSetup,
+  IPlateCount,
+  IPlatesSetup,
+  IUnit,
+  IWeight,
+  IWeightRange,
+} from "../types";
 import { MathUtils_roundTo000005 } from "../utils/math";
 
 export interface IEquipmentLoadQuery {
@@ -761,4 +770,24 @@ export function EquipmentLoadSolver_reachable(
   }
   values.sort((a, b) => a - b);
   return { values, truncated: option != null };
+}
+
+function onePlatePerHornLoad(setup: IPlatesSetup): number | undefined {
+  const sides = Math.max(1, setup.sides);
+  const horns = Math.max(1, setup.horns?.length ?? 0);
+  const heaviest = mergePlates(setup.plates)
+    .filter((p) => Math.floor(p.num / sides) >= horns)
+    .reduce<number | undefined>((max, p) => (max == null || p.weight > max ? p.weight : max), undefined);
+  return heaviest == null ? undefined : heaviest * horns * sides;
+}
+
+export function EquipmentLoadSolver_sampleWeight(setup: IEquipmentSetup, query: IEquipmentLoadQuery): IWeight {
+  const scale = scaleFor(setup, query);
+  const plateLoad = setup.type === "plates" ? onePlatePerHornLoad(setup) : undefined;
+  const option = plateLoad != null ? withinBounds(scale, pickerFor(setup, false).floor(plateLoad)) : undefined;
+  if (option != null) {
+    return { value: effective(scale, option.load), unit: setup.unit };
+  }
+  const { values } = EquipmentLoadSolver_reachable(setup, query, 1000);
+  return { value: values.length > 0 ? values[Math.floor(values.length / 2)] : 0, unit: setup.unit };
 }

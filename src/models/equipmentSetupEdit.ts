@@ -159,7 +159,12 @@ export function EquipmentSetupEdit_changeType(setup: IEquipmentSetup, type: IEqu
   };
 }
 
-export function EquipmentSetupEdit_newEquipment(setup: IEquipmentSetup, name: string): IEquipmentData {
+function pinUnit(data: IEquipmentData, setup: IEquipmentSetup, appUnit: IUnit): IEquipmentData {
+  const { unit: _unit, ...rest } = data;
+  return setup.unit === appUnit ? rest : { ...rest, unit: setup.unit };
+}
+
+export function EquipmentSetupEdit_newEquipment(setup: IEquipmentSetup, name: string, appUnit: IUnit): IEquipmentData {
   const empty: IEquipmentData = {
     vtype: "equipment_data",
     name,
@@ -169,11 +174,11 @@ export function EquipmentSetupEdit_newEquipment(setup: IEquipmentSetup, name: st
     fixed: [],
     isFixed: false,
   };
-  return EquipmentSetup_save(empty, setup);
+  return EquipmentSetupEdit_apply(empty, setup, appUnit);
 }
 
-export function EquipmentSetupEdit_apply(data: IEquipmentData, setup: IEquipmentSetup): IEquipmentData {
-  return EquipmentSetup_save(data, setup);
+export function EquipmentSetupEdit_apply(data: IEquipmentData, setup: IEquipmentSetup, appUnit: IUnit): IEquipmentData {
+  return EquipmentSetup_save(pinUnit(data, setup, appUnit), setup);
 }
 
 export function EquipmentSetupEdit_setRounding(setup: IEquipmentSetup, rounding: string | undefined): IEquipmentSetup {

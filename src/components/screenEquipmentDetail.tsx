@@ -19,7 +19,7 @@ interface IProps {
 export function ScreenEquipmentDetail(props: IProps): JSX.Element {
   const gym = props.settings.gyms.find((g) => g.id === props.gymId);
   const data = gym?.equipment[props.equipmentId];
-  const keypadLift = useCustomKeyboardLift();
+  const keypad = useCustomKeyboardLift();
   useNavOptions({ navTitle: data != null ? equipmentName(props.equipmentId, gym?.equipment) : "Equipment" });
   if (gym == null || data == null || data.isDeleted) {
     return (
@@ -33,7 +33,10 @@ export function ScreenEquipmentDetail(props: IProps): JSX.Element {
     <NavScreenContent
       avoidSystemKeyboard="reveal"
       footer={
-        <Animated.View style={{ transform: [{ translateY: keypadLift }] }}>
+        <Animated.View
+          className="bg-background-default"
+          style={{ paddingBottom: keypad.bottomInset, transform: [{ translateY: keypad.lift }] }}
+        >
           <EquipmentEditorDock {...editorProps} />
         </Animated.View>
       }

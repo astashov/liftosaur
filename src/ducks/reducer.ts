@@ -87,6 +87,7 @@ import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
 import { PerfProbe_onAction } from "../utils/perfSetCompleteProbe";
 import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
+import { EquipmentUnits_follow } from "../models/equipmentUnits";
 
 declare let __COMMIT_HASH__: string;
 
@@ -409,6 +410,21 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
       if (!isExternalStorageMerge(action) && Storage_isChanged(oldState.storage, newState.storage)) {
         dispatch(Thunk_sync2({ log: isFinishDayAction }));
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      const units = newState.storage.settings.units;
+      if (oldState.storage.settings.units === units) {
+        return;
+      }
+      const gyms = newState.storage.settings.gyms;
+      const converted = EquipmentUnits_follow(gyms, units);
+      if (converted !== gyms) {
+        updateState(
+          dispatch,
+          [lb<IState>().p("storage").p("settings").p("gyms").record(converted)],
+          "Convert equipment to app units"
+        );
       }
     },
     (dispatch, action, oldState, newState) => {
