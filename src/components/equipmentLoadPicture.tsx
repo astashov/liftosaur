@@ -40,6 +40,8 @@ export function EquipmentLoadPicture(props: IProps): JSX.Element {
             <Text
               className={`flex-1 ${size.text} ${color}`}
               numberOfLines={1}
+              adjustsFontSizeToFit={true}
+              minimumFontScale={0.5}
               testID={bar.name != null ? `${props.testID}-horn-${index}` : props.testID}
               data-testid={bar.name != null ? `${props.testID}-horn-${index}` : props.testID}
             >

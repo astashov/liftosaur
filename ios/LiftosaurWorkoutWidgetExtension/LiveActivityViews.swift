@@ -297,6 +297,8 @@ struct ExerciseInfo: View {
                                     .foregroundColor(.secondary)
                                 Text(plates)
                                     .foregroundColor(.primary)
+                                    .lineLimit(3)
+                                    .minimumScaleFactor(0.7)
                             }
                             .font(.custom("Poppins-Regular", size: 13))
                         }
@@ -364,10 +366,9 @@ struct SetCardToggleStyle: ToggleStyle {
             }
         } label: {
             HStack {
-                Text("\(reps) × \(weight)")
+                WordWrappedText(text: "\(reps) × \(weight)")
                     .font(.custom("Poppins-Regular", size: 16))
                     .foregroundColor(.primary)
-                    .minimumScaleFactor(0.7)
 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 24))
@@ -385,6 +386,20 @@ struct SetCardToggleStyle: ToggleStyle {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+@available(iOS 16.1, *)
+struct WordWrappedText: View {
+    let text: String
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            ForEach(text.split(separator: " ").map(String.init), id: \.self) { word in
+                Text(word).fixedSize().hidden()
+            }
+            Text(text).fixedSize(horizontal: false, vertical: true)
+        }
     }
 }
 

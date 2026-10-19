@@ -1352,13 +1352,14 @@ struct SetContentView: View {
             ColoredTargetInfoView(setInfo: workoutSet, isWarmup: workoutSet.isWarmup, useOriginalWeight: true)
                 .font(.system(size: 11))
 
-            HStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 0) {
                 Text("Plates: ")
                     .foregroundColor(.secondary)
                 if let plates = workoutSet.plates, !plates.isEmpty {
                     Text(plates)
                         .foregroundColor(LiftosaurColor.textPrimary)
                         .fontWeight(.bold)
+                        .lineLimit(2)
                 } else {
                     Text("None")
                         .foregroundColor(LiftosaurColor.textPrimary)

@@ -17,7 +17,7 @@ type ILegacyFields = Pick<
   "bar" | "multiplier" | "plates" | "fixed" | "isFixed" | "useBodyweightForBar" | "isAssisting"
 >;
 
-const LEGACY_HASH_VERSION = "v1";
+const LEGACY_HASH_VERSION = "v2";
 const MAX_LEGACY_FIXED = 200;
 const MAX_LEGACY_BAND_TOTALS = 50;
 
@@ -163,10 +163,12 @@ export function EquipmentSetup_toLegacy(setup: IEquipmentSetup): ILegacyFields {
 }
 
 export function EquipmentSetup_legacyHash(data: IEquipmentData): string {
+  const weight = (w: IWeight): [number, IUnit] => [w.value, w.unit];
   const canonical = JSON.stringify([
-    data.bar,
-    data.plates,
-    data.fixed,
+    weight(data.bar.lb),
+    weight(data.bar.kg),
+    data.plates.map((p) => [...weight(p.weight), p.num]),
+    data.fixed.map(weight),
     data.isFixed,
     data.multiplier,
     !!data.useBodyweightForBar,

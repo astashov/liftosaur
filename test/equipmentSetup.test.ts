@@ -224,6 +224,24 @@ describe("EquipmentSetup", () => {
       expect(Equipment_getSetup({ ...data, name: "Renamed", notes: "Seat 4" }, settings, "lb")).to.eql(stack);
     });
 
+    it("uses the saved setup after a round trip reorders object keys", () => {
+      const plates: IEquipmentSetup = {
+        type: "plates",
+        unit: "lb",
+        base: 45,
+        sides: 2,
+        plates: [{ weight: 45, num: 4 }],
+      };
+      const { settings, exerciseType } = settingsWithSetup(plates);
+      const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
+      const reordered = {
+        ...data,
+        bar: { kg: { unit: data.bar.kg.unit, value: data.bar.kg.value }, lb: { unit: "lb", value: data.bar.lb.value } },
+        plates: data.plates.map((p) => ({ num: p.num, weight: { unit: p.weight.unit, value: p.weight.value } })),
+      } as const;
+      expect(Equipment_getSetup(reordered, settings, "lb")).to.eql(plates);
+    });
+
     it("uses the old fields once something else changed them", () => {
       const { settings, exerciseType } = settingsWithSetup(stack);
       const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
