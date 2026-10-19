@@ -7,7 +7,7 @@ import { EquipmentEditorCard } from "./equipmentEditorParts";
 import { IDispatch } from "../../ducks/types";
 import { IEquipmentData, IEquipmentSetup, ISettings } from "../../types";
 import { navigateToModal } from "../../navigation/navigationService";
-import { Equipment_bodyweight, Equipment_isBuiltIn, Equipment_setupOf } from "../../models/equipment";
+import { Equipment_previewBodyweight, Equipment_isBuiltIn, Equipment_setupOf } from "../../models/equipment";
 import { EquipmentSetup_validate } from "../../models/equipmentSetup";
 import {
   EquipmentSetupEdit_changeType,
@@ -44,7 +44,7 @@ export function EquipmentEditorDock(props: IEquipmentEditorProps): JSX.Element {
       key={`${props.gymId}-${props.equipmentId}-${setup.type}-${errors.length > 0}`}
       setup={setup}
       errors={errors}
-      bodyweight={Equipment_bodyweight(props.settings)}
+      bodyweight={Equipment_previewBodyweight(props.settings)}
     />
   );
 }
@@ -67,7 +67,7 @@ export function EquipmentEditor(props: IEquipmentEditorProps): JSX.Element {
     onNotes: (notes) => EditEquipment_setText(props.dispatch, props.gymId, props.equipmentId, "notes", notes),
   });
   const sectionProps = {
-    bodyweight: Equipment_bodyweight(props.settings),
+    bodyweight: Equipment_previewBodyweight(props.settings),
     isBodyweightLogged: props.settings.currentBodyweight != null,
     extraCards: common.cards,
     extraActions: common.actions,

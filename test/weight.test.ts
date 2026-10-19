@@ -5,7 +5,6 @@ import {
   Weight_build,
   Weight_calculatePlates,
   Weight_platesWeight,
-  Weight_formatOneSide,
   Weight_strictParse,
 } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
@@ -163,18 +162,6 @@ describe("Weight", () => {
         { weight: Weight_build(5, "lb"), num: 2 },
       ];
       expect(Weight_platesWeight(plates)).to.eql(Weight_build(170, "lb"));
-    });
-  });
-
-  describe(".formatOneSide()", () => {
-    it("returns a proper string", () => {
-      const plates = [
-        { weight: Weight_build(45, "lb"), num: 4 },
-        { weight: Weight_build(25, "lb"), num: 2 },
-        { weight: Weight_build(10, "lb"), num: 6 },
-        { weight: Weight_build(5, "lb"), num: 2 },
-      ];
-      expect(Weight_formatOneSide(buildSettings(plates), plates, exerciseType)).to.eql("45/45/25/3x10/5");
     });
   });
 

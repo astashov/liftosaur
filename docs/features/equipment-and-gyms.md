@@ -5,7 +5,7 @@ shortDescription: "Tell Liftosaur what bar, plates and fixed weights you have, a
 category: "Exercises and equipment"
 order: 30
 datePublished: "2026-09-27"
-dateModified: "2026-09-29"
+dateModified: "2026-10-18"
 screenshots: [equipment-and-gyms-barbell, equipment-and-gyms-gyms]
 ---
 
@@ -13,13 +13,18 @@ screenshots: [equipment-and-gyms-barbell, equipment-and-gyms-gyms]
 
 Your program asks for `60%` of a 135 lb 1RM, which is 81 lb. So the set shows 81 lb crossed out, and 80 lb underlined next to it.
 
-Tap the underlined weight. The **Why is the weight adjusted?** popup shows the percentage and the 1RM, any kg to lb conversion, the bar weight, and the plates per side.
+Tap the underlined weight. The **Why is the weight adjusted?** popup shows the percentage and the 1RM, any kg to lb conversion, and how the equipment is set up. It draws the plates, the pin or the bands it picked. During a workout, **Edit equipment** at the bottom opens the equipment popup for that exercise.
 
-The rule for each kind of equipment:
+By default the app rounds down. It picks the heaviest weight you can load that does not go over the target:
 
-- Bar and plates: the bar plus the heaviest plate combination that does not go over the target. 45 lb bar + 10 + 5 + 2.5 per side is 80 lb.
-- Fixed weights: the heaviest fixed weight that does not go over the target, or the lightest one if all are heavier.
+- Plates: the base plus the heaviest plate combination. 45 lb bar + 10 + 5 + 2.5 per side is 80 lb.
+- Weight stack: the heaviest pin at or below the target.
+- Fixed weights: the heaviest fixed weight at or below the target.
+- Electric: the target rounded down to the next step.
+- Bands: the heaviest band, or band combination, at or below the target.
 - No equipment: the nearest multiple of the exercise's **Default Rounding**, 5 lb or 2.5 kg unless you change it.
+
+When every weight is heavier than the target, the app picks the lightest one. A 5 lb target with 10, 15 and 20 lb kettlebells gives 10 lb.
 
 Rounding happens on the workout screen only. Program state variables stay exact. With Premium, the expanded set also lists the plates for each side.
 
@@ -27,48 +32,131 @@ Rounding happens on the workout screen only. Program state variables stay exact.
 
 ![Equipment Settings screen](/images/features/equipment-and-gyms/equipment-and-gyms-list.webp)
 
-Go to **Me → Available Equipment**. Each row is one piece of equipment with a summary, like `Bar: 45 lb · 45 lb×8, 25 lb×4`. Tap the arrow to expand it.
+Go to **Me → Available Equipment**. Each row is one piece of equipment with its type and a short summary, like `Plates · 45 lb base` or `Weight stack · 10–200 by 10`. Tap a row to open its settings screen.
 
-You start with **Barbell**, **Trap Bar**, **Leverage Machine**, **Smith Machine**, **Dumbbell**, **EZ Bar**, **Cable** and **Kettlebell**.
+You start with these, in lb:
 
-## Set the bar, plates and sides
+- **Barbell**, **Trap Bar** and **Smith Machine**: plates on a 45 lb bar.
+- **EZ Bar**: plates on a 20 lb bar.
+- **Leverage Machine**: plates on one side, no base weight.
+- **Dumbbell**: fixed weights 5 to 100 lb in 5 lb steps.
+- **Kettlebell**: fixed weights 10, 15, 20, 25, 30, 35 and 40 lb.
+- **Cable**: a weight stack, 10 to 200 lb in 10 lb steps.
+- **Band**: five bands, Yellow 10 lb, Red 25, Blue 40, Green 60 and Black 80, which you can combine.
 
-![Barbell settings with bar weight, sides and plates](/images/features/equipment-and-gyms/equipment-and-gyms-barbell.webp)
+In kg the bar is 20 kg (10 kg for the EZ bar) with 20, 10, 5, 2.5, 1.25 and 0.5 kg plates. Dumbbells go 2 to 10 kg by 2, then 12.5 to 50 kg by 2.5. Kettlebells are 4, 8, 12, 16 and 24 kg.
 
-Expand a row to edit it:
+## The equipment screen
 
-- **Bar** is the weight of the empty bar or machine.
-- **Sides** is how many sides take plates, 1 to 4. A barbell has 2. A machine with one peg has 1.
-- **Number of Barbell plates available** lists each plate weight and how many you own in total. A plate only counts when you have one for every side, so 3 plates of 45 lb count as 2 on a barbell.
-- **Add New Plate Weight** asks for a weight and adds it with a count of 2. The trash icon on a plate row removes that weight.
+![Barbell settings with base weight, loading and plates](/images/features/equipment-and-gyms/equipment-and-gyms-barbell.webp)
 
-## Fixed weights
+The top card has a **Type** field with five choices: **Weight stack**, **Plates**, **Fixed weights**, **Electric** and **Bands**. Changing the type asks **Replace this setup?** first, because the old settings are lost. Custom equipment also has a **Name** field there.
+
+Below are the fields for that type. Optional settings show as links at the bottom, like **Change rounding** or **Add notes**. Tap one to add its card. The **×** on a card removes it again.
+
+If an edit makes the setup invalid, the app does not save it. An alert shows the reason, like `A range can't start above its end (50 → 20).`
+
+### Try a weight
+
+The **Try a weight** box stays at the bottom of the screen. Type a target, and it shows what the app would load for it, with the same drawing as in the workout. Under it you see the total and how far it is from the target, like `1 lb under 81 · rounded down`. An exact match shows **Exact**. The **-** and **+** keys step through the weights you can load.
+
+### Plates
+
+For barbells, plate-loaded machines and dip belts.
+
+- **Base weight** is the empty bar, belt, vest or machine.
+- **Loading** is **Both sides** or **One side**.
+- **Plates you have · total count** lists each plate size and how many you own. A plate only counts when you have one for every side, so 3 plates of 45 lb count as 2 on a barbell.
+- **Add a plate size** asks for a weight and adds 2 of it. The trash icon removes a size.
+
+Optional cards:
+
+- **Add horns (multi-horn plate-loaded machine)** adds a **Horns · plates are shared** card. Each horn has a ratio. Top 3 and Middle 1 puts three plates on Top for each one on Middle. You can have up to 3 horns.
+- **Use fewer plates for warmups** adds a **Warmups use only** card. Warmup sets load only the sizes you switch on there. It starts with your two heaviest sizes.
+
+### Weight stack
+
+For cable columns and stack machines. The **Stack** card holds a range, like 10 → 200 by 10 lb. Tap **Add a different step for part of the stack** when the steps change, for example 2.5 lb steps at the top.
+
+Optional cards:
+
+- **Add built-in weights (lever, drop-down, knob)**: weights on the machine you can add, one per set.
+- **Add plates you add (magnets, small blocks)**: small plates you combine with the pin. With built-in weights or added plates, **Skip add-ons in warmups** makes warmups use the stack only.
+- **Add pull ratio**: for pulleys. **Stack says 100 lb, you pull** has **100 lb, same**, **50 lb, half** and **25 lb, quarter**.
+- **Add weight that always lifts with the stack**: a handle or carriage the stack number does not include.
+
+### Fixed weights
 
 ![Kettlebell fixed weights list](/images/features/equipment-and-gyms/equipment-and-gyms-fixed.webp)
 
-Dumbbells, kettlebells and weight stacks come in fixed steps. Turn on **Is Fixed Weight** for that row. The plate fields go away, and **Available fixed weight for Kettlebell** lists one line per weight. **Add New Fixed Weight** adds one, the trash icon removes one.
+For dumbbells, kettlebells and fixed barbells. The **Weights** card holds ranges, like 5 → 50 by 5 lb. **Add another range** adds one. **Single weights outside the ranges** lists odd sizes, like a 110 lb dumbbell. **Add a single weight** adds one, and tapping a weight removes it.
 
-## lb or kg per equipment
+**Add plates you add (fractional plates)** adds small plates that clip onto a fixed weight.
 
-Every row has a **Unit** field: **Default**, **lb** or **kg**. Pick **kg** for a machine with a kg stack in a lb gym. Exercises on that equipment show kg in the workout and in history. Graphs stay in your default unit.
+### Electric
+
+For Voltra, Tonal and other motor machines. Enter **Min**, **Max** and **Step**. The app uses any weight from min to max in those steps, for example 5 to 200 lb by 1.
+
+### Bands
+
+The **Bands · what each counts as** card lists each band. A band has a color, a name, the weight it **counts as**, and how many you own. **Add a band** adds the next one, 10 lb heavier than your heaviest.
+
+Turn on **Combine bands** to use two or more bands together, like Red + Blue.
+
+## Rounding, unit and notes
+
+Three optional cards work on every type.
+
+**Change rounding** adds a **Round to** field:
+
+- **Down** never goes heavier than the program says. This is the default.
+- **Nearest** picks the closest weight you can load. With 45 lb plates down to 2.5, an 84 lb target becomes 85 lb.
+
+**Use a different unit** adds a **Weights in** field with **lb** and **kg**. Pick **kg** for a machine with a kg stack in a lb gym.
+
+The app asks how to change the numbers. **Convert (45 lb → 20 kg)** converts every weight. **Keep the numbers** only changes the label. Exercises on that equipment show kg in the workout and in history. Graphs stay in your app unit.
+
+**Add notes** adds a **Notes** card for the seat height, the pin hole or other hints.
+
+## When you switch lb and kg
+
+Equipment follows your app unit unless you picked a unit for it. Switch **Me → Weight Units** from lb to kg, and that equipment converts with it. 45 lb plates become 20 kg, 25 lb become 10 kg, 10 lb become 5 kg.
+
+Built-in equipment you never changed gets the kg defaults instead. The barbell becomes a 20 kg bar with 20, 10, 5, 2.5, 1.25 and 0.5 kg plates.
+
+Equipment whose **Weights in** unit differs from the app unit keeps that unit. A kg cable stays in kg when your app is in lb.
 
 ## Bodyweight, weighted and assisted pull-ups
 
-Two switches on each plate-loaded row cover pull-ups, dips and the like. **Bodyweight for Bar** uses your current bodyweight as the bar, and the **Bar** field turns gray to show it. **Is assisting?** makes the plates reduce the total instead of adding to it. Your bodyweight comes from **Me → Measurements**, and from Apple Health or Health Connect when that sync is on.
+Each equipment type offers bodyweight options for pull-ups, dips and the like:
 
-**Weighted pull-ups.** Add a custom equipment, for example **Belt**, turn on **Bodyweight for Bar**, leave **Is assisting?** off, and enter the plates you hang from the belt. In the program, the weight is the extra load, and an `update` script adds your bodyweight when the workout starts:
+- **Include bodyweight (dip belt, vest)** adds your bodyweight to the load. It shows on plates and fixed weights.
+- **Helps you up (assisted machine)** makes the load take weight off you. It shows on plates, weight stacks and bands.
+
+Your bodyweight comes from **Me → Measurements**, and from Apple Health or Health Connect when that sync is on. The card shows how the app reads a program weight, like `Your bodyweight is 180 lb. 225 lb in a program means 45 lb added.` With no bodyweight logged, the app uses 80 kg.
+
+**Weighted pull-ups.** Tap **Add New Equipment Type**, name it **Belt**, pick **Plates** and tap **Add**. Set **Base weight** to 0 and **Loading** to **One side**. Enter the plates you hang from the belt.
+
+Tap **Include bodyweight (dip belt, vest)**. The **Weights include your bodyweight** card appears. Keep **Share of bodyweight** at 100%, or lower it for push-ups and other partial-bodyweight moves. Then attach **Belt** to Pull Up.
+
+In the program, the weight is the extra load, and an `update` script adds your bodyweight when the workout starts:
 
 ```liftoscript
-Pull Up, Belt / 3x8 25lb / update: custom() {~
+Pull Up / 3x8 25lb / update: custom() {~
   if (setIndex == 0) {
     weights = bodyweight + originalWeights[ns]
   }
 ~} / progress: lp(5lb)
 ```
 
-The sets show bodyweight plus 25 lb, the plates calculator shows what to hang, and a good session makes it 30 lb next time.
+At 180 lb, the sets show 205 lb, and the drawing shows 25 lb on the belt. A good session makes it 30 lb next time.
 
-**Assisted pull-ups.** Use the assisted machine equipment, or a custom one, turn on both **Bodyweight for Bar** and **Is assisting?**, and enter the machine's stack as plates. For bands, add one "plate" per band with the weight it takes off. In the program, the weight is the assistance, and the script subtracts it:
+**Assisted pull-ups.** Add equipment named **Assist**, with the type **Weight stack**, and enter the machine's stack. Tap **Helps you up (assisted machine)**. The **Helps you up** card has **Program weights are**, with two choices:
+
+- **Bodyweight − assistance**: the program weight is what you lift. This is the default.
+- **Assistance, negative**: `-45 lb` in a program means 45 lb of assistance.
+
+Keep **Bodyweight − assistance** and attach **Assist** to Pull Up, Leverage Machine. In the program, the weight is the assistance, and the script subtracts it:
 
 ```liftoscript
 Pull Up, Leverage Machine / 3x8 50lb / update: custom() {~
@@ -78,7 +166,9 @@ Pull Up, Leverage Machine / 3x8 50lb / update: custom() {~
 ~} / progress: lp(-5lb)
 ```
 
-A good session lowers the assistance to 45 lb. If a weight drops to 0 by surprise, the **Why is the weight adjusted?** popup says when **Is assisting?** is the reason.
+At 180 lb, the sets show 130 lb, and the stack shows pin 50. A good session lowers the assistance to 45 lb. With **Down** rounding, the app rounds the assistance down, so the set is never easier than the program says. The **Why is the weight adjusted?** popup says when the equipment helps you up.
+
+For band-assisted pull-ups, use the **Bands** type the same way. Turn on **Combine bands** to let the app pick a pair, like Blue + Red for 65 lb of help.
 
 **Plain bodyweight.** Write `0lb` and keep the `update` script, so the sets show your bodyweight and the history records it. See [Progressions](/features/progressions) for `update` scripts and the `bodyweight` variable.
 
@@ -94,7 +184,15 @@ By default the exercise picker leaves out every exercise that uses hidden equipm
 
 ![Custom equipment row and the Add New Equipment Type link](/images/features/equipment-and-gyms/equipment-and-gyms-custom.webp)
 
-Tap **Add New Equipment Type**, enter a name and tap **Add**. The new row starts with a 0 lb bar and four 10 lb plates. Expand it to rename it and set its plates. The trash icon deletes it after **Are you sure?**.
+Tap **Add New Equipment Type**. Enter an **Equipment name**, pick a **Type** and tap **Add**. The settings screen opens with that type's defaults:
+
+- **Plates**: a 45 lb base with 45, 25, 10, 5 and 2.5 lb plates.
+- **Weight stack**: 10 to 200 lb by 10.
+- **Fixed weights**: 5 to 50 lb by 5.
+- **Electric**: 5 to 200 lb by 1.
+- **Bands**: Yellow, Red, Blue, Green and Black bands, not combined.
+
+The trash icon on the row deletes custom equipment after **Are you sure?**.
 
 ## Attach equipment to an exercise
 

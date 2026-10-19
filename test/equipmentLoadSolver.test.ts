@@ -12,10 +12,15 @@ import {
   EquipmentLoadText_bandChips,
   EquipmentLoadText_format,
   EquipmentLoadText_hornBars,
-  EquipmentLoadText_isNewlyExact,
   EquipmentLoadText_picture,
   EquipmentLoadText_tryResult,
 } from "../src/models/equipmentLoadText";
+import {
+  EquipmentTryWeight_exactChanged,
+  EquipmentTryWeight_initialValue,
+  EquipmentTryWeight_step,
+  EquipmentTryWeight_view,
+} from "../src/models/equipmentTryWeight";
 import { IEquipmentSetup, IPlateCount, IUnit, IWeight } from "../src/types";
 
 function w(value: number, unit: IUnit = "lb"): IWeight {
@@ -393,6 +398,11 @@ describe("EquipmentLoadSolver", () => {
       expect(EquipmentLoadSolver_select(selectTech, w(28), {}).total).to.eql(w(25));
     });
 
+    it("rounds a converted target down within half the converted step", () => {
+      const kettlebells: IEquipmentSetup = { type: "fixed", unit: "kg", ranges: [], values: [14, 16] };
+      expect(EquipmentLoadSolver_select(kettlebells, w(35), {}).total).to.eql(w(35.5));
+    });
+
     it("rounds an electric trainer to its step and clamps to its range", () => {
       const voltra: IEquipmentSetup = { type: "electric", unit: "lb", min: 5, max: 200, step: 1 };
       expect(EquipmentLoadSolver_select(voltra, w(57), {}).total).to.eql(w(57));
@@ -517,6 +527,20 @@ describe("EquipmentLoadSolver", () => {
       expect(Math.max(...values)).to.equal(70);
     });
 
+    it("gives no load when the lightest assistance is above bodyweight", () => {
+      const heavyBand: IEquipmentSetup = {
+        type: "bands",
+        unit: "kg",
+        bands: [{ name: "Black", weight: 90, num: 1 }],
+        combine: false,
+        direction: "assists",
+        bodyweight: {},
+      };
+      const load = EquipmentLoadSolver_select(heavyBand, w(20, "kg"), { bodyweight: w(80, "kg") });
+      expect(load.instruction).to.equal(undefined);
+      expect(load.exact).to.equal(false);
+    });
+
     it("describes a try-a-weight result", () => {
       const exact = EquipmentLoadSolver_select(cableStack, w(57.5), {});
       expect(EquipmentLoadText_tryResult(cableStack, exact, w(57.5))).to.eql({
@@ -568,13 +592,33 @@ describe("EquipmentLoadSolver", () => {
     });
   });
 
-  describe("newly exact", () => {
-    it("is true only when the load turns exact after not being exact", () => {
-      expect(EquipmentLoadText_isNewlyExact(false, true)).to.equal(true);
-      expect(EquipmentLoadText_isNewlyExact(undefined, true)).to.equal(false);
-      expect(EquipmentLoadText_isNewlyExact(true, true)).to.equal(false);
-      expect(EquipmentLoadText_isNewlyExact(false, false)).to.equal(false);
-      expect(EquipmentLoadText_isNewlyExact(true, false)).to.equal(false);
+  describe("try a weight", () => {
+    const simple: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+
+    it("plays the haptic only when the load turns exact after not being exact", () => {
+      const played = (wasExact: boolean | undefined, isExact: boolean): boolean =>
+        EquipmentTryWeight_exactChanged(wasExact, isExact).shouldPlayHaptic;
+      expect(played(false, true)).to.equal(true);
+      expect(played(undefined, true)).to.equal(false);
+      expect(played(true, true)).to.equal(false);
+      expect(played(false, false)).to.equal(false);
+      expect(played(true, false)).to.equal(false);
+      expect(EquipmentTryWeight_exactChanged(false, true).wasExact).to.equal(true);
+    });
+
+    it("shows the first error instead of a load", () => {
+      expect(EquipmentTryWeight_view(simple, ["A step must be above 0."], 50, {})).to.eql({
+        kind: "error",
+        error: "A step must be above 0.",
+      });
+      expect(EquipmentTryWeight_initialValue(simple, ["A step must be above 0."], {})).to.equal(0);
+    });
+
+    it("rounds the typed weight and steps by the stack", () => {
+      const view = EquipmentTryWeight_view(simple, [], 57.5, {});
+      expect(view.kind === "load" ? [view.result.status, view.isExact] : []).to.eql(["under", false]);
+      expect(EquipmentTryWeight_step(simple, 50, 1, {})).to.equal(60);
+      expect(EquipmentTryWeight_step(simple, 50, -1, {})).to.equal(40);
     });
   });
 

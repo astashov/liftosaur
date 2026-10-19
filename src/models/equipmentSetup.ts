@@ -20,6 +20,8 @@ type ILegacyFields = Pick<
 const LEGACY_HASH_VERSION = "v2";
 const MAX_LEGACY_FIXED = 200;
 const MAX_LEGACY_BAND_TOTALS = 50;
+const LB_PER_KG = 2.20462;
+const STEP_PRECISION = 100;
 
 const PLATE_EQUIVALENTS: [number, number][] = [
   [55, 25],
@@ -41,6 +43,15 @@ function convertWeight(value: number, from: IUnit, to: IUnit): number {
     return to === "lb" ? pair[0] : pair[1];
   }
   return Weight_smartConvert({ value, unit: from }, to).value;
+}
+
+function convertStep(step: number, from: IUnit, to: IUnit): number {
+  const converted = convertWeight(step, from, to);
+  if (converted > 0 || step <= 0) {
+    return converted;
+  }
+  const exact = from === "lb" ? step / LB_PER_KG : step * LB_PER_KG;
+  return Math.max(1, Math.round(exact * STEP_PRECISION)) / STEP_PRECISION;
 }
 
 function weightsIn(weights: IWeight[], unit: IUnit): number[] {
@@ -206,7 +217,7 @@ function convertRanges(ranges: IWeightRange[], from: IUnit, to: IUnit): IWeightR
     const previous = result[index - 1];
     const isConnected = index > 0 && ranges[index - 1].to === range.from;
     const start = isConnected && previous != null ? previous.to : convertWeight(range.from, from, to);
-    const step = convertWeight(range.step, from, to);
+    const step = convertStep(range.step, from, to);
     const end = convertWeight(range.to, from, to);
     const count = step > 0 ? Math.max(0, Math.floor((end - start) / step + 1e-6)) : 0;
     result.push({ from: start, to: Math.round((start + count * step) * 1e6) / 1e6, step });

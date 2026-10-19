@@ -1,12 +1,11 @@
-import { CollectionUtils_sort, CollectionUtils_compressArray } from "../utils/collection";
+import { CollectionUtils_sort } from "../utils/collection";
 
 import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType, IEquipmentSetup } from "../types";
 import { n, MathUtils_roundTo005, MathUtils_round, MathUtils_roundFloat, MathUtils_roundTo000005 } from "../utils/math";
 import {
   Equipment_getUnitOrDefaultForExerciseType,
   Equipment_getEquipmentDataForExerciseType,
-  Equipment_getSetup,
-  Equipment_bodyweight,
+  Equipment_setupIn,
 } from "./equipment";
 import {
   EquipmentLoadSolver_next,
@@ -204,8 +203,8 @@ function stepWeight(
 ): IWeight {
   const equipmentData = exerciseType ? Equipment_getEquipmentDataForExerciseType(settings, exerciseType) : undefined;
   if (equipmentData != null) {
-    const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit);
-    const query = { bodyweight: Equipment_bodyweight(settings) };
+    const setup = Equipment_setupIn(equipmentData, equipmentData.unit ?? weight.unit);
+    const query = { bodyweight: settings.currentBodyweight };
     const rounded = EquipmentLoadSolver_select(setup, weight, query).total;
     return direction === 1
       ? EquipmentLoadSolver_next(setup, rounded, query)
@@ -256,29 +255,6 @@ export function Weight_platesWeight(plates: IPlate[]): IWeight {
   );
 }
 
-export function Weight_oneSidePlates(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): IWeight[] {
-  const equipmentSettings = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
-  const plates: IPlate[] = JSON.parse(JSON.stringify(platesArr));
-  plates.sort((a, b) => Weight_compareReverse(a.weight, b.weight));
-  const arr: IWeight[] = [];
-  const multiplier = equipmentSettings?.multiplier ?? 1;
-  while (true) {
-    const plate = plates.find((p) => p.num >= multiplier);
-    if (plate != null) {
-      arr.push(plate.weight);
-      plate.num -= multiplier;
-    } else {
-      break;
-    }
-  }
-  return arr;
-}
-
-export function Weight_formatOneSide(settings: ISettings, platesArr: IPlate[], exerciseType: IExerciseType): string {
-  const arr = Weight_oneSidePlates(settings, platesArr, exerciseType).map((w) => w.value);
-  return CollectionUtils_compressArray(arr, 3).join("/");
-}
-
 export function Weight_roundTo005(weight: IWeight): IWeight {
   return Weight_build(MathUtils_roundTo005(weight.value), weight.unit);
 }
@@ -317,8 +293,8 @@ function calculateLoad(
     const rounded = Weight_build(MathUtils_round(allWeight.value, rounding), allWeight.unit);
     return { plates: [], totalWeight: rounded };
   }
-  const setup = Equipment_getSetup(equipmentData, settings, units);
-  const load = EquipmentLoadSolver_select(setup, allWeight, { bodyweight: Equipment_bodyweight(settings), warmup });
+  const setup = Equipment_setupIn(equipmentData, units);
+  const load = EquipmentLoadSolver_select(setup, allWeight, { bodyweight: settings.currentBodyweight, warmup });
   return { plates: Weight_loadPlates(load), totalWeight: load.total, load };
 }
 
@@ -352,7 +328,7 @@ export function Weight_setupForExercise(
 ): IEquipmentSetup | undefined {
   const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
   return equipmentData != null
-    ? Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? weight.unit)
+    ? Equipment_setupIn(equipmentData, equipmentData.unit ?? weight.unit)
     : undefined;
 }
 
@@ -367,7 +343,7 @@ export function Weight_realizeLoad(
     return undefined;
   }
   return EquipmentLoadSolver_realize(setup, weight, {
-    bodyweight: Equipment_bodyweight(settings),
+    bodyweight: settings.currentBodyweight,
     ...(isWarmup ? { warmup: {} } : {}),
   });
 }

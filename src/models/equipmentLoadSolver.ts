@@ -50,8 +50,8 @@ interface IEffectiveScale {
 const LB_PER_KG = 2.205;
 const EPSILON = 1e-6;
 const STEP_OFFSET = 0.001;
-// The old solver rounded a converted target to 0.5 before picking, so a 35 lb target took a 16 kg (35.3 lb) bell
-const CONVERSION_TOLERANCE = 0.25;
+const CONVERTED_ROUNDING_STEP = 0.5;
+const CONVERSION_TOLERANCE = CONVERTED_ROUNDING_STEP / 2;
 const MAX_STEPS = 10000;
 const MAX_COMBINATIONS = 2000;
 const MAX_SPLIT_STEPS = 200;
@@ -72,7 +72,7 @@ function convertForCaller(value: number, from: IUnit, to: IUnit): number {
     return MathUtils_roundTo000005(value) + 0;
   }
   const converted = from === "kg" ? value * LB_PER_KG : value / LB_PER_KG;
-  return Math.round(converted / 0.5) * 0.5 + 0;
+  return Math.round(converted / CONVERTED_ROUNDING_STEP) * CONVERTED_ROUNDING_STEP + 0;
 }
 
 function mergePlates(plates: IPlateCount[]): IPlateCount[] {
@@ -586,11 +586,11 @@ function roundLoad(
 ): ILoadOption | undefined {
   const below = picker.floor(Math.min(loadTarget, scale.maxLoad));
   if (rounding === "down") {
-    return below ?? picker.min();
+    return below ?? withinBounds(scale, picker.min());
   }
   const above = withinBounds(scale, picker.ceil(loadTarget));
   if (below == null || above == null) {
-    return below ?? above ?? picker.min();
+    return below ?? above ?? withinBounds(scale, picker.min());
   }
   return above.load - loadTarget < loadTarget - below.load - EPSILON ? above : below;
 }
@@ -690,7 +690,7 @@ function selectIn(
       return toResult(setup, scale, capped, caller, isMirrored);
     }
   }
-  return toResult(setup, scale, pickers[pickers.length - 1].min(), caller, isMirrored);
+  return toResult(setup, scale, withinBounds(scale, pickers[pickers.length - 1].min()), caller, isMirrored);
 }
 
 export function EquipmentLoadSolver_select(

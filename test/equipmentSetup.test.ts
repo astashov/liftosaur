@@ -2,9 +2,10 @@ import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
 import {
-  Equipment_bodyweight,
+  Equipment_previewBodyweight,
   Equipment_getEquipmentDataForExerciseType,
-  Equipment_getSetup,
+  Equipment_setupIn,
+  Equipment_legacyChanged,
 } from "../src/models/equipment";
 import { EquipmentLoadSolver_select } from "../src/models/equipmentLoadSolver";
 import {
@@ -16,6 +17,7 @@ import {
 } from "../src/models/equipmentSetup";
 import { IEquipmentData, IEquipmentSetup, IExerciseType, ISettings, IUnit, IWeight } from "../src/types";
 import { LegacyPlates_calculate } from "./legacyPlates";
+import { Weight_calculatePlates } from "../src/models/weight";
 import { EquipmentLegacyDefaults_all } from "../src/models/equipmentLegacyDefaults";
 
 function w(value: number, unit: IUnit): IWeight {
@@ -26,7 +28,7 @@ const targets = [0, 2.5, 5, 12.5, 20, 45, 47.5, 61, 100, 135, 137.5, 186, 225, 3
 
 function newTotal(settings: ISettings, target: IWeight, exerciseType: IExerciseType): IWeight {
   const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
-  const setup = Equipment_getSetup(data, settings, target.unit);
+  const setup = Equipment_setupIn(data, target.unit);
   return EquipmentLoadSolver_select(setup, target, { bodyweight: settings.currentBodyweight }).total;
 }
 
@@ -90,7 +92,7 @@ describe("EquipmentSetup", () => {
         ],
       });
       const data = settings.gyms[0].equipment.barbell!;
-      const setup = Equipment_getSetup(data, settings, "lb");
+      const setup = Equipment_setupIn(data, "lb");
       expect(setup.type === "plates" ? setup.plates.map((p) => p.weight) : []).to.eql([45, 10, 2.5]);
       const stack: IEquipmentSetup = {
         type: "stack",
@@ -108,7 +110,7 @@ describe("EquipmentSetup", () => {
     it("keeps bodyweight turned on through an edit when none is logged", () => {
       const settings = settingsWith("barbell", { useBodyweightForBar: true });
       const data = settings.gyms[0].equipment.barbell!;
-      const setup = Equipment_getSetup(data, settings, "lb");
+      const setup = Equipment_setupIn(data, "lb");
       if (setup.type !== "plates") {
         throw new Error("expected a plates setup");
       }
@@ -116,7 +118,7 @@ describe("EquipmentSetup", () => {
       expect(setup.bodyweight).to.eql({});
       const edited = EquipmentSetup_save(data, { ...setup, sides: 1 });
       expect(edited.useBodyweightForBar).to.equal(true);
-      const load = EquipmentLoadSolver_select(setup, w(225, "lb"), { bodyweight: Equipment_bodyweight(settings) });
+      const load = EquipmentLoadSolver_select(setup, w(225, "lb"), { bodyweight: Equipment_previewBodyweight(settings) });
       expect(load.total.value).to.be.within(220, 225);
     });
 
@@ -220,33 +222,27 @@ describe("EquipmentSetup", () => {
     it("uses the saved setup while the old fields match", () => {
       const { settings, exerciseType } = settingsWithSetup(stack);
       const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
-      expect(Equipment_getSetup(data, settings, "lb")).to.eql(stack);
-      expect(Equipment_getSetup({ ...data, name: "Renamed", notes: "Seat 4" }, settings, "lb")).to.eql(stack);
+      expect(Equipment_setupIn(data, "lb")).to.eql(stack);
+      expect(Equipment_setupIn({ ...data, name: "Renamed", notes: "Seat 4" }, "lb")).to.eql(stack);
     });
 
     it("uses the saved setup after a round trip reorders object keys", () => {
-      const plates: IEquipmentSetup = {
-        type: "plates",
-        unit: "lb",
-        base: 45,
-        sides: 2,
-        plates: [{ weight: 45, num: 4 }],
-      };
-      const { settings, exerciseType } = settingsWithSetup(plates);
+      const { settings, exerciseType } = settingsWithSetup(stack);
       const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
       const reordered = {
         ...data,
         bar: { kg: { unit: data.bar.kg.unit, value: data.bar.kg.value }, lb: { unit: "lb", value: data.bar.lb.value } },
         plates: data.plates.map((p) => ({ num: p.num, weight: { unit: p.weight.unit, value: p.weight.value } })),
       } as const;
-      expect(Equipment_getSetup(reordered, settings, "lb")).to.eql(plates);
+      expect(Equipment_legacyChanged(reordered)).to.equal(false);
+      expect(Equipment_setupIn(reordered, "lb")).to.eql(stack);
     });
 
     it("uses the old fields once something else changed them", () => {
       const { settings, exerciseType } = settingsWithSetup(stack);
       const data = Equipment_getEquipmentDataForExerciseType(settings, exerciseType)!;
       const edited = { ...data, plates: [{ weight: w(25, "lb"), num: 2 }] };
-      expect(Equipment_getSetup(edited, settings, "lb").type).to.equal("plates");
+      expect(Equipment_setupIn(edited, "lb").type).to.equal("plates");
     });
   });
 
@@ -319,6 +315,13 @@ describe("EquipmentSetup", () => {
       const ranges = converted.type === "stack" ? converted.ranges : [];
       expect(ranges[1].from).to.equal(ranges[0].to);
       expect(ranges[2].from).to.equal(ranges[1].to);
+    });
+
+    it("keeps a fine step above 0 after converting", () => {
+      const electric: IEquipmentSetup = { type: "electric", unit: "lb", min: 1, max: 100, step: 0.1 };
+      const converted = EquipmentSetup_convertUnit(electric, "kg", "convert");
+      expect(converted.type === "electric" ? converted.step : 0).to.equal(0.05);
+      expect(EquipmentSetup_validate(converted)).to.eql([]);
     });
 
     it("only changes the unit when relabeling", () => {
@@ -405,11 +408,17 @@ describe("EquipmentSetup", () => {
   });
 
   describe("bodyweight", () => {
-    it("uses the logged bodyweight, or 80 kg when none is logged", () => {
+    it("starts a workout load from the bar when no bodyweight is logged", () => {
+      const settings = settingsWith("leverageMachine", { useBodyweightForBar: true });
+      const exerciseType: IExerciseType = { id: "squat", equipment: "leverageMachine" };
+      expect(Weight_calculatePlates(w(50, "kg"), settings, "kg", exerciseType).totalWeight).to.eql(w(50, "kg"));
+    });
+
+    it("previews with the logged bodyweight, or 80 kg when none is logged", () => {
       const settings = Settings_build();
-      expect(Equipment_bodyweight(settings)).to.eql(w(80, "kg"));
+      expect(Equipment_previewBodyweight(settings)).to.eql(w(80, "kg"));
       settings.currentBodyweight = w(176, "lb");
-      expect(Equipment_bodyweight(settings)).to.eql(w(176, "lb"));
+      expect(Equipment_previewBodyweight(settings)).to.eql(w(176, "lb"));
     });
   });
 

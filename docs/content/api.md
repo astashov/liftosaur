@@ -878,16 +878,13 @@ With no parameters it uses your current program and its next day. `week` and `da
               "isAmrap": false,
               "weight": "100kg",
               "originalWeight": "80%",
-              "plates": [
-                { "weight": "20kg", "num": 2 },
-                { "weight": "5kg", "num": 2 }
-              ],
+              "plates": [{ "weight": "20kg", "num": 4 }],
               "loading": {
                 "unit": "kg",
                 "instruction": {
                   "type": "plates",
                   "sides": 2,
-                  "horns": [{ "plates": [{ "weight": 20, "num": 1 }, { "weight": 5, "num": 1 }] }]
+                  "horns": [{ "plates": [{ "weight": 20, "num": 2 }] }]
                 },
                 "total": "100kg",
                 "exact": true
@@ -919,7 +916,7 @@ A couple of notes on those fields:
 
 - `timer` - rest time in seconds, with your defaults already applied. When a program leaves a rest timer blank, this is your own default, not an empty field to guess at.
 - `weight` - already rounded to the equipment in your current gym.
-- `plates` - the per-side plate breakdown for that weight.
+- `plates` - the plates for that weight, counted across both sides. A 20kg bar with one 20kg plate per side lists `{ "weight": "20kg", "num": 2 }`. It is empty on multi-horn machines and for equipment without plates, so read `loading` there.
 - `loading` - how to load that weight on the equipment, or `null` when the exercise has no equipment. `instruction.type` is `plates` (plates per side, split by horn on multi-horn machines), `stack` (the pin, plus built-in or added weights), `fixed` (one dumbbell or kettlebell), `electric` (the value to set), or `bands`. Numbers in `instruction` are in `unit`. `total` is the weight that loading gives, and `exact` is `false` when it differs from the set's weight, for example a hand-entered 137lb on plates that only reach 135lb.
 - `originalWeight` - the expression as written (e.g. `"80%"`), for display only.
 - `hasUpdateScript` - when `true`, completing a set may rewrite the *remaining* sets of that exercise. Take the set list from the response rather than updating optimistically.

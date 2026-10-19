@@ -4,18 +4,13 @@ import { GroupHeader } from "../groupHeader";
 import { Text } from "../primitives/text";
 import { InputNumber2 } from "../inputNumber2";
 import { IEquipmentSetup, IWeight } from "../../types";
+import { IEquipmentLoadQuery } from "../../models/equipmentLoadSolver";
 import {
-  EquipmentLoadSolver_next,
-  EquipmentLoadSolver_previous,
-  EquipmentLoadSolver_sampleWeight,
-  EquipmentLoadSolver_select,
-  IEquipmentLoadQuery,
-} from "../../models/equipmentLoadSolver";
-import {
-  EquipmentLoadText_isNewlyExact,
-  EquipmentLoadText_picture,
-  EquipmentLoadText_tryResult,
-} from "../../models/equipmentLoadText";
+  EquipmentTryWeight_exactChanged,
+  EquipmentTryWeight_initialValue,
+  EquipmentTryWeight_step,
+  EquipmentTryWeight_view,
+} from "../../models/equipmentTryWeight";
 import { ExactLoadHaptic_play } from "../../utils/exactLoadHaptic";
 import { EquipmentLoadPicture } from "../equipmentLoadPicture";
 
@@ -27,30 +22,27 @@ interface IProps {
 
 export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
   const query: IEquipmentLoadQuery = { bodyweight: props.bodyweight };
-  const [value, setValue] = useState<number>(() =>
-    props.errors.length > 0 ? 0 : EquipmentLoadSolver_sampleWeight(props.setup, query).value
-  );
-  const target: IWeight = { value, unit: props.setup.unit };
-  const load = props.errors.length > 0 ? undefined : EquipmentLoadSolver_select(props.setup, target, query);
-  const isExact = load?.exact ?? false;
+  const [value, setValue] = useState<number>(() => EquipmentTryWeight_initialValue(props.setup, props.errors, query));
+  const view = EquipmentTryWeight_view(props.setup, props.errors, value, query);
+  const isExact = view.kind === "load" && view.isExact;
   const wasExactRef = useRef<boolean | undefined>(undefined);
   useEffect(() => {
-    if (EquipmentLoadText_isNewlyExact(wasExactRef.current, isExact)) {
+    const change = EquipmentTryWeight_exactChanged(wasExactRef.current, isExact);
+    if (change.shouldPlayHaptic) {
       ExactLoadHaptic_play();
     }
-    wasExactRef.current = isExact;
+    wasExactRef.current = change.wasExact;
   }, [isExact]);
-  if (props.errors.length > 0 || load == null) {
+  if (view.kind === "error") {
     return (
       <View className="px-4 py-3 border-t border-border-neutral bg-background-default">
         <Text className="text-sm text-text-error" testID="equipment-error">
-          {props.errors[0]}
+          {view.error}
         </Text>
       </View>
     );
   }
-  const result = EquipmentLoadText_tryResult(props.setup, load, target);
-  const picture = EquipmentLoadText_picture(load, props.setup);
+  const { result, picture } = view;
   return (
     <View className="px-4 py-3 border-t border-border-neutral bg-background-default">
       <GroupHeader name="Try a weight" />
@@ -63,10 +55,8 @@ export function EquipmentEditorTryWeight(props: IProps): JSX.Element {
           allowDot={true}
           allowNegative={true}
           value={value}
-          onNext={(v) => EquipmentLoadSolver_next(props.setup, { value: v ?? 0, unit: props.setup.unit }, query).value}
-          onPrev={(v) =>
-            EquipmentLoadSolver_previous(props.setup, { value: v ?? 0, unit: props.setup.unit }, query).value
-          }
+          onNext={(v) => EquipmentTryWeight_step(props.setup, v, 1, query)}
+          onPrev={(v) => EquipmentTryWeight_step(props.setup, v, -1, query)}
           onPreview={(v) => {
             if (v != null) {
               setValue(v);

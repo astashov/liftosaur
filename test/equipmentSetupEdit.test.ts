@@ -8,6 +8,7 @@ import {
   EquipmentSetupEdit_apply,
   EquipmentSetupEdit_bodyweightHelp,
   EquipmentSetupEdit_bodyweightMode,
+  EquipmentSetupEdit_bodyweightModesToAdd,
   EquipmentSetupEdit_bodyweightPercent,
   EquipmentSetupEdit_canAddHorn,
   EquipmentSetupEdit_hornPercents,
@@ -34,7 +35,7 @@ import {
   EquipmentSetupEdit_updateRange,
 } from "../src/models/equipmentSetupEdit";
 import { EquipmentSetup_convertUnit, EquipmentSetup_validate } from "../src/models/equipmentSetup";
-import { Equipment_getSetup, Equipment_legacyChanged } from "../src/models/equipment";
+import { Equipment_setupIn, Equipment_legacyChanged } from "../src/models/equipment";
 import { Settings_build } from "../src/models/settings";
 import { IEquipmentSetup, IStackSetup, IWeightRange } from "../src/types";
 
@@ -211,6 +212,13 @@ describe("EquipmentSetupEdit", () => {
     expect(EquipmentSetupEdit_bodyweightPercent({ ...stack, bodyweight: { share: 0.655 } })).to.equal(66);
   });
 
+  it("offers bodyweight modes only while none is set", () => {
+    const plates = EquipmentSetupEdit_default("plates", "kg");
+    expect(EquipmentSetupEdit_bodyweightModesToAdd(plates, ["adds", "assists"])).to.eql(["adds", "assists"]);
+    const assisted = EquipmentSetupEdit_setBodyweight(plates, "assists", false);
+    expect(EquipmentSetupEdit_bodyweightModesToAdd(assisted, ["adds", "assists"])).to.eql([]);
+  });
+
   it("picks the two heaviest plates for warmups and marks the matching horn preset", () => {
     const plates = [
       { weight: 10, num: 4 },
@@ -334,7 +342,7 @@ describe("EquipmentSetupEdit", () => {
     const setup: IStackSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
     const created = EquipmentSetupEdit_newEquipment(setup, "Lat pulldown", "lb");
     expect(created.name).to.equal("Lat pulldown");
-    expect(Equipment_getSetup(created, Settings_build(), "lb")).to.eql(setup);
+    expect(Equipment_setupIn(created, "lb")).to.eql(setup);
     const edited = EquipmentSetupEdit_apply(
       { ...created, notes: "Seat 4", isDeleted: false },
       { ...setup, pullRatio: 0.5 },

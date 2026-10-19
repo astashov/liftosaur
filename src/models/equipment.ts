@@ -116,12 +116,8 @@ export function Equipment_setupIn(data: IEquipmentData, unit: IUnit): IEquipment
   return EquipmentSetup_fromLegacy(data, unit);
 }
 
-export function Equipment_getSetup(data: IEquipmentData, settings: ISettings, unit: IUnit): IEquipmentSetup {
-  return Equipment_setupIn(data, unit);
-}
-
 export function Equipment_setupOf(data: IEquipmentData, settings: ISettings): IEquipmentSetup {
-  return Equipment_getSetup(data, settings, data.unit ?? settings.units);
+  return Equipment_setupIn(data, data.unit ?? settings.units);
 }
 
 export function Equipment_activeIdForExercise(
@@ -134,7 +130,7 @@ export function Equipment_activeIdForExercise(
   return { gymId: gym.id, equipmentId: data != null && !data.isDeleted ? equipmentId : undefined };
 }
 
-export function Equipment_bodyweight(settings: ISettings): IWeight {
+export function Equipment_previewBodyweight(settings: ISettings): IWeight {
   return settings.currentBodyweight ?? { value: 80, unit: "kg" };
 }
 

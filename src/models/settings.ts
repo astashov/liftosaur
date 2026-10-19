@@ -11,6 +11,7 @@ import {
   IUnit,
 } from "../types";
 import { EquipmentDefaults_build } from "./equipmentDefaults";
+import { EquipmentUnits_follow } from "./equipmentUnits";
 import { Weight_print } from "./weight";
 import { IExportedProgram, Program_evaluate, Program_getAllUsedProgramExercises } from "./program";
 import { ObjectUtils_filter, ObjectUtils_pick } from "../utils/object";
@@ -162,9 +163,11 @@ export function Settings_applyWebEditorSettings(
       ? mergeWithDeletions(settings.starredExercises || {}, update.starredExercises, deleted?.starredExerciseKeys)
       : settings.starredExercises;
 
+  const units = update.units ?? settings.units;
   return {
     ...settings,
-    units: update.units ?? settings.units,
+    units,
+    gyms: units !== settings.units ? EquipmentUnits_follow(settings.gyms, units) : settings.gyms,
     // `workout: null` means the user turned the rest timer off, so presence of the key decides, not truthiness
     timers: update.timers != null ? { ...settings.timers, ...update.timers } : settings.timers,
     planner: update.planner ?? settings.planner,
@@ -183,14 +186,13 @@ export function Settings_webEditorInitial(
   stored: ISettings | undefined,
   programCustomExercises: IAllCustomExercises | undefined
 ): ISettings {
-  const settings = Settings_build();
+  const settings = Settings_build(stored?.units);
   return {
     ...settings,
     exercises: { ...settings.exercises, ...stored?.exercises, ...programCustomExercises },
     timers: { ...settings.timers, workout: stored?.timers.workout ?? settings.timers.workout },
     planner: stored?.planner || settings.planner,
     muscleGroups: stored?.muscleGroups || settings.muscleGroups,
-    units: stored?.units ?? settings.units,
     exerciseData: { ...settings.exerciseData, ...stored?.exerciseData },
     workoutSettings: { ...settings.workoutSettings, ...stored?.workoutSettings },
     starredExercises: stored?.starredExercises,

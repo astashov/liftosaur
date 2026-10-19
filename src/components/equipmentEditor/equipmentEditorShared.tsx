@@ -6,6 +6,7 @@ import { MenuItem } from "../menuItem";
 import { IEquipmentSetup, IWeight } from "../../types";
 import {
   EquipmentSetupEdit_bodyweightMode,
+  EquipmentSetupEdit_bodyweightModesToAdd,
   EquipmentSetupEdit_setBodyweight,
   IEquipmentBodyweightMode,
   IEquipmentWeightList,
@@ -45,30 +46,16 @@ export function EquipmentEditorBodyweightActions<T extends IEquipmentSetup>(
   props: IEquipmentEditorSectionProps<T>,
   modes: IEquipmentBodyweightMode[]
 ): IEquipmentEditorAction[] {
-  if (EquipmentSetupEdit_bodyweightMode(props.setup) != null) {
-    return [];
-  }
-  return [
-    ...(modes.indexOf("adds") !== -1
-      ? [
-          {
-            name: "equipment-add-bodyweight",
-            label: "Include bodyweight (dip belt, vest)",
-            onClick: () => props.onChange(EquipmentSetupEdit_setBodyweight(props.setup, "adds", true)),
-          },
-        ]
-      : []),
-    ...(modes.indexOf("assists") !== -1
-      ? [
-          {
-            name: "equipment-add-assisting",
-            label: "Helps you up (assisted machine)",
-            onClick: () => props.onChange(EquipmentSetupEdit_setBodyweight(props.setup, "assists", true)),
-          },
-        ]
-      : []),
-  ];
+  return EquipmentSetupEdit_bodyweightModesToAdd(props.setup, modes).map((mode) => ({
+    ...bodyweightActionLabels[mode],
+    onClick: () => props.onChange(EquipmentSetupEdit_setBodyweight(props.setup, mode, true)),
+  }));
 }
+
+const bodyweightActionLabels: Record<IEquipmentBodyweightMode, { name: string; label: string }> = {
+  adds: { name: "equipment-add-bodyweight", label: "Include bodyweight (dip belt, vest)" },
+  assists: { name: "equipment-add-assisting", label: "Helps you up (assisted machine)" },
+};
 
 export function EquipmentEditorNumberRow(props: {
   label: string;

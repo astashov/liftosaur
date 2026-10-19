@@ -217,6 +217,13 @@ export function EquipmentSetupEdit_bodyweightMode(setup: IEquipmentSetup): IEqui
   return setup.bodyweight != null ? "adds" : undefined;
 }
 
+export function EquipmentSetupEdit_bodyweightModesToAdd(
+  setup: IEquipmentSetup,
+  supported: IEquipmentBodyweightMode[]
+): IEquipmentBodyweightMode[] {
+  return EquipmentSetupEdit_bodyweightMode(setup) != null ? [] : supported;
+}
+
 export function EquipmentSetupEdit_bodyweightPercent(setup: IEquipmentSetup): number {
   return Math.round((setup.bodyweight?.share ?? 1) * 100);
 }

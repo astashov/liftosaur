@@ -167,6 +167,18 @@ describe("web editor settings", () => {
     });
   });
 
+  describe("Settings_applyWebEditorSettings units", () => {
+    it("converts equipment that follows the app unit", () => {
+      const result = Settings_applyWebEditorSettings(Settings_build("lb"), { units: "kg" });
+      expect(result.gyms[0].equipment.barbell?.setup?.unit).to.equal("kg");
+    });
+
+    it("keeps the gyms when the unit does not change", () => {
+      const settings = Settings_build("lb");
+      expect(Settings_applyWebEditorSettings(settings, { units: "lb" }).gyms).to.equal(settings.gyms);
+    });
+  });
+
   describe("Settings_webEditorInitial", () => {
     it("keeps the stored workout settings over the defaults", () => {
       const stored = Settings_build();
@@ -186,6 +198,12 @@ describe("web editor settings", () => {
       stored.exercises = { a: customExercise("a", "A") };
       const result = Settings_webEditorInitial(stored, { b: customExercise("b", "B") });
       expect(Object.keys(result.exercises).sort()).to.deep.equal(["a", "b"]);
+    });
+
+    it("builds the default equipment in the stored unit", () => {
+      const result = Settings_webEditorInitial(Settings_build("kg"), undefined);
+      expect(result.units).to.equal("kg");
+      expect(result.gyms[0].equipment.barbell?.setup?.unit).to.equal("kg");
     });
 
     it("builds defaults for a visitor with no storage", () => {

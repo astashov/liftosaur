@@ -133,7 +133,8 @@ async function collectConfigs(): Promise<{ configs: Map<string, IConfig>; userCo
 function settingsFor(config: IConfig): ISettings {
   const settings = Settings_build();
   settings.currentBodyweight = config.bodyweight;
-  settings.gyms[0].equipment[PARITY_KEY] = config.data;
+  const { setup, setupLegacyHash, ...legacy } = config.data;
+  settings.gyms[0].equipment[PARITY_KEY] = legacy;
   return settings;
 }
 

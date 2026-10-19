@@ -14,7 +14,7 @@ import { Exercise_onerm, Exercise_defaultRounding } from "../models/exercise";
 import {
   Equipment_getEquipmentDataForExerciseType,
   Equipment_getEquipmentNameForExerciseType,
-  Equipment_getSetup,
+  Equipment_setupIn,
   Equipment_getUnitOrDefaultForExerciseType,
 } from "../models/equipment";
 import { EquipmentSetup_summary } from "../models/equipmentSetup";
@@ -119,7 +119,7 @@ function WeightRoundingEquipmentExplanation(props: IWeightRoundingEquipmentExpla
   }
 
   const name = <Text className="text-sm font-bold">{equipmentName ? `"${equipmentName}"` : "This equipment"}</Text>;
-  const setup = Equipment_getSetup(equipmentData, settings, equipmentData.unit ?? unit);
+  const setup = Equipment_setupIn(equipmentData, equipmentData.unit ?? unit);
   const load =
     targetWeight != null ? Weight_calculatePlates(targetWeight, settings, unit, exerciseType).load : undefined;
   const picture = EquipmentLoadText_picture(load, setup);

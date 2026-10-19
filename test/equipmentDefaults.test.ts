@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { EquipmentDefaults_build, EquipmentDefaults_inUnit } from "../src/models/equipmentDefaults";
 import { EquipmentLegacyDefaults_all } from "../src/models/equipmentLegacyDefaults";
 import { Settings_build } from "../src/models/settings";
-import { Equipment_getSetup, Equipment_legacyChanged } from "../src/models/equipment";
+import { Equipment_setupIn, Equipment_legacyChanged } from "../src/models/equipment";
 import { EquipmentSetup_fromLegacy } from "../src/models/equipmentSetup";
 import { EquipmentLoadSolver_select } from "../src/models/equipmentLoadSolver";
 import { IEquipmentSetup } from "../src/types";
@@ -55,7 +55,7 @@ describe("EquipmentDefaults", () => {
 
   it("rounds a band exercise to a band combination", () => {
     const settings = Settings_build();
-    const setup = Equipment_getSetup(settings.gyms[0].equipment.band!, settings, "lb");
+    const setup = Equipment_setupIn(settings.gyms[0].equipment.band!, "lb");
     expect(EquipmentLoadSolver_select(setup, { value: 65, unit: "lb" }, {}).total.value).to.equal(65);
   });
 });
