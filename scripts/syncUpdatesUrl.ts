@@ -47,8 +47,8 @@ function syncFile<T>(filePath: string, replacer: (contents: string, v: T) => str
 
 function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): string {
   return contents
-    .replace(/(const nativeHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.host}$2`)
-    .replace(/(const nativeApiHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.apiHost}$2`);
+    .replace(/(const nativeHost = useLocal[\s\S]*?: ")[^"]+(";)/, `$1${hosts.host}$2`)
+    .replace(/(const nativeApiHost = useLocal[\s\S]*?: ")[^"]+(";)/, `$1${hosts.apiHost}$2`);
 }
 
 function replaceIosManifestURL(contents: string, manifestUrl: string): string {
