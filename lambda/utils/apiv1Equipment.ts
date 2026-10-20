@@ -8,12 +8,21 @@ import {
   IWeight,
   IUnit,
   ISettings,
+  IEquipmentSetup,
   VEquipmentData,
+  VEquipmentSetup,
   VUnit,
   VBuiltinEquipment,
 } from "../../src/types";
 import { Weight_print } from "../../src/models/weight";
-import { Equipment_build, Equipment_isBuiltIn, Equipment_getCurrentGym } from "../../src/models/equipment";
+import {
+  Equipment_build,
+  Equipment_isBuiltIn,
+  Equipment_getCurrentGym,
+  Equipment_setupOf,
+} from "../../src/models/equipment";
+import { EquipmentSetup_validate } from "../../src/models/equipmentSetup";
+import { EquipmentSetupEdit_apply } from "../../src/models/equipmentSetupEdit";
 import { equipmentName } from "../../src/models/exercise";
 import { MathUtils_clamp } from "../../src/utils/math";
 import { ObjectUtils_clone } from "../../src/utils/object";
@@ -102,6 +111,7 @@ const VEquipmentUpdateInput = v.object({
   // Soft-delete/restore: true hides the equipment but keeps it in storage (so exercises that reference it
   // for rounding don't dangle to a non-existent id); false restores it.
   isDeleted: v.optional(v.boolean()),
+  setup: v.optional(VEquipmentSetup),
 });
 
 export type IEquipmentUpdateInput = v.InferOutput<typeof VEquipmentUpdateInput>;
@@ -126,9 +136,20 @@ const EQUIPMENT_FIELD_POLICY = {
   similarTo: "writable",
   useBodyweightForBar: "writable",
   isAssisting: "writable",
-  setup: "internal",
+  setup: "writable",
   setupLegacyHash: "internal",
 } as const satisfies Record<keyof IEquipmentData, IEquipmentFieldPolicy>;
+
+const SETUP_DERIVED_FIELDS = [
+  "bar",
+  "plates",
+  "fixed",
+  "multiplier",
+  "isFixed",
+  "unit",
+  "useBodyweightForBar",
+  "isAssisting",
+] as const satisfies readonly IWritableEquipmentField[];
 
 export type IWritableEquipmentField = {
   [K in keyof typeof EQUIPMENT_FIELD_POLICY]: (typeof EQUIPMENT_FIELD_POLICY)[K] extends "writable" ? K : never;
@@ -152,7 +173,38 @@ function parseEquipmentInput(input: unknown): IApiResult<IEquipmentUpdateInput> 
   return ok(result.output);
 }
 
-function applyEquipmentInput(base: IEquipmentData, input: IEquipmentUpdateInput): IApiResult<IEquipmentData> {
+function applySetupInput(
+  base: IEquipmentData,
+  input: IEquipmentUpdateInput,
+  setup: IEquipmentSetup,
+  appUnit: IUnit
+): IApiResult<IEquipmentData> {
+  const mixed = SETUP_DERIVED_FIELDS.filter((field) => input[field] != null);
+  if (mixed.length > 0) {
+    return err(400, "invalid_input", `Send either setup or ${mixed.join(", ")}. setup replaces those fields.`);
+  }
+  const errors = EquipmentSetup_validate(setup);
+  if (errors.length > 0) {
+    return err(400, "invalid_input", errors.join(" "));
+  }
+  const described: IEquipmentData = {
+    ...base,
+    name: input.name ?? base.name,
+    notes: input.notes ?? base.notes,
+    similarTo: input.similarTo ?? base.similarTo,
+    isDeleted: input.isDeleted ?? base.isDeleted,
+  };
+  return ok(EquipmentSetupEdit_apply(described, setup, appUnit));
+}
+
+function applyEquipmentInput(
+  base: IEquipmentData,
+  input: IEquipmentUpdateInput,
+  appUnit: IUnit
+): IApiResult<IEquipmentData> {
+  if (input.setup != null) {
+    return applySetupInput(base, input, input.setup, appUnit);
+  }
   const merged: IEquipmentData = {
     ...base,
     bar: input.bar ? { lb: input.bar.lb ?? base.bar.lb, kg: input.bar.kg ?? base.bar.kg } : base.bar,
@@ -192,9 +244,10 @@ interface IEquipmentResponse {
   notes?: string;
   useBodyweightForBar?: boolean;
   isAssisting?: boolean;
+  setup: IEquipmentSetup;
 }
 
-function formatEquipment(key: string, d: IEquipmentData): IEquipmentResponse {
+function formatEquipment(key: string, d: IEquipmentData, settings: ISettings): IEquipmentResponse {
   return {
     id: key,
     name: d.name || equipmentName(key as IEquipment),
@@ -210,6 +263,7 @@ function formatEquipment(key: string, d: IEquipmentData): IEquipmentResponse {
     notes: d.notes,
     useBodyweightForBar: d.useBodyweightForBar,
     isAssisting: d.isAssisting,
+    setup: Equipment_setupOf(d, settings),
   };
 }
 
@@ -373,7 +427,7 @@ export function ApiV1_listEquipment(
   const equipment = Object.keys(gym.equipment)
     .map((key) => {
       const d = gym.equipment[key as IEquipment];
-      return d != null ? formatEquipment(key, d) : undefined;
+      return d != null ? formatEquipment(key, d, user.storage.settings) : undefined;
     })
     .filter((e): e is IEquipmentResponse => e != null);
   return ok({ gymId, equipment });
@@ -392,7 +446,7 @@ export function ApiV1_getEquipment(
   if (!d) {
     return err(404, "not_found", "Equipment not found");
   }
-  return ok(formatEquipment(equipmentId, d));
+  return ok(formatEquipment(equipmentId, d, user.storage.settings));
 }
 
 async function writeEquipment(
@@ -441,13 +495,13 @@ export async function ApiV1_updateEquipment(
   if (!parsed.success) {
     return parsed;
   }
-  const applied = applyEquipmentInput(existing, parsed.data);
+  const applied = applyEquipmentInput(existing, parsed.data, user.storage.settings.units);
   if (!applied.success) {
     return applied;
   }
 
   await writeEquipment(user, gymId, equipmentId, applied.data, deviceId, di);
-  return ok(formatEquipment(equipmentId, applied.data));
+  return ok(formatEquipment(equipmentId, applied.data, user.storage.settings));
 }
 
 export async function ApiV1_createCustomEquipment(
@@ -473,12 +527,12 @@ export async function ApiV1_createCustomEquipment(
     return parsed;
   }
   const base = Equipment_build(parsedName.output);
-  const applied = applyEquipmentInput(base, parsed.data);
+  const applied = applyEquipmentInput(base, parsed.data, user.storage.settings.units);
   if (!applied.success) {
     return applied;
   }
 
   const equipmentId = `equipment-${UidFactory_generateUid(8)}`;
   await writeEquipment(user, gymId, equipmentId, applied.data, deviceId, di);
-  return ok(formatEquipment(equipmentId, applied.data));
+  return ok(formatEquipment(equipmentId, applied.data, user.storage.settings));
 }

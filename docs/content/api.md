@@ -495,12 +495,25 @@ Returns all equipment in the gym, including soft-deleted ones (each item carries
           { "weight": "25lb", "num": 4 },
           { "weight": "10lb", "num": 4 }
         ],
-        "fixed": []
+        "fixed": [],
+        "setup": {
+          "type": "plates",
+          "unit": "lb",
+          "base": 45,
+          "sides": 2,
+          "plates": [
+            { "weight": 45, "num": 8 },
+            { "weight": 25, "num": 4 },
+            { "weight": 10, "num": 4 }
+          ]
+        }
       }
     ]
   }
 }
 ```
+
+`setup` is what the app rounds with. Every equipment has one. `bar`, `plates`, `fixed`, `multiplier`, `isFixed`, `useBodyweightForBar` and `isAssisting` are an older flat view, derived from `setup` and kept for existing integrations. See *Update Equipment* for the `setup` shape.
 
 The optional fields `unit`, `notes`, `similarTo`, `useBodyweightForBar`, and `isAssisting` are only present when set on the equipment.
 
@@ -534,7 +547,42 @@ GET /api/v1/gyms/:gymId/equipment/:id
 
 ### Update Equipment
 
-Equipment configuration drives how Liftosaur rounds prescribed weights during a workout. Only provided fields change; omitted fields keep their current values. Weights are strings like `"45lb"` or `"20kg"`. Out-of-range values are clamped.
+Equipment configuration drives how Liftosaur rounds prescribed weights during a workout. Only provided fields change; omitted fields keep their current values.
+
+Send `setup` to change how the equipment loads. It replaces the whole setup, so read the current one with Get Equipment first and send back every field you want to keep. `name`, `notes`, `similarTo` and `isDeleted` can go in the same request.
+
+```
+PUT /api/v1/gyms/:gymId/equipment/:id
+Content-Type: application/json
+
+{
+  "setup": {
+    "type": "stack",
+    "unit": "lb",
+    "ranges": [{ "from": 10, "to": 200, "step": 10 }],
+    "pullRatio": 0.5
+  },
+  "notes": "Seat 4"
+}
+```
+
+All numbers in `setup` are plain numbers in its `unit`. Fields for every type:
+- `type` — `plates`, `stack`, `fixed`, `electric` or `bands`.
+- `unit` — `lb` or `kg`. A setup in a unit other than the app's keeps that unit when the user switches units. One in the app's unit follows the switch.
+- `rounding` — `down` (default) or `nearest`.
+- `direction` — `adds` (default) or `assists`, for equipment that helps the lifter, like an assisted pull-up machine.
+- `bodyweight` — `{}` or `{ "share": 0.65 }` when the weight includes the lifter's bodyweight, as with a dip belt or an assisted machine. `share` is above 0 and at most 1.
+
+Fields per type:
+- `plates` — `base` (the empty bar or sled), `plates` (`[{ "weight": 45, "num": 8 }]`, `num` is the total you own), `sides` (a whole number, 1 or more, a barbell has 2). Optional `horns` (`[{ "name": "Top", "ratio": 3 }, { "name": "Bottom", "ratio": 1 }]` for a multi-horn machine that shares one plate pool) and `warmupPlates` (plate weights warmups may use).
+- `stack` — `ranges` (`[{ "from": 10, "to": 200, "step": 10 }]`, several rows for a stack whose step changes). Optional `base` (weight always lifted with the stack), `builtin` (weights you pick one of per set, like a magnet), `addOn` (plates you can add and combine), `skipAddOnsInWarmups`, and `pullRatio` (0.5 for a 2:1 pulley).
+- `fixed` — `ranges` and `values` (single weights outside the ranges), for dumbbells and kettlebells. Optional `addOn`.
+- `electric` — `min`, `max` and `step`.
+- `bands` — `bands` (`[{ "name": "Red", "color": "red", "weight": 15, "num": 1 }]`) and `combine` (whether several bands can be used at once). `color` is one of `yellow`, `red`, `blue`, `green`, `black`, `purple`, `orange`, `gray`.
+
+An invalid setup returns `400 invalid_input` with the same message the app's editor shows, such as `A step must be above 0.` A request with both `setup` and any of `bar`, `plates`, `fixed`, `multiplier`, `isFixed`, `unit`, `useBodyweightForBar` or `isAssisting` also returns `400`, because `setup` replaces those fields.
+
+**Flat fields.** The older fields still work. They describe only a bar with plates or a list of fixed weights, so writing one turns a stack, electric or bands setup into plates or fixed weights. The response's `setup` shows the result. Weights in these fields are strings like `"45lb"` or `"20kg"`, and out-of-range values are clamped.
 
 ```
 PUT /api/v1/gyms/:gymId/equipment/:id
@@ -576,7 +624,14 @@ Works for built-in and custom equipment, including soft-deleted ones. Returns th
     "isFixed": false,
     "plates": [{ "weight": "45lb", "num": 8 }, { "weight": "25lb", "num": 2 }],
     "fixed": ["10lb", "15lb", "20lb"],
-    "notes": ""
+    "notes": "",
+    "setup": {
+      "type": "plates",
+      "unit": "lb",
+      "base": 45,
+      "sides": 2,
+      "plates": [{ "weight": 45, "num": 8 }, { "weight": 25, "num": 2 }]
+    }
   }
 }
 ```
@@ -593,7 +648,7 @@ Content-Type: application/json
 }
 ```
 
-Only `name` is required; the same fields as Update Equipment are accepted. Returns `201` with the full created equipment object (same shape as Get Equipment), including the generated `id`.
+Only `name` is required; the same fields as Update Equipment are accepted, including `setup`. Without fields it starts as a 0 bar with four 10 lb and four 5 kg plates. Returns `201` with the full created equipment object (same shape as Get Equipment), including the generated `id`.
 
 **Response (201):**
 

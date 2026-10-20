@@ -1538,6 +1538,96 @@ describe("MCP", () => {
       expect(res.content[0].text).to.include("not found");
     });
 
+    describe("setup", () => {
+      const stack = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }], pullRatio: 0.5 };
+
+      it("returns the setup for every equipment", async () => {
+        const gymId = await firstGymId();
+        const barbell = toolData(await callTool("get_equipment", { gymId, id: "barbell" }));
+        expect(barbell.setup.type).to.equal("plates");
+        const list = toolData(await callTool("list_equipment", { gymId }));
+        expect(list.equipment.every((e: any) => e.setup?.type != null)).to.equal(true);
+      });
+
+      it("replaces the setup and derives the flat fields from it", async () => {
+        const gymId = await firstGymId();
+        const updated = toolData(
+          await callTool("update_equipment", { gymId, id: "cable", setup: stack, notes: "Seat 4" })
+        );
+        expect(updated.setup).to.deep.equal(stack);
+        expect(updated.notes).to.equal("Seat 4");
+        expect(updated.isFixed).to.equal(false);
+        const got = toolData(await callTool("get_equipment", { gymId, id: "cable" }));
+        expect(got.setup).to.deep.equal(stack);
+      });
+
+      it("accepts the setup as a JSON string", async () => {
+        const gymId = await firstGymId();
+        const updated = toolData(
+          await callTool("update_equipment", { gymId, id: "cable", setup: JSON.stringify(stack) })
+        );
+        expect(updated.setup).to.deep.equal(stack);
+      });
+
+      it("pins the unit when the setup is not in the app unit", async () => {
+        const gymId = await firstGymId();
+        const kgStack = { ...stack, unit: "kg" };
+        const updated = toolData(await callTool("update_equipment", { gymId, id: "cable", setup: kgStack }));
+        expect(updated.unit).to.equal("kg");
+        expect(updated.setup).to.deep.equal(kgStack);
+      });
+
+      it("rejects a setup sent together with the flat fields it replaces", async () => {
+        const gymId = await firstGymId();
+        const res = await callTool("update_equipment", { gymId, id: "cable", setup: stack, multiplier: 2 });
+        expect(res.isError).to.equal(true);
+        expect(res.content[0].text).to.include("Send either setup or multiplier");
+      });
+
+      it("rejects an invalid setup with the editor's message", async () => {
+        const gymId = await firstGymId();
+        const before = toolData(await callTool("get_equipment", { gymId, id: "cable" }));
+        const res = await callTool("update_equipment", {
+          gymId,
+          id: "cable",
+          setup: { ...stack, ranges: [{ from: 10, to: 200, step: 0 }] },
+        });
+        expect(res.isError).to.equal(true);
+        expect(res.content[0].text).to.include("A step must be above 0.");
+        const res2 = await callTool("update_equipment", { gymId, id: "cable", setup: { type: "rack", unit: "lb" } });
+        expect(res2.isError).to.equal(true);
+        const after = toolData(await callTool("get_equipment", { gymId, id: "cable" }));
+        expect(after.setup).to.deep.equal(before.setup);
+      });
+
+      it("turns a stack into plates when a flat field is written", async () => {
+        const gymId = await firstGymId();
+        await callTool("update_equipment", { gymId, id: "cable", setup: stack });
+        const updated = toolData(
+          await callTool("update_equipment", { gymId, id: "cable", plates: [{ weight: "10lb", num: 4 }] })
+        );
+        expect(updated.setup.type).to.equal("plates");
+      });
+
+      it("creates custom equipment from a setup", async () => {
+        const gymId = await firstGymId();
+        const bands = {
+          type: "bands",
+          unit: "lb",
+          bands: [
+            { name: "Red", color: "red", weight: 15, num: 1 },
+            { name: "Black", color: "black", weight: 30, num: 1 },
+          ],
+          combine: true,
+          direction: "assists",
+          bodyweight: {},
+        };
+        const created = toolData(await callTool("create_custom_equipment", { gymId, name: "Bands", setup: bands }));
+        expect(created.setup).to.deep.equal(bands);
+        expect(toolData(await callTool("get_equipment", { gymId, id: created.id })).setup).to.deep.equal(bands);
+      });
+    });
+
     it("accepts native JSON objects/arrays for structured fields (not just strings)", async () => {
       const gymId = await firstGymId();
       const data = toolData(

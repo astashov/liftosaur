@@ -65,9 +65,129 @@ const BUILTIN_EQUIPMENT_KEYS = [
   "trapbar",
 ];
 
+const SETUP_PLATE_COUNT: IMcpJsonSchema = {
+  type: "object",
+  properties: {
+    weight: { type: "number", description: "Plate weight, in the setup's unit" },
+    num: { type: "number", description: "How many of this plate you own in total, across all sides" },
+  },
+  required: ["weight", "num"],
+};
+
+const SETUP_RANGE: IMcpJsonSchema = {
+  type: "object",
+  description: "Weights from `from` to `to` in steps of `step`, e.g. a stack 10-200 by 10",
+  properties: {
+    from: { type: "number" },
+    to: { type: "number" },
+    step: { type: "number", description: "Above 0" },
+  },
+  required: ["from", "to", "step"],
+};
+
+const SETUP_SCHEMA: IMcpJsonSchema = {
+  type: "object",
+  description:
+    "The preferred way to describe equipment. Replaces the whole setup, so send every field you want to keep (read the current one with get_equipment first). All numbers are in `unit`. Do not send it together with bar, plates, fixed, multiplier, isFixed, unit, useBodyweightForBar or isAssisting: those are derived from setup. Fields per type: " +
+    "plates = base, plates, sides, horns?, warmupPlates?. " +
+    "stack = ranges, base?, builtin?, addOn?, skipAddOnsInWarmups?, pullRatio?. " +
+    "fixed = ranges, values, addOn?. " +
+    "electric = min, max, step. " +
+    "bands = bands, combine. " +
+    'Examples: barbell {"type":"plates","unit":"lb","base":45,"sides":2,"plates":[{"weight":45,"num":8},{"weight":25,"num":4}]}; ' +
+    'cable stack {"type":"stack","unit":"lb","ranges":[{"from":10,"to":200,"step":10}],"pullRatio":0.5}; ' +
+    'dumbbells {"type":"fixed","unit":"kg","ranges":[{"from":2.5,"to":30,"step":2.5}],"values":[]}; ' +
+    'assisted pull-up {"type":"stack","unit":"kg","ranges":[{"from":5,"to":70,"step":5}],"direction":"assists","bodyweight":{}}.',
+  properties: {
+    type: { type: "string", enum: ["plates", "stack", "fixed", "electric", "bands"] },
+    unit: { type: "string", enum: ["lb", "kg"] },
+    rounding: {
+      type: "string",
+      enum: ["down", "nearest"],
+      description: "How program weights round to a loadable weight. Default down.",
+    },
+    direction: {
+      type: "string",
+      enum: ["adds", "assists"],
+      description: "assists: the load helps the lifter, like an assisted pull-up machine. Default adds.",
+    },
+    bodyweight: {
+      type: "object",
+      description:
+        "Present when the weight includes the lifter's bodyweight (dip belt, weighted vest, assisted machine). share is 0-1, default 1.",
+      properties: { share: { type: "number" } },
+    },
+    base: {
+      type: "number",
+      description: "plates: the empty bar or sled. stack: weight always lifted with the stack.",
+    },
+    plates: { type: "array", description: "plates: the plates you own", items: SETUP_PLATE_COUNT },
+    sides: {
+      type: "number",
+      description: "plates: how many sides take plates, a whole number 1 or more. A barbell has 2.",
+    },
+    horns: {
+      type: "array",
+      description:
+        'plates: multi-horn machines that share one plate pool. ratio is the share of plates on that horn, e.g. [{"name":"Top","ratio":3},{"name":"Bottom","ratio":1}].',
+      items: {
+        type: "object",
+        properties: { name: { type: "string" }, ratio: { type: "number" } },
+        required: ["name", "ratio"],
+      },
+    },
+    warmupPlates: {
+      type: "array",
+      description: "plates: plate weights warmups may use",
+      items: { type: "number" },
+    },
+    ranges: { type: "array", description: "stack and fixed: the weight ranges", items: SETUP_RANGE },
+    builtin: {
+      type: "array",
+      description: "stack: built-in weights you pick one of per set, like a 5 lb magnet",
+      items: { type: "number" },
+    },
+    addOn: {
+      type: "array",
+      description: "stack and fixed: plates you can add and combine",
+      items: SETUP_PLATE_COUNT,
+    },
+    skipAddOnsInWarmups: { type: "boolean", description: "stack: warmups use the stack only" },
+    pullRatio: {
+      type: "number",
+      description: "stack: the share of the stack weight felt at the handle. 0.5 for a 2:1 pulley.",
+    },
+    values: {
+      type: "array",
+      description: "fixed: single weights outside the ranges",
+      items: { type: "number" },
+    },
+    min: { type: "number", description: "electric: lowest setting" },
+    max: { type: "number", description: "electric: highest setting" },
+    step: { type: "number", description: "electric: smallest change" },
+    bands: {
+      type: "array",
+      description: "bands: each band with what it counts as",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          color: { type: "string", enum: ["yellow", "red", "blue", "green", "black", "purple", "orange", "gray"] },
+          weight: { type: "number" },
+          num: { type: "number" },
+        },
+        required: ["name", "weight", "num"],
+      },
+    },
+    combine: { type: "boolean", description: "bands: whether several bands can be used at once" },
+  },
+  required: ["type", "unit"],
+};
+
 // Shared between update_equipment and create_custom_equipment. Modeled structurally (objects/arrays)
 // so MCP clients can pass native JSON; the executor also accepts JSON strings for backward compatibility.
 const EQUIPMENT_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
+  setup: SETUP_SCHEMA,
   bar: {
     type: "object",
     description: "Bar weights. lb must be in lb, kg must be in kg; either is optional.",
@@ -574,7 +694,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "list_equipment",
     description:
-      "List all of a gym's equipment, including soft-deleted ones (each carries an isDeleted flag). Equipment configuration (bar weight, available plates, fixed weights) drives how Liftosaur rounds prescribed weights during a workout. Built-in equipment keys: barbell, cable, dumbbell, smith, band, kettlebell, bodyweight, leverageMachine, medicineball, ezbar, trapbar. Custom equipment has keys like 'equipment-xxxxxxxx'. Call list_gyms first to get the gymId.",
+      "List all of a gym's equipment, including soft-deleted ones (each carries an isDeleted flag). Each entry's `setup` (plates, stack, fixed, electric or bands) drives how Liftosaur rounds prescribed weights during a workout. bar, plates, fixed, multiplier and isFixed are an older flat view derived from setup, kept for compatibility. Built-in equipment keys: barbell, cable, dumbbell, smith, band, kettlebell, bodyweight, leverageMachine, medicineball, ezbar, trapbar. Custom equipment has keys like 'equipment-xxxxxxxx'. Call list_gyms first to get the gymId.",
     annotations: { title: "List equipment", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
@@ -587,7 +707,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "get_equipment",
     description:
-      "Get a single equipment's full configuration (bar weights, plates, fixed weights, multiplier, unit) within a gym.",
+      "Get a single equipment's full configuration within a gym. `setup` is the configuration the app uses; bar, plates, fixed, multiplier and isFixed are an older flat view derived from it.",
     annotations: { title: "Get equipment", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
@@ -601,7 +721,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "update_equipment",
     description:
-      'Update a gym\'s equipment. Only provided fields change; omitted fields keep their current values. Weights are strings like "45lb" or "20kg". Out-of-range values are clamped. Works for built-in and custom equipment. To soft-delete or restore equipment, set the isDeleted field (true removes it from workout pickers — the config is kept — false restores it).',
+      'Update a gym\'s equipment. To change how it loads, send `setup`: it covers plates, multi-horn machines, weight stacks, fixed weights, electric trainers and bands, and replaces the whole setup. name, notes, similarTo and isDeleted can be sent alongside it. The older flat fields (bar, plates, fixed, multiplier, isFixed, unit, useBodyweightForBar, isAssisting) still work but describe only bar-and-plates or fixed weights, so writing them turns a stack, electric or bands setup into plates. Only provided fields change; omitted fields keep their current values. Flat-field weights are strings like "45lb" or "20kg". Out-of-range values are clamped. Works for built-in and custom equipment. To soft-delete or restore equipment, set the isDeleted field (true removes it from workout pickers — the config is kept — false restores it).',
     annotations: { title: "Update equipment", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",
@@ -616,7 +736,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "create_custom_equipment",
     description:
-      "Create a new custom equipment in a gym (beyond the 11 built-ins). Starts from sensible defaults; pass the same fields as update_equipment to configure bar/plates/etc. Returns the generated equipment id.",
+      "Create a new custom equipment in a gym (beyond the 11 built-ins). Pass `setup` to describe it (see update_equipment); without it, it starts as a 0 bar with four 10lb and four 5kg plates. Returns the generated equipment id.",
     annotations: {
       title: "Create custom equipment",
       readOnlyHint: false,

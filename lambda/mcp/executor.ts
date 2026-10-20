@@ -126,6 +126,7 @@ const EQUIPMENT_ARG_PARSERS: Record<IWritableEquipmentField, (raw: unknown) => u
   useBodyweightForBar: asBool,
   isAssisting: asBool,
   isDeleted: asBool,
+  setup: asJson,
 };
 
 function parseEquipmentArgs(args: Record<string, unknown>): { input: Record<string, unknown>; error?: IToolResult } {
@@ -137,7 +138,7 @@ function parseEquipmentArgs(args: Record<string, unknown>): { input: Record<stri
       }
     }
   } catch (e) {
-    return { input, error: err(400, "invalid_input", "bar, plates, and fixed must be valid JSON") };
+    return { input, error: err(400, "invalid_input", "setup, bar, plates, and fixed must be valid JSON") };
   }
   return { input };
 }
