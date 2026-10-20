@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">LiftoDroid</string>
+    <string name="workout">Workout</string>
+    <string name="resting">Resting</string>
+    <string name="rest_over">Rest over. Time to lift.</string>
+    <string name="skip">Skip</string>
+    <string name="up_next_fmt">Next: %1$s</string>
+    <string name="all_sets_done">All sets logged. Finish when ready.</string>
+    <string name="queued_fmt">%1$d waiting to sync</string>
+    <string name="syncing">Syncing your sets</string>
+    <string name="channel_session">Active workout</string>
+    <string name="channel_alert">Rest timer alerts</string>
+</resources>

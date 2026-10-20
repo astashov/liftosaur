@@ -1,8 +1,0 @@
-/main.js
-  cache-control: public, max-age=86400
-/vendors.js
-  cache-control: public, max-age=86400
-/main.css
-  cache-control: public, max-age=86400
-/vendors.css
-  cache-control: public, max-age=86400
