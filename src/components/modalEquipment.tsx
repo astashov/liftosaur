@@ -1,5 +1,7 @@
 import type { JSX } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Text } from "./primitives/text";
+import { Dialog_confirm } from "../utils/dialog";
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { Equipment_activeIdForExercise, Equipment_getCurrentGym } from "../models/equipment";
@@ -7,7 +9,10 @@ import { IExerciseType, IHistoryEntry, ISettings, IStats } from "../types";
 import { ObjectUtils_filter, ObjectUtils_keys } from "../utils/object";
 import { equipmentName, Exercise_eq, Exercise_defaultRounding } from "../models/exercise";
 import {
+  EditEquipment_copyConfirmText,
   EditEquipment_copyForExercise,
+  EditEquipment_removal,
+  EditEquipment_removeForExercise,
   EditEquipment_setEquipmentForExercise,
   EditEquipment_setDefaultRoundingForExercise,
 } from "../models/editEquipment";
@@ -83,9 +88,12 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           <LinkButton
             className="text-sm"
             name="equipment-copy-this"
-            onClick={() => {
+            onClick={async () => {
               trackClick("equipment-modal-copy");
-              EditEquipment_copyForExercise(props.dispatch, props.settings, gymId, equipmentId, props.exercise);
+              const text = EditEquipment_copyConfirmText(props.settings, gymId, equipmentId, props.exercise);
+              if (await Dialog_confirm(text)) {
+                EditEquipment_copyForExercise(props.dispatch, props.settings, gymId, equipmentId, props.exercise);
+              }
             }}
           >
             Copy this one
@@ -122,6 +130,47 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           />
         )}
       </View>
+      {equipmentId != null && data != null && (
+        <ModalEquipmentRemove
+          settings={props.settings}
+          gymId={gymId}
+          equipmentId={equipmentId}
+          exercise={props.exercise}
+          dispatch={props.dispatch}
+        />
+      )}
     </View>
+  );
+}
+
+function ModalEquipmentRemove(props: {
+  settings: ISettings;
+  gymId: string;
+  equipmentId: string;
+  exercise: IExerciseType;
+  dispatch: IDispatch;
+}): JSX.Element {
+  const trackClick = useTrackClick();
+  const removal = EditEquipment_removal(props.settings, props.gymId, props.equipmentId, props.exercise);
+  return (
+    <Pressable
+      className="items-center py-3 mt-4"
+      testID="equipment-remove"
+      data-testid="equipment-remove"
+      onPress={async () => {
+        trackClick("equipment-modal-remove");
+        if (await Dialog_confirm(removal.confirm)) {
+          EditEquipment_removeForExercise(
+            props.dispatch,
+            props.settings,
+            props.gymId,
+            props.equipmentId,
+            props.exercise
+          );
+        }
+      }}
+    >
+      <Text className="text-sm font-semibold text-text-error">{removal.label}</Text>
+    </Pressable>
   );
 }

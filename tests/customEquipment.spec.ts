@@ -74,12 +74,22 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await closeModal(page);
   await expect(page.getByTestId("set-plates-list")).toHaveText("10");
 
+  await page.getByTestId("exercise-equipment-picker").click();
+  await expect(page.getByTestId("equipment-remove")).toHaveText("Delete Bicep Curl");
+  await page.getByTestId("equipment-remove").click();
+  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("Dumbbell");
+  await expect(page.getByTestId("equipment-remove")).toHaveText("Hide Dumbbell");
+  await closeModal(page);
+
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-available-equipment").click();
   await expect(page.getByTestId("group-header-boom")).toContainText("10 lb base");
-  await page.getByTestId("delete-equipment-boom").click();
-  await expect(page.getByTestId("group-header-boom")).toHaveCount(0);
-  await page.getByTestId("delete-equipment-bicep-curl").click();
+  await expect(page.getByTestId("group-header-bicep-curl")).toHaveCount(0);
+  await page.getByTestId("copy-equipment-boom").click();
+  await expect(page.locator(`[data-testid="equipment-editor"]:visible`)).toHaveCount(1);
+  await page.locator(`[data-testid="navbar-back"]:visible`).click();
+  await expect(page.getByTestId("group-header-boom-2")).toContainText("10 lb base");
+  await page.getByTestId("delete-equipment-dumbbell").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("exercise-equipment-picker").click();

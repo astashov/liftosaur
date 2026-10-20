@@ -2,10 +2,11 @@ import { ILensRecordingPayload, Lens, lb } from "lens-shmens";
 import { IState, updateState } from "./state";
 import { IDispatch } from "../ducks/types";
 import { IAllEquipment, IExerciseType, IEquipment, IEquipmentSetup, ISettings, IUnit } from "../types";
-import { Equipment_getEquipmentIdForExerciseType, Equipment_setupOf } from "./equipment";
+import { Equipment_getEquipmentIdForExerciseType, Equipment_isBuiltIn, Equipment_setupOf } from "./equipment";
 import { EquipmentDefaults_build } from "./equipmentDefaults";
-import { Exercise_get, Exercise_toKey } from "./exercise";
+import { equipmentName, Exercise_get, Exercise_toKey } from "./exercise";
 import { UidFactory_generateUid } from "../utils/generator";
+import { StringUtils_nextName } from "../utils/string";
 import { EquipmentSetup_validate } from "./equipmentSetup";
 import {
   EquipmentSetupEdit_apply,
@@ -63,7 +64,7 @@ function newEquipmentId(): string {
 function linkExerciseLens(
   gymId: string,
   exerciseType: IExerciseType,
-  equipmentId: string
+  equipmentId: string | undefined
 ): ILensRecordingPayload<IState> {
   const exerciseKey = Exercise_toKey(exerciseType);
   return lb<IState>()
@@ -120,6 +121,117 @@ export function EditEquipment_copyForExercise(
     "Copy equipment for exercise"
   );
   return id;
+}
+
+export function EditEquipment_copyName(allEquipment: IAllEquipment, sourceId: string): string {
+  const taken = new Set(
+    Object.keys(allEquipment)
+      .filter((key) => !allEquipment[key]?.isDeleted)
+      .map((key) => equipmentName(key, allEquipment).toLowerCase())
+  );
+  let name = StringUtils_nextName(equipmentName(sourceId, allEquipment));
+  while (taken.has(name.toLowerCase())) {
+    name = StringUtils_nextName(name);
+  }
+  return name;
+}
+
+export function EditEquipment_copyListConfirmText(allEquipment: IAllEquipment, sourceId: string): string {
+  const source = equipmentName(sourceId, allEquipment);
+  const name = EditEquipment_copyName(allEquipment, sourceId);
+  return `Create "${name}", a copy of ${source}? No exercise uses it until you pick it for one.`;
+}
+
+export function EditEquipment_copy(
+  dispatch: IDispatch,
+  settings: ISettings,
+  gymId: string,
+  sourceId: string
+): string | undefined {
+  const all = settings.gyms.find((g) => g.id === gymId)?.equipment;
+  const source = all?.[sourceId];
+  if (all == null || source == null) {
+    return undefined;
+  }
+  const id = newEquipmentId();
+  const name = EditEquipment_copyName(all, sourceId);
+  const data = EquipmentSetupEdit_newEquipment(Equipment_setupOf(source, settings), name, settings.units);
+  updateState(
+    dispatch,
+    [gymEquipmentLens(gymId).recordModify((current) => ({ ...current, [id]: data }))],
+    "Copy equipment"
+  );
+  return id;
+}
+
+function gymSuffix(settings: ISettings, gymId: string): string {
+  const gym = settings.gyms.find((g) => g.id === gymId);
+  return settings.gyms.length > 1 && gym != null ? ` in ${gym.name}` : "";
+}
+
+export function EditEquipment_copyConfirmText(
+  settings: ISettings,
+  gymId: string,
+  sourceId: string,
+  exerciseType: IExerciseType
+): string {
+  const equipment = settings.gyms.find((g) => g.id === gymId)?.equipment;
+  const source = equipmentName(sourceId, equipment);
+  const exercise = Exercise_get(exerciseType, settings.exercises).name;
+  return `This creates new equipment "${exercise}", a copy of ${source}. Only ${exercise} uses it${gymSuffix(settings, gymId)}. Other exercises keep using ${source}.`;
+}
+
+export interface IEquipmentRemoval {
+  label: string;
+  confirm: string;
+}
+
+function fallbackEquipment(
+  settings: ISettings,
+  gymId: string,
+  removedId: string,
+  exerciseType: IExerciseType
+): string | undefined {
+  const fallbackId = exerciseType.equipment;
+  const data = fallbackId != null ? settings.gyms.find((g) => g.id === gymId)?.equipment[fallbackId] : undefined;
+  return fallbackId !== removedId && data != null && !data.isDeleted ? fallbackId : undefined;
+}
+
+export function EditEquipment_removal(
+  settings: ISettings,
+  gymId: string,
+  equipmentId: string,
+  exerciseType: IExerciseType
+): IEquipmentRemoval {
+  const equipment = settings.gyms.find((g) => g.id === gymId)?.equipment;
+  const name = equipmentName(equipmentId, equipment);
+  if (Equipment_isBuiltIn(equipmentId)) {
+    return {
+      label: `Hide ${name}`,
+      confirm: `Hide ${name}${gymSuffix(settings, gymId)}? It disappears from the equipment lists. You can show it again in Me → Available Equipment.`,
+    };
+  }
+  const exercise = Exercise_get(exerciseType, settings.exercises).name;
+  const fallbackId = fallbackEquipment(settings, gymId, equipmentId, exerciseType);
+  const after = fallbackId != null ? `goes back to ${equipmentName(fallbackId, equipment)}` : "has no equipment";
+  return {
+    label: `Delete ${name}`,
+    confirm: `Delete ${name}${gymSuffix(settings, gymId)}? ${exercise} ${after} after that.`,
+  };
+}
+
+export function EditEquipment_removeForExercise(
+  dispatch: IDispatch,
+  settings: ISettings,
+  gymId: string,
+  equipmentId: string,
+  exerciseType: IExerciseType
+): void {
+  const hide = gymEquipmentLens(gymId).then(lb<IAllEquipment>().pi(equipmentId).p("isDeleted").get()).record(true);
+  const relink = Equipment_isBuiltIn(equipmentId)
+    ? []
+    : [linkExerciseLens(gymId, exerciseType, fallbackEquipment(settings, gymId, equipmentId, exerciseType))];
+  updateState(dispatch, [hide, ...relink], "Delete equipment");
 }
 
 export function EditEquipment_update(

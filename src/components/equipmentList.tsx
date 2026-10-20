@@ -18,7 +18,12 @@ import { IAllEquipment, ISettings } from "../types";
 import { equipmentName } from "../models/exercise";
 import { Equipment_isBuiltIn, Equipment_setupOf } from "../models/equipment";
 import { EquipmentSetup_summary } from "../models/equipmentSetup";
-import { EditEquipment_setDeleted } from "../models/editEquipment";
+import {
+  EditEquipment_copy,
+  EditEquipment_copyListConfirmText,
+  EditEquipment_setDeleted,
+} from "../models/editEquipment";
+import { IconDuplicate2 } from "./icons/iconDuplicate2";
 import { ObjectUtils_keys } from "../utils/object";
 import { StringUtils_dashcase } from "../utils/string";
 import { Dialog_confirm } from "../utils/dialog";
@@ -71,6 +76,22 @@ export function EquipmentList(props: IEquipmentListProps): JSX.Element {
                 {summary}
               </Text>
             </View>
+            <Pressable
+              className="p-2"
+              testID={`copy-equipment-${StringUtils_dashcase(name)}`}
+              data-testid={`copy-equipment-${StringUtils_dashcase(name)}`}
+              onPress={async () => {
+                if (!(await Dialog_confirm(EditEquipment_copyListConfirmText(props.allEquipment, key)))) {
+                  return;
+                }
+                const id = EditEquipment_copy(props.dispatch, props.settings, props.gymId, key);
+                if (id != null) {
+                  props.onOpen(id);
+                }
+              }}
+            >
+              <IconDuplicate2 />
+            </Pressable>
             <Pressable
               className="p-2"
               testID={`delete-equipment-${StringUtils_dashcase(name)}`}
