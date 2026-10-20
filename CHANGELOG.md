@@ -16,6 +16,27 @@
 -->
 
 ---
+date: 2026-10-20
+title: Redesigned the equipment setup
+---
+
+It used to be that equipment only supported plates load and fixed weights load - you set base, specify plates or fixed weights, and maybe also switch it to "assisting" mode for assisted dips/pullups.
+
+From now on, there's 5 types of equipment instead:
+
+* Plates - barbell, loaded dumbbells, leverage machines (including multihorn ones), belts, etc
+* Fixed weights - kettlebells, fixed dumbbells, with ability to specify ranges of those
+* Weight stack - cable machines, with additional weights (like magnets) support
+* Bands - with ability to combine them
+* Electric - Voltra, Tonal, etc
+
+You can now also exclude plates / weights from warmup, for bodyweight-related ones - specify the percentage ratio of bodyweight (e.g. 80% for pullups), change rounding between down/nearest, specify pull ratio for cables, etc etc.
+
+You can also easily clone the equipment right during the workout, e.g. for cable machines that use a different stack.
+
+Pretty big change, but hopefully will make it more flexible for the programs for full gyms with lots of machines.
+
+---
 date: 2026-10-03
 title: Redesigned the web editor
 ---
