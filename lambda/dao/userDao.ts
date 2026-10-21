@@ -49,6 +49,7 @@ import {
 } from "../utils/syncMergeNoop";
 import { ProgramRowWrites_plan } from "../utils/programRowWrites";
 import { IUserRowItem, UserRow_pack, UserRow_unpack } from "../utils/userRow";
+import { IProgramRowItem, ProgramRow_pack, ProgramRow_unpack } from "../utils/programRow";
 import { StatRowWrites_plan } from "../utils/statRowWrites";
 
 export const userTableNames = {
@@ -383,7 +384,7 @@ export class UserDao {
 
     const programUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].programs,
-      items: programWrites.programsToPut.map((record) => ({ ...record, userId: limitedUser.id })),
+      items: programWrites.programsToPut.map((record) => ({ ...ProgramRow_pack(record), userId: limitedUser.id })),
     });
 
     const versionsStats = storageUpdate.versions?.stats as ICollectionVersions | undefined;
@@ -547,7 +548,7 @@ export class UserDao {
     const env = Utils_getEnv();
     await this.di.dynamo.put({
       tableName: userTableNames[env].programs,
-      item: { ...program, userId },
+      item: { ...ProgramRow_pack(program), userId },
     });
   }
 
@@ -824,19 +825,19 @@ export class UserDao {
     const env = Utils_getEnv();
     if (args.ids != null) {
       return this.di.dynamo
-        .batchGet<IProgram & { userId?: string }>({
+        .batchGet<IProgramRowItem & { userId?: string }>({
           tableName: userTableNames[env].programs,
           keys: args.ids.map((id) => ({ id, userId })),
         })
         .then((arr) =>
           arr.map((r) => {
             delete r.userId;
-            return r;
+            return ProgramRow_unpack(r);
           })
         );
     }
     return this.di.dynamo
-      .query<IProgram & { userId?: string }>({
+      .query<IProgramRowItem & { userId?: string }>({
         tableName: userTableNames[env].programs,
         expression: "#userId = :userId",
         attrs: { "#userId": "userId" },
@@ -845,7 +846,7 @@ export class UserDao {
       .then((arr) =>
         arr.map((r) => {
           delete r.userId;
-          return r;
+          return ProgramRow_unpack(r);
         })
       );
   }
@@ -856,22 +857,23 @@ export class UserDao {
     const result = await Promise.all(
       groupedUserIdValues.map((group) => {
         const userIdValues = Object.fromEntries(group.map((value, idx) => [`:val${idx}`, value]));
-        return this.di.dynamo.scan<IProgram & { userId: string }>({
+        return this.di.dynamo.scan<IProgramRowItem & { userId: string }>({
           tableName: userTableNames[env].programs,
           filterExpression: `userId IN (${Object.keys(userIdValues).join(", ")})`,
           values: userIdValues,
         });
       })
     );
-    return result.flat();
+    return result.flat().map((r) => ({ ...ProgramRow_unpack(r), userId: r.userId }));
   }
 
-  public getProgram(userId: string, id: string): Promise<IProgram | undefined> {
+  public async getProgram(userId: string, id: string): Promise<IProgram | undefined> {
     const env = Utils_getEnv();
-    return this.di.dynamo.get<IProgram & { userId?: string }>({
+    const item = await this.di.dynamo.get<IProgramRowItem & { userId?: string }>({
       tableName: userTableNames[env].programs,
       key: { id, userId },
     });
+    return item != null ? ProgramRow_unpack(item) : undefined;
   }
 
   public async transfer(fromId: string, toId: string): Promise<void> {
@@ -1139,7 +1141,7 @@ export class UserDao {
       programUpdates = CollectionUtils_inGroupsOf(23, programsToPut).map(async (group) => {
         await this.di.dynamo.batchPut({
           tableName: userTableNames[env].programs,
-          items: group.map((record) => ({ ...record, userId: user.id })),
+          items: group.map((record) => ({ ...ProgramRow_pack(record), userId: user.id })),
         });
       });
     }
@@ -1187,9 +1189,9 @@ export class UserDao {
     const allHistory = await this.di.dynamo
       .scan<IHistoryRecord & { userId: string }>({ tableName: userTableNames[env].historyRecords })
       .then((r) => r.sort((a, b) => new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime()));
-    const allPrograms = await this.di.dynamo.scan<IProgram & { userId: string }>({
-      tableName: userTableNames[env].programs,
-    });
+    const allPrograms = await this.di.dynamo
+      .scan<IProgramRowItem & { userId: string }>({ tableName: userTableNames[env].programs })
+      .then((rows) => rows.map((r) => ({ ...ProgramRow_unpack(r), userId: r.userId })));
     const allStatsDbs = await this.di.dynamo.scan<IStatDb & { userId: string }>({
       tableName: userTableNames[env].stats,
     });

@@ -9,10 +9,11 @@ import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
 import { ILimitedUserDao, UserDao, userTableNames } from "../lambda/dao/userDao";
 import { IUserRowItem, UserRow_pack } from "../lambda/utils/userRow";
+import { IProgramRowItem } from "../lambda/utils/programRow";
 import { eventsTableNames } from "../lambda/dao/eventDao";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { LftS3Buckets } from "../lambda/dao/buckets";
-import { Storage_fillVersions, Storage_getDefault } from "../src/models/storage";
+import { Storage_fillVersions, Storage_getDefault, Storage_updateVersions } from "../src/models/storage";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
 import { IHistoryRecord, IProgram, IStorage } from "../src/types";
@@ -379,6 +380,23 @@ describe("/api/sync2 dirty branch", () => {
       expect(programPuts.length).to.equal(1);
       const stored = di.dynamo.data[userTableNames.prod.programs] as Record<string, { shortDescription?: string }>;
       expect(Object.values(stored).map((p) => p.shortDescription)).to.eql(["added later"]);
+    });
+
+    it("a program over the threshold is stored packed and reads back whole", async () => {
+      await seedVersioned();
+      const note = "// Use the range and technique your coach showed you; keep the trunk comfortable.\n";
+      const planner = program.planner!;
+      const day = { ...planner.weeks[0].days[0], exerciseText: note.repeat(6000) };
+      const big: IProgram = { ...program, planner: { ...planner, weeks: [{ ...planner.weeks[0], days: [day] }] } };
+      const versions = Storage_updateVersions(versioned, { ...versioned, programs: [big] }, "ios_b");
+      const json = await pull({
+        storageUpdate: { ...emptyUpdate(), storage: { programs: [big] }, versions: { programs: versions.programs } },
+      });
+      expect(json.type).to.equal("dirty");
+      const stored = Object.values(di.dynamo.data[userTableNames.prod.programs]) as IProgramRowItem[];
+      expect(stored.map((p) => [p.planner, p.pz != null])).to.eql([[undefined, true]]);
+      const [readBack] = await new UserDao(di).getProgramsByUserId(userId);
+      expect(readBack.planner).to.eql(big.planner);
     });
 
     it("a re-sent tombstone still deletes the surviving row", async () => {
