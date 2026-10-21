@@ -90,7 +90,7 @@ const SETUP_SCHEMA: IMcpJsonSchema = {
   description:
     "The preferred way to describe equipment. Replaces the whole setup, so send every field you want to keep (read the current one with get_equipment first). All numbers are in `unit`. Do not send it together with bar, plates, fixed, multiplier, isFixed, unit, useBodyweightForBar or isAssisting: those are derived from setup. Fields per type: " +
     "plates = base, plates, sides, horns?, warmupPlates?. " +
-    "stack = ranges, base?, builtin?, addOn?, skipAddOnsInWarmups?, pullRatio?. " +
+    "stack = ranges, base?, builtin?, addOn?, skipAddOnsInWarmups?, pullRatio?, stackCount?, showPinNumbers?. " +
     "fixed = ranges, values, addOn?. " +
     "electric = min, max, step. " +
     "bands = bands, combine. " +
@@ -156,6 +156,16 @@ const SETUP_SCHEMA: IMcpJsonSchema = {
     pullRatio: {
       type: "number",
       description: "stack: the share of the stack weight felt at the handle. 0.5 for a 2:1 pulley.",
+    },
+    stackCount: {
+      type: "number",
+      description:
+        "stack: 1-4 identical stacks pinned together, each to the same pin. ranges describe one stack. Default 1.",
+    },
+    showPinNumbers: {
+      type: "boolean",
+      description:
+        "stack: show the pin as its position in the stack (Pin #7, from the lightest plate) instead of its weight",
     },
     values: {
       type: "array",

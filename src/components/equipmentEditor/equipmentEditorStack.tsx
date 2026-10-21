@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { Text } from "../primitives/text";
 import { MenuItemEditable } from "../menuItemEditable";
 import { IStackSetup } from "../../types";
+import { EquipmentSetupEdit_pinNumbersExample } from "../../models/equipmentSetupEdit";
 import {
   EquipmentEditorActions,
   EquipmentEditorCard,
@@ -62,6 +63,42 @@ export function EquipmentEditorStack(props: IEquipmentEditorSectionProps<IStackS
             ])}
             onChange={(value) => onChange({ ...setup, pullRatio: Number(value) })}
           />
+        </EquipmentEditorCard>
+      )}
+      {setup.stackCount != null && (
+        <EquipmentEditorCard
+          title="Stacks pinned together"
+          right={
+            <EquipmentEditorClose
+              testID="equipment-stacks-remove"
+              onPress={() => onChange({ ...setup, stackCount: undefined })}
+            />
+          }
+        >
+          <EquipmentEditorNumberRow
+            label="Stacks"
+            help="Each stack gets the same pin. Ranges above are for one stack."
+            isLast={true}
+            min={2}
+            max={4}
+            value={setup.stackCount}
+            testID="equipment-stacks"
+            onChange={(stackCount) => onChange({ ...setup, stackCount })}
+          />
+        </EquipmentEditorCard>
+      )}
+      {setup.showPinNumbers && (
+        <EquipmentEditorCard
+          title="Pin numbers instead of weights"
+          help={EquipmentSetupEdit_pinNumbersExample(setup)}
+          right={
+            <EquipmentEditorClose
+              testID="equipment-pin-numbers-remove"
+              onPress={() => onChange({ ...setup, showPinNumbers: undefined })}
+            />
+          }
+        >
+          <View className="pt-1" />
         </EquipmentEditorCard>
       )}
       {setup.base != null && (
@@ -165,6 +202,24 @@ export function EquipmentEditorStack(props: IEquipmentEditorSectionProps<IStackS
                   name: "equipment-add-ratio",
                   label: "Add pull ratio",
                   onClick: () => onChange({ ...setup, pullRatio: 1 }),
+                },
+              ]
+            : []),
+          ...(setup.stackCount == null
+            ? [
+                {
+                  name: "equipment-add-stacks",
+                  label: "Add a second stack pinned together",
+                  onClick: () => onChange({ ...setup, stackCount: 2 }),
+                },
+              ]
+            : []),
+          ...(!setup.showPinNumbers
+            ? [
+                {
+                  name: "equipment-add-pin-numbers",
+                  label: "Show pin numbers instead of weights",
+                  onClick: () => onChange({ ...setup, showPinNumbers: true }),
                 },
               ]
             : []),

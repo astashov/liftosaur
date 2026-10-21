@@ -124,3 +124,23 @@ test("bands equipment", async ({ page }) => {
   await page.locator(`[data-testid="navbar-back"]:visible`).click();
   await expect(page.getByTestId("group-header-loops")).toContainText("Yellow, Red, Blue, Green, Black, Band 6");
 });
+
+test("linked weight stacks with pin numbers", async ({ page }) => {
+  page.on("dialog", (dialog) => dialog.accept());
+  await page.goto(startpage + "?skipintro=1&nosync=true");
+  await PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
+  await PlaywrightUtils_disableSubscriptions(page);
+
+  await page.getByTestId("footer-me").click();
+  await page.getByTestId("menu-item-available-equipment").click();
+  await page.getByTestId("group-header-cable").click();
+  await expect(page.locator(`[data-testid="equipment-editor"]:visible`)).toHaveCount(1);
+
+  await page.locator(`[data-testid="equipment-add-stacks"]:visible`).click();
+  await page.locator(`[data-testid="equipment-add-pin-numbers"]:visible`).click();
+  await fillNumber(page, "input-equipment-try-weight-field", "100");
+  await expect(page.locator(`[data-testid="equipment-try-result"]:visible`)).toHaveText("Pin #5 × 2");
+  await page.locator(`[data-testid="navbar-back"]:visible`).click();
+  await expect(page.getByTestId("group-header-cable")).toContainText("2 stacks · pin numbers");
+});

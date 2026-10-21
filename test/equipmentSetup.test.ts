@@ -118,7 +118,9 @@ describe("EquipmentSetup", () => {
       expect(setup.bodyweight).to.eql({});
       const edited = EquipmentSetup_save(data, { ...setup, sides: 1 });
       expect(edited.useBodyweightForBar).to.equal(true);
-      const load = EquipmentLoadSolver_select(setup, w(225, "lb"), { bodyweight: Equipment_previewBodyweight(settings) });
+      const load = EquipmentLoadSolver_select(setup, w(225, "lb"), {
+        bodyweight: Equipment_previewBodyweight(settings),
+      });
       expect(load.total.value).to.be.within(220, 225);
     });
 
@@ -195,6 +197,7 @@ describe("EquipmentSetup", () => {
         },
       ],
       ["half-ratio stack", { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }], pullRatio: 0.5 }],
+      ["two linked stacks", { type: "stack", unit: "lb", ranges: [{ from: 10, to: 150, step: 10 }], stackCount: 2 }],
       ["stack with base", { type: "stack", unit: "kg", base: 3, ranges: [{ from: 5, to: 60, step: 5 }] }],
       ["electric", { type: "electric", unit: "lb", min: 5, max: 200, step: 1 }],
       ["fixed", { type: "fixed", unit: "kg", ranges: [{ from: 2.5, to: 25, step: 2.5 }], values: [27.5] }],
@@ -383,12 +386,14 @@ describe("EquipmentSetup", () => {
         ],
       };
       expect(EquipmentSetup_validate(stack)).to.eql([]);
+      const pairsOnHorns = {
+        ...stack,
+        addOn: [45, 35, 25, 10, 5, 2.5, 1, 0.75, 0.5, 0.25].map((weight) => ({ weight, num: 2 })),
+      };
+      expect(EquipmentSetup_validate(pairsOnHorns)).to.eql([]);
       const huge = {
         ...stack,
-        addOn: [
-          { weight: 0.5, num: 50 },
-          { weight: 1, num: 50 },
-        ],
+        addOn: [1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024].map((weight) => ({ weight, num: 1 })),
       };
       expect(EquipmentSetup_validate(huge)).to.eql([
         "Too many added plates to combine. Remove some sizes or lower their counts.",
@@ -432,6 +437,18 @@ describe("EquipmentSetup", () => {
         pullRatio: 0.5,
       };
       expect(EquipmentSetup_summary(setup)).to.equal("Weight stack · 10–200 by 10 · half · +5/10");
+      expect(EquipmentSetup_summary({ ...setup, stackCount: 2, showPinNumbers: true })).to.equal(
+        "Weight stack · 10–200 by 10 · half · 2 stacks · pin numbers · +5/10"
+      );
+    });
+
+    it("allows 1 to 4 linked stacks", () => {
+      const stack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
+      expect(EquipmentSetup_validate({ ...stack, stackCount: 2 })).to.eql([]);
+      expect(EquipmentSetup_validate({ ...stack, stackCount: 5 })).to.eql([
+        "The number of stacks must be a whole number from 1 to 4.",
+      ]);
+      expect(EquipmentSetup_validate({ ...stack, stackCount: 1.5 })).to.have.lengthOf(1);
     });
 
     it("lists fixed weights without a plus when there are no ranges", () => {

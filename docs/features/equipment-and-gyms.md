@@ -84,6 +84,8 @@ Optional cards:
 - **Add plates you add (magnets, small blocks)**: small plates you combine with the pin. With built-in weights or added plates, **Skip add-ons in warmups** makes warmups use the stack only.
 - **Add pull ratio**: for pulleys. **Stack says 100 lb, you pull** has **100 lb, same**, **50 lb, half** and **25 lb, quarter**.
 - **Add weight that always lifts with the stack**: a handle or carriage the stack number does not include.
+- **Add a second stack pinned together**: for two or more identical stacks you use at once. **Stacks** takes 2 to 4. The **Stack** card describes one stack, so 100 lb on two stacks shows **Pin 50 × 2**.
+- **Show pin numbers instead of weights**: for stacks labelled 1, 2, 3 instead of a weight. The pin shows as **Pin #7**, counted from the lightest plate. **Try a weight** still shows the total.
 
 ### Fixed weights
 

@@ -9,7 +9,7 @@ import {
   IWeightRange,
 } from "../types";
 import { StringUtils_hashString } from "../utils/string";
-import { EquipmentLoadSolver_reachable } from "./equipmentLoadSolver";
+import { EquipmentLoadSolver_hasTooManyTotals, EquipmentLoadSolver_reachable } from "./equipmentLoadSolver";
 import { Weight_smartConvert } from "./weight";
 
 type ILegacyFields = Pick<
@@ -22,6 +22,7 @@ const MAX_LEGACY_FIXED = 200;
 const MAX_LEGACY_BAND_TOTALS = 50;
 const LB_PER_KG = 2.20462;
 const STEP_PRECISION = 100;
+const MAX_STACKS = 4;
 
 const PLATE_EQUIVALENTS: [number, number][] = [
   [55, 25],
@@ -138,16 +139,18 @@ function legacyFixed(setup: IEquipmentSetup, values: number[]): ILegacyFields {
 
 function stackToLegacy(setup: IStackSetup): ILegacyFields {
   const ratio = setup.pullRatio ?? 1;
+  const stacks = setup.stackCount ?? 1;
   const first = setup.ranges[0];
   if (first == null) {
     return legacyFixed(setup, []);
   }
+  const step = first.step * stacks * ratio;
   if (setup.direction === "assists") {
     const start = setup.bodyweight != null ? 0 : (setup.base ?? 0) * ratio;
-    return legacyStepPlates(setup, start, first.step * ratio, Math.floor(first.to / first.step + 1e-6));
+    return legacyStepPlates(setup, start, step, Math.floor(first.to / first.step + 1e-6));
   }
   const count = Math.floor((first.to - first.from) / first.step + 1e-6);
-  return legacyStepPlates(setup, ((setup.base ?? 0) + first.from) * ratio, first.step * ratio, count);
+  return legacyStepPlates(setup, ((setup.base ?? 0) + first.from * stacks) * ratio, step, count);
 }
 
 export function EquipmentSetup_toLegacy(setup: IEquipmentSetup): ILegacyFields {
@@ -306,8 +309,6 @@ function bodyweightText(setup: IEquipmentSetup): string | undefined {
   return setup.bodyweight != null ? "+ bodyweight" : undefined;
 }
 
-const MAX_COMBINATIONS = 2000;
-
 function isNumber(value: number): boolean {
   return typeof value === "number" && Number.isFinite(value);
 }
@@ -340,12 +341,8 @@ function countErrors(items: { weight: number; num: number }[], what: string): st
   return errors;
 }
 
-function combinationCount(items: { num: number }[]): number {
-  return items.reduce((memo, item) => memo * (Math.max(0, item.num) + 1), 1);
-}
-
-function combinationErrors(items: { num: number }[], what: string): string[] {
-  return combinationCount(items) > MAX_COMBINATIONS
+function combinationErrors(items: { weight: number; num: number }[], what: string): string[] {
+  return EquipmentLoadSolver_hasTooManyTotals(items)
     ? [`Too many ${what} to combine. Remove some sizes or lower their counts.`]
     : [];
 }
@@ -358,6 +355,10 @@ function typeErrors(setup: IEquipmentSetup): string[] {
         ...(setup.ranges.length === 0 ? ["Add at least one range to the stack."] : []),
         ...rangeErrors(setup.ranges),
         ...(!isNumber(pullRatio) || pullRatio <= 0 ? ["The pull ratio must be above 0."] : []),
+        ...(setup.stackCount != null &&
+        (!Number.isInteger(setup.stackCount) || setup.stackCount < 1 || setup.stackCount > MAX_STACKS)
+          ? [`The number of stacks must be a whole number from 1 to ${MAX_STACKS}.`]
+          : []),
         ...((setup.builtin ?? []).some((b) => !isNumber(b) || b <= 0) ? ["Built-in weights must be above 0."] : []),
         ...countErrors(setup.addOn ?? [], "added plate"),
         ...combinationErrors(setup.addOn ?? [], "added plates"),
@@ -412,6 +413,8 @@ export function EquipmentSetup_summary(setup: IEquipmentSetup): string {
     case "stack": {
       const addOns = [...(setup.builtin ?? []), ...(setup.addOn ?? []).map((p) => p.weight)];
       parts.push("Weight stack", rangesText(setup.ranges), ratioText(setup.pullRatio));
+      parts.push(setup.stackCount != null && setup.stackCount > 1 ? `${setup.stackCount} stacks` : undefined);
+      parts.push(setup.showPinNumbers ? "pin numbers" : undefined);
       parts.push(addOns.length > 0 ? `+${addOns.join("/")}` : undefined);
       break;
     }

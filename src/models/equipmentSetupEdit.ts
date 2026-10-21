@@ -4,6 +4,7 @@ import {
   IEquipmentHorn,
   IEquipmentSetup,
   IPlateCount,
+  IStackSetup,
   IUnit,
   IWeight,
   IWeightRange,
@@ -222,6 +223,20 @@ export function EquipmentSetupEdit_bodyweightModesToAdd(
   supported: IEquipmentBodyweightMode[]
 ): IEquipmentBodyweightMode[] {
   return EquipmentSetupEdit_bodyweightMode(setup) != null ? [] : supported;
+}
+
+export function EquipmentSetupEdit_pinNumbersExample(setup: IStackSetup): string {
+  const pins: number[] = [];
+  for (const range of setup.ranges) {
+    for (let w = range.from; range.step > 0 && w <= range.to + 1e-6 && pins.length < 3; w += range.step) {
+      const pin = Math.round(w * 1e6) / 1e6;
+      if (pins.indexOf(pin) === -1) {
+        pins.push(pin);
+      }
+    }
+  }
+  const examples = pins.map((pin, i) => `#${i + 1} is ${pin} ${setup.unit}`).join(", ");
+  return examples !== "" ? `Counted from the lightest plate: ${examples}.` : "Counted from the lightest plate.";
 }
 
 export function EquipmentSetupEdit_bodyweightPercent(setup: IEquipmentSetup): number {

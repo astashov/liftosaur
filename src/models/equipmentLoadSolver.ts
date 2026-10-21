@@ -16,7 +16,7 @@ export interface IEquipmentLoadQuery {
 }
 
 export type IEquipmentLoadInstruction =
-  | { type: "stack"; pin: number; builtin?: number; addOn: IPlateCount[] }
+  | { type: "stack"; pin: number; pinNumber?: number; stacks?: number; builtin?: number; addOn: IPlateCount[] }
   | { type: "plates"; sides: number; horns: { name?: string; plates: IPlateCount[] }[] }
   | { type: "fixed"; value: number; addOn: IPlateCount[] }
   | { type: "electric"; value: number }
@@ -87,6 +87,10 @@ function mergePlates(plates: IPlateCount[]): IPlateCount[] {
     .sort((a, b) => b.weight - a.weight);
 }
 
+function lastInRange(range: IWeightRange): number {
+  return clean(range.from + Math.floor((range.to - range.from) / range.step + EPSILON) * range.step);
+}
+
 function rangeFloor(range: IWeightRange, x: number): number | undefined {
   if (range.step <= 0 || x < range.from - EPSILON) {
     return undefined;
@@ -99,7 +103,7 @@ function rangeCeil(range: IWeightRange, x: number): number | undefined {
   if (range.step <= 0) {
     return undefined;
   }
-  const last = range.from + Math.floor((range.to - range.from) / range.step + EPSILON) * range.step;
+  const last = lastInRange(range);
   if (x > last + EPSILON) {
     return undefined;
   }
@@ -165,6 +169,29 @@ function combinations<T>(entries: { item: T; weight: number; num: number }[]): I
     }
   }
   return Array.from(result.values()).sort((a, b) => a.total - b.total);
+}
+
+function pinNumber(ranges: IWeightRange[], pin: number): number {
+  let count = 0;
+  let previousLast: number | undefined;
+  for (const range of ranges) {
+    if (pin < range.from - EPSILON) {
+      break;
+    }
+    const last = lastInRange(range);
+    const steps = Math.floor((Math.min(pin, last) - range.from) / range.step + EPSILON);
+    const isShared = previousLast != null && Math.abs(range.from - previousLast) < EPSILON;
+    count += steps + (isShared ? 0 : 1);
+    previousLast = last;
+    if (pin <= last + EPSILON) {
+      break;
+    }
+  }
+  return count;
+}
+
+export function EquipmentLoadSolver_hasTooManyTotals(items: { weight: number; num: number }[]): boolean {
+  return combinations(items.map((i) => ({ item: i.weight, weight: i.weight, num: i.num }))).length >= MAX_COMBINATIONS;
 }
 
 interface IAddOnOption {
@@ -509,12 +536,19 @@ function pickerFor(setup: IEquipmentSetup, isWarmup: boolean): ILoadPicker {
     case "stack": {
       const skipAddOns = isWarmup && setup.skipAddOnsInWarmups;
       const addOns = skipAddOns ? addOnOptions([], []) : addOnOptions(setup.builtin ?? [], setup.addOn ?? []);
-      return rangesPicker(setup.ranges, [], addOns, (value, addOn) => ({
-        type: "stack",
-        pin: value,
-        builtin: addOn.builtin,
-        addOn: addOn.plates,
-      }));
+      const stacks = setup.stackCount ?? 1;
+      const allStacks = setup.ranges.map((r) => ({ from: r.from * stacks, to: r.to * stacks, step: r.step * stacks }));
+      return rangesPicker(allStacks, [], addOns, (value, addOn) => {
+        const pin = clean(value / stacks);
+        return {
+          type: "stack",
+          pin,
+          ...(setup.showPinNumbers ? { pinNumber: pinNumber(setup.ranges, pin) } : {}),
+          ...(stacks > 1 ? { stacks } : {}),
+          builtin: addOn.builtin,
+          addOn: addOn.plates,
+        };
+      });
     }
     case "plates": {
       const inventory =

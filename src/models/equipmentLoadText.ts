@@ -83,8 +83,10 @@ function addOnText(plates: IPlateCount[]): string {
 function instructionText(instruction: IEquipmentLoadInstruction): string {
   switch (instruction.type) {
     case "stack": {
+      const pin = instruction.pinNumber != null ? `#${instruction.pinNumber}` : `${instruction.pin}`;
+      const stacks = instruction.stacks != null ? ` × ${instruction.stacks}` : "";
       const builtin = instruction.builtin != null ? ` + ${instruction.builtin}` : "";
-      return `Pin ${instruction.pin}${builtin}${addOnText(instruction.addOn)}`;
+      return `Pin ${pin}${stacks}${builtin}${addOnText(instruction.addOn)}`;
     }
     case "plates": {
       if (instruction.horns.length === 1 && instruction.horns[0].name == null) {
@@ -134,7 +136,8 @@ export function EquipmentLoadText_tryResult(
   }
   const total = `${roundForText(load.total.value)} ${load.total.unit}`;
   const hasPullRatio = setup.type === "stack" && setup.pullRatio != null && setup.pullRatio !== 1;
-  const handle = hasPullRatio ? `= ${total} at the handle` : undefined;
+  const hidesWeight = setup.type === "stack" && (!!setup.showPinNumbers || (setup.stackCount ?? 1) > 1);
+  const handle = hasPullRatio ? `= ${total} at the handle` : hidesWeight ? `= ${total}` : undefined;
   if (load.exact) {
     return { main, handle, status: "exact" };
   }

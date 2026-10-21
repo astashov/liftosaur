@@ -1470,6 +1470,8 @@ export interface IStackSetup extends IEquipmentSetupBase {
   addOn?: IPlateCount[];
   skipAddOnsInWarmups?: boolean;
   pullRatio?: number;
+  stackCount?: number;
+  showPinNumbers?: boolean;
 }
 const _VStackSetup = v.object({
   ..._equipmentSetupBaseEntries,
@@ -1480,6 +1482,8 @@ const _VStackSetup = v.object({
   addOn: v.optional(v.array(_VPlateCount)),
   skipAddOnsInWarmups: v.optional(v.boolean()),
   pullRatio: v.optional(v.number()),
+  stackCount: v.optional(v.number()),
+  showPinNumbers: v.optional(v.boolean()),
 });
 const _VStackSetupMatches: IEquals<v.InferOutput<typeof _VStackSetup>, IStackSetup> = true;
 void _VStackSetupMatches;

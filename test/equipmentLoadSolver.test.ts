@@ -267,6 +267,51 @@ describe("EquipmentLoadSolver", () => {
   });
 
   describe("stack", () => {
+    it("pins linked stacks to the same number", () => {
+      const twin: IEquipmentSetup = {
+        type: "stack",
+        unit: "lb",
+        ranges: [{ from: 10, to: 150, step: 10 }],
+        stackCount: 2,
+      };
+      const load = EquipmentLoadSolver_select(twin, w(100), {});
+      expect(load.total).to.eql(w(100));
+      expect(EquipmentLoadText_format(load)).to.equal("Pin 50 × 2");
+      expect(EquipmentLoadSolver_select(twin, w(95), {}).total).to.eql(w(80));
+      expect(EquipmentLoadSolver_next(twin, w(100), {})).to.eql(w(120));
+      expect(EquipmentLoadText_tryResult(twin, load, w(100)).handle).to.equal("= 100 lb");
+    });
+
+    it("names the pin by its position when asked", () => {
+      const numbered: IEquipmentSetup = {
+        type: "stack",
+        unit: "lb",
+        ranges: [
+          { from: 15, to: 25, step: 5 },
+          { from: 25, to: 55, step: 10 },
+        ],
+        showPinNumbers: true,
+        builtin: [5],
+      };
+      expect(EquipmentLoadText_format(EquipmentLoadSolver_select(numbered, w(15), {}))).to.equal("Pin #1");
+      expect(EquipmentLoadText_format(EquipmentLoadSolver_select(numbered, w(35), {}))).to.equal("Pin #4");
+      expect(EquipmentLoadText_format(EquipmentLoadSolver_select(numbered, w(60), {}))).to.equal("Pin #6 + 5");
+      const offStep: IEquipmentSetup = {
+        type: "stack",
+        unit: "lb",
+        ranges: [
+          { from: 10, to: 25, step: 10 },
+          { from: 25, to: 55, step: 10 },
+        ],
+        showPinNumbers: true,
+      };
+      const pinOf = (target: number): string =>
+        EquipmentLoadText_format(EquipmentLoadSolver_select(offStep, w(target), {}));
+      expect([10, 20, 25, 35, 55].map(pinOf)).to.eql(["Pin #1", "Pin #2", "Pin #3", "Pin #4", "Pin #6"]);
+      const both = { ...numbered, stackCount: 2 };
+      expect(EquipmentLoadText_format(EquipmentLoadSolver_select(both, w(70), {}))).to.equal("Pin #4 × 2");
+    });
+
     const simpleStack: IEquipmentSetup = { type: "stack", unit: "lb", ranges: [{ from: 10, to: 200, step: 10 }] };
 
     it("rounds down by default and to nearest when asked", () => {

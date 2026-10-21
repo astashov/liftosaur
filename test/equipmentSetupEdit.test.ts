@@ -9,6 +9,7 @@ import {
   EquipmentSetupEdit_bodyweightHelp,
   EquipmentSetupEdit_bodyweightMode,
   EquipmentSetupEdit_bodyweightModesToAdd,
+  EquipmentSetupEdit_pinNumbersExample,
   EquipmentSetupEdit_bodyweightPercent,
   EquipmentSetupEdit_canAddHorn,
   EquipmentSetupEdit_hornPercents,
@@ -198,6 +199,20 @@ describe("EquipmentSetupEdit", () => {
     const kg = EquipmentSetupEdit_setBodyweight(EquipmentSetupEdit_default("plates", "kg"), "adds", true);
     expect(EquipmentSetupEdit_bodyweightHelp(kg, bodyweight, true)).to.equal(
       "Your bodyweight is 81.5 kg. 101.5 kg in a program means 20 kg added."
+    );
+  });
+
+  it("explains pin numbers with the first three pins", () => {
+    const stack: IStackSetup = {
+      type: "stack",
+      unit: "lb",
+      ranges: [
+        { from: 11, to: 22, step: 11 },
+        { from: 22, to: 132, step: 11 },
+      ],
+    };
+    expect(EquipmentSetupEdit_pinNumbersExample(stack)).to.equal(
+      "Counted from the lightest plate: #1 is 11 lb, #2 is 22 lb, #3 is 33 lb."
     );
   });
 
