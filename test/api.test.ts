@@ -6,6 +6,7 @@ import { getRawHandler, IHandler } from "../lambda";
 import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
 import { userTableNames } from "../lambda/dao/userDao";
+import { UserRow_unpack } from "../lambda/utils/userRow";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { Storage_getDefault } from "../src/models/storage";
 import { Service } from "../src/api/service";
@@ -1323,6 +1324,17 @@ Deadlift / 1x5 / 200lb`;
 
       const next = await req("GET", `/api/v1/workout/next?programId=${programId}`);
       expect(next.data.data.workout.dayName).to.equal("Day 2");
+    });
+
+    it("bumps the program's nextDay version on finish, so app clients pull the advanced day", async () => {
+      const started = await startWorkout();
+      const startTime = started.data.data.workout.startTime;
+      await req("POST", "/api/v1/workout/finish", { startTime }, clientHeaders);
+      const stored = UserRow_unpack(
+        await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } })
+      );
+      const [programVersions] = Object.values((stored.storage._versions?.programs as any).items) as any[];
+      expect(programVersions.nextDay.vc[clientHeaders["X-Liftosaur-Device-Id"]]).to.equal(1);
     });
 
     it("records the client as the record's source", async () => {

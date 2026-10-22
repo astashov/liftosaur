@@ -990,13 +990,18 @@ export async function ApiV1_finishWorkout(
   // and the replay-by-startTime path above depends on the record existing.
   await userDao.saveHistoryRecord(userId, record);
 
-  const history = await userDao.getHistoryByUserId(userId);
-  user.storage = { ...user.storage, history };
+  const isAdHoc = newProgram.id === emptyProgramId;
+  const [history, programs] = await Promise.all([
+    userDao.getHistoryByUserId(userId),
+    isAdHoc ? Promise.resolve(user.storage.programs) : userDao.getProgramsByUserId(userId),
+  ]);
+  user.storage = { ...user.storage, history, programs };
   await userDao.applyStorageUpdate(
     user,
     (old) => ({
       ...old,
       progress: [],
+      programs: isAdHoc ? old.programs : (old.programs || []).map((p) => (p.id === newProgram.id ? newProgram : p)),
       history: [record, ...(old.history || []).filter((h) => h.id !== record.id)],
       workoutOutcomes: WorkoutOutcome_add(old.workoutOutcomes, {
         id: record.id,
@@ -1014,7 +1019,7 @@ export async function ApiV1_finishWorkout(
     identity.deviceId,
     // An ad-hoc workout's program is synthesised, not stored — persisting it would add a phantom "Ad-Hoc Workout"
     // to the user's program list.
-    newProgram.id === emptyProgramId ? undefined : [userDao.saveProgram(userId, newProgram)]
+    isAdHoc ? undefined : [userDao.saveProgram(userId, newProgram)]
   );
 
   return ok({ workout: summarize(record, newProgram, ctx.settings) });
