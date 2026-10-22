@@ -99,6 +99,8 @@ When mentioning exercises in the description text, use this syntax: `[{Exercise 
 
 For example: `[{Squat}]`, `[{Bench Press}]`, `[{Romanian Deadlift}]`
 
+**Never use `[{Exercise Name}]` in the summary paragraph above `<!-- more -->`.** The app shows that paragraph as plain text in the "Start program" sheet, so the brackets render literally. Write plain exercise names there (e.g., "squat", "bench press").
+
 ### Program Cross-Reference Syntax
 
 When mentioning other Liftosaur programs in the description text, always link to them using internal links. Use markdown link syntax with the program's URL path:

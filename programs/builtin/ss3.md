@@ -12,7 +12,7 @@ duration: "30-45"
 goal: "strength"
 ---
 
-A beginner barbell program and the advanced novice phase of Starting Strength. [{Chin Up}] added for upper body pulling volume. [{Deadlift}] and [{Power Clean}] alternate within Workout A, creating a four-workout rotation. Microloading (2.5lb jumps) typically needed for [{Overhead Press}] and [{Bench Press}] at this stage.
+A beginner barbell program and the advanced novice phase of Starting Strength. Chin Up added for upper body pulling volume. Deadlift and Power Clean alternate within Workout A, creating a four-workout rotation. Microloading (2.5lb jumps) typically needed for Overhead Press and Bench Press at this stage.
 
 <!-- more -->
 

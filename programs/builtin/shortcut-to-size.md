@@ -12,7 +12,7 @@ duration: "90+"
 goal: "hypertrophy"
 ---
 
-Jim Stoppani's Shortcut to Size is a 12-week hypertrophy program built around weekly undulating periodization. Each 4-week phase cycles through four rep ranges (12-15, 9-11, 6-8, 3-5), progressively loading heavier while changing accessory exercises between phases. The anchor lifts - [{Bench Press}], [{Bent Over Row, Dumbbell}], [{Shoulder Press}], [{Squat}], [{Bicep Curl, Barbell}] - stay constant across all 12 weeks, while supporting movements rotate every 4 weeks to hit muscles from different angles.
+Jim Stoppani's Shortcut to Size is a 12-week hypertrophy program built around weekly undulating periodization. Each 4-week phase cycles through four rep ranges (12-15, 9-11, 6-8, 3-5), progressively loading heavier while changing accessory exercises between phases. The anchor lifts - Bench Press, Dumbbell Row, Shoulder Press, Squat, Barbell Curl - stay constant across all 12 weeks, while supporting movements rotate every 4 weeks to hit muscles from different angles.
 
 <!-- more -->
 

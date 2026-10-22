@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "strength_and_hypertrophy"
 ---
 
-A 4-day program by Joe DeFranco that adapts the Westside Barbell conjugate method for athletes and skinny lifters. Two upper body days - one heavy (max effort) and one high-rep (repetition method) - plus a jump/mobility day and a heavy lower body day. The max effort exercise rotates every 2 weeks across a 6-week cycle: [{Bench Press}] -> [{Incline Bench Press}] -> [{Bench Press Close Grip}] for upper, and [{Box Squat}] -> [{Deadlift}] -> [{Squat}] for lower. Built around heavy 3-5 rep maxes rather than true 1RMs, making it safer and more practical for non-powerlifters.
+A 4-day program by Joe DeFranco that adapts the Westside Barbell conjugate method for athletes and skinny lifters. Two upper body days - one heavy (max effort) and one high-rep (repetition method) - plus a jump/mobility day and a heavy lower body day. The max effort exercise rotates every 2 weeks across a 6-week cycle: Bench Press -> Incline Bench Press -> Bench Press Close Grip for upper, and Box Squat -> Deadlift -> Squat for lower. Built around heavy 3-5 rep maxes rather than true 1RMs, making it safer and more practical for non-powerlifters.
 
 <!-- more -->
 

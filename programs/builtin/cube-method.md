@@ -12,7 +12,7 @@ duration: "45-60"
 goal: "strength"
 ---
 
-A 10-week powerlifting peaking program by Brandon Lilly that rotates heavy, explosive, and repetition work across [{Squat}], [{Bench Press}], and [{Deadlift}] in three 3-week waves plus a meet week. Each week has one heavy lift, one explosive lift, and one rep lift — you never grind two heavy sessions in the same week. A fourth day targets bodybuilding weak points.
+A 10-week powerlifting peaking program by Brandon Lilly that rotates heavy, explosive, and repetition work across Squat, Bench Press, and Deadlift in three 3-week waves plus a meet week. Each week has one heavy lift, one explosive lift, and one rep lift — you never grind two heavy sessions in the same week. A fourth day targets bodybuilding weak points.
 
 <!-- more -->
 

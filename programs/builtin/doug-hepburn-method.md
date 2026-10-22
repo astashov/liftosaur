@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "strength_and_hypertrophy"
 ---
 
-Doug Hepburn's Power-Pump method pairs heavy low-rep sets with moderate higher-rep sets for each main lift. Start at 8 sets of 2 and build to 8 sets of 3 by adding one rep per session. When all sets hit triples, add weight and restart with doubles. [{Squat}], [{Bench Press}], [{Deadlift}], and [{Overhead Press}] each get trained twice per week, with [{Chin Up}] and [{Bent Over Row}] for pulling balance.
+Doug Hepburn's Power-Pump method pairs heavy low-rep sets with moderate higher-rep sets for each main lift. Start at 8 sets of 2 and build to 8 sets of 3 by adding one rep per session. When all sets hit triples, add weight and restart with doubles. Squat, Bench Press, Deadlift, and Overhead Press each get trained twice per week, with Chin Up and Bent Over Row for pulling balance.
 
 <!-- more -->
 

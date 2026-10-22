@@ -12,7 +12,7 @@ duration: "45-60"
 goal: "strength_and_hypertrophy"
 ---
 
-A 6-week hypertrophy block from K. Black's Tactical Barbell system. Three days per week hit [{Squat}], [{Bench Press}], and [{Pull Up}], plus a fourth day dedicated to [{Deadlift}]. Two 3-week waves ramp intensity while tapering volume, finishing with a peaking week.
+A 6-week hypertrophy block from K. Black's Tactical Barbell system. Three days per week hit Squat, Bench Press, and Pull Up, plus a fourth day dedicated to Deadlift. Two 3-week waves ramp intensity while tapering volume, finishing with a peaking week.
 
 <!-- more -->
 

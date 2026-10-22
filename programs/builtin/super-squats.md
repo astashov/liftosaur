@@ -12,7 +12,7 @@ duration: "60-90"
 goal: "hypertrophy"
 ---
 
-Super Squats is the 20-rep "breathing squat" program from Randall Strossen's 1989 book. You take the weight you can [{Squat}] for 10 reps and do 20 reps with it, in one set, taking deep breaths between reps. Then you add 5lb to the bar every single workout, three times a week, for six weeks. A light [{Pullover}] follows right after the squat. The rest of the session is a short list of basic barbell lifts - [{Behind The Neck Press}], [{Bench Press}], [{Bent Over Row}], [{Bicep Curl, Barbell}] and [{Stiff Leg Deadlift}]. Eat a lot and drink milk - the program only works in a big calorie surplus.
+Super Squats is the 20-rep "breathing squat" program from Randall Strossen's 1989 book. You take the weight you can squat for 10 reps and do 20 reps with it, in one set, taking deep breaths between reps. Then you add 5lb to the bar every single workout, three times a week, for six weeks. A light pullover follows right after the squat. The rest of the session is a short list of basic barbell lifts - behind the neck press, bench press, bent over row, barbell curl and stiff leg deadlift. Eat a lot and drink milk - the program only works in a big calorie surplus.
 
 <!-- more -->
 

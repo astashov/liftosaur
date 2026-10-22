@@ -12,7 +12,7 @@ duration: "90+"
 goal: "strength"
 ---
 
-Boris Sheiko's classic 16-week powerlifting peaking cycle, built from four 4-week blocks (#29, #30, #31, #32). Trains [{Squat}], [{Bench Press}], and [{Deadlift}] at submaximal loads with very high volume - every one of the 48 workouts is unique. Designed for intermediate to advanced powerlifters preparing for competition or wanting to test new 1RMs.
+Boris Sheiko's classic 16-week powerlifting peaking cycle, built from four 4-week blocks (#29, #30, #31, #32). Trains Squat, Bench Press, and Deadlift at submaximal loads with very high volume - every one of the 48 workouts is unique. Designed for intermediate to advanced powerlifters preparing for competition or wanting to test new 1RMs.
 
 <!-- more -->
 

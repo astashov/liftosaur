@@ -12,7 +12,7 @@ duration: "45-60"
 goal: "strength"
 ---
 
-Smolov Jr is a 3-week high-frequency, high-volume peaking cycle derived from the base mesocycle of the full [Smolov Squat](/programs/smolov-squat) program. You train one lift 4 days per week at 70-85% of 1RM with fixed set/rep schemes (6x6, 7x5, 8x4, 10x3) and add 10 lbs each week. This implementation uses [{Bench Press}] — the most popular Smolov Jr application — but the exercise can be swapped to [{Squat}] or [{Overhead Press}].
+Smolov Jr is a 3-week high-frequency, high-volume peaking cycle derived from the base mesocycle of the full [Smolov Squat](/programs/smolov-squat) program. You train one lift 4 days per week at 70-85% of 1RM with fixed set/rep schemes (6x6, 7x5, 8x4, 10x3) and add 10 lbs each week. This implementation uses Bench Press — the most popular Smolov Jr application — but the exercise can be swapped to Squat or Overhead Press.
 
 <!-- more -->
 

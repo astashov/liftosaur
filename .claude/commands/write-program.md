@@ -163,7 +163,7 @@ Answer text here.
 `` `
 ```
 
-**Exercise Reference Syntax:** When mentioning exercises in the description text, use this syntax: `[{Exercise Name}]` (e.g., `[{Squat}]`, `[{Bench Press}]`)
+**Exercise Reference Syntax:** When mentioning exercises in the description text, use this syntax: `[{Exercise Name}]` (e.g., `[{Squat}]`, `[{Bench Press}]`). Never use it in the summary paragraph above `<!-- more -->` - the app shows that paragraph as plain text, so the brackets render literally. Write plain exercise names there.
 
 **Program Cross-Reference Syntax:** When mentioning other Liftosaur programs, link to them: `[Program Name](/programs/program-id)` (e.g., `[GZCLP](/programs/gzclp)`). Check existing programs in `programs/builtin/` for correct IDs. Only link to programs that exist.
 

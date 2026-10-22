@@ -12,7 +12,7 @@ duration: "30-45"
 goal: "strength"
 ---
 
-The flagship strength template from K. Black's Tactical Barbell system. Three full-body sessions per week using just 3 lifts — [{Squat}], [{Bench Press}], and [{Pull Up}] — with [{Deadlift}] swapped in once per week. A 6-week wave cycles intensity from 70% to 95% of Training Max, keeping all work submaximal so you can train hard alongside demanding conditioning or job requirements.
+The flagship strength template from K. Black's Tactical Barbell system. Three full-body sessions per week using just 3 lifts — Squat, Bench Press, and Pull Up — with Deadlift swapped in once per week. A 6-week wave cycles intensity from 70% to 95% of Training Max, keeping all work submaximal so you can train hard alongside demanding conditioning or job requirements.
 
 <!-- more -->
 

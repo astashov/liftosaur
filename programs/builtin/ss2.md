@@ -12,7 +12,7 @@ duration: "30-45"
 goal: "strength"
 ---
 
-A beginner barbell program and the classic phase of Starting Strength. [{Power Clean}] replaces [{Deadlift}] on alternate sessions, reducing deadlift frequency to aid recovery while maintaining posterior chain development through explosive pulling. This is the phase most beginner lifters spend the longest in — typically several months of consistent 5lb jumps.
+A beginner barbell program and the classic phase of Starting Strength. Power Clean replaces Deadlift on alternate sessions, reducing deadlift frequency to aid recovery while maintaining posterior chain development through explosive pulling. This is the phase most beginner lifters spend the longest in — typically several months of consistent 5lb jumps.
 
 <!-- more -->
 

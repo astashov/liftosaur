@@ -12,7 +12,7 @@ duration: "30-45"
 goal: "strength"
 ---
 
-A beginner linear progression program that adds dedicated pulling exercises (chin-ups and rows) to every session. Two alternating full-body workouts, 3 days per week, with AMRAP last sets that autoregulate intensity and drive an accelerated progression system. [{Deadlift}] uses a single heavy AMRAP set to keep sessions short.
+A beginner linear progression program that adds dedicated pulling exercises (chin-ups and rows) to every session. Two alternating full-body workouts, 3 days per week, with AMRAP last sets that autoregulate intensity and drive an accelerated progression system. Deadlift uses a single heavy AMRAP set to keep sessions short.
 
 <!-- more -->
 
