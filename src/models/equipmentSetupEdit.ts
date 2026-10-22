@@ -375,6 +375,15 @@ export function EquipmentSetupEdit_setHornRatio(
   return horns.map((horn, i) => (i === index ? { ...horn, ratio } : horn));
 }
 
+export function EquipmentSetupEdit_setHornName(horns: IEquipmentHorn[], index: number, name: string): IEquipmentHorn[] {
+  const trimmed = name.trim();
+  const isTaken = horns.some((horn, i) => i !== index && horn.name.toLowerCase() === trimmed.toLowerCase());
+  if (trimmed === "" || isTaken || horns[index] == null) {
+    return horns;
+  }
+  return horns.map((horn, i) => (i === index ? { ...horn, name: trimmed } : horn));
+}
+
 export function EquipmentSetupEdit_removeHorn(horns: IEquipmentHorn[], index: number): IEquipmentHorn[] | undefined {
   const rest = horns.filter((_, i) => i !== index);
   return rest.length > 1 ? rest : undefined;

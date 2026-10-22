@@ -1,17 +1,18 @@
-import { JSX } from "react";
+import { JSX, useRef } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
+import { TextInput } from "../primitives/textInput";
 import { InputNumber2 } from "../inputNumber2";
-import { MenuItem } from "../menuItem";
 import { MenuItemEditable } from "../menuItemEditable";
 import { AddButton } from "../addButton";
-import { IPlatesSetup } from "../../types";
+import { IEquipmentHorn, IPlatesSetup } from "../../types";
 import {
   EquipmentSetupEdit_addHorn,
   EquipmentSetupEdit_canAddHorn,
   EquipmentSetupEdit_hornPercents,
   EquipmentSetupEdit_defaultWarmupPlates,
   EquipmentSetupEdit_removeHorn,
+  EquipmentSetupEdit_setHornName,
   EquipmentSetupEdit_setHornRatio,
   EquipmentSetupEdit_toggleWarmupPlate,
 } from "../../models/equipmentSetupEdit";
@@ -92,35 +93,14 @@ export function EquipmentEditorPlates(props: IEquipmentEditorSectionProps<IPlate
           }
         >
           {horns.map((horn, index) => (
-            <MenuItem
-              key={index}
-              name={horn.name ?? `Horn ${index + 1}`}
-              addons={
-                horns.length > 1 ? (
-                  <Text className="text-xs text-text-secondary">{percents[index]}% of the plates</Text>
-                ) : undefined
-              }
-              value={
-                <View className="flex-row items-center" style={{ gap: 4 }}>
-                  <Text className="text-sm text-text-secondary">ratio</Text>
-                  <InputNumber2
-                    name={`equipment-horn-ratio-${index}`}
-                    testID={`equipment-horn-ratio-${index}`}
-                    width={3}
-                    min={0}
-                    value={horn.ratio}
-                    onBlur={(ratio) => {
-                      if (ratio != null) {
-                        onChange({ ...setup, horns: EquipmentSetupEdit_setHornRatio(horns, index, ratio) });
-                      }
-                    }}
-                  />
-                  <EquipmentEditorRemove
-                    testID={`equipment-horn-remove-${index}`}
-                    onPress={() => onChange({ ...setup, horns: EquipmentSetupEdit_removeHorn(horns, index) })}
-                  />
-                </View>
-              }
+            <EquipmentEditorHornRow
+              key={`${index}-${horn.name}`}
+              horn={horn}
+              index={index}
+              percent={horns.length > 1 ? percents[index] : undefined}
+              onRename={(name) => onChange({ ...setup, horns: EquipmentSetupEdit_setHornName(horns, index, name) })}
+              onRatio={(ratio) => onChange({ ...setup, horns: EquipmentSetupEdit_setHornRatio(horns, index, ratio) })}
+              onRemove={() => onChange({ ...setup, horns: EquipmentSetupEdit_removeHorn(horns, index) })}
             />
           ))}
           {EquipmentSetupEdit_canAddHorn(horns) && (
@@ -187,6 +167,54 @@ export function EquipmentEditorPlates(props: IEquipmentEditorSectionProps<IPlate
           ...props.extraActions,
         ]}
       />
+    </View>
+  );
+}
+
+interface IHornRowProps {
+  horn: IEquipmentHorn;
+  index: number;
+  percent?: number;
+  onRename: (name: string) => void;
+  onRatio: (ratio: number) => void;
+  onRemove: () => void;
+}
+
+function EquipmentEditorHornRow(props: IHornRowProps): JSX.Element {
+  const { horn, index } = props;
+  const nameRef = useRef(horn.name);
+  return (
+    <View className="py-2 border-b border-border-cardpurple">
+      <View className="flex-row items-center" style={{ gap: 6 }}>
+        <TextInput
+          className="flex-1 px-2 text-sm border rounded h-scaled-6 border-border-prominent bg-background-default text-text-primary"
+          style={{ paddingVertical: 0, includeFontPadding: false }}
+          testID={`equipment-horn-name-${index}`}
+          data-testid={`equipment-horn-name-${index}`}
+          defaultValue={horn.name}
+          onChangeText={(text) => {
+            nameRef.current = text;
+          }}
+          onBlur={() => props.onRename(nameRef.current)}
+        />
+        <Text className="text-sm text-text-secondary">ratio</Text>
+        <InputNumber2
+          name={`equipment-horn-ratio-${index}`}
+          testID={`equipment-horn-ratio-${index}`}
+          width={3}
+          min={0}
+          value={horn.ratio}
+          onBlur={(ratio) => {
+            if (ratio != null) {
+              props.onRatio(ratio);
+            }
+          }}
+        />
+        <EquipmentEditorRemove testID={`equipment-horn-remove-${index}`} onPress={props.onRemove} />
+      </View>
+      {props.percent != null && (
+        <Text className="mt-1 text-xs text-text-secondary">{props.percent}% of the plates</Text>
+      )}
     </View>
   );
 }

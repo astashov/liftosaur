@@ -10,6 +10,7 @@ import {
   EquipmentSetupEdit_bodyweightMode,
   EquipmentSetupEdit_bodyweightModesToAdd,
   EquipmentSetupEdit_pinNumbersExample,
+  EquipmentSetupEdit_setHornName,
   EquipmentSetupEdit_bodyweightPercent,
   EquipmentSetupEdit_canAddHorn,
   EquipmentSetupEdit_hornPercents,
@@ -214,6 +215,19 @@ describe("EquipmentSetupEdit", () => {
     expect(EquipmentSetupEdit_pinNumbersExample(stack)).to.equal(
       "Counted from the lightest plate: #1 is 11 lb, #2 is 22 lb, #3 is 33 lb."
     );
+  });
+
+  it("renames a horn unless the name is empty or taken", () => {
+    const horns = [
+      { name: "Top", ratio: 3 },
+      { name: "Bottom", ratio: 1 },
+    ];
+    expect(EquipmentSetupEdit_setHornName(horns, 0, "  Upper ")).to.eql([
+      { name: "Upper", ratio: 3 },
+      { name: "Bottom", ratio: 1 },
+    ]);
+    expect(EquipmentSetupEdit_setHornName(horns, 0, "   ")).to.equal(horns);
+    expect(EquipmentSetupEdit_setHornName(horns, 0, "bottom")).to.equal(horns);
   });
 
   it("reads the bodyweight mode and percent back from a setup", () => {
