@@ -12,6 +12,7 @@ interface IProps {
   isFullHeight?: boolean;
   noPaddings?: boolean;
   shouldShowClose?: boolean;
+  closeOnOverlayClick?: boolean;
   overflowHidden?: boolean;
   innerClassName?: string;
   zIndex?: number;
@@ -62,7 +63,7 @@ export function Modal(props: IProps): JSX.Element {
     <section ref={modalRef} className={className} style={{ zIndex: props.zIndex ?? 40 }}>
       <div
         data-name="overlay"
-        onClick={props.shouldShowClose ? props.onClose : undefined}
+        onClick={props.shouldShowClose || props.closeOnOverlayClick ? props.onClose : undefined}
         className="absolute inset-0 z-10 overflow-scroll scrolling-touch opacity-50 bg-background-darkgray"
       ></div>
       <div

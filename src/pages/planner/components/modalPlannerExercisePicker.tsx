@@ -55,6 +55,7 @@ export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerPro
       overflowHidden={true}
       innerClassName="flex flex-col pt-4"
       shouldShowClose={false}
+      closeOnOverlayClick={true}
       onClose={onClose}
     >
       <ExercisePickerContent
