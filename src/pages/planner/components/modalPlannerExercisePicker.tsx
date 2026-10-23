@@ -53,13 +53,14 @@ export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerPro
       isFullHeight={true}
       noPaddings={true}
       overflowHidden={true}
-      innerClassName="flex flex-col"
+      innerClassName="flex flex-col pt-4"
       shouldShowClose={false}
       onClose={onClose}
     >
       <ExercisePickerContent
         settings={settings}
         isLoggedIn={props.isLoggedIn}
+        useInlineModals={true}
         exercisePicker={picker.state}
         usedExerciseTypes={usedExerciseTypes}
         evaluatedProgram={evaluatedProgram}

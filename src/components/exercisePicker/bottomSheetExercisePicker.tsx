@@ -18,6 +18,7 @@ import { buildCustomLensDispatch } from "../../ducks/types";
 
 interface IExercisePickerContentProps {
   isLoggedIn: boolean;
+  useInlineModals?: boolean;
   settings: ISettings;
   exercisePicker: IExercisePickerState;
   usedExerciseTypes: IExerciseType[];
@@ -66,6 +67,7 @@ export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.E
     return (
       <ExercisePickerCustomExercise
         screenStack={state.screenStack}
+        useInlineModals={props.useInlineModals}
         settings={props.settings}
         showMuscles={!!state.showMuscles}
         isLoggedIn={props.isLoggedIn}
