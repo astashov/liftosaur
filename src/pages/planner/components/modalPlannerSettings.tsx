@@ -7,9 +7,21 @@ import { Input, IValidationError } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
 import { ISettings, IUnit, IScreenMuscle } from "../../../types";
-import { ObjectUtils_keys, ObjectUtils_fromArray } from "../../../utils/object";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../../models/muscle";
-import { Settings_withWeeklyRangeSetsBound } from "../../../models/settings";
+import {
+  MuscleGroupSettings_parseNumber as parseAndClamp,
+  MuscleGroupSettings_setAllBound,
+  MuscleGroupSettings_setAllFrequency,
+  MuscleGroupSettings_summary,
+  MuscleGroupSettings_withBound,
+} from "../../../models/muscleGroupSettings";
+import {
+  IMuscleRangePreset,
+  MuscleRangePresets_all,
+  MuscleRangePresets_apply,
+  MuscleRangePresets_current,
+} from "../../../models/muscleRangePresets";
+import { StringUtils_capitalize } from "../../../utils/string";
 import { LinkButton } from "../../../components/linkButton";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -37,59 +49,10 @@ function SaveStatus(props: { status: IPlannerSettingsSaveStatus }): JSX.Element 
   );
 }
 
-function parseAndClamp(
-  e: IEither<string, Set<IValidationError>>,
-  min?: number,
-  max?: number,
-  isInt: boolean = true
-): number | undefined {
-  if (!e.success) {
-    return undefined;
-  }
-  const value = isInt ? parseInt(e.data, 10) : parseFloat(e.data);
-  if (isNaN(value)) {
-    return undefined;
-  }
-  let clamped = value;
-  if (min != null) {
-    clamped = Math.max(min, clamped);
-  }
-  if (max != null) {
-    clamped = Math.min(max, clamped);
-  }
-  return clamped;
-}
-
 export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): JSX.Element {
   const { dispatch, settings } = props;
   const availableMuscleGroups = Muscle_getAvailableMuscleGroups(settings);
-
-  let allWeeklySetsMin: number | undefined;
-  if (
-    ObjectUtils_keys(settings.planner.weeklyRangeSets).every(
-      (k) => settings.planner.weeklyRangeSets[k]?.[0] === settings.planner.weeklyRangeSets.abs?.[0]
-    )
-  ) {
-    allWeeklySetsMin = settings.planner.weeklyRangeSets.abs?.[0];
-  }
-
-  let allWeeklySetsMax: number | undefined;
-  if (
-    ObjectUtils_keys(settings.planner.weeklyRangeSets).every(
-      (k) => settings.planner.weeklyRangeSets[k]?.[1] === settings.planner.weeklyRangeSets.abs?.[1]
-    )
-  ) {
-    allWeeklySetsMax = settings.planner.weeklyRangeSets.abs?.[1];
-  }
-
-  let allWeeklyFrequency: number | undefined;
-  if (
-    ObjectUtils_keys(settings.planner.weeklyFrequency).every(
-      (k) => settings.planner.weeklyFrequency[k] === settings.planner.weeklyFrequency.abs
-    )
-  ) {
-    allWeeklyFrequency = settings.planner.weeklyFrequency.abs;
-  }
+  const summary = MuscleGroupSettings_summary(settings.planner, availableMuscleGroups);
 
   const onUnits = useCallback(
     (newValue?: string) => {
@@ -168,70 +131,68 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
 
   const onMuscleGroupsPreset = useCallback(
     (newValue?: string) => {
-      const presets: Record<string, [[number, number], number]> = {
-        novice: [[10, 12], 2],
-        intermediate: [[13, 15], 3],
-        advanced: [[16, 20], 4],
-      };
-      const preset = newValue && presets[newValue];
+      const preset = MuscleRangePresets_all.find((p) => p === newValue);
       if (preset) {
-        const [range, freq] = preset;
         dispatch(
-          [
-            lb<ISettings>()
-              .p("planner")
-              .p("weeklyRangeSets")
-              .record(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, range]))),
-            lb<ISettings>()
-              .p("planner")
-              .p("weeklyFrequency")
-              .record(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, freq]))),
-          ],
-          `${newValue} preset`
+          lb<ISettings>()
+            .p("planner")
+            .recordModify((planner) => MuscleRangePresets_apply(planner, preset)),
+          `${preset} preset`
         );
       }
     },
-    [dispatch, availableMuscleGroups]
+    [dispatch]
   );
 
   const onChangeAllMin = useCallback(
     (e: IEither<string, Set<IValidationError>>) => {
       const v = parseAndClamp(e, 0);
       if (v != null) {
-        const newValues = ObjectUtils_fromArray(
-          availableMuscleGroups.map((mg) => [
-            mg,
-            [v, settings.planner.weeklyRangeSets[mg]?.[1] ?? 0] as [number, number],
-          ])
+        dispatch(
+          lb<ISettings>()
+            .p("planner")
+            .recordModify((planner) => ({
+              ...planner,
+              weeklyRangeSets: MuscleGroupSettings_setAllBound(planner, availableMuscleGroups, "min", v),
+            })),
+          "Change all min"
         );
-        dispatch(lb<ISettings>().p("planner").p("weeklyRangeSets").record(newValues), "Change all min");
       }
     },
-    [dispatch, availableMuscleGroups, settings.planner.weeklyRangeSets]
+    [dispatch, availableMuscleGroups]
   );
 
   const onChangeAllMax = useCallback(
     (e: IEither<string, Set<IValidationError>>) => {
       const v = parseAndClamp(e, 0);
       if (v != null) {
-        const newValues = ObjectUtils_fromArray(
-          availableMuscleGroups.map((mg) => [
-            mg,
-            [settings.planner.weeklyRangeSets[mg]?.[0] ?? 0, v] as [number, number],
-          ])
+        dispatch(
+          lb<ISettings>()
+            .p("planner")
+            .recordModify((planner) => ({
+              ...planner,
+              weeklyRangeSets: MuscleGroupSettings_setAllBound(planner, availableMuscleGroups, "max", v),
+            })),
+          "Change all max"
         );
-        dispatch(lb<ISettings>().p("planner").p("weeklyRangeSets").record(newValues), "Change all max");
       }
     },
-    [dispatch, availableMuscleGroups, settings.planner.weeklyRangeSets]
+    [dispatch, availableMuscleGroups]
   );
 
   const onChangeAllFreq = useCallback(
     (e: IEither<string, Set<IValidationError>>) => {
       const v = parseAndClamp(e, 0);
       if (v != null) {
-        const newValues = ObjectUtils_fromArray(availableMuscleGroups.map((mg) => [mg, v]));
-        dispatch(lb<ISettings>().p("planner").p("weeklyFrequency").record(newValues), "Change all freq");
+        dispatch(
+          lb<ISettings>()
+            .p("planner")
+            .recordModify((planner) => ({
+              ...planner,
+              weeklyFrequency: MuscleGroupSettings_setAllFrequency(planner, availableMuscleGroups, v),
+            })),
+          "Change all freq"
+        );
       }
     },
     [dispatch, availableMuscleGroups]
@@ -343,12 +304,13 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
               name="Sets split preset"
               setPatternError={() => undefined}
               type="desktop-select"
-              value=""
+              value={MuscleRangePresets_current(settings.planner) ?? ""}
               values={[
                 ["", ""],
-                ["novice", "Novice"],
-                ["intermediate", "Intermediate"],
-                ["advanced", "Advanced"],
+                ...MuscleRangePresets_all.map((preset): [IMuscleRangePreset, string] => [
+                  preset,
+                  StringUtils_capitalize(preset),
+                ]),
               ]}
               onChange={onMuscleGroupsPreset}
             />
@@ -364,7 +326,7 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
                   min={0}
                   labelSize="xs"
                   type="number"
-                  value={allWeeklySetsMin}
+                  value={summary.min}
                   changeHandler={onChangeAllMin}
                 />
               </View>
@@ -374,7 +336,7 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
                   min={0}
                   labelSize="xs"
                   type="number"
-                  value={allWeeklySetsMax}
+                  value={summary.max}
                   changeHandler={onChangeAllMax}
                 />
               </View>
@@ -384,7 +346,7 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
                   labelSize="xs"
                   min={0}
                   type="number"
-                  value={allWeeklyFrequency}
+                  value={summary.frequency}
                   changeHandler={onChangeAllFreq}
                 />
               </View>
@@ -432,7 +394,7 @@ const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps)
             .p("planner")
             .p("weeklyRangeSets")
             .p(muscleGroup)
-            .recordModify((range) => Settings_withWeeklyRangeSetsBound(range, "min", v)),
+            .recordModify((range) => MuscleGroupSettings_withBound(range, "min", v)),
           `Update ${muscleGroup} min`
         );
       }
@@ -449,7 +411,7 @@ const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps)
             .p("planner")
             .p("weeklyRangeSets")
             .p(muscleGroup)
-            .recordModify((range) => Settings_withWeeklyRangeSetsBound(range, "max", v)),
+            .recordModify((range) => MuscleGroupSettings_withBound(range, "max", v)),
           `Update ${muscleGroup} max`
         );
       }

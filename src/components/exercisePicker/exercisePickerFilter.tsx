@@ -10,7 +10,6 @@ import {
   IExercisePickerState,
   IScreenMuscle,
   ISettings,
-  screenMuscles,
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
@@ -266,7 +265,6 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
                 return (
                   <View className="flex-row flex-wrap mt-2" style={{ gap: 16 }}>
                     {ObjectUtils_entries(muscleGroups).map(([key, value]) => {
-                      const customMuscleGroup = !(screenMuscles as readonly string[]).includes(key);
                       return (
                         <Pressable
                           key={key}
@@ -292,11 +290,9 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
                             );
                           }}
                         >
-                          {customMuscleGroup ? (
-                            <View style={{ width: 61 }} />
-                          ) : (
-                            <MuscleGroupImage muscleGroup={key} size={61} />
-                          )}
+                          <View style={{ width: 61 }}>
+                            <MuscleGroupImage muscleGroup={key} settings={props.settings} size={61} />
+                          </View>
                           <Text className={`flex-1 ${value.isSelected ? "text-text-purple" : ""}`}>{value.label}</Text>
                         </Pressable>
                       );

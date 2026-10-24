@@ -2,7 +2,10 @@ import { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
+import {
+  WeekInsightsUtils_calculateSetResults,
+  WeekInsightsUtils_ungroupedMuscleSets,
+} from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
@@ -10,7 +13,8 @@ import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/
 import { StringUtils_pluralize } from "../utils/string";
 import { ISetResults } from "../pages/planner/models/types";
 import { PlannerWeekMuscles } from "../pages/planner/components/plannerWeekMuscles";
-import { colorPctValue, PlannerSetSplit } from "../pages/planner/components/plannerStats";
+import { PlannerSetSplit } from "../pages/planner/components/plannerStats";
+import { MuscleRangeDisplay_pctColor } from "../models/muscleRangeDisplay";
 import { ObjectUtils_keys } from "../utils/object";
 import { PersonalRecords } from "./personalRecords";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
@@ -168,7 +172,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         <Text className="text-sm">
           <Text className="text-sm text-text-secondary">Strength: </Text>
           <Text
-            className={`text-sm ${colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}`}
+            className={`text-sm ${MuscleRangeDisplay_pctColor(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}`}
           >
             {setResults.strength}
             {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
@@ -179,7 +183,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         <Text className="text-sm">
           <Text className="text-sm text-text-secondary">Hypertrophy: </Text>
           <Text
-            className={`text-sm ${colorPctValue(
+            className={`text-sm ${MuscleRangeDisplay_pctColor(
               setResults.total,
               setResults.hypertrophy,
               props.settings.planner.hypertrophySetsPct
@@ -270,7 +274,11 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
           })}
         </View>
         <View className="w-scaled-20 mb-2">
-          <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
+          <PlannerWeekMuscles
+            settings={props.settings}
+            data={setResults.muscleGroup}
+            ungroupedMuscleSets={WeekInsightsUtils_ungroupedMuscleSets(props.thisWeekHistory, props.settings)}
+          />
         </View>
       </View>
       <View className="mt-2">

@@ -14,9 +14,16 @@ import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { getNavigationService } from "../../../navigation/navUtils";
 import { CollectionUtils_sort } from "../../../utils/collection";
 import { TooltipPlacement_place } from "../../../utils/tooltipPlacement";
+import {
+  MuscleRangeDisplay_frequencyColor,
+  MuscleRangeDisplay_pctColor,
+  MuscleRangeDisplay_status,
+} from "../../../models/muscleRangeDisplay";
+import { IMusclePoints } from "../../../models/ungroupedMuscles";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
+  ungroupedMuscleSets: IMusclePoints;
   colorize: boolean;
   frequency: boolean;
   settings: ISettings;
@@ -35,7 +42,9 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         <Text className="text-sm text-text-secondary">Strength Sets: </Text>
         <Text
           className={`text-sm ${
-            props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
+            props.colorize
+              ? MuscleRangeDisplay_pctColor(setResults.total, setResults.strength, settings.planner.strengthSetsPct)
+              : ""
           }`}
         >
           {setResults.strength}
@@ -47,7 +56,11 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         <Text
           className={`text-sm ${
             props.colorize
-              ? colorPctValue(setResults.total, setResults.hypertrophy, settings.planner.hypertrophySetsPct)
+              ? MuscleRangeDisplay_pctColor(
+                  setResults.total,
+                  setResults.hypertrophy,
+                  settings.planner.hypertrophySetsPct
+                )
               : ""
           }`}
         >
@@ -111,7 +124,11 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       </Text>
 
       <View className="w-32 mb-2">
-        <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
+        <PlannerWeekMuscles
+          settings={props.settings}
+          data={setResults.muscleGroup}
+          ungroupedMuscleSets={props.ungroupedMuscleSets}
+        />
       </View>
 
       {onEditSettings && (
@@ -167,21 +184,12 @@ export function PlannerSetSplit(props: {
   const [tooltipAnchor, setTooltipAnchor] = useState<DOMRect | undefined>(undefined);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
-  const setColor = muscle
-    ? colorRangeValue(
-        total,
-        settings.planner.weeklyRangeSets[muscle]?.[0] ?? 0,
-        settings.planner.weeklyRangeSets[muscle]?.[1] ?? 0
-      )
-    : "";
-  const setDirection = muscle
-    ? directionValue(
-        total,
-        settings.planner.weeklyRangeSets[muscle]?.[0] ?? 0,
-        settings.planner.weeklyRangeSets[muscle]?.[1] ?? 0
-      )
-    : "";
-  const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
+  const range = muscle ? settings.planner.weeklyRangeSets[muscle] : undefined;
+  const { colorClass: setColor, direction: setDirection } = MuscleRangeDisplay_status(total, range);
+  const frequencyColor = MuscleRangeDisplay_frequencyColor(
+    frequency,
+    muscle && range ? settings.planner.weeklyFrequency[muscle] : undefined
+  );
 
   const handlePress =
     !isDesktopWeb && split.exercises.length > 0
@@ -298,45 +306,4 @@ function PlannerStatsTooltip(props: { split: ISetSplit; anchor: DOMRect }): JSX.
       </ul>
     </div>
   );
-}
-
-export function colorPctValue(total: number, num: number, target: number): string {
-  const strengthPct = total > 0 ? Math.round((num * 100) / total) : 0;
-  if (strengthPct >= target) {
-    return "text-text-success";
-  } else if (strengthPct >= target - 10) {
-    return "text-icon-yellow";
-  } else {
-    return "text-text-error";
-  }
-}
-
-export function colorRangeValue(value: number, min: number, max: number): string {
-  if (value >= min && value <= max) {
-    return "text-text-success";
-  } else if (value >= min * 0.7 && value <= max * 1.3) {
-    return "text-icon-yellow";
-  } else {
-    return "text-text-error";
-  }
-}
-
-export function directionValue(value: number, min: number, max: number): string {
-  if (value < min) {
-    return "↑";
-  } else if (value > max) {
-    return "↓";
-  } else {
-    return "";
-  }
-}
-
-function colorThresholdValue(value: number, threshold: number): string {
-  if (value >= threshold) {
-    return "text-text-success";
-  } else if (value >= threshold * 0.5) {
-    return "text-icon-yellow";
-  } else {
-    return "text-text-error";
-  }
 }

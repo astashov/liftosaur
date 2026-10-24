@@ -10,6 +10,7 @@ import { IVersions } from "../models/versionTracker";
 import { Settings_build } from "../models/settings";
 import { Progress_getEntryId } from "../models/progress";
 import { EquipmentUnits_attachSetups } from "../models/equipmentUnits";
+import { MuscleGroupSplit_migrate } from "../models/muscleGroupSplit";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -478,5 +479,8 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     storage.settings.gyms = EquipmentUnits_attachSetups(storage.settings.gyms || [], storage.settings.units);
     return storage;
+  },
+  "20261022120000_split_muscle_groups": (aStorage: IStorage): IStorage => {
+    return MuscleGroupSplit_migrate(aStorage);
   },
 };

@@ -1699,17 +1699,28 @@ const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     VDeletedSettingsKeys,
     "deletedStarredExerciseKeys"
   );
-  if (!deletedExerciseDataKeysResult.success || !deletedStarredExerciseKeysResult.success) {
+  const deletedMuscleGroupKeysResult = Storage_validate(
+    bodyJson.deletedMuscleGroupKeys ?? [],
+    VDeletedSettingsKeys,
+    "deletedMuscleGroupKeys"
+  );
+  if (
+    !deletedExerciseDataKeysResult.success ||
+    !deletedStarredExerciseKeysResult.success ||
+    !deletedMuscleGroupKeysResult.success
+  ) {
     di.log.log(
       "Settings Save: Invalid deleted keys",
       deletedExerciseDataKeysResult.success ? undefined : deletedExerciseDataKeysResult.error,
-      deletedStarredExerciseKeysResult.success ? undefined : deletedStarredExerciseKeysResult.error
+      deletedStarredExerciseKeysResult.success ? undefined : deletedStarredExerciseKeysResult.error,
+      deletedMuscleGroupKeysResult.success ? undefined : deletedMuscleGroupKeysResult.error
     );
     return ResponseUtils_json(400, event, { error: "Invalid settings" });
   }
   const deleted = {
     exerciseDataKeys: deletedExerciseDataKeysResult.data,
     starredExerciseKeys: deletedStarredExerciseKeysResult.data,
+    muscleGroupKeys: deletedMuscleGroupKeysResult.data,
   };
   const oldStorageResult = Storage_get(user.storage);
   if (!oldStorageResult.success) {
@@ -1721,8 +1732,13 @@ const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     return ResponseUtils_json(400, event, { error: "Version mismatch! Please refresh the page." });
   }
   const userDao = new UserDao(di);
+  // The edit has to be versioned against the migrated clocks, or an offline client's migrated copy beats it.
+  const migration = await userDao.migrateStoredStorage(user, deviceId || VersionTrackerUtils_SERVER_DEVICE_ID);
+  if (!migration.success) {
+    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+  }
   await userDao.applyStorageUpdate(
-    user,
+    migration.data.user,
     (old) => ({
       ...old,
       settings: Settings_applyWebEditorSettings(old.settings, updateResult.data, deleted),
@@ -2916,10 +2932,11 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const account = userResult.success ? userResult.data.account : undefined;
   const user = userResult.success ? userResult.data.user : undefined;
   const userAgent = getUserAgent(payload.event);
+  const storage = user?.storage ? runMigrations(user.storage) : undefined;
 
   return {
     statusCode: 200,
-    body: renderPlannerHtml(di.fetch, initialProgram, account, user?.storage, userAgent),
+    body: renderPlannerHtml(di.fetch, initialProgram, account, storage, userAgent),
     headers: { "content-type": "text/html" },
   };
 };

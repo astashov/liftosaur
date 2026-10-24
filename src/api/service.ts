@@ -702,6 +702,7 @@ export class Service {
     settings: IWebEditorSettings;
     deletedExerciseDataKeys: string[];
     deletedStarredExerciseKeys?: string[];
+    deletedMuscleGroupKeys?: string[];
     version: string;
     deviceId?: string;
   }): Promise<IEither<undefined, string>> {

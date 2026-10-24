@@ -1,4 +1,4 @@
-import { JSX, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useContext, useEffect, useMemo, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import {
   SafeLocalStorage_getItem,
@@ -12,18 +12,15 @@ import { lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
 import { ModalPlannerSettings, IPlannerSettingsSaveStatus } from "./components/modalPlannerSettings";
-import { Settings_webEditorInitial, Settings_webEditorSettingsRequest } from "../../models/settings";
+import {
+  Settings_webEditorHasChanges,
+  Settings_webEditorInitial,
+  Settings_webEditorSettingsRequest,
+} from "../../models/settings";
 import { getLatestMigrationVersion } from "../../migrations/migrations";
 import { canRedo, canUndo, redo, undo, undoRedoMiddleware, useUndoRedo } from "../builder/utils/undoredo";
 import { UndoingFlag_set } from "../../utils/undoingFlag";
-import {
-  IPartialStorage,
-  IPlannerProgram,
-  IPlannerProgramDay,
-  IPlannerProgramWeek,
-  IStats,
-  IUnit,
-} from "../../types";
+import { IPartialStorage, IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IStats, IUnit } from "../../types";
 import { Service } from "../../api/service";
 import {
   PlannerProgram_hasNonSelectedWeightUnit,
@@ -44,12 +41,7 @@ import { UidFactory_generateUid } from "../../utils/generator";
 import { IAccount } from "../../models/account";
 import { PlannerBanner } from "./plannerBanner";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../../utils/url";
-import {
-  IExportedProgram,
-  Program_create,
-  Program_evaluate,
-  Program_exportProgram,
-} from "../../models/program";
+import { IExportedProgram, Program_create, Program_evaluate, Program_exportProgram } from "../../models/program";
 import { ModalPlannerProgramRevisions } from "./modalPlannerProgramRevisions";
 import { Weight_oppositeUnit } from "../../models/weight";
 import { ModalPlannerPictureExport } from "./components/modalPlannerPictureExport";
@@ -268,9 +260,14 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     }
   }, []);
   const [settingsSaveStatus, setSettingsSaveStatus] = useState<IPlannerSettingsSaveStatus | undefined>(undefined);
-  const settingsRequest = useMemo(
-    () => Settings_webEditorSettingsRequest(initialSettings, settings),
+  const [savedSettings, setSavedSettings] = useState(initialSettings);
+  const pendingSettingsSave = useMemo(
+    () =>
+      Settings_webEditorHasChanges(savedSettings, settings)
+        ? { snapshot: settings, request: Settings_webEditorSettingsRequest(savedSettings, settings) }
+        : undefined,
     [
+      savedSettings,
       settings.units,
       settings.timers.workout,
       settings.planner,
@@ -281,29 +278,27 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       settings.workoutSettings,
     ]
   );
-  const didSkipInitialSettingsSave = useRef(false);
   // Settings belong to the account, not the program, so this is gated on being logged in - `shouldSync`
   // is false on /planner even for a logged-in user, because that program is not attached to the account yet
   const canSaveSettings = props.account != null;
   useEffect(() => {
-    if (!canSaveSettings) {
-      return;
-    }
-    if (!didSkipInitialSettingsSave.current) {
-      didSkipInitialSettingsSave.current = true;
+    if (!canSaveSettings || pendingSettingsSave == null) {
       return;
     }
     setSettingsSaveStatus("saving");
     const timeout = setTimeout(async () => {
       const result = await service.postSaveSettings({
-        ...settingsRequest,
+        ...pendingSettingsSave.request,
         version: getLatestMigrationVersion(),
         deviceId: props.deviceId,
       });
       setSettingsSaveStatus(result.success ? "saved" : "error");
+      if (result.success) {
+        setSavedSettings(pendingSettingsSave.snapshot);
+      }
     }, 750);
     return () => clearTimeout(timeout);
-  }, [settingsRequest, canSaveSettings]);
+  }, [pendingSettingsSave, canSaveSettings]);
 
   // "saving" covers both the debounce window and the request in flight; "error" means the edit never landed
   const hasUnsavedSettings = settingsSaveStatus === "saving" || settingsSaveStatus === "error";

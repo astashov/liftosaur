@@ -12,6 +12,7 @@ import { IScreenMuscle, ISettings } from "../../../types";
 import { PlannerProgramExercise_sets } from "./plannerProgramExercise";
 import { Weight_build } from "../../../models/weight";
 import { Muscle_getAvailableMuscleGroups } from "../../../models/muscle";
+import { IMusclePoints, UngroupedMuscles_add, UngroupedMuscles_pointsPerSet } from "../../../models/ungroupedMuscles";
 import { IWorkoutTimeEstimateSet, WorkoutTimeEstimate_dayMs } from "../../../models/workoutTimeEstimate";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
@@ -172,6 +173,33 @@ export function PlannerStatsUtils_calculateSetResults(
     }
   }
   return results;
+}
+
+export function PlannerStatsUtils_ungroupedMuscleSets(
+  evaluatedDays: IPlannerEvalResult[],
+  settings: ISettings
+): IMusclePoints {
+  let points: IMusclePoints = {};
+  for (const day of evaluatedDays) {
+    if (!day.success) {
+      continue;
+    }
+    for (const plannerExercise of day.data) {
+      if (plannerExercise.notused) {
+        continue;
+      }
+      const exercise = Exercise_findByNameAndEquipment(plannerExercise.shortName, settings.exercises);
+      if (exercise == null) {
+        continue;
+      }
+      const numberOfSets = PlannerProgramExercise_sets(plannerExercise).reduce(
+        (sum, set) => sum + (set.repRange?.numberOfSets ?? 0),
+        0
+      );
+      points = UngroupedMuscles_add(points, UngroupedMuscles_pointsPerSet(exercise, settings), numberOfSets);
+    }
+  }
+  return points;
 }
 
 export function PlannerStatsUtils_setResultsToString(results: ISetResults): string {

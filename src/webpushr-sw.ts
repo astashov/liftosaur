@@ -11,7 +11,6 @@ const filesToCache = [
   `/images/back-muscles.svg`,
   `/images/front-muscles.svg`,
   `/images/svgs/muscles-combined.svg`,
-  `/images/svgs/musclegroups-combined.svg`,
   /\/fonts\/.*/,
   /\/externalimages\/exercises\//,
   "/",
