@@ -72,7 +72,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           <MenuItemWrapper key={muscleGroup} name={`muscle-group-${muscleGroup}`}>
             <View className="flex-row items-center gap-4">
               <View className="w-scaled-12">
-                <MuscleGroupImage muscleGroup={muscleGroup} size={48} />
+                <MuscleGroupImage muscleGroup={muscleGroup} settings={props.settings} size={48} />
               </View>
               <View className="flex-1 py-2">
                 <Text className="text-base font-bold">{muscleGroupName}</Text>

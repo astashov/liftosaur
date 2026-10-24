@@ -724,7 +724,7 @@ The card under the strip sums up the selected week: the date range, the volume, 
 
 Tap **Show More**. The details list the week's personal records, the total sets, and the **Strength** and **Hypertrophy** split with percentages. Then the sets per **Upper**, **Lower**, **Core**, **Push**, **Pull**, **Legs**, and per muscle group, with a body drawing.
 
-A muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total, of which 3 counted as strength (`s`, under 8 reps) and 5 as hypertrophy (`h`, 8 reps or more), on 2 days (`d`). The total is colored against your weekly set range for that group, 10 to 12 sets by default. The arrow says which way to go: **↑** below the minimum, **↓** above the maximum, none inside the range. **Change Set Range Settings** at the bottom changes the ranges and the day targets. [Week Insights](/features/week-insights) explains every number and color.
+A muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total, of which 3 counted as strength (`s`, under 8 reps) and 5 as hypertrophy (`h`, 8 reps or more), on 2 days (`d`). The total is colored against your weekly set range for that group, 10 to 18 sets by default for the 13 main groups. A smaller group with no range shows a plain count. The arrow says which way to go: **↑** below the minimum, **↓** above the maximum, none inside the range. **Change Set Range Settings** at the bottom changes the ranges and the day targets. [Week Insights](/features/week-insights) explains every number and color.
 
 Week Insights needs Premium. Without it, the card says **See Week Insights** and opens the subscription screen.
 
@@ -1051,7 +1051,7 @@ Tap the week muscles icon next to the week name in the UI mode, or select a week
 
 Each muscle group line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total that week, of which 3 are strength (`s`, under 8 reps) and 5 hypertrophy (`h`, 8 reps or more), on 2 days (`d`). A synergist set counts as a fraction, 0.5 by default, and each number is rounded on its own, so the parts may not add up to the total.
 
-Every muscle group has a weekly set range, 10 to 12 sets unless you change it, and a frequency target, 2 days by default. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below.
+The 13 main muscle groups have a weekly set range, 10 to 18 sets unless you change it, and a frequency target, 2 days by default. Smaller groups such as neck or forearm flexors have no range until you set one, so they show a plain count. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below.
 
 To change the ranges, the frequency targets or the synergist multiplier, tap **Edit Weekly Muscle Range Settings** at the bottom of the sheet. The same settings drive [Week Insights](/features/week-insights) for your finished workouts.
 
@@ -1393,7 +1393,7 @@ To the right of the editor is **Week Stats**. It shows **Total Sets**, **Strengt
 
 Each line reads like `Chest: 8↑ (3s, 5h), 2d`: 8 sets in total that week, of which 3 are strength (`s`, under 8 reps) and 5 hypertrophy (`h`, 8 reps or more), on 2 days (`d`). A synergist set counts as a fraction, 0.5 by default, and each number is rounded on its own, so the parts may not add up to the total.
 
-Every muscle group has a weekly set range, 10 to 12 sets unless you change it, and a frequency target, 2 days by default. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below. The type lines have no range, so no color and no arrow.
+The 13 main muscle groups have a weekly set range, 10 to 18 sets unless you change it, and a frequency target, 2 days by default. Smaller groups such as neck or forearm flexors have no range until you set one, so they show a plain count. The total is green inside the range, yellow between 70% of the minimum and 130% of the maximum, red further off. The arrow tells you which way to go: **↑** means add sets, you are below the minimum, **↓** means you are above the maximum, no arrow means inside the range. The day count is green at the target, yellow at half of it, red below. The type lines have no range, so no color and no arrow.
 
 Hover a number to see which exercises count toward it and how much.
 
@@ -1899,23 +1899,23 @@ Next come six exercise types: **Upper**, **Lower**, **Core**, **Push**, **Pull**
 
 ### Sets per muscle group against your target range
 
-The last block lists every muscle group you trained that week: **Shoulders**, **Triceps**, **Back**, **Abs**, **Glutes**, **Hamstrings**, **Quadriceps**, **Chest**, **Biceps**, **Calves**, **Forearms**, and any custom groups. A body drawing next to the list shades the muscles by how much work they got.
+The last block lists every muscle group you trained that week. There are 13 main groups: **Chest**, **Lats**, **Upper Back**, **Front Delts**, **Side Delts**, **Rear Delts**, **Biceps**, **Triceps**, **Quads**, **Hamstrings**, **Glutes**, **Calves** and **Abs**. There are 10 smaller groups: **Upper Traps**, **Lower Back**, **Neck**, **Rotator Cuff**, **Forearm Flexors**, **Forearm Extensors**, **Obliques**, **Hip Flexors**, **Abductors** and **Adductors**. Custom groups follow. A body drawing next to the list shades the muscles by how much work they got.
 
 Each line uses the same form as the type lines, plus an arrow. `Hamstrings: 3↑ (2s, 2h), 1d` means 3 sets in total, of which 2 counted as strength (`s`, under 8 reps) and 2 as hypertrophy (`h`, 8 reps or more), spread over 1 day (`d`). The parts may not add up to the total, because synergist sets count as a fraction and each number is rounded to a whole set on its own. 1.5 strength and 1.5 hypertrophy sets show as `3 (2s, 2h)`.
 
-Every muscle group has a weekly set range, 10 to 12 sets unless you change it. The total is colored against that range:
+The main groups have a weekly set range, 10 to 18 sets unless you change it. The smaller groups have no range until you set one, so their total has no color and no arrow. A total with a range is colored against it:
 
 - Green: inside the range.
 - Yellow: between 70% of the minimum and 130% of the maximum.
 - Red: further off than that.
 
-The arrow after the total tells you which way to go. **↑** means you are below the minimum and should add sets. **↓** means you are above the maximum. No arrow means you are inside the range. In the example, 3 sets of hamstrings against a 10 to 12 range gives a red `3↑`.
+The arrow after the total tells you which way to go. **↑** means you are below the minimum and should add sets. **↓** means you are above the maximum. No arrow means you are inside the range. In the example, 3 sets of hamstrings against a 10 to 18 range gives a red `3↑`.
 
-Every group also has a frequency target, 2 days unless you change it. The day count is green when you reach it, yellow at half of it, red below.
+Every group with a range also has a frequency target, 2 days unless you change it. The day count is green when you reach it, yellow at half of it, red below.
 
 To change the range or the frequency for one group or for all of them, tap **Change Set Range Settings** at the bottom of the sheet. The **Muscle Settings** sheet on the right has a **Min**, **Max** and **Freq, days** row per group. The section on target ranges below walks through it.
 
-An exercise counts one set for each of its target muscle groups. For a synergist muscle group it counts a fraction of a set, 0.5 by default. You can change the target and synergist muscles of one exercise with **Override Muscles** at the top of its Exercise Stats screen, under **Me → Exercises**.
+An exercise counts one set for each of its target muscle groups. For a synergist muscle group it counts a fraction of a set, 0.5 by default. A group that holds both a target and a synergist muscle of the exercise counts one set, not 1.5. A Bicep Curl targets Biceps Brachii and has Brachialis and Brachioradialis as synergists, and all three are in **Biceps**, so one curl set is one biceps set. You can change the target and synergist muscles of one exercise with **Override Muscles** at the top of its Exercise Stats screen, under **Me → Exercises**.
 
 ### See which exercises count
 
@@ -1933,8 +1933,8 @@ At the top:
 
 Under **Weekly Sets Per Muscle Group**:
 
-- **Muscle Groups sets preset**: **Novice** is 10 to 12 sets, 2 days. **Intermediate** is 13 to 15 sets, 3 days. **Advanced** is 16 to 20 sets, 4 days.
-- **Change All**: one **Min**, **Max** and **Freq, days** for every group at once.
+- **Muscle Groups sets preset**: **Low** is 4 to 10 sets, 2 days. **Moderate** is 10 to 18 sets, 2 days, and is the default. **High** is 18 to 30 sets, 3 days. A preset sets the 13 main groups and leaves the smaller groups as they are.
+- **Change All**: one **Min**, **Max** and **Freq, days** for every group that has a range.
 - One row per muscle group with its own **Min**, **Max** and **Freq, days**.
 
 Changes save on their own. Close the sheet and the colors in Week Insights update.

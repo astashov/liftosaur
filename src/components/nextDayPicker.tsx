@@ -10,20 +10,18 @@ import {
   Program_getProgramDay,
   Program_getProgramDayUsedExercises,
 } from "../models/program";
-import { IProgram, ISettings, IScreenMuscle, IStats } from "../types";
+import { IProgram, ISettings, IStats } from "../types";
 import type { IEvaluatedProgram } from "../models/program";
 import { CollectionUtils_findBy, CollectionUtils_compact, CollectionUtils_uniqByExpr } from "../utils/collection";
-import { ObjectUtils_keys } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { MenuItemWrapper } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
-import { IMuscleStyle, BackMusclesSvg } from "./muscles/images/backMusclesSvg";
-import { FrontMusclesSvg } from "./muscles/images/frontMusclesSvg";
+import { BodyMapSvg } from "./muscles/images/bodyMapSvg";
+import { MuscleMapRegions_styles, MuscleMapRegions_viewBox } from "../models/muscleMapRegions";
 
-const MUSCLE_CONTOUR = { fill: "#28839F" };
 const MUSCLE_COLUMN_STYLE = { width: 48 };
-const MUSCLE_SVG_ASPECT = { aspectRatio: 112 / 234 };
+const MUSCLE_SVG_ASPECT = { aspectRatio: MuscleMapRegions_viewBox[2] / MuscleMapRegions_viewBox[3] };
 
 interface IMusclesColumnProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -35,17 +33,10 @@ interface IMusclesColumnProps {
 function MusclesColumn({ evaluatedProgram, day, stats, settings }: IMusclesColumnProps): JSX.Element | null {
   const muscleData = useMemo(() => {
     if (!day) {
-      return {};
+      return { front: {}, back: {} };
     }
     const points = Muscle_normalizeUnifiedPoints(Muscle_getUnifiedPointsForDay(evaluatedProgram, day, stats, settings));
-    return ObjectUtils_keys(points.screenMusclePoints).reduce<Partial<Record<IScreenMuscle, IMuscleStyle>>>(
-      (acc, key) => {
-        const value = points.screenMusclePoints[key];
-        acc[key] = { opacity: value, fill: "#28839F" };
-        return acc;
-      },
-      {}
-    );
+    return MuscleMapRegions_styles(points.screenMusclePoints, points.ungroupedMusclePoints, settings, "#28839F");
   }, [day, evaluatedProgram, stats, settings]);
   if (!day) {
     return null;
@@ -53,10 +44,10 @@ function MusclesColumn({ evaluatedProgram, day, stats, settings }: IMusclesColum
   return (
     <>
       <View className="relative flex-1">
-        <BackMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
+        <BodyMapSvg side="back" regions={muscleData.back} baseFill="#28839F" baseOpacity={0.15} />
       </View>
       <View className="relative flex-1">
-        <FrontMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
+        <BodyMapSvg side="front" regions={muscleData.front} baseFill="#28839F" baseOpacity={0.15} />
       </View>
     </>
   );

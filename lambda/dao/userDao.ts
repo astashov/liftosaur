@@ -140,17 +140,18 @@ export interface IStatDb {
 
 // Maps an outdated client storage version to the server version it's safe to sync against anyway.
 // Only include gaps composed entirely of idempotent, data-only migrations that don't change the storage
-// shape (the server re-runs all migrations on every sync, so old-format fields get relocated/re-derived
-// server-side). See rn-ota-delivery.md: releases that bump runtimeVersion strand users who haven't
+// shape. The server migrates only its stored copy, before the merge; the old client's data arrives
+// unmigrated. See rn-ota-delivery.md: releases that bump runtimeVersion strand users who haven't
 // installed the new native binary, and OTA can't reach them.
 // Re-point these when adding a data-only migration; leave them alone for a shape-changing one.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20261018120000",
-  "20260628120000": "20261018120000",
-  "20260702120000": "20261018120000",
-  "20260903120000": "20261018120000",
-  "20260906120000": "20261018120000",
-  "20260919120000": "20261018120000",
+  "20260304084247": "20261022120000",
+  "20260628120000": "20261022120000",
+  "20260702120000": "20261022120000",
+  "20260903120000": "20261022120000",
+  "20260906120000": "20261022120000",
+  "20260919120000": "20261022120000",
+  "20261018120000": "20261022120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {
@@ -263,25 +264,35 @@ export class UserDao {
     };
   }
 
+  public async migrateStoredStorage(
+    limitedUser: ILimitedUserDao,
+    deviceId: string
+  ): Promise<IEither<{ user: ILimitedUserDao; migrated: boolean }, string>> {
+    if (limitedUser.storage.version === getLatestMigrationVersion()) {
+      return { success: true, data: { user: limitedUser, migrated: false } };
+    }
+    const fullUser = await this.getById(limitedUser.id);
+    const storage = Storage_get(fullUser!.storage);
+    if (!storage.success) {
+      this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
+      return { success: false, error: "corrupted_server_storage" };
+    }
+    await this.saveMigratedStorage(fullUser!, storage.data, deviceId, fullUser!.storage);
+    return { success: true, data: { user: (await this.getLimitedById(limitedUser.id))!, migrated: true } };
+  }
+
   public async applySafeSync2(
     limitedUser: ILimitedUserDao,
     storageUpdate: IStorageUpdate2,
     deviceId: string
   ): Promise<IEither<IApplySafeSync2Result, string>> {
     const env = Utils_getEnv();
-    let migrated = false;
-    if (limitedUser.storage.version !== getLatestMigrationVersion()) {
-      const fullUser = await this.getById(limitedUser.id);
-      const storage = Storage_get(fullUser!.storage);
-      if (storage.success) {
-        await this.saveMigratedStorage(fullUser!, storage.data, deviceId, fullUser!.storage);
-        migrated = true;
-      } else {
-        this.di.log.log("corrupted_server_storage validation errors (sync2):", JSON.stringify(storage.error));
-        return { success: false, error: "corrupted_server_storage" };
-      }
-      limitedUser = (await this.getLimitedById(limitedUser.id))!;
+    const migration = await this.migrateStoredStorage(limitedUser, deviceId);
+    if (!migration.success) {
+      return migration;
     }
+    limitedUser = migration.data.user;
+    const migrated = migration.data.migrated;
     const originalStorage = limitedUser.storage;
     limitedUser = await this.augmentLimitedUser(limitedUser, storageUpdate);
 

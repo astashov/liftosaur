@@ -10,8 +10,23 @@ import { Reps_setVolume } from "../models/set";
 import { Weight_build, Weight_add, Weight_multiply } from "../models/weight";
 import { ISetResults, ISetSplit } from "../pages/planner/models/types";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
+import { IMusclePoints, UngroupedMuscles_add, UngroupedMuscles_pointsPerSet } from "../models/ungroupedMuscles";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
+
+export function WeekInsightsUtils_ungroupedMuscleSets(
+  historyRecords: IHistoryRecord[],
+  settings: ISettings
+): IMusclePoints {
+  let points: IMusclePoints = {};
+  for (const record of historyRecords) {
+    for (const entry of record.entries) {
+      const completedSets = entry.sets.filter((set) => (set.completedReps || 0) > 0).length;
+      points = UngroupedMuscles_add(points, UngroupedMuscles_pointsPerSet(entry.exercise, settings), completedSets);
+    }
+  }
+  return points;
+}
 
 export function WeekInsightsUtils_calculateSetResults(
   historyRecords: IHistoryRecord[],

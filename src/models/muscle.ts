@@ -16,8 +16,23 @@ import {
   ObjectUtils_combinedKeys,
   ObjectUtils_clone,
 } from "../utils/object";
-import { ISettings, IMuscle, IDayData, IScreenMuscle, IStats, screenMuscles, IMuscleGroupsSettings } from "../types";
+import {
+  ISettings,
+  IMuscle,
+  IDayData,
+  IScreenMuscle,
+  IStats,
+  screenMuscles,
+  IMuscleGroupsSettings,
+  IExerciseType,
+} from "../types";
 import { StringUtils_dashcase, StringUtils_capitalize } from "../utils/string";
+import {
+  IMusclePoints,
+  UngroupedMuscles_add,
+  UngroupedMuscles_divide,
+  UngroupedMuscles_pointsPerSet,
+} from "./ungroupedMuscles";
 import { IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
 import { SetUtils_areEqual } from "../utils/setUtils";
 import { UidFactory_generateUid } from "../utils/generator";
@@ -39,58 +54,82 @@ export interface IExercisePoints {
 export interface IUnifiedPoints {
   screenMusclePoints: IScreenMusclePointsColl;
   exercisePoints: IExercisePointsColl;
+  ungroupedMusclePoints: IMusclePoints;
 }
 
 export interface IPoints {
   screenMusclePoints: IScreenMusclePoints;
   exercisePoints: IExercisePoints;
+  ungroupedMusclePoints: { strength: IMusclePoints; hypertrophy: IMusclePoints };
 }
 
 const screenMuscleToMuscleMapping: Record<IScreenMuscle, IMuscle[]> = {
-  shoulders: [
-    "Deltoid Anterior",
-    "Deltoid Lateral",
-    "Deltoid Posterior",
-    "Infraspinatus",
-    "Teres Major",
-    "Teres Minor",
-  ],
+  chest: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head"],
+  lats: ["Latissimus Dorsi", "Teres Major"],
+  upperBack: ["Trapezius Middle Fibers", "Trapezius Lower Fibers"],
+  frontDelts: ["Deltoid Anterior"],
+  sideDelts: ["Deltoid Lateral"],
+  rearDelts: ["Deltoid Posterior"],
+  biceps: ["Biceps Brachii", "Brachialis", "Brachioradialis"],
   triceps: ["Triceps Brachii"],
-  back: [
-    "Erector Spinae",
-    "Latissimus Dorsi",
-    "Levator Scapulae",
-    "Trapezius Lower Fibers",
-    "Trapezius Middle Fibers",
-    "Trapezius Upper Fibers",
-    "Sternocleidomastoid",
-    "Splenius",
-  ],
-  abs: ["Obliques", "Rectus Abdominis", "Iliopsoas"],
-  glutes: ["Gluteus Maximus", "Gluteus Medius", "Tensor Fasciae Latae"],
-  hamstrings: ["Adductor Magnus", "Adductor Brevis", "Adductor Longus", "Hamstrings"],
-  quadriceps: ["Adductor Brevis", "Adductor Longus", "Pectineous", "Quadriceps", "Sartorius"],
-  chest: ["Pectoralis Major Clavicular Head", "Pectoralis Major Sternal Head", "Serratus Anterior"],
-  biceps: ["Biceps Brachii", "Brachialis"],
-  calves: ["Gastrocnemius", "Soleus", "Tibialis Anterior"],
-  forearms: ["Brachioradialis", "Wrist Extensors", "Wrist Flexors"],
+  quadriceps: ["Quadriceps"],
+  hamstrings: ["Hamstrings"],
+  glutes: ["Gluteus Maximus"],
+  calves: ["Gastrocnemius", "Soleus"],
+  abs: ["Rectus Abdominis"],
+  upperTraps: ["Trapezius Upper Fibers", "Levator Scapulae"],
+  lowerBack: ["Erector Spinae"],
+  neck: ["Sternocleidomastoid", "Splenius"],
+  rotatorCuff: ["Infraspinatus", "Teres Minor"],
+  forearmFlexors: ["Wrist Flexors"],
+  forearmExtensors: ["Wrist Extensors"],
+  obliques: ["Obliques"],
+  hipFlexors: ["Iliopsoas", "Sartorius"],
+  abductors: ["Gluteus Medius", "Tensor Fasciae Latae"],
+  adductors: ["Adductor Magnus", "Adductor Brevis", "Adductor Longus", "Pectineous"],
 };
 
-export function Muscle_getEmptyScreenMusclesPoints(): IScreenMusclePointsColl {
-  return {
-    shoulders: 0,
-    triceps: 0,
-    back: 0,
-    abs: 0,
-    glutes: 0,
-    hamstrings: 0,
-    quadriceps: 0,
-    chest: 0,
-    biceps: 0,
-    calves: 0,
-    forearms: 0,
-  };
-}
+const builtinMuscleGroupNames: Record<IScreenMuscle, string> = {
+  chest: "Chest",
+  lats: "Lats",
+  upperBack: "Upper Back",
+  frontDelts: "Front Delts",
+  sideDelts: "Side Delts",
+  rearDelts: "Rear Delts",
+  biceps: "Biceps",
+  triceps: "Triceps",
+  quadriceps: "Quads",
+  hamstrings: "Hamstrings",
+  glutes: "Glutes",
+  calves: "Calves",
+  abs: "Abs",
+  upperTraps: "Upper Traps",
+  lowerBack: "Lower Back",
+  neck: "Neck",
+  rotatorCuff: "Rotator Cuff",
+  forearmFlexors: "Forearm Flexors",
+  forearmExtensors: "Forearm Extensors",
+  obliques: "Obliques",
+  hipFlexors: "Hip Flexors",
+  abductors: "Abductors",
+  adductors: "Adductors",
+};
+
+export const Muscle_groupsWithDefaultRange: IScreenMuscle[] = [
+  "chest",
+  "lats",
+  "upperBack",
+  "frontDelts",
+  "sideDelts",
+  "rearDelts",
+  "biceps",
+  "triceps",
+  "quadriceps",
+  "hamstrings",
+  "glutes",
+  "calves",
+  "abs",
+];
 
 export function Muscle_imageUrl(muscle: IMuscle): string {
   return `/externalimages/muscles/muscle-${StringUtils_dashcase(muscle)}.jpeg`;
@@ -105,8 +144,14 @@ function normalize(obj: IScreenMusclePointsColl, maxValue: number): IScreenMuscl
 
 export function Muscle_normalizePoints(points: IPoints): IPoints {
   const maxValues = {
-    strength: ObjectUtils_findMaxValue(points.screenMusclePoints.strength),
-    hypertrophy: ObjectUtils_findMaxValue(points.screenMusclePoints.hypertrophy),
+    strength: Math.max(
+      ObjectUtils_findMaxValue(points.screenMusclePoints.strength),
+      ObjectUtils_findMaxValue(points.ungroupedMusclePoints.strength)
+    ),
+    hypertrophy: Math.max(
+      ObjectUtils_findMaxValue(points.screenMusclePoints.hypertrophy),
+      ObjectUtils_findMaxValue(points.ungroupedMusclePoints.hypertrophy)
+    ),
   };
   return {
     screenMusclePoints: {
@@ -123,17 +168,25 @@ export function Muscle_normalizePoints(points: IPoints): IPoints {
         return memo;
       }, {}),
     },
+    ungroupedMusclePoints: {
+      strength: UngroupedMuscles_divide(points.ungroupedMusclePoints.strength, maxValues.strength),
+      hypertrophy: UngroupedMuscles_divide(points.ungroupedMusclePoints.hypertrophy, maxValues.hypertrophy),
+    },
   };
 }
 
 export function Muscle_normalizeUnifiedPoints(points: IUnifiedPoints): IUnifiedPoints {
-  const maxValues = ObjectUtils_findMaxValue(points.screenMusclePoints);
+  const maxValues = Math.max(
+    ObjectUtils_findMaxValue(points.screenMusclePoints),
+    ObjectUtils_findMaxValue(points.ungroupedMusclePoints)
+  );
   return {
     screenMusclePoints: normalize(points.screenMusclePoints, maxValues),
     exercisePoints: ObjectUtils_keys(points.exercisePoints).reduce<IExercisePointsColl>((memo, key) => {
       memo[key] = normalize(points.exercisePoints[key]!, maxValues);
       return memo;
     }, {}),
+    ungroupedMusclePoints: UngroupedMuscles_divide(points.ungroupedMusclePoints, maxValues),
   };
 }
 
@@ -150,6 +203,7 @@ export function Muscle_combinePoints(points: IPoints): IPoints {
       strength: {},
       hypertrophy: {},
     },
+    ungroupedMusclePoints: { strength: { ...points.ungroupedMusclePoints.strength }, hypertrophy: {} },
   };
 }
 
@@ -163,7 +217,11 @@ export function Muscle_getScreenMusclesFromMuscle(muscle: IMuscle, settings: ISe
 }
 
 export function Muscle_getMuscleGroupName(muscleGroup: IScreenMuscle, settings: ISettings): string {
-  return settings.muscleGroups.data[muscleGroup]?.name ?? StringUtils_capitalize(muscleGroup);
+  return (
+    settings.muscleGroups.data[muscleGroup]?.name ??
+    builtinMuscleGroupNames[muscleGroup] ??
+    StringUtils_capitalize(muscleGroup)
+  );
 }
 
 export function Muscle_isDefaultMuscles(muscleGroup: IScreenMuscle, muscles: IMuscle[]): boolean {
@@ -215,6 +273,7 @@ export function Muscle_getPointsForProgram(program: IEvaluatedProgram, stats: IS
     {
       screenMusclePoints,
       exercisePoints,
+      ungroupedMusclePoints: { strength: {}, hypertrophy: {} },
     }
   );
 }
@@ -239,7 +298,7 @@ export function Muscle_getPointsForDay(
     (memo, exercise) => {
       return mergePoints(memo, Muscle_getPointsForExercise(program, exercise, programDay.dayData, settings, stats));
     },
-    { screenMusclePoints, exercisePoints }
+    { screenMusclePoints, exercisePoints, ungroupedMusclePoints: { strength: {}, hypertrophy: {} } }
   );
 }
 
@@ -260,8 +319,25 @@ export function Muscle_getUnifiedPointsForDay(
         Muscle_getUnifiedPointsForExercise(program, exercise, programDay.dayData, settings, stats)
       );
     },
-    { screenMusclePoints, exercisePoints }
+    { screenMusclePoints, exercisePoints, ungroupedMusclePoints: {} }
   );
+}
+
+export function Muscle_screenMusclesByRole(
+  exerciseType: IExerciseType,
+  settings: ISettings
+): { screenTargetMuscles: IScreenMuscle[]; screenSynergistMuscles: IScreenMuscle[] } {
+  const screenTargetMuscles = Array.from(
+    new Set(
+      Exercise_targetMuscles(exerciseType, settings).flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings))
+    )
+  );
+  const screenSynergistMuscles = Array.from(
+    new Set(
+      Exercise_synergistMuscles(exerciseType, settings).flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings))
+    )
+  ).filter((muscleGroup) => !screenTargetMuscles.includes(muscleGroup));
+  return { screenTargetMuscles, screenSynergistMuscles };
 }
 
 export function Muscle_getUnifiedPointsForExercise(
@@ -276,13 +352,9 @@ export function Muscle_getUnifiedPointsForExercise(
 
   const id = Exercise_toKey(programExercise.exerciseType);
   const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
-  const targetMuscles = Exercise_targetMuscles(programExercise.exerciseType, settings);
-  const synergistMuscles = Exercise_synergistMuscles(programExercise.exerciseType, settings);
-  const screenTargetMuscles = Array.from(
-    new Set(targetMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
-  );
-  const screenSynergistMuscles = Array.from(
-    new Set(synergistMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
+  const { screenTargetMuscles, screenSynergistMuscles } = Muscle_screenMusclesByRole(
+    programExercise.exerciseType,
+    settings
   );
   const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(
     programExercise.exerciseType,
@@ -306,7 +378,12 @@ export function Muscle_getUnifiedPointsForExercise(
         (synergistMuscleGroupToMultiplier[muscle] ?? settings.planner.synergistMultiplier) * 100;
     }
   }
-  return { screenMusclePoints, exercisePoints };
+  const ungroupedMusclePoints = UngroupedMuscles_add(
+    {},
+    UngroupedMuscles_pointsPerSet(programExercise.exerciseType, settings),
+    historyEntry.sets.length * 100
+  );
+  return { screenMusclePoints, exercisePoints, ungroupedMusclePoints };
 }
 
 export function Muscle_getPointsForExercise(
@@ -327,17 +404,13 @@ export function Muscle_getPointsForExercise(
 
   const id = Exercise_toKey(programExercise.exerciseType);
   const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
-  const targetMuscles = Exercise_targetMuscles(programExercise.exerciseType, settings);
-  const synergistMuscles = Exercise_synergistMuscles(programExercise.exerciseType, settings);
   const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(
     programExercise.exerciseType,
     settings
   );
-  const screenTargetMuscles = Array.from(
-    new Set(targetMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
-  );
-  const screenSynergistMuscles = Array.from(
-    new Set(synergistMuscles.flatMap((t) => Muscle_getScreenMusclesFromMuscle(t, settings)))
+  const { screenTargetMuscles, screenSynergistMuscles } = Muscle_screenMusclesByRole(
+    programExercise.exerciseType,
+    settings
   );
   for (const set of historyEntry.sets) {
     if ((set.reps ?? 0) >= 8) {
@@ -376,7 +449,13 @@ export function Muscle_getPointsForExercise(
       }
     }
   }
-  return { screenMusclePoints, exercisePoints };
+  const perSet = UngroupedMuscles_pointsPerSet(programExercise.exerciseType, settings);
+  const hypertrophySets = historyEntry.sets.filter((set) => (set.reps ?? 0) >= 8).length;
+  const ungroupedMusclePoints = {
+    strength: UngroupedMuscles_add({}, perSet, (historyEntry.sets.length - hypertrophySets) * 100),
+    hypertrophy: UngroupedMuscles_add({}, perSet, hypertrophySets * 100),
+  };
+  return { screenMusclePoints, exercisePoints, ungroupedMusclePoints };
 }
 
 export function Muscle_mergeScreenMusclePoints(
@@ -472,6 +551,18 @@ function mergePoints(oldPoints: IPoints, newPoints: IPoints): IPoints {
       strength: mergeExercisePoints(oldPoints.exercisePoints.strength, newPoints.exercisePoints.strength),
       hypertrophy: mergeExercisePoints(oldPoints.exercisePoints.hypertrophy, newPoints.exercisePoints.hypertrophy),
     },
+    ungroupedMusclePoints: {
+      strength: UngroupedMuscles_add(
+        oldPoints.ungroupedMusclePoints.strength,
+        newPoints.ungroupedMusclePoints.strength,
+        1
+      ),
+      hypertrophy: UngroupedMuscles_add(
+        oldPoints.ungroupedMusclePoints.hypertrophy,
+        newPoints.ungroupedMusclePoints.hypertrophy,
+        1
+      ),
+    },
   };
 }
 
@@ -479,5 +570,6 @@ function mergeUnifiedPoints(oldPoints: IUnifiedPoints, newPoints: IUnifiedPoints
   return {
     screenMusclePoints: Muscle_mergeScreenMusclePoints(oldPoints.screenMusclePoints, newPoints.screenMusclePoints),
     exercisePoints: mergeExercisePoints(oldPoints.exercisePoints, newPoints.exercisePoints),
+    ungroupedMusclePoints: UngroupedMuscles_add(oldPoints.ungroupedMusclePoints, newPoints.ungroupedMusclePoints, 1),
   };
 }

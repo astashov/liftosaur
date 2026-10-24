@@ -56,16 +56,20 @@ Count hard working sets per muscle per week (warmups don't count). `get_program_
 | Muscle group | Beginner | Intermediate/Advanced | Notes |
 |---|---|---|---|
 | chest | 8-12 | 10-20 | |
-| back | 8-14 | 10-22 | Lats + upper back combined |
+| lats | 6-12 | 8-18 | Pulldowns, pull-ups, rows |
+| upperBack | 6-12 | 8-18 | Rows, face pulls (middle and lower traps) |
 | quadriceps | 6-12 | 8-18 | |
 | hamstrings | 4-10 | 6-14 | Hinges + leg curls |
 | glutes | 4-10 | 6-16 | Mostly covered by squats/hinges |
-| shoulders | 6-12 | 8-18 | Pressing covers front delts; add direct side delt work (e.g. Lateral Raise) for hypertrophy goals |
+| frontDelts | 0-6 | 0-10 | Pressing synergist credit usually covers it |
+| sideDelts | 6-12 | 8-18 | Needs direct work (e.g. Lateral Raise) for hypertrophy goals |
+| rearDelts | 4-8 | 6-14 | Rows give synergist credit; add Reverse Fly or Face Pull |
 | triceps | 4-10 | 6-14 | Pressing synergist credit counts |
 | biceps | 4-10 | 6-14 | Pulling synergist credit counts |
 | calves | 0-6 | 6-12 | 0 acceptable if user doesn't care |
 | abs | 0-6 | 4-10 | Optional; compounds provide some indirect work |
-| forearms | 0 | 0-4 | Indirect work is enough for almost everyone |
+
+The other groups (`upperTraps`, `lowerBack`, `neck`, `rotatorCuff`, `forearmFlexors`, `forearmExtensors`, `obliques`, `hipFlexors`, `abductors`, `adductors`) have no target. Compounds give them enough indirect work unless the user asks for them.
 
 Rules:
 - **Start at the low end.** More volume is a tool for later, not a starting point. A program at the bottom of the range that progresses beats one at the top that buries the user.

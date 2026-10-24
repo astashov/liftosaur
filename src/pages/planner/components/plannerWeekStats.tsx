@@ -2,7 +2,10 @@ import type { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "../../../components/primitives/text";
 import { PlannerStats } from "./plannerStats";
-import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";
+import {
+  PlannerStatsUtils_calculateSetResults,
+  PlannerStatsUtils_ungroupedMuscleSets,
+} from "../models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ISettings } from "../../../types";
 
@@ -19,6 +22,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
 
   const evaluatedDays = props.evaluatedDays;
   const setResults = PlannerStatsUtils_calculateSetResults(evaluatedDays, settings);
+  const ungroupedMuscleSets = PlannerStatsUtils_ungroupedMuscleSets(evaluatedDays, settings);
 
   return (
     <View>
@@ -27,6 +31,7 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
         onEditSettings={props.onEditSettings}
         editSettingsLabel={props.editSettingsLabel}
         setResults={setResults}
+        ungroupedMuscleSets={ungroupedMuscleSets}
         settings={settings}
         colorize={true}
         frequency={true}

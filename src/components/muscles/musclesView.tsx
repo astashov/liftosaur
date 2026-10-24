@@ -14,8 +14,8 @@ import { CollectionUtils_sort, CollectionUtils_flat } from "../../utils/collecti
 import { ObjectUtils_keys } from "../../utils/object";
 import { GroupHeader } from "../groupHeader";
 import { Tabs2 } from "../tabs2";
-import { BackMusclesSvg, IMuscleStyle } from "./images/backMusclesSvg";
-import { FrontMusclesSvg } from "./images/frontMusclesSvg";
+import { BodyMapSvg } from "./images/bodyMapSvg";
+import { IMuscleStyle, MuscleMapRegions_styles } from "../../models/muscleMapRegions";
 import { MenuItem } from "../menuItem";
 
 export interface IMusclesViewProps {
@@ -68,15 +68,21 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
     memo[key] = { opacity: value, fill: "#28839F" };
     return memo;
   }, {});
+  const mapStyles = MuscleMapRegions_styles(
+    props.points.screenMusclePoints[type],
+    props.points.ungroupedMusclePoints[type],
+    props.settings,
+    "#28839F"
+  );
   const exercises = ObjectUtils_keys(props.points.exercisePoints[type]).map((k) => Exercise_fromKey(k));
   return (
     <View>
       <View className="flex-row p-4">
         <View className="relative flex-1">
-          <BackMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
+          <BodyMapSvg side="back" regions={mapStyles.back} baseFill="#28839F" baseOpacity={0.15} />
         </View>
         <View className="relative flex-1">
-          <FrontMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
+          <BodyMapSvg side="front" regions={mapStyles.front} baseFill="#28839F" baseOpacity={0.15} />
         </View>
       </View>
       <View className="px-4">

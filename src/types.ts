@@ -248,17 +248,29 @@ export const targetTypes = ["target", "lasttime", "platescalculator", "e1rm"] as
 export const exercisePickerSorts = ["name_asc", "similar_muscles"] as const;
 
 export const screenMuscles: string[] = [
-  "shoulders",
-  "triceps",
-  "back",
-  "abs",
-  "glutes",
-  "hamstrings",
-  "quadriceps",
   "chest",
+  "lats",
+  "upperBack",
+  "frontDelts",
+  "sideDelts",
+  "rearDelts",
   "biceps",
+  "triceps",
+  "quadriceps",
+  "hamstrings",
+  "glutes",
   "calves",
-  "forearms",
+  "abs",
+  "upperTraps",
+  "lowerBack",
+  "neck",
+  "rotatorCuff",
+  "forearmFlexors",
+  "forearmExtensors",
+  "obliques",
+  "hipFlexors",
+  "abductors",
+  "adductors",
 ];
 
 export const statsWeightDef = ["weight"] as const;
@@ -2092,6 +2104,8 @@ export type IWebEditorSettings = Partial<
   Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData" | "exercises" | "starredExercises"> & {
     timers: Partial<ISettings["timers"]>;
     workoutSettings: Partial<IWorkoutSettings>;
+    plannerUpdate: Partial<IPlannerSettings>;
+    muscleGroupsUpdate: IMuscleGroupsSettings["data"];
   }
 >;
 // Only /api/settings validates against this - the export/import paths keep passing it around unchecked
@@ -2104,6 +2118,8 @@ const _VWebEditorSettings = v.object({
   workoutSettings: v.optional(v.partial(_VWorkoutSettings)),
   exercises: v.optional(v.record(v.string(), v.optional(VCustomExercise))),
   starredExercises: v.optional(v.record(VExerciseId, v.optional(v.boolean()))),
+  plannerUpdate: v.optional(v.partial(_VPlannerSettings)),
+  muscleGroupsUpdate: v.optional(_VMuscleGroupsSettings.entries.data),
 });
 const _VWebEditorSettingsMatches: IEquals<v.InferOutput<typeof _VWebEditorSettings>, IWebEditorSettings> = true;
 void _VWebEditorSettingsMatches;

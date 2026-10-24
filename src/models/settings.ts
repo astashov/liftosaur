@@ -9,6 +9,7 @@ import {
   IWeight,
   IWebEditorSettings,
   IUnit,
+  IMuscleGroupsSettings,
 } from "../types";
 import { EquipmentDefaults_build } from "./equipmentDefaults";
 import { EquipmentUnits_follow } from "./equipmentUnits";
@@ -21,6 +22,7 @@ import { IDispatch } from "../ducks/types";
 import { IExercise, Exercise_toKey, Exercise_get, Exercise_nameWithEquipment } from "./exercise";
 import { CollectionUtils_uniqByExpr, CollectionUtils_sort } from "../utils/collection";
 import { ProgramExercise_doesUse1RM } from "./programExercise";
+import { MuscleRangePresets_apply } from "./muscleRangePresets";
 import { IExercisePickerSettings } from "../components/exercisePicker/exercisePickerSettings";
 
 export function Settings_programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
@@ -79,45 +81,22 @@ export function Settings_build(units: IUnit = "lb"): ISettings {
 }
 
 export function Settings_buildPlannerSettings(): IPlannerSettings {
+  const planner = MuscleRangePresets_apply(
+    {
+      strengthSetsPct: 30,
+      hypertrophySetsPct: 70,
+      weeklyRangeSets: {},
+      weeklyFrequency: {},
+      synergistMultiplier: 0.5,
+    },
+    "moderate"
+  );
+  // Builds before the muscle group split list shoulders, back and forearms, and show empty ranges without these.
   return {
-    strengthSetsPct: 30,
-    hypertrophySetsPct: 70,
-    weeklyRangeSets: {
-      shoulders: [10, 12],
-      triceps: [10, 12],
-      back: [10, 12],
-      abs: [10, 12],
-      glutes: [10, 12],
-      hamstrings: [10, 12],
-      quadriceps: [10, 12],
-      chest: [10, 12],
-      biceps: [10, 12],
-      calves: [10, 12],
-      forearms: [10, 12],
-    },
-    weeklyFrequency: {
-      shoulders: 2,
-      triceps: 2,
-      back: 2,
-      abs: 2,
-      glutes: 2,
-      hamstrings: 2,
-      quadriceps: 2,
-      chest: 2,
-      biceps: 2,
-      calves: 2,
-      forearms: 2,
-    },
-    synergistMultiplier: 0.5,
+    ...planner,
+    weeklyRangeSets: { ...planner.weeklyRangeSets, shoulders: [10, 12], back: [10, 12], forearms: [10, 12] },
+    weeklyFrequency: { ...planner.weeklyFrequency, shoulders: 2, back: 2, forearms: 2 },
   };
-}
-
-export function Settings_withWeeklyRangeSetsBound(
-  range: [number, number] | undefined,
-  bound: "min" | "max",
-  value: number
-): [number, number] {
-  return bound === "min" ? [value, range?.[1] ?? 0] : [range?.[0] ?? 0, value];
 }
 
 export function Settings_applyExportedProgram(settings: ISettings, exportedProgram: IExportedProgram): ISettings {
@@ -150,10 +129,34 @@ function mergeWithDeletions<T>(
   return result;
 }
 
+function applyPlannerUpdate(planner: IPlannerSettings, update: IWebEditorSettings): IPlannerSettings {
+  const changes = update.plannerUpdate ?? update.planner;
+  if (changes == null) {
+    return planner;
+  }
+  return {
+    ...planner,
+    ...changes,
+    weeklyRangeSets: { ...planner.weeklyRangeSets, ...changes.weeklyRangeSets },
+    weeklyFrequency: { ...planner.weeklyFrequency, ...changes.weeklyFrequency },
+  };
+}
+
+function applyMuscleGroupsUpdate(
+  muscleGroups: IMuscleGroupsSettings,
+  update: IWebEditorSettings,
+  deletedKeys: string[] | undefined
+): IMuscleGroupsSettings {
+  if (update.muscleGroupsUpdate != null || deletedKeys?.length) {
+    return { ...muscleGroups, data: mergeWithDeletions(muscleGroups.data, update.muscleGroupsUpdate, deletedKeys) };
+  }
+  return update.muscleGroups ?? muscleGroups;
+}
+
 export function Settings_applyWebEditorSettings(
   settings: ISettings,
   update: IWebEditorSettings,
-  deleted?: { exerciseDataKeys?: string[]; starredExerciseKeys?: string[] }
+  deleted?: { exerciseDataKeys?: string[]; starredExerciseKeys?: string[]; muscleGroupKeys?: string[] }
 ): ISettings {
   // A dictionary merge cannot express a removal, so clearing an exercise override or unstarring
   // needs its keys named explicitly - otherwise the stored entry is merged straight back in
@@ -170,8 +173,8 @@ export function Settings_applyWebEditorSettings(
     gyms: units !== settings.units ? EquipmentUnits_follow(settings.gyms, units) : settings.gyms,
     // `workout: null` means the user turned the rest timer off, so presence of the key decides, not truthiness
     timers: update.timers != null ? { ...settings.timers, ...update.timers } : settings.timers,
-    planner: update.planner ?? settings.planner,
-    muscleGroups: update.muscleGroups ?? settings.muscleGroups,
+    planner: applyPlannerUpdate(settings.planner, update),
+    muscleGroups: applyMuscleGroupsUpdate(settings.muscleGroups, update, deleted?.muscleGroupKeys),
     exerciseData,
     workoutSettings:
       update.workoutSettings != null
@@ -203,6 +206,7 @@ export interface IWebEditorSettingsRequest {
   settings: IWebEditorSettings;
   deletedExerciseDataKeys: string[];
   deletedStarredExerciseKeys: string[];
+  deletedMuscleGroupKeys: string[];
 }
 
 const pickerSettingsKeys: (keyof IExercisePickerSettings)[] = [
@@ -211,6 +215,16 @@ const pickerSettingsKeys: (keyof IExercisePickerSettings)[] = [
   "shouldShowInvisibleEquipment",
 ];
 
+function isSameValue(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a == null || b == null || typeof a !== "object" || typeof b !== "object") {
+    return false;
+  }
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 function changedEntries<T>(
   initial: Partial<Record<string, T>>,
   current: Partial<Record<string, T>>
@@ -218,7 +232,7 @@ function changedEntries<T>(
   const changed: Record<string, T> = {};
   for (const key of Object.keys(current)) {
     const value = current[key];
-    if (value != null && value !== initial[key]) {
+    if (value != null && !isSameValue(value, initial[key])) {
       changed[key] = value;
     }
   }
@@ -226,11 +240,35 @@ function changedEntries<T>(
   return { changed, deletedKeys };
 }
 
-// Stars, picker settings and custom exercises are sent as a diff against page load, so a stale tab
-// cannot overwrite what the app changed since. A shared program's custom exercises are only sent once edited.
+const plannerScalarKeys: ("synergistMultiplier" | "strengthSetsPct" | "hypertrophySetsPct")[] = [
+  "synergistMultiplier",
+  "strengthSetsPct",
+  "hypertrophySetsPct",
+];
+
+function plannerUpdate(initial: IPlannerSettings, current: IPlannerSettings): Partial<IPlannerSettings> {
+  const result: Partial<IPlannerSettings> = ObjectUtils_pick(
+    current,
+    plannerScalarKeys.filter((key) => current[key] !== initial[key])
+  );
+  const weeklyRangeSets = changedEntries(initial.weeklyRangeSets, current.weeklyRangeSets).changed;
+  if (Object.keys(weeklyRangeSets).length > 0) {
+    result.weeklyRangeSets = weeklyRangeSets;
+  }
+  const weeklyFrequency = changedEntries(initial.weeklyFrequency, current.weeklyFrequency).changed;
+  if (Object.keys(weeklyFrequency).length > 0) {
+    result.weeklyFrequency = weeklyFrequency;
+  }
+  return result;
+}
+
+// Stars, picker settings, custom exercises, planner ranges and muscle groups are sent as a diff against page
+// load, so a stale tab cannot overwrite what the app changed since.
 export function Settings_webEditorSettingsRequest(initial: ISettings, current: ISettings): IWebEditorSettingsRequest {
   const exercises = changedEntries(initial.exercises, current.exercises).changed;
   const starred = changedEntries(initial.starredExercises || {}, current.starredExercises || {});
+  const muscleGroups = changedEntries(initial.muscleGroups.data, current.muscleGroups.data);
+  const planner = plannerUpdate(initial.planner, current.planner);
   const pickerSettings = ObjectUtils_pick(
     current.workoutSettings,
     pickerSettingsKeys.filter((key) => current.workoutSettings[key] !== initial.workoutSettings[key])
@@ -239,16 +277,31 @@ export function Settings_webEditorSettingsRequest(initial: ISettings, current: I
     settings: {
       units: current.units,
       timers: { workout: current.timers.workout },
-      planner: current.planner,
-      muscleGroups: current.muscleGroups,
       exerciseData: current.exerciseData,
+      ...(Object.keys(planner).length > 0 ? { plannerUpdate: planner } : {}),
+      ...(Object.keys(muscleGroups.changed).length > 0 ? { muscleGroupsUpdate: muscleGroups.changed } : {}),
       ...(Object.keys(exercises).length > 0 ? { exercises } : {}),
       ...(Object.keys(starred.changed).length > 0 ? { starredExercises: starred.changed } : {}),
       ...(Object.keys(pickerSettings).length > 0 ? { workoutSettings: pickerSettings } : {}),
     },
     deletedExerciseDataKeys: changedEntries(initial.exerciseData, current.exerciseData).deletedKeys,
     deletedStarredExerciseKeys: starred.deletedKeys,
+    deletedMuscleGroupKeys: muscleGroups.deletedKeys,
   };
+}
+
+export function Settings_webEditorHasChanges(saved: ISettings, current: ISettings): boolean {
+  const request = Settings_webEditorSettingsRequest(saved, current);
+  const { units, timers, exerciseData, ...diffs } = request.settings;
+  return (
+    Object.keys(diffs).length > 0 ||
+    request.deletedExerciseDataKeys.length > 0 ||
+    request.deletedStarredExerciseKeys.length > 0 ||
+    request.deletedMuscleGroupKeys.length > 0 ||
+    units !== saved.units ||
+    timers?.workout !== saved.timers.workout ||
+    !isSameValue(exerciseData, saved.exerciseData)
+  );
 }
 
 export function Settings_activeCustomExercises(settings: ISettings): IAllCustomExercises {
@@ -271,7 +324,10 @@ export function Settings_getNextTargetType(type: ITargetType, skipPlatesCalculat
   return nextTargetType;
 }
 
-export function Settings_toggleStarred(starred: ISettings["starredExercises"], key: string): ISettings["starredExercises"] {
+export function Settings_toggleStarred(
+  starred: ISettings["starredExercises"],
+  key: string
+): ISettings["starredExercises"] {
   if (starred?.[key]) {
     const next = { ...starred };
     delete next[key];

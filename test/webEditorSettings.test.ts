@@ -7,8 +7,10 @@ import {
   Settings_webEditorSettingsRequest,
   Settings_applyExportedProgram,
   Settings_toggleStarred,
+  Settings_webEditorHasChanges,
 } from "../src/models/settings";
 import { Program_create, Program_exportProgram } from "../src/models/program";
+import { Muscle_updateMuscleGroup } from "../src/models/muscle";
 import { ICustomExercise, IWebEditorSettings, VWebEditorSettings } from "../src/types";
 import { Storage_validate } from "../src/models/storage";
 
@@ -158,12 +160,105 @@ describe("web editor settings", () => {
 
     it("round-trips what the web editor sends", () => {
       const initial = Settings_build();
-      const settings = { ...initial, units: "kg" as const };
-      settings.planner.synergistMultiplier = 0.9;
+      const settings = { ...initial, units: "kg" as const, planner: { ...initial.planner, synergistMultiplier: 0.9 } };
       const request = Settings_webEditorSettingsRequest(initial, settings);
       const result = Settings_applyWebEditorSettings(Settings_build(), request.settings);
       expect(result.units).to.equal("kg");
       expect(result.planner.synergistMultiplier).to.equal(0.9);
+    });
+
+    it("keeps a range and a group override the phone stored after a stale tab loaded", () => {
+      const tabInitial = Settings_build();
+      const tabCurrent = { ...tabInitial, timers: { ...tabInitial.timers, workout: 120 } };
+      const stored = Settings_build();
+      stored.planner = {
+        ...stored.planner,
+        weeklyRangeSets: { ...stored.planner.weeklyRangeSets, frontDelts: [6, 9] },
+      };
+      stored.muscleGroups = {
+        ...stored.muscleGroups,
+        data: { frontDelts: { muscles: ["Deltoid Anterior", "Deltoid Lateral"] } },
+      };
+
+      const request = Settings_webEditorSettingsRequest(tabInitial, tabCurrent);
+      const result = Settings_applyWebEditorSettings(stored, request.settings, {
+        muscleGroupKeys: request.deletedMuscleGroupKeys,
+      });
+      expect(result.timers.workout).to.equal(120);
+      expect(result.planner.weeklyRangeSets.frontDelts).to.deep.equal([6, 9]);
+      expect(result.muscleGroups.data.frontDelts?.muscles).to.deep.equal(["Deltoid Anterior", "Deltoid Lateral"]);
+    });
+
+    it("sends one changed range and one deleted custom group", () => {
+      const initial = Settings_build();
+      initial.muscleGroups = { ...initial.muscleGroups, data: { grip: { name: "Grip", muscles: ["Wrist Flexors"] } } };
+      const sideDelts: [number, number] = [12, 20];
+      const current = {
+        ...initial,
+        planner: { ...initial.planner, weeklyRangeSets: { ...initial.planner.weeklyRangeSets, sideDelts } },
+        muscleGroups: { ...initial.muscleGroups, data: {} },
+      };
+      const request = Settings_webEditorSettingsRequest(initial, current);
+      expect(request.settings.plannerUpdate).to.deep.equal({ weeklyRangeSets: { sideDelts: [12, 20] } });
+      expect(request.deletedMuscleGroupKeys).to.deep.equal(["grip"]);
+      expect(Storage_validate(request.settings, VWebEditorSettings, "settings").success).to.equal(true);
+
+      const stored = { ...initial, muscleGroups: { ...initial.muscleGroups } };
+      const result = Settings_applyWebEditorSettings(stored, request.settings, {
+        muscleGroupKeys: request.deletedMuscleGroupKeys,
+      });
+      expect(result.planner.weeklyRangeSets.sideDelts).to.deep.equal([12, 20]);
+      expect(result.planner.weeklyRangeSets.chest).to.deep.equal([10, 18]);
+      expect(result.muscleGroups.data.grip).to.equal(undefined);
+    });
+
+    it("sends a reset to the saved value when diffed against the last acknowledged save", () => {
+      const loaded = Settings_build();
+      const saved = {
+        ...loaded,
+        planner: { ...loaded.planner, weeklyFrequency: { ...loaded.planner.weeklyFrequency, chest: 3 } },
+      };
+      const current = {
+        ...saved,
+        planner: { ...saved.planner, weeklyFrequency: { ...saved.planner.weeklyFrequency, chest: 2 } },
+      };
+      expect(Settings_webEditorHasChanges(saved, saved)).to.equal(false);
+      expect(Settings_webEditorHasChanges(saved, current)).to.equal(true);
+      expect(Settings_webEditorSettingsRequest(saved, current).settings.plannerUpdate).to.deep.equal({
+        weeklyFrequency: { chest: 2 },
+      });
+    });
+
+    it("sends only the edited group when a group writer clones every entry", () => {
+      const loaded = Settings_build();
+      loaded.muscleGroups = {
+        ...loaded.muscleGroups,
+        data: { edited: { name: "Edited", muscles: ["Wrist Flexors"] }, deletedOnPhone: { name: "Gone", muscles: [] } },
+      };
+      const current = {
+        ...loaded,
+        muscleGroups: Muscle_updateMuscleGroup(loaded.muscleGroups, "edited", ["Wrist Extensors"]),
+      };
+      const request = Settings_webEditorSettingsRequest(loaded, current);
+      expect(Object.keys(request.settings.muscleGroupsUpdate || {})).to.deep.equal(["edited"]);
+
+      const stored = {
+        ...loaded,
+        muscleGroups: { ...loaded.muscleGroups, data: { edited: loaded.muscleGroups.data.edited } },
+      };
+      const result = Settings_applyWebEditorSettings(stored, request.settings, {
+        muscleGroupKeys: request.deletedMuscleGroupKeys,
+      });
+      expect(result.muscleGroups.data.deletedOnPhone).to.equal(undefined);
+      expect(result.muscleGroups.data.edited?.muscles).to.deep.equal(["Wrist Extensors"]);
+    });
+
+    it("merges an older client's whole planner into the stored ranges", () => {
+      const stored = Settings_build();
+      const oldPlanner = { ...stored.planner, weeklyRangeSets: { shoulders: [8, 14] as [number, number] } };
+      const result = Settings_applyWebEditorSettings(stored, { planner: oldPlanner });
+      expect(result.planner.weeklyRangeSets.shoulders).to.deep.equal([8, 14]);
+      expect(result.planner.weeklyRangeSets.sideDelts).to.deep.equal([10, 18]);
     });
   });
 
