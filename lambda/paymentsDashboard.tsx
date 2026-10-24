@@ -41,6 +41,7 @@ export function renderPaymentsDashboardHtml(
   paymentsData: IPaymentsDashboardData[],
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>,
   summary: IPaymentsSummary,
+  serverTimestamp: number,
   nextBefore: number,
   hasMore: boolean
 ): string {
@@ -51,6 +52,7 @@ export function renderPaymentsDashboardHtml(
       paymentsData={paymentsData}
       userAffiliates={userAffiliates}
       summary={summary}
+      serverTimestamp={serverTimestamp}
       nextBefore={nextBefore}
       hasMore={hasMore}
     />
