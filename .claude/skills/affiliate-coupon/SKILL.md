@@ -12,7 +12,7 @@ Create the coupon: $ARGUMENTS
 
 - iOS: "Redeem coupon" opens Apple's own code sheet (`Thunk_redeemCouponIOS`). The code must be an App Store Connect offer code. Our server is never called.
 - Android: "Redeem coupon" opens our `couponModal`, which calls `/api/coupon/claim/:code` and reads the `lftCoupons` row. The claim response carries `affiliate`, and the app records it with `Storage_setAffiliate(affiliate, "coupon")`.
-- An Apple custom code belongs to one offer, and an offer covers one plan. So iOS gets two codes: `<CODE>` for yearly and `<CODE>MONTHLY` for monthly. Android uses `<CODE>` for both plans.
+- An Apple custom code belongs to one offer, and an offer covers one plan. So iOS gets two codes: `<CODE>` for yearly and `<CODE>MONTHLY` for monthly. An optional third argument replaces the monthly code, e.g. `MLTRY military MLTRYMONTH`. Android uses `<CODE>` for both plans.
 - Apple offer names must be unique across both subscriptions. The script names them `<AFFILIATE_ID>` (yearly) and `<AFFILIATE_ID>-monthly`.
 - iOS redemptions never write an `lftAffiliates` row, so the affiliate dashboard does not count them. Apple reports the offer on the payment as `offerIdentifier`.
 - Program imports are counted when the link carries `?s=<AFFILIATE_ID>`.

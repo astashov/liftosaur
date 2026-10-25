@@ -16,6 +16,28 @@
 -->
 
 ---
+date: 2026-10-25
+title: More muscle groups and a new muscle map
+---
+
+The muscle groups used to be a bit coarse, as well as the range of sets per muscle group was.
+I dug into existing research, and also into the available literature on weekly volume per muscle group, and what should the muscle groups even be, and ended up with revamped muscle groups:
+
+* Shoulders got split into Front, Side and Rear Delts
+* Back got split into Lats, Upper Back and Lower Back
+* Forearms got split into Forearm Flexors and Forearm Extensors
+
+There are also new groups - Upper Traps, Neck, Rotator Cuff, Obliques, Hip Flexors, Abductors and Adductors.
+
+For the weekly set ranges in the program settings, there are now 3 presets:
+
+* Low (4-10 sets)
+* Moderate (10-18 sets)
+* High (18-30 sets)
+
+The muscle map in the program stats and week insights is new too. It became more detailed, and now highlights the specific muscles you work, including the ones that are not in any group (like serratus or the front of the shins).
+
+---
 date: 2026-10-20
 title: Redesigned the equipment setup
 ---

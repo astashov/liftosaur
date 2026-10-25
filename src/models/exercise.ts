@@ -4843,6 +4843,10 @@ export function Exercise_targetMusclesGroups(type: IExerciseType, settings: ISet
   return Array.from(allMuscleGroups);
 }
 
+export function Exercise_muscleGroupFilterNames(muscleGroups: IScreenMuscle[], settings: ISettings): string[] {
+  return muscleGroups.map((muscleGroup) => Muscle_getMuscleGroupName(muscleGroup, settings).toLowerCase());
+}
+
 export function Exercise_defaultSynergistMuscleMultipliers(
   type: IExerciseType,
   settings: ISettings
@@ -5382,13 +5386,13 @@ export function Exercise_sortExercises(
       return bRating - aRating;
     } else if (
       filterTypes &&
-      Muscle_getAvailableMuscleGroups(settings)
-        .map((m) => m.toLowerCase())
-        .some((t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1)
+      Exercise_muscleGroupFilterNames(Muscle_getAvailableMuscleGroups(settings), settings).some(
+        (t) => filterTypes.map((ft) => ft.toLowerCase()).indexOf(t) !== -1
+      )
     ) {
       const lowercaseFilterTypes = filterTypes.map((t) => t.toLowerCase());
-      const aTargetMuscleGroups = Exercise_targetMusclesGroups(a, settings);
-      const bTargetMuscleGroups = Exercise_targetMusclesGroups(b, settings);
+      const aTargetMuscleGroups = Exercise_muscleGroupFilterNames(Exercise_targetMusclesGroups(a, settings), settings);
+      const bTargetMuscleGroups = Exercise_muscleGroupFilterNames(Exercise_targetMusclesGroups(b, settings), settings);
       if (
         aTargetMuscleGroups.some((m) => lowercaseFilterTypes.indexOf(m) !== -1) &&
         bTargetMuscleGroups.every((m) => lowercaseFilterTypes.indexOf(m) === -1)
@@ -5415,8 +5419,11 @@ export function Exercise_filterExercisesByType<T extends IExerciseType>(
 ): T[] {
   return allExercises.filter((e) => {
     const exercise = Exercise_get(e, settings.exercises);
-    const targetMuscleGroups = Exercise_targetMusclesGroups(e, settings).map((m) => m.toLowerCase());
-    const synergistMuscleGroups = Exercise_synergistMusclesGroups(e, settings).map((m) => m.toLowerCase());
+    const targetMuscleGroups = Exercise_muscleGroupFilterNames(Exercise_targetMusclesGroups(e, settings), settings);
+    const synergistMuscleGroups = Exercise_muscleGroupFilterNames(
+      Exercise_synergistMusclesGroups(e, settings),
+      settings
+    );
     return filterTypes
       .map((ft) => ft.toLowerCase())
       .every((ft) => {
