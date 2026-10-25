@@ -2,7 +2,7 @@ import { JSX, useLayoutEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { Text } from "../../../components/primitives/text";
 import { ISetResults, ISetSplit } from "../models/types";
-import { ObjectUtils_keys } from "../../../utils/object";
+import { MuscleGroupOrder_sections } from "../../../models/muscleGroupOrder";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
 import { LinkButton } from "../../../components/linkButton";
 import { Pressable } from "../../../components/primitives/pressable";
@@ -150,20 +150,22 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         </View>
       )}
 
-      {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
-        return (
-          <Text key={muscleGroup} className="text-sm">
-            <StatLabel label={Muscle_getMuscleGroupName(muscleGroup, props.settings)} />{" "}
-            <PlannerSetSplit
-              split={setResults.muscleGroup[muscleGroup]}
-              settings={settings}
-              shouldIncludeFrequency={frequency}
-              muscle={props.colorize ? muscleGroup : undefined}
-              textSize="text-sm"
-            />
-          </Text>
-        );
-      })}
+      {MuscleGroupOrder_sections(setResults.muscleGroup, settings).map((rows, index) => (
+        <View key={rows[0].muscleGroup} className={index > 0 ? "mt-2" : ""}>
+          {rows.map(({ muscleGroup, split }) => (
+            <Text key={muscleGroup} className="text-sm">
+              <StatLabel label={Muscle_getMuscleGroupName(muscleGroup, props.settings)} />{" "}
+              <PlannerSetSplit
+                split={split}
+                settings={settings}
+                shouldIncludeFrequency={frequency}
+                muscle={props.colorize ? muscleGroup : undefined}
+                textSize="text-sm"
+              />
+            </Text>
+          ))}
+        </View>
+      ))}
     </View>
   );
 }

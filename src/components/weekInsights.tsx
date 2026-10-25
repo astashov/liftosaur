@@ -15,7 +15,7 @@ import { ISetResults } from "../pages/planner/models/types";
 import { PlannerWeekMuscles } from "../pages/planner/components/plannerWeekMuscles";
 import { PlannerSetSplit } from "../pages/planner/components/plannerStats";
 import { MuscleRangeDisplay_pctColor } from "../models/muscleRangeDisplay";
-import { ObjectUtils_keys } from "../utils/object";
+import { MuscleGroupOrder_sections } from "../models/muscleGroupOrder";
 import { PersonalRecords } from "./personalRecords";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IconCrown } from "./icons/iconCrown";
@@ -256,22 +256,24 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       </View>
       <View className="flex-row items-center mt-2">
         <View className="flex-1">
-          {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
-            return (
-              <Text key={muscleGroup} className="text-sm">
-                <Text className="text-sm text-text-secondary">
-                  {Muscle_getMuscleGroupName(muscleGroup, props.settings)}:
-                </Text>{" "}
-                <PlannerSetSplit
-                  split={setResults.muscleGroup[muscleGroup]}
-                  settings={props.settings}
-                  shouldIncludeFrequency={true}
-                  muscle={muscleGroup}
-                  textSize="text-sm"
-                />
-              </Text>
-            );
-          })}
+          {MuscleGroupOrder_sections(setResults.muscleGroup, props.settings).map((rows, index) => (
+            <View key={rows[0].muscleGroup} className={index > 0 ? "mt-2" : ""}>
+              {rows.map(({ muscleGroup, split }) => (
+                <Text key={muscleGroup} className="text-sm">
+                  <Text className="text-sm text-text-secondary">
+                    {Muscle_getMuscleGroupName(muscleGroup, props.settings)}:
+                  </Text>{" "}
+                  <PlannerSetSplit
+                    split={split}
+                    settings={props.settings}
+                    shouldIncludeFrequency={true}
+                    muscle={muscleGroup}
+                    textSize="text-sm"
+                  />
+                </Text>
+              ))}
+            </View>
+          ))}
         </View>
         <View className="w-scaled-20 mb-2">
           <PlannerWeekMuscles
