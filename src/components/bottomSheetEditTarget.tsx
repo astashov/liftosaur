@@ -15,6 +15,7 @@ import { updateProgress } from "../models/state";
 import { Weight_build, Weight_evaluateWeight, Weight_roundConvertTo } from "../models/weight";
 import { Button } from "./button";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
+import { EditProgressEntry_deleteEditedSet } from "../models/editProgressEntry";
 
 interface IBottomSheetEditTargetProps {
   isHidden: boolean;
@@ -383,13 +384,30 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
           </View>
         </MenuItemWrapper>
       )}
-      <View className="my-4">
+      <View className="flex-row gap-2 mt-12 mb-4">
+        <Button
+          kind="red"
+          name="edit-set-target-delete"
+          data-testid="edit-set-target-delete"
+          testID="edit-set-target-delete"
+          className="flex-1"
+          onClick={() => {
+            savedRef.current = true;
+            updateProgress(
+              props.dispatch,
+              [lb<IHistoryRecord>().recordModify(EditProgressEntry_deleteEditedSet)],
+              "delete-set-target"
+            );
+          }}
+        >
+          Delete
+        </Button>
         <Button
           kind="purple"
           name="edit-set-target-save"
           data-testid="edit-set-target-save"
           testID="edit-set-target-save"
-          className="w-full"
+          className="flex-1"
           onClick={() => {
             FocusedInputFlush_flush();
             savedRef.current = true;
