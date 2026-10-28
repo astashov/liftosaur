@@ -511,11 +511,9 @@ export function Program_runExerciseFinishDayScript(
       script,
       newState,
       ObjectUtils_clone(otherStates),
-      bindings,
-      fns,
+      { kind: "progress", mode: "planner", bindings, fns },
       settings.units,
-      fnContext,
-      "planner"
+      fnContext
     );
     runner.execute();
     updates = runner.getUpdates();
@@ -579,16 +577,14 @@ export function Program_runFinishDayScript(
       script,
       newState,
       otherStates,
-      bindings,
-      fns,
+      { kind: "progress", mode: "planner", bindings, fns },
       settings.units,
       {
         exerciseType: programExercise.exerciseType,
         ...Progress_scriptExerciseContext(entry, programExercise),
         unit: settings.units,
         prints: [],
-      },
-      "planner"
+      }
     );
     runner.execute();
     updates = runner.getUpdates();

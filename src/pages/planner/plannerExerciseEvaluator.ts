@@ -451,11 +451,14 @@ export class PlannerExerciseEvaluator {
             script,
             {},
             {},
-            Progress_createEmptyScriptBindings(this.dayData, this.settings),
-            Progress_createScriptFunctions(this.settings),
+            {
+              kind: "progress",
+              mode: "update",
+              bindings: Progress_createEmptyScriptBindings(this.dayData, this.settings),
+              fns: Progress_createScriptFunctions(this.settings),
+            },
             this.settings.units,
-            { exerciseType, unit: this.settings.units, prints: [] },
-            "update"
+            { exerciseType, unit: this.settings.units, prints: [] }
           );
           const stateKeys = liftoscriptEvaluator.getStateVariableKeys();
           meta = { stateKeys };
@@ -649,11 +652,14 @@ export class PlannerExerciseEvaluator {
             script,
             state,
             {},
-            Progress_createEmptyScriptBindings(this.dayData, this.settings),
-            Progress_createScriptFunctions(this.settings),
+            {
+              kind: "progress",
+              mode: "planner",
+              bindings: Progress_createEmptyScriptBindings(this.dayData, this.settings),
+              fns: Progress_createScriptFunctions(this.settings),
+            },
             this.settings.units,
-            { exerciseType, unit: this.settings.units, prints: [] },
-            "planner"
+            { exerciseType, unit: this.settings.units, prints: [] }
           );
           try {
             liftoscriptEvaluator.parse();
@@ -1290,11 +1296,14 @@ export class PlannerExerciseEvaluator {
           oldLiftoscript,
           {},
           {},
-          Progress_createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
-          Progress_createScriptFunctions(settings),
+          {
+            kind: "progress",
+            mode: "planner",
+            bindings: Progress_createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
+            fns: Progress_createScriptFunctions(settings),
+          },
           settings.units,
-          { unit: settings.units, prints: [] },
-          "planner"
+          { unit: settings.units, prints: [] }
         );
         const newLiftoscript = liftoscriptEvaluator.switchWeightsToUnit(settings.units);
         script =

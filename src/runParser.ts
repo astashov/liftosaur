@@ -69,7 +69,10 @@ const fns = Progress_createScriptFunctions(Settings_build());
 
 const state = { foo: 2 };
 
-const scriptRunner = new ScriptRunner(program, state, {}, bindings, fns, "lb", { unit: "lb", prints: [] }, "planner");
+const scriptRunner = new ScriptRunner(program, state, {}, { kind: "progress", mode: "planner", bindings, fns }, "lb", {
+  unit: "lb",
+  prints: [],
+});
 console.log("\n\nRunning...\n\n");
 const result = scriptRunner.execute();
 console.log("\n\nResult:\n\n");

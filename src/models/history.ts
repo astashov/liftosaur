@@ -338,33 +338,50 @@ export function History_collectProgramChangeTimes(): ICollectorFn<
   };
 }
 
+export function History_entryMuscleGroups(
+  entry: IHistoryEntry,
+  settings: ISettings
+): Partial<Record<IScreenMuscle | "total", { sets: number; volume: number }>> {
+  const result: Partial<Record<IScreenMuscle | "total", { sets: number; volume: number }>> = {};
+  const exercise = Exercise_get(entry.exercise, settings.exercises);
+  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
+  const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings);
+  const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(exercise, settings);
+  const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
+  const volume = Reps_volume(finishedSets, settings.units).value;
+  const volumeMultiplier = Exercise_getVolumeMultiplier(entry.exercise, settings);
+  for (const muscleGroup of [...Muscle_getAvailableMuscleGroups(settings), "total"] as const) {
+    let multiplier = 0;
+    if (muscleGroup === "total") {
+      multiplier = 1;
+    } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
+      multiplier = 1;
+    } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
+      multiplier = synergistMuscleGroupToMultiplier[muscleGroup] ?? settings.planner.synergistMultiplier;
+    }
+    if (multiplier !== 0) {
+      result[muscleGroup] = { sets: finishedSets.length * multiplier, volume: volume * multiplier * volumeMultiplier };
+    }
+  }
+  return result;
+}
+
 export function History_collectMuscleGroups(
   settings: ISettings
 ): ICollectorFn<IHistoryRecord, Record<IScreenMuscle | "total", [number[], number[], number[]]>> {
   return {
     fn: (acc, hr) => {
       for (const entry of hr.entries) {
-        const exercise = Exercise_get(entry.exercise, settings.exercises);
-        const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
-        const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings);
-        const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(exercise, settings);
+        const entryMuscleGroups = History_entryMuscleGroups(entry, settings);
         for (const muscleGroup of [...Muscle_getAvailableMuscleGroups(settings), "total"] as const) {
-          let multiplier = 0;
-          if (muscleGroup === "total") {
-            multiplier = 1;
-          } else if (targetMuscleGroups.indexOf(muscleGroup) !== -1) {
-            multiplier = 1;
-          } else if (synergistMuscleGroups.indexOf(muscleGroup) !== -1) {
-            multiplier = synergistMuscleGroupToMultiplier[muscleGroup] ?? settings.planner.synergistMultiplier;
-          }
-          if (multiplier === 0) {
+          const contribution = entryMuscleGroups[muscleGroup];
+          if (contribution == null) {
             continue;
           }
           acc[muscleGroup] = acc[muscleGroup] || [[], [], []];
           const muscleGroupAcc = acc[muscleGroup];
           const date = new Date(hr.startTime);
           const lastTs = muscleGroupAcc[0][muscleGroupAcc[0]?.length - 1];
-          const finishedSets = entry.sets.filter((s) => (s.completedReps || 0) > 0);
           if (lastTs == null) {
             muscleGroupAcc[0].push(Math.round(date.getTime() / 1000));
             muscleGroupAcc[1].push(0);
@@ -382,11 +399,8 @@ export function History_collectMuscleGroups(
               muscleGroupAcc[2].push(0);
             }
           }
-          muscleGroupAcc[1][muscleGroupAcc[1].length - 1] +=
-            Reps_volume(finishedSets, settings.units).value *
-            multiplier *
-            Exercise_getVolumeMultiplier(entry.exercise, settings);
-          muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
+          muscleGroupAcc[1][muscleGroupAcc[1].length - 1] += contribution.volume;
+          muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += contribution.sets;
         }
       }
       return acc;

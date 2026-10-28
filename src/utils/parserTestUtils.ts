@@ -59,7 +59,14 @@ export function ParserTestUtils_run(
   bindings: IScriptBindings = ParserTestUtils_defaultBindings,
   context: IScriptFnContext = { unit: "lb", prints: [] }
 ): ILiftoscriptScalar {
-  const scriptRunner = new ScriptRunner(program, state, {}, bindings, fns, "lb", context, "planner");
+  const scriptRunner = new ScriptRunner(
+    program,
+    state,
+    {},
+    { kind: "progress", mode: "planner", bindings, fns },
+    "lb",
+    context
+  );
   return scriptRunner.execute();
 }
 

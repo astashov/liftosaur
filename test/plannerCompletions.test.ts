@@ -207,6 +207,12 @@ describe("PlannerCompletions", () => {
     expect(labels(result)).to.not.include("cr");
   });
 
+  it("leaves graph-only functions out of progress scripts", () => {
+    const result = completeAt("# Week 1\n## Day 1\nSquat / 3x5 / progress: custom() {~ po| ~}");
+    expect(labels(result)).to.not.include("point");
+    expect(labels(result)).to.not.include("programState");
+  });
+
   it("completes state vars from the enclosing custom() args", () => {
     const result = completeAt(
       "# Week 1\n## Day 1\nSquat / 3x5 / progress: custom(increment: 5lb, attempts: 3) {~ state.att| ~}"
