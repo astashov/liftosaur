@@ -4493,6 +4493,13 @@ export function Exercise_findByNameAndEquipment(
   nameAndEquipment: string,
   customExercises: IAllCustomExercises
 ): IExercise | undefined {
+  return Exercise_resolveNameAndEquipment(nameAndEquipment, customExercises)?.exercise;
+}
+
+export function Exercise_resolveNameAndEquipment(
+  nameAndEquipment: string,
+  customExercises: IAllCustomExercises
+): { exercise: IExercise; hasExplicitEquipment: boolean } | undefined {
   const parts = nameAndEquipment.split(",").map((p) => p.trim());
   let name: string | undefined;
   let equipment: IEquipment | undefined | null;
@@ -4529,20 +4536,23 @@ export function Exercise_findByNameAndEquipment(
       if (fullNameExerciseId != null && fullNameExerciseId !== exerciseId) {
         const fullNameExercise = Exercise_findById(fullNameExerciseId, customExercises);
         if (fullNameExercise != null) {
-          return { ...fullNameExercise };
+          return { exercise: { ...fullNameExercise }, hasExplicitEquipment: false };
         }
       }
     }
     const exercise = Exercise_findById(exerciseId, customExercises);
     if (exercise != null) {
-      return { ...exercise, equipment: equipment || exercise.defaultEquipment };
+      return {
+        exercise: { ...exercise, equipment: equipment || exercise.defaultEquipment },
+        hasExplicitEquipment: equipment != null,
+      };
     }
   } else {
     exerciseId = Exercise_findIdByName(nameAndEquipment, customExercises);
     if (exerciseId != null) {
       const exercise = Exercise_findById(exerciseId, customExercises);
       if (exercise != null) {
-        return { ...exercise };
+        return { exercise: { ...exercise }, hasExplicitEquipment: false };
       }
     }
   }

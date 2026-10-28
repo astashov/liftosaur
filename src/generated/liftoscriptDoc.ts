@@ -903,15 +903,58 @@ The \`var.i\` would contain the index of each set, starting from 1.
 
 ### Prints
 
-For debugging purposes, there's \`print\` function. You can use it to debug your scripts. Liftoscript doesn't support strings, so you can only pass numbers, weights or percentages there. It looks like this:
+For debugging purposes, there's \`print\` function. You can use it to debug your scripts. You can pass numbers, weights, percentages and text there. It looks like this:
 
 \`\`\`
 print(1, 20lb, 30%)
 print(100, weights[1], completedReps[2])
 print(var.max)
+print("e1RM", rm1)
+print("Next weight: " + weights[1])
 \`\`\`
 
-It accepts any number of arguments, and you'll see all the prints either in playground or when you finish exercise during workout, after all sets are done.
+It accepts any number of arguments. Each call prints one line, with the values separated by commas, like \`e1RM, 225lb\`. You'll see all the prints either in playground or when you finish exercise during workout, after all sets are done.
+
+### Text
+
+You can write text in double quotes, like \`"heavy"\`. Text can't contain \`"\`, \`\\\`, \`~\` or a line break.
+
+Text works mostly like in JavaScript:
+
+- \`+\` joins text: \`"e1RM: " + rm1\` gives \`e1RM: 225lb\`. Numbers, weights and percentages print with up to 2 decimals.
+- \`==\` and \`!=\` compare text exactly, and case matters: \`"Squat" == "squat"\` is false. Text is never equal to a number.
+- \`<\`, \`>\`, \`<=\`, \`>=\` compare two texts in alphabetical order. Comparing text to a number is an error.
+- \`-\`, \`*\`, \`/\`, \`%\` on text are errors.
+- In \`if\`, \`!\`, \`&&\` and \`||\`, empty text \`""\` is false, and any other text is true.
+- You can store text in temporary variables: \`var.mode = "heavy"\`, and add to it: \`var.mode += "!"\`.
+- You can't store text in state variables, \`weights\`, \`reps\`, \`rm1\` or other set variables, and you can't use it as an index.
+
+There's a built-in \`exercise\` variable with the name of the current exercise, as the program prints it, including the label. E.g. \`"t1: Squat"\` or \`"Bench Press, Dumbbell"\`.
+
+### Checking which exercise runs the script
+
+When several exercises reuse the same template, you can branch on the exercise with \`isProgramExercise\` and \`isExercise\`:
+
+\`\`\`
+t1 / used: none / 3x5 / progress: custom() {~
+  if (completedReps >= reps) {
+    if (isExercise("Deadlift")) {
+      weights += 10lb
+    } else {
+      weights += 5lb
+    }
+  }
+~}
+
+t1: Squat / ...t1
+t1: Deadlift / ...t1
+t1: Bench Press / ...t1
+\`\`\`
+
+- \`isProgramExercise("t1: Squat")\` is true only for that exact line of the program. The label has to match. If you don't specify equipment, it means the exercise's default equipment, so for a barbell squat both \`"t1: Squat"\` and \`"t1: Squat, Barbell"\` match.
+- \`isExercise("Squat")\` is true for the Squat with any label. It checks equipment only if you specify it, like \`isExercise("Squat, Dumbbell")\`.
+
+Both match exercise names the same way the program does, so letter case and exercise aliases don't matter.
 
 ### Update
 
@@ -1222,7 +1265,7 @@ I.e. the syntax is \`state[tag].variablename = value\`.
 
 ### Types
 
-Result of an expression could be a number, weight, percentage or boolean.
+Result of an expression could be a number, weight, percentage, boolean or text.
 Number, percentage or weight could be assigned to a state variable.
 Only number could be used for number of reps for set expressions.
 Number, percentage or weight could be used for set weight expressions.
@@ -1504,6 +1547,26 @@ Checks if each element in the first array is either zero or greater than or equa
 \`\`\`javascript
 if (zeroOrGte(completedReps, reps)) {
   weights += 5lb;
+}
+\`\`\`
+
+#### \`isProgramExercise\`
+
+Returns true if the script runs for the given program line. The label must match, and the default equipment is used if you don't specify one.
+
+\`\`\`javascript
+if (isProgramExercise("t1: Squat")) {
+  weights += 10lb;
+}
+\`\`\`
+
+#### \`isExercise\`
+
+Returns true if the script runs for the given exercise, with any label. Equipment is checked only if you specify it.
+
+\`\`\`javascript
+if (isExercise("Squat") || isExercise("Deadlift")) {
+  weights += 10lb;
 }
 \`\`\`
 `;

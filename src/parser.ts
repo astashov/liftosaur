@@ -13,7 +13,7 @@ import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, IS
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IProgramMode } from "./models/program";
-import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
+import { ILiftoscriptEvaluatorUpdate, ILiftoscriptScalar } from "./liftoscriptEvaluator";
 import { Dialog_alert } from "./utils/dialog";
 import memoize from "micro-memoize";
 
@@ -222,8 +222,8 @@ export class ScriptRunner {
   public execute(type: "rpe"): number;
   public execute(type: "weight"): IWeight | IPercentage;
   public execute(type: "timer"): number;
-  public execute(type?: undefined): number | IWeight | boolean;
-  public execute(type?: "reps" | "weight" | "timer" | "rpe"): number | IWeight | IPercentage | boolean {
+  public execute(type?: undefined): ILiftoscriptScalar;
+  public execute(type?: "reps" | "weight" | "timer" | "rpe"): ILiftoscriptScalar {
     const [liftoscriptEvaluator, liftoscriptTree] = this.parse();
     const rawResult = liftoscriptEvaluator.evaluate(liftoscriptTree.topNode);
     let result = Array.isArray(rawResult) ? rawResult[0] : rawResult;
@@ -242,8 +242,8 @@ export class ScriptRunner {
 
   private convertResult(
     type: "reps" | "weight" | "timer" | "rpe" | undefined,
-    result: number | IWeight | IPercentage | boolean
-  ): number | IWeight | IPercentage | boolean {
+    result: ILiftoscriptScalar
+  ): ILiftoscriptScalar {
     if (type === "reps" || type === "timer") {
       if (typeof result !== "number") {
         throw new LiftoscriptSyntaxError("Expected to get number as a result", 0, 0, 0, 0, {
@@ -265,7 +265,7 @@ export class ScriptRunner {
         return Math.round(Math.min(10, Math.max(0, result)) / 0.5) * 0.5;
       }
     } else if (type === "weight") {
-      if (typeof result === "boolean") {
+      if (typeof result === "boolean" || typeof result === "string") {
         throw new LiftoscriptSyntaxError("Expected to get number, percentage or weight as a result", 0, 0, 0, 0, {
           type: "wrongResultType",
           data: { expected: "numberOrPercentageOrWeight" },

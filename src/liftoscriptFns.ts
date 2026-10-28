@@ -6,6 +6,7 @@ const optionalNumbers = v.array(v.optional(v.number()));
 const optionalWeights = v.array(v.optional(VWeight));
 
 export const VScriptBindings = v.object({
+  exercise: v.string(),
   day: v.number(),
   week: v.number(),
   dayInWeek: v.number(),
@@ -133,6 +134,14 @@ export const liftoscriptFnSignatures = {
     variadic: { schema: v.any(), hint: "any values" },
     returns: v.any(),
   },
+  isProgramExercise: {
+    args: [{ name: "pattern", schema: v.string(), hint: "an exercise name as in the program, like 't1: Squat'" }],
+    returns: v.boolean(),
+  },
+  isExercise: {
+    args: [{ name: "pattern", schema: v.string(), hint: "an exercise name, like 'Squat' or 'Squat, Barbell'" }],
+    returns: v.boolean(),
+  },
   increment: {
     args: [{ name: "value", schema: scalar, hint: "a number, weight or percentage" }],
     returns: scalar,
@@ -180,7 +189,7 @@ export type IScriptFunctions = {
 };
 
 export function LiftoscriptFns_isFnName(name: string): name is IScriptFnName {
-  return name in liftoscriptFnSignatures;
+  return Object.prototype.hasOwnProperty.call(liftoscriptFnSignatures, name);
 }
 
 export function LiftoscriptFns_arity(name: IScriptFnName): { min: number; max: number | undefined } {
@@ -211,10 +220,11 @@ export function LiftoscriptFns_isValidArg(name: IScriptFnName, index: number, va
   return v.is(argSignature.schema, value);
 }
 
-export type IScriptStaticType = "number" | "weight" | "percentage" | "array";
+export type IScriptStaticType = "number" | "weight" | "percentage" | "array" | "string";
 
 export function LiftoscriptFns_bindingStaticType(name: string): IScriptStaticType | undefined {
-  const schema = (VScriptBindings.entries as Record<string, IAnySchema | undefined>)[name];
+  const entries: Record<string, IAnySchema | undefined> = VScriptBindings.entries;
+  const schema = Object.prototype.hasOwnProperty.call(entries, name) ? entries[name] : undefined;
   if (schema == null) {
     return undefined;
   }
@@ -223,6 +233,7 @@ export function LiftoscriptFns_bindingStaticType(name: string): IScriptStaticTyp
     ["number", 1],
     ["weight", { value: 1, unit: "lb" }],
     ["percentage", { value: 1, unit: "%" }],
+    ["string", "a"],
   ];
   return samples.find(([, sample]) => v.is(schema, sample))?.[0];
 }
@@ -233,6 +244,7 @@ export function LiftoscriptFns_acceptsTypeAt(name: IScriptFnName, index: number,
     weight: [{ value: 1, unit: "lb" }],
     percentage: [{ value: 1, unit: "%" }],
     array: [[1], [{ value: 1, unit: "lb" }], [{ value: 1, unit: "%" }], []],
+    string: ["a"],
   };
   return samples[type].some((sample) => LiftoscriptFns_isValidArg(name, index, sample));
 }

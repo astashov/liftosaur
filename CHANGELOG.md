@@ -16,6 +16,30 @@
 -->
 
 ---
+date: 2026-10-28
+title: Strings support in Liftoscript
+---
+
+Liftoscript now supports strings. The main use is better `print()` messages, which before could only show numbers and weights:
+
+```liftoscript
+print("Hit all reps, adding 5lb. e1RM: " + calculate1RM(completedWeights[1], completedReps[1]))
+```
+
+You can also check which exercise runs the script. It is handy in templates shared between several exercises. There's a new `exercise` variable with the exercise name (like `t1: Squat`), and two new functions:
+
+* `isExercise("Squat")` - true if it's a Squat, with any label. Add the equipment to be more specific: `isExercise("Bench Press, Dumbbell")`
+* `isProgramExercise("t1: Squat")` - matches the exercise with its label, like it's written in the program text
+
+```liftoscript
+if (completedReps >= reps) {
+  weights += isExercise("Deadlift") ? 10lb : 5lb
+}
+```
+
+You can store text in `var.` variables, compare it with `==` / `!=`, and join it with `+`. Text can't go into state variables, weights, reps, etc - you'll get an error for that.
+
+---
 date: 2026-10-25
 title: More muscle groups and a new muscle map
 ---

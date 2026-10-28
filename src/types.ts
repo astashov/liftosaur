@@ -544,12 +544,16 @@ export interface IHistoryEntryProgressSnapshot {
   diffVars?: Record<string, string>;
   prints?: (number | IWeight | IPercentage)[][];
   updatePrints?: (number | IWeight | IPercentage)[][];
+  printLines?: string[];
+  updatePrintLines?: string[];
 }
 const _VHistoryEntryProgressSnapshot = v.object({
   diffState: v.optional(v.record(v.string(), v.string())),
   diffVars: v.optional(v.record(v.string(), v.string())),
   prints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
   updatePrints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
+  printLines: v.optional(v.array(v.string())),
+  updatePrintLines: v.optional(v.array(v.string())),
 });
 const _VHistoryEntryProgressSnapshotMatches: IEquals<
   v.InferOutput<typeof _VHistoryEntryProgressSnapshot>,
@@ -574,6 +578,7 @@ export interface IHistoryEntry {
   isSuppressed?: boolean;
   superset?: string;
   updatePrints?: (number | IWeight | IPercentage)[][];
+  updatePrintLines?: string[];
   descriptionSnapshot?: string;
   progressSnapshot?: IHistoryEntryProgressSnapshot;
 }
@@ -592,6 +597,7 @@ const _VHistoryEntry = v.object({
   isSuppressed: v.optional(v.boolean()),
   superset: v.optional(v.string()),
   updatePrints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
+  updatePrintLines: v.optional(v.array(v.string())),
   descriptionSnapshot: v.optional(v.string()),
   progressSnapshot: v.optional(VHistoryEntryProgressSnapshot),
 });
@@ -2202,6 +2208,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "changed",
     "superset",
     "updatePrints",
+    "updatePrintLines",
   ] as const,
 };
 

@@ -35,7 +35,6 @@ import {
   IExerciseType,
   IUnit,
   IWeight,
-  IPercentage,
   ISettings,
   IScreenMuscle,
   IIntervals,
@@ -69,6 +68,7 @@ import {
   PlannerProgramExercise_currentDescription,
 } from "../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { LiftoscriptPrint_lines } from "../liftoscriptPrint";
 import { Muscle_getAvailableMuscleGroups } from "./muscle";
 
 export interface IHistoricalEntries {
@@ -125,14 +125,14 @@ export function History_finishProgramDay(
   return {
     ...historyRecord,
     entries: historyRecord.entries.map((entry) => {
-      const originalUpdatePrints = entry.updatePrints;
+      const originalUpdatePrints = LiftoscriptPrint_lines(entry.updatePrintLines, entry.updatePrints);
       const programExercise =
         program && entry.programExerciseId
           ? Program_getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId)
           : undefined;
       if (Progress_isCurrent(progress)) {
         const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
-        const { updatePrints, ...entryWithoutPrints } = entry;
+        const { updatePrints, updatePrintLines, ...entryWithoutPrints } = entry;
         entry = {
           ...entryWithoutPrints,
           sets: entry.sets.map((set) => {
@@ -188,7 +188,7 @@ function History_buildProgressSnapshot(
   program?: IEvaluatedProgram,
   stats?: IStats,
   userPromptedStateVars?: IProgramState,
-  updatePrints?: (number | IWeight | IPercentage)[][]
+  updatePrintLines?: string[]
 ): IHistoryEntryProgressSnapshot | undefined {
   const snapshot: IHistoryEntryProgressSnapshot = {};
   if (program && stats) {
@@ -211,12 +211,12 @@ function History_buildProgressSnapshot(
         snapshot.diffVars = diffVars;
       }
       if (changes.prints.length > 0) {
-        snapshot.prints = changes.prints;
+        snapshot.printLines = changes.prints;
       }
     }
   }
-  if (updatePrints && updatePrints.length > 0) {
-    snapshot.updatePrints = updatePrints;
+  if (updatePrintLines && updatePrintLines.length > 0) {
+    snapshot.updatePrintLines = updatePrintLines;
   }
   return ObjectUtils_isNotEmpty(snapshot) ? snapshot : undefined;
 }

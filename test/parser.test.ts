@@ -1,8 +1,17 @@
 import "mocha";
 import { expect } from "chai";
 import { Weight_build } from "../src/models/weight";
-import { ParserTestUtils_run, ParserTestUtils_bdgs } from "../src/utils/parserTestUtils";
+import {
+  ParserTestUtils_run,
+  ParserTestUtils_bdgs,
+  ParserTestUtils_defaultBindings,
+} from "../src/utils/parserTestUtils";
 import { ObjectUtils_pick } from "../src/utils/object";
+import { IScriptFnContext, Progress_createScriptFunctions } from "../src/models/progress";
+import { ScriptRunner } from "../src/parser";
+import { Settings_build } from "../src/models/settings";
+import { ILiftoscriptScalar } from "../src/liftoscriptEvaluator";
+import { PlannerKey_fromExerciseType } from "../src/pages/planner/plannerKey";
 
 describe("Parser", () => {
   it("r[]", () => {
@@ -556,6 +565,156 @@ if (!(completedReps >= reps)) {
       })
     );
     expect(state).to.eql({ failures: 1 });
+  });
+
+  describe("text", () => {
+    it("joins text with +", () => {
+      expect(ParserTestUtils_run(`"a" + "b"`, {})).to.eql("ab");
+      expect(ParserTestUtils_run(`"e1RM: " + rm1`, {})).to.eql("e1RM: 100lb");
+      expect(ParserTestUtils_run(`"x" + 1.234`, {})).to.eql("x1.23");
+      expect(ParserTestUtils_run(`"x" + (1 == 1)`, {})).to.eql("xtrue");
+      expect(ParserTestUtils_run(`5 + "x"`, {})).to.eql("5x");
+    });
+
+    it("compares text exactly", () => {
+      expect(ParserTestUtils_run(`"a" == "a"`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"a" == "A"`, {})).to.eql(false);
+      expect(ParserTestUtils_run(`"a" != "A"`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"5" == 5`, {})).to.eql(false);
+      expect(ParserTestUtils_run(`"a" < "b"`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"b" >= "c"`, {})).to.eql(false);
+    });
+
+    it("uses JS truthiness in conditions and logic", () => {
+      const state = { foo: 0, bar: 0 };
+      ParserTestUtils_run(`if ("") { state.foo = 1 } if ("x") { state.bar = 1 }`, state);
+      expect(state).to.eql({ foo: 0, bar: 1 });
+      expect(ParserTestUtils_run(`!""`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"" || "x"`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"x" && ""`, {})).to.eql(false);
+      expect(ParserTestUtils_run(`(1 == 1) && "x"`, {})).to.eql(true);
+      expect(ParserTestUtils_run(`"" ? 1 : 2`, {})).to.eql(2);
+    });
+
+    it("keeps text in temporary variables", () => {
+      expect(ParserTestUtils_run(`var.x = "heavy"\nvar.x += "!"\nvar.x`, {})).to.eql("heavy!");
+      expect(ParserTestUtils_run(`var.ok = 1 == 1\nvar.ok + 1`, {})).to.eql(2);
+    });
+
+    it("rejects text arithmetic", () => {
+      expect(() => ParserTestUtils_run(`"x" - 1`, {})).to.throw("Can't apply '-' to text");
+      expect(() => ParserTestUtils_run(`"x" * 2`, {})).to.throw("Can't apply '*' to text");
+      expect(() => ParserTestUtils_run(`var.x = "a"\nvar.x -= 1`, {})).to.throw("Can't apply '-' to text");
+      expect(() => ParserTestUtils_run(`var.x = "a"\nvar.y = var.x * 2`, {})).to.throw("Can't apply '*' to text");
+    });
+
+    it("rejects comparing text to a number with < and >", () => {
+      expect(() => ParserTestUtils_run(`"a" < 5`, {})).to.throw("Can't compare text with '<' to a number");
+      expect(() => ParserTestUtils_run(`var.x = "a"\nvar.x > 5`, {})).to.throw("Can't compare text with '>'");
+    });
+
+    it("rejects text in state, set variables, rm1 and indexes", () => {
+      expect(() => ParserTestUtils_run(`state.foo = "a"`, { foo: 0 })).to.throw("Text can't be used as 'state.foo'");
+      expect(() => ParserTestUtils_run(`state.foo += ("a")`, { foo: 0 })).to.throw("Text can't be used");
+      expect(() => ParserTestUtils_run(`weights = "a"`, {})).to.throw("Text can't be used as 'weights'");
+      expect(() => ParserTestUtils_run(`rm1 = "a"`, {})).to.throw("Text can't be used as 'rm1'");
+      expect(() => ParserTestUtils_run(`r["a"]`, {})).to.throw("Text can't be used as an index");
+    });
+
+    it("rejects visible text misuse even in a branch that never runs", () => {
+      const never = (body: string): string => `if (1 == 2) { ${body} }`;
+      expect(() => ParserTestUtils_run(never(`state.foo = "a"`), { foo: 0 })).to.throw("Text can't be used");
+      expect(() => ParserTestUtils_run(never(`state.foo = ("a" + 1)`), { foo: 0 })).to.throw("Text can't be used");
+      expect(() => ParserTestUtils_run(never(`var.x = "a" - 1`), {})).to.throw("Can't apply '-' to text");
+      expect(() => ParserTestUtils_run(never(`var.x = r[exercise]`), {})).to.throw("Text can't be used as an index");
+      expect(() => ParserTestUtils_run(never(`var.x = exercise < 5`), {})).to.throw("Can't compare text");
+      expect(ParserTestUtils_run(never(`var.x = "a" == 5`), {})).to.eql(0);
+    });
+
+    it("rejects text that reaches state through a var at runtime", () => {
+      const state = { foo: 0 };
+      expect(() => ParserTestUtils_run(`var.x = "a"\nstate.foo = var.x`, state)).to.throw(
+        "Text can't be used as state.foo"
+      );
+      expect(() => ParserTestUtils_run(`var.x = "a"\nweights = var.x`, {})).to.throw("Text can't be used");
+      expect(() => ParserTestUtils_run(`var.x = "a"\nr[var.x]`, {})).to.throw("Text can't be used as an index");
+      expect(state).to.eql({ foo: 0 });
+    });
+
+    it("rejects text passed to number functions", () => {
+      expect(() => ParserTestUtils_run(`state.foo = floor("a")`, { foo: 0 })).to.throw(
+        "Argument 1 (value) of 'floor' should be a number, weight or percentage, but '\"a\"' is a string"
+      );
+    });
+
+    it("prints text and keeps print's return value", () => {
+      const context: IScriptFnContext = { unit: "lb", prints: [] };
+      const result = ParserTestUtils_run(
+        `print("e1RM", rm1)\nprint(1, 20lb, 30%)\nprint("x")`,
+        {},
+        ParserTestUtils_defaultBindings,
+        context
+      );
+      expect(result).to.eql("x");
+      expect(context.prints).to.eql(["e1RM, 100lb", "1, 20lb, 30%", "x"]);
+    });
+
+    it("rejects a text result where a weight is expected", () => {
+      const runner = new ScriptRunner(
+        `"a"`,
+        {},
+        {},
+        ParserTestUtils_defaultBindings,
+        Progress_createScriptFunctions(Settings_build()),
+        "lb",
+        { unit: "lb", prints: [] },
+        "planner"
+      );
+      expect(() => runner.execute("weight")).to.throw("Expected to get number, percentage or weight as a result");
+    });
+
+    it("exposes the exercise name", () => {
+      const bindings = { ...ParserTestUtils_defaultBindings, exercise: "t1: Squat" };
+      expect(ParserTestUtils_run(`exercise == "t1: Squat"`, {}, bindings)).to.eql(true);
+      expect(ParserTestUtils_run(`exercise + "!"`, {}, bindings)).to.eql("t1: Squat!");
+    });
+
+    it("matches the exercise with isProgramExercise and isExercise", () => {
+      const context: IScriptFnContext = {
+        unit: "lb",
+        prints: [],
+        entryExercise: { id: "squat", equipment: "barbell" },
+        programExerciseKey: PlannerKey_fromExerciseType({ id: "squat", equipment: "barbell" }, "t1"),
+      };
+      const run = (script: string): ILiftoscriptScalar =>
+        ParserTestUtils_run(script, {}, ParserTestUtils_defaultBindings, context);
+      expect(run(`isProgramExercise("t1: Squat")`)).to.eql(true);
+      expect(run(`isProgramExercise("Squat")`)).to.eql(false);
+      expect(run(`isExercise("Squat")`)).to.eql(true);
+      expect(run(`isExercise("Bench Press")`)).to.eql(false);
+    });
+
+    it("returns false from isExercise without an exercise in the context", () => {
+      expect(ParserTestUtils_run(`isExercise("Squat")`, {})).to.eql(false);
+      expect(ParserTestUtils_run(`isProgramExercise("Squat")`, {})).to.eql(false);
+    });
+
+    it("does not treat built-in JavaScript object names as functions or variables", () => {
+      expect(() => ParserTestUtils_run(`rm1 = constructor("heavy")`, {})).to.throw("Unknown function 'constructor'");
+      expect(() => ParserTestUtils_run(`state.foo = toString(1)`, { foo: 0 })).to.throw("Unknown function 'toString'");
+      expect(() => ParserTestUtils_run(`state.foo = constructor`, { foo: 0 })).to.throw(
+        "constructor is not a valid variable"
+      );
+    });
+
+    it("returns 0 from print with nothing to print", () => {
+      expect(ParserTestUtils_run(`print()`, {})).to.eql(0);
+      expect(ParserTestUtils_run(`"v: " + print()`, {})).to.eql("v: 0");
+    });
+
+    it("parses text that looks like code", () => {
+      expect(ParserTestUtils_run(`"state.foo // { if"`, {})).to.eql("state.foo // { if");
+    });
   });
 
   // it("precedence", () => {

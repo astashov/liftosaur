@@ -5,6 +5,7 @@ import {
   Exercise_getWarmupSets,
   Exercise_toKey,
   Exercise_eq,
+  Exercise_fullName,
 } from "./exercise";
 import { Reps_findNextEntryAndSet, Reps_isEmptyOrFinished, Reps_isCompleted, Reps_isEmpty } from "./set";
 import {
@@ -108,15 +109,30 @@ import {
 } from "../utils/liveActivityManager";
 import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
 import type { IScriptFunctions, IScriptBindings } from "../liftoscriptFns";
+import type { ILiftoscriptScalar } from "../liftoscriptEvaluator";
+import { LiftoscriptPrint_formatLine } from "../liftoscriptPrint";
+import {
+  LiftoscriptExerciseName_isExercise,
+  LiftoscriptExerciseName_isProgramExercise,
+} from "../liftoscriptExerciseName";
 import deepmerge from "deepmerge";
 import { Dialog_alert } from "../utils/dialog";
 
 export type { IScriptBindings } from "../liftoscriptFns";
 
 export interface IScriptFnContext {
-  prints: (number | IWeight | IPercentage)[][];
+  prints: string[];
   unit: IUnit;
   exerciseType?: IExerciseType;
+  entryExercise?: IExerciseType;
+  programExerciseKey?: string;
+}
+
+export function Progress_scriptExerciseContext(
+  entry: IHistoryEntry,
+  programExercise: IPlannerProgramExercise
+): Required<Pick<IScriptFnContext, "entryExercise" | "programExerciseKey">> {
+  return { entryExercise: entry.exercise, programExerciseKey: programExercise.key };
 }
 
 export interface IScriptFinishContext {
@@ -198,10 +214,12 @@ function zeroOrGte(a: (IWeight | number | undefined | null)[], b: (IWeight | num
 export function Progress_createEmptyScriptBindings(
   dayData: IDayData,
   settings: ISettings,
-  exercise?: IExerciseType
+  exercise?: IExerciseType,
+  label?: string
 ): IScriptBindings {
   const rm1 = exercise ? Exercise_onerm(exercise, settings) : Weight_build(0, "lb");
   return {
+    exercise: exercise ? Exercise_fullName(Exercise_get(exercise, settings.exercises), settings, label) : "",
     day: dayData.day,
     week: dayData.week ?? 1,
     dayInWeek: dayData.dayInWeek ?? dayData.day,
@@ -249,9 +267,10 @@ export function Progress_createScriptBindings(
   setIndex?: number,
   setVariationIndex?: number,
   descriptionIndex?: number,
-  exerciseVariationIndex?: number
+  exerciseVariationIndex?: number,
+  label?: string
 ): IScriptBindings {
-  const bindings = Progress_createEmptyScriptBindings(dayData, settings, entry.exercise);
+  const bindings = Progress_createEmptyScriptBindings(dayData, settings, entry.exercise, label);
   for (const set of entry.sets) {
     bindings.weights.push(set.weight);
     bindings.originalWeights.push(set.originalWeight ?? Weight_build(0, settings.units));
@@ -346,12 +365,22 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
     zeroOrGte: ([a, b]) => zeroOrGte(a, b),
     print: (args, context) => {
       // flat() without filtering: booleans must survive so `if (print(cond))` keeps working.
-      // Liftoscript has no null — undefined values (e.g. completedReps of skipped sets) become 0,
-      // otherwise they'd serialize to null and fail storage validation.
-      const flatArgs = [...args.flat()].map((arg) => arg ?? 0) as (number | IWeight | IPercentage)[];
+      const flatArgs: ILiftoscriptScalar[] = [...args.flat()].map((arg) => arg ?? 0);
       context.prints = context.prints || [];
-      context.prints.push(flatArgs);
-      return flatArgs[0];
+      context.prints.push(LiftoscriptPrint_formatLine(flatArgs));
+      return flatArgs[0] ?? 0;
+    },
+    isProgramExercise: ([pattern], context) => {
+      if (context.programExerciseKey == null) {
+        return false;
+      }
+      return LiftoscriptExerciseName_isProgramExercise(pattern, context.programExerciseKey, settings.exercises);
+    },
+    isExercise: ([pattern], context) => {
+      if (context.entryExercise == null) {
+        return false;
+      }
+      return LiftoscriptExerciseName_isExercise(pattern, context.entryExercise, settings.exercises);
     },
     sets: ([from, to, minReps, reps, isAmrap, weight, timer, rpe, logRpe], context, bindings) => {
       for (let i = 0; i < bindings.numberOfSets; i++) {
@@ -904,9 +933,15 @@ export function Progress_runUpdateScriptForEntry(
     setIndex + 1,
     setVariationIndex,
     descriptionIndex,
-    exerciseVariationIndex
+    exerciseVariationIndex,
+    programExercise.label
   );
-  const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
+  const fnContext: IScriptFnContext = {
+    exerciseType: exercise,
+    ...Progress_scriptExerciseContext(entry, programExercise),
+    unit: settings.units,
+    prints: [],
+  };
   const runner = new ScriptRunner(
     script,
     state,
@@ -918,12 +953,8 @@ export function Progress_runUpdateScriptForEntry(
     "update"
   );
   runner.execute();
-  const newEntry = Progress_applyBindings(entry, bindings, settings);
-  newEntry.state = { ...newEntry.state, ...state };
-  if (fnContext.prints.length > 0) {
-    newEntry.updatePrints = fnContext.prints;
-  }
-  return newEntry;
+  const { updatePrints, ...newEntry } = Progress_applyBindings(entry, bindings, settings);
+  return { ...newEntry, state: { ...newEntry.state, ...state }, updatePrintLines: fnContext.prints };
 }
 
 export function Progress_runInitialUpdateScripts(

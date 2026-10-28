@@ -9,6 +9,7 @@ import {
   Exercise_findById,
   Exercise_findIdByName,
   Exercise_findByNameAndEquipment,
+  Exercise_resolveNameAndEquipment,
   Exercise_getWarmupSets,
 } from "../src/models/exercise";
 import {
@@ -94,6 +95,34 @@ describe("Exercise — custom exercise wins over built-in on name collision", ()
 
   it("Exercise_findByNameAndEquipment falls back to the built-in when no custom collides", () => {
     expect(Exercise_findByNameAndEquipment("Squat", {})?.id).to.eql("squat");
+  });
+});
+
+describe("Exercise_resolveNameAndEquipment — whether the name picked the equipment", () => {
+  it("reports equipment only when the name's suffix selected it", () => {
+    expect(Exercise_resolveNameAndEquipment("Squat", {})?.hasExplicitEquipment).to.eql(false);
+    expect(Exercise_resolveNameAndEquipment("Squat, Dumbbell", {})).to.deep.include({ hasExplicitEquipment: true });
+    expect(Exercise_resolveNameAndEquipment("Squat, Dumbbell", {})?.exercise.equipment).to.eql("dumbbell");
+  });
+
+  it("reports no equipment when the full name is a custom exercise", () => {
+    const customExercises: IAllCustomExercises = {
+      "custom-foo": buildCustom("custom-foo", "Foo", false),
+      "custom-foo-db": buildCustom("custom-foo-db", "Foo, Dumbbell", false),
+    };
+    const resolved = Exercise_resolveNameAndEquipment("Foo, Dumbbell", customExercises);
+    expect(resolved?.exercise.id).to.eql("custom-foo-db");
+    expect(resolved?.hasExplicitEquipment).to.eql(false);
+  });
+
+  it("reports equipment when a live bare-name custom beats a deleted full-name custom", () => {
+    const customExercises: IAllCustomExercises = {
+      "custom-foo": buildCustom("custom-foo", "Foo", false),
+      "custom-foo-db": buildCustom("custom-foo-db", "Foo, Dumbbell", true),
+    };
+    const resolved = Exercise_resolveNameAndEquipment("Foo, Dumbbell", customExercises);
+    expect(resolved?.exercise.id).to.eql("custom-foo");
+    expect(resolved?.hasExplicitEquipment).to.eql(true);
   });
 });
 

@@ -7,6 +7,7 @@ export const liftoscriptParserWithMetadata = liftoscriptParser.configure({
     styleTags({
       StateVariable: t.variableName,
       Number: t.number,
+      String: t.string,
       LineComment: t.lineComment,
       Unit: t.unit,
       Keyword: t.keyword,

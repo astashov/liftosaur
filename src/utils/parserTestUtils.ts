@@ -1,8 +1,9 @@
-import { IScriptBindings, Progress_createScriptFunctions } from "../models/progress";
+import { IScriptBindings, IScriptFnContext, Progress_createScriptFunctions } from "../models/progress";
 import { Settings_build } from "../models/settings";
 import { Weight_build } from "../models/weight";
 import { ScriptRunner } from "../parser";
-import { IProgramState, IWeight, IUnit } from "../types";
+import { ILiftoscriptScalar } from "../liftoscriptEvaluator";
+import { IProgramState, IUnit } from "../types";
 
 export function ParserTestUtils_bdgs(args: {
   day?: number;
@@ -13,6 +14,7 @@ export function ParserTestUtils_bdgs(args: {
   const completedReps = args.results.map((r) => r[1]);
   const weights = args.results.map((r) => Weight_build(r[2], args.unit || "lb"));
   return {
+    exercise: "",
     day: args.day ?? 1,
     week: 1,
     dayInWeek: args.day ?? 1,
@@ -54,15 +56,17 @@ export function ParserTestUtils_bdgs(args: {
 export function ParserTestUtils_run(
   program: string,
   state: IProgramState,
-  bindings: IScriptBindings = ParserTestUtils_defaultBindings
-): number | IWeight | boolean {
-  const scriptRunner = new ScriptRunner(program, state, {}, bindings, fns, "lb", { unit: "lb", prints: [] }, "planner");
+  bindings: IScriptBindings = ParserTestUtils_defaultBindings,
+  context: IScriptFnContext = { unit: "lb", prints: [] }
+): ILiftoscriptScalar {
+  const scriptRunner = new ScriptRunner(program, state, {}, bindings, fns, "lb", context, "planner");
   return scriptRunner.execute();
 }
 
 const fns = Progress_createScriptFunctions(Settings_build());
 
 export const ParserTestUtils_defaultBindings: IScriptBindings = {
+  exercise: "",
   day: 1,
   week: 1,
   dayInWeek: 1,

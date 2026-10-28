@@ -35,6 +35,7 @@ import { CollectionUtils_compact } from "./utils/collection";
 import { MathUtils_applyOp, MathUtils_round, MathUtils_clamp, MathUtils_roundFloat } from "./utils/math";
 import { IProgramMode } from "./models/program";
 import { parser as LiftoscriptParser } from "./liftoscript";
+import { LiftoscriptPrint_formatValue } from "./liftoscriptPrint";
 
 export enum NodeName {
   LineComment = "LineComment",
@@ -47,6 +48,7 @@ export enum NodeName {
   NumberExpression = "NumberExpression",
   Number = "Number",
   Percentage = "Percentage",
+  String = "String",
   WeightExpression = "WeightExpression",
   ParenthesisExpression = "ParenthesisExpression",
   BlockExpression = "BlockExpression",
@@ -58,6 +60,7 @@ export enum NodeName {
   Else = "Else",
   AssignmentExpression = "AssignmentExpression",
   IncAssignmentExpression = "IncAssignmentExpression",
+  IncAssignment = "IncAssignment",
   StateVariable = "StateVariable",
   StateVariableIndex = "StateVariableIndex",
   Variable = "Variable",
@@ -73,6 +76,10 @@ export enum NodeName {
 }
 
 export type IAssignmentOp = "+=" | "-=" | "*=" | "/=" | "=";
+
+export type ILiftoscriptScalar = number | boolean | string | IWeight | IPercentage;
+export type ILiftoscriptValue = ILiftoscriptScalar | (IWeight | IPercentage | number | undefined)[];
+type ILiftoscriptVarValue = number | string | IWeight | IPercentage;
 
 export class LiftoscriptSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -182,7 +189,7 @@ export class LiftoscriptEvaluator {
   private readonly fnContext: IScriptFnContext;
   private readonly unit: IUnit;
   private readonly mode: IProgramMode;
-  private readonly vars: IProgramState = {};
+  private readonly vars: Record<string, ILiftoscriptVarValue> = {};
   public readonly updates: ILiftoscriptEvaluatorUpdate[] = [];
 
   constructor(
@@ -229,6 +236,21 @@ export class LiftoscriptEvaluator {
       return "weight";
     } else if (node.type.name === NodeName.Percentage) {
       return "percentage";
+    } else if (node.type.name === NodeName.String) {
+      return "string";
+    } else if (node.type.name === NodeName.ParenthesisExpression) {
+      const [inner] = getChildren(node);
+      return inner != null ? this.staticTypeOfNode(inner) : undefined;
+    } else if (node.type.name === NodeName.Ternary) {
+      const [, then, or] = getChildren(node);
+      const thenType = then != null ? this.staticTypeOfNode(then) : undefined;
+      return thenType != null && or != null && this.staticTypeOfNode(or) === thenType ? thenType : undefined;
+    } else if (node.type.name === NodeName.BinaryExpression) {
+      const [left, operator, right] = getChildren(node);
+      if (operator != null && this.getValue(operator) === "+") {
+        const isString = [left, right].some((side) => side != null && this.staticTypeOfNode(side) === "string");
+        return isString ? "string" : undefined;
+      }
     } else if (node.type.name === NodeName.VariableExpression) {
       if (node.getChildren(NodeName.VariableIndex).length > 0) {
         return undefined;
@@ -238,6 +260,21 @@ export class LiftoscriptEvaluator {
       return name != null ? LiftoscriptFns_bindingStaticType(name) : undefined;
     }
     return undefined;
+  }
+
+  private isStaticString(node: SyntaxNode | null | undefined): boolean {
+    return node != null && this.staticTypeOfNode(node) === "string";
+  }
+
+  private stringNotAllowed(node: SyntaxNode, target: string): never {
+    this.error(`Text can't be used as ${target}`, node, { type: "stringNotAllowed", data: { target } });
+  }
+
+  private rejectString(value: ILiftoscriptValue, node: SyntaxNode, target: string): Exclude<ILiftoscriptValue, string> {
+    if (typeof value === "string") {
+      this.stringNotAllowed(node, target);
+    }
+    return value;
   }
 
   private validateFnArg(name: IScriptFnName, index: number, node: SyntaxNode, value: unknown): void {
@@ -359,10 +396,60 @@ export class LiftoscriptEvaluator {
     return undefined;
   }
 
+  private checkStaticStrings(node: SyntaxNode): void {
+    if (node.type.name === NodeName.BinaryExpression) {
+      const [left, operator, right] = getChildren(node);
+      if (operator == null || operator.type.name === NodeName.AndOr) {
+        return;
+      }
+      const isLeftString = this.isStaticString(left);
+      if (!isLeftString && !this.isStaticString(right)) {
+        return;
+      }
+      const op = this.getValue(operator);
+      if (operator.type.name === NodeName.Cmp) {
+        const other = isLeftString ? right : left;
+        const otherType = other != null ? this.staticTypeOfNode(other) : undefined;
+        if (op !== "==" && op !== "!=" && otherType != null && otherType !== "string") {
+          this.error(`Can't compare text with '${op}' to a ${otherType}`, operator, {
+            type: "stringComparedToNonString",
+            data: { op },
+          });
+        }
+      } else if (op !== "+") {
+        this.error(`Can't apply '${op}' to text`, operator, { type: "stringOperator", data: { op } });
+      }
+    } else if (
+      node.type.name === NodeName.AssignmentExpression ||
+      node.type.name === NodeName.IncAssignmentExpression
+    ) {
+      const children = getChildren(node);
+      const target = children[0];
+      const value = children[children.length - 1];
+      if (target == null || !this.isStaticString(value)) {
+        return;
+      }
+      if (target.type.name !== NodeName.Variable) {
+        this.stringNotAllowed(value, `'${this.getValue(target)}'`);
+      }
+      const opNode = node.getChild(NodeName.IncAssignment);
+      const op = opNode != null ? this.getValue(opNode) : "=";
+      if (op !== "=" && op !== "+=") {
+        this.error(`Can't apply '${op}' to text`, opNode ?? node, { type: "stringOperator", data: { op } });
+      }
+    } else if (node.type.name === NodeName.VariableIndex || node.type.name === NodeName.StateVariableIndex) {
+      const [inner] = getChildren(node);
+      if (this.isStaticString(inner)) {
+        this.stringNotAllowed(inner, "an index");
+      }
+    }
+  }
+
   public parse(expr: SyntaxNode): void {
     const cursor = expr.cursor();
     const vars: IProgramState = {};
     do {
+      this.checkStaticStrings(cursor.node);
       if (cursor.node.type.isError) {
         this.error("Syntax error", cursor.node, { type: "parse" });
       } else if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
@@ -510,7 +597,7 @@ export class LiftoscriptEvaluator {
           if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
             this.error(`${name} is not an array variable`, nameNode, { type: "notAnArray", data: { name } });
           }
-        } else if (!(name in this.bindings)) {
+        } else if (!Object.prototype.hasOwnProperty.call(this.bindings, name)) {
           this.error(`${name} is not a valid variable`, nameNode, { type: "unknownVariable", data: { name } });
         }
       }
@@ -553,13 +640,13 @@ export class LiftoscriptEvaluator {
   }
 
   private evaluateToNumber(expr: SyntaxNode): number {
-    const v = this.evaluate(expr);
+    const v = this.rejectString(this.evaluate(expr), expr, "a number");
     const v1 = Array.isArray(v) ? v[0] : v;
     return Weight_is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
   }
 
   private evaluateToNumberOrWeightOrPercentage(expr: SyntaxNode): number | IWeight | IPercentage {
-    const v = this.evaluate(expr);
+    const v = this.rejectString(this.evaluate(expr), expr, "a number or weight");
     const v1 = Array.isArray(v) ? v[0] : v;
     return Weight_is(v1) || Weight_isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
   }
@@ -783,7 +870,7 @@ export class LiftoscriptEvaluator {
       if (ie.type.name === NodeName.Wildcard) {
         return "*" as const;
       } else {
-        const v = this.evaluate(ie);
+        const v = this.rejectString(this.evaluate(ie), ie, "an index");
         const v1 = Array.isArray(v) ? v[0] : v;
         return Weight_is(v1) ? v1.value : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
       }
@@ -816,11 +903,66 @@ export class LiftoscriptEvaluator {
     }
   }
 
-  public evaluate(
-    expr: SyntaxNode
-  ): number | boolean | IWeight | IPercentage | (IWeight | IPercentage | number | undefined)[] {
+  private compareText(op: string, left: ILiftoscriptValue, right: ILiftoscriptValue, node: SyntaxNode): boolean {
+    if (op === "&&") {
+      return !!left && !!right;
+    } else if (op === "||") {
+      return !!left || !!right;
+    } else if (op === "==" || op === "!=") {
+      const isEqual = typeof left === "string" && typeof right === "string" && left === right;
+      return op === "==" ? isEqual : !isEqual;
+    } else if (op === ">" || op === "<" || op === ">=" || op === "<=") {
+      if (typeof left !== "string" || typeof right !== "string") {
+        this.error(`Can't compare text with '${op}' to something that isn't text`, node, {
+          type: "stringComparedToNonString",
+          data: { op },
+        });
+      }
+      return op === ">" ? left > right : op === "<" ? left < right : op === ">=" ? left >= right : left <= right;
+    } else {
+      this.error(`Unknown operator ${op}`, node, { type: "unknownOperator", data: { op } });
+    }
+  }
+
+  private operate(
+    op: string,
+    left: ILiftoscriptValue,
+    right: ILiftoscriptValue,
+    node: SyntaxNode
+  ): ILiftoscriptVarValue {
+    if (Array.isArray(left) || Array.isArray(right)) {
+      this.error(`You cannot apply ${op} to arrays`, node, { type: "operatorOnArray", data: { op } });
+    }
+    if (typeof left === "string" || typeof right === "string") {
+      if (op !== "+") {
+        this.error(`Can't apply '${op}' to text`, node, { type: "stringOperator", data: { op } });
+      }
+      return LiftoscriptPrint_formatValue(left) + LiftoscriptPrint_formatValue(right);
+    }
+    if (typeof left === "boolean" || typeof right === "boolean") {
+      this.error(`Unknown operator ${op}`, node, { type: "unknownOperator", data: { op } });
+    }
+    if (op === "+") {
+      return this.add(left, right);
+    } else if (op === "-") {
+      return this.subtract(left, right);
+    } else if (op === "*") {
+      return this.multiply(left, right);
+    } else if (op === "/") {
+      return this.divide(left, right);
+    } else if (op === "%") {
+      return this.modulo(left, right);
+    } else {
+      this.error(`Unknown operator ${op} between ${left} and ${right}`, node, {
+        type: "unknownOperator",
+        data: { op },
+      });
+    }
+  }
+
+  public evaluate(expr: SyntaxNode): ILiftoscriptValue {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
-      let result: number | boolean | IWeight | (IWeight | IPercentage | number | undefined)[] | IPercentage = 0;
+      let result: ILiftoscriptValue = 0;
       for (const child of getChildren(expr)) {
         if (!child.type.isSkipped) {
           result = this.evaluate(child);
@@ -832,7 +974,11 @@ export class LiftoscriptEvaluator {
       const evalLeft = this.evaluate(left);
       const evalRight = this.evaluate(right);
       const op = this.getValue(operator);
-      if (typeof evalLeft === "boolean" || typeof evalRight === "boolean") {
+      if (typeof evalLeft === "string" || typeof evalRight === "string") {
+        return operator.type.name === NodeName.Plus || operator.type.name === NodeName.Times
+          ? this.operate(op, evalLeft, evalRight, operator)
+          : this.compareText(op, evalLeft, evalRight, operator);
+      } else if (typeof evalLeft === "boolean" || typeof evalRight === "boolean") {
         if (op === "&&") {
           return evalLeft && evalRight;
         } else if (op === "||") {
@@ -854,25 +1000,7 @@ export class LiftoscriptEvaluator {
         } else if (op === "!=") {
           return comparing(evalLeft, evalRight, op);
         } else {
-          if (Array.isArray(evalLeft) || Array.isArray(evalRight)) {
-            this.error(`You cannot apply ${op} to arrays`, operator, { type: "operatorOnArray", data: { op } });
-          }
-          if (op === "+") {
-            return this.add(evalLeft, evalRight);
-          } else if (op === "-") {
-            return this.subtract(evalLeft, evalRight);
-          } else if (op === "*") {
-            return this.multiply(evalLeft, evalRight);
-          } else if (op === "/") {
-            return this.divide(evalLeft, evalRight);
-          } else if (op === "%") {
-            return this.modulo(evalLeft, evalRight);
-          } else {
-            this.error(`Unknown operator ${op} between ${evalLeft} and ${evalRight}`, operator, {
-              type: "unknownOperator",
-              data: { op },
-            });
-          }
+          return this.operate(op, evalLeft, evalRight, operator);
         }
       }
     } else if (expr.type.name === NodeName.NumberExpression) {
@@ -887,6 +1015,8 @@ export class LiftoscriptEvaluator {
     } else if (expr.type.name === NodeName.Percentage) {
       const value = MathUtils_roundFloat(parseFloat(this.getValue(expr)), 2);
       return Weight_buildPct(value);
+    } else if (expr.type.name === NodeName.String) {
+      return LiftoscriptEvaluator.getValueRaw(this.script, expr).slice(1, -1);
     } else if (expr.type.name === NodeName.Ternary) {
       const [condition, then, or] = getChildren(expr);
       return this.evaluate(condition) ? this.evaluate(then) : this.evaluate(or);
@@ -961,7 +1091,7 @@ export class LiftoscriptEvaluator {
           if (indexExprs.length > 0) {
             this.error(`rm1 is not an array`, expr, { type: "notAnArray", data: { name: "rm1" } });
           }
-          const evaluatedValue = this.evaluate(expression);
+          const evaluatedValue = this.rejectString(this.evaluate(expression), expression, "rm1");
           let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
           value = value ?? 0;
           value = value === true ? 1 : value === false ? 0 : value;
@@ -1009,7 +1139,7 @@ export class LiftoscriptEvaluator {
       } else if (variableNode.type.name === NodeName.Variable) {
         const varKey = this.getValue(variableNode).replace("var.", "");
         const value = this.evaluate(expression);
-        if (Weight_is(value) || Weight_isPct(value) || typeof value === "number") {
+        if (Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string") {
           this.vars[varKey] = value;
         } else {
           this.vars[varKey] = value ? 1 : 0;
@@ -1031,11 +1161,11 @@ export class LiftoscriptEvaluator {
               });
             }
           } else {
-            const indexEval = this.evaluate(indexNode);
+            const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
             const index = this.toNumber(indexEval);
             state = this.otherStates[index];
           }
-          const value = this.evaluate(expression);
+          const value = this.rejectString(this.evaluate(expression), expression, `state.${stateKey}`);
           if (state != null) {
             if (Weight_is(value) || Weight_isPct(value) || typeof value === "number") {
               state[stateKey] = value;
@@ -1071,7 +1201,7 @@ export class LiftoscriptEvaluator {
           if (indexExprs.length > 0) {
             this.error(`rm1 is not an array`, expr, { type: "notAnArray", data: { name: "rm1" } });
           }
-          const evaluatedValue = this.evaluate(expression);
+          const evaluatedValue = this.rejectString(this.evaluate(expression), expression, "rm1");
           let value = Array.isArray(evaluatedValue) ? evaluatedValue[0] : evaluatedValue;
           value = value ?? 0;
           value = value === true ? 1 : value === false ? 0 : value;
@@ -1164,31 +1294,17 @@ export class LiftoscriptEvaluator {
       } else if (stateVar.type.name === NodeName.Variable) {
         const varKey = this.getValue(stateVar).replace("var.", "");
         let value = this.evaluate(expression);
-        if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number")) {
+        if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string")) {
           value = value ? 1 : 0;
         }
         const op = this.getValue(incAssignmentExpr);
-        if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
+        if (op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
           this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr, {
             type: "unknownAssignmentOperator",
             data: { op, variable: varKey },
           });
         }
-        const currentValue = this.vars[varKey];
-        if (op === "+=") {
-          this.vars[varKey] = this.add(currentValue, value);
-        } else if (op === "-=") {
-          this.vars[varKey] = this.subtract(currentValue, value);
-        } else if (op === "*=") {
-          this.vars[varKey] = this.multiply(currentValue, value);
-        } else if (op === "/=") {
-          this.vars[varKey] = this.divide(currentValue, value);
-        } else {
-          this.error(`Unknown operator ${op} after ${varKey}`, incAssignmentExpr, {
-            type: "unknownAssignmentOperator",
-            data: { op, variable: varKey },
-          });
-        }
+        this.vars[varKey] = this.operate(op.slice(0, 1), this.vars[varKey], value, incAssignmentExpr);
         return this.vars[varKey];
       } else {
         const indexNode = stateVar.getChild(NodeName.StateVariableIndex);
@@ -1206,12 +1322,12 @@ export class LiftoscriptEvaluator {
               });
             }
           } else {
-            const indexEval = this.evaluate(indexNode);
+            const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
             const index = this.toNumber(indexEval);
             state = this.otherStates[index];
           }
 
-          let value = this.evaluate(expression);
+          let value = this.rejectString(this.evaluate(expression), expression, `state.${stateKey}`);
           if (state != null) {
             if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number")) {
               value = value ? 1 : 0;
@@ -1291,7 +1407,7 @@ export class LiftoscriptEvaluator {
             type: "wildcardIndexOnRead",
           });
         }
-        const indexEval = this.evaluate(indexNode);
+        const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
         let index: number;
         if (Weight_is(indexEval) || Weight_isPct(indexEval)) {
           index = indexEval.value;

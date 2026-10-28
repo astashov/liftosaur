@@ -7,6 +7,7 @@ import { Weight_build } from "./models/weight";
 const program = `r[state.foo]`;
 
 const bindings: IScriptBindings = {
+  exercise: "",
   day: 1,
   week: 1,
   dayInWeek: 1,

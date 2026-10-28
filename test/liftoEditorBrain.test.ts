@@ -292,6 +292,13 @@ describe("LiftoEditorBrain", () => {
       expect(ranges.some((r) => text.slice(r.start, r.end) === "weights")).to.equal(true);
     });
 
+    it("styles text in liftoscript bodies as one range, quotes included", () => {
+      const text = 'Squat / 3x8 / update: custom() {~ print("state.x weights") ~}';
+      const ranges = LiftoEditorBrain_computeStyledRanges(new LiftoEditorParseCache(), text);
+      expect(ranges.some((r) => text.slice(r.start, r.end) === '"state.x weights"')).to.equal(true);
+      expect(ranges.some((r) => text.slice(r.start, r.end) === "weights")).to.equal(false);
+    });
+
     it("flattens overlapping ranges into non-overlapping segments with later properties winning", () => {
       const flattened = LiftoEditorBrain_flattenRanges([
         { start: 0, end: 10, color: "red" },

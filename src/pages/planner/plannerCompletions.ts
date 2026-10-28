@@ -316,11 +316,20 @@ function findStateInScope(tree: Tree, pos: number, source: string): IProgramStat
   return PlannerStateVars_fromArgs(fnArgs).state;
 }
 
+function isInsideString(source: string, pos: number): boolean {
+  const lineStart = source.lastIndexOf("\n", pos - 1) + 1;
+  const quotes = source.slice(lineStart, pos).split('"').length - 1;
+  return quotes % 2 === 1;
+}
+
 function liftoscriptCandidates(
   source: string,
   pos: number,
   args: { tree: Tree; state: IProgramState }
 ): IRankableResult | undefined {
+  if (isInsideString(source, pos)) {
+    return undefined;
+  }
   const stateVar = matchBefore(source, pos, /state\.[a-zA-Z0-9_]*/);
   if (stateVar != null) {
     const query = stateVar.text.replace(/^state\./, "");

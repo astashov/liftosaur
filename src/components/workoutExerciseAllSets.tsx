@@ -40,6 +40,7 @@ import { memo, useCallback, useMemo } from "react";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { useTrackClick } from "../utils/clickTracking";
 import { useRem } from "../utils/useRem";
+import { LiftoscriptPrint_lines } from "../liftoscriptPrint";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -320,8 +321,14 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
               <ProgressStateChangesView
                 diffState={props.entry.progressSnapshot.diffState}
                 diffVars={props.entry.progressSnapshot.diffVars}
-                prints={props.entry.progressSnapshot.prints}
-                updatePrints={props.entry.progressSnapshot.updatePrints}
+                prints={LiftoscriptPrint_lines(
+                  props.entry.progressSnapshot.printLines,
+                  props.entry.progressSnapshot.prints
+                )}
+                updatePrints={LiftoscriptPrint_lines(
+                  props.entry.progressSnapshot.updatePrintLines,
+                  props.entry.progressSnapshot.updatePrints
+                )}
                 isSuppressed={props.entry.isSuppressed}
               />
             </View>

@@ -293,6 +293,7 @@ Script goes between `{~` and `~}`. Runs after workout finishes.
 - `day`, `week`, `dayInWeek` - current position (1-indexed)
 - `numberOfSets` / `ns`, `programNumberOfSets`, `completedNumberOfSets`
 - `setVariationIndex`, `exerciseVariationIndex`, `descriptionIndex`
+- `exercise` - the exercise name as the program prints it, with its label, as text: `"t1: Squat"`, `"Squat, Dumbbell"`
 
 Omitting index compares/assigns ALL sets: `completedReps >= reps` checks all sets, `weights += 5lb` increments all.
 
@@ -368,7 +369,9 @@ for (var.i in completedReps) {
 - `roundWeight(weight)` - rounds weight to nearest valid plate increment based on equipment
 - `zeroOrGte(array1, array2)` - true if each element in array1 is 0 or >= corresponding element in array2
 - `sets(from, to, minReps, maxReps, isAmrap, weight, timer, rpe, logRpe)` - update only
-- `print(val1, val2, ...)` - debug output, accepts numbers/weights/percentages; visible in playground or after finishing exercise
+- `print(val1, val2, ...)` - debug output, accepts numbers/weights/percentages/text; one line per call, values joined with `, `; visible in playground or after finishing exercise
+- `isProgramExercise("t1: Squat")` - true if the script runs for that program line. Label must match; equipment defaults to the exercise's default equipment; case and aliases don't matter, same as exercise names in the program
+- `isExercise("Squat")` - true if the exercise is that movement, any label. Equipment is checked only if given: `isExercise("Squat, Dumbbell")`
 
 #### Operators
 - Math: `+`, `-`, `*`, `/`, `%`
@@ -376,6 +379,25 @@ for (var.i in completedReps) {
 - Logic: `&&`, `||`, `!`
 - Ternary: `a > b ? x : y`
 - If/else: `if (...) { } else if (...) { } else { }`
+
+#### Text
+Text goes in double quotes: `"heavy"`. It can't contain `"`, `\`, `~` or a line break.
+- `+` joins text: `"e1RM: " + rm1` gives `e1RM: 225lb`. Numbers print with up to 2 decimals.
+- `==` and `!=` compare exactly, case-sensitive. Text never equals a number.
+- `<`, `>`, `<=`, `>=` work between two texts only.
+- `-`, `*`, `/`, `%` on text are errors.
+- In `if`, `!`, `&&`, `||`: `""` is false, any other text is true. `&&` and `||` return `true` or `false`.
+- `var.x` can hold text. `state`, `weights`, `reps`, `rm1` and other set variables can't, and text can't be an index.
+
+Use `isProgramExercise`/`isExercise` in templates to branch per exercise:
+```
+t1 / used: none / 3x5 / progress: custom() {~
+  if (completedReps >= reps) {
+    weights += isExercise("Deadlift") ? 10lb : 5lb
+  }
+  print("e1RM: " + calculate1RM(completedWeights[1], completedReps[1]))
+~}
+```
 
 ### Update Scripts
 

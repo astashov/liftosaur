@@ -14,11 +14,13 @@ import { ScriptRunner } from "../parser";
 import { Dialog_alert } from "../utils/dialog";
 import {
   IScriptBindings,
+  IScriptFnContext,
   Progress_getEntryId,
   Progress_runUpdateScriptForEntry,
   Progress_createScriptBindings,
   Progress_createScriptFunctions,
   Progress_getDayData,
+  Progress_scriptExerciseContext,
 } from "./progress";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
@@ -473,7 +475,7 @@ export function Program_runExerciseFinishDayScript(
     state: IProgramState;
     bindings: IScriptBindings;
     updates: ILiftoscriptEvaluatorUpdate[];
-    prints: [number | IPercentage | IWeight][];
+    prints: string[];
   },
   string
 > {
@@ -491,13 +493,19 @@ export function Program_runExerciseFinishDayScript(
     undefined,
     setVariationIndex + 1,
     descriptionIndex + 1,
-    exerciseVariationIndex + 1
+    exerciseVariationIndex + 1,
+    programExercise.label
   );
   const fns = Progress_createScriptFunctions(settings);
   let updates: ILiftoscriptEvaluatorUpdate[] = [];
   const newState: IProgramState = ObjectUtils_clone({ ...state, ...userPromptedStateVars });
 
-  const fnContext = { exerciseType: entry.exercise, unit: settings.units, prints: [] };
+  const fnContext: IScriptFnContext = {
+    exerciseType: entry.exercise,
+    ...Progress_scriptExerciseContext(entry, programExercise),
+    unit: settings.units,
+    prints: [],
+  };
   try {
     const runner = new ScriptRunner(
       script,
@@ -553,7 +561,8 @@ export function Program_runFinishDayScript(
     undefined,
     setVariationIndex + 1,
     descriptionIndex + 1,
-    exerciseVariationIndex + 1
+    exerciseVariationIndex + 1,
+    programExercise.label
   );
   const fns = Progress_createScriptFunctions(settings);
 
@@ -573,7 +582,12 @@ export function Program_runFinishDayScript(
       bindings,
       fns,
       settings.units,
-      { exerciseType: programExercise.exerciseType, unit: settings.units, prints: [] },
+      {
+        exerciseType: programExercise.exerciseType,
+        ...Progress_scriptExerciseContext(entry, programExercise),
+        unit: settings.units,
+        prints: [],
+      },
       "planner"
     );
     runner.execute();
@@ -1658,7 +1672,7 @@ export function Program_getDiffVars(
 export interface IProgressStateChanges {
   diffState: Record<string, string | undefined>;
   diffVars: Record<string, string | undefined>;
-  prints: (number | IWeight | IPercentage)[][];
+  prints: string[];
 }
 
 export function Program_computeProgressStateChanges(

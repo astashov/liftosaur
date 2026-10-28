@@ -20,6 +20,7 @@ expression {
   NumberExpression |
   WeightExpression |
   Percentage |
+  String |
   ParenthesisExpression |
   BlockExpression |
   Ternary |
@@ -95,6 +96,7 @@ UnaryExpression {
   Cmp { ( ">" "="? | "==" | "!=" | "<" "="? ) }
   AndOr { ( "&&" | "||" ) }
   Not { "!" }
+  String { '"' ![\\"\\\\\\n\\r~]* '"' }
 }
 `;
 

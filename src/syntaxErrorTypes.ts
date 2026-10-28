@@ -28,7 +28,10 @@ export type ILiftoscriptErrorDetails =
   | { type: "forInNotArray" }
   | { type: "malformedWeight" }
   | { type: "invalidWeightOperation" }
-  | { type: "wrongResultType"; data: { expected: string } };
+  | { type: "wrongResultType"; data: { expected: string } }
+  | { type: "stringOperator"; data: { op: string } }
+  | { type: "stringComparedToNonString"; data: { op: string } }
+  | { type: "stringNotAllowed"; data: { target: string } };
 
 export type IPlannerReuseSection = "sets" | "progress" | "update" | "description";
 

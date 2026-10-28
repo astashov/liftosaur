@@ -3,10 +3,10 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IEvaluatedProgram, Program_computeProgressStateChanges } from "../models/program";
 import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "../utils/object";
-import { Weight_print } from "../models/weight";
 import { StringUtils_dashcase } from "../utils/string";
 import { Reps_isFinished } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData, IPercentage, IWeight, IStats } from "../types";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IStats } from "../types";
+import { LiftoscriptPrint_lines } from "../liftoscriptPrint";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { LinkButton } from "./linkButton";
 
@@ -49,7 +49,7 @@ function ProgressStateChangesInner(props: IProps): JSX.Element | null {
       diffState={changes?.diffState}
       diffVars={changes?.diffVars}
       prints={changes?.prints}
-      updatePrints={entry.updatePrints}
+      updatePrints={LiftoscriptPrint_lines(entry.updatePrintLines, entry.updatePrints)}
       isSuppressed={entry.isSuppressed}
       onSuppressProgress={props.onSuppressProgress}
     />
@@ -61,8 +61,8 @@ export const ProgressStateChanges = memo(ProgressStateChangesInner);
 interface IViewProps {
   diffState?: Record<string, string | undefined>;
   diffVars?: Record<string, string | undefined>;
-  prints?: (number | IWeight | IPercentage)[][];
-  updatePrints?: (number | IWeight | IPercentage)[][];
+  prints?: string[];
+  updatePrints?: string[];
   isSuppressed?: boolean;
   onSuppressProgress?: (isSuppressed: boolean) => void;
 }
@@ -196,28 +196,15 @@ function StateVariablesChanges({
   return null;
 }
 
-function Prints({
-  title,
-  prints,
-}: {
-  title: string;
-  prints: (IWeight | IPercentage | number)[][];
-}): JSX.Element | null {
+function Prints({ title, prints }: { title: string; prints: string[] }): JSX.Element | null {
   if (prints.length > 0) {
     return (
       <View>
         <Text className="text-xs font-bold">{title}</Text>
         <View>
-          {prints.map((print) => (
-            <View key={JSON.stringify(print)}>
-              <Text className="text-xs">
-                {print.map((p, i) => (
-                  <Text key={i}>
-                    {i > 0 ? ", " : ""}
-                    {Weight_print(p)}
-                  </Text>
-                ))}
-              </Text>
+          {prints.map((print, i) => (
+            <View key={i}>
+              <Text className="text-xs">{print}</Text>
             </View>
           ))}
         </View>

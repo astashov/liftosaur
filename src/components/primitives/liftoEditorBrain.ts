@@ -139,6 +139,7 @@ function liftoscriptNodeStyles(): Partial<Record<string, INodeStyle>> {
     Keyword: { color: syntax.keyword },
     Unit: { color: syntax.keyword },
     Number: { color: syntax.literal },
+    String: { color: syntax.literal },
     LineComment: { color: syntax.comment },
   };
 }

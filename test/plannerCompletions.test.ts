@@ -147,6 +147,14 @@ describe("PlannerCompletions", () => {
     expect(result?.to).to.equal(text.indexOf("completedReps") + "completedReps".length);
   });
 
+  it("offers nothing inside text in a script, closed or not yet closed", () => {
+    expect(completeAt('# Week 1\n## Day 1\nSquat / 3x5 / progress: custom() {~ print("comp|") ~}')).to.equal(undefined);
+    expect(completeAt('# Week 1\n## Day 1\nSquat / 3x5 / progress: custom() {~ print("state.|')).to.equal(undefined);
+    expect(completeAt('# Week 1\n## Day 1\nSquat / 3x5 / progress: custom() {~ print("a") + comp| ~}')?.kind).to.equal(
+      "liftoscript"
+    );
+  });
+
   it("dedupes reuse targets so repeats can't fill the cap", () => {
     const text = "# Week 1\n## Day 1\nSquat / ...Squ";
     const result = PlannerCompletions_at(text, text.length, {
