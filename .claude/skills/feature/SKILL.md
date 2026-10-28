@@ -251,12 +251,24 @@ Mechanical checks, every time; each one is a bug class that has actually bitten 
   [--effort high] [--model gpt-6-astra] [--timeout 900]
 ```
 
-- Always `run_in_background: true` — a real consult takes 2–5 minutes. Poll the output file every 20–30s.
 - `--resume` continues the same codex thread (id kept in the `.thread` sibling), so round 2 remembers round 1.
 - Codex's final answer is written to the `.last.md` sibling — read that, don't re-parse the stream.
-- Two reviews in phase 7 run as two separate backgrounded calls; give them **different transcripts** (`...codex-review-bugs.md`, `...codex-review-arch.md`) so their threads don't cross.
 
-**Give the user the watch command in chat, in the same message that launches the consult** — the script prints it too, but that stdout goes to the tool result, which the user never sees. It must be a copy-pasteable line on its own, with the **absolute** path, posted *before* you start polling — not after codex finishes, when it's useless:
+**Launch it through `codex-overlay.sh`**, which runs `codex-chat.sh` in an agterm overlay on the right split pane. The user watches codex there and keeps talking to you in the left pane. ⌘D hides the split, and codex keeps running until it is shown again.
+
+```bash
+.claude/skills/feature/codex-overlay.sh \
+  --label arch-r1 --transcript lambda/scripts/plans/20260819-my-feature.codex.md \
+  --title "Architecture · round 1" --prompt-file /tmp/.../prompt.md
+```
+
+- Everything after `--label <name>` goes to `codex-chat.sh` unchanged.
+- Always `run_in_background: true`. It blocks for the whole turn, 2–5 minutes, and the completion notification wakes you. Do not poll.
+- Phase 7 runs both reviews in **one** call with two `--label` groups. They run in parallel in the same overlay, each line prefixed `[bugs]` or `[arch]`. Give them **different transcripts** (`...codex-review-bugs.md`, `...codex-review-arch.md`) so their threads don't cross.
+- Exit status is the first failing turn's. `3` means the overlay never ran the turns, for example `pane overlay already open`. That is the one to retry.
+- When the overlay is up, say in one line what is running and yield. No watch command, the overlay shows the stream.
+
+**Outside agterm** (`$AGTERM_SESSION_ID` unset), the same call runs headless in the background shell. Then **give the user the watch command in chat, in the same message that launches the consult** — the script prints it too, but that stdout goes to the tool result, which the user never sees. It must be a copy-pasteable line on its own, with the **absolute** path, posted at launch — not after codex finishes, when it's useless:
 
 > Codex is thinking (~3 min). Watch it live:
 > ```
