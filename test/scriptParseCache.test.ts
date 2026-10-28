@@ -15,11 +15,14 @@ function run(script: string, state: IProgramState, mode: IProgramMode = "planner
     script,
     state,
     {},
-    Progress_createEmptyScriptBindings(dayData, settings),
-    Progress_createScriptFunctions(settings),
+    {
+      kind: "progress",
+      mode,
+      bindings: Progress_createEmptyScriptBindings(dayData, settings),
+      fns: Progress_createScriptFunctions(settings),
+    },
     settings.units,
-    { unit: settings.units, prints: [] },
-    mode
+    { unit: settings.units, prints: [] }
   );
   return runner.execute("reps");
 }

@@ -1,6 +1,7 @@
 import * as v from "valibot";
 import { VWeight, VPercentage } from "./types";
 import type { IScriptFnContext } from "./models/progress";
+import type { ILiftoscriptEnvironment } from "./liftoscriptEnvironment";
 
 const optionalNumbers = v.array(v.optional(v.number()));
 const optionalWeights = v.array(v.optional(VWeight));
@@ -47,7 +48,7 @@ export const VScriptBindings = v.object({
 export type IScriptBindings = v.InferOutput<typeof VScriptBindings>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type IAnySchema = v.GenericSchema<any, any>;
+export type IAnySchema = v.GenericSchema<any, any>;
 
 export interface IScriptFnArgSignature {
   readonly name: string;
@@ -117,11 +118,11 @@ export const liftoscriptFnSignatures = {
   },
   min: {
     variadic: { schema: aggregatable, hint: "numbers, weights, percentages or arrays of them" },
-    returns: scalar,
+    returns: v.optional(scalar),
   },
   max: {
     variadic: { schema: aggregatable, hint: "numbers, weights, percentages or arrays of them" },
-    returns: scalar,
+    returns: v.optional(scalar),
   },
   zeroOrGte: {
     args: [
@@ -164,9 +165,72 @@ export const liftoscriptFnSignatures = {
     ],
     returns: v.number(),
   },
+  point: {
+    args: [
+      { name: "x or y", schema: numberOrWeight, hint: "a number or a weight" },
+      { name: "y", schema: numberOrWeight, hint: "a number or a weight", optional: true },
+    ],
+    returns: v.number(),
+  },
+  avg: {
+    variadic: { schema: aggregatable, hint: "numbers, weights or arrays of them" },
+    returns: v.optional(scalar),
+  },
+  count: {
+    variadic: { schema: aggregatable, hint: "numbers, weights or arrays of them" },
+    returns: v.number(),
+  },
+  programState: {
+    args: [{ name: "name", schema: v.string(), hint: "a state variable name, like 'rm1'" }],
+    returns: v.optional(scalar),
+  },
+  muscleSets: {
+    args: [{ name: "group", schema: v.string(), hint: "a muscle group key, like 'chest'" }],
+    returns: v.number(),
+  },
+  muscleVolume: {
+    args: [{ name: "group", schema: v.string(), hint: "a muscle group key, like 'chest'" }],
+    returns: VWeight,
+  },
+  isSetExercise: {
+    args: [
+      { name: "setIndex", schema: v.number(), hint: "a set number" },
+      { name: "pattern", schema: v.string(), hint: "an exercise name, like 'Squat' or 'Squat, Barbell'" },
+    ],
+    returns: v.boolean(),
+  },
+  isSetProgramExercise: {
+    args: [
+      { name: "setIndex", schema: v.number(), hint: "a set number" },
+      { name: "pattern", schema: v.string(), hint: "an exercise name as in the program, like 't1: Squat'" },
+    ],
+    returns: v.boolean(),
+  },
 } as const satisfies Record<string, IScriptFnSignature>;
 
 export type IScriptFnName = keyof typeof liftoscriptFnSignatures;
+
+export const liftographFnNames = [
+  "point",
+  "avg",
+  "count",
+  "programState",
+  "muscleSets",
+  "muscleVolume",
+  "isSetExercise",
+  "isSetProgramExercise",
+] as const satisfies readonly IScriptFnName[];
+
+export type ILiftographFnName = (typeof liftographFnNames)[number];
+
+export const liftoscriptGapAwareFnNames: ReadonlySet<IScriptFnName> = new Set<IScriptFnName>([
+  "point",
+  "max",
+  "min",
+  "sum",
+  "avg",
+  "count",
+]);
 
 type IArgOutput<TArg> = TArg extends { schema: infer TSchema extends IAnySchema }
   ? TArg extends { optional: true }
@@ -187,6 +251,10 @@ export type IScriptFunctions = {
     bindings: IScriptBindings
   ) => v.InferOutput<(typeof liftoscriptFnSignatures)[K]["returns"]>;
 };
+
+export type IScriptFunctionTable = { [K in IScriptFnName]?: IScriptFunctions[K] };
+
+export type IProgressScriptFunctions = Omit<IScriptFunctions, ILiftographFnName>;
 
 export function LiftoscriptFns_isFnName(name: string): name is IScriptFnName {
   return Object.prototype.hasOwnProperty.call(liftoscriptFnSignatures, name);
@@ -222,12 +290,18 @@ export function LiftoscriptFns_isValidArg(name: IScriptFnName, index: number, va
 
 export type IScriptStaticType = "number" | "weight" | "percentage" | "array" | "string";
 
-export function LiftoscriptFns_bindingStaticType(name: string): IScriptStaticType | undefined {
-  const entries: Record<string, IAnySchema | undefined> = VScriptBindings.entries;
-  const schema = Object.prototype.hasOwnProperty.call(entries, name) ? entries[name] : undefined;
-  if (schema == null) {
-    return undefined;
-  }
+export function LiftoscriptFns_bindingStaticType(
+  name: string,
+  environment: ILiftoscriptEnvironment
+): IScriptStaticType | undefined {
+  return Object.prototype.hasOwnProperty.call(environment.bindingTypes, name)
+    ? environment.bindingTypes[name]
+    : undefined;
+}
+
+export function LiftoscriptFns_staticTypesOf(
+  entries: Record<string, IAnySchema | undefined>
+): Record<string, IScriptStaticType> {
   const samples: [IScriptStaticType, unknown][] = [
     ["array", []],
     ["number", 1],
@@ -235,7 +309,15 @@ export function LiftoscriptFns_bindingStaticType(name: string): IScriptStaticTyp
     ["percentage", { value: 1, unit: "%" }],
     ["string", "a"],
   ];
-  return samples.find(([, sample]) => v.is(schema, sample))?.[0];
+  const result: Record<string, IScriptStaticType> = {};
+  for (const name of Object.keys(entries)) {
+    const schema = entries[name];
+    const type = schema != null ? samples.find(([, sample]) => v.is(schema, sample))?.[0] : undefined;
+    if (type != null) {
+      result[name] = type;
+    }
+  }
+  return result;
 }
 
 export function LiftoscriptFns_acceptsTypeAt(name: IScriptFnName, index: number, type: IScriptStaticType): boolean {

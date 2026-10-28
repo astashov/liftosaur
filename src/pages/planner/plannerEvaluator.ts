@@ -780,11 +780,14 @@ export function PlannerEvaluator_checkUpdateScript(
         script,
         state,
         {},
-        Progress_createEmptyScriptBindings(dayData, settings),
-        Progress_createScriptFunctions(settings),
+        {
+          kind: "progress",
+          mode: "update",
+          bindings: Progress_createEmptyScriptBindings(dayData, settings),
+          fns: Progress_createScriptFunctions(settings),
+        },
         settings.units,
-        { exerciseType, unit: settings.units, prints: [] },
-        "update"
+        { exerciseType, unit: settings.units, prints: [] }
       );
       try {
         liftoscriptEvaluator.parse();

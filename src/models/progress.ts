@@ -108,7 +108,7 @@ import {
   LiveActivityManager_updateLiveActivityForNextEntry,
 } from "../utils/liveActivityManager";
 import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
-import type { IScriptFunctions, IScriptBindings } from "../liftoscriptFns";
+import type { IProgressScriptFunctions, IScriptBindings } from "../liftoscriptFns";
 import type { ILiftoscriptScalar } from "../liftoscriptEvaluator";
 import { LiftoscriptPrint_formatLine } from "../liftoscriptPrint";
 import {
@@ -307,7 +307,7 @@ export function Progress_createScriptBindings(
   return bindings;
 }
 
-export function Progress_createScriptFunctions(settings: ISettings): IScriptFunctions {
+export function Progress_createScriptFunctions(settings: ISettings): IProgressScriptFunctions {
   function toWeight(value: IWeight | number): IWeight {
     return Weight_is(value) ? value : Weight_build(value, settings.units);
   }
@@ -334,7 +334,7 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
     }
   }
 
-  const fns: IScriptFunctions = {
+  const fns: IProgressScriptFunctions = {
     roundWeight: ([num], context) => {
       const unit = Equipment_getUnitForExerciseType(settings, context?.exerciseType);
       return Weight_round(toWeight(num), settings, unit ?? settings.units, context?.exerciseType);
@@ -946,11 +946,9 @@ export function Progress_runUpdateScriptForEntry(
     script,
     state,
     ObjectUtils_clone(otherStates),
-    bindings,
-    Progress_createScriptFunctions(settings),
+    { kind: "progress", mode: "update", bindings, fns: Progress_createScriptFunctions(settings) },
     settings.units,
-    fnContext,
-    "update"
+    fnContext
   );
   runner.execute();
   const { updatePrints, ...newEntry } = Progress_applyBindings(entry, bindings, settings);

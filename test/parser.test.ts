@@ -664,11 +664,14 @@ if (!(completedReps >= reps)) {
         `"a"`,
         {},
         {},
-        ParserTestUtils_defaultBindings,
-        Progress_createScriptFunctions(Settings_build()),
+        {
+          kind: "progress",
+          mode: "planner",
+          bindings: ParserTestUtils_defaultBindings,
+          fns: Progress_createScriptFunctions(Settings_build()),
+        },
         "lb",
-        { unit: "lb", prints: [] },
-        "planner"
+        { unit: "lb", prints: [] }
       );
       expect(() => runner.execute("weight")).to.throw("Expected to get number, percentage or weight as a result");
     });

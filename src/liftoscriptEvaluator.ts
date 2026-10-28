@@ -3,7 +3,7 @@ import { SyntaxNode } from "@lezer/common";
 import { ILiftoscriptErrorDetails } from "./syntaxErrorTypes";
 import { IScriptBindings, IScriptFnContext } from "./models/progress";
 import {
-  IScriptFunctions,
+  IScriptFunctionTable,
   IScriptFnName,
   IScriptStaticType,
   LiftoscriptFns_isFnName,
@@ -12,7 +12,14 @@ import {
   LiftoscriptFns_isValidArg,
   LiftoscriptFns_acceptsTypeAt,
   LiftoscriptFns_bindingStaticType,
+  liftoscriptGapAwareFnNames,
 } from "./liftoscriptFns";
+import {
+  ILiftoscriptDashboardBindings,
+  ILiftoscriptEnvironment,
+  ILiftoscriptExecution,
+  LiftoscriptEnvironment_of,
+} from "./liftoscriptEnvironment";
 import {
   Weight_gt,
   Weight_lt,
@@ -29,6 +36,7 @@ import {
   Weight_convertToWeight,
   Weight_buildPct,
   Weight_op,
+  Weight_convertTo,
 } from "./models/weight";
 import { IProgramState, IWeight, IUnit, IPercentage } from "./types";
 import { CollectionUtils_compact } from "./utils/collection";
@@ -80,6 +88,7 @@ export type IAssignmentOp = "+=" | "-=" | "*=" | "/=" | "=";
 export type ILiftoscriptScalar = number | boolean | string | IWeight | IPercentage;
 export type ILiftoscriptValue = ILiftoscriptScalar | (IWeight | IPercentage | number | undefined)[];
 type ILiftoscriptVarValue = number | string | IWeight | IPercentage;
+type ILiftoscriptGap = undefined;
 
 export class LiftoscriptSyntaxError extends SyntaxError {
   public readonly line: number;
@@ -120,9 +129,18 @@ function getChildren(node: SyntaxNode): SyntaxNode[] {
 function comparing(
   left: number | IWeight | IPercentage | (number | IWeight | IPercentage | undefined)[],
   right: number | IWeight | IPercentage | (number | IWeight | IPercentage | undefined)[],
-  operator: ">" | "<" | ">=" | "<=" | "==" | "!="
+  operator: ">" | "<" | ">=" | "<=" | "==" | "!=",
+  isGapFalse: boolean
 ): boolean {
-  function comparator(l: number | IWeight | IPercentage, r: number | IWeight | IPercentage): boolean {
+  function comparator(
+    one: number | IWeight | IPercentage | undefined,
+    two: number | IWeight | IPercentage | undefined
+  ): boolean {
+    if (isGapFalse && (one == null || two == null)) {
+      return false;
+    }
+    const l = one ?? 0;
+    const r = two ?? 0;
     switch (operator) {
       case ">":
         return Weight_gt(l, r);
@@ -140,13 +158,13 @@ function comparing(
   }
 
   if (Array.isArray(left) && Array.isArray(right)) {
-    return left.every((l, i) => comparator(l ?? 0, right[i] ?? 0));
+    return left.every((l, i) => comparator(l, right[i]));
   } else if (Array.isArray(left) && !Array.isArray(right)) {
-    return left.every((l, i) => comparator(l ?? 0, right ?? 0));
+    return left.every((l) => comparator(l, right));
   } else if (!Array.isArray(left) && Array.isArray(right)) {
-    return right.every((r, i) => comparator(left ?? 0, r ?? 0));
+    return right.every((r) => comparator(left, r));
   } else if (!Array.isArray(left) && !Array.isArray(right)) {
-    return comparator(left ?? 0, right ?? 0);
+    return comparator(left, right);
   } else {
     throw new Error("Impossible case");
   }
@@ -184,32 +202,50 @@ export class LiftoscriptEvaluator {
   private readonly script: string;
   private readonly state: IProgramState;
   private readonly otherStates: Record<number, IProgramState>;
-  private readonly bindings: IScriptBindings;
-  private readonly fns: IScriptFunctions;
+  private readonly execution: ILiftoscriptExecution;
+  private readonly allBindings: IScriptBindings | ILiftoscriptDashboardBindings;
+  private readonly fns: IScriptFunctionTable;
   private readonly fnContext: IScriptFnContext;
   private readonly unit: IUnit;
   private readonly mode: IProgramMode;
-  private readonly vars: Record<string, ILiftoscriptVarValue> = {};
+  private readonly environment: ILiftoscriptEnvironment;
+  private readonly vars: Record<string, ILiftoscriptVarValue | ILiftoscriptGap> = {};
+  private loopSteps = 0;
   public readonly updates: ILiftoscriptEvaluatorUpdate[] = [];
 
   constructor(
     script: string,
     state: IProgramState,
     otherStates: Record<number, IProgramState>,
-    bindings: IScriptBindings,
-    fns: IScriptFunctions,
+    execution: ILiftoscriptExecution,
     fnContext: IScriptFnContext,
-    unit: IUnit,
-    mode: IProgramMode
+    unit: IUnit
   ) {
     this.script = script;
     this.state = state;
     this.otherStates = otherStates;
-    this.bindings = bindings;
-    this.fns = fns;
+    this.execution = execution;
+    this.allBindings = execution.bindings;
+    this.fns = execution.fns;
     this.fnContext = fnContext;
     this.unit = unit;
-    this.mode = mode;
+    this.mode = execution.kind === "progress" ? execution.mode : "planner";
+    this.environment = LiftoscriptEnvironment_of(execution);
+  }
+
+  private get bindings(): IScriptBindings {
+    if (this.execution.kind !== "progress") {
+      assert("progress bindings");
+    }
+    return this.execution.bindings;
+  }
+
+  private get isDashboard(): boolean {
+    return this.execution.kind === "dashboard";
+  }
+
+  private get rm1(): IWeight | undefined {
+    return this.execution.kind === "progress" ? this.execution.bindings.rm1 : undefined;
   }
 
   public static getValueRaw(script: string, node: SyntaxNode): string {
@@ -257,7 +293,7 @@ export class LiftoscriptEvaluator {
       }
       const nameNode = node.getChild(NodeName.Keyword);
       const name = nameNode != null ? this.getValue(nameNode) : undefined;
-      return name != null ? LiftoscriptFns_bindingStaticType(name) : undefined;
+      return name != null ? LiftoscriptFns_bindingStaticType(name, this.environment) : undefined;
     }
     return undefined;
   }
@@ -270,11 +306,15 @@ export class LiftoscriptEvaluator {
     this.error(`Text can't be used as ${target}`, node, { type: "stringNotAllowed", data: { target } });
   }
 
-  private rejectString(value: ILiftoscriptValue, node: SyntaxNode, target: string): Exclude<ILiftoscriptValue, string> {
+  private rejectString<T extends ILiftoscriptValue | ILiftoscriptGap>(
+    value: T,
+    node: SyntaxNode,
+    target: string
+  ): Exclude<T, string> {
     if (typeof value === "string") {
       this.stringNotAllowed(node, target);
     }
-    return value;
+    return value as Exclude<T, string>;
   }
 
   private validateFnArg(name: IScriptFnName, index: number, node: SyntaxNode, value: unknown): void {
@@ -458,7 +498,7 @@ export class LiftoscriptEvaluator {
           assert(NodeName.BuiltinFunctionExpression);
         }
         const name = this.getValue(keyword);
-        if (!LiftoscriptFns_isFnName(name)) {
+        if (!LiftoscriptFns_isFnName(name) || !this.environment.fnNames.has(name)) {
           this.error(`Unknown function '${name}'`, keyword, { type: "unknownFunction", data: { name } });
         }
         const arity = LiftoscriptFns_arity(name);
@@ -499,6 +539,17 @@ export class LiftoscriptEvaluator {
             }
           }
         });
+      } else if (cursor.node.type.name === NodeName.Percentage && this.isDashboard) {
+        this.error(`Percentages can't be used in graph scripts`, cursor.node, { type: "percentageNotAllowed" });
+      } else if (
+        this.isDashboard &&
+        (cursor.node.type.name === NodeName.AssignmentExpression ||
+          cursor.node.type.name === NodeName.IncAssignmentExpression) &&
+        !this.isDashboardWritable(getChildren(cursor.node)[0])
+      ) {
+        const target = getChildren(cursor.node)[0];
+        const name = target != null ? this.getValue(target) : "";
+        this.error(`Cannot assign to '${name}'`, target ?? cursor.node, { type: "readonlyVariable", data: { name } });
       } else if (cursor.node.type.name === NodeName.ForExpression) {
         const variableNode = cursor.node.getChild(NodeName.Variable);
         if (variableNode != null) {
@@ -564,44 +615,24 @@ export class LiftoscriptEvaluator {
         }
         const name = this.getValue(nameNode);
         if (indexExpr != null) {
-          const validNames: (keyof IScriptBindings)[] = [
-            "originalWeights",
-            "weights",
-            "reps",
-            "minReps",
-            "completedReps",
-            "completedRepsLeft",
-            "completedWeights",
-            "timers",
-            "setTime",
-            "completedSetTime",
-            "completedSetTimeLeft",
-            "w",
-            "r",
-            "cr",
-            "cw",
-            "mr",
-            "completedRPE",
-            "bodyweight",
-            "RPE",
-            "setVariationIndex",
-            "exerciseVariationIndex",
-            "descriptionIndex",
-            "numberOfSets",
-            "programNumberOfSets",
-            "completedNumberOfSets",
-            "amraps",
-            "logrpes",
-            "askweights",
-          ];
-          if (validNames.indexOf(name as keyof IScriptBindings) === -1) {
+          if (!this.environment.indexableBindings.has(name)) {
             this.error(`${name} is not an array variable`, nameNode, { type: "notAnArray", data: { name } });
           }
-        } else if (!Object.prototype.hasOwnProperty.call(this.bindings, name)) {
+        } else if (!Object.prototype.hasOwnProperty.call(this.allBindings, name)) {
           this.error(`${name} is not a valid variable`, nameNode, { type: "unknownVariable", data: { name } });
         }
       }
     } while (cursor.next());
+  }
+
+  private isDashboardWritable(target: SyntaxNode | undefined): boolean {
+    if (target == null) {
+      return false;
+    }
+    if (target.type.name === NodeName.Variable) {
+      return true;
+    }
+    return target.type.name === NodeName.StateVariable && target.getChild(NodeName.StateVariableIndex) == null;
   }
 
   public static changeWeightsToCompleteWeights(oldScript: string): string {
@@ -744,7 +775,11 @@ export class LiftoscriptEvaluator {
           );
           value = Weight_convertToWeight(this.bindings.rm1, newValue, this.unit);
           this.bindings.originalWeights[i] = value;
-          this.bindings.weights[i] = this.fns.roundWeight([value], this.fnContext, this.bindings);
+          const roundWeight = this.fns.roundWeight;
+          if (roundWeight == null) {
+            assert("roundWeight");
+          }
+          this.bindings.weights[i] = roundWeight([value], this.fnContext, this.bindings);
         }
       }
     } else {
@@ -924,12 +959,49 @@ export class LiftoscriptEvaluator {
     }
   }
 
+  private gapBinary(
+    operator: SyntaxNode,
+    left: ILiftoscriptValue | ILiftoscriptGap,
+    right: ILiftoscriptValue | ILiftoscriptGap
+  ): boolean | ILiftoscriptGap {
+    const op = this.getValue(operator);
+    if (op === "&&") {
+      return !!left && !!right;
+    } else if (op === "||") {
+      return !!left || !!right;
+    } else if (operator.type.name === NodeName.Cmp) {
+      return false;
+    }
+    return undefined;
+  }
+
+  private countLoopStep(node: SyntaxNode): void {
+    const budget = this.environment.loopStepBudget;
+    if (budget == null) {
+      return;
+    }
+    this.loopSteps += 1;
+    if (this.loopSteps > budget) {
+      this.error(`This script runs too many loop steps`, node, { type: "loopStepBudget", data: { budget } });
+    }
+  }
+
+  private readBinding(name: string): ILiftoscriptValue | ILiftoscriptGap {
+    const bindings: Readonly<Record<string, ILiftoscriptValue | undefined>> = this.allBindings;
+    return Object.prototype.hasOwnProperty.call(bindings, name) ? bindings[name] : undefined;
+  }
+
   private operate(
     op: string,
-    left: ILiftoscriptValue,
-    right: ILiftoscriptValue,
+    rawLeft: ILiftoscriptValue | ILiftoscriptGap,
+    rawRight: ILiftoscriptValue | ILiftoscriptGap,
     node: SyntaxNode
-  ): ILiftoscriptVarValue {
+  ): ILiftoscriptVarValue | ILiftoscriptGap {
+    if (this.isDashboard && (rawLeft === undefined || rawRight === undefined)) {
+      return undefined;
+    }
+    const left = rawLeft ?? 0;
+    const right = rawRight ?? 0;
     if (Array.isArray(left) || Array.isArray(right)) {
       this.error(`You cannot apply ${op} to arrays`, node, { type: "operatorOnArray", data: { op } });
     }
@@ -960,9 +1032,9 @@ export class LiftoscriptEvaluator {
     }
   }
 
-  public evaluate(expr: SyntaxNode): ILiftoscriptValue {
+  public evaluate(expr: SyntaxNode): ILiftoscriptValue | ILiftoscriptGap {
     if (expr.type.name === NodeName.Program || expr.type.name === NodeName.BlockExpression) {
-      let result: ILiftoscriptValue = 0;
+      let result: ILiftoscriptValue | ILiftoscriptGap = 0;
       for (const child of getChildren(expr)) {
         if (!child.type.isSkipped) {
           result = this.evaluate(child);
@@ -971,8 +1043,13 @@ export class LiftoscriptEvaluator {
       return result;
     } else if (expr.type.name === NodeName.BinaryExpression) {
       const [left, operator, right] = getChildren(expr);
-      const evalLeft = this.evaluate(left);
-      const evalRight = this.evaluate(right);
+      const rawLeft = this.evaluate(left);
+      const rawRight = this.evaluate(right);
+      if (this.isDashboard && (rawLeft === undefined || rawRight === undefined)) {
+        return this.gapBinary(operator, rawLeft, rawRight);
+      }
+      const evalLeft = rawLeft ?? 0;
+      const evalRight = rawRight ?? 0;
       const op = this.getValue(operator);
       if (typeof evalLeft === "string" || typeof evalRight === "string") {
         return operator.type.name === NodeName.Plus || operator.type.name === NodeName.Times
@@ -988,17 +1065,17 @@ export class LiftoscriptEvaluator {
         }
       } else {
         if (op === ">") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else if (op === "<") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else if (op === ">=") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else if (op === "<=") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else if (op === "==") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else if (op === "!=") {
-          return comparing(evalLeft, evalRight, op);
+          return comparing(evalLeft, evalRight, op, this.isDashboard);
         } else {
           return this.operate(op, evalLeft, evalRight, operator);
         }
@@ -1039,6 +1116,7 @@ export class LiftoscriptEvaluator {
       }
       const varKey = this.getValue(variableNode).replace("var.", "");
       for (let i = 1; i <= forIn.length; i += 1) {
+        this.countLoopStep(expr);
         this.vars[varKey] = i;
         this.evaluate(blockNode);
       }
@@ -1139,7 +1217,9 @@ export class LiftoscriptEvaluator {
       } else if (variableNode.type.name === NodeName.Variable) {
         const varKey = this.getValue(variableNode).replace("var.", "");
         const value = this.evaluate(expression);
-        if (Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string") {
+        if (value === undefined && this.isDashboard) {
+          this.vars[varKey] = undefined;
+        } else if (Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string") {
           this.vars[varKey] = value;
         } else {
           this.vars[varKey] = value ? 1 : 0;
@@ -1162,10 +1242,13 @@ export class LiftoscriptEvaluator {
             }
           } else {
             const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
-            const index = this.toNumber(indexEval);
+            const index = this.toNumber(indexEval ?? 0);
             state = this.otherStates[index];
           }
           const value = this.rejectString(this.evaluate(expression), expression, `state.${stateKey}`);
+          if (value === undefined && this.isDashboard) {
+            return undefined;
+          }
           if (state != null) {
             if (Weight_is(value) || Weight_isPct(value) || typeof value === "number") {
               state[stateKey] = value;
@@ -1294,7 +1377,11 @@ export class LiftoscriptEvaluator {
       } else if (stateVar.type.name === NodeName.Variable) {
         const varKey = this.getValue(stateVar).replace("var.", "");
         let value = this.evaluate(expression);
-        if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string")) {
+        if (value === undefined && this.isDashboard) {
+          value = undefined;
+        } else if (
+          !(Weight_is(value) || Weight_isPct(value) || typeof value === "number" || typeof value === "string")
+        ) {
           value = value ? 1 : 0;
         }
         const op = this.getValue(incAssignmentExpr);
@@ -1323,11 +1410,14 @@ export class LiftoscriptEvaluator {
             }
           } else {
             const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
-            const index = this.toNumber(indexEval);
+            const index = this.toNumber(indexEval ?? 0);
             state = this.otherStates[index];
           }
 
           let value = this.rejectString(this.evaluate(expression), expression, `state.${stateKey}`);
+          if (value === undefined && this.isDashboard) {
+            return state?.[stateKey];
+          }
           if (state != null) {
             if (!(Weight_is(value) || Weight_isPct(value) || typeof value === "number")) {
               value = value ? 1 : 0;
@@ -1366,12 +1456,30 @@ export class LiftoscriptEvaluator {
       if (LiftoscriptFns_isFnName(name) && fns[name] != null) {
         const argValues = args.map((a, index) => {
           const value = this.evaluate(a);
+          if (value === undefined && this.isDashboard) {
+            return value;
+          }
           this.validateFnArg(name, index, a, value);
           return value;
         });
+        if (this.isDashboard && !liftoscriptGapAwareFnNames.has(name) && argValues.some((a) => a === undefined)) {
+          return undefined;
+        }
         const fn = fns[name];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fn as any)(argValues, this.fnContext, this.bindings);
+        if (!this.isDashboard) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (fn as any)(argValues, this.fnContext, this.allBindings);
+        }
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (fn as any)(argValues, this.fnContext, this.allBindings);
+        } catch (e) {
+          if (e instanceof LiftoscriptSyntaxError) {
+            throw e;
+          }
+          const message = e instanceof Error ? e.message : String(e);
+          this.error(message, expr, { type: "fnRuntimeError", data: { fn: name } });
+        }
       } else {
         this.error(`Unknown function '${name}'`, keyword, { type: "unknownFunction", data: { name } });
       }
@@ -1389,14 +1497,14 @@ export class LiftoscriptEvaluator {
       if (nameNode == null) {
         assert(NodeName.VariableExpression);
       }
-      const name = this.getValue(nameNode) as keyof IScriptBindings;
+      const name = this.getValue(nameNode);
       if (indexExprs.some((e) => e.type.name !== NodeName.VariableIndex)) {
         assert(NodeName.VariableIndex);
       }
       if (indexExprs.length === 0) {
-        let value = this.bindings[name];
-        if (Array.isArray(value) && name === "minReps") {
-          value = value.map((v, i) => (v as number) ?? this.bindings.reps[i]);
+        const value = this.readBinding(name);
+        if (Array.isArray(value) && name === "minReps" && !this.isDashboard) {
+          return value.map((v, i) => (v as number) ?? this.bindings.reps[i]);
         }
         return value;
       } else if (indexExprs.length === 1) {
@@ -1408,6 +1516,9 @@ export class LiftoscriptEvaluator {
           });
         }
         const indexEval = this.rejectString(this.evaluate(indexNode), indexNode, "an index");
+        if (indexEval === undefined && this.isDashboard) {
+          return undefined;
+        }
         let index: number;
         if (Weight_is(indexEval) || Weight_isPct(indexEval)) {
           index = indexEval.value;
@@ -1417,7 +1528,7 @@ export class LiftoscriptEvaluator {
           index = indexEval ? 1 : 0;
         }
         index -= 1;
-        const binding = this.bindings[name];
+        const binding = this.readBinding(name);
         if (!Array.isArray(binding)) {
           this.error(`Variable ${name} should be an array`, nameNode, { type: "notAnArray", data: { name } });
         }
@@ -1427,9 +1538,12 @@ export class LiftoscriptEvaluator {
             data: { name, index: index + 1 },
           });
         }
-        let value = binding[index];
+        const value = binding[index];
         if (value == null) {
-          value = name === "minReps" ? (this.bindings.reps[index] ?? 0) : 0;
+          if (this.isDashboard) {
+            return undefined;
+          }
+          return name === "minReps" ? (this.bindings.reps[index] ?? 0) : 0;
         }
         return value;
       } else {
@@ -1475,21 +1589,21 @@ export class LiftoscriptEvaluator {
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(this.bindings.rm1, one, two, (a, b) => a + b);
+    return this.operation(this.rm1, one, two, (a, b) => a + b);
   }
 
   private subtract(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(this.bindings.rm1, one, two, (a, b) => a - b);
+    return this.operation(this.rm1, one, two, (a, b) => a - b);
   }
 
   private multiply(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(this.bindings.rm1, one, two, (a, b) => a * b);
+    return this.operation(this.rm1, one, two, (a, b) => a * b);
   }
 
   // Division/modulo by zero returns 0 instead of NaN - NaN serializes to null in JSON
@@ -1498,7 +1612,11 @@ export class LiftoscriptEvaluator {
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(this.bindings.rm1, one, two, (a, b) => (b === 0 ? 0 : a / b));
+    if (this.isDashboard && Weight_is(one) && Weight_is(two)) {
+      const divisor = Weight_convertTo(two, one.unit).value;
+      return divisor === 0 ? 0 : one.value / divisor;
+    }
+    return this.operation(this.rm1, one, two, (a, b) => (b === 0 ? 0 : a / b));
   }
 
   private modulo(

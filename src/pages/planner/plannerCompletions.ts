@@ -6,7 +6,8 @@ import { ObjectUtils_values } from "../../utils/object";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { PlannerStateVars_fromArgs } from "./models/plannerStateVars";
-import { liftoscriptFnSignatures, VScriptBindings, IScriptFnSignature, IScriptFnName } from "../../liftoscriptFns";
+import { liftoscriptFnSignatures, IScriptFnSignature, IScriptFnName } from "../../liftoscriptFns";
+import { ILiftoscriptEnvironment, LiftoscriptEnvironment_progress } from "../../liftoscriptEnvironment";
 
 // The completion sources, with no CodeMirror in them: CodeMirror's autocomplete pulls in
 // @codemirror/view and the DOM, and the phone's editor is a native text view driven from JS.
@@ -325,8 +326,9 @@ function isInsideString(source: string, pos: number): boolean {
 function liftoscriptCandidates(
   source: string,
   pos: number,
-  args: { tree: Tree; state: IProgramState }
+  args: { tree: Tree; state: IProgramState; environment?: ILiftoscriptEnvironment }
 ): IRankableResult | undefined {
+  const environment = args.environment ?? LiftoscriptEnvironment_progress;
   if (isInsideString(source, pos)) {
     return undefined;
   }
@@ -352,14 +354,16 @@ function liftoscriptCandidates(
   if (word == null) {
     return undefined;
   }
-  const bindings = Object.keys(VScriptBindings.entries)
+  const bindings = Object.keys(environment.bindingTypes)
     .filter((key) => !bindingAliases.has(key))
     .map((key) => ({ label: key, type: "keyword liftoscript" }));
-  const fns = (Object.keys(liftoscriptFnSignatures) as IScriptFnName[]).map((name) => ({
-    label: name,
-    type: "function liftoscript",
-    detail: fnSignatureDetail(liftoscriptFnSignatures[name]),
-  }));
+  const fns = (Object.keys(liftoscriptFnSignatures) as IScriptFnName[])
+    .filter((name) => environment.fnNames.has(name))
+    .map((name) => ({
+      label: name,
+      type: "function liftoscript",
+      detail: fnSignatureDetail(liftoscriptFnSignatures[name]),
+    }));
   return {
     kind: "liftoscript",
     from: word.from,
@@ -451,7 +455,7 @@ export function PlannerCompletions_codemirrorPlanner(
 export function PlannerCompletions_codemirrorLiftoscript(
   source: string,
   pos: number,
-  args: { tree: Tree; state: IProgramState }
+  args: { tree: Tree; state: IProgramState; environment?: ILiftoscriptEnvironment }
 ): ICompletionResult | undefined {
   return liftoscriptCandidates(source, pos, args);
 }

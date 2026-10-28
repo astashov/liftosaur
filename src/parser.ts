@@ -2,12 +2,11 @@
 import { LiftoscriptEvaluator, NodeName, LiftoscriptSyntaxError } from "./liftoscriptEvaluator";
 import { parser as LiftoscriptParser } from "./liftoscript";
 import {
-  IScriptBindings,
   IScriptFnContext,
   Progress_createEmptyScriptBindings,
   Progress_createScriptFunctions,
 } from "./models/progress";
-import { IScriptFunctions } from "./liftoscriptFns";
+import { ILiftoscriptExecution, LiftoscriptEnvironment_of } from "./liftoscriptEnvironment";
 import { Weight_build } from "./models/weight";
 import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";
@@ -23,14 +22,21 @@ const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
 
 const parseLiftoscript = memoize((script: string): Tree => LiftoscriptParser.parse(script), { maxSize: 200 });
 
-// The semantic pass reads only the script, the mode, and which state and binding keys exist, never their values.
-// A pass that throws is not cached, so every run of a broken script still reports its error.
+// The semantic pass reads only the script, the mode, the environment, and which state and binding keys exist,
+// never their values. A pass that throws is not cached, so every run of a broken script still reports its error.
 const validateLiftoscript = memoize(
-  (_script: string, _mode: IProgramMode, _stateKeys: string, _bindingKeys: string, validate: () => void): true => {
+  (
+    _script: string,
+    _mode: IProgramMode,
+    _environmentId: string,
+    _stateKeys: string,
+    _bindingKeys: string,
+    validate: () => void
+  ): true => {
     validate();
     return true;
   },
-  { maxSize: 500, transformKey: (args) => args.slice(0, 4) }
+  { maxSize: 500, transformKey: (args) => args.slice(0, 5) }
 );
 
 // The pass checks membership with `in`, which also sees inherited keys. A state variable named `__proto__`
@@ -59,31 +65,36 @@ export class ScriptRunner {
   private readonly script: string;
   private readonly state: IProgramState;
   private readonly otherStates: Record<number, IProgramState>;
-  private readonly bindings: IScriptBindings;
-  private readonly fns: IScriptFunctions;
+  private readonly execution: ILiftoscriptExecution;
   private readonly units: IUnit;
   private readonly context: IScriptFnContext;
-  private readonly mode: IProgramMode;
   private updates: ILiftoscriptEvaluatorUpdate[] = [];
 
   constructor(
     script: string,
     state: IProgramState,
     otherStates: Record<number, IProgramState>,
-    bindings: IScriptBindings,
-    fns: IScriptFunctions,
+    execution: ILiftoscriptExecution,
     units: IUnit,
-    context: IScriptFnContext,
-    mode: IProgramMode
+    context: IScriptFnContext
   ) {
     this.script = script;
     this.state = state;
     this.otherStates = otherStates;
-    this.bindings = bindings;
-    this.fns = fns;
+    this.execution = execution;
     this.units = units;
     this.context = context;
-    this.mode = mode;
+  }
+
+  private evaluator(): LiftoscriptEvaluator {
+    return new LiftoscriptEvaluator(
+      this.script,
+      this.state,
+      this.otherStates,
+      this.execution,
+      this.context,
+      this.units
+    );
   }
 
   public static isValid(
@@ -97,11 +108,14 @@ export class ScriptRunner {
       script,
       state,
       {},
-      Progress_createEmptyScriptBindings(dayData, settings),
-      Progress_createScriptFunctions(settings),
+      {
+        kind: "progress",
+        mode: "planner",
+        bindings: Progress_createEmptyScriptBindings(dayData, settings),
+        fns: Progress_createScriptFunctions(settings),
+      },
       settings.units,
-      { exerciseType: exerciseType, unit: settings.units, prints: [] },
-      "planner"
+      { exerciseType: exerciseType, unit: settings.units, prints: [] }
     );
     try {
       liftoscriptEvaluator.parse();
@@ -117,23 +131,16 @@ export class ScriptRunner {
 
   public parse(): [LiftoscriptEvaluator, Tree] {
     const liftoscriptTree = parseLiftoscript(this.script);
-    const liftoscriptEvaluator = new LiftoscriptEvaluator(
-      this.script,
-      this.state,
-      this.otherStates,
-      this.bindings,
-      this.fns,
-      this.context,
-      this.units,
-      this.mode
-    );
+    const liftoscriptEvaluator = this.evaluator();
     const validate = (): void => liftoscriptEvaluator.parse(liftoscriptTree.topNode);
-    if (hasOnlyOwnKeys(this.state) && hasOnlyOwnKeys(this.bindings)) {
+    const bindings = this.execution.bindings;
+    if (hasOnlyOwnKeys(this.state) && hasOnlyOwnKeys(bindings)) {
       validateLiftoscript(
         this.script,
-        this.mode,
+        this.execution.kind === "progress" ? this.execution.mode : "planner",
+        LiftoscriptEnvironment_of(this.execution).id,
         Object.keys(this.state).sort().join("\n"),
-        Object.keys(this.bindings).sort().join("\n"),
+        Object.keys(bindings).sort().join("\n"),
         validate
       );
     } else {
@@ -144,32 +151,12 @@ export class ScriptRunner {
 
   public switchWeightsToUnit(toUnit: IUnit): string {
     const liftoscriptTree = parseLiftoscript(this.script);
-    const liftoscriptEvaluator = new LiftoscriptEvaluator(
-      this.script,
-      this.state,
-      this.otherStates,
-      this.bindings,
-      this.fns,
-      this.context,
-      this.units,
-      this.mode
-    );
-    return liftoscriptEvaluator.switchWeightsToUnit(liftoscriptTree.topNode, toUnit);
+    return this.evaluator().switchWeightsToUnit(liftoscriptTree.topNode, toUnit);
   }
 
   public getStateVariableKeys(): Set<string> {
     const liftoscriptTree = parseLiftoscript(this.script);
-    const liftoscriptEvaluator = new LiftoscriptEvaluator(
-      this.script,
-      this.state,
-      this.otherStates,
-      this.bindings,
-      this.fns,
-      this.context,
-      this.units,
-      this.mode
-    );
-    return liftoscriptEvaluator.getStateVariableKeys(liftoscriptTree.topNode);
+    return this.evaluator().getStateVariableKeys(liftoscriptTree.topNode);
   }
 
   public static hasStateVariable(script: string, name: string): boolean {

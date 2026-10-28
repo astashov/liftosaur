@@ -31,7 +31,10 @@ export type ILiftoscriptErrorDetails =
   | { type: "wrongResultType"; data: { expected: string } }
   | { type: "stringOperator"; data: { op: string } }
   | { type: "stringComparedToNonString"; data: { op: string } }
-  | { type: "stringNotAllowed"; data: { target: string } };
+  | { type: "stringNotAllowed"; data: { target: string } }
+  | { type: "percentageNotAllowed" }
+  | { type: "loopStepBudget"; data: { budget: number } }
+  | { type: "fnRuntimeError"; data: { fn: string } };
 
 export type IPlannerReuseSection = "sets" | "progress" | "update" | "description";
 
