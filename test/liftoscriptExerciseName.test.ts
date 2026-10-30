@@ -46,10 +46,19 @@ describe("LiftoscriptExerciseName", () => {
       expect(LiftoscriptExerciseName_isExercise("t2: squat", barbellSquat, {})).to.eql(true);
     });
 
-    it("checks equipment only when the pattern names it", () => {
+    it("reads a name without equipment as the default equipment", () => {
       expect(LiftoscriptExerciseName_isExercise("Squat, Barbell", barbellSquat, {})).to.eql(true);
       expect(LiftoscriptExerciseName_isExercise("Squat, Dumbbell", barbellSquat, {})).to.eql(false);
-      expect(LiftoscriptExerciseName_isExercise("Squat", { id: "squat", equipment: "dumbbell" }, {})).to.eql(true);
+      expect(LiftoscriptExerciseName_isExercise("Squat", { id: "squat", equipment: "dumbbell" }, {})).to.eql(false);
+      expect(LiftoscriptExerciseName_isExercise("Squat, Dumbbell", { id: "squat", equipment: "dumbbell" }, {})).to.eql(
+        true
+      );
+    });
+
+    it("reads an entry without equipment as the default equipment", () => {
+      expect(LiftoscriptExerciseName_isExercise("Squat", { id: "squat" }, {})).to.eql(true);
+      expect(LiftoscriptExerciseName_isExercise("Squat, Barbell", { id: "squat" }, {})).to.eql(true);
+      expect(LiftoscriptExerciseName_isExercise("Squat, Dumbbell", { id: "squat" }, {})).to.eql(false);
     });
 
     it("does not match another exercise or an unknown name", () => {
@@ -66,7 +75,8 @@ describe("LiftoscriptExerciseName", () => {
       expect(LiftoscriptExerciseName_isExercise("Foo, Dumbbell", { id: foo.id, equipment: "dumbbell" }, custom)).to.eql(
         false
       );
-      expect(LiftoscriptExerciseName_isExercise("Foo", { id: foo.id, equipment: "dumbbell" }, custom)).to.eql(true);
+      expect(LiftoscriptExerciseName_isExercise("Foo", { id: foo.id, equipment: "dumbbell" }, custom)).to.eql(false);
+      expect(LiftoscriptExerciseName_isExercise("Foo", { id: foo.id }, custom)).to.eql(true);
     });
   });
 });

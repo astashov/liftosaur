@@ -371,7 +371,7 @@ for (var.i in completedReps) {
 - `sets(from, to, minReps, maxReps, isAmrap, weight, timer, rpe, logRpe)` - update only
 - `print(val1, val2, ...)` - debug output, accepts numbers/weights/percentages/text; one line per call, values joined with `, `; visible in playground or after finishing exercise
 - `isProgramExercise("t1: Squat")` - true if the script runs for that program line. Label must match; equipment defaults to the exercise's default equipment; case and aliases don't matter, same as exercise names in the program
-- `isExercise("Squat")` - true if the exercise is that movement, any label. Equipment is checked only if given: `isExercise("Squat, Dumbbell")`
+- `isExercise("Squat")` - true if the exercise is that movement, any label. No equipment means the default equipment (barbell for Squat); `isExercise("Squat, Dumbbell")` for another
 
 #### Operators
 - Math: `+`, `-`, `*`, `/`, `%`

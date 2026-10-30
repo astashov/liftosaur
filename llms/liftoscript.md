@@ -949,7 +949,7 @@ t1: Bench Press / ...t1
 ```
 
 - `isProgramExercise("t1: Squat")` is true only for that exact line of the program. The label has to match. If you don't specify equipment, it means the exercise's default equipment, so for a barbell squat both `"t1: Squat"` and `"t1: Squat, Barbell"` match.
-- `isExercise("Squat")` is true for the Squat with any label. It checks equipment only if you specify it, like `isExercise("Squat, Dumbbell")`.
+- `isExercise("Squat")` is true for the Squat with any label. Equipment works the same way as in `isProgramExercise`: `"Squat"` means the default equipment, so it matches a barbell squat but not a dumbbell squat. Use `isExercise("Squat, Dumbbell")` for the dumbbell one.
 
 Both match exercise names the same way the program does, so letter case and exercise aliases don't matter.
 

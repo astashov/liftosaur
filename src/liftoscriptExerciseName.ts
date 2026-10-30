@@ -21,5 +21,6 @@ export function LiftoscriptExerciseName_isExercise(
   if (resolved == null || resolved.exercise.id !== exerciseType.id) {
     return false;
   }
-  return !resolved.hasExplicitEquipment || resolved.exercise.equipment === exerciseType.equipment;
+  const defaultEquipment = resolved.exercise.defaultEquipment;
+  return (resolved.exercise.equipment ?? defaultEquipment) === (exerciseType.equipment ?? defaultEquipment);
 }
