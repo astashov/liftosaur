@@ -240,35 +240,28 @@ Mechanical checks, every time; each one is a bug class that has actually bitten 
 
 ## Talking to codex
 
-`.claude/skills/feature/codex-chat.sh` runs one turn and renders the stream live into the transcript.
+**Launch every turn through `codex-run.sh`.** In agterm it runs the interactive Codex TUI in its own session `codex-<label>`, in this chat's workspace. The user watches codex in the sidebar and can keep talking to it there.
 
 ```bash
-.claude/skills/feature/codex-chat.sh \
-  --transcript lambda/scripts/plans/20260819-my-feature.codex.md \
-  --title "Architecture · round 1" \
-  --prompt-file /tmp/.../prompt.md \
+.claude/skills/feature/codex-run.sh \
+  --label arch --transcript lambda/scripts/plans/20260819-my-feature.codex.md \
+  --title "Architecture · round 1" --prompt-file /tmp/.../prompt.md \
   [--resume] [--schema .claude/skills/feature/schemas/review.schema.json] \
   [--effort high] [--model gpt-6-astra] [--timeout 900]
 ```
 
-- `--resume` continues the same codex thread (id kept in the `.thread` sibling), so round 2 remembers round 1.
-- Codex's final answer is written to the `.last.md` sibling — read that, don't re-parse the stream.
+- Everything after `--label <name>` goes to `codex-tui.sh` (in agterm) or `codex-chat.sh` (outside) unchanged.
+- `--resume` continues the same codex thread. The id is kept in the `.thread` sibling, so round 2 remembers round 1. In agterm it closes the old `codex-<label>` session and runs `codex resume` in a new one, so keep the same label across rounds.
+- Codex's final answer is written to the `.last.md` sibling. Read that.
+- `--schema` is only asked for in the prompt, because the TUI has no `--output-schema`. Check that `.last.md` parses as JSON.
+- Always `run_in_background: true`. It blocks until codex answers, 2–5 minutes, and the completion notification wakes you. Do not poll.
+- Phase 7 runs both reviews in **one** call with two `--label` groups, `bugs` and `arch`. They run in parallel, each in its own session. Give them **different transcripts** (`...codex-review-bugs.md`, `...codex-review-arch.md`) so their threads don't cross.
+- Exit status is the first failing turn's. `3` means a session never ran its turn, or the user closed it before codex answered. `124` means no answer within `--timeout`.
+- When the sessions are up, say in one line which `codex-<label>` sessions are running and yield.
 
-**Launch it through `codex-overlay.sh`**, which runs `codex-chat.sh` in an agterm overlay on the right split pane. The user watches codex there and keeps talking to you in the left pane. ⌘D hides the split, and codex keeps running until it is shown again.
+In agterm no transcript is written. `--transcript` only names the `.thread` and `.last.md` siblings, and codex's turn stays in its TUI session.
 
-```bash
-.claude/skills/feature/codex-overlay.sh \
-  --label arch-r1 --transcript lambda/scripts/plans/20260819-my-feature.codex.md \
-  --title "Architecture · round 1" --prompt-file /tmp/.../prompt.md
-```
-
-- Everything after `--label <name>` goes to `codex-chat.sh` unchanged.
-- Always `run_in_background: true`. It blocks for the whole turn, 2–5 minutes, and the completion notification wakes you. Do not poll.
-- Phase 7 runs both reviews in **one** call with two `--label` groups. They run in parallel in the same overlay, each line prefixed `[bugs]` or `[arch]`. Give them **different transcripts** (`...codex-review-bugs.md`, `...codex-review-arch.md`) so their threads don't cross.
-- Exit status is the first failing turn's. `3` means the overlay never ran the turns, for example `pane overlay already open`. That is the one to retry.
-- When the overlay is up, say in one line what is running and yield. No watch command, the overlay shows the stream.
-
-**Outside agterm** (`$AGTERM_SESSION_ID` unset), the same call runs headless in the background shell. Then **give the user the watch command in chat, in the same message that launches the consult** — the script prints it too, but that stdout goes to the tool result, which the user never sees. It must be a copy-pasteable line on its own, with the **absolute** path, posted at launch — not after codex finishes, when it's useless:
+**Outside agterm** (`$AGTERM_SESSION_ID` unset), the same call runs `codex-chat.sh` headless in the background shell. Then **give the user the watch command in chat, in the same message that launches the consult** — the script prints it too, but that stdout goes to the tool result, which the user never sees. It must be a copy-pasteable line on its own, with the **absolute** path, posted at launch — not after codex finishes, when it's useless:
 
 > Codex is thinking (~3 min). Watch it live:
 > ```
@@ -278,7 +271,7 @@ Mechanical checks, every time; each one is a bug class that has actually bitten 
 
 Repeat it for every consult, including each of the two phase-7 reviews — they write to different transcripts, so it's a different command each time.
 
-The transcript is a plain markdown log: your prompt verbatim in a fence, then codex's shell commands (`> $ …`), reasoning (`> 💭 …`) and replies as they arrive. It gets committed with the plan — it's the record of *why* the architecture is what it is.
+The headless transcript is a plain markdown log: your prompt verbatim in a fence, then codex's shell commands (`> $ …`), reasoning (`> 💭 …`) and replies as they arrive. It gets committed with the plan — it's the record of *why* the architecture is what it is.
 
 ## Resuming
 

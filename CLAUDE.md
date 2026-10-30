@@ -10,6 +10,11 @@ npm start          # Frontend dev server
 npm run start:server  # Backend dev server with hot reload
 ```
 
+### Long-running processes in agterm
+In agterm, start dev servers and other long-lived processes with `scripts/agterm-run.sh <name> <command...>`, never with `run_in_background`. It opens session `<name>` in this chat's workspace, or leaves it alone when `<name>` already runs. The user watches it there. Read its output with `agtermctl session text --target <id> --socket "$AGTERM_SOCKET"`, where `<id>` is what the script prints.
+
+Session names: `web` for `npm start`, `metro` for `npm run rn:start`, `server` for `npm run start:server`.
+
 ### Building
 ```bash
 npm run build      # Production build
