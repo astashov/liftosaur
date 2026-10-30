@@ -44,7 +44,7 @@ export const migrations = {
         for (const set of entry.sets) {
           set.originalWeight = ObjectUtils_clone(set.weight);
         }
-        for (const set of entry.warmupSets) {
+        for (const set of entry.warmupSets || []) {
           set.originalWeight = ObjectUtils_clone(set.weight);
         }
       }
@@ -309,6 +309,7 @@ export const migrations = {
           set.vtype = set.vtype || "set";
           set.index = set.index ?? setIndex;
         }
+        entry.warmupSets = entry.warmupSets || [];
         for (let setIndex = 0; setIndex < entry.warmupSets.length; setIndex++) {
           const set = entry.warmupSets[setIndex];
           set.vtype = set.vtype || "set";
@@ -347,7 +348,7 @@ export const migrations = {
             set.id = UidFactory_generateUid(6);
           }
         }
-        for (const set of entry.warmupSets) {
+        for (const set of entry.warmupSets || []) {
           if (!set.id) {
             set.id = UidFactory_generateUid(6);
           }
@@ -361,7 +362,7 @@ export const migrations = {
             set.id = UidFactory_generateUid(6);
           }
         }
-        for (const set of entry.warmupSets) {
+        for (const set of entry.warmupSets || []) {
           if (!set.id) {
             set.id = UidFactory_generateUid(6);
           }
