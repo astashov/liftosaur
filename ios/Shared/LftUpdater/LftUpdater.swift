@@ -67,6 +67,25 @@ struct LftUpdaterOutcome {
 #endif
   }
 
+  // Watch messages, silent pushes and workout mirroring launch the app without a scene, so no JS runs.
+  // Counting those as failed launches reverted the OTA bundle after three background kills.
+  @objc func beginJsLaunch() {
+    let d = UserDefaults.standard
+    if d.bool(forKey: "LftUpdater.launchInProgress") {
+      let count = d.integer(forKey: "LftUpdater.crashCount") + 1
+      d.set(count, forKey: "LftUpdater.crashCount")
+      Logger.ota.warning("previous launch did not complete; crashCount=\(count) activeId=\(self.paths.activeUpdateId() ?? "<none>")")
+      if count >= 3 {
+        Logger.ota.error("crashCount reached \(count), reverting to embedded bundle")
+        paths.revertToEmbedded()
+        d.set(0, forKey: "LftUpdater.crashCount")
+      }
+    } else {
+      Logger.ota.info("launch starting, activeId=\(self.paths.activeUpdateId() ?? "<none>")")
+    }
+    d.set(true, forKey: "LftUpdater.launchInProgress")
+  }
+
   @objc func markLaunchSuccessful() {
     let d = UserDefaults.standard
     let hadCount = d.integer(forKey: "LftUpdater.crashCount")

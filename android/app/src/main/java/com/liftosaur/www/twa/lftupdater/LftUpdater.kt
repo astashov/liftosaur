@@ -42,6 +42,25 @@ object LftUpdater {
         }
     }
 
+    // Android also starts the process for alarms, pushes and notification actions without running JS.
+    // Counting those as failed launches reverted the OTA bundle after three background kills.
+    fun beginJsLaunch(context: Context) {
+        val prefs = context.getSharedPreferences("LftUpdater", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("launchInProgress", false)) {
+            val count = prefs.getInt("crashCount", 0) + 1
+            prefs.edit().putInt("crashCount", count).apply()
+            Log.w(TAG, "previous launch did not complete; crashCount=$count activeId=${LftUpdaterPath.activeUpdateId(context) ?: "<none>"}")
+            if (count >= 3) {
+                Log.e(TAG, "crashCount reached $count, reverting to embedded bundle")
+                LftUpdaterPath.revertToEmbedded(context)
+                prefs.edit().putInt("crashCount", 0).apply()
+            }
+        } else {
+            Log.i(TAG, "launch starting, activeId=${LftUpdaterPath.activeUpdateId(context) ?: "<none>"}")
+        }
+        prefs.edit().putBoolean("launchInProgress", true).apply()
+    }
+
     fun markLaunchSuccessful(context: Context) {
         val prefs = context.getSharedPreferences("LftUpdater", Context.MODE_PRIVATE)
         val had = prefs.getInt("crashCount", 0)

@@ -33,6 +33,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       ? TouchIndicatorWindow(windowScene: windowScene)
       : UIWindow(windowScene: windowScene)
     self.window = window
+    LftUpdater.shared.beginJsLaunch()
     factory.startReactNative(
       withModuleName: "Liftosaur",
       in: window,
