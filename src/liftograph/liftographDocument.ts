@@ -391,6 +391,10 @@ export function LiftographDocument_parse(text: string): ILiftographDocument {
   return { text, items, hiddenSpans, diagnostics };
 }
 
+export function LiftographDocument_quote(value: string): string {
+  return /[,/():{}"\\]/.test(value) ? `"${value.replace(/(["\\])/g, "\\$1")}"` : value;
+}
+
 export function LiftographDocument_unquote(value: string): string {
   if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
     return value.slice(1, -1).replace(/\\(["\\])/g, "$1");

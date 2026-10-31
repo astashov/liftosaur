@@ -2,19 +2,7 @@ import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { CollectionUtils_sort } from "../utils/collection";
-import { Weight_convertTo } from "../models/weight";
-import {
-  ILengthUnit,
-  ISettings,
-  IStatsHealthKey,
-  IStatsHealthValue,
-  IStatsKey,
-  IStatsLengthValue,
-  IStatsPercentageValue,
-  IStatsWeightValue,
-  IUnit,
-} from "../types";
-import { Length_convertTo } from "../models/length";
+import { ILengthUnit, ISettings, IStatsHealthKey, IStatsHealthValue, IStatsKey, IUnit } from "../types";
 import { Stats_name } from "../models/stats";
 import { DateUtils_format } from "../utils/date";
 import { IPercentageUnit } from "../types";
@@ -24,7 +12,7 @@ import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphStatsProps {
   id?: string;
-  collection: [number, number][];
+  data: [number[], number[], number[]];
   units: IUnit | ILengthUnit | IPercentageUnit | string;
   statsKey: IStatsKey | IStatsHealthKey;
   settings: ISettings;
@@ -32,29 +20,7 @@ interface IGraphStatsProps {
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
-  movingAverageWindowSize?: number;
   isInteractive?: boolean;
-}
-
-export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
-  return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Weight_convertTo(i.value, settings.units).value];
-  });
-}
-
-export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
-  return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Length_convertTo(i.value, settings.lengthUnits).value];
-  });
-}
-
-export function getPercentageDataForGraph(coll: IStatsPercentageValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
-  return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, i.value.value];
-  });
 }
 
 export function getHealthDataForGraph(coll: IStatsHealthValue[], key: IStatsHealthKey): [number, number][] {
@@ -66,29 +32,8 @@ export function getHealthDataForGraph(coll: IStatsHealthValue[], key: IStatsHeal
 
 function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
-  const movingAverageWindowSize = props.movingAverageWindowSize;
-
-  const data = useMemo(() => {
-    const result: [number[], number[], number[]] = [[], [], []];
-    for (let index = 0; index < props.collection.length; index++) {
-      const i = props.collection[index];
-      result[0].push(i[0]);
-      result[1].push(i[1]);
-      if (movingAverageWindowSize != null) {
-        if (index >= movingAverageWindowSize - 1) {
-          let sum = 0;
-          for (let j = index - movingAverageWindowSize + 1; j <= index; j++) {
-            sum += result[1][j];
-          }
-          const movingAvg = sum / movingAverageWindowSize;
-          result[2].push(Math.round(movingAvg * 10) / 10);
-        } else {
-          result[2].push(i[1]);
-        }
-      }
-    }
-    return result;
-  }, [props.collection, movingAverageWindowSize]);
+  const data = props.data;
+  const hasMovingAverage = data[2].length > 0;
 
   const series: ILineChartSeries[] = useMemo(() => {
     const label =
@@ -107,7 +52,7 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
         width: 1.5,
       },
     ];
-    if (movingAverageWindowSize != null) {
+    if (hasMovingAverage) {
       out.push({
         label: "Moving Average",
         show: true,
@@ -116,7 +61,7 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
       });
     }
     return out;
-  }, [props.statsKey, movingAverageWindowSize]);
+  }, [props.statsKey, hasMovingAverage]);
 
   const yearSec = 365 * 24 * 60 * 60;
   const xMin = props.isSameXAxis ? Math.max(props.minX, props.maxX - yearSec) : undefined;
@@ -126,7 +71,7 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
 
   const timestamp = cursorIdx != null ? data[0][cursorIdx] : null;
   const value = cursorIdx != null ? data[1][cursorIdx] : null;
-  const movingAvg = cursorIdx != null && movingAverageWindowSize != null ? data[2][cursorIdx] : null;
+  const movingAvg = cursorIdx != null && hasMovingAverage ? Math.round(data[2][cursorIdx] * 10) / 10 : null;
 
   return (
     <View className="relative" testID="graph" data-testid="graph">

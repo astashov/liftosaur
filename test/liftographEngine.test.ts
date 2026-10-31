@@ -74,7 +74,7 @@ describe("LiftographEngine_evaluate", () => {
     const text = [
       "// ## This week",
       "row {",
-      "  value / name: Workouts / source: workout / smooth: sum(7d) / compare: 1w",
+      "  value / name: Workouts / source: workout / smooth: count(7d) / compare: 1w",
       "  value / name: Bodyweight / source: stats(weight) / smooth: avg(7d)",
       "}",
     ].join("\n");

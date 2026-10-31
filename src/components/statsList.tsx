@@ -24,7 +24,9 @@ import { ObjectUtils_keys } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
-import { GraphStats, getWeightDataForGraph, getLengthDataForGraph, getPercentageDataForGraph } from "./graphStats";
+import { GraphStats } from "./graphStats";
+import { LiftographGraphs_statsData } from "../liftograph/liftographGraphs";
+import { LiftographSeriesEval_create } from "../liftograph/liftographSeriesEval";
 import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
 import { Button } from "./button";
@@ -125,12 +127,12 @@ export function StatsList(props: IProps): JSX.Element {
   }
   const units =
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
-  const graphPoints =
-    selectedKey === "weight"
-      ? getWeightDataForGraph(props.stats.weight[selectedKey] || [], props.settings)
-      : selectedKey === "bodyfat"
-        ? getPercentageDataForGraph(props.stats.percentage[selectedKey] || [], props.settings)
-        : getLengthDataForGraph(props.stats.length[selectedKey] || [], props.settings);
+  const graphData = LiftographGraphs_statsData(
+    LiftographSeriesEval_create({ history: [], stats: props.stats, settings: props.settings, today: Date.now() }),
+    selectedKey,
+    movingAverageWindowSize
+  );
+  const graphTimestamps = graphData[0];
 
   const graphUnit =
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
@@ -186,19 +188,18 @@ export function StatsList(props: IProps): JSX.Element {
         />
       )}
       <View className="relative">
-        {graphPoints.length > 2 && (
+        {graphTimestamps.length > 2 && (
           <>
             <GraphStats
               title={null}
               isSameXAxis={false}
-              minX={graphPoints[0][0]}
-              maxX={graphPoints[graphPoints.length - 1][0]}
+              minX={graphTimestamps[0]}
+              maxX={graphTimestamps[graphTimestamps.length - 1]}
               units={graphUnit}
               key={`${selectedKey}_${movingAverageWindowSize}`}
               settings={props.settings}
-              collection={graphPoints}
+              data={graphData}
               statsKey={selectedKey}
-              movingAverageWindowSize={movingAverageWindowSize}
               isInteractive={Subscriptions_hasSubscription(props.subscription)}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />

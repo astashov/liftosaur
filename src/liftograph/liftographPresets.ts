@@ -1,8 +1,8 @@
 import { Weight_add, Weight_build, Weight_lt } from "../models/weight";
 import { ISettings, IWeight } from "../types";
+import type { ILiftographFoldContext } from "./liftographFold";
 import {
   LiftographMeasures_entryVolume,
-  LiftographMeasures_muscleGroups,
   LiftographMeasures_setE1rm,
   LiftographMeasures_setWeight,
   LiftographMeasures_workoutDuration,
@@ -23,7 +23,7 @@ export interface ILiftographPreset {
   sources: ILiftographSource["type"][];
   hasArg: boolean;
   script: (arg?: string) => string;
-  evaluate: (row: ILiftographRow, settings: ISettings, arg?: string) => number | IWeight | undefined;
+  evaluate: (row: ILiftographRow, context: ILiftographFoldContext, arg?: string) => number | IWeight | undefined;
 }
 
 function maxWeight(weights: (IWeight | undefined)[]): IWeight | undefined {
@@ -62,9 +62,9 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     sources: ["exercise"],
     hasArg: false,
     script: () => "point(max(e1rm))",
-    evaluate: (row, settings) =>
+    evaluate: (row, context) =>
       row.type === "exercise"
-        ? maxWeight(row.entry.sets.map((set) => LiftographMeasures_setE1rm(set, settings.units)))
+        ? maxWeight(row.entry.sets.map((set) => LiftographMeasures_setE1rm(set, context.settings.units)))
         : undefined,
   },
   volume: {
@@ -72,7 +72,7 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     sources: ["exercise", "workout"],
     hasArg: false,
     script: () => "point(volume)",
-    evaluate: (row, settings) => workoutVolume(row, settings),
+    evaluate: (row, context) => workoutVolume(row, context.settings),
   },
   maxReps: {
     name: "maxReps",
@@ -92,11 +92,11 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     sources: ["workout"],
     hasArg: true,
     script: (arg) => `point(muscleSets("${arg ?? ""}"))`,
-    evaluate: (row, settings, arg) => {
+    evaluate: (row, context, arg) => {
       if (row.type !== "workout" || arg == null) {
         return undefined;
       }
-      const groups: Partial<Record<string, { sets: number }>> = LiftographMeasures_muscleGroups(row.record, settings);
+      const groups: Partial<Record<string, { sets: number }>> = context.muscleGroups(row.record);
       return groups[arg]?.sets ?? 0;
     },
   },
@@ -105,15 +105,12 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     sources: ["workout"],
     hasArg: true,
     script: (arg) => `point(muscleVolume("${arg ?? ""}"))`,
-    evaluate: (row, settings, arg) => {
+    evaluate: (row, context, arg) => {
       if (row.type !== "workout" || arg == null) {
         return undefined;
       }
-      const groups: Partial<Record<string, { volume: IWeight }>> = LiftographMeasures_muscleGroups(
-        row.record,
-        settings
-      );
-      return groups[arg]?.volume ?? Weight_build(0, settings.units);
+      const groups: Partial<Record<string, { volume: IWeight }>> = context.muscleGroups(row.record);
+      return groups[arg]?.volume ?? Weight_build(0, context.settings.units);
     },
   },
   duration: {

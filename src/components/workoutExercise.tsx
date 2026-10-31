@@ -17,6 +17,7 @@ import {
   History_collect1RMPersonalRecord,
   IPrevExerciseData,
 } from "../models/history";
+import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../liftograph/liftographSeriesEval";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils_sort } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
@@ -120,6 +121,17 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
     return results;
   }, [isHeavyContentReady, props.history, exerciseType, props.settings.exerciseStatsSettings.ascendingSort]);
 
+  const graphEvaluation = useMemo(
+    () =>
+      LiftographSeriesEval_create({
+        history: props.history,
+        stats: LiftographSeriesEval_emptyStats(),
+        settings: props.settings,
+        today: Date.now(),
+      }),
+    [props.history, props.settings]
+  );
+
   // PRs feed only the (already deferred) graphs/PRs block, and the per-record 1RM math is the
   // expensive part — so defer it and run it over the already-filtered slice, not all history.
   const [{ maxWeight, maxWeightHistoryRecord }, { max1RM, max1RMHistoryRecord, max1RMSet }] = useMemo(() => {
@@ -216,7 +228,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
                       key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
                       settings={props.settings}
                       isWithProgramLines={true}
-                      history={props.history}
+                      evaluation={graphEvaluation}
                       exercise={exerciseType}
                       initialType={props.settings.graphsSettings.defaultType}
                       dispatch={props.dispatch}

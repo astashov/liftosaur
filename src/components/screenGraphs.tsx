@@ -3,10 +3,15 @@ import { View, Pressable } from "react-native";
 import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
 import { Text } from "./primitives/text";
 import { GraphExercise } from "./graphExercise";
-import { History_getGraphsAggregates } from "../models/history";
 import { ObjectUtils_keys } from "../utils/object";
 import { IScreenMuscle } from "../types";
-import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
+import { GraphStats } from "./graphStats";
+import {
+  LiftographGraphs_muscleGroupsData,
+  LiftographGraphs_programChangeTimes,
+  LiftographGraphs_statsData,
+} from "../liftograph/liftographGraphs";
+import { LiftographSeriesEval_create } from "../liftograph/liftographSeriesEval";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { IconFilter } from "./icons/iconFilter";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
@@ -42,21 +47,16 @@ export function ScreenGraphs(): JSX.Element {
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
   const hasBodyweight = settings.graphs.graphs.some((g) => g.id === "weight");
 
-  const { muscleGroupsData, programChangeTimes } = useTimedMemo(
-    "screenGraphs.graphsAggregates",
-    () => History_getGraphsAggregates(history, settings),
-    [history, settings]
+  const evaluation = useTimedMemo(
+    "screenGraphs.evaluation",
+    () => LiftographSeriesEval_create({ history, stats, settings, today: Date.now() }),
+    [history, stats, settings]
   );
 
-  const bodyweightData = useTimedMemo<[number, number][]>(
-    "screenGraphs.bodyweightData",
-    () => {
-      if (hasBodyweight && isWithBodyweight) {
-        return getWeightDataForGraph(stats.weight.weight || [], settings);
-      }
-      return [];
-    },
-    [hasBodyweight, isWithBodyweight, stats.weight.weight, settings]
+  const programChangeTimes = useTimedMemo(
+    "screenGraphs.programChangeTimes",
+    () => LiftographGraphs_programChangeTimes(evaluation),
+    [evaluation]
   );
 
   const { minX, maxX } = useTimedMemo(
@@ -115,8 +115,17 @@ export function ScreenGraphs(): JSX.Element {
 
   const roundedMinX = useTimedMemo("screenGraphs.roundedMinX", () => Math.round(minX / 1000), [minX]);
   const roundedMaxX = useTimedMemo("screenGraphs.roundedMaxX", () => Math.round(maxX / 1000), [maxX]);
-  const bodyweightForGraphs = hasBodyweight && isWithBodyweight ? bodyweightData : undefined;
-  const programChangeTimesForGraphs = isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined;
+  const programChangeTimesForGraphs = isWithProgramLines ? programChangeTimes : undefined;
+
+  const muscleGroupsData = useTimedMemo(
+    "screenGraphs.muscleGroupsData",
+    () =>
+      LiftographGraphs_muscleGroupsData(
+        evaluation,
+        visibleGraphs.filter((g) => g.type === "muscleGroup").map((g) => g.id)
+      ),
+    [evaluation, visibleGraphs]
+  );
 
   const preparedGraphs = useTimedMemo(
     "screenGraphs.preparedGraphs",
@@ -125,31 +134,13 @@ export function ScreenGraphs(): JSX.Element {
         if (graph.type === "exercise") {
           return { graph, exercise: Exercise_fromKey(graph.id), collection: undefined };
         }
-        if (graph.type === "statsWeight") {
-          return {
-            graph,
-            exercise: undefined,
-            collection: getWeightDataForGraph(stats.weight[graph.id] || [], settings),
-          };
-        }
-        if (graph.type === "statsLength") {
-          return {
-            graph,
-            exercise: undefined,
-            collection: getLengthDataForGraph(stats.length[graph.id] || [], settings),
-          };
-        }
         if (graph.type === "muscleGroup") {
           return { graph, exercise: undefined, collection: undefined };
         }
-        return {
-          graph,
-          exercise: undefined,
-          collection: getPercentageDataForGraph(stats.percentage[graph.id] || [], settings),
-        };
+        return { graph, exercise: undefined, collection: LiftographGraphs_statsData(evaluation, graph.id) };
       });
     },
-    [visibleGraphs, stats.weight, stats.length, stats.percentage, settings]
+    [visibleGraphs, evaluation]
   );
 
   if (settings.graphs.graphs.length === 0) {
@@ -180,11 +171,11 @@ export function ScreenGraphs(): JSX.Element {
                   isSameXAxis={isSameXAxis}
                   minX={roundedMinX}
                   maxX={roundedMaxX}
-                  bodyweightData={bodyweightForGraphs}
+                  isWithBodyweight={hasBodyweight && isWithBodyweight}
                   isWithOneRm={isWithOneRm}
                   settings={settings}
                   isWithProgramLines={isWithProgramLines}
-                  history={history}
+                  evaluation={evaluation}
                   exercise={exercise}
                   dispatch={dispatch}
                 />
@@ -200,7 +191,7 @@ export function ScreenGraphs(): JSX.Element {
                   maxX={roundedMaxX}
                   units={settings.units}
                   settings={settings}
-                  collection={collection}
+                  data={collection}
                   statsKey={graph.id}
                 />
               </View>
@@ -215,7 +206,7 @@ export function ScreenGraphs(): JSX.Element {
                   maxX={roundedMaxX}
                   units={settings.lengthUnits}
                   settings={settings}
-                  collection={collection}
+                  data={collection}
                   statsKey={graph.id}
                 />
               </View>
@@ -245,7 +236,7 @@ export function ScreenGraphs(): JSX.Element {
                   maxX={roundedMaxX}
                   units="%"
                   settings={settings}
-                  collection={collection}
+                  data={collection}
                   statsKey={graph.id}
                 />
               </View>

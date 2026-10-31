@@ -43,6 +43,7 @@ import { StringUtils_capitalize } from "../utils/string";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
+import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../liftograph/liftographSeriesEval";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -152,6 +153,16 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     [fullExercise.id, settings.exercises]
   );
   const exerciseKey = useMemo(() => Exercise_toKey(exerciseType), [exerciseType]);
+  const evaluation = useMemo(
+    () =>
+      LiftographSeriesEval_create({
+        history: rawHistory,
+        stats: LiftographSeriesEval_emptyStats(),
+        settings,
+        today: Date.now(),
+      }),
+    [rawHistory, settings]
+  );
   const fullName = useMemo(() => Exercise_fullName(fullExercise, settings), [fullExercise, settings]);
   const isInteractive = useMemo(() => Subscriptions_hasSubscription(props.subscription), [props.subscription]);
 
@@ -222,7 +233,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             key={exerciseKey}
             settings={settings}
             isWithProgramLines={true}
-            history={rawHistory}
+            evaluation={evaluation}
             exercise={exerciseType}
             initialType={settings.graphsSettings.defaultType}
             dispatch={dispatch}

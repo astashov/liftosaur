@@ -48,7 +48,7 @@ describe("LiftographCompile_document", () => {
     expect(series.source).to.deep.equal({
       type: "exercise",
       exerciseId: "squat",
-      equipment: undefined,
+      equipment: "barbell",
       label: "T1",
       program: undefined,
       day: undefined,
@@ -65,7 +65,7 @@ describe("LiftographCompile_document", () => {
     ).map(ready);
     expect(series.map((s) => (s.values.type === "preset" ? s.values.preset : s.values.script.text))).to.deep.equal([
       "maxWeight",
-      "point(1)",
+      "volume",
       "point(value)",
     ]);
   });
