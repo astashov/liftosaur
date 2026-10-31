@@ -70,7 +70,7 @@ function matchesEntry(
   return true;
 }
 
-function finishedRecords(history: IHistoryRecord[]): IHistoryRecord[] {
+export function LiftographRows_finished(history: IHistoryRecord[]): IHistoryRecord[] {
   return history
     .filter((record) => record.vtype === "history_record" && record.endTime != null)
     .sort((a, b) => a.startTime - b.startTime || a.id - b.id);
@@ -102,13 +102,27 @@ export function LiftographRows_build(
   stats: IStats,
   settings: ISettings
 ): ILiftographRow[] {
+  return LiftographRows_fromFinished(
+    source,
+    source.type === "stats" ? [] : LiftographRows_finished(history),
+    stats,
+    settings
+  );
+}
+
+export function LiftographRows_fromFinished(
+  source: ILiftographSource,
+  finished: IHistoryRecord[],
+  stats: IStats,
+  settings: ISettings
+): ILiftographRow[] {
   if (source.type === "stats") {
     return statsRows(source.key, stats, settings);
   }
   const rows: ILiftographRow[] = [];
   const defaultEquipment =
     source.type === "exercise" ? exerciseDefaultEquipment(source.exerciseId, settings.exercises) : undefined;
-  for (const record of finishedRecords(history)) {
+  for (const record of finished) {
     if (!matchesWorkout(record, source)) {
       continue;
     }

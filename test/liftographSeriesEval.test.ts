@@ -41,6 +41,28 @@ describe("LiftographSeriesEval", () => {
     expect(evaluation.rowsBySource.size).to.equal(2);
   });
 
+  it("folds a series once per evaluation", () => {
+    const [spec] = seriesOf("graph {\n  name: A / source: exercise(Squat) / y: e1rm\n}");
+    const evaluation = LiftographSeriesEval_create(input);
+    expect(LiftographSeriesEval_fold(evaluation, spec)).to.equal(LiftographSeriesEval_fold(evaluation, spec));
+  });
+
+  it("reads a stats series without y: the same as its point(value) script", () => {
+    const stats = fxStats([
+      [fxDay(2026, 3, 1), 180],
+      [fxDay(2026, 3, 8), 182],
+    ]);
+    const [fast, slow] = seriesOf(
+      "graph {\n  name: A / source: stats(weight)\n  name: B / source: stats(weight) {~ point(value) ~}\n}"
+    );
+    const evaluation = LiftographSeriesEval_create({ ...input, stats });
+    const ys = (spec: ILiftographSeriesSpec): number[] =>
+      LiftographSeriesEval_fold(evaluation, spec).emissions.map((e) => e.y);
+    expect(fast.values.type).to.equal("preset");
+    expect(ys(fast)).to.deep.equal([180, 182]);
+    expect(ys(slow)).to.deep.equal(ys(fast));
+  });
+
   it("computes the muscle totals of a workout once for all series", () => {
     const series = seriesOf(
       'graph {\n  name: A / source: workout / y: muscleSets(chest)\n  name: B / source: workout / y: muscleVolume(chest)\n  name: C / source: workout {~ point(muscleSets("chest")) ~}\n}'

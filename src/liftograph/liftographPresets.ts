@@ -16,7 +16,8 @@ export type ILiftographPresetName =
   | "maxReps"
   | "muscleSets"
   | "muscleVolume"
-  | "duration";
+  | "duration"
+  | "value";
 
 export interface ILiftographPreset {
   name: ILiftographPresetName;
@@ -119,6 +120,13 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     hasArg: false,
     script: () => "point(duration)",
     evaluate: (row) => (row.type === "workout" ? LiftographMeasures_workoutDuration(row.record) : undefined),
+  },
+  value: {
+    name: "value",
+    sources: ["stats"],
+    hasArg: false,
+    script: () => "point(value)",
+    evaluate: (row) => (row.type === "stats" ? row.value : undefined),
   },
 };
 

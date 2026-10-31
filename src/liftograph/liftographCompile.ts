@@ -239,7 +239,7 @@ function compileSeries(
     values = { type: "script", script: compiled };
     xMode = compiled.arity === 2 ? "number" : "time";
   } else if (yPair == null) {
-    values = defaultValues(source, settings, span);
+    values = defaultValues(source);
   } else {
     const parsed = call(yPair.value);
     if (parsed == null || !LiftographPresets_isName(parsed.name)) {
@@ -316,22 +316,13 @@ function compileSeries(
   return spec;
 }
 
-function defaultValues(
-  source: ILiftographSource,
-  settings: ISettings,
-  span: ILiftographSpan
-): ILiftographSeriesSpec["values"] {
+function defaultValues(source: ILiftographSource): ILiftographSeriesSpec["values"] {
   if (source.type === "exercise") {
     return { type: "preset", preset: "maxWeight" };
   } else if (source.type === "workout") {
     return { type: "preset", preset: "volume" };
   }
-  const environment = LiftographEnvironment_forSource(source.type);
-  const compiled = LiftographFold_compileScript("point(value)", span.from, environment, settings);
-  if (!("environment" in compiled)) {
-    throw new Error(compiled.message);
-  }
-  return { type: "script", script: compiled };
+  return { type: "preset", preset: "value" };
 }
 
 function pairsByKey(pairs: ILiftographPair[], allowed: string[]): Partial<Record<string, ILiftographPair>> {

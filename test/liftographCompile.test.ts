@@ -66,7 +66,7 @@ describe("LiftographCompile_document", () => {
     expect(series.map((s) => (s.values.type === "preset" ? s.values.preset : s.values.script.text))).to.deep.equal([
       "maxWeight",
       "volume",
-      "point(value)",
+      "value",
     ]);
   });
 

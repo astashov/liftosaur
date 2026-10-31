@@ -166,8 +166,6 @@ export function LiftographGraphs_exerciseData(
   const series = graphSeries(evaluation, document);
   const [weight, e1rm] = selectedType === "weight" ? series : [];
   const [volume] = selectedType === "volume" ? series : [];
-  console.log(document);
-  console.log(weight, volume, e1rm);
   const weights = byX(weight, Math.max);
   const volumes = byX(volume, (a, b) => a + b);
   const e1rms = byX(e1rm, Math.max);
