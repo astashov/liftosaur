@@ -16,6 +16,7 @@ import { IconUiMode } from "./icons/iconUiMode";
 import { IconDayTextMode } from "./icons/iconDayTextMode";
 import { IconFullTextMode } from "./icons/iconFullTextMode";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
+import { MarkdownImage } from "./markdownImage";
 
 const md = new MarkdownIt({ html: false, linkify: true });
 
@@ -45,12 +46,18 @@ function renderBlocks(tokens: Token[], start: number, end: number, depth = 0): I
   while (i < end) {
     const token = tokens[i];
     if (token.type === "paragraph_open") {
-      const inline = tokens[i + 1];
-      elements.push(
-        <Text key={i} className="mb-2 text-sm">
-          {inline?.children ? renderInline(inline.children) : null}
-        </Text>
-      );
+      const runs = splitInlineRuns(tokens[i + 1]?.children || []);
+      runs.forEach((run, r) => {
+        elements.push(
+          run.kind === "image" ? (
+            <MarkdownImage key={`${i}-${r}`} src={run.src} alt={run.alt} />
+          ) : (
+            <Text key={`${i}-${r}`} className="mb-2 text-sm">
+              {renderInline(run.tokens)}
+            </Text>
+          )
+        );
+      });
       i += 3;
     } else if (token.type === "heading_open") {
       const level = parseInt(token.tag.replace("h", ""), 10);
@@ -96,6 +103,47 @@ function renderBlocks(tokens: Token[], start: number, end: number, depth = 0): I
     }
   }
   return { elements, next: i };
+}
+
+type IInlineRun = { kind: "text"; tokens: Token[] } | { kind: "image"; src: string; alt: string };
+
+function isBlankInline(token: Token): boolean {
+  return token.type === "softbreak" || token.type === "hardbreak" || (token.type === "text" && !token.content.trim());
+}
+
+function trimBlankInline(tokens: Token[]): Token[] {
+  let start = 0;
+  let end = tokens.length;
+  while (start < end && isBlankInline(tokens[start])) {
+    start += 1;
+  }
+  while (end > start && isBlankInline(tokens[end - 1])) {
+    end -= 1;
+  }
+  return tokens.slice(start, end);
+}
+
+function splitInlineRuns(tokens: Token[]): IInlineRun[] {
+  const runs: IInlineRun[] = [];
+  let pending: Token[] = [];
+  const flushText = (): void => {
+    const trimmed = trimBlankInline(pending);
+    if (trimmed.length > 0) {
+      runs.push({ kind: "text", tokens: trimmed });
+    }
+    pending = [];
+  };
+  for (const token of tokens) {
+    const src = token.type === "image" ? token.attrGet("src") : null;
+    if (src) {
+      flushText();
+      runs.push({ kind: "image", src: src.replace(/^[a-z]+:/i, (scheme) => scheme.toLowerCase()), alt: token.content });
+    } else {
+      pending.push(token);
+    }
+  }
+  flushText();
+  return runs;
 }
 
 function renderListItems(tokens: Token[], start: number, end: number, ordered: boolean, depth: number): JSX.Element[] {
