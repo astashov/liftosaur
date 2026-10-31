@@ -51,11 +51,13 @@ export function LiftographMeasures_workoutDuration(record: IHistoryRecord): numb
   return total / 60000;
 }
 
+export type ILiftographMuscleGroupTotals = Partial<Record<IScreenMuscle | "total", { sets: number; volume: IWeight }>>;
+
 export function LiftographMeasures_muscleGroups(
   record: IHistoryRecord,
   settings: ISettings
-): Partial<Record<IScreenMuscle | "total", { sets: number; volume: IWeight }>> {
-  const result: Partial<Record<IScreenMuscle | "total", { sets: number; volume: IWeight }>> = {};
+): ILiftographMuscleGroupTotals {
+  const result: ILiftographMuscleGroupTotals = {};
   for (const entry of record.entries) {
     const groups = History_entryMuscleGroups(entry, settings);
     for (const key of Object.keys(groups) as (IScreenMuscle | "total")[]) {

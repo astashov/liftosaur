@@ -174,7 +174,7 @@ function parseSource(pair: ILiftographPair, settings: ISettings): ILiftographSou
         throw new CompileError(`Unknown exercise '${filters.words.join(", ")}'`, pair.valueSpan);
       }
       source.exerciseId = resolved.exercise.id;
-      source.equipment = resolved.hasExplicitEquipment ? (resolved.exercise.equipment ?? undefined) : undefined;
+      source.equipment = resolved.exercise.equipment ?? resolved.exercise.defaultEquipment ?? undefined;
     }
     return source;
   } else if (parsed.name === "workout") {
@@ -323,10 +323,11 @@ function defaultValues(
 ): ILiftographSeriesSpec["values"] {
   if (source.type === "exercise") {
     return { type: "preset", preset: "maxWeight" };
+  } else if (source.type === "workout") {
+    return { type: "preset", preset: "volume" };
   }
-  const text = source.type === "workout" ? "point(1)" : "point(value)";
   const environment = LiftographEnvironment_forSource(source.type);
-  const compiled = LiftographFold_compileScript(text, span.from, environment, settings);
+  const compiled = LiftographFold_compileScript("point(value)", span.from, environment, settings);
   if (!("environment" in compiled)) {
     throw new Error(compiled.message);
   }

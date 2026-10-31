@@ -43,6 +43,21 @@ describe("LiftographRows_build", () => {
     expect(ids({ type: "exercise", program: "5/3/1" })).to.deep.equal([]);
   });
 
+  it("reads a missing equipment as the exercise's default equipment", () => {
+    const record = fxRecord(fxDay(2026, 3, 1), [
+      fxEntry("squat", [fxSet(100, 5)]),
+      fxEntry("squat", [fxSet(40, 8)], { equipment: "dumbbell" }),
+    ]);
+    const unset = { ...record.entries[0], exercise: { id: "squat" } };
+    const withUnset = { ...record, entries: [...record.entries, unset] };
+    const [barbell, db] = record.entries.map((e) => e.id);
+    const ids = (source: Parameters<typeof LiftographRows_build>[0]): string[] =>
+      LiftographRows_build(source, [withUnset], fxStats(), settings).map((r) => r.id.split(":")[1]);
+    expect(ids({ type: "exercise", exerciseId: "squat" })).to.deep.equal([barbell, unset.id]);
+    expect(ids({ type: "exercise", exerciseId: "squat", equipment: "barbell" })).to.deep.equal([barbell, unset.id]);
+    expect(ids({ type: "exercise", exerciseId: "squat", equipment: "dumbbell" })).to.deep.equal([db]);
+  });
+
   it("dates a row by its start time, which keeps the time of day after a date edit", () => {
     const record = {
       ...fxRecord(fxDay(2026, 3, 1, 10), [fxEntry("squat", [fxSet(100, 5)])]),

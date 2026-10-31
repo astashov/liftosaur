@@ -13,6 +13,7 @@ import { IconUndo } from "./icons/iconUndo";
 import { DateUtils_format } from "../utils/date";
 import { ScrollableTabs } from "./scrollableTabs";
 import { GraphStats, getHealthDataForGraph } from "./graphStats";
+import { LiftographGraphs_pairsData } from "../liftograph/liftographGraphs";
 import { Locker } from "./locker";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 
@@ -128,7 +129,7 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
               maxX={graphPoints[graphPoints.length - 1][0]}
               units={unitForMetric(statsKey)}
               settings={settings}
-              collection={graphPoints}
+              data={LiftographGraphs_pairsData(graphPoints)}
               statsKey={statsKey}
               isInteractive={Subscriptions_hasSubscription(subscription)}
             />

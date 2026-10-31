@@ -1,6 +1,8 @@
+import { Exercise_findById } from "../models/exercise";
 import { Length_convertTo } from "../models/length";
 import { PlannerKey_fromExerciseType } from "../pages/planner/plannerKey";
 import {
+  IAllCustomExercises,
   IHistoryEntry,
   IHistoryRecord,
   IStats,
@@ -42,12 +44,25 @@ function matchesWorkout(record: IHistoryRecord, filter: { program?: string; day?
   return true;
 }
 
-function matchesEntry(entry: IHistoryEntry, source: Extract<ILiftographSource, { type: "exercise" }>): boolean {
-  if (source.exerciseId != null && entry.exercise.id !== source.exerciseId) {
-    return false;
-  }
-  if (source.equipment != null && entry.exercise.equipment !== source.equipment) {
-    return false;
+function exerciseDefaultEquipment(
+  exerciseId: string | undefined,
+  customExercises: IAllCustomExercises
+): string | undefined {
+  return exerciseId != null ? Exercise_findById(exerciseId, customExercises)?.defaultEquipment : undefined;
+}
+
+function matchesEntry(
+  entry: IHistoryEntry,
+  source: Extract<ILiftographSource, { type: "exercise" }>,
+  defaultEquipment: string | undefined
+): boolean {
+  if (source.exerciseId != null) {
+    if (entry.exercise.id !== source.exerciseId) {
+      return false;
+    }
+    if ((entry.exercise.equipment ?? defaultEquipment) !== (source.equipment ?? defaultEquipment)) {
+      return false;
+    }
   }
   if (source.label != null) {
     return entry.programExerciseId === PlannerKey_fromExerciseType(entry.exercise, source.label);
@@ -91,6 +106,8 @@ export function LiftographRows_build(
     return statsRows(source.key, stats, settings);
   }
   const rows: ILiftographRow[] = [];
+  const defaultEquipment =
+    source.type === "exercise" ? exerciseDefaultEquipment(source.exerciseId, settings.exercises) : undefined;
   for (const record of finishedRecords(history)) {
     if (!matchesWorkout(record, source)) {
       continue;
@@ -102,7 +119,7 @@ export function LiftographRows_build(
     }
     const entries = [...record.entries].sort((a, b) => a.index - b.index);
     for (const entry of entries) {
-      if (matchesEntry(entry, source)) {
+      if (matchesEntry(entry, source, defaultEquipment)) {
         rows.push({ type: "exercise", id: `${record.id}:${entry.id}`, ts, record, entry });
       }
     }

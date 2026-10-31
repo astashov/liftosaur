@@ -42,7 +42,7 @@ import {
   IStats,
   IProgramState,
 } from "../types";
-import { Collector, ICollectorFn } from "../utils/collector";
+import { ICollectorFn } from "../utils/collector";
 import {
   Reps_avgUnilateralCompletedReps,
   Reps_volume,
@@ -316,25 +316,6 @@ export function History_collectMinAndMaxTime(): ICollectorFn<IHistoryRecord, { m
       return acc;
     },
     initial: { maxTime: 0, minTime: Infinity },
-  };
-}
-
-export function History_collectProgramChangeTimes(): ICollectorFn<
-  IHistoryRecord,
-  {
-    currentProgram?: string;
-    changeProgramTimes: [number, string][];
-  }
-> {
-  return {
-    fn: (acc, hr) => {
-      if (!acc.currentProgram || acc.currentProgram !== hr.programName) {
-        acc.currentProgram = hr.programName;
-        acc.changeProgramTimes.push([new Date(Date.parse(hr.date)).getTime() / 1000, acc.currentProgram]);
-      }
-      return acc;
-    },
-    initial: { changeProgramTimes: [] },
   };
 }
 
@@ -1128,30 +1109,6 @@ export const History_getPersonalRecords = memoize(
     return result;
   },
   { maxSize: 10 }
-);
-
-export interface IGraphsAggregates {
-  sortedHistory: IHistoryRecord[];
-  muscleGroupsData: Record<IScreenMuscle | "total", [number[], number[], number[]]>;
-  programChangeTimes: { currentProgram?: string; changeProgramTimes: [number, string][] };
-}
-
-// Aggregates used by the Graphs screen. Memoized by history+settings refs (lens-shmens
-// gives us stable refs for unchanged subtrees), so this returns instantly across screen
-// mount/unmount cycles. Also called from App.native.tsx during idle time to warm the
-// cache so the first Graphs visit is fast.
-export const History_getGraphsAggregates = memoize(
-  (history: IHistoryRecord[], settings: ISettings): IGraphsAggregates => {
-    const sortedHistory = CollectionUtils_sort(history, (a, b) => {
-      return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
-    });
-    const [muscleGroupsData, programChangeTimes] = Collector.build(sortedHistory)
-      .addFn(History_collectMuscleGroups(settings))
-      .addFn(History_collectProgramChangeTimes())
-      .run();
-    return { sortedHistory, muscleGroupsData, programChangeTimes };
-  },
-  { maxSize: 5 }
 );
 
 export interface IHomeWeekData {

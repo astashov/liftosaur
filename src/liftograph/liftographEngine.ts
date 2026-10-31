@@ -1,27 +1,18 @@
-import { IHistoryRecord, ISettings, IStats } from "../types";
 import { ILiftographSeriesSpec, ILiftographWidget, LiftographCompile_document } from "./liftographCompile";
 import { ILiftographDiagnostic, ILiftographSpan, LiftographDocument_parse } from "./liftographDocument";
+import { ILiftographFoldError } from "./liftographFold";
 import {
-  ILiftographFoldContext,
-  ILiftographFoldError,
-  ILiftographFoldResult,
-  LiftographFold_context,
-  LiftographFold_run,
-} from "./liftographFold";
-import { LiftographRows_build } from "./liftographRows";
+  ILiftographSeriesEval,
+  ILiftographSeriesEvalInput,
+  LiftographSeriesEval_create,
+  LiftographSeriesEval_fold,
+} from "./liftographSeriesEval";
 import {
   ILiftographSeriesPoints,
   ILiftographValueResult,
   LiftographShape_series,
   LiftographShape_value,
 } from "./liftographShape";
-
-export interface ILiftographEngineInput {
-  history: IHistoryRecord[];
-  stats: IStats;
-  settings: ISettings;
-  today: number;
-}
 
 export type ILiftographSeriesResult =
   | { status: "ready"; spec: ILiftographSeriesSpec; points: ILiftographSeriesPoints }
@@ -42,26 +33,17 @@ export interface ILiftographEngineResult {
   diagnostics: ILiftographDiagnostic[];
 }
 
-function fold(
-  series: ILiftographSeriesSpec,
-  input: ILiftographEngineInput,
-  context: ILiftographFoldContext
-): ILiftographFoldResult {
-  const rows = LiftographRows_build(series.source, input.history, input.stats, input.settings);
-  return LiftographFold_run(series, rows, context);
-}
-
 export function LiftographEngine_evaluateWidget(
   widget: ILiftographWidget,
-  input: ILiftographEngineInput,
-  context: ILiftographFoldContext = LiftographFold_context(input.settings, input.stats)
+  evaluation: ILiftographSeriesEval
 ): ILiftographWidgetResult {
+  const { input } = evaluation;
   if (widget.kind === "graph") {
     const series = widget.series.map((compiled): ILiftographSeriesResult => {
       if (compiled.status === "invalid") {
         return { status: "error", name: compiled.name, message: compiled.message, span: compiled.span };
       }
-      const result = fold(compiled.spec, input, context);
+      const result = LiftographSeriesEval_fold(evaluation, compiled.spec);
       if (result.error != null) {
         return {
           status: "error",
@@ -75,7 +57,7 @@ export function LiftographEngine_evaluateWidget(
     });
     return { type: "graph", widget, series };
   } else if (widget.kind === "value") {
-    const result = fold(widget.series, input, context);
+    const result = LiftographSeriesEval_fold(evaluation, widget.series);
     if (result.error != null) {
       return { type: "value", widget, error: { ...result.error, span: result.error.span ?? widget.span } };
     }
@@ -93,12 +75,12 @@ function runtimeDiagnostics(result: ILiftographWidgetResult): ILiftographDiagnos
   return [];
 }
 
-export function LiftographEngine_evaluate(text: string, input: ILiftographEngineInput): ILiftographEngineResult {
+export function LiftographEngine_evaluate(text: string, input: ILiftographSeriesEvalInput): ILiftographEngineResult {
   const compiled = LiftographCompile_document(LiftographDocument_parse(text), input.settings);
-  const context = LiftographFold_context(input.settings, input.stats);
+  const evaluation = LiftographSeriesEval_create(input);
   const layout = compiled.layout.map((row) => ({
     caption: row.caption,
-    items: row.items.map((widget) => LiftographEngine_evaluateWidget(widget, input, context)),
+    items: row.items.map((widget) => LiftographEngine_evaluateWidget(widget, evaluation)),
   }));
   const seen = new Set(compiled.diagnostics.map((d) => `${d.span.from}:${d.span.to}:${d.message}`));
   const runtime = layout

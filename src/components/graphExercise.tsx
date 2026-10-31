@@ -3,22 +3,16 @@ import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Select } from "./primitives/select";
-import { CollectionUtils_sort, CollectionUtils_inGroupsOf } from "../utils/collection";
+import { CollectionUtils_inGroupsOf } from "../utils/collection";
 import { DateUtils_format } from "../utils/date";
-import { equipmentName, Exercise_eq, Exercise_get, Exercise_getVolumeMultiplier } from "../models/exercise";
-import {
-  Weight_convertTo,
-  Weight_build,
-  Weight_getOneRepMax,
-  Weight_isOrPct,
-  Weight_display,
-  Weight_multiply,
-} from "../models/weight";
+import { equipmentName, Exercise_eq, Exercise_get } from "../models/exercise";
+import { Weight_isOrPct, Weight_display } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { IDispatch } from "../ducks/types";
-import { Reps_volume } from "../models/set";
 import { ObjectUtils_keys } from "../utils/object";
-import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
+import { ILiftographExerciseGraphData, LiftographGraphs_exerciseData } from "../liftograph/liftographGraphs";
+import { ILiftographSeriesEval } from "../liftograph/liftographSeriesEval";
+import { useTimedMemo } from "../utils/useTimedMemo";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
 import { LineChart, ILineChartSeries } from "./lineChart";
@@ -26,7 +20,7 @@ import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphProps {
   id?: string;
-  history: IHistoryRecord[];
+  evaluation: ILiftographSeriesEval;
   isWithOneRm?: boolean;
   isWithProgramLines?: boolean;
   exercise: IExerciseType;
@@ -36,105 +30,11 @@ interface IGraphProps {
   isSameXAxis?: boolean;
   minX: number;
   maxX: number;
-  bodyweightData?: [number, number][];
+  isWithBodyweight?: boolean;
   initialType?: IExerciseSelectedType;
   dispatch?: IDispatch;
   isInteractive?: boolean;
   onInteract?: (reason: "manipulate" | "type") => void;
-}
-
-interface IGraphData {
-  data: [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]];
-  historyRecords: { [key: number]: IHistoryRecord };
-  changeProgramTimes: [number, string][];
-}
-
-function getData(
-  history: IHistoryRecord[],
-  exerciseType: IExerciseType,
-  settings: ISettings,
-  isWithOneRm?: boolean,
-  bodyweightData?: [number, number][]
-): IGraphData {
-  const changeProgramTimes: [number, string][] = [];
-  let currentProgram: string | undefined = undefined;
-  const historyRecords: { [key: number]: IHistoryRecord } = {};
-  const normalizedData = CollectionUtils_sort(history, (a, b) => a.startTime - b.startTime).reduce<
-    [number, number | null, number | null, number | null, number | null, number | null][]
-  >((acc, i) => {
-    if (!currentProgram || currentProgram !== i.programName) {
-      currentProgram = i.programName;
-      changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
-    }
-    const entry = i.entries.filter((e) => Exercise_eq(e.exercise, exerciseType))[0];
-    if (entry != null) {
-      const maxSet = History_getMaxWeightSetFromEntry(entry);
-      const maxe1RMSet = History_getMax1RMSetFromEntry(entry);
-      const volume = Weight_multiply(
-        Reps_volume(entry.sets, settings.units),
-        Exercise_getVolumeMultiplier(entry.exercise, settings)
-      );
-      if (maxSet != null) {
-        const convertedWeight = Weight_convertTo(
-          maxSet.completedWeight ?? maxSet.weight ?? Weight_build(0, settings.units),
-          settings.units
-        );
-        let onerm = null;
-        if (isWithOneRm) {
-          const set = maxe1RMSet || maxSet;
-          onerm = Weight_getOneRepMax(
-            Weight_convertTo(set.completedWeight ?? set.weight ?? Weight_build(0, settings.units), settings.units),
-            set.completedReps || 0,
-            set.completedRpe ?? set.rpe ?? 10
-          ).value;
-        }
-        const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
-        historyRecords[timestamp] = i;
-        acc.push([
-          timestamp,
-          Weight_convertTo(convertedWeight, settings.units).value,
-          maxSet.completedReps!,
-          onerm,
-          volume.value,
-          null,
-        ]);
-      }
-    }
-    return acc;
-  }, []);
-  const normalizedBodyweightData = (bodyweightData || []).map<
-    [number, number | null, number | null, number | null, number | null, number | null]
-  >((i) => {
-    return [i[0], null, null, null, null, i[1]];
-  });
-  const sorted = CollectionUtils_sort(
-    normalizedData.concat(normalizedBodyweightData),
-    (a, b) => (a[0] || 0) - (b[0] || 0)
-  );
-  const data = sorted.reduce<
-    [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]
-  >(
-    (acc, i) => {
-      const lastIdx = acc[0].length - 1;
-      if (lastIdx >= 0 && acc[0][lastIdx] === i[0]) {
-        acc[1][lastIdx] = acc[1][lastIdx] ?? i[1];
-        acc[2][lastIdx] = acc[2][lastIdx] ?? i[2];
-        acc[3][lastIdx] = acc[3][lastIdx] ?? i[3];
-        acc[4][lastIdx] = acc[4][lastIdx] ?? i[4];
-        acc[5][lastIdx] = acc[5][lastIdx] ?? i[5];
-        return acc;
-      }
-      acc[0].push(i[0]);
-      acc[1].push(i[1]);
-      acc[2].push(i[2]);
-      acc[3].push(i[3]);
-      acc[4].push(i[4]);
-      acc[5].push(i[5]);
-      return acc;
-    },
-    [[], [], [], [], [], []]
-  );
-  return { data, changeProgramTimes, historyRecords };
 }
 
 function GraphExerciseInner(props: IGraphProps): JSX.Element {
@@ -144,9 +44,17 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const units = props.settings.units;
   const exercise = Exercise_get(props.exercise, props.settings.exercises);
 
-  const result = useMemo(
-    () => getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData),
-    [props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData]
+  const result = useTimedMemo(
+    "graphExercise.data",
+    () =>
+      LiftographGraphs_exerciseData(
+        props.evaluation,
+        props.exercise,
+        selectedType,
+        !!props.isWithOneRm,
+        !!props.isWithBodyweight
+      ),
+    [props.evaluation, props.exercise, selectedType, props.isWithOneRm, props.isWithBodyweight]
   );
 
   const series: ILineChartSeries[] = useMemo(
@@ -263,7 +171,7 @@ export const GraphExercise = memo(GraphExerciseInner);
 
 interface IGraphExerciseLegendProps {
   cursorIdx: number | null;
-  data: IGraphData["data"];
+  data: ILiftographExerciseGraphData["data"];
   units: string;
   selectedType: IExerciseSelectedType;
   isWithOneRm?: boolean;

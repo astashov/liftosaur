@@ -5,6 +5,7 @@ import { History_findAllMaxSetsPerId } from "../../models/history";
 import { ObjectUtils_keys } from "../../utils/object";
 import { Weight_display, Weight_build } from "../../models/weight";
 import { GraphExercise } from "../../components/graphExercise";
+import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../../liftograph/liftographSeriesEval";
 import { Program_getCurrentProgram } from "../../models/program";
 import { IStorage, IExerciseId, IHistoryRecord, ISet, ISettings } from "../../types";
 
@@ -93,7 +94,12 @@ function Entry(props: IEntryProps): JSX.Element {
           isWithOneRm={true}
           maxX={0}
           title="Progress Graph"
-          history={history}
+          evaluation={LiftographSeriesEval_create({
+            history,
+            stats: LiftographSeriesEval_emptyStats(),
+            settings,
+            today: Date.now(),
+          })}
           exercise={exercise}
           settings={settings}
         />

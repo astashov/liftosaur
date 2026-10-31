@@ -6,8 +6,8 @@ import {
 import { Progress_createScriptFunctions } from "../models/progress";
 import { Weight_build, Weight_divide, Weight_is, Weight_isPct, Weight_lt, Weight_op } from "../models/weight";
 import { Muscle_getAvailableMuscleGroups } from "../models/muscle";
-import { IHistoryEntry, IPercentage, ISettings, IWeight } from "../types";
-import { LiftographMeasures_muscleGroups } from "./liftographMeasures";
+import { IHistoryEntry, IHistoryRecord, IPercentage, ISettings, IWeight } from "../types";
+import { ILiftographMuscleGroupTotals, LiftographMeasures_muscleGroups } from "./liftographMeasures";
 import { ILiftographRow } from "./liftographRows";
 
 export type ILiftographPointValue = number | IWeight;
@@ -53,13 +53,15 @@ export function LiftographScriptFns_muscleGroupKeys(settings: ISettings): Set<st
   return new Set<string>(["total", ...Muscle_getAvailableMuscleGroups(settings)]);
 }
 
-type IMuscleGroupTotals = Partial<Record<string, { sets: number; volume: IWeight }>>;
-
-export function LiftographScriptFns_create(settings: ISettings): ILiftographScriptFns {
+export function LiftographScriptFns_create(
+  settings: ISettings,
+  recordMuscleGroups: (record: IHistoryRecord) => ILiftographMuscleGroupTotals = (record) =>
+    LiftographMeasures_muscleGroups(record, settings)
+): ILiftographScriptFns {
   const progressFns = Progress_createScriptFunctions(settings);
   let row: ILiftographRow | undefined;
   let points: ILiftographRawPoint[] = [];
-  let muscleGroups: IMuscleGroupTotals | undefined;
+  let muscleGroups: Partial<Record<string, { sets: number; volume: IWeight }>> | undefined;
   let setEntries: IHistoryEntry[] = [];
 
   const muscleGroupKeys = LiftographScriptFns_muscleGroupKeys(settings);
@@ -69,7 +71,7 @@ export function LiftographScriptFns_create(settings: ISettings): ILiftographScri
       throw new Error(`Unknown muscle group "${group}"`);
     }
     if (muscleGroups == null) {
-      muscleGroups = row?.type === "workout" ? LiftographMeasures_muscleGroups(row.record, settings) : {};
+      muscleGroups = row?.type === "workout" ? recordMuscleGroups(row.record) : {};
     }
     return muscleGroups[group];
   }

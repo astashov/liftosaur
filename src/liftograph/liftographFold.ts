@@ -7,11 +7,16 @@ import {
 import { LiftoscriptSyntaxError, NodeName } from "../liftoscriptEvaluator";
 import { Weight_build, Weight_convertTo, Weight_is } from "../models/weight";
 import { ScriptRunner } from "../parser";
-import { IProgramState, ISettings, IStats } from "../types";
+import { IHistoryRecord, IProgramState, ISettings, IStats } from "../types";
 import type { ILiftographSeriesSpec } from "./liftographCompile";
 import { ILiftographDiagnostic, ILiftographSpan } from "./liftographDocument";
 import { LiftographEnvironment_bindings } from "./liftographEnvironments";
-import { ILiftographBodyweightPoint, LiftographMeasures_bodyweightSeries } from "./liftographMeasures";
+import {
+  ILiftographBodyweightPoint,
+  ILiftographMuscleGroupTotals,
+  LiftographMeasures_bodyweightSeries,
+  LiftographMeasures_muscleGroups,
+} from "./liftographMeasures";
 import { liftographPresets } from "./liftographPresets";
 import { ILiftographRow } from "./liftographRows";
 import {
@@ -62,6 +67,7 @@ export interface ILiftographFoldContext {
   settings: ISettings;
   bodyweights: ILiftographBodyweightPoint[];
   scriptFns: ILiftographScriptFns;
+  muscleGroups: (record: IHistoryRecord) => ILiftographMuscleGroupTotals;
 }
 
 const muscleGroupFns = ["muscleSets", "muscleVolume"];
@@ -158,10 +164,20 @@ export function LiftographFold_compileScript(
 }
 
 export function LiftographFold_context(settings: ISettings, stats: IStats): ILiftographFoldContext {
+  const totals = new WeakMap<IHistoryRecord, ILiftographMuscleGroupTotals>();
+  const muscleGroups = (record: IHistoryRecord): ILiftographMuscleGroupTotals => {
+    let recordTotals = totals.get(record);
+    if (recordTotals == null) {
+      recordTotals = LiftographMeasures_muscleGroups(record, settings);
+      totals.set(record, recordTotals);
+    }
+    return recordTotals;
+  };
   return {
     settings,
     bodyweights: LiftographMeasures_bodyweightSeries(stats),
-    scriptFns: LiftographScriptFns_create(settings),
+    scriptFns: LiftographScriptFns_create(settings, muscleGroups),
+    muscleGroups,
   };
 }
 
@@ -188,7 +204,7 @@ function rowPoints(
   context: ILiftographFoldContext
 ): { state: IProgramState; points: ILiftographRawPoint[] } {
   if (series.values.type === "preset") {
-    const value = liftographPresets[series.values.preset].evaluate(row, context.settings, series.values.arg);
+    const value = liftographPresets[series.values.preset].evaluate(row, context, series.values.arg);
     return { state, points: value != null ? [{ y: value }] : [] };
   }
   const script = series.values.script;

@@ -7,6 +7,7 @@ import { Reps_group } from "../../models/set";
 import { Exercise_get } from "../../models/exercise";
 import { StringUtils_pluralize } from "../../utils/string";
 import { GraphExercise } from "../../components/graphExercise";
+import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../../liftograph/liftographSeriesEval";
 import {
   History_findAllPersonalRecords,
   History_getMaxWeightSetFromEntry,
@@ -157,7 +158,12 @@ function Entry(props: IEntryProps): JSX.Element {
             isSameXAxis={false}
             minX={0}
             maxX={0}
-            history={props.history}
+            evaluation={LiftographSeriesEval_create({
+              history: props.history,
+              stats: LiftographSeriesEval_emptyStats(),
+              settings: props.settings,
+              today: Date.now(),
+            })}
             exercise={props.entry.exercise}
             settings={props.settings}
           />
