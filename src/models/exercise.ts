@@ -4258,8 +4258,8 @@ function warmup(
       if (shouldSkipThreshold || (weight != null && Weight_gt(weight, programExerciseWarmupSet.threshold))) {
         const value = programExerciseWarmupSet.value;
         const unit = Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
-        const isPercentageOfAssistance = typeof value === "number" && weight != null && weight.value < 0;
-        if ((typeof value !== "number" || weight != null) && !isPercentageOfAssistance) {
+        const isLessAssistance = typeof value === "number" && weight != null && weight.value < 0 && value < 1;
+        if ((typeof value !== "number" || weight != null) && !isLessAssistance) {
           const warmupWeight = typeof value === "number" ? Weight_multiply(weight!, value) : value;
           const roundedWeight = Weight_roundWarmup(warmupWeight, settings, unit, exerciseType, weight);
           memo.push({

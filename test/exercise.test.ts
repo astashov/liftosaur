@@ -256,7 +256,17 @@ describe("Exercise — warmup rounding", () => {
     expect(warmupWeights(settings, Weight_build(180, "lb"), [{ reps: 3, value: 1, threshold }])).to.eql([145]);
   });
 
-  it("skips percentage warmups when the working weight is negative assistance", () => {
+  it("keeps percentage warmups over 100% on negative assistance", () => {
+    const settings = Settings_build();
+    const sets: IProgramExerciseWarmupSet[] = [
+      { reps: 3, value: 1.5, threshold: Weight_build(-1000, "lb") },
+      { reps: 3, value: 0.6, threshold: Weight_build(-1000, "lb") },
+    ];
+    const pulldown: IExerciseType = { id: "latPulldown", equipment: "cable" };
+    expect(warmupWeights(settings, Weight_build(-40, "lb"), sets, pulldown)).to.eql([-60]);
+  });
+
+  it("skips percentage warmups under 100% when the working weight is negative assistance", () => {
     const settings = Settings_build();
     const sets: IProgramExerciseWarmupSet[] = [
       { reps: 5, value: 0.5, threshold: Weight_build(-1000, "lb") },
