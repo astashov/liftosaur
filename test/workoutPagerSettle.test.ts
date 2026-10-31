@@ -7,7 +7,7 @@ describe("WorkoutPagerSettle_index", () => {
   function settle(over: Partial<IWorkoutPagerSettleArgs>): number | undefined {
     return WorkoutPagerSettle_index({
       offsetX: 0,
-      windowWidth: WIDTH,
+      pageWidth: WIDTH,
       isUserDriven: true,
       dragStartIndex: 0,
       ...over,
@@ -37,7 +37,7 @@ describe("WorkoutPagerSettle_index", () => {
   });
 
   it("reports nothing before the pager has been measured", () => {
-    expect(settle({ offsetX: 0, windowWidth: 0, dragStartIndex: 5 })).to.equal(undefined);
+    expect(settle({ offsetX: 0, pageWidth: 0, dragStartIndex: 5 })).to.equal(undefined);
   });
 
   it("never reports a negative page from an overscroll", () => {

@@ -8,7 +8,7 @@ interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
   currentEntryId: string;
   entryCount: number;
-  windowWidth: number;
+  pageWidth: number;
   forceUpdateEntryIndex: boolean;
   onIndexChange: (next: number) => void;
   // User-driven scrolls only, and only where they came to rest.
@@ -17,7 +17,7 @@ interface IWorkoutExercisePagerProps {
 }
 
 export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Element {
-  const { currentEntryIndex, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } = props;
+  const { currentEntryIndex, pageWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } = props;
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const isUserScrollingRef = useRef(false);
   const dragStartIndexRef = useRef(currentEntryIndex);
@@ -33,8 +33,8 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   }, []);
 
   useEffect(() => {
-    scrollerRef.current?.scrollTo({ left: currentEntryIndex * windowWidth, behavior: "instant" as ScrollBehavior });
-  }, [forceUpdateEntryIndex, windowWidth]);
+    scrollerRef.current?.scrollTo({ left: currentEntryIndex * pageWidth, behavior: "instant" as ScrollBehavior });
+  }, [forceUpdateEntryIndex, pageWidth]);
 
   // An input only opens a window; the flag is set in onScroll, once the pager actually moved.
   // Arming on the input alone would count every bubbled tap inside the card as pager intent.
@@ -65,14 +65,14 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
     isUserScrollingRef.current = false;
     const index = WorkoutPagerSettle_index({
       offsetX: scrollerRef.current?.scrollLeft ?? 0,
-      windowWidth,
+      pageWidth,
       isUserDriven,
       dragStartIndex: dragStartIndexRef.current,
     });
     if (index != null) {
       onSettledIndex?.(index);
     }
-  }, [windowWidth, onSettledIndex]);
+  }, [pageWidth, onSettledIndex]);
 
   return (
     <div
@@ -87,7 +87,7 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
       onWheel={onWheel}
       onScroll={() => {
         const scrollLeft = scrollerRef.current?.scrollLeft ?? 0;
-        if (windowWidth <= 0) {
+        if (pageWidth <= 0) {
           return;
         }
         if (pointerActiveRef.current || Date.now() - lastWheelAtRef.current < WHEEL_GESTURE_MS) {
@@ -96,7 +96,7 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
         // Safari has no scrollend, so settle on the scroll going quiet instead.
         clearTimeout(idleTimerRef.current);
         idleTimerRef.current = setTimeout(settle, 150);
-        const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
+        const selectedIndex = Math.floor((scrollLeft + pageWidth / 2) / pageWidth);
         if (selectedIndex !== currentEntryIndex) {
           onIndexChange(selectedIndex);
         }

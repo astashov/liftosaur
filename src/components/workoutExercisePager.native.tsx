@@ -15,7 +15,7 @@ interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
   currentEntryId: string;
   entryCount: number;
-  windowWidth: number;
+  pageWidth: number;
   forceUpdateEntryIndex: boolean;
   onIndexChange: (next: number, isUserDriven: boolean) => void;
   // User-driven scrolls only, and only where they came to rest.
@@ -25,8 +25,7 @@ interface IWorkoutExercisePagerProps {
 
 export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
-  const { currentEntryIndex, currentEntryId, windowWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } =
-    props;
+  const { currentEntryIndex, currentEntryId, pageWidth, forceUpdateEntryIndex, onIndexChange, onSettledIndex } = props;
   const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
   const onPageLayout = useCallback((entryIndex: number, height: number) => {
     if (height <= 0) {
@@ -50,13 +49,13 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   const positionedWidthRef = useRef<number | undefined>(undefined);
   const previousEntryIdRef = useRef(currentEntryId);
   useEffect(() => {
-    const isNavigation = positionedWidthRef.current === windowWidth && previousEntryIdRef.current !== currentEntryId;
-    positionedWidthRef.current = windowWidth;
-    const shownIndex = WorkoutPagerScroll_shownIndex(offsetXRef.current, windowWidth);
+    const isNavigation = positionedWidthRef.current === pageWidth && previousEntryIdRef.current !== currentEntryId;
+    positionedWidthRef.current = pageWidth;
+    const shownIndex = WorkoutPagerScroll_shownIndex(offsetXRef.current, pageWidth);
     const plan = WorkoutPagerScroll_plan(shownIndex, currentEntryIndex, isNavigation);
     ownSlideTargetRef.current = plan.ownSlideTarget;
-    scrollRef.current?.scrollTo({ x: currentEntryIndex * windowWidth, animated: plan.animated });
-  }, [forceUpdateEntryIndex, windowWidth]);
+    scrollRef.current?.scrollTo({ x: currentEntryIndex * pageWidth, animated: plan.animated });
+  }, [forceUpdateEntryIndex, pageWidth]);
   useEffect(() => {
     previousEntryIdRef.current = currentEntryId;
   }, [currentEntryId]);
@@ -81,12 +80,12 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
 
   const snapToPage = useCallback(
     (offsetX: number): void => {
-      const snapOffset = WorkoutPagerScroll_snapOffset(offsetX, windowWidth);
+      const snapOffset = WorkoutPagerScroll_snapOffset(offsetX, pageWidth);
       if (snapOffset != null) {
         scrollRef.current?.scrollTo({ x: snapOffset, animated: true });
       }
     },
-    [windowWidth]
+    [pageWidth]
   );
 
   const settle = useCallback(
@@ -96,7 +95,7 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
       isUserDraggingRef.current = false;
       const index = WorkoutPagerSettle_index({
         offsetX,
-        windowWidth,
+        pageWidth,
         isUserDriven,
         dragStartIndex: dragStartIndexRef.current,
       });
@@ -104,7 +103,7 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
         onSettledIndex?.(index);
       }
     },
-    [windowWidth, onSettledIndex]
+    [pageWidth, onSettledIndex]
   );
 
   // A flick keeps gliding after the finger lifts, so the destination arrives with
@@ -145,19 +144,19 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
-      if (windowWidth <= 0) {
+      if (pageWidth <= 0) {
         return;
       }
       const scrollLeft = e.nativeEvent.contentOffset.x;
       offsetXRef.current = scrollLeft;
-      const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
+      const selectedIndex = Math.floor((scrollLeft + pageWidth / 2) / pageWidth);
       const read = WorkoutPagerScroll_read(ownSlideTargetRef.current, selectedIndex, currentEntryIndex);
       ownSlideTargetRef.current = read.ownSlideTarget;
       if (read.reportIndex != null) {
         onIndexChange(read.reportIndex, isUserDraggingRef.current);
       }
     },
-    [currentEntryIndex, windowWidth, onIndexChange]
+    [currentEntryIndex, pageWidth, onIndexChange]
   );
 
   return (

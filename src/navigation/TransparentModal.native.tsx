@@ -208,6 +208,8 @@ export function TransparentModal(props: IProps): JSX.Element {
                 ? { maxHeight: props.maxHeight }
                 : { height: sheetHeight + insets.bottom + keyboardHeight }),
               paddingBottom: props.safeAreaContent != null ? 0 : insets.bottom + keyboardHeight,
+              paddingLeft: insets.left,
+              paddingRight: insets.right,
               borderTopLeftRadius: SHEET_CORNER_RADIUS,
               borderTopRightRadius: SHEET_CORNER_RADIUS,
               transform: [{ translateY }],

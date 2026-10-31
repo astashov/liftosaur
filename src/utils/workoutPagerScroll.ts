@@ -8,8 +8,8 @@ export interface IWorkoutPagerScrollRead {
   reportIndex: number | undefined;
 }
 
-export function WorkoutPagerScroll_shownIndex(offsetX: number, windowWidth: number): number {
-  return windowWidth > 0 ? Math.round(offsetX / windowWidth) : 0;
+export function WorkoutPagerScroll_shownIndex(offsetX: number, pageWidth: number): number {
+  return pageWidth > 0 ? Math.round(offsetX / pageWidth) : 0;
 }
 
 export function WorkoutPagerScroll_gestureHeight(
@@ -22,11 +22,11 @@ export function WorkoutPagerScroll_gestureHeight(
   return known.length > 0 ? Math.max(...known) : undefined;
 }
 
-export function WorkoutPagerScroll_snapOffset(offsetX: number, windowWidth: number): number | undefined {
-  if (windowWidth <= 0) {
+export function WorkoutPagerScroll_snapOffset(offsetX: number, pageWidth: number): number | undefined {
+  if (pageWidth <= 0) {
     return undefined;
   }
-  const pageOffset = WorkoutPagerScroll_shownIndex(offsetX, windowWidth) * windowWidth;
+  const pageOffset = WorkoutPagerScroll_shownIndex(offsetX, pageWidth) * pageWidth;
   return Math.abs(pageOffset - offsetX) >= 1 ? pageOffset : undefined;
 }
 

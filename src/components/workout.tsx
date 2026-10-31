@@ -19,6 +19,7 @@ import {
   Animated as RNAnimated,
 } from "react-native";
 import Animated, { SharedValue, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Pressable as StickyPressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -107,6 +108,8 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const description = props.programDay?.description;
   const forceUpdateEntryIndex = props.progress.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const pageWidth = windowWidth - insets.left - insets.right;
   const currentEntryIndex = props.progress.currentEntryIndex ?? 0;
   const trackClick = useTrackClick();
 
@@ -295,7 +298,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                     currentEntryIndex={currentEntryIndex}
                     currentEntryId={selectedEntry.id}
                     entryCount={progressEntries.length}
-                    windowWidth={windowWidth}
+                    pageWidth={pageWidth}
                     forceUpdateEntryIndex={forceUpdateEntryIndex}
                     onIndexChange={onPagerIndexChange}
                     onSettledIndex={onPagerSettled}
@@ -309,7 +312,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                         tabStopIndex={entryIndex < currentEntryIndex ? -1 : 0}
                         impressionsSeenRef={impressionsSeenRef}
                         shouldRender={renderedIndices.has(entryIndex)}
-                        windowWidth={windowWidth}
+                        pageWidth={pageWidth}
                         day={progressDay}
                         stats={props.stats}
                         history={props.history}
@@ -349,7 +352,7 @@ interface IWorkoutExercisePageProps {
   tabStopIndex: 0 | -1;
   impressionsSeenRef: MutableRefObject<Set<string>>;
   shouldRender: boolean;
-  windowWidth: number;
+  pageWidth: number;
   day: number;
   stats: IStats;
   history: IHistoryRecord[];
@@ -379,8 +382,8 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
   );
   const pageStyle =
     Platform.OS === "web"
-      ? ({ width: props.windowWidth, transform: "translateZ(0)" } as object)
-      : { width: props.windowWidth };
+      ? ({ width: props.pageWidth, transform: "translateZ(0)" } as object)
+      : { width: props.pageWidth };
   return (
     <View style={pageStyle}>
       <View onLayout={reportPageHeight ? onLayout : undefined}>

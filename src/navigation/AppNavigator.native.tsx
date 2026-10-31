@@ -1,5 +1,6 @@
 import { createContext, JSX, useContext } from "react";
 import { Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { SheetBackdropLift, SheetBackdropPresence } from "./SheetBackdropContext";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -151,7 +152,7 @@ function renderFormSheetScreen(args: {
 }): JSX.Element {
   return (
     <>
-      {renderScreenWithErrorBoundary(args)}
+      <SafeAreaView edges={["left", "right"]}>{renderScreenWithErrorBoundary(args)}</SafeAreaView>
       <SheetBackdropPresence />
     </>
   );
@@ -167,7 +168,12 @@ function renderPresentingScreen(args: {
 }): JSX.Element {
   return (
     <>
-      {renderScreenWithErrorBoundary(args)}
+      <SafeAreaView
+        edges={["left", "right"]}
+        style={{ flex: 1, backgroundColor: Tailwind_semantic().background.default }}
+      >
+        {renderScreenWithErrorBoundary(args)}
+      </SafeAreaView>
       <SheetBackdropLift />
     </>
   );
