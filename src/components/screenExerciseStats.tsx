@@ -10,6 +10,7 @@ import {
   History_collectAllHistoryRecordsOfExerciseType,
   History_collectWeightPersonalRecord,
   History_collect1RMPersonalRecord,
+  History_collectRepPersonalRecords,
 } from "../models/history";
 import { useNavOptions } from "../navigation/useNavOptions";
 import {
@@ -81,7 +82,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       .addFn(History_collectAllUsedExerciseTypes())
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectWeightPersonalRecord(exerciseType, units))
-      .addFn(History_collect1RMPersonalRecord(exerciseType, units));
+      .addFn(History_collect1RMPersonalRecord(exerciseType, units))
+      .addFn(History_collectRepPersonalRecords(exerciseType, units));
     return historyCollector.run();
   }, [rawHistory, exerciseType, units]);
 
@@ -91,6 +93,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     unsortedHistory,
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
+    { repPersonalRecords },
   ] = collectorResult;
 
   const ascendingSort = settings.exerciseStatsSettings.ascendingSort;
@@ -232,7 +235,13 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       )}
       {showPrs && (
         <View className="mt-8">
-          <ExerciseAllTimePRs maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
+          <ExerciseAllTimePRs
+            maxWeight={maxWeightProp}
+            max1RM={max1RMProp}
+            repPersonalRecords={repPersonalRecords}
+            settings={settings}
+            dispatch={dispatch}
+          />
         </View>
       )}
       <ExerciseHistory
