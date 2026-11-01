@@ -121,7 +121,22 @@ import {
   WatchStorageFilter_versionsWithoutDashboards,
   WatchStorageFilter_withoutDashboards,
 } from "../src/utils/watchStorageFilter";
-import { FieldRevision_isStale, FieldRevision_programPlanner } from "../src/utils/fieldRevision";
+import {
+  FieldRevision_dashboardText,
+  FieldRevision_isStale,
+  FieldRevision_programPlanner,
+} from "../src/utils/fieldRevision";
+import {
+  DashboardWebSave_create,
+  DashboardWebSave_delete,
+  DashboardWebSave_rowWrites,
+  DashboardWebSave_select,
+  DashboardWebSave_update,
+  IDashboardWebSaveResult,
+} from "../src/models/dashboardWebSave";
+import { Dashboard_current } from "../src/models/dashboard";
+import { renderDashboardsListHtml } from "./dashboardsList";
+import { renderDashboardEditorHtml } from "./dashboardEditor";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings_applyExportedProgram, Settings_applyWebEditorSettings } from "../src/models/settings";
 import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
@@ -1913,6 +1928,108 @@ const postSaveSettingsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   return ResponseUtils_json(200, event, { data: {} });
 };
 
+async function applyDashboardWebSave(
+  payload: IPayload,
+  dashboardId: string,
+  decide: (storage: IStorage) => IDashboardWebSaveResult
+): Promise<APIGatewayProxyResult> {
+  const { event, di } = payload;
+  const currentUser = await getCurrentLimitedUser(event, di);
+  if (currentUser == null) {
+    return ResponseUtils_json(401, event, { error: "Not Authorized" });
+  }
+  const bodyJson = event.body ? getBodyJson(event) : {};
+  const deviceId = typeof bodyJson.deviceId === "string" ? bodyJson.deviceId : VersionTrackerUtils_SERVER_DEVICE_ID;
+  const userDao = new UserDao(di);
+  const migration = await userDao.migrateStoredStorage(currentUser, deviceId);
+  if (!migration.success) {
+    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+  }
+  const user = migration.data.user;
+  const dashboards = await userDao.getDashboardsByUserId(user.id);
+  const oldStorageResult = Storage_get({ ...user.storage, dashboards });
+  if (!oldStorageResult.success) {
+    di.log.log("Dashboard Save: Error loading old storage", oldStorageResult.error);
+    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+  }
+  const oldStorage = oldStorageResult.data;
+  const decision = decide(oldStorage);
+  if (decision.kind === "error") {
+    return ResponseUtils_json(decision.status, event, { error: decision.message });
+  }
+  const originalId = Date.now();
+  const newStorage: IPartialStorage = {
+    ...oldStorage,
+    dashboards: decision.dashboards,
+    currentDashboardId: decision.currentDashboardId,
+    originalId,
+  };
+  const newVersions = Storage_updateVersions(oldStorage, newStorage, deviceId);
+  const writes = DashboardWebSave_rowWrites(oldStorage.dashboards ?? [], decision.dashboards);
+  await Promise.all([
+    ...writes.toPut.map((dashboard) => userDao.saveDashboard(user.id, dashboard)),
+    ...writes.idsToDelete.map((id) => userDao.deleteDashboard(user.id, id)),
+  ]);
+  const { dashboards: _dashboards, programs: _programs, history: _history, stats: _stats, ...userStorage } = newStorage;
+  user.storage = { ...user.storage, ...userStorage, _versions: newVersions };
+  await userDao.store(user);
+  await PushSync_notify(di, user.id, deviceId, originalId);
+  return ResponseUtils_json(200, event, {
+    data: { id: dashboardId, base: FieldRevision_dashboardText(newVersions, dashboardId) },
+  });
+}
+
+const postCreateDashboardEndpoint = Endpoint.build("/api/dashboards");
+const postCreateDashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postCreateDashboardEndpoint
+> = async ({ payload }) => {
+  const body = getBodyJson(payload.event);
+  const id = typeof body.dashboard?.id === "string" ? body.dashboard.id : "";
+  return applyDashboardWebSave(payload, id, (storage) => DashboardWebSave_create(storage, body));
+};
+
+const postUpdateDashboardEndpoint = Endpoint.build("/api/dashboard/:id");
+const postUpdateDashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postUpdateDashboardEndpoint
+> = async ({ payload, match: { params } }) => {
+  const body = getBodyJson(payload.event);
+  return applyDashboardWebSave(payload, params.id, (storage) => DashboardWebSave_update(storage, params.id, body));
+};
+
+const postSelectDashboardEndpoint = Endpoint.build("/api/dashboard/:id/current");
+const postSelectDashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postSelectDashboardEndpoint
+> = async ({ payload, match: { params } }) => {
+  return applyDashboardWebSave(payload, params.id, (storage) => DashboardWebSave_select(storage, params.id));
+};
+
+const deleteDashboardEndpoint = Endpoint.build("/api/dashboard/:id");
+const deleteDashboardHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteDashboardEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  return applyDashboardWebSave(payload, params.id, (storage) => DashboardWebSave_delete(storage, params.id));
+};
+
+const getStatsEndpoint = Endpoint.build("/api/stats");
+const getStatsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStatsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (userId == null) {
+    return ResponseUtils_json(401, event, { error: "Not Authorized" });
+  }
+  const stats = await new UserDao(di).getStatsByUserId(userId);
+  return ResponseUtils_json(200, event, { stats });
+};
+
 const deleteProgramEndpoint = Endpoint.build("/api/program/:id");
 const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteProgramEndpoint> = async ({
   payload,
@@ -3436,6 +3553,70 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   };
 };
 
+async function getUserDashboardsStorage(
+  payload: IPayload
+): Promise<IEither<{ account: IAccount; storage: IStorage }, APIGatewayProxyResult>> {
+  const userResult = await getUserAccount(payload);
+  if (!userResult.success) {
+    return userResult;
+  }
+  const { account, user } = userResult.data;
+  const dashboards = await new UserDao(payload.di).getDashboardsByUserId(user.id);
+  return { success: true, data: { account, storage: runMigrations({ ...user.storage, dashboards }) } };
+}
+
+const getUserDashboardsEndpoint = Endpoint.build("/user/dashboards");
+const getUserDashboardsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUserDashboardsEndpoint
+> = async ({ payload }) => {
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const result = await getUserDashboardsStorage(payload);
+  if (!result.success) {
+    return result.error;
+  }
+  const { account, storage } = result.data;
+  return {
+    statusCode: 200,
+    body: renderDashboardsListHtml(payload.di.fetch, {
+      isMobile,
+      account,
+      dashboards: storage.dashboards ?? [],
+      currentDashboardId: Dashboard_current(storage)?.id,
+    }),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+const getUserDashboardEndpoint = Endpoint.build("/user/d/:dashboardid");
+const getUserDashboardHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserDashboardEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const result = await getUserDashboardsStorage(payload);
+  if (!result.success) {
+    return result.error;
+  }
+  const { account, storage } = result.data;
+  const dashboard = (storage.dashboards ?? []).find((d) => d.id === params.dashboardid);
+  if (dashboard == null) {
+    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html" } };
+  }
+  return {
+    statusCode: 200,
+    body: renderDashboardEditorHtml(payload.di.fetch, {
+      isMobile,
+      account,
+      dashboard,
+      settings: storage.settings,
+      base: FieldRevision_dashboardText(storage._versions, dashboard.id),
+    }),
+    headers: { "content-type": "text/html" },
+  };
+};
+
 const getAffiliatesEndpoint = Endpoint.build("/affiliates");
 const getAffiliatesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAffiliatesEndpoint> = async ({
   payload,
@@ -4144,6 +4325,10 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getDashboardsAffiliatesEndpoint, getDashboardsAffiliatesHandler)
       .get(getLoginEndpoint, getLoginHandler)
       .post(postSaveProgramEndpoint, postSaveProgramHandler)
+      .post(postCreateDashboardEndpoint, postCreateDashboardHandler)
+      .post(postSelectDashboardEndpoint, postSelectDashboardHandler)
+      .post(postUpdateDashboardEndpoint, postUpdateDashboardHandler)
+      .get(getStatsEndpoint, getStatsHandler)
       .post(postSaveSettingsEndpoint, postSaveSettingsHandler)
       .get(getDashboardsUsersEndpoint, getDashboardsUsersHandler)
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
@@ -4162,6 +4347,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
       .get(getUserProgramEndpoint, getUserProgramHandler)
+      .get(getUserDashboardsEndpoint, getUserDashboardsHandler)
+      .get(getUserDashboardEndpoint, getUserDashboardHandler)
       .get(getUserAffiliatesEndpoint, getUserAffiliatesHandler)
       .get(getProgramRevisionsEndpoint, getProgramRevisionsHandler)
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
@@ -4210,6 +4397,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postBackupAccountEndpoint, postBackupAccountHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
+      .delete(deleteDashboardEndpoint, deleteDashboardHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
       .get(getAllExercisesEndpoint, getAllExercisesHandler)
       .get(getRepMaxEndpoint, getRepMaxHandler)

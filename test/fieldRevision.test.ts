@@ -1,6 +1,10 @@
 import "mocha";
 import { expect } from "chai";
-import { FieldRevision_isStale, FieldRevision_programPlanner } from "../src/utils/fieldRevision";
+import {
+  FieldRevision_dashboardText,
+  FieldRevision_isStale,
+  FieldRevision_programPlanner,
+} from "../src/utils/fieldRevision";
 
 describe("FieldRevision_isStale", () => {
   it("is stale only when the stored clock is newer than or concurrent with the base", () => {
@@ -25,5 +29,15 @@ describe("FieldRevision_programPlanner", () => {
     expect(FieldRevision_programPlanner(versions, 9999)).to.equal(undefined);
     expect(FieldRevision_programPlanner(versions, undefined)).to.equal(undefined);
     expect(FieldRevision_programPlanner(undefined, 1234)).to.equal(undefined);
+  });
+});
+
+describe("FieldRevision_dashboardText", () => {
+  it("reads the text clock of the dashboard keyed by id", () => {
+    const text = { vc: { phone: 2 }, t: 200 };
+    const versions = { dashboards: { items: { abc: { name: 100, text } }, deleted: {} } };
+    expect(FieldRevision_dashboardText(versions, "abc")).to.deep.equal(text);
+    expect(FieldRevision_dashboardText(versions, "zzz")).to.equal(undefined);
+    expect(FieldRevision_dashboardText(undefined, "abc")).to.equal(undefined);
   });
 });

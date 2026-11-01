@@ -5,6 +5,7 @@ import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { DateUtils_format } from "../utils/date";
 import { MathUtils_formatCompact } from "../utils/math";
 import { useLineChartGestures } from "./lineChartGestures";
+import { LineChartBars_width, LineChartBars_withZero } from "./lineChartBars";
 
 const IS_WEB = Platform.OS === "web";
 
@@ -13,7 +14,7 @@ export interface ILineChartSeries {
   color: string;
   show: boolean;
   width?: number;
-  mark?: "line" | "dots";
+  mark?: "line" | "dots" | "bars";
   axis?: "left" | "right";
 }
 
@@ -317,26 +318,37 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
         return [] as [number, number][];
       }
       const values = props.data[i + 1] || [];
-      return s.mark === "dots"
+      return s.mark === "dots" || s.mark === "bars"
         ? visiblePoints(timestamps, values, xMin, xMax)
         : clipSeriesToViewport(timestamps, values, xMin, xMax);
     });
   }, [props.series, props.data, xMin, xMax, timestamps]);
 
-  const leftDomain = useMemo(
-    () => yDomain(clippedSeries.filter((_, i) => props.series[i]?.axis !== "right")),
-    [clippedSeries, props.series]
-  );
-  const rightDomain = useMemo(
-    () => yDomain(clippedSeries.filter((_, i) => props.series[i]?.axis === "right")),
-    [clippedSeries, props.series]
-  );
+  const leftDomain = useMemo(() => {
+    const isOnAxis = (i: number): boolean => props.series[i]?.axis !== "right";
+    const domain = yDomain(clippedSeries.filter((_, i) => isOnAxis(i)));
+    const hasBars = props.series.some((s, i) => s.show && s.mark === "bars" && isOnAxis(i));
+    return hasBars ? LineChartBars_withZero(domain) : domain;
+  }, [clippedSeries, props.series]);
+  const rightDomain = useMemo(() => {
+    const isOnAxis = (i: number): boolean => props.series[i]?.axis === "right";
+    const domain = yDomain(clippedSeries.filter((_, i) => isOnAxis(i)));
+    const hasBars = props.series.some((s, i) => s.show && s.mark === "bars" && isOnAxis(i));
+    return hasBars ? LineChartBars_withZero(domain) : domain;
+  }, [clippedSeries, props.series]);
   const { yMin, yMax } = leftDomain;
   const yRange = Math.max(1e-9, yMax - yMin);
 
   const xToPx = useCallback(
     (x: number): number => padLeft + ((x - xMin) / xRange) * plotWidth,
     [padLeft, xMin, xRange, plotWidth]
+  );
+  const barWidth = useMemo(
+    () =>
+      LineChartBars_width(
+        clippedSeries.flatMap((points, i) => (props.series[i]?.mark === "bars" ? points.map(([t]) => xToPx(t)) : []))
+      ),
+    [clippedSeries, props.series, xToPx]
   );
   const yToPx = useCallback(
     (y: number): number => padTop + plotHeight - ((y - yMin) / yRange) * plotHeight,
@@ -612,6 +624,28 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                   return null;
                 }
                 const toPx = seriesYToPx(s);
+                if (s.mark === "bars") {
+                  const zeroPx = toPx(0);
+                  return (
+                    <G key={`series-${i}`}>
+                      {clippedSeries[i].map(([t, v], j) => {
+                        const valuePx = toPx(v);
+                        return (
+                          <Rect
+                            key={j}
+                            x={xToPx(t) - barWidth / 2}
+                            y={Math.min(valuePx, zeroPx)}
+                            width={barWidth}
+                            height={Math.max(1, Math.abs(zeroPx - valuePx))}
+                            rx={Math.min(3, barWidth / 4)}
+                            fill={s.color}
+                            fillOpacity={0.85}
+                          />
+                        );
+                      })}
+                    </G>
+                  );
+                }
                 if (s.mark === "dots" || clippedSeries[i].length === 1) {
                   return (
                     <G key={`series-${i}`}>

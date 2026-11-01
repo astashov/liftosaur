@@ -1,4 +1,5 @@
-import { ISettings } from "../types";
+import { IHistoryRecord, ISettings } from "../types";
+import { ILiftographSeriesEval, LiftographSeriesEval_rows } from "./liftographSeriesEval";
 import { DateUtils_format } from "../utils/date";
 import { MathUtils_formatCompact } from "../utils/math";
 import { ILiftographDuration, ILiftographSeriesSpec } from "./liftographCompile";
@@ -10,7 +11,7 @@ export interface ILiftographChartSeries {
   label: string;
   color: string;
   textColor: string;
-  mark: "line" | "dots";
+  mark: "line" | "dots" | "bars";
   axis: "left" | "right";
   unit?: string;
 }
@@ -18,6 +19,7 @@ export interface ILiftographChartSeries {
 export interface ILiftographChartData {
   xMode: "time" | "linear";
   data: (number | null)[][];
+  sources: (number | undefined)[][];
   series: ILiftographChartSeries[];
   errors: { name?: string; message: string }[];
 }
@@ -40,36 +42,52 @@ export function LiftographChartData_build(
   _settings: ISettings
 ): ILiftographChartData {
   const errors: ILiftographChartData["errors"] = [];
-  const ready: { id: number; spec: ILiftographSeriesSpec; points: { x: number; y: number }[]; unit?: string }[] = [];
+  const ready: {
+    id: number;
+    spec: ILiftographSeriesSpec;
+    points: { x: number; y: number }[];
+    sources: (number | undefined)[];
+    unit?: string;
+  }[] = [];
   for (const [id, series] of result.series.entries()) {
     if (series.status === "ready") {
-      ready.push({ id, spec: series.spec, points: series.points.points, unit: series.points.y.unit });
+      ready.push({
+        id,
+        spec: series.spec,
+        points: series.points.points,
+        sources: series.points.sources,
+        unit: series.points.y.unit,
+      });
     } else {
       errors.push({ name: series.name, message: series.message });
     }
   }
   const xMode = ready[0]?.spec.xMode === "number" ? "linear" : "time";
-  const byX = new Map<number, number[][]>();
+  const byX = new Map<number, { y: number; source?: number }[][]>();
   ready.forEach((series, index) => {
     const counts = new Map<number, number>();
-    for (const point of series.points) {
+    series.points.forEach((point, pointIndex) => {
       const x = xMode === "time" ? point.x / 1000 : point.x;
       const occurrence = counts.get(x) ?? 0;
       counts.set(x, occurrence + 1);
       const rows = byX.get(x) ?? [];
       if (rows.length <= occurrence) {
-        rows.push(ready.map(() => NaN));
+        rows.push(ready.map(() => ({ y: NaN })));
       }
-      rows[occurrence][index] = point.y;
+      rows[occurrence][index] = { y: point.y, source: series.sources[pointIndex] };
       byX.set(x, rows);
-    }
+    });
   });
   const xs = Array.from(byX.keys()).sort((a, b) => a - b);
   const data: (number | null)[][] = [[], ...ready.map(() => [])];
+  const sources: (number | undefined)[][] = ready.map(() => []);
   for (const x of xs) {
     for (const row of byX.get(x) ?? []) {
       data[0].push(x);
-      row.forEach((y, index) => data[index + 1].push(isNaN(y) ? null : y));
+      row.forEach((cell, index) => {
+        data[index + 1].push(isNaN(cell.y) ? null : cell.y);
+        sources[index].push(cell.source);
+      });
     }
   }
   const series = ready.map((s): ILiftographChartSeries => {
@@ -79,12 +97,60 @@ export function LiftographChartData_build(
       label: s.spec.name ?? `Series ${s.id + 1}`,
       color: palette.stroke,
       textColor: palette.text,
-      mark: s.spec.mark === "dots" || s.spec.mark === "bars" ? "dots" : "line",
+      mark: s.spec.mark ?? (s.spec.xMode === "number" && s.spec.group == null ? "dots" : "line"),
       axis: s.spec.axis ?? "left",
       unit: s.unit,
     };
   });
-  return { xMode, data, series, errors };
+  return { xMode, data, sources, series, errors };
+}
+
+export function LiftographChartData_records(
+  result: Extract<ILiftographWidgetResult, { type: "graph" }>,
+  evaluation: ILiftographSeriesEval
+): Map<number, IHistoryRecord> {
+  const records = new Map<number, IHistoryRecord>();
+  for (const series of result.series) {
+    if (series.status !== "ready") {
+      continue;
+    }
+    for (const row of LiftographSeriesEval_rows(evaluation, series.spec.source)) {
+      if (row.type === "exercise" || row.type === "workout") {
+        records.set(row.ts, row.record);
+      }
+    }
+  }
+  return records;
+}
+
+export function LiftographChartData_recordAt(
+  chart: ILiftographChartData,
+  records: Map<number, IHistoryRecord>,
+  cursorIdx: number | null,
+  hiddenIds: number[] = []
+): IHistoryRecord | undefined {
+  if (cursorIdx == null) {
+    return undefined;
+  }
+  for (const [index, series] of chart.series.entries()) {
+    const source = chart.sources[index]?.[cursorIdx];
+    const record = source != null && hiddenIds.indexOf(series.id) === -1 ? records.get(source) : undefined;
+    if (record != null) {
+      return record;
+    }
+  }
+  return undefined;
+}
+
+export function LiftographChartData_hasRecordLinks(
+  chart: ILiftographChartData,
+  records: Map<number, IHistoryRecord>
+): boolean {
+  return chart.sources.some((column) => column.some((source) => source != null && records.has(source)));
+}
+
+export function LiftographChartData_recordLabel(chart: ILiftographChartData, record: IHistoryRecord): string {
+  return chart.xMode === "linear" ? `Workout, ${DateUtils_format(record.startTime, true)}` : "Workout";
 }
 
 function shiftDate(today: number, duration: Exclude<ILiftographDuration, "all">): number {

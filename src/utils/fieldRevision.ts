@@ -10,6 +10,16 @@ export function FieldRevision_isStale(stored: IFieldVersion | undefined, base: I
   return comparison === "a_newer" || comparison === "concurrent";
 }
 
+export function FieldRevision_dashboardText(versions: IStorage["_versions"], id: string): IFieldVersion | undefined {
+  const dashboards = versions?.dashboards;
+  if (!isCollectionVersions(dashboards)) {
+    return undefined;
+  }
+  const item = dashboards.items?.[id];
+  const text = isVersionsObject(item) ? item.text : undefined;
+  return isFieldVersion(text) ? text : undefined;
+}
+
 export function FieldRevision_programPlanner(
   versions: IStorage["_versions"],
   clonedAt: number | undefined

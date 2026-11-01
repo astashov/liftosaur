@@ -12,9 +12,14 @@ import {
   LiftographChartData_rangeLabel,
   LiftographChartData_ranges,
   LiftographChartData_readout,
+  LiftographChartData_hasRecordLinks,
+  LiftographChartData_recordAt,
+  LiftographChartData_recordLabel,
+  LiftographChartData_records,
   LiftographChartData_toggleHidden,
   LiftographChartData_window,
 } from "../../liftograph/liftographChartData";
+import { IHistoryRecord } from "../../types";
 import { MathUtils_formatCompact } from "../../utils/math";
 import { DashboardCard } from "./dashboardCard";
 import { DashboardNotice } from "./dashboardNotice";
@@ -25,20 +30,28 @@ export function DashboardGraph(props: {
   id: string;
   widget: Extract<ILiftographWidget, { kind: "graph" }>;
   evaluation: ILiftographSeriesEval;
+  onOpenRecord?: (record: IHistoryRecord) => void;
 }): JSX.Element {
   const { widget, evaluation } = props;
   const [rangeOverride, setRangeOverride] = useState<ILiftographDuration | undefined>(undefined);
   const [hidden, setHidden] = useState<number[]>([]);
   const range = rangeOverride ?? widget.range;
   const { cursorIdx, chartRef, handleCursorChange } = useGraphActiveCursor(props.id);
-  const chart = useMemo(() => {
+  const built = useMemo(() => {
     const result = LiftographEngine_evaluateWidget(widget, evaluation, rangeOverride);
-    return result.type === "graph" ? LiftographChartData_build(result, evaluation.input.settings) : undefined;
+    return result.type === "graph"
+      ? {
+          chart: LiftographChartData_build(result, evaluation.input.settings),
+          records: LiftographChartData_records(result, evaluation),
+        }
+      : undefined;
   }, [widget, evaluation, rangeOverride]);
-  if (chart == null) {
+  if (built == null) {
     return <DashboardNotice caption={widget.caption} message="This graph can't be shown" isError />;
   }
+  const { chart, records } = built;
   const readout = LiftographChartData_readout(chart, cursorIdx, hidden);
+  const record = LiftographChartData_recordAt(chart, records, cursorIdx, hidden);
   const window =
     chart.xMode === "time"
       ? LiftographChartData_window(range, evaluation.input.today)
@@ -99,6 +112,17 @@ export function DashboardGraph(props: {
           </Text>
         ))}
       </View>
+      {props.onOpenRecord != null && LiftographChartData_hasRecordLinks(chart, records) ? (
+        <View className="flex-row h-5">
+          {record != null ? (
+            <Pressable testID="dashboard-graph-workout" onPress={() => props.onOpenRecord?.(record)}>
+              <Text className="text-xs font-bold underline text-text-link">
+                {LiftographChartData_recordLabel(chart, record)}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <View className="flex-row p-0.5 mt-2 rounded-lg bg-background-neutral">
         {LiftographChartData_ranges.map((option) => {
           const label = LiftographChartData_rangeLabel(option);

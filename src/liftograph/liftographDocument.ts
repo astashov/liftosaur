@@ -90,6 +90,8 @@ function skipQuoted(text: string, from: number): number {
   return i;
 }
 
+const LINE_CONTINUATION = /\\[ \t]*\n/g;
+
 function readLogicalLines(text: string): ILogicalLine[] {
   const lines: ILogicalLine[] = [];
   let lineStart = 0;
@@ -100,7 +102,14 @@ function readLogicalLines(text: string): ILogicalLine[] {
     let headEnd: number | undefined;
     const trimmedStart = text.slice(lineStart).match(/^[ \t]*/)?.[0].length ?? 0;
     const isComment = text.startsWith("//", lineStart + trimmedStart);
-    while (i < text.length && text[i] !== "\n") {
+    while (i < text.length) {
+      if (text[i] === "\n") {
+        if (!isComment && script == null && text.slice(lineStart, i).trimEnd().endsWith("\\")) {
+          i += 1;
+          continue;
+        }
+        break;
+      }
       if (!isComment && text[i] === '"') {
         i = skipQuoted(text, i);
       } else if (!isComment && text.startsWith("{~", i)) {
@@ -124,7 +133,9 @@ function readLogicalLines(text: string): ILogicalLine[] {
       }
     }
     const lineEnd = i;
-    const head = text.slice(lineStart, headEnd ?? lineEnd);
+    const head = text
+      .slice(lineStart, headEnd ?? lineEnd)
+      .replace(LINE_CONTINUATION, (continuation) => " ".repeat(continuation.length));
     lines.push({ span: { from: lineStart, to: lineEnd }, head, headFrom: lineStart, script, isScriptClosed });
     lineStart = lineEnd + 1;
   }

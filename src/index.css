@@ -176,7 +176,9 @@ html.liftosaur-app #app {
 @layer base {
   .code.block,
   .planner-editor-view,
-  .planner-editor-view * {
+  .planner-editor-view *,
+  .liftograph-editor-view,
+  .liftograph-editor-view * {
     font-family: "Iosevka Web" !important;
   }
 }

@@ -69,6 +69,30 @@ describe("LiftographDocument_parse", () => {
     expect(series.script?.text.trim()).to.equal("point(volume / 2)");
   });
 
+  it("joins a line that ends with a backslash to the next one, keeping spans in the text", () => {
+    const text = [
+      "graph / range: 1y {",
+      "  name: Bench / source: exercise(Bench Press) / \\",
+      "    group: max(1w) / \\",
+      "    y: e1rm",
+      "}",
+      "// a comment \\",
+      "value / source: workout",
+    ].join("\n");
+    const doc = LiftographDocument_parse(text);
+    expect(doc.diagnostics).to.deep.equal([]);
+    const series = widget(doc.items[0]).series[0];
+    expect(series.pairs.map((p) => [p.key, p.value])).to.deep.equal([
+      ["name", "Bench"],
+      ["source", "exercise(Bench Press)"],
+      ["group", "max(1w)"],
+      ["y", "e1rm"],
+    ]);
+    const y = series.pairs[3];
+    expect(text.slice(y.span.from, y.span.to)).to.equal("y: e1rm");
+    expect(widget(doc.items[1]).caption?.markdown).to.equal("a comment \\");
+  });
+
   it("makes a text block followed by a blank line its own item", () => {
     const doc = LiftographDocument_parse("row {\n  // **Goal:** 4 a week\n\n  value / source: workout\n}");
     const row = doc.items[0] as ILiftographRowItem;

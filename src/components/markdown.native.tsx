@@ -13,6 +13,7 @@ interface IProps {
   className?: string;
   truncate?: number;
   directivesData?: IMarkdownDirectivesData;
+  isHtmlDisabled?: boolean;
 }
 
 export function Markdown(props: IProps): JSX.Element {

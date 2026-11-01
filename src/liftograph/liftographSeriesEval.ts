@@ -1,3 +1,4 @@
+import memoize from "micro-memoize";
 import { IHistoryRecord, ISettings, IStats } from "../types";
 import { ILiftographCompiled, ILiftographSeriesSpec, LiftographCompile_document } from "./liftographCompile";
 import { LiftographDocument_parse } from "./liftographDocument";
@@ -26,27 +27,26 @@ export interface ILiftographSeriesEval {
   context: ILiftographFoldContext;
   finished?: IHistoryRecord[];
   rowsBySource: Map<string, ILiftographRow[]>;
-  compiledByText: Map<string, ILiftographCompiled>;
+  compile: (text: string) => ILiftographCompiled;
   foldBySeries: WeakMap<ILiftographSeriesSpec, ILiftographFoldResult>;
 }
+
+const COMPILED_TEXTS_KEPT = 4;
 
 export function LiftographSeriesEval_create(input: ILiftographSeriesEvalInput): ILiftographSeriesEval {
   return {
     input,
     context: LiftographFold_context(input.settings, input.stats),
     rowsBySource: new Map(),
-    compiledByText: new Map(),
+    compile: memoize((text: string) => LiftographCompile_document(LiftographDocument_parse(text), input.settings), {
+      maxSize: COMPILED_TEXTS_KEPT,
+    }),
     foldBySeries: new WeakMap(),
   };
 }
 
 export function LiftographSeriesEval_compile(evaluation: ILiftographSeriesEval, text: string): ILiftographCompiled {
-  let compiled = evaluation.compiledByText.get(text);
-  if (compiled == null) {
-    compiled = LiftographCompile_document(LiftographDocument_parse(text), evaluation.input.settings);
-    evaluation.compiledByText.set(text, compiled);
-  }
-  return compiled;
+  return evaluation.compile(text);
 }
 
 export function LiftographSeriesEval_emptyStats(): IStats {

@@ -6,6 +6,10 @@ import {
   LiftographChartData_build,
   LiftographChartData_numericWindow,
   LiftographChartData_readout,
+  LiftographChartData_hasRecordLinks,
+  LiftographChartData_recordAt,
+  LiftographChartData_recordLabel,
+  LiftographChartData_records,
   LiftographChartData_toggleHidden,
   LiftographChartData_window,
 } from "../src/liftograph/liftographChartData";
@@ -48,6 +52,53 @@ describe("LiftographChartData", () => {
       [0, "Squat", "left"],
       [1, "BW", "right"],
     ]);
+  });
+
+  it("links a workout point to its history record, and a stats point to nothing", () => {
+    const evaluation = LiftographSeriesEval_create({ history, stats, settings, today });
+    const text = "graph {\n  name: Squat / source: exercise(Squat)\n  name: BW / source: stats(weight)\n}";
+    const widget = LiftographSeriesEval_compile(evaluation, text).layout[0].items[0];
+    const result = LiftographEngine_evaluateWidget(widget, evaluation);
+    if (result.type !== "graph") {
+      throw new Error("expected a graph");
+    }
+    const chart = LiftographChartData_build(result, settings);
+    const records = LiftographChartData_records(result, evaluation);
+    expect(LiftographChartData_recordAt(chart, records, 2)).to.equal(history[1]);
+    expect(LiftographChartData_recordAt(chart, records, 1)).to.equal(undefined);
+    expect(LiftographChartData_recordAt(chart, records, null)).to.equal(undefined);
+  });
+
+  it("links a rep-max point to the workout of its best set, and a summed point to nothing", () => {
+    const evaluation = LiftographSeriesEval_create({ history, stats, settings, today });
+    const text = [
+      "graph {",
+      "  name: Max / source: exercise(Squat) / group: max {~",
+      "    for (var.i in completedReps) { point(completedReps[var.i], completedWeights[var.i]) }",
+      "  ~}",
+      "}",
+      "graph {",
+      "  name: Weekly / source: exercise(Squat) / group: sum(1w)",
+      "}",
+    ].join("\n");
+    const layout = LiftographSeriesEval_compile(evaluation, text).layout;
+    const resultOf = (row: number): Extract<ILiftographWidgetResult, { type: "graph" }> => {
+      const result = LiftographEngine_evaluateWidget(layout[row].items[0], evaluation);
+      if (result.type !== "graph") {
+        throw new Error("expected a graph");
+      }
+      return result;
+    };
+    const chartOf = (row: number): ReturnType<typeof LiftographChartData_build> =>
+      LiftographChartData_build(resultOf(row), settings);
+    const repMax = chartOf(0);
+    const records = LiftographChartData_records(resultOf(0), evaluation);
+    expect(repMax.data[0]).to.eql([5]);
+    expect(LiftographChartData_recordAt(repMax, records, 0)).to.equal(history[1]);
+    expect(LiftographChartData_hasRecordLinks(repMax, records)).to.equal(true);
+    expect(LiftographChartData_recordLabel(repMax, history[1])).to.match(/^Workout, /);
+    const weekly = chartOf(1);
+    expect(LiftographChartData_hasRecordLinks(weekly, records)).to.equal(false);
   });
 
   it("keeps every point at a repeated numeric x as its own row", () => {

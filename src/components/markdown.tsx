@@ -8,6 +8,11 @@ import { Exercise_findByNameAndEquipment } from "../models/exercise";
 import { ExerciseTooltip } from "./exerciseTooltip";
 
 const md = new MarkdownIt({ html: true, linkify: true });
+const mdWithoutHtml = new MarkdownIt({ html: false, linkify: true });
+
+export function Markdown_toHtml(value: string, isHtmlDisabled: boolean): string {
+  return (isHtmlDisabled ? mdWithoutHtml : md).render(value);
+}
 
 function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
   let result = text;
@@ -38,6 +43,7 @@ interface IProps {
   className?: string;
   truncate?: number;
   directivesData?: IMarkdownDirectivesData;
+  isHtmlDisabled?: boolean;
 }
 
 export function Markdown(props: IProps): JSX.Element {
@@ -46,7 +52,7 @@ export function Markdown(props: IProps): JSX.Element {
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
   const preprocessed = preprocessDirectives(stringValue, props.directivesData);
   const value = typeof preprocessed === "string" ? preprocessed : String(preprocessed ?? "");
-  const result = md.render(value);
+  const result = Markdown_toHtml(value, !!props.isHtmlDisabled);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
     className += ` line-clamp-${props.truncate}`;

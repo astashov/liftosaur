@@ -16,6 +16,7 @@ export interface ILiftographAxis {
 export interface ILiftographSeriesPoints {
   xMode: "time" | "number";
   points: { x: number; y: number }[];
+  sources: (number | undefined)[];
   x?: ILiftographAxis;
   y: ILiftographAxis;
 }
@@ -30,6 +31,28 @@ export interface ILiftographValueResult {
 interface IPoint {
   x: number;
   y: number;
+  source?: number;
+}
+
+function sourceOf(agg: ILiftographAgg, points: IPoint[], y: number): number | undefined {
+  if (agg === "max" || agg === "min") {
+    return points.find((p) => p.y === y)?.source;
+  } else if (agg === "last") {
+    return points[points.length - 1]?.source;
+  }
+  return undefined;
+}
+
+function aggregatePoints(agg: ILiftographAgg, x: number, points: IPoint[]): IPoint | undefined {
+  const y = aggregate(
+    agg,
+    points.map((p) => p.y)
+  );
+  return y != null ? { x, y, source: sourceOf(agg, points, y) } : undefined;
+}
+
+function withSources(points: IPoint[]): Pick<ILiftographSeriesPoints, "points" | "sources"> {
+  return { points: points.map((p) => ({ x: p.x, y: p.y })), sources: points.map((p) => p.source) };
 }
 
 const DAY_MS = 86400000;
@@ -134,18 +157,15 @@ function groupByTime(
   if (duration == null) {
     return points;
   } else if (duration === "all") {
-    const y = aggregate(
-      group.agg,
-      points.map((p) => p.y)
-    );
-    return points.length > 0 && y != null ? [{ x: points[0].x, y }] : [];
+    const point = points.length > 0 ? aggregatePoints(group.agg, points[0].x, points) : undefined;
+    return point != null ? [point] : [];
   }
-  const buckets = new Map<number, number[]>();
+  const buckets = new Map<number, IPoint[]>();
   for (const point of points) {
     const start = bucketStart(point.x, duration, settings);
-    const values = buckets.get(start) ?? [];
-    values.push(point.y);
-    buckets.set(start, values);
+    const bucket = buckets.get(start) ?? [];
+    bucket.push(point);
+    buckets.set(start, bucket);
   }
   const starts = Array.from(buckets.keys()).sort((a, b) => a - b);
   if (starts.length === 0) {
@@ -161,26 +181,26 @@ function groupByTime(
   }
   const result: IPoint[] = [];
   for (const start of Array.from(buckets.keys()).sort((a, b) => a - b)) {
-    const y = aggregate(group.agg, buckets.get(start) ?? []);
-    if (y != null) {
-      result.push({ x: start, y });
+    const point = aggregatePoints(group.agg, start, buckets.get(start) ?? []);
+    if (point != null) {
+      result.push(point);
     }
   }
   return result;
 }
 
 function groupByX(points: IPoint[], agg: ILiftographAgg): IPoint[] {
-  const groups = new Map<number, number[]>();
+  const groups = new Map<number, IPoint[]>();
   for (const point of points) {
-    const values = groups.get(point.x) ?? [];
-    values.push(point.y);
-    groups.set(point.x, values);
+    const group = groups.get(point.x) ?? [];
+    group.push(point);
+    groups.set(point.x, group);
   }
   const result: IPoint[] = [];
   for (const x of Array.from(groups.keys()).sort((a, b) => a - b)) {
-    const y = aggregate(agg, groups.get(x) ?? []);
-    if (y != null) {
-      result.push({ x, y });
+    const point = aggregatePoints(agg, x, groups.get(x) ?? []);
+    if (point != null) {
+      result.push(point);
     }
   }
   return result;
@@ -215,7 +235,7 @@ function grouped(fold: ILiftographFoldResult, series: ILiftographSeriesSpec, set
   const cut = dayEnd(t);
   const points = sortedEmissions(fold.emissions)
     .filter((e) => e.ts <= cut)
-    .map((e) => ({ x: e.ts, y: e.y }));
+    .map((e) => ({ x: e.ts, y: e.y, source: e.ts }));
   return series.group != null ? groupByTime(points, series.group, settings, t) : points;
 }
 
@@ -270,13 +290,13 @@ export function LiftographShape_series(
     const cut = dayEnd(t);
     let points = fold.emissions
       .filter((e) => e.ts <= cut && e.x != null && inRange(e.ts, t, range))
-      .map((e) => ({ x: e.x ?? 0, y: e.y }));
+      .map((e): IPoint => ({ x: e.x ?? 0, y: e.y, source: e.ts }));
     points = series.group != null ? groupByX(points, series.group.agg) : [...points].sort((a, b) => a.x - b.x);
     if (series.smooth != null) {
       points = smooth(points, series.smooth);
     }
     const x = axisOf(fold.checkpoint.xKind, series, settings, false);
-    return { xMode: "number", points, x, y: yAxis(fold, series, settings) };
+    return { xMode: "number", ...withSources(points), x, y: yAxis(fold, series, settings) };
   }
   let points = grouped(fold, series, settings, t);
   if (series.smooth != null) {
@@ -284,7 +304,7 @@ export function LiftographShape_series(
   }
   return {
     xMode: "time",
-    points: points.filter((p) => inRange(p.x, t, range)),
+    ...withSources(points.filter((p) => inRange(p.x, t, range))),
     y: yAxis(fold, series, settings),
   };
 }

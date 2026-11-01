@@ -8,7 +8,7 @@ export function DashboardCard(props: { caption?: string; children: ReactNode; te
       testID={props.testID}
       className="flex-1 p-3 border rounded-xl bg-background-subtlecardpurple border-border-cardpurple"
     >
-      {props.caption != null ? <Markdown value={props.caption} className="mb-1" /> : null}
+      {props.caption != null ? <Markdown value={props.caption} className="mb-1" isHtmlDisabled /> : null}
       {props.children}
     </View>
   );

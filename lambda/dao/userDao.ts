@@ -557,6 +557,22 @@ export class UserDao {
     });
   }
 
+  public async saveDashboard(userId: string, dashboard: IDashboard): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.put({
+      tableName: userTableNames[env].dashboards,
+      item: { ...dashboard, userId },
+    });
+  }
+
+  public async deleteDashboard(userId: string, id: string): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.remove({
+      tableName: userTableNames[env].dashboards,
+      key: { id, userId },
+    });
+  }
+
   public async saveHistoryRecord(userId: string, record: IHistoryRecord): Promise<void> {
     const env = Utils_getEnv();
     await this.di.dynamo.put({

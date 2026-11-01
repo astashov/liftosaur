@@ -85,6 +85,7 @@ describe("LiftographEngine_evaluate", () => {
         { x: 1, y: 230 },
         { x: 5, y: 215 },
       ],
+      sources: [fxDay(2026, 3, 4).getTime(), fxDay(2026, 3, 16).getTime()],
       x: { kind: "number" },
       y: { kind: "weight", unit: "lb" },
     });
@@ -136,5 +137,17 @@ describe("LiftographEngine_evaluate", () => {
     expect(text.slice(bad.span.from, bad.span.to)).to.equal('isSetExercise(99, "Squat")');
     expect(result.diagnostics.map((d) => d.span)).to.deep.equal([bad.span]);
     expect(pointsOf(good).points.length).to.equal(3);
+  });
+});
+
+describe("LiftographSeriesEval_compile", () => {
+  it("reuses a recent compile and drops the oldest after four other texts", () => {
+    const evaluation = LiftographSeriesEval_create(input);
+    const first = LiftographSeriesEval_compile(evaluation, "value / source: workout");
+    expect(LiftographSeriesEval_compile(evaluation, "value / source: workout")).to.equal(first);
+    for (const n of [1, 2, 3, 4]) {
+      LiftographSeriesEval_compile(evaluation, `value / source: workout / range: ${n}w`);
+    }
+    expect(LiftographSeriesEval_compile(evaluation, "value / source: workout")).to.not.equal(first);
   });
 });

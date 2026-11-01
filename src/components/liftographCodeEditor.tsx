@@ -22,6 +22,7 @@ interface IProps {
   analysis: LiftographEditorAnalysis;
   diagnostics: ILiftographDiagnostic[];
   onChange: (text: string) => void;
+  isFullHeight?: boolean;
 }
 
 function decorations(analysis: LiftographEditorAnalysis, text: string): DecorationSet {
@@ -69,7 +70,6 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
         doc: props.initialText,
         extensions: [
           lineNumbers(),
-          EditorView.lineWrapping,
           highlightSpecialChars(),
           history(),
           drawSelection(),
@@ -81,8 +81,7 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
             }
           }),
           EditorView.theme({
-            "&": { fontSize: "13px" },
-            ".cm-scroller": { fontFamily: "ui-monospace, Menlo, Consolas, monospace" },
+            "&": { fontSize: "1rem" },
           }),
         ],
       }),
@@ -103,8 +102,8 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
     <div
       ref={divRef}
       data-testid="dashboard-editor-code"
-      className="w-full overflow-auto border rounded-lg border-border-neutral"
-      style={{ maxHeight: "60vh" }}
+      className="w-full overflow-auto border rounded-lg liftograph-editor-view border-border-neutral"
+      style={props.isFullHeight ? undefined : { maxHeight: "60vh" }}
     />
   );
 }

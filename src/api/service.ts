@@ -8,6 +8,8 @@ import {
   IPlannerProgramWeek,
   IAffiliateData,
   IWebEditorSettings,
+  IDashboard,
+  IStats,
 } from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
@@ -778,6 +780,67 @@ export class Service {
       const e = error as Error;
       return { success: false, error: e.message };
     }
+  }
+
+  private async dashboardRequest(
+    path: string,
+    method: "POST" | "DELETE",
+    body?: Record<string, unknown>
+  ): Promise<IEither<{ base?: IFieldVersion }, string>> {
+    const url = UrlUtils_build(`${__API_HOST__}${path}`);
+    try {
+      const response = await this.client(url.toString(), {
+        method,
+        body: body != null ? JSON.stringify(body) : undefined,
+        credentials: "include",
+      });
+      const json = await response.json();
+      return response.status === 200
+        ? { success: true, data: { base: json.data?.base } }
+        : { success: false, error: json.error || "Something went wrong, try again" };
+    } catch (error) {
+      const e = error as Error;
+      return { success: false, error: e.message };
+    }
+  }
+
+  public postCreateDashboard(
+    dashboard: IDashboard,
+    deviceId: string
+  ): Promise<IEither<{ base?: IFieldVersion }, string>> {
+    return this.dashboardRequest("/api/dashboards", "POST", { dashboard, deviceId });
+  }
+
+  public postUpdateDashboard(
+    id: string,
+    dashboard: { name: string; text: string },
+    base: IFieldVersion | undefined,
+    deviceId: string
+  ): Promise<IEither<{ base?: IFieldVersion }, string>> {
+    return this.dashboardRequest(`/api/dashboard/${encodeURIComponent(id)}`, "POST", { dashboard, base, deviceId });
+  }
+
+  public postSelectDashboard(id: string, deviceId: string): Promise<IEither<{ base?: IFieldVersion }, string>> {
+    return this.dashboardRequest(`/api/dashboard/${encodeURIComponent(id)}/current`, "POST", { deviceId });
+  }
+
+  public deleteDashboard(id: string, deviceId: string): Promise<IEither<{ base?: IFieldVersion }, string>> {
+    return this.dashboardRequest(`/api/dashboard/${encodeURIComponent(id)}`, "DELETE", { deviceId });
+  }
+
+  public async getStats(): Promise<IStats> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/stats`);
+    const response = await this.client(url.toString(), { credentials: "include" });
+    if (response.status !== 200) {
+      throw new Error("Failed to load measurements");
+    }
+    const json: { stats: IStats } = await response.json();
+    return json.stats;
+  }
+
+  public async getFullHistory(): Promise<IHistoryRecord[]> {
+    const firstPage = await this.getHistory({ limit: 20 });
+    return this.getAllHistoryRecords({ alreadyFetchedHistory: firstPage, historyLimit: 20 });
   }
 
   public async postClaimCoupon(

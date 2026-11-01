@@ -168,6 +168,8 @@ const mainConfig = {
     planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
+    dashboardsList: ["./src/dashboardsList.tsx", "./src/program.css", "./src/index.css"],
+    dashboardEditor: ["./src/dashboardEditor.tsx", "./src/program.css", "./src/index.css"],
     editor: ["./src/editor.ts", "./src/editor.css"],
     affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
     affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],
