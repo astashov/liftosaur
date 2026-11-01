@@ -2,6 +2,7 @@ import {
   IStorage,
   IHistoryRecord,
   IProgram,
+  IDashboard,
   IWeight,
   ILength,
   IStats,
@@ -13,8 +14,12 @@ import {
   IStatsPercentageValue,
   IStatsHealthValue,
 } from "../../src/types";
-import { Settings_build } from "../../src/models/settings";
-import { Storage_get, Storage_fillVersions, Storage_updateVersions } from "../../src/models/storage";
+import {
+  Storage_get,
+  Storage_fillVersions,
+  Storage_getDefault,
+  Storage_updateVersions,
+} from "../../src/models/storage";
 import { Utils_getEnv } from "../utils";
 import {
   CollectionUtils_uniqBy,
@@ -48,6 +53,7 @@ import {
   SyncMergeNoop_row,
 } from "../utils/syncMergeNoop";
 import { ProgramRowWrites_plan } from "../utils/programRowWrites";
+import { DashboardRowWrites_plan } from "../utils/dashboardRowWrites";
 import { IUserRowItem, UserRow_pack, UserRow_unpack } from "../utils/userRow";
 import { IProgramRowItem, ProgramRow_pack, ProgramRow_unpack } from "../utils/programRow";
 import { StatRowWrites_plan } from "../utils/statRowWrites";
@@ -63,6 +69,7 @@ export const userTableNames = {
     stats: "lftStatsDev",
     statsTimestamp: "lftStatsTimestampDev",
     programs: "lftUserProgramsDev",
+    dashboards: "lftUserDashboardsDev",
     events: "lftEventsDev",
   },
   prod: {
@@ -75,6 +82,7 @@ export const userTableNames = {
     stats: "lftStats",
     statsTimestamp: "lftStatsTimestamp",
     programs: "lftUserPrograms",
+    dashboards: "lftUserDashboards",
     events: "lftEvents",
   },
 } as const;
@@ -116,6 +124,7 @@ export type IUserStatsFields = Pick<IUserDao, "id" | "email" | "createdAt"> & {
 
 export interface IUserReadArgs {
   skipPrograms?: boolean;
+  skipDashboards?: boolean;
   skipStats?: boolean;
   historyLimit?: number;
 }
@@ -145,13 +154,14 @@ export interface IStatDb {
 // installed the new native binary, and OTA can't reach them.
 // Re-point these when adding a data-only migration; leave them alone for a shape-changing one.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20261022120000",
-  "20260628120000": "20261022120000",
-  "20260702120000": "20261022120000",
-  "20260903120000": "20261022120000",
-  "20260906120000": "20261022120000",
-  "20260919120000": "20261022120000",
-  "20261018120000": "20261022120000",
+  "20260304084247": "20261101120000",
+  "20260628120000": "20261101120000",
+  "20260702120000": "20261101120000",
+  "20260903120000": "20261101120000",
+  "20260906120000": "20261101120000",
+  "20260919120000": "20261101120000",
+  "20261018120000": "20261101120000",
+  "20261022120000": "20261101120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {
@@ -254,12 +264,18 @@ export class UserDao {
         });
       }
     }
+    let dashboards = limitedUser.storage?.dashboards;
+    if (storageUpdate.storage?.dashboards != null) {
+      const dashboardIds = Array.from(new Set(storageUpdate.storage.dashboards.map((d) => d.id)));
+      dashboards = await this.getDashboardsByUserId(limitedUser.id, { ids: dashboardIds });
+    }
     return {
       ...limitedUser,
       storage: {
         ...limitedUser.storage,
         history,
         programs,
+        dashboards,
       },
     };
   }
@@ -361,6 +377,7 @@ export class UserDao {
       incomingHistoryIds: (storageUpdate.storage?.history || []).map((h) => h.id),
       loadedHistoryIds: (limitedUserStorage.history || []).map((h) => h.id),
       incomingPrograms: storageUpdate.storage?.programs || [],
+      incomingDashboards: storageUpdate.storage?.dashboards || [],
       hasIncomingStats: storageUpdate.storage?.stats != null,
       hasIncomingTombstones: SyncMergeNoop_hasTombstones(storageUpdate.versions),
       storedOriginalId: originalStorage.originalId,
@@ -396,6 +413,20 @@ export class UserDao {
     const programUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].programs,
       items: programWrites.programsToPut.map((record) => ({ ...ProgramRow_pack(record), userId: limitedUser.id })),
+    });
+
+    const incomingVersionsDashboards = storageUpdate.versions?.dashboards as ICollectionVersions | undefined;
+    const dashboardWrites = DashboardRowWrites_plan(
+      newStorage.dashboards || [],
+      ObjectUtils_keys(incomingVersionsDashboards?.deleted || {})
+    );
+    const dashboardDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].dashboards,
+      keys: dashboardWrites.idsToDelete.map((id) => ({ id, userId: limitedUser.id })),
+    });
+    const dashboardUpdates = this.di.dynamo.batchPut({
+      tableName: userTableNames[env].dashboards,
+      items: dashboardWrites.dashboardsToPut.map((record) => ({ ...record, userId: limitedUser.id })),
     });
 
     const versionsStats = storageUpdate.versions?.stats as ICollectionVersions | undefined;
@@ -454,6 +485,7 @@ export class UserDao {
     delete newStorage.history;
     delete newStorage.programs;
     delete newStorage.stats;
+    delete newStorage.dashboards;
     this.logMergeCounts(noopArgs, {
       noop,
       historyDeletes: deletedVersionsHistory.length,
@@ -461,7 +493,16 @@ export class UserDao {
       statDeletes: deletedVersionsStats.length,
     });
     try {
-      await Promise.all([historyUpdates, historyDeletes, programUpdates, programDeletes, statsDeletes, statsUpdates]);
+      await Promise.all([
+        historyUpdates,
+        historyDeletes,
+        programUpdates,
+        programDeletes,
+        dashboardUpdates,
+        dashboardDeletes,
+        statsDeletes,
+        statsUpdates,
+      ]);
       await this.store({ ...limitedUser, storage: newStorage });
     } catch (e) {
       if (e instanceof Error && e.message.includes("Provided list of item keys contains duplicates")) {
@@ -522,6 +563,7 @@ export class UserDao {
     email: string,
     opts: { appleId?: string; googleId?: string; passwordHash?: string; emailVerifiedAt?: number }
   ): IUserDao {
+    const { originalId: _originalId, ...storage } = Storage_getDefault();
     return {
       id,
       email,
@@ -530,28 +572,7 @@ export class UserDao {
       passwordHash: opts.passwordHash,
       emailVerifiedAt: opts.emailVerifiedAt,
       createdAt: Date.now(),
-      storage: {
-        progress: [],
-        // Builds before 2026-09-26 require the deleted* arrays in VStorage. Drop with their removal migration.
-        deletedHistory: [],
-        deletedPrograms: [],
-        deletedStats: [],
-        affiliates: {},
-        signupRequests: [],
-        reviewRequests: [],
-        history: [],
-        programs: [],
-        stats: { weight: {}, length: {}, percentage: {} },
-        id: Date.now(),
-        currentProgramId: undefined,
-        version: getLatestMigrationVersion(),
-        helps: [],
-        tempUserId: id,
-        settings: Settings_build(),
-        subscription: { apple: [], google: [] },
-        email,
-        whatsNew: undefined,
-      },
+      storage: { ...storage, tempUserId: id, email, whatsNew: undefined },
     };
   }
 
@@ -918,8 +939,34 @@ export class UserDao {
   // records (GDPR art. 17(3)(b)), and affiliate payouts are computed by joining those payments
   // through the affiliate row, so dropping it would silently shrink an affiliate's past earnings.
   // Both are disclosed in the privacy policy - keep them in sync if this changes.
+  public getDashboardsByUserId(userId: string, args: { ids?: string[] } = {}): Promise<IDashboard[]> {
+    const env = Utils_getEnv();
+    const rows =
+      args.ids != null
+        ? this.di.dynamo.batchGet<IDashboard & { userId?: string }>({
+            tableName: userTableNames[env].dashboards,
+            keys: args.ids.map((id) => ({ id, userId })),
+          })
+        : this.di.dynamo.query<IDashboard & { userId?: string }>({
+            tableName: userTableNames[env].dashboards,
+            expression: "#userId = :userId",
+            attrs: { "#userId": "userId" },
+            values: { ":userId": userId },
+          });
+    return rows.then((arr) => arr.map(({ userId: _userId, ...dashboard }) => dashboard));
+  }
+
   public async removeUser(userId: string): Promise<void> {
     const env = Utils_getEnv();
+    const dashboards = await this.getDashboardsByUserId(userId);
+    await Promise.all(
+      CollectionUtils_inGroupsOf(23, dashboards).map((group) =>
+        this.di.dynamo.batchDelete({
+          tableName: userTableNames[env].dashboards,
+          keys: group.map((d) => ({ id: d.id, userId })),
+        })
+      )
+    );
     const programs = await this.getProgramsByUserId(userId);
     const programIds = Array.from(new Set(programs.map((p) => p.id)));
     if (programIds.length > 0) {
@@ -1022,14 +1069,15 @@ export class UserDao {
       return undefined;
     }
     const emptyStats: IStats = { weight: {}, length: {}, percentage: {} };
-    const [history, programs, stats] = await Promise.all([
+    const [history, programs, dashboards, stats] = await Promise.all([
       args?.historyLimit == null || args.historyLimit > 0
         ? this.getHistoryByUserId(userId, { limit: args?.historyLimit })
         : Promise.resolve<IHistoryRecord[]>([]),
       !args?.skipPrograms ? this.getProgramsByUserId(userId) : Promise.resolve<IProgram[]>([]),
+      !args?.skipDashboards ? this.getDashboardsByUserId(userId) : Promise.resolve(undefined),
       !args?.skipStats ? this.getStatsByUserId(userId) : Promise.resolve(emptyStats),
     ]);
-    return { ...userDao, storage: { ...userDao.storage, history, programs, stats } };
+    return { ...userDao, storage: { ...userDao.storage, history, programs, dashboards, stats } };
   }
 
   public async maybeSaveProgramRevision(userId: string, storageUpdate: IStorageUpdate2): Promise<void> {
@@ -1110,7 +1158,7 @@ export class UserDao {
     snapshot: IPartialStorage | undefined
   ): Promise<void> {
     const storage = Storage_fillVersions(aStorage, deviceId);
-    const { history, programs, stats, ...userStorage } = storage;
+    const { history, programs, stats, dashboards, ...userStorage } = storage;
     const env = Utils_getEnv();
     const updatedUser: ILimitedUserDao = { ...user, storage: userStorage };
 
@@ -1157,6 +1205,26 @@ export class UserDao {
       });
     }
 
+    let dashboardDeletes: Promise<void>[] = [];
+    let dashboardUpdates: Promise<void>[] = [];
+    if (dashboards) {
+      const before = snapshot?.dashboards ?? (await this.getDashboardsByUserId(user.id));
+      const diff = CollectionUtils_diffByKey(before, dashboards, (d) => d.id);
+      const dashboardsToPut = snapshot == null ? dashboards : diff.changed;
+      dashboardDeletes = CollectionUtils_inGroupsOf(23, diff.removedKeys).map(async (group) => {
+        await this.di.dynamo.batchDelete({
+          tableName: userTableNames[env].dashboards,
+          keys: group.map((id) => ({ id, userId: user.id })),
+        });
+      });
+      dashboardUpdates = CollectionUtils_inGroupsOf(23, dashboardsToPut).map(async (group) => {
+        await this.di.dynamo.batchPut({
+          tableName: userTableNames[env].dashboards,
+          items: group.map((record) => ({ ...record, userId: user.id })),
+        });
+      });
+    }
+
     let statsDeletes: Promise<void>[] = [];
     let statsUpdates: Promise<void>[] = [];
     if (stats) {
@@ -1177,14 +1245,16 @@ export class UserDao {
     }
 
     await Promise.all([
-      this.store(updatedUser),
       ...historyUpdates,
       ...historyDeletes,
       ...programUpdates,
       ...programDeletes,
+      ...dashboardUpdates,
+      ...dashboardDeletes,
       ...statsUpdates,
       ...statsDeletes,
     ]);
+    await this.store(updatedUser);
   }
 
   public async getAllLimited(args: { limit?: number } = {}): Promise<ILimitedUserDao[]> {
@@ -1203,6 +1273,9 @@ export class UserDao {
     const allPrograms = await this.di.dynamo
       .scan<IProgramRowItem & { userId: string }>({ tableName: userTableNames[env].programs })
       .then((rows) => rows.map((r) => ({ ...ProgramRow_unpack(r), userId: r.userId })));
+    const allDashboards = await this.di.dynamo.scan<IDashboard & { userId: string }>({
+      tableName: userTableNames[env].dashboards,
+    });
     const allStatsDbs = await this.di.dynamo.scan<IStatDb & { userId: string }>({
       tableName: userTableNames[env].stats,
     });
@@ -1217,6 +1290,9 @@ export class UserDao {
           ...user.storage,
           history: allHistory.filter((r) => r.userId === user.id),
           programs: allPrograms.filter((r) => r.userId === user.id),
+          dashboards: allDashboards
+            .filter((r) => r.userId === user.id)
+            .map(({ userId: _userId, ...dashboard }) => dashboard),
           stats: statsDb ? convertStatsFromDb(statsDb) : { weight: {}, length: {}, percentage: {} },
         },
       };

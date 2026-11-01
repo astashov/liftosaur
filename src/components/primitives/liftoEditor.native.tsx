@@ -46,6 +46,7 @@ export interface ILiftoEditorBaseProps {
   // view's bottom edge unless the view extends past the text.
   bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
+  computeStyledRanges?: (text: string) => ILiftoEditorStyledRange[];
   // The controller's session cache. Highlighting runs on predicted text (one edit ahead of
   // the session), so sharing it means that parse warms the tree the session then reads.
   // Standalone hosts without a controller get their own.
@@ -117,10 +118,13 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
     autoHeight,
     handleRef,
     extraStyledRanges,
+    computeStyledRanges,
     parseCache,
   } = props;
   const extraStyledRangesRef = useRef(extraStyledRanges);
   extraStyledRangesRef.current = extraStyledRanges;
+  const computeStyledRangesRef = useRef(computeStyledRanges);
+  computeStyledRangesRef.current = computeStyledRanges;
   const ownCacheRef = useRef<LiftoEditorParseCache | undefined>(undefined);
   if (parseCache == null && ownCacheRef.current == null) {
     ownCacheRef.current = new LiftoEditorParseCache();
@@ -138,8 +142,10 @@ export function LiftoEditor(props: ILiftoEditorProps): JSX.Element {
     if (nativeRef.current == null || cache == null) {
       return;
     }
+    const currentText = predictedTextRef.current ?? textRef.current;
+    const compute = computeStyledRangesRef.current;
     const next = LiftoEditorBrain_flattenRanges([
-      ...LiftoEditorBrain_computeStyledRanges(cache, predictedTextRef.current ?? textRef.current),
+      ...(compute != null ? compute(currentText) : LiftoEditorBrain_computeStyledRanges(cache, currentText)),
       ...(extraStyledRangesRef.current ?? []),
     ]);
     const previous = rangesMirrorRef.current;

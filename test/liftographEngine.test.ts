@@ -5,7 +5,10 @@ import {
   ILiftographSeriesResult,
   ILiftographWidgetResult,
   LiftographEngine_evaluate,
+  LiftographEngine_evaluateWidget,
 } from "../src/liftograph/liftographEngine";
+import { ILiftographWidget } from "../src/liftograph/liftographCompile";
+import { LiftographSeriesEval_compile, LiftographSeriesEval_create } from "../src/liftograph/liftographSeriesEval";
 import { ILiftographSeriesPoints, ILiftographValueResult } from "../src/liftograph/liftographShape";
 import { fxDay, fxEntry, fxRecord, fxSet, fxSettings, fxStats } from "./liftographFixtures";
 
@@ -46,6 +49,23 @@ function valueOf(result: ILiftographWidgetResult): ILiftographValueResult | unde
   }
   return result.value;
 }
+
+describe("LiftographEngine_evaluateWidget", () => {
+  function graphWidget(text: string): {
+    widget: ILiftographWidget;
+    evaluation: ReturnType<typeof LiftographSeriesEval_create>;
+  } {
+    const evaluation = LiftographSeriesEval_create(input);
+    return { widget: LiftographSeriesEval_compile(evaluation, text).layout[0].items[0], evaluation };
+  }
+
+  it("shapes a graph by the range override instead of the document's range", () => {
+    const { widget, evaluation } = graphWidget("graph / range: 1w {\n  name: S / source: exercise(Squat)\n}");
+    const inDocument = pointsOf(seriesOf(LiftographEngine_evaluateWidget(widget, evaluation))[0]);
+    const overridden = pointsOf(seriesOf(LiftographEngine_evaluateWidget(widget, evaluation, "all"))[0]);
+    expect([inDocument.points.length, overridden.points.length]).to.eql([1, 3]);
+  });
+});
 
 describe("LiftographEngine_evaluate", () => {
   it("draws the cookbook rep-max chart", () => {

@@ -1,4 +1,4 @@
-import { IPartialStorage, IProgram, IStorage } from "../../src/types";
+import { IDashboard, IPartialStorage, IProgram, IStorage } from "../../src/types";
 import { ObjectUtils_isEqual } from "../../src/utils/object";
 import { isCollectionVersions, isFieldVersion } from "../../src/models/versionTracker/types";
 import { VersionTrackerUtils_compareVersions } from "../../src/models/versionTracker/utils";
@@ -11,6 +11,7 @@ export interface ISyncMergeNoopArgs {
   incomingHistoryIds: number[];
   loadedHistoryIds: number[];
   incomingPrograms: IProgram[];
+  incomingDashboards: IDashboard[];
   hasIncomingStats: boolean;
   hasIncomingTombstones: boolean;
   storedOriginalId: number | undefined;
@@ -28,7 +29,7 @@ export interface ISyncMergeCounts {
 }
 
 export function SyncMergeNoop_row(storage: IPartialStorage): Record<string, unknown> {
-  const { history: _h, programs: _p, stats: _s, originalId: _o, _versions: _v, ...row } = storage;
+  const { history: _h, programs: _p, stats: _s, dashboards: _d, originalId: _o, _versions: _v, ...row } = storage;
   return row;
 }
 
@@ -37,6 +38,7 @@ export type ISyncMergeWriteReason =
   | "stats"
   | "tombstones"
   | "programs"
+  | "dashboards"
   | "versions"
   | "row"
   | "history-missing";
@@ -54,6 +56,9 @@ export function SyncMergeNoop_writeReason(args: ISyncMergeNoopArgs): ISyncMergeW
   if (args.incomingPrograms.length > 0) {
     return "programs";
   }
+  if (args.incomingDashboards.length > 0) {
+    return "dashboards";
+  }
   if (!ObjectUtils_isEqual(args.storedVersions || {}, args.mergedVersions || {})) {
     return "versions";
   }
@@ -68,7 +73,7 @@ export function SyncMergeNoop_isNoop(args: ISyncMergeNoopArgs): boolean {
   return SyncMergeNoop_writeReason(args) == null;
 }
 
-const COLLECTIONS_WITH_ROWS = ["history", "programs", "stats"] as const;
+const COLLECTIONS_WITH_ROWS = ["history", "programs", "stats", "dashboards"] as const;
 
 export function SyncMergeNoop_hasTombstones(versions: IStorage["_versions"]): boolean {
   if (versions == null) {

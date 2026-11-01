@@ -145,7 +145,7 @@ describe("LiftographGraphs", () => {
         today,
       });
       const text = LiftographGraphs_exerciseDocument(
-        LiftographGraphs_exerciseSource(type, withCustom),
+        LiftographGraphs_exerciseSource(type, withCustom.input.settings),
         "weight",
         false
       );

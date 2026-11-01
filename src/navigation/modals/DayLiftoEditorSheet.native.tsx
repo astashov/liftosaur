@@ -30,12 +30,10 @@ import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { useCustomKeyboardHeight } from "../CustomKeyboardContext";
 import { SheetDragHandle } from "../TransparentModal";
 import { useLiftoEditorSheetLayout } from "./liftoEditorSheetLayout";
+import { useLiftoEditorCaretReveal } from "./liftoEditorCaretReveal";
 import { NavScreenScrollContext } from "../NavScreenScrollContext";
 import { useNavScreenScroll } from "../useNavScreenScroll";
 
-// Breathing room between the focused token and the bottom of the scroll area. Android needs
-// more: its caret drags a drop handle that hangs below the line.
-const caretRevealMargin = Platform.OS === "android" ? 32 : 16;
 // CustomKeyboardProvider's open animation, plus a frame for the taller content to lay out.
 const keypadOpenDuration = 300;
 
@@ -134,30 +132,11 @@ export function DayLiftoEditorSheet(props: IDayLiftoEditorSheetProps): JSX.Eleme
     stickyHeaderHeight: 0,
   });
 
-  const editorBoxRef = useRef<View>(null);
-  // Both boxes in window coordinates so their difference is exact whatever the window's origin
-  // is; on Android edge-to-edge nothing here may be derived from window height or insets.
-  const revealCaret = (rect: { top: number; bottom: number }): void => {
-    const scrollNode = scrollRef.current;
-    const viewport = viewportRef.current;
-    const editorBox = editorBoxRef.current;
-    if (scrollNode == null || viewport == null || editorBox == null) {
-      return;
-    }
-    viewport.measureInWindow((_vx, vy, _vw, vh) => {
-      editorBox.measureInWindow((_x, y) => {
-        const visibleBottom = vy + vh - caretRevealMargin;
-        const caretBottom = y + rect.bottom;
-        if (caretBottom <= visibleBottom) {
-          return;
-        }
-        scrollNode.scrollTo({
-          y: Math.max(0, contextValue.scrollYRef.current + (caretBottom - visibleBottom)),
-          animated: true,
-        });
-      });
-    });
-  };
+  const { editorBoxRef, revealCaret } = useLiftoEditorCaretReveal({
+    scrollRef,
+    viewportRef,
+    scrollYRef: contextValue.scrollYRef,
+  });
 
   // Re-asked whenever the keypad's height changes, not just when focus moves: the token can be
   // perfectly visible until the keypad opens under it, and the sheet's own height shrinks by

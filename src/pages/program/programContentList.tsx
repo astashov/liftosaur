@@ -54,7 +54,7 @@ async function saveProgram(newProgram: IProgram, service: Service, deviceId: str
   const result = await service.postSaveProgram(exportedProgram, deviceId);
   if (result.success) {
     window.location.href = UrlUtils_build(
-      `/user/p/${encodeURIComponent(result.data)}`,
+      `/user/p/${encodeURIComponent(result.data.id)}`,
       window.location.href
     ).toString();
   } else {

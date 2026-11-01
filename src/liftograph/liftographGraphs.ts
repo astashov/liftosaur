@@ -1,6 +1,15 @@
 import { equipmentName, Exercise_get } from "../models/exercise";
 import { History_getMaxWeightSet } from "../models/history";
-import { IExerciseSelectedType, IExerciseType, IHistoryRecord, IScreenMuscle, ISet, IStatsKey } from "../types";
+import {
+  IExerciseSelectedType,
+  IExerciseType,
+  IGraphMuscleGroupSelectedType,
+  IHistoryRecord,
+  IScreenMuscle,
+  ISet,
+  ISettings,
+  IStatsKey,
+} from "../types";
 import { ILiftographSeriesSpec } from "./liftographCompile";
 import { LiftographDocument_quote } from "./liftographDocument";
 import { LiftographEngine_evaluateWidget } from "./liftographEngine";
@@ -80,11 +89,8 @@ function mergeByTs(rows: IExerciseColumns[]): ILiftographExerciseGraphData["data
   return [xs, columns[0], columns[1], columns[2], columns[3], columns[4]];
 }
 
-export function LiftographGraphs_exerciseSource(
-  exerciseType: IExerciseType,
-  evaluation: ILiftographSeriesEval
-): string {
-  const exercise = Exercise_get(exerciseType, evaluation.input.settings.exercises);
+export function LiftographGraphs_exerciseSource(exerciseType: IExerciseType, settings: ISettings): string {
+  const exercise = Exercise_get(exerciseType, settings.exercises);
   const args = [LiftographDocument_quote(exercise.name)];
   if (exerciseType.equipment != null) {
     args.push(LiftographDocument_quote(equipmentName(exerciseType.equipment)));
@@ -95,7 +101,8 @@ export function LiftographGraphs_exerciseSource(
 export function LiftographGraphs_exerciseDocument(
   source: string,
   selectedType: IExerciseSelectedType,
-  isWithOneRm: boolean
+  isWithOneRm: boolean,
+  isWithBodyweight: boolean = false
 ): string {
   const lines = ["graph {"];
   if (selectedType === "volume") {
@@ -105,18 +112,24 @@ export function LiftographGraphs_exerciseDocument(
     if (isWithOneRm) {
       lines.push(`  name: e1RM / source: ${source} / y: e1rm`);
     }
+    if (isWithBodyweight) {
+      lines.push("  name: Bodyweight / source: stats(weight) / axis: right");
+    }
   }
   lines.push("}");
   return lines.join("\n");
 }
 
-export function LiftographGraphs_muscleGroupDocument(group: string): string {
-  return [
-    "graph {",
-    `  name: Volume / source: workout / y: muscleVolume(${group}) / group: sum(1w)`,
-    `  name: Sets / source: workout / y: muscleSets(${group}) / group: sum(1w)`,
-    "}",
-  ].join("\n");
+export function LiftographGraphs_muscleGroupDocument(group: string, metric?: IGraphMuscleGroupSelectedType): string {
+  const lines = ["graph {"];
+  if (metric !== "sets") {
+    lines.push(`  name: Volume / source: workout / y: muscleVolume(${group}) / group: sum(1w)`);
+  }
+  if (metric !== "volume") {
+    lines.push(`  name: Sets / source: workout / y: muscleSets(${group}) / group: sum(1w)`);
+  }
+  lines.push("}");
+  return lines.join("\n");
 }
 
 export function LiftographGraphs_statsDocument(key: IStatsKey, movingAverageWindowSize?: number): string {
@@ -161,7 +174,7 @@ export function LiftographGraphs_exerciseData(
   isWithOneRm: boolean,
   isWithBodyweight: boolean
 ): ILiftographExerciseGraphData {
-  const source = LiftographGraphs_exerciseSource(exerciseType, evaluation);
+  const source = LiftographGraphs_exerciseSource(exerciseType, evaluation.input.settings);
   const document = LiftographGraphs_exerciseDocument(source, selectedType, isWithOneRm);
   const series = graphSeries(evaluation, document);
   const [weight, e1rm] = selectedType === "weight" ? series : [];

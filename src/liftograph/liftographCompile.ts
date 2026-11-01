@@ -120,12 +120,35 @@ function call(value: string): { name: string; args?: string } | undefined {
   return match != null ? { name: match[1], args: match[2] } : undefined;
 }
 
-function requireDuration(pair: ILiftographPair): ILiftographDuration {
+export const LiftographCompile_maxTrend: ILiftographDuration = { n: 1, unit: "y" };
+export const LiftographCompile_maxDuration: ILiftographDuration = { n: 10, unit: "y" };
+
+function durationLabel(duration: ILiftographDuration): string {
+  return duration === "all" ? "all" : `${duration.n}${duration.unit}`;
+}
+
+function limitDuration(
+  duration: ILiftographDuration,
+  max: ILiftographDuration,
+  span: ILiftographSpan,
+  allowAll: boolean
+): ILiftographDuration {
+  if ((duration === "all" && !allowAll) || (duration !== "all" && durationDays(duration) > durationDays(max))) {
+    throw new CompileError(`This duration can be at most ${durationLabel(max)}`, span);
+  }
+  return duration;
+}
+
+function requireDuration(
+  pair: ILiftographPair,
+  max: ILiftographDuration = LiftographCompile_maxDuration,
+  allowAll: boolean = true
+): ILiftographDuration {
   const duration = LiftographCompile_duration(pair.value);
   if (duration == null) {
     throw new CompileError(`'${pair.value}' is not a duration, like 7d, 4w, 3m, 1y or all`, pair.valueSpan);
   }
-  return duration;
+  return limitDuration(duration, max, pair.valueSpan, allowAll);
 }
 
 function parseFilters(
@@ -294,6 +317,9 @@ function compileSeries(
     if (window == null || window === 0 || (xMode === "number" && typeof window !== "number")) {
       throw new CompileError(`'${arg}' is not a smoothing window here`, byKey.smooth.valueSpan);
     }
+    if (typeof window !== "number") {
+      limitDuration(window, LiftographCompile_maxDuration, byKey.smooth.valueSpan, false);
+    }
     spec.smooth = { agg: smoothAgg, window };
   }
   if (byKey.mark != null) {
@@ -397,8 +423,8 @@ function compileWidget(
     return {
       kind: "value",
       series,
-      compare: keys.compare != null ? requireDuration(keys.compare) : undefined,
-      trend: keys.trend != null ? requireDuration(keys.trend) : undefined,
+      compare: keys.compare != null ? requireDuration(keys.compare, LiftographCompile_maxDuration, false) : undefined,
+      trend: keys.trend != null ? requireDuration(keys.trend, LiftographCompile_maxTrend, false) : undefined,
       span: widget.span,
     };
   } else if (widget.kind === "muscles") {

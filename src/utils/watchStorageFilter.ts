@@ -1,9 +1,31 @@
-import { IStorage, IStats, IHistoryRecord, STORAGE_VERSION_TYPES } from "../types";
+import { IStorage, IStats, IHistoryRecord, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
 import { VersionTrackerUtils_getId } from "../models/versionTracker/utils";
 import { ObjectUtils_clone } from "./object";
 import { ICollectionVersions, IVersionsObject, isCollectionVersions } from "../models/versionTracker/types";
 
-export function WatchStorageFilter_filter(storage: IStorage): unknown {
+export function WatchStorageFilter_versionsWithoutDashboards<
+  T extends { dashboards?: unknown; currentDashboardId?: unknown },
+>(versions: T | undefined): T | undefined {
+  if (versions == null) {
+    return versions;
+  }
+  const result: T = { ...versions };
+  delete result.dashboards;
+  delete result.currentDashboardId;
+  return result;
+}
+
+export function WatchStorageFilter_withoutDashboards<
+  T extends Pick<IPartialStorage, "dashboards" | "currentDashboardId" | "_versions">,
+>(storage: T): T {
+  const result: T = { ...storage, _versions: WatchStorageFilter_versionsWithoutDashboards(storage._versions) };
+  delete result.dashboards;
+  delete result.currentDashboardId;
+  return result;
+}
+
+export function WatchStorageFilter_filter(fullStorage: IStorage): unknown {
+  const storage = WatchStorageFilter_withoutDashboards(fullStorage);
   // Removed before the clone: cloning 11 MB of history just to drop it froze every set completion.
   const currentProgramId = storage.currentProgramId;
   const keptPrograms = currentProgramId ? storage.programs.filter((p) => p.id === currentProgramId) : storage.programs;
@@ -54,10 +76,11 @@ export function WatchStorageFilter_filterJson(storage: IStorage): string {
 }
 
 export function WatchStorageFilter_filterForPhone(
-  storage: IStorage,
+  fullStorage: IStorage,
   maxJsonLength: number,
   maxRecords: number
 ): IStorage {
+  const storage = WatchStorageFilter_withoutDashboards(fullStorage);
   const currentProgramId = storage.currentProgramId;
   const programs = currentProgramId ? storage.programs.filter((p) => p.id === currentProgramId) : [];
 

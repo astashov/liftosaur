@@ -11,7 +11,7 @@ export function DirtySyncRead_args(args: IDirtySyncReadArgs): IUserReadArgs {
     return {};
   }
   if (args.isWatch) {
-    return { historyLimit: 0, skipStats: true };
+    return { historyLimit: 0, skipStats: true, skipDashboards: true };
   }
   const isUsableLimit = args.historylimit != null && Number.isInteger(args.historylimit) && args.historylimit >= 0;
   return isUsableLimit ? { historyLimit: args.historylimit } : {};

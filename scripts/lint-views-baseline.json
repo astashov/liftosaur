@@ -108,6 +108,9 @@
     "decision-in-view:useCallback#3": "predates the rule",
     "decision-in-view:useMemo#1": "predates the rule"
   },
+  "src/components/liftographCodeEditor.tsx": {
+    "decision-in-view:useEffect#1": "CodeMirror mount: builds the extensions and the EditorView; highlight ranges and diagnostics come from LiftographEditorAnalysis"
+  },
   "src/components/lineChart.tsx": {
     "long-view": "predates the rule"
   },
@@ -210,9 +213,6 @@
   "src/navigation/CustomKeyboardContext.tsx": {
     "decision-in-view:useEffect#1": "predates the rule"
   },
-  "src/navigation/modals/DayLiftoEditorSheet.native.tsx": {
-    "decision-in-view:revealCaret": "predates the rule"
-  },
   "src/navigation/modals/ExerciseLiftoEditorSheet.native.tsx": {
     "decision-in-view:stepPass": "the effect runner for exercisePreviewPass.ts: a timer, the editor handle, the host's apply. No decision in it",
     "long-view": "one sheet's JSX; the logic is in exercisePreviewPass.ts and exerciseLiftoEditorAnalysis.ts"
@@ -296,8 +296,6 @@
   },
   "src/pages/planner/plannerContent.tsx": {
     "decision-in-view:anonymous#1": "predates the rule",
-    "decision-in-view:anonymous#2": "predates the rule",
-    "decision-in-view:anonymous#3": "predates the rule",
     "long-view": "predates the rule"
   },
   "src/pages/planner/components/modalPlannerExercisePicker.tsx": {

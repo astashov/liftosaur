@@ -39,6 +39,12 @@ export class EventDao {
         numDays: p.planner?.weeks.reduce((acc, w) => acc + w.days.length, 0),
       };
     });
+    if (storageUpdate.storage?.dashboards != null) {
+      preparedStorageUpdate.storage = {
+        ...storageUpdate.storage,
+        dashboards: storageUpdate.storage.dashboards.map((d) => ({ id: d.id, name: d.name, length: d.text.length })),
+      };
+    }
     return JSON.stringify(preparedStorageUpdate);
   }
 

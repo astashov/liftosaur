@@ -128,6 +128,7 @@ import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesP
 import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
+import { NavModalDashboardEditor } from "./modals/NavModalDashboardEditor";
 
 function renderScreenWithErrorBoundary(args: {
   route: { name: string };
@@ -422,6 +423,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="helpModal" component={NavModalHelp} />
           <RootStack.Screen name="exerciseLiftoEditorModal" component={NavModalExerciseLiftoEditor} />
           <RootStack.Screen name="dayLiftoEditorModal" component={NavModalDayLiftoEditor} />
+          <RootStack.Screen name="dashboardEditorModal" component={NavModalDashboardEditor} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

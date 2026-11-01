@@ -16,7 +16,7 @@ import { LftS3Buckets } from "../lambda/dao/buckets";
 import { Storage_fillVersions, Storage_getDefault, Storage_updateVersions } from "../src/models/storage";
 import { basicBeginnerProgram } from "../src/programs/basicBeginnerProgram";
 import { getLatestMigrationVersion } from "../src/migrations/migrations";
-import { IHistoryRecord, IProgram, IStorage } from "../src/types";
+import { IDashboard, IHistoryRecord, IProgram, IStorage } from "../src/types";
 import { ICollectionVersions } from "../src/models/versionTracker";
 
 const STORED_WORKOUTS = 25;
@@ -60,7 +60,7 @@ describe("/api/sync2 dirty branch", () => {
   });
 
   async function seed(args: { workouts: number; version?: string }): Promise<void> {
-    const { history: _history, programs: _programs, stats: _stats, ...partial } = storage;
+    const { history: _history, programs: _programs, stats: _stats, dashboards: _dashboards, ...partial } = storage;
     await di.dynamo.put({
       tableName: userTableNames.prod.users,
       item: {
@@ -193,6 +193,72 @@ describe("/api/sync2 dirty branch", () => {
     expect(mergeSnapshotEvents().length).to.equal(1);
   });
 
+  describe("dashboards", () => {
+    const mine: IDashboard = { vtype: "dashboard", id: "mine", name: "Mine", text: "graph {\n}" };
+
+    function dashboardRows(): IDashboard[] {
+      return Object.values(di.dynamo.data[userTableNames.prod.dashboards] || {}) as IDashboard[];
+    }
+
+    function userRowStorage(): Record<string, unknown> {
+      const row = di.dynamo.data[userTableNames.prod.users][JSON.stringify({ id: userId })] as IUserRowItem;
+      return row.storage;
+    }
+
+    function updateWith(dashboards: IDashboard[]): Record<string, unknown> {
+      const versions = Storage_updateVersions(storage, { ...storage, dashboards }, "ios_b");
+      return { ...emptyUpdate(), storage: { dashboards }, versions: { dashboards: versions.dashboards } };
+    }
+
+    it("the migration seeds the first dashboard row from the saved graphs", async () => {
+      storage = {
+        ...storage,
+        dashboards: undefined,
+        currentDashboardId: undefined,
+        settings: {
+          ...storage.settings,
+          graphs: { vtype: "graphs", graphs: [{ vtype: "graph", type: "exercise", id: "squat_barbell" }] },
+        },
+      };
+      await seed({ workouts: 0, version: "20261022120000" });
+      const json = await pull({ storageUpdate: emptyUpdate() });
+      expect(json.storage.currentDashboardId).to.equal("graphs");
+      expect(dashboardRows().map((d) => d.id)).to.eql(["graphs"]);
+      expect(dashboardRows()[0].text).to.contain("exercise(Squat, Barbell)");
+      expect(json.storage.dashboards.map((d: IDashboard) => d.id)).to.eql(["graphs"]);
+      expect(userRowStorage()).to.not.have.any.keys("dashboards");
+    });
+
+    it("a dashboard from the phone lands in its own table and comes back in the response", async () => {
+      await seed({ workouts: 0 });
+      const json = await pull({ storageUpdate: updateWith([...(storage.dashboards || []), mine]) });
+      expect(dashboardRows().map((d) => d.id)).to.include("mine");
+      expect(json.storage.dashboards.map((d: IDashboard) => d.id)).to.include("mine");
+      expect(userRowStorage()).to.not.have.any.keys("dashboards");
+    });
+
+    it("a tombstone deletes the dashboard row", async () => {
+      await seed({ workouts: 0 });
+      await di.dynamo.put({ tableName: userTableNames.prod.dashboards, item: { ...mine, userId } });
+      await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { dashboards: [] },
+          versions: { dashboards: { items: {}, deleted: { mine: Date.now() } } },
+        },
+      });
+      expect(dashboardRows().map((d) => d.id)).to.not.include("mine");
+    });
+
+    it("a watch never writes dashboards and never receives them", async () => {
+      await seed({ workouts: 0 });
+      const json = await pull({ storageUpdate: updateWith([mine]), isWatch: true });
+      expect(dashboardRows()).to.eql([]);
+      expect(json.storage).to.not.have.any.keys("dashboards", "currentDashboardId");
+      expect(json.storage._versions || {}).to.not.have.any.keys("dashboards", "currentDashboardId");
+    });
+  });
+
   describe("a merge that changes nothing", () => {
     const RECORD_ID = 1;
     let record: IHistoryRecord;
@@ -222,7 +288,7 @@ describe("/api/sync2 dirty branch", () => {
         { ...storage, history: [record], programs: [program], currentProgramId: "current" },
         "ios_a"
       );
-      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      const { history: _h, programs: _p, stats: _s, dashboards: _d, ...partial } = versioned;
       await di.dynamo.put({
         tableName: userTableNames.prod.users,
         item: {
@@ -408,7 +474,7 @@ describe("/api/sync2 dirty branch", () => {
         ...versions,
         history: { ...history, items: {}, deleted: { [RECORD_ID]: deletedAt } },
       };
-      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      const { history: _h, programs: _p, stats: _s, dashboards: _d, ...partial } = versioned;
       await di.dynamo.put({
         tableName: userTableNames.prod.users,
         item: {
@@ -437,7 +503,7 @@ describe("/api/sync2 dirty branch", () => {
 
     it("a re-sent record still collapses two stored progress entries to one", async () => {
       await seedVersioned();
-      const { history: _h, programs: _p, stats: _s, ...partial } = versioned;
+      const { history: _h, programs: _p, stats: _s, dashboards: _d, ...partial } = versioned;
       const progress = (startTime: number): Record<string, unknown> => ({
         ...record,
         vtype: "progress",

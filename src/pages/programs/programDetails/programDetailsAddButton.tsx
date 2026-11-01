@@ -61,7 +61,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         const service = new Service(props.client);
         const result = await service.postSaveProgram(exportProgram, await DeviceId_get(), "program-details");
         if (result.success) {
-          window.location.href = `${__HOST__}/user/p/${result.data}`;
+          window.location.href = `${__HOST__}/user/p/${result.data.id}`;
         } else {
           Dialog_alert("Failed to save the program");
           setIsLoading(false);

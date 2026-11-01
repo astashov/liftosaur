@@ -15,6 +15,7 @@ const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.events]: ["userId", "timestamp"],
   [userTableNames.prod.historyRecords]: ["userId", "id"],
   [userTableNames.prod.programs]: ["userId", "id"],
+  [userTableNames.prod.dashboards]: ["userId", "id"],
   [userTableNames.prod.stats]: ["userId", "name"],
   [apiKeyTableNames.prod.apiKeys]: ["key"],
   [pushEndpointTableNames.prod.pushEndpoints]: ["userId", "deviceId"],

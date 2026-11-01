@@ -13,6 +13,7 @@ import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
 import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
+import { IFieldVersion } from "../models/versionTracker/types";
 import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils_inGroupsOf, CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder_encode, Encoder_decode } from "../utils/encoder";
@@ -676,18 +677,19 @@ export class Service {
   public async postSaveProgram(
     program: IExportedProgram,
     deviceId?: string,
-    source?: string
-  ): Promise<IEither<string, string>> {
+    source?: string,
+    base?: IFieldVersion
+  ): Promise<IEither<{ id: string; plannerVersion?: IFieldVersion }, string>> {
     const url = UrlUtils_build(`${__API_HOST__}/api/program`);
     try {
       const response = await this.client(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ program, deviceId, source }),
+        body: JSON.stringify({ program, deviceId, source, base }),
         credentials: "include",
       });
       if (response.status === 200) {
         const json = await response.json();
-        return { success: true, data: json.data.id };
+        return { success: true, data: { id: json.data.id, plannerVersion: json.data.plannerVersion } };
       } else {
         const json = await response.json();
         return { success: false, error: json.error };

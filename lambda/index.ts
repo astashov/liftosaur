@@ -110,6 +110,11 @@ import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate2 } from "../src/utils/sync";
+import {
+  WatchStorageFilter_versionsWithoutDashboards,
+  WatchStorageFilter_withoutDashboards,
+} from "../src/utils/watchStorageFilter";
+import { FieldRevision_isStale, FieldRevision_programPlanner } from "../src/utils/fieldRevision";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings_applyExportedProgram, Settings_applyWebEditorSettings } from "../src/models/settings";
 import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
@@ -236,6 +241,7 @@ import {
   postOauthTokenHandler,
 } from "./mcp/oauth";
 import { ICollectionVersions } from "../src/models/versionTracker";
+import { isFieldVersion } from "../src/models/versionTracker/types";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
@@ -562,13 +568,13 @@ function filterStorageForWatch(storage: IStorage): IStorage {
     };
   }
 
-  return {
+  return WatchStorageFilter_withoutDashboards({
     ...storage,
     programs: filteredPrograms,
     history: [],
     stats: { weight: {}, length: {}, percentage: {} },
     _versions: filteredVersions,
-  };
+  });
 }
 
 const postSync2Endpoint = Endpoint.build("/api/sync2", {
@@ -596,9 +602,16 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   }
   const deviceId = rawDeviceId || VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID;
   const timestamp: number = (bodyJson.timestamp as number) || Date.now();
-  const storageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const historylimit = bodyJson.historylimit as number | undefined;
   const isWatch = bodyJson.isWatch as boolean | undefined;
+  const rawStorageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
+  const storageUpdate: IStorageUpdate2 = isWatch
+    ? {
+        ...rawStorageUpdate,
+        storage: rawStorageUpdate.storage && WatchStorageFilter_withoutDashboards(rawStorageUpdate.storage),
+        versions: WatchStorageFilter_versionsWithoutDashboards(rawStorageUpdate.versions),
+      }
+    : rawStorageUpdate;
   const userId = await getCurrentUserId(event, di);
   let keyResult: { key: string; isClaimed: boolean } | undefined;
   if (params.tempuserid) {
@@ -860,7 +873,8 @@ const postDebugSessionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const existing = await userDao.getLimitedById(debugId);
   const email = existing?.email ?? `${debugId}@debug.liftosaur.com`;
   if (existing == null) {
-    await userDao.store(UserDao.build(debugId, email, {}));
+    const debugUser = UserDao.build(debugId, email, {});
+    await userDao.saveStorage(debugUser, debugUser.storage, VersionTrackerUtils_SERVER_DEVICE_ID);
   }
   const session = JWT.sign({ userId: debugId }, await di.secrets.getCookieSecret());
   const setCookie = Cookie.serialize("session", session, {
@@ -1037,6 +1051,7 @@ async function createNewUser(
       throw new Error("Failed to create a new user");
     }
   }
+  await userDao.saveStorage(user, user.storage, VersionTrackerUtils_SERVER_DEVICE_ID);
   return user;
 }
 
@@ -1548,14 +1563,20 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   payload,
 }) => {
   const { event, di } = payload;
-  const user = await getCurrentLimitedUser(event, di);
-  if (user != null) {
+  const currentUser = await getCurrentLimitedUser(event, di);
+  if (currentUser != null) {
     const bodyJson = getBodyJson(event);
     const deviceId = bodyJson.deviceId as string | undefined;
     const source = bodyJson.source as string | undefined;
     const exportedProgram: IExportedProgram = bodyJson.program;
+    const basePlannerVersion = isFieldVersion(bodyJson.base) ? bodyJson.base : undefined;
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
+    const migration = await userDao.migrateStoredStorage(currentUser, deviceId || VersionTrackerUtils_SERVER_DEVICE_ID);
+    if (!migration.success) {
+      return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+    }
+    const user = migration.data.user;
     const programs = await userDao.getProgramsByUserId(user.id);
     const oldStorageResult = Storage_get({ ...user.storage, programs });
     if (!oldStorageResult.success) {
@@ -1583,6 +1604,13 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
           clonedAt: submittedClonedAt,
         },
       });
+      return ResponseUtils_json(409, event, {
+        error: "Your program is out of date. Please refresh the page and try again.",
+      });
+    }
+    const storedPlannerVersion = FieldRevision_programPlanner(oldStorage._versions, submittedClonedAt);
+    if (FieldRevision_isStale(storedPlannerVersion, basePlannerVersion)) {
+      di.log.log(`Program Save: Stale planner for program ${exportedProgram.program.id}.`);
       return ResponseUtils_json(409, event, {
         error: "Your program is out of date. Please refresh the page and try again.",
       });
@@ -1667,7 +1695,12 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     if (source === "program-details") {
       await new LogDao(di).recordAction(user.id, "ls-add-program-to-account", getLandingPageCookie(event));
     }
-    return ResponseUtils_json(200, event, { data: { id: exportedProgram.program.id } });
+    return ResponseUtils_json(200, event, {
+      data: {
+        id: exportedProgram.program.id,
+        plannerVersion: FieldRevision_programPlanner(newVersions, exportedProgram.program.clonedAt),
+      },
+    });
   }
   return ResponseUtils_json(400, event, { error: "Not Authorized" });
 };

@@ -11,6 +11,7 @@ import { Settings_build } from "../models/settings";
 import { Progress_getEntryId } from "../models/progress";
 import { EquipmentUnits_attachSetups } from "../models/equipmentUnits";
 import { MuscleGroupSplit_migrate } from "../models/muscleGroupSplit";
+import { Dashboard_fromLegacyGraphs } from "../models/dashboard";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -482,5 +483,14 @@ export const migrations = {
   },
   "20261022120000_split_muscle_groups": (aStorage: IStorage): IStorage => {
     return MuscleGroupSplit_migrate(aStorage);
+  },
+  "20261101120000_add_dashboards": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    if (storage.currentDashboardId == null) {
+      const seed = Dashboard_fromLegacyGraphs(storage.settings);
+      storage.dashboards = [...(storage.dashboards || []).filter((d) => d.id !== seed.id), seed];
+      storage.currentDashboardId = seed.id;
+    }
+    return storage;
   },
 };

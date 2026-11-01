@@ -1252,6 +1252,22 @@ const _VProgramMatches: IEquals<v.InferOutput<typeof _VProgram>, IProgram> = tru
 void _VProgramMatches;
 export const VProgram: v.GenericSchema<IProgram> = _VProgram;
 
+export interface IDashboard {
+  vtype: "dashboard";
+  id: string;
+  name: string;
+  text: string;
+}
+const _VDashboard = v.object({
+  vtype: v.literal("dashboard"),
+  id: v.string(),
+  name: v.string(),
+  text: v.string(),
+});
+const _VDashboardMatches: IEquals<v.InferOutput<typeof _VDashboard>, IDashboard> = true;
+void _VDashboardMatches;
+export const VDashboard: v.GenericSchema<IDashboard> = _VDashboard;
+
 export interface IStatsWeightValue {
   vtype: "stat";
   value: IWeight;
@@ -2016,6 +2032,8 @@ interface IStorageRaw {
   currentProgramId?: string;
   version: string;
   programs: IProgram[];
+  dashboards?: IDashboard[];
+  currentDashboardId?: string;
   deletedPrograms?: number[];
   reviewRequests: number[];
   signupRequests: number[];
@@ -2048,6 +2066,8 @@ const _VStorage = v.object({
   currentProgramId: v.optional(v.string()),
   version: v.string(),
   programs: v.array(VProgram),
+  dashboards: v.optional(v.array(VDashboard)),
+  currentDashboardId: v.optional(v.string()),
   deletedPrograms: v.optional(v.array(v.number())),
   reviewRequests: v.array(v.number()),
   signupRequests: v.array(v.number()),
@@ -2098,8 +2118,8 @@ export type IStorage = Omit<IStorageRaw, "_versions"> & {
   _versions?: IVersions<Omit<IStorageRaw, "_versions">>;
 };
 
-export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs"> &
-  Partial<Pick<IStorage, "history" | "stats" | "programs">>;
+export type IPartialStorage = Omit<IStorage, "history" | "stats" | "programs" | "dashboards"> &
+  Partial<Pick<IStorage, "history" | "stats" | "programs" | "dashboards">>;
 
 export type IProgramContentSettings = Partial<
   Pick<ISettings, "units" | "planner" | "muscleGroups" | "exerciseData" | "workoutSettings"> & {
@@ -2169,13 +2189,14 @@ export const ATOMIC_TYPES = [
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
 
-export const CONTROLLED_TYPES = ["program", "gym", "progress", "history_entry"] as const;
+export const CONTROLLED_TYPES = ["program", "gym", "progress", "history_entry", "dashboard"] as const;
 
 export type IControlledType = (typeof CONTROLLED_TYPES)[number];
 
 export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
   program: ["name", "nextDay", "planner"] as const,
   gym: ["name", "equipment"] as const,
+  dashboard: ["name", "text"] as const,
   progress: [
     "entries",
     "endTime",
@@ -2231,6 +2252,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   muscle_groups_settings: "vtype",
   import_session: "id",
   workout_outcome: "id",
+  dashboard: "id",
 };
 
 export const DICTIONARY_FIELDS = [
@@ -2259,6 +2281,7 @@ export const STORAGE_VERSION_TYPES: IVersionTypes<IAtomicType, IControlledType> 
     history: 180 * 24 * 60 * 60 * 1000,
     progress: 30 * 24 * 60 * 60 * 1000,
     workoutOutcomes: 30 * 24 * 60 * 60 * 1000,
+    dashboards: 180 * 24 * 60 * 60 * 1000,
   },
   typeValidators: {
     progress: vIs(VHistoryRecord),
