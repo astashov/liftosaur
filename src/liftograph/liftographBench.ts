@@ -173,7 +173,7 @@ export function LiftographBench_run(storage: IStorage, now: number, clock: () =>
         time({ ...engine, phase: "compile", graph: key }, () =>
           LiftographSeriesEval_compile(
             evaluation,
-            LiftographGraphs_exerciseDocument(LiftographGraphs_exerciseSource(type, evaluation), "weight", true)
+            LiftographGraphs_exerciseDocument(LiftographGraphs_exerciseSource(type, settings), "weight", true)
           )
         );
         time({ ...engine, phase: "total", graph: key }, () =>

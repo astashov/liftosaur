@@ -21,31 +21,33 @@ describe("UserRow", () => {
     history: { items: { 1: 100, 2: { vc: { a: 1 }, t: 200 } }, deleted: { 3: 300 } },
     programs: { items: { 42: { name: 100 } }, deleted: {} },
     stats: { weight: { weight: { items: { 1700: 100 }, deleted: {} } } },
+    dashboards: { items: { graphs: { text: 100 } }, deleted: { old: 50 } },
   };
 
-  it("moves only the history, programs and stats versions into vz", () => {
+  it("moves only the history, programs, stats and dashboards versions into vz", () => {
     const packed = UserRow_pack(userWith(versions), true);
     expect(packed.vz).to.be.instanceOf(Uint8Array);
     expect(packed.storage._versions).to.eql({ settings: { units: 100 } });
     expect(packed.storage.deletedHistory).to.eql([5, 6]);
-    expect(packed.storage).to.not.have.any.keys("history", "programs", "stats");
+    expect(packed.storage.currentDashboardId).to.equal("graphs");
+    expect(packed.storage).to.not.have.any.keys("history", "programs", "stats", "dashboards");
   });
 
   it("writes plain rows while packed writes are off", () => {
     const packed = UserRow_pack(userWith(versions), false);
     expect(packed.vz).to.equal(undefined);
     expect(packed.storage._versions).to.eql(versions);
-    expect(packed.storage).to.not.have.any.keys("history", "programs", "stats");
+    expect(packed.storage).to.not.have.any.keys("history", "programs", "stats", "dashboards");
   });
 
   it("round-trips to the same versions and fields", () => {
     const user = userWith(versions);
-    const { history: _h, programs: _p, stats: _s, ...stored } = user.storage;
+    const { history: _h, programs: _p, stats: _s, dashboards: _d, ...stored } = user.storage;
     expect(UserRow_unpack(UserRow_pack(user, true))).to.eql({ ...user, storage: stored });
   });
 
   it("reads a row without vz unchanged", () => {
-    const { history: _h, programs: _p, stats: _s, ...storage } = userWith(versions).storage;
+    const { history: _h, programs: _p, stats: _s, dashboards: _d, ...storage } = userWith(versions).storage;
     const row = { ...userWith(versions), storage };
     expect(UserRow_unpack(row)).to.eql(row);
   });

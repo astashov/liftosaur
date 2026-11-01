@@ -3,6 +3,7 @@ import * as v from "valibot";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { UidFactory_generateUid } from "../utils/generator";
 import { Settings_build } from "../models/settings";
+import { Dashboard_fromLegacyGraphs } from "./dashboard";
 import { IEither } from "../utils/types";
 import RB from "rollbar";
 import { IState, updateState } from "./state";
@@ -147,6 +148,8 @@ export function Storage_getHistoryRecord(
 
 export function Storage_getDefault(): IStorage {
   const dateNow = Date.now();
+  const settings = Settings_build();
+  const dashboard = Dashboard_fromLegacyGraphs(settings);
   return {
     id: dateNow,
     originalId: dateNow,
@@ -179,11 +182,13 @@ export function Storage_getDefault(): IStorage {
       },
       percentage: { bodyfat: [] },
     },
-    settings: Settings_build(),
+    settings,
     history: [],
     version: getLatestMigrationVersion(),
     subscription: { apple: [], google: [] },
     programs: [],
+    dashboards: [dashboard],
+    currentDashboardId: dashboard.id,
     helps: [],
     email: undefined,
     whatsNew: DateUtils_formatYYYYMMDD(Date.now(), ""),

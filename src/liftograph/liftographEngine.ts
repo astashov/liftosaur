@@ -1,4 +1,9 @@
-import { ILiftographSeriesSpec, ILiftographWidget, LiftographCompile_document } from "./liftographCompile";
+import {
+  ILiftographDuration,
+  ILiftographSeriesSpec,
+  ILiftographWidget,
+  LiftographCompile_document,
+} from "./liftographCompile";
 import { ILiftographDiagnostic, ILiftographSpan, LiftographDocument_parse } from "./liftographDocument";
 import { ILiftographFoldError } from "./liftographFold";
 import {
@@ -35,7 +40,8 @@ export interface ILiftographEngineResult {
 
 export function LiftographEngine_evaluateWidget(
   widget: ILiftographWidget,
-  evaluation: ILiftographSeriesEval
+  evaluation: ILiftographSeriesEval,
+  rangeOverride?: ILiftographDuration
 ): ILiftographWidgetResult {
   const { input } = evaluation;
   if (widget.kind === "graph") {
@@ -52,7 +58,13 @@ export function LiftographEngine_evaluateWidget(
           span: result.error.span ?? compiled.spec.span,
         };
       }
-      const points = LiftographShape_series(result, compiled.spec, input.settings, input.today, widget.range);
+      const points = LiftographShape_series(
+        result,
+        compiled.spec,
+        input.settings,
+        input.today,
+        rangeOverride ?? widget.range
+      );
       return { status: "ready", spec: compiled.spec, points };
     });
     return { type: "graph", widget, series };

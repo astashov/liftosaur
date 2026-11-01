@@ -127,6 +127,15 @@ describe("LiftographCompile_document", () => {
     expect(messages("muscles / range: 3d")).to.deep.equal(["The muscles range is at least 7d"]);
   });
 
+  it("limits trends to a year and other durations to ten years", () => {
+    expect(messages("value / source: workout / trend: 1y")).to.deep.equal([]);
+    expect(messages("value / source: workout / trend: 2y")).to.deep.equal(["This duration can be at most 1y"]);
+    expect(messages("value / source: workout / trend: all")).to.deep.equal(["This duration can be at most 1y"]);
+    expect(messages("graph / range: 11y {\n  source: workout\n}")).to.deep.equal(["This duration can be at most 10y"]);
+    expect(messages("graph / range: all {\n  source: workout\n}")).to.deep.equal([]);
+    expect(messages("value / source: workout / smooth: avg(11y)")).to.deep.equal(["This duration can be at most 10y"]);
+  });
+
   it("rejects mixed point() arity and mixed x modes", () => {
     expect(messages("graph {\n  name: A / source: exercise {~ point(1)\n point(1, 2) ~}\n}")).to.deep.equal([
       "All point() calls in one series must take the same number of arguments",

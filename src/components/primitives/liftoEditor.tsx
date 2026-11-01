@@ -11,6 +11,7 @@ export interface ILiftoEditorBaseProps {
   editable?: boolean;
   bottomPadding?: number;
   extraStyledRanges?: ILiftoEditorStyledRange[];
+  computeStyledRanges?: (text: string) => ILiftoEditorStyledRange[];
   parseCache?: LiftoEditorParseCache;
   handleRef?: React.MutableRefObject<ILiftoEditorHandle | undefined>;
   onTextChange?: (text: string, caret: number) => void;

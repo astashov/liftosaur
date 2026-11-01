@@ -3,6 +3,8 @@ import { expect } from "chai";
 import {
   WatchStorageFilter_filterForPhone,
   WatchStorageFilter_filterForPhoneJson,
+  WatchStorageFilter_filterJson,
+  WatchStorageFilter_versionsWithoutDashboards,
 } from "../src/utils/watchStorageFilter";
 import { Storage_getDefault, Storage_fillVersions, Storage_mergeStorage } from "../src/models/storage";
 import { isCollectionVersions } from "../src/models/versionTracker/types";
@@ -177,5 +179,40 @@ describe("WatchStorageFilter_filterForPhone", () => {
     const merged = Storage_mergeStorage(phone, payload, "phone");
 
     expect(merged.history.map((r) => r.id)).to.deep.equal([2000, 1000, 9000]);
+  });
+});
+
+describe("WatchStorageFilter dashboards", () => {
+  const storage = Storage_fillVersions(Storage_getDefault(), "phone");
+
+  it("starts from a storage that has a dashboard with clocks", () => {
+    expect(storage.dashboards?.length).to.equal(1);
+    expect(storage._versions?.dashboards).to.not.equal(undefined);
+  });
+
+  it("never sends dashboards from the phone to the watch", () => {
+    const filtered = JSON.parse(WatchStorageFilter_filterJson(storage));
+    expect(filtered).to.not.have.any.keys("dashboards", "currentDashboardId");
+    expect(filtered._versions).to.not.have.any.keys("dashboards", "currentDashboardId");
+  });
+
+  it("never sends dashboards from the watch to the phone", () => {
+    const filtered = WatchStorageFilter_filterForPhone(storage, UNLIMITED, UNLIMITED);
+    expect(filtered).to.not.have.any.keys("dashboards", "currentDashboardId");
+    expect(filtered._versions).to.not.have.any.keys("dashboards", "currentDashboardId");
+  });
+
+  it("keeps the phone's dashboards when it merges a watch payload", () => {
+    const payload = WatchStorageFilter_filterForPhone(storage, UNLIMITED, UNLIMITED);
+    const merged = Storage_mergeStorage(storage, payload, "phone");
+    expect(merged.dashboards).to.deep.equal(storage.dashboards);
+    expect(merged.currentDashboardId).to.equal(storage.currentDashboardId);
+  });
+
+  it("strips the fields from a versions object alone", () => {
+    expect(WatchStorageFilter_versionsWithoutDashboards({ dashboards: {}, settings: 1 })).to.deep.equal({
+      settings: 1,
+    });
+    expect(WatchStorageFilter_versionsWithoutDashboards(undefined)).to.equal(undefined);
   });
 });

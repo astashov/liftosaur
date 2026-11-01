@@ -29,6 +29,7 @@ describe("SyncMergeNoop", () => {
     incomingHistoryIds: [1, 2],
     loadedHistoryIds: [2, 1],
     incomingPrograms: [],
+    incomingDashboards: [],
     hasIncomingStats: false,
     hasIncomingTombstones: false,
     storedOriginalId: 555,
@@ -67,6 +68,7 @@ describe("SyncMergeNoop", () => {
     expect(SyncMergeNoop_hasTombstones(undefined)).to.equal(false);
     expect(SyncMergeNoop_hasTombstones({ history: { items: { 1: 100 } } })).to.equal(false);
     expect(SyncMergeNoop_hasTombstones({ history: { items: {}, deleted: { 7: 100 } } })).to.equal(true);
+    expect(SyncMergeNoop_hasTombstones({ dashboards: { items: {}, deleted: { d1: 100 } } })).to.equal(true);
     expect(
       SyncMergeNoop_hasTombstones({ stats: { weight: { weight: { items: {}, deleted: { 1700: 100 } } } } })
     ).to.equal(true);
@@ -123,6 +125,12 @@ describe("SyncMergeNoop", () => {
     expect(SyncMergeNoop_writeReason({ ...base, hasIncomingStats: true })).to.equal("stats");
     expect(SyncMergeNoop_writeReason({ ...base, hasIncomingTombstones: true })).to.equal("tombstones");
     expect(SyncMergeNoop_writeReason({ ...base, incomingPrograms: [program("p1")] })).to.equal("programs");
+    expect(
+      SyncMergeNoop_writeReason({
+        ...base,
+        incomingDashboards: [{ vtype: "dashboard", id: "d1", name: "D", text: "" }],
+      })
+    ).to.equal("dashboards");
     expect(SyncMergeNoop_writeReason({ ...base, mergedVersions: { settings: { units: 1 } } })).to.equal("versions");
     expect(SyncMergeNoop_writeReason({ ...base, mergedRow: { ...row, tempUserId: "u2" } })).to.equal("row");
     expect(SyncMergeNoop_writeReason({ ...base, loadedHistoryIds: [] })).to.equal("history-missing");
@@ -131,7 +139,14 @@ describe("SyncMergeNoop", () => {
   it("row strips the collections, the originalId and the versions", () => {
     const storage = { ...Storage_getDefault(), originalId: 5, _versions: versions };
     const stripped = SyncMergeNoop_row(storage);
-    expect(Object.keys(stripped)).to.not.include.members(["history", "programs", "stats", "originalId", "_versions"]);
+    expect(Object.keys(stripped)).to.not.include.members([
+      "history",
+      "programs",
+      "stats",
+      "dashboards",
+      "originalId",
+      "_versions",
+    ]);
     expect(stripped.settings).to.equal(storage.settings);
   });
 });

@@ -198,6 +198,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     });
 
+    const userDashboardsTable = new dynamodb.Table(this, `LftUserDashboards${suffix}`, {
+      tableName: `lftUserDashboards${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+
     const programsTable = new dynamodb.Table(this, `LftPrograms${suffix}`, {
       tableName: `lftPrograms${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
@@ -679,6 +687,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     statsTable.grantReadWriteData(lambdaFunction);
     programsTable.grantReadWriteData(lambdaFunction);
     userProgramsTable.grantReadWriteData(lambdaFunction);
+    userDashboardsTable.grantReadWriteData(lambdaFunction);
     subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(statsLambdaFunction);

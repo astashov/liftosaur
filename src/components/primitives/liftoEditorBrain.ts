@@ -146,7 +146,7 @@ function liftoscriptNodeStyles(): Partial<Record<string, INodeStyle>> {
 
 // The Liftoscript planner token includes the {~ ~} delimiters; the liftoscript grammar
 // @skips them, so parsing the raw slice works and the delimiters stay unstyled.
-function pushLiftoscriptRanges(
+export function LiftoEditorBrain_pushLiftoscriptRanges(
   cache: LiftoEditorParseCache,
   text: string,
   from: number,
@@ -177,7 +177,7 @@ export function LiftoEditorBrain_computeStyledRanges(
   tree.iterate({
     enter: (node) => {
       if (node.name === PlannerNodeName.Liftoscript) {
-        pushLiftoscriptRanges(cache, text, node.from, node.to, ranges);
+        LiftoEditorBrain_pushLiftoscriptRanges(cache, text, node.from, node.to, ranges);
         return false;
       }
       const style = styles[node.name as PlannerNodeName];

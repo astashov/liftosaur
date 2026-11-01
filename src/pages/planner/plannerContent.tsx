@@ -22,6 +22,8 @@ import { canRedo, canUndo, redo, undo, undoRedoMiddleware, useUndoRedo } from ".
 import { UndoingFlag_set } from "../../utils/undoingFlag";
 import { IPartialStorage, IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IStats, IUnit } from "../../types";
 import { Service } from "../../api/service";
+import { PlannerProgramSave_baseAfterSave, PlannerProgramSave_initialBase } from "./models/plannerProgramSave";
+import { IFieldVersion } from "../../models/versionTracker/types";
 import {
   PlannerProgram_hasNonSelectedWeightUnit,
   PlannerProgram_switchToUnit,
@@ -93,10 +95,11 @@ export interface IPlannerContentProps {
 async function saveProgram(
   client: Window["fetch"],
   exportProgram: IExportedProgram,
-  deviceId?: string
-): Promise<string | undefined> {
+  deviceId?: string,
+  base?: IFieldVersion
+): Promise<{ id: string; plannerVersion?: IFieldVersion } | undefined> {
   const service = new Service(client);
-  const result = await service.postSaveProgram(exportProgram, deviceId);
+  const result = await service.postSaveProgram(exportProgram, deviceId, undefined, base);
   if (result.success) {
     return result.data;
   } else {
@@ -138,6 +141,9 @@ function getCurrentSource(): string | undefined {
 
 export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const service = new Service(props.client);
+  const [plannerBase, setPlannerBase] = useState(() =>
+    PlannerProgramSave_initialBase(props.partialStorage, props.initialProgram?.program)
+  );
   const initialDay: IPlannerProgramDay = {
     name: "Day 1",
     exerciseText: "",
@@ -457,9 +463,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                 }
               }
               setIsBannerLoading(true);
-              const id = await saveProgram(props.client, exportProgram, props.deviceId);
-              if (id != null) {
-                window.location.href = `${__HOST__}/user/p/${id}`;
+              const saved = await saveProgram(props.client, exportProgram, props.deviceId);
+              if (saved != null) {
+                window.location.href = `${__HOST__}/user/p/${saved.id}`;
               }
             }}
           />
@@ -540,8 +546,9 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             const exportProgram = Program_exportProgram(state.current.program, settings);
             exportProgram.settings.exerciseData = settings.exerciseData;
             exportProgram.settings.workoutSettings = settings.workoutSettings;
-            const savedId = await saveProgram(props.client, exportProgram, props.deviceId);
-            if (savedId != null) {
+            const saved = await saveProgram(props.client, exportProgram, props.deviceId, plannerBase);
+            if (saved != null) {
+              setPlannerBase(PlannerProgramSave_baseAfterSave(plannerBase, saved));
               dispatch(lb<IPlannerState>().p("initialEncodedProgram").record(state.encodedProgram), "Save program");
             }
           } finally {

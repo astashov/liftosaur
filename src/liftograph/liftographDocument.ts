@@ -391,6 +391,18 @@ export function LiftographDocument_parse(text: string): ILiftographDocument {
   return { text, items, hiddenSpans, diagnostics };
 }
 
+export function LiftographDocument_scripts(doc: ILiftographDocument): ILiftographScriptNode[] {
+  const widgets = doc.items.flatMap((item) => (item.type === "row" ? item.items : [item]));
+  return widgets.flatMap((item) =>
+    item.type === "widget"
+      ? [
+          ...(item.script != null ? [item.script] : []),
+          ...item.series.flatMap((s) => (s.script != null ? [s.script] : [])),
+        ]
+      : []
+  );
+}
+
 export function LiftographDocument_quote(value: string): string {
   return /[,/():{}"\\]/.test(value) ? `"${value.replace(/(["\\])/g, "\\$1")}"` : value;
 }

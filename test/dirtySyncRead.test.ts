@@ -8,10 +8,11 @@ describe("DirtySyncRead_args", () => {
     expect(DirtySyncRead_args({ hasMergeWrite: true, historylimit: 20, isWatch: true })).to.eql({});
   });
 
-  it("reads no history and no stats for a watch that wrote nothing", () => {
+  it("reads no history, stats or dashboards for a watch that wrote nothing", () => {
     expect(DirtySyncRead_args({ hasMergeWrite: false, historylimit: 20, isWatch: true })).to.eql({
       historyLimit: 0,
       skipStats: true,
+      skipDashboards: true,
     });
   });
 

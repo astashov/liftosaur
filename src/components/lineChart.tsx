@@ -13,6 +13,8 @@ export interface ILineChartSeries {
   color: string;
   show: boolean;
   width?: number;
+  mark?: "line" | "dots";
+  axis?: "left" | "right";
 }
 
 interface ILineChartProps {
@@ -28,8 +30,57 @@ interface ILineChartProps {
   onCursorChange?: (idx: number | null) => void;
   onInteract?: () => void;
   yAxisFormatter?: (value: number) => string;
+  rightAxisFormatter?: (value: number) => string;
   yAxisWidth?: number;
   isInteractive?: boolean;
+  maxInitialSpan?: number;
+  viewportKey?: string;
+}
+
+interface IYDomain {
+  yMin: number;
+  yMax: number;
+}
+
+function yDomain(pointLists: [number, number][][]): IYDomain {
+  let lo = Infinity;
+  let hi = -Infinity;
+  for (const points of pointLists) {
+    for (const [, v] of points) {
+      if (v < lo) {
+        lo = v;
+      }
+      if (v > hi) {
+        hi = v;
+      }
+    }
+  }
+  if (!isFinite(lo) || !isFinite(hi)) {
+    return { yMin: 0, yMax: 1 };
+  }
+  if (lo === hi) {
+    const pad = Math.abs(lo) * 0.1 || 1;
+    return { yMin: lo - pad, yMax: hi + pad };
+  }
+  const pad = (hi - lo) * 0.1;
+  return { yMin: lo - pad, yMax: hi + pad };
+}
+
+function visiblePoints(
+  timestamps: (number | null)[],
+  values: (number | null)[],
+  xMin: number,
+  xMax: number
+): [number, number][] {
+  const pts: [number, number][] = [];
+  for (let i = 0; i < timestamps.length; i++) {
+    const t = timestamps[i];
+    const v = values[i];
+    if (t != null && v != null && isFinite(t) && isFinite(v) && t >= xMin && t <= xMax) {
+      pts.push([t, v]);
+    }
+  }
+  return pts;
 }
 
 export interface ILineChartHandle {
@@ -204,19 +255,17 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const timestamps = useMemo(() => rawTimestamps.map((t) => (t != null && isFinite(t) ? t : null)), [rawTimestamps]);
 
   const xMode = props.xMode ?? "time";
+  const maxInitialSpan = props.maxInitialSpan ?? YEAR_SECONDS;
   const finiteTimestamps = useMemo(() => timestamps.filter((t): t is number => t != null), [timestamps]);
-  const dataMaxX = finiteTimestamps.length > 0 ? (finiteTimestamps[finiteTimestamps.length - 1] as number) : 0;
+  const dataMaxX = finiteTimestamps.length > 0 ? Math.max(...finiteTimestamps) : 0;
+  const dataFirstX = finiteTimestamps.length > 0 ? Math.min(...finiteTimestamps) : 0;
   const dataMinX =
-    finiteTimestamps.length > 0
-      ? xMode === "time"
-        ? Math.max(finiteTimestamps[0] as number, dataMaxX - YEAR_SECONDS)
-        : (finiteTimestamps[0] as number)
-      : 0;
+    finiteTimestamps.length > 0 ? (xMode === "time" ? Math.max(dataFirstX, dataMaxX - maxInitialSpan) : dataFirstX) : 0;
 
   const initialMin =
     props.xMin != null
       ? xMode === "time"
-        ? Math.max(props.xMin, (props.xMax ?? dataMaxX) - YEAR_SECONDS)
+        ? Math.max(props.xMin, (props.xMax ?? dataMaxX) - maxInitialSpan)
         : props.xMin
       : dataMinX;
   const initialMax = props.xMax != null ? props.xMax : dataMaxX;
@@ -230,6 +279,12 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     setUserViewport(vp);
   }, []);
   const [cursorIdx, setCursorIdx] = useState<number | null>(null);
+  const [viewportKey, setViewportKey] = useState(props.viewportKey);
+  if (viewportKey !== props.viewportKey) {
+    setViewportKey(props.viewportKey);
+    setUserViewport(null);
+    setCursorIdx(null);
+  }
 
   useEffect(() => {
     props.onCursorChange?.(cursorIdx);
@@ -245,10 +300,11 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     background: semantic.background.default,
   };
 
+  const hasRightAxis = props.series.some((s) => s.show && s.axis === "right");
   const padTop = 8;
   const padBottom = 30;
   const padLeft = props.yAxisWidth ?? 44;
-  const padRight = 12;
+  const padRight = hasRightAxis ? 40 : 12;
   const plotWidth = Math.max(0, width - padLeft - padRight);
   const plotHeight = Math.max(0, props.height - padTop - padBottom);
 
@@ -260,34 +316,22 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
       if (!s.show) {
         return [] as [number, number][];
       }
-      return clipSeriesToViewport(timestamps, props.data[i + 1] || [], xMin, xMax);
+      const values = props.data[i + 1] || [];
+      return s.mark === "dots"
+        ? visiblePoints(timestamps, values, xMin, xMax)
+        : clipSeriesToViewport(timestamps, values, xMin, xMax);
     });
   }, [props.series, props.data, xMin, xMax, timestamps]);
 
-  const { yMin, yMax } = useMemo(() => {
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const points of clippedSeries) {
-      for (const [, v] of points) {
-        if (v < lo) {
-          lo = v;
-        }
-        if (v > hi) {
-          hi = v;
-        }
-      }
-    }
-    if (!isFinite(lo) || !isFinite(hi)) {
-      return { yMin: 0, yMax: 1 };
-    }
-    if (lo === hi) {
-      const pad = Math.abs(lo) * 0.1 || 1;
-      return { yMin: lo - pad, yMax: hi + pad };
-    }
-    const pad = (hi - lo) * 0.1;
-    return { yMin: lo - pad, yMax: hi + pad };
-  }, [clippedSeries]);
-
+  const leftDomain = useMemo(
+    () => yDomain(clippedSeries.filter((_, i) => props.series[i]?.axis !== "right")),
+    [clippedSeries, props.series]
+  );
+  const rightDomain = useMemo(
+    () => yDomain(clippedSeries.filter((_, i) => props.series[i]?.axis === "right")),
+    [clippedSeries, props.series]
+  );
+  const { yMin, yMax } = leftDomain;
   const yRange = Math.max(1e-9, yMax - yMin);
 
   const xToPx = useCallback(
@@ -298,12 +342,25 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     (y: number): number => padTop + plotHeight - ((y - yMin) / yRange) * plotHeight,
     [padTop, plotHeight, yMin, yRange]
   );
+  const rightToPx = useCallback(
+    (y: number): number =>
+      padTop + plotHeight - ((y - rightDomain.yMin) / Math.max(1e-9, rightDomain.yMax - rightDomain.yMin)) * plotHeight,
+    [padTop, plotHeight, rightDomain]
+  );
+  const seriesYToPx = useCallback(
+    (series: ILineChartSeries | undefined) => (series?.axis === "right" ? rightToPx : yToPx),
+    [rightToPx, yToPx]
+  );
   const pxToX = useCallback(
     (px: number): number => xMin + ((px - padLeft) / Math.max(1, plotWidth)) * xRange,
     [xMin, padLeft, plotWidth, xRange]
   );
 
   const yTicks = useMemo(() => niceTicks(yMin, yMax, 5), [yMin, yMax]);
+  const rightTicks = useMemo(
+    () => (hasRightAxis ? niceTicks(rightDomain.yMin, rightDomain.yMax, 5) : []),
+    [hasRightAxis, rightDomain]
+  );
   const xTicks = useMemo(() => {
     const targetCount = Math.max(2, Math.floor(plotWidth / 80));
     if (props.xAxisTicks) {
@@ -370,6 +427,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const cursorX = cursorTimestamp != null ? xToPx(cursorTimestamp) : null;
 
   const yAxisFormatter = props.yAxisFormatter || ((v: number) => `${Math.round(v * 100) / 100}`);
+  const rightAxisFormatter = props.rightAxisFormatter || yAxisFormatter;
 
   const programLinePositions = useMemo(() => {
     if (!props.programLines) {
@@ -426,6 +484,18 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                   </G>
                 );
               })}
+              {rightTicks.map((t, i) => (
+                <SvgText
+                  key={`r-${i}`}
+                  x={padLeft + plotWidth + 6}
+                  y={rightToPx(t) + 3}
+                  fill={colors.axisText}
+                  fontSize={10}
+                  textAnchor="start"
+                >
+                  {rightAxisFormatter(t)}
+                </SvgText>
+              ))}
             </G>
 
             <G>
@@ -541,7 +611,17 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                 if (!s.show) {
                   return null;
                 }
-                const d = buildPath(clippedSeries[i], xToPx, yToPx);
+                const toPx = seriesYToPx(s);
+                if (s.mark === "dots" || clippedSeries[i].length === 1) {
+                  return (
+                    <G key={`series-${i}`}>
+                      {clippedSeries[i].map(([t, v], j) => (
+                        <Circle key={j} cx={xToPx(t)} cy={toPx(v)} r={2.5} fill={s.color} />
+                      ))}
+                    </G>
+                  );
+                }
+                const d = buildPath(clippedSeries[i], xToPx, toPx);
                 if (!d) {
                   return null;
                 }
@@ -572,7 +652,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                     <Circle
                       key={`cursor-${i}`}
                       cx={cursorX}
-                      cy={yToPx(v)}
+                      cy={seriesYToPx(s)(v)}
                       r={3.5}
                       fill={s.color}
                       stroke={colors.background}

@@ -2,20 +2,20 @@ import { deflateSync, inflateSync } from "zlib";
 import type { ILimitedUserDao } from "../dao/userDao";
 import type { IPartialStorage, IStorage } from "../../src/types";
 
-const PACKED_VERSION_KEYS = ["history", "programs", "stats"];
+const PACKED_VERSION_KEYS = ["history", "programs", "stats", "dashboards"];
 
 // Rows now hold versions only in vz: never deploy a build older than ac721e4d, it ignores vz and accepts stale uploads
 export const UserRow_WRITES_PACKED = true;
 
 export type IUserRowItem = Omit<ILimitedUserDao, "storage"> & {
-  storage: Omit<IPartialStorage, "history" | "programs" | "stats">;
+  storage: Omit<IPartialStorage, "history" | "programs" | "stats" | "dashboards">;
   vz?: Uint8Array;
 };
 
 type IVersionsRecord = Record<string, unknown>;
 
 export function UserRow_pack(user: ILimitedUserDao, writesPacked: boolean = UserRow_WRITES_PACKED): IUserRowItem {
-  const { history: _h, programs: _p, stats: _s, ...storage } = user.storage;
+  const { history: _h, programs: _p, stats: _s, dashboards: _d, ...storage } = user.storage;
   const versions = storage._versions as IVersionsRecord | undefined;
   if (versions == null || !writesPacked) {
     return { ...user, storage };
