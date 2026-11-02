@@ -1,1 +1,1 @@
-Trying to fix the animation glitch on the workout screen when expanding set sticks
+Fixed the bug when the app sometimes rolls back the changes

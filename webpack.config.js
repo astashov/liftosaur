@@ -287,6 +287,11 @@ const mainConfig = {
         toType: "file",
       },
       {
+        from: "llms.txt",
+        to: "./llms.txt",
+        toType: "file",
+      },
+      {
         from: "_headers",
         to: "",
       },

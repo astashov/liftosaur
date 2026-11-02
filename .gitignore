@@ -93,6 +93,7 @@ logs/
 !/tsconfig.build.json
 !/tsconfig.json
 !/tsconfig.lambda.json
+!/llms.txt
 
 # Dynamo scan caches and price-point dumps
 /lambda/scripts/.cache

@@ -1,0 +1,144 @@
+# Liftosaur
+
+> Liftosaur is a weightlifting tracker and program planner for iOS, Android and the web. Every program is plain text in Liftoscript, a small language for sets, reps, weights and progression rules. The app ships about 60 built-in programs (GZCLP and other GZCL programs, 5/3/1, Starting Strength, nSuns, PHUL, Texas Method, Mike Mentzer's Heavy Duty and more), and lets you write or edit any program, including its progression logic. Logging workouts, all programs, the editor, Liftoscript and cloud sync are free. Premium adds graphs, the plates calculator, Week Insights, rest timer notifications, the Apple Watch app, and account access through the API, MCP and the ChatGPT and Claude integrations. Liftosaur is open source.
+
+Liftosaur fits lifters who follow a structured program and want the app to apply its progression automatically: add weight after a successful session, change the set scheme after a failure, deload after repeated failures, adjust by RPE. Built-in programs run without writing any code. The trade-off is a learning curve when you edit programs as text. People who only want to log sets can pick "Go Without Program", though simpler apps may suit them better.
+
+## Facts
+
+- Platforms: native iOS app, native Android app, web app at https://www.liftosaur.com/app, and an Apple Watch app.
+- Accounts and offline: the app works offline and without an account, with data saved on the device. Signing in (Apple, Google or email) adds free cloud sync across iOS, Android and web. You can export your data and delete your cloud account.
+- Open source: AGPL-3.0, https://github.com/astashov/liftosaur.
+- Free: all built-in programs, the program editor (calendar grid, per-day UI and text modes, full-program text), the web editor at https://www.liftosaur.com/planner, Liftoscript, the Playground, program version history, workout logging, rest timer, history and personal records, body measurement entry, kg or lb units, custom exercises, equipment and gym setup, cloud sync, Apple Health and Health Connect sync, sharing programs and workouts, import and export.
+- Free workout features: target and logged RPE, AMRAP sets, timed sets (planks, carries), EMOM and Tabata circuits with auto-advance, supersets, warmup sets, unilateral sets with reps per side.
+- Equipment: you list what you have, and the app rounds every target weight to a weight you can load. Tap a rounded weight to see why. Five equipment types: plates (barbells, plate-loaded and multi-horn machines, dip belts), fixed weights (dumbbells, kettlebells), weight stacks (cables, with pull ratio and add-on weights), bands (combinable) and electric machines (Voltra, Tonal). Weighted and assisted bodyweight exercises use your logged bodyweight. Each gym keeps its own equipment list.
+- Exercises and muscles: hundreds of built-in exercises with muscle maps, plus custom exercises (AI can fill in the muscles). Muscle groups are detailed: front, side and rear delts; lats, upper and lower back; and more. You can override an exercise's muscles or define your own groups. Programs show weekly sets per muscle group against a Low (4–10), Moderate (10–18) or High (18–30) target.
+- Progression ladders: one program exercise can hold several movements, like `Split Squat | ! Bulgarian Split Squat | Pistol Squat`, and a script moves to the next one when you hit a target. This fits calisthenics programs.
+- During a workout: swap an exercise and the app picks the new weight from your history; add or remove exercises; train without a program and turn that workout into a program day later.
+- Playground: simulate workouts to see how weights, reps and state variables change week by week, before you run a program. It does not touch your history.
+- Sharing: a public link or an image with a QR code for any program. Finished workouts share as an image to Instagram or TikTok, as text, or on a public profile page.
+- Premium: progress and measurement graphs, the muscle-group views in the app, plates calculator, Week Insights, rest timer notifications (plus Live Activity and Dynamic Island on iOS, Live Update on Android), the Apple Watch app, REST API keys, and the account tools of the MCP server. The web editor's weekly sets per muscle group are free.
+- Premium plans: monthly or yearly, normally with a free 14-day trial, or a one-time lifetime purchase. A promotional discount can replace the trial. US list prices are $4.99/month, $39.99/year and $99.99 lifetime. The App Store and Google Play set local prices per country.
+- Premium is bought in the iOS or Android app, and unlocks on all platforms for the same account.
+- AI integration: Liftosaur is in the ChatGPT plugin directory and the Claude connectors directory. Gemini and other MCP clients connect to https://www.liftosaur.com/mcp. With Premium, the assistant can create and edit programs, log workouts, read your history, and manage body measurements, gyms and equipment. Changes it makes show up on the phone in real time. Without Premium, it can still read the Liftoscript reference, the built-in programs and a program design guide (weekly volume per muscle, rep ranges, splits, deloads), and write a program for you to paste into the editor.
+- Moving from another app: Hevy CSV exports import directly. For Strong, Boostcamp or a spreadsheet, an AI assistant can convert the export into Liftosaur's history CSV format, which the app imports with a preview and undo. Export: full JSON backup, history as CSV, programs as Liftoscript text.
+- Health: in the iOS and Android apps (iOS 15+, Android 14+), not on the web. Sends finished workouts to Apple Health or Health Connect. Syncs bodyweight and body fat both ways, plus waist on iOS. Reads sleep, calories and protein.
+- Heart rate: on iPhone, the workout screen shows live heart rate. It comes from the Apple Watch app (Premium), or on iOS 26 from AirPods Pro 3, Powerbeats Pro 2 or a Bluetooth heart rate strap (free).
+- Training Max: Liftosaur stores a 1RM per exercise and has no Training Max setting. The built-in 5/3/1 programs convert TM percentages to 1RM percentages (65% of TM is written as 58%) and progress by raising the 1RM. A custom program can keep its own Training Max in a state variable, and `calculateTrainingMax(weight, reps)` returns 90% of the estimated 1RM.
+
+## Liftoscript example
+
+Each exercise line is `Exercise / sets x reps / weight / progress: rule`. `lp` is linear progression and `dp` is double progression. `custom` runs your own script after each workout and can keep state between workouts. Exercises can also reuse a template line (`Squat / ...t1`), repeat across weeks, and have warmups and per-set variations. The reference covers the full syntax.
+
+```
+# Week 1
+## Day 1
+Squat / 3x5 / 135lb / progress: lp(5lb)
+Bench Press / 3x8 / 135lb / progress: dp(5lb, 8, 12)
+Deadlift / 1x5 / 185lb / progress: custom(failures: 0) {~
+  if (completedReps >= reps) {
+    weights += 10lb
+    state.failures = 0
+  } else {
+    state.failures += 1
+    if (state.failures >= 3) {
+      weights *= 0.9
+      state.failures = 0
+    }
+  }
+~}
+```
+
+## Docs
+
+- [Liftoscript reference](https://www.liftosaur.com/doc/liftoscript): full syntax, built-in progressions, scripting variables and functions
+- [MCP server](https://www.liftosaur.com/doc/mcp): connect Claude, Gemini or another MCP client
+- [REST API](https://www.liftosaur.com/doc/api): programs, workouts, history, measurements and equipment over HTTP, and running a whole workout through the engine
+- [Using AI with Liftosaur](https://www.liftosaur.com/features/chatgpt-claude-and-ai): ChatGPT plugin, Claude connector and MCP setup
+- [Import and export](https://www.liftosaur.com/features/import-export): Hevy import, the history CSV format, backups
+- [Sync and offline](https://www.liftosaur.com/features/sync-and-offline)
+- [All features](https://www.liftosaur.com/features)
+- [Progressions](https://www.liftosaur.com/features/progressions): how automatic progression works
+- [Premium](https://www.liftosaur.com/features/premium): what is free and what Premium unlocks
+- [Built-in programs](https://www.liftosaur.com/features/built-in-programs): the program library and its filters
+- [Web editor](https://www.liftosaur.com/features/web-editor): edit programs on a computer
+- [Equipment and gyms](https://www.liftosaur.com/features/equipment-and-gyms): equipment types and weight rounding
+- [Exercises](https://www.liftosaur.com/features/exercise-library): the exercise library and muscle maps
+- [Timed sets](https://www.liftosaur.com/features/timed-sets): planks, EMOM, Tabata and circuits
+- [Playground](https://www.liftosaur.com/features/playground): simulate a program before running it
+- [Changing a workout](https://www.liftosaur.com/features/changing-a-workout): swaps, ad-hoc workouts, training without a program
+
+## Built-in programs
+
+Each page describes the program and shows its full Liftoscript source.
+
+- [GZCLP](https://www.liftosaur.com/programs/gzclp)
+- [GZCLP: Blacknoir version](https://www.liftosaur.com/programs/gzclp-blacknoir)
+- [GZCL: Jacked & Tan 2.0](https://www.liftosaur.com/programs/gzcl-jacked-and-tan-2)
+- [GZCL: The Rippler](https://www.liftosaur.com/programs/gzcl-the-rippler)
+- [GZCL: General Gainz](https://www.liftosaur.com/programs/gzcl-general-gainz)
+- [GZCL: General Gainz - Bodybuilding](https://www.liftosaur.com/programs/gzcl-ggbb)
+- [GZCL: General Gainz - Burrito But Big](https://www.liftosaur.com/programs/gzcl-general-gainz-burrito-but-big)
+- [GZCL: General Gainz - Riptide](https://www.liftosaur.com/programs/gzcl-general-gainz-riptide)
+- [GZCL: UHF 5 weeks](https://www.liftosaur.com/programs/gzcl-uhf-5-weeks)
+- [GZCL: UHF 9 weeks](https://www.liftosaur.com/programs/gzcl-uhf-9-weeks)
+- [GZCL: VDIP](https://www.liftosaur.com/programs/gzcl-vdip)
+- [5/3/1 For Beginners](https://www.liftosaur.com/programs/the5314b)
+- [5/3/1: Boring But Big](https://www.liftosaur.com/programs/the531bbb)
+- [5/3/1: Building the Monolith](https://www.liftosaur.com/programs/monolith531)
+- [Starting Strength Phase 1](https://www.liftosaur.com/programs/ss1)
+- [Starting Strength Phase 2](https://www.liftosaur.com/programs/ss2)
+- [Starting Strength Phase 3](https://www.liftosaur.com/programs/ss3)
+- [Basic Beginner Routine](https://www.liftosaur.com/programs/basicBeginner)
+- [Phrak's Greyskull LP](https://www.liftosaur.com/programs/phrakgreyskull)
+- [Ice Cream Fitness 5x5](https://www.liftosaur.com/programs/ice-cream-fitness-5x5)
+- [Madcow 5x5](https://www.liftosaur.com/programs/madcow)
+- [Texas Method](https://www.liftosaur.com/programs/texasmethod)
+- [nSuns LP](https://www.liftosaur.com/programs/nsuns)
+- [Fierce 5](https://www.liftosaur.com/programs/fierce-5)
+- [Ivysaur 4-4-8](https://www.liftosaur.com/programs/ivysaur-4-4-8)
+- [r/bodyweightfitness Recommended Routine](https://www.liftosaur.com/programs/recommended-routine)
+- [Strong Curves](https://www.liftosaur.com/programs/strongcurves)
+- [PHUL](https://www.liftosaur.com/programs/phul)
+- [PHAT](https://www.liftosaur.com/programs/phat)
+- [Coolcicada PPL](https://www.liftosaur.com/programs/coolcicada-ppl)
+- [Metallicadpa PPL](https://www.liftosaur.com/programs/metallicadpappl)
+- [Dumbbell P/P/L](https://www.liftosaur.com/programs/dbPpl)
+- [Arnold Split](https://www.liftosaur.com/programs/arnold-split)
+- [Arnold's Golden Six](https://www.liftosaur.com/programs/arnoldgoldensix)
+- [Bro Split](https://www.liftosaur.com/programs/bro-split)
+- [Jay Cutler's Simple Muscle Group Split](https://www.liftosaur.com/programs/jay-cutler-split)
+- [Lyle's Generic Bulking](https://www.liftosaur.com/programs/lylegenericbulking)
+- [P-Zero Full Body](https://www.liftosaur.com/programs/pzerofullbody)
+- [Planet Fitness Hypertrophy](https://www.liftosaur.com/programs/planet-fitness-hypertrophy)
+- [Mike Mentzer's Heavy Duty](https://www.liftosaur.com/programs/mike-mentzer-heavy-duty)
+- [Mike Mentzer's Consolidated Routine](https://www.liftosaur.com/programs/mike-mentzer-consolidated)
+- [DoggCrapp (DC Training)](https://www.liftosaur.com/programs/doggcrapp)
+- [German Volume Training](https://www.liftosaur.com/programs/german-volume-training)
+- [Shortcut to Size](https://www.liftosaur.com/programs/shortcut-to-size)
+- [Super Squats](https://www.liftosaur.com/programs/super-squats)
+- [Bullmastiff](https://www.liftosaur.com/programs/bullmastiff)
+- [The Juggernaut Method 2.0](https://www.liftosaur.com/programs/juggernaut-method)
+- [The Cube Method](https://www.liftosaur.com/programs/cube-method)
+- [Westside Conjugate Method](https://www.liftosaur.com/programs/westside-conjugate-method)
+- [Westside for Skinny Bastards](https://www.liftosaur.com/programs/westside-for-skinny-bastards)
+- [Sheiko #29-32](https://www.liftosaur.com/programs/sheiko-29-32)
+- [Smolov Squat](https://www.liftosaur.com/programs/smolov-squat)
+- [Smolov Jr](https://www.liftosaur.com/programs/smolov-jr)
+- [Calgary Barbell 16-Week](https://www.liftosaur.com/programs/calgary-barbell-16-week)
+- [Barbell Medicine: The Bridge](https://www.liftosaur.com/programs/barbell-medicine-the-bridge)
+- [TSA 9-Week Intermediate](https://www.liftosaur.com/programs/tsa-9-week-intermediate)
+- [Tactical Barbell: Operator](https://www.liftosaur.com/programs/tactical-barbell-operator)
+- [Tactical Barbell: Mass Protocol](https://www.liftosaur.com/programs/tactical-barbell-mass-protocol)
+- [Easy Strength](https://www.liftosaur.com/programs/easy-strength)
+- [Hepburn Method](https://www.liftosaur.com/programs/doug-hepburn-method)
+- [Deep Water: Beginner](https://www.liftosaur.com/programs/deep-water)
+
+## Optional
+
+- [All programs](https://www.liftosaur.com/programs): the program library on the web
+- [Exercise library](https://www.liftosaur.com/exercises)
+- [Rep max calculator](https://www.liftosaur.com/rep-max-calculator): free 1RM calculator
+- [r/liftosaur](https://www.reddit.com/r/liftosaur/): community programs and support
+- [iOS app](https://apps.apple.com/app/id1661880849)
+- [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa)
