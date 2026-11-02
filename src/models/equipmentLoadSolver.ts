@@ -707,10 +707,11 @@ function selectIn(
   const hasConversionTolerance = rounding === "down" && scale.sign === 1 && caller.unit !== setup.unit;
   const roundingTarget = hasConversionTolerance ? loadFor(scale, goal + CONVERSION_TOLERANCE) : loadTarget;
   const warmup = query.warmup;
-  const cap =
+  const workingValue =
     warmup?.firstWorkingWeight != null && !isMirrored
       ? convertExact(warmup.firstWorkingWeight.value, warmup.firstWorkingWeight.unit, setup.unit)
       : undefined;
+  const cap = workingValue != null && goal <= workingValue + EPSILON ? workingValue : undefined;
   const pickers =
     warmup != null && hasWarmupInventory(setup)
       ? [pickerFor(setup, true), pickerFor(setup, false)]

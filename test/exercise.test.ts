@@ -256,6 +256,15 @@ describe("Exercise — warmup rounding", () => {
     expect(warmupWeights(settings, Weight_build(180, "lb"), [{ reps: 3, value: 1, threshold }])).to.eql([145]);
   });
 
+  it("keeps percentage warmups over 100% above the working weight", () => {
+    const settings = Settings_build();
+    const sets: IProgramExerciseWarmupSet[] = [
+      { reps: 1, value: 1, threshold },
+      { reps: 1, value: 1.2, threshold },
+    ];
+    expect(warmupWeights(settings, Weight_build(225, "lb"), sets)).to.eql([225, 270]);
+  });
+
   it("keeps percentage warmups over 100% on negative assistance", () => {
     const settings = Settings_build();
     const sets: IProgramExerciseWarmupSet[] = [
