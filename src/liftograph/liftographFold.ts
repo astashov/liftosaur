@@ -1,4 +1,5 @@
-import { SyntaxNode } from "@lezer/common";
+import { Tree } from "@lezer/common";
+import { LiftographScriptSyntax_calls, LiftographScriptSyntax_pointArity } from "./liftographScriptSyntax";
 import {
   ILiftoscriptBindingValue,
   ILiftoscriptDashboardBindings,
@@ -80,24 +81,6 @@ function templateBindings(environment: ILiftoscriptEnvironment): ILiftoscriptDas
   return bindings;
 }
 
-function fnCalls(node: SyntaxNode, script: string, name: string): SyntaxNode[][] {
-  const calls: SyntaxNode[][] = [];
-  const cursor = node.cursor();
-  do {
-    if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
-      const keyword = cursor.node.firstChild;
-      if (keyword != null && script.slice(keyword.from, keyword.to) === name) {
-        const args: SyntaxNode[] = [];
-        for (let child = keyword.nextSibling; child != null; child = child.nextSibling) {
-          args.push(child);
-        }
-        calls.push(args);
-      }
-    }
-  } while (cursor.next());
-  return calls;
-}
-
 function runner(
   text: string,
   state: IProgramState,
@@ -112,10 +95,10 @@ function runner(
   });
 }
 
-function unknownMuscleGroup(tree: SyntaxNode, text: string, settings: ISettings): ILiftographSpan | undefined {
+function unknownMuscleGroup(tree: Tree, text: string, settings: ISettings): ILiftographSpan | undefined {
   const known = LiftographScriptFns_muscleGroupKeys(settings);
   for (const name of muscleGroupFns) {
-    for (const [arg] of fnCalls(tree, text, name)) {
+    for (const [arg] of LiftographScriptSyntax_calls(tree, text, name)) {
       if (arg?.type.name === NodeName.String && !known.has(text.slice(arg.from + 1, arg.to - 1))) {
         return { from: arg.from, to: arg.to };
       }
@@ -140,14 +123,14 @@ export function LiftographFold_compileScript(
       state[key] = 0;
     }
     const [, tree] = runner(text, state, templateBindings(environment), fns, environment, settings).parse();
-    const arities = new Set(fnCalls(tree.topNode, text, "point").map((args) => args.length));
+    const arities = LiftographScriptSyntax_pointArity(tree, text);
     if (arities.size > 1) {
       return {
         message: "All point() calls in one series must take the same number of arguments",
         span: at({ from: 0, to: text.length }),
       };
     }
-    const unknownGroup = unknownMuscleGroup(tree.topNode, text, settings);
+    const unknownGroup = unknownMuscleGroup(tree, text, settings);
     if (unknownGroup != null) {
       return {
         message: `Unknown muscle group ${text.slice(unknownGroup.from, unknownGroup.to)}`,

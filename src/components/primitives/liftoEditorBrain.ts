@@ -1,4 +1,5 @@
-import { SyntaxNode, Tree, TreeFragment } from "@lezer/common";
+import { SyntaxNode, Tree } from "@lezer/common";
+import { IncrementalParseCache, KeyedParseCache } from "../../utils/incrementalParseCache";
 import { parser } from "../../pages/planner/plannerExerciseParser";
 import { parser as liftoscriptParser } from "../../liftoscript";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
@@ -29,55 +30,15 @@ function nodeText(text: string, node: SyntaxNode): string {
 // is editing (the session creates one, the editor view borrows it) rather than living in
 // the module, so two editors never evict each other's tree and it dies with its owner.
 export class LiftoEditorParseCache {
-  private lastParse: { text: string; tree: Tree } | undefined;
-  // Script bodies are small and repeat across keystrokes (an edit elsewhere leaves them
-  // byte-identical), so a keyed memo covers them; the cap only guards against unbounded
-  // growth over a very long session.
-  private readonly liftoscriptTrees = new Map<string, Tree>();
+  private readonly planner = new IncrementalParseCache(parser);
+  private readonly liftoscript = new KeyedParseCache(liftoscriptParser);
 
-  // Consecutive versions reparse incrementally: the edited span is recovered by
-  // prefix/suffix diff and everything outside it is reused from the previous tree, so
-  // typing cost stays proportional to the edited line, not the document.
   public parse(text: string): Tree {
-    const previous = this.lastParse;
-    if (previous?.text === text) {
-      return previous.tree;
-    }
-    let tree: Tree;
-    if (previous == null) {
-      tree = parser.parse(text);
-    } else {
-      const old = previous.text;
-      let from = 0;
-      const minLength = Math.min(old.length, text.length);
-      while (from < minLength && old.charCodeAt(from) === text.charCodeAt(from)) {
-        from += 1;
-      }
-      let toA = old.length;
-      let toB = text.length;
-      while (toA > from && toB > from && old.charCodeAt(toA - 1) === text.charCodeAt(toB - 1)) {
-        toA -= 1;
-        toB -= 1;
-      }
-      const fragments = TreeFragment.applyChanges(TreeFragment.addTree(previous.tree), [
-        { fromA: from, toA, fromB: from, toB },
-      ]);
-      tree = parser.parse(text, fragments);
-    }
-    this.lastParse = { text, tree };
-    return tree;
+    return this.planner.parse(text);
   }
 
   public parseLiftoscript(source: string): Tree {
-    let tree = this.liftoscriptTrees.get(source);
-    if (tree == null) {
-      if (this.liftoscriptTrees.size > 500) {
-        this.liftoscriptTrees.clear();
-      }
-      tree = liftoscriptParser.parse(source);
-      this.liftoscriptTrees.set(source, tree);
-    }
-    return tree;
+    return this.liftoscript.parse(source);
   }
 }
 
@@ -147,7 +108,7 @@ function liftoscriptNodeStyles(): Partial<Record<string, INodeStyle>> {
 // The Liftoscript planner token includes the {~ ~} delimiters; the liftoscript grammar
 // @skips them, so parsing the raw slice works and the delimiters stay unstyled.
 export function LiftoEditorBrain_pushLiftoscriptRanges(
-  cache: LiftoEditorParseCache,
+  cache: Pick<LiftoEditorParseCache, "parseLiftoscript">,
   text: string,
   from: number,
   to: number,

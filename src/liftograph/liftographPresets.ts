@@ -8,6 +8,9 @@ import {
   LiftographMeasures_workoutDuration,
 } from "./liftographMeasures";
 import { ILiftographRow, ILiftographSource } from "./liftographRows";
+import type { Tree } from "@lezer/common";
+import { parser as liftoscriptParser } from "../liftoscript";
+import { LiftographScriptSyntax_hasError, LiftographScriptSyntax_signature } from "./liftographScriptSyntax";
 
 export type ILiftographPresetName =
   | "maxWeight"
@@ -132,4 +135,27 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
 
 export function LiftographPresets_isName(name: string): name is ILiftographPresetName {
   return Object.prototype.hasOwnProperty.call(liftographPresets, name);
+}
+
+export function LiftographPresets_fromScript(
+  tree: Tree,
+  script: string,
+  sourceType: ILiftographSource["type"]
+): { preset: ILiftographPresetName; arg?: string } | undefined {
+  if (LiftographScriptSyntax_hasError(tree)) {
+    return undefined;
+  }
+  for (const preset of Object.values(liftographPresets)) {
+    if (preset.sources.indexOf(sourceType) === -1) {
+      continue;
+    }
+    const argOf = preset.hasArg ? preset.name : undefined;
+    const presetScript = preset.script(preset.hasArg ? "arg" : undefined);
+    const expected = LiftographScriptSyntax_signature(liftoscriptParser.parse(presetScript), presetScript, argOf);
+    const actual = LiftographScriptSyntax_signature(tree, script, argOf);
+    if (actual.shape === expected.shape) {
+      return actual.arg != null ? { preset: preset.name, arg: actual.arg } : { preset: preset.name };
+    }
+  }
+  return undefined;
 }

@@ -12,10 +12,18 @@ import {
 } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
+import { autocompletion, CompletionContext, CompletionResult, completionKeymap } from "@codemirror/autocomplete";
 import { Diagnostic, setDiagnostics } from "@codemirror/lint";
+import { bracketMatching, foldKeymap, syntaxTree } from "@codemirror/language";
 import { ILiftographDiagnostic } from "../liftograph/liftographDocument";
 import { LiftographEditorAnalysis } from "../liftograph/liftographEditorAnalysis";
-import { LiftographHighlight_clampSpan, LiftographHighlight_cssStyle } from "../liftograph/liftographHighlight";
+import { LiftographLanguage_support, LiftographLanguage_tree } from "../liftograph/liftographLanguage";
+import { LiftographCompletions_editTyped } from "../liftograph/liftographCompletions";
+import {
+  LiftographHighlight_cssStyle,
+  LiftographHighlight_lintSpans,
+  LiftographHighlight_markRanges,
+} from "../liftograph/liftographHighlight";
 
 interface IProps {
   initialText: string;
@@ -25,21 +33,53 @@ interface IProps {
   isFullHeight?: boolean;
 }
 
-function decorations(analysis: LiftographEditorAnalysis, text: string): DecorationSet {
-  const marks: Range<Decoration>[] = analysis
-    .styledRanges(text)
-    .filter((range) => range.end > range.start && range.end <= text.length)
-    .map((range) =>
-      Decoration.mark({ attributes: { style: LiftographHighlight_cssStyle(range) } }).range(range.start, range.end)
-    );
+function decorations(analysis: LiftographEditorAnalysis, state: EditorState): DecorationSet {
+  const text = state.doc.toString();
+  const ranges = analysis.styledRanges(text, LiftographLanguage_tree(state));
+  const marks: Range<Decoration>[] = LiftographHighlight_markRanges(ranges, text.length).map((range) =>
+    Decoration.mark({ attributes: { style: LiftographHighlight_cssStyle(range) } }).range(range.start, range.end)
+  );
   return Decoration.set(marks, true);
 }
 
+function completionSource(
+  analysis: () => LiftographEditorAnalysis
+): (context: CompletionContext) => CompletionResult | null {
+  return (context: CompletionContext): CompletionResult | null => {
+    const { state } = context;
+    const completion = analysis().completions(
+      state.doc.toString(),
+      context.pos,
+      "popup",
+      context.explicit,
+      LiftographLanguage_tree(state)
+    );
+    if (completion == null) {
+      return null;
+    }
+    return {
+      from: completion.match.from,
+      to: completion.match.to,
+      options: completion.options.map((option) => ({
+        label: option.label,
+        detail: option.detail,
+        type: option.type,
+        boost: option.boost,
+        apply: (view: EditorView, _c: unknown, _from: number, to: number) => {
+          const edit = LiftographCompletions_editTyped(completion, option, to);
+          view.dispatch({
+            changes: { from: edit.from, to: edit.to, insert: edit.insert },
+            selection: { anchor: edit.caret },
+            userEvent: "input.complete",
+          });
+        },
+      })),
+    };
+  };
+}
+
 function lintDiagnostics(diagnostics: ILiftographDiagnostic[], textLength: number): Diagnostic[] {
-  return diagnostics.flatMap((d): Diagnostic[] => {
-    const span = LiftographHighlight_clampSpan(d.span, textLength);
-    return span != null ? [{ from: span.from, to: span.to, severity: "error", message: d.message }] : [];
-  });
+  return LiftographHighlight_lintSpans(diagnostics, textLength).map((span) => ({ ...span, severity: "error" }));
 }
 
 export function LiftographCodeEditor(props: IProps): JSX.Element {
@@ -55,11 +95,11 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
       class {
         public decorations: DecorationSet;
         constructor(view: EditorView) {
-          this.decorations = decorations(analysisRef.current, view.state.doc.toString());
+          this.decorations = decorations(analysisRef.current, view.state);
         }
         public update(update: ViewUpdate): void {
-          if (update.docChanged) {
-            this.decorations = decorations(analysisRef.current, update.state.doc.toString());
+          if (update.docChanged || syntaxTree(update.state) !== syntaxTree(update.startState)) {
+            this.decorations = decorations(analysisRef.current, update.state);
           }
         }
       },
@@ -73,7 +113,12 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
           highlightSpecialChars(),
           history(),
           drawSelection(),
-          keymap.of([...defaultKeymap, ...historyKeymap]),
+          LiftographLanguage_support((state) =>
+            analysisRef.current.document(state.doc.toString(), LiftographLanguage_tree(state))
+          ),
+          bracketMatching(),
+          autocompletion({ icons: false, override: [completionSource(() => analysisRef.current)] }),
+          keymap.of([...completionKeymap, ...foldKeymap, ...defaultKeymap, ...historyKeymap]),
           highlight,
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {

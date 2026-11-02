@@ -3,14 +3,14 @@ import { Pressable, View } from "react-native";
 import { Text } from "./primitives/text";
 import { FadeScrollView } from "./fadeScrollView";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
-import { ILiftographPill } from "../liftograph/liftographPills";
+import { ILiftographCompletion, ILiftographCompletionOption } from "../liftograph/liftographCompletions";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { useRem } from "../utils/useRem";
 import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
 
 export function LiftographPillBar(props: {
-  pills: ILiftographPill[];
-  onPress: (pill: ILiftographPill) => void;
+  completion: ILiftographCompletion | undefined;
+  onPress: (option: ILiftographCompletionOption) => void;
   onHideKeyboard: () => void;
 }): JSX.Element | null {
   const iconScale = useRem() / 16;
@@ -25,16 +25,16 @@ export function LiftographPillBar(props: {
       style={{ borderRadius: 12, marginBottom: 4 }}
     >
       <FadeScrollView className="flex-1" contentClassName="gap-2 px-2 py-2 items-center">
-        {props.pills.map((pill) => (
+        {(props.completion?.options ?? []).map((option) => (
           <Pressable
-            key={pill.label}
-            testID={`liftograph-pill-${pill.label}`}
+            key={`${option.label}:${option.insert ?? ""}`}
+            testID={`liftograph-pill-${option.label}`}
             className="px-3 py-1.5"
             style={{ borderRadius: 8, backgroundColor: hue.logicbg, borderWidth: 1, borderColor: hue.logicbd }}
-            onPress={() => props.onPress(pill)}
+            onPress={() => props.onPress(option)}
           >
             <Text className="text-xs font-bold" numberOfLines={1} style={{ color: hue.logicfg }}>
-              {pill.label}
+              {option.display ?? option.label}
             </Text>
           </Pressable>
         ))}

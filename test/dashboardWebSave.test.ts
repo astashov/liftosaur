@@ -1,6 +1,8 @@
 import "mocha";
 import { expect } from "chai";
 import {
+  DashboardWebSave_blank,
+  DashboardWebSave_copy,
   DashboardWebSave_create,
   DashboardWebSave_delete,
   DashboardWebSave_isDirty,
@@ -91,5 +93,15 @@ describe("DashboardWebSave", () => {
     expect(DashboardWebSave_isDirty({ name: "a", text: "t" }, { name: "a", text: "t" })).to.equal(false);
     expect(DashboardWebSave_isDirty({ name: "a", text: "t" }, { name: "b", text: "t" })).to.equal(true);
     expect(DashboardWebSave_isDirty({ name: "a", text: "t" }, { name: "a", text: "u" })).to.equal(true);
+  });
+
+  it("builds a blank dashboard and a named copy with the given id", () => {
+    expect(DashboardWebSave_blank("n")).to.eql({ vtype: "dashboard", id: "n", name: "New Dashboard", text: "" });
+    expect(DashboardWebSave_copy(dashboard("a", "graph"), "c")).to.eql({
+      vtype: "dashboard",
+      id: "c",
+      name: "a Copy",
+      text: "graph",
+    });
   });
 });

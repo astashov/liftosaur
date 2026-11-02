@@ -1,7 +1,12 @@
 import "mocha";
 import { expect } from "chai";
 import { LiftographDocument_parse } from "../src/liftograph/liftographDocument";
-import { LiftographHighlight_styledRanges, LiftographHighlight_tokens } from "../src/liftograph/liftographHighlight";
+import {
+  LiftographHighlight_lintSpans,
+  LiftographHighlight_markRanges,
+  LiftographHighlight_styledRanges,
+  LiftographHighlight_tokens,
+} from "../src/liftograph/liftographHighlight";
 import { LiftoEditorParseCache } from "../src/components/primitives/liftoEditorBrain";
 
 function tokensOf(text: string): string[] {
@@ -9,6 +14,21 @@ function tokensOf(text: string): string[] {
 }
 
 describe("LiftographHighlight", () => {
+  it("drops empty and out-of-bounds mark ranges", () => {
+    const ranges = [
+      { start: 0, end: 3 },
+      { start: 2, end: 2 },
+      { start: 4, end: 9 },
+    ];
+    expect(LiftographHighlight_markRanges(ranges, 5)).to.eql([{ start: 0, end: 3 }]);
+  });
+
+  it("clamps diagnostics into the text, and drops them for an empty text", () => {
+    const diagnostics = [{ message: "bad", span: { from: 8, to: 12 } }];
+    expect(LiftographHighlight_lintSpans(diagnostics, 5)).to.eql([{ from: 4, to: 5, message: "bad" }]);
+    expect(LiftographHighlight_lintSpans(diagnostics, 0)).to.eql([]);
+  });
+
   it("marks the kind, keys and values of a widget line", () => {
     expect(tokensOf("value / name: Squat / source: exercise(Squat)")).to.eql([
       "kind:value",
@@ -34,7 +54,8 @@ describe("LiftographHighlight", () => {
   it("colours script tokens through the Liftoscript highlighter and tints errors", () => {
     const text = "graph {\n  name: A / source: exercise(Squat) {~ point(1) ~}\n}";
     const doc = LiftographDocument_parse(text);
-    const ranges = LiftographHighlight_styledRanges(doc, new LiftoEditorParseCache(), [
+    const cache = new LiftoEditorParseCache();
+    const ranges = LiftographHighlight_styledRanges(doc, (script) => cache.parseLiftoscript(script), [
       { message: "bad", span: { from: 0, to: 5 } },
     ]);
     const scriptFrom = text.indexOf("point");

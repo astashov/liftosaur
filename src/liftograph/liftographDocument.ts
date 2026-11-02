@@ -1,13 +1,36 @@
+import { SyntaxNode, Tree } from "@lezer/common";
+import { parser } from "./liftographParser";
+import * as T from "./liftographParser.terms";
+
 export interface ILiftographSpan {
   from: number;
   to: number;
 }
 
+export type ILiftographAtomKind = "identifier" | "number" | "duration" | "word";
+
+export interface ILiftographAtom {
+  kind: ILiftographAtomKind;
+  text: string;
+  span: ILiftographSpan;
+}
+
+export type ILiftographValue =
+  | { type: "atoms"; atoms: ILiftographAtom[]; span: ILiftographSpan }
+  | { type: "quoted"; content: string; contentSpan: ILiftographSpan; isClosed: boolean; span: ILiftographSpan }
+  | { type: "call"; name: ILiftographAtom; args: ILiftographArg[]; isClosed: boolean; span: ILiftographSpan }
+  | { type: "list"; items: ILiftographAtom[]; span: ILiftographSpan };
+
+export type ILiftographArg =
+  | { type: "named"; key: ILiftographAtom; value?: ILiftographValue; span: ILiftographSpan }
+  | { type: "positional"; value: ILiftographValue; span: ILiftographSpan };
+
 export interface ILiftographPair {
   key: string;
-  value: string;
+  keySpan: ILiftographSpan;
+  hasColon: boolean;
+  value?: ILiftographValue;
   span: ILiftographSpan;
-  valueSpan: ILiftographSpan;
 }
 
 export interface ILiftographScriptNode {
@@ -19,6 +42,7 @@ export interface ILiftographScriptNode {
 export interface ILiftographSeriesNode {
   pairs: ILiftographPair[];
   script?: ILiftographScriptNode;
+  syntaxError?: ILiftographDiagnostic;
   span: ILiftographSpan;
 }
 
@@ -31,11 +55,13 @@ export interface ILiftographTextItem {
 export interface ILiftographWidgetItem {
   type: "widget";
   kind: string;
+  kindSpan: ILiftographSpan;
   pairs: ILiftographPair[];
   script?: ILiftographScriptNode;
   series: ILiftographSeriesNode[];
   hasBlock: boolean;
   caption?: ILiftographTextItem;
+  syntaxError?: ILiftographDiagnostic;
   span: ILiftographSpan;
 }
 
@@ -51,20 +77,25 @@ export interface ILiftographDiagnostic {
   span: ILiftographSpan;
 }
 
+export type ILiftographLineOwner = "top" | "row" | "graph" | "skip";
+
+export interface ILiftographLine {
+  span: ILiftographSpan;
+  owner: ILiftographLineOwner;
+  widget?: ILiftographWidgetItem;
+}
+
 export interface ILiftographDocument {
   text: string;
+  tree: Tree;
   items: (ILiftographWidgetItem | ILiftographTextItem | ILiftographRowItem)[];
+  lines: ILiftographLine[];
   hiddenSpans: ILiftographSpan[];
   diagnostics: ILiftographDiagnostic[];
 }
 
-interface ILogicalLine {
-  span: ILiftographSpan;
-  head: string;
-  headFrom: number;
-  script?: ILiftographScriptNode;
-  isScriptClosed: boolean;
-}
+const CAPTION_MARK = "//";
+const SPACED_CAPTION_MARK = "// ";
 
 type IFrame =
   | { type: "row"; row: ILiftographRowItem; openSpan: ILiftographSpan; owner: ILiftographSpan }
@@ -76,175 +107,227 @@ interface IPendingText {
   span: ILiftographSpan;
 }
 
-function skipQuoted(text: string, from: number): number {
-  let i = from + 1;
-  while (i < text.length && text[i] !== "\n") {
-    if (text[i] === "\\") {
-      i += 2;
-    } else if (text[i] === '"') {
-      return i + 1;
-    } else {
-      i += 1;
-    }
-  }
-  return i;
+interface IPhysicalLine {
+  span: ILiftographSpan;
+  node?: SyntaxNode;
+  errors: SyntaxNode[];
+  extras: SyntaxNode[];
 }
 
-const LINE_CONTINUATION = /\\[ \t]*\n/g;
+function spanOf(node: SyntaxNode): ILiftographSpan {
+  return { from: node.from, to: node.to };
+}
 
-function readLogicalLines(text: string): ILogicalLine[] {
-  const lines: ILogicalLine[] = [];
-  let lineStart = 0;
-  while (lineStart <= text.length) {
-    let i = lineStart;
-    let script: ILiftographScriptNode | undefined;
-    let isScriptClosed = true;
-    let headEnd: number | undefined;
-    const trimmedStart = text.slice(lineStart).match(/^[ \t]*/)?.[0].length ?? 0;
-    const isComment = text.startsWith("//", lineStart + trimmedStart);
-    while (i < text.length) {
-      if (text[i] === "\n") {
-        if (!isComment && script == null && text.slice(lineStart, i).trimEnd().endsWith("\\")) {
-          i += 1;
-          continue;
-        }
-        break;
-      }
-      if (!isComment && text[i] === '"') {
-        i = skipQuoted(text, i);
-      } else if (!isComment && text.startsWith("{~", i)) {
-        headEnd = i;
-        const close = text.indexOf("~}", i + 2);
-        const textFrom = i + 2;
-        const textTo = close === -1 ? text.length : close;
-        const scriptTo = close === -1 ? text.length : close + 2;
-        isScriptClosed = close !== -1;
-        script = {
-          text: text.slice(textFrom, textTo),
-          span: { from: i, to: scriptTo },
-          textSpan: { from: textFrom, to: textTo },
-        };
-        i = scriptTo;
-        while (i < text.length && text[i] !== "\n") {
-          i += 1;
-        }
-      } else {
-        i += 1;
-      }
-    }
-    const lineEnd = i;
-    const head = text
-      .slice(lineStart, headEnd ?? lineEnd)
-      .replace(LINE_CONTINUATION, (continuation) => " ".repeat(continuation.length));
-    lines.push({ span: { from: lineStart, to: lineEnd }, head, headFrom: lineStart, script, isScriptClosed });
-    lineStart = lineEnd + 1;
+function children(node: SyntaxNode): SyntaxNode[] {
+  const result: SyntaxNode[] = [];
+  for (let child = node.firstChild; child != null; child = child.nextSibling) {
+    result.push(child);
   }
+  return result;
+}
+
+function atomKind(node: SyntaxNode): ILiftographAtomKind | undefined {
+  switch (node.type.id) {
+    case T.Identifier:
+      return "identifier";
+    case T.Number:
+      return "number";
+    case T.Duration:
+      return "duration";
+    case T.Word:
+      return "word";
+    default:
+      return undefined;
+  }
+}
+
+function atomsOf(text: string, node: SyntaxNode): ILiftographAtom[] {
+  return children(node).flatMap((child): ILiftographAtom[] => {
+    if (child.type.id === T.Group || child.type.id === T.ArgAtoms) {
+      return atomsOf(text, child);
+    }
+    const kind = child.type.id === T.OpenParen || child.type.id === T.CloseParen ? "word" : atomKind(child);
+    return kind != null ? [{ kind, text: text.slice(child.from, child.to), span: spanOf(child) }] : [];
+  });
+}
+
+function quotePiece(text: string, node: SyntaxNode): string {
+  if (node.type.id === T.QuoteText) {
+    return text.slice(node.from, node.to);
+  }
+  return node.type.id === T.Escape ? text.slice(node.from + 1, node.to) : "";
+}
+
+function quotedValue(text: string, node: SyntaxNode): ILiftographValue {
+  const open = node.getChild(T.QuoteOpen);
+  const close = node.getChild(T.QuoteClose);
+  return {
+    type: "quoted",
+    content: children(node)
+      .map((child) => quotePiece(text, child))
+      .join(""),
+    contentSpan: { from: open?.to ?? node.from, to: close?.from ?? node.to },
+    isClosed: close != null,
+    span: spanOf(node),
+  };
+}
+
+function argValue(text: string, node: SyntaxNode): ILiftographValue | undefined {
+  const inner = node.firstChild;
+  if (inner == null) {
+    return undefined;
+  }
+  if (inner.type.id === T.Quoted) {
+    return quotedValue(text, inner);
+  }
+  return { type: "atoms", atoms: atomsOf(text, inner), span: spanOf(inner) };
+}
+
+function callValue(text: string, node: SyntaxNode): ILiftographValue {
+  const nameNode = node.getChild(T.Identifier);
+  const args = node.getChildren(T.Arg).flatMap((arg): ILiftographArg[] => {
+    const named = arg.getChild(T.NamedArg);
+    if (named != null) {
+      const keyNode = named.getChild(T.Key);
+      const valueNode = named.getChild(T.ArgValue);
+      if (keyNode == null) {
+        return [];
+      }
+      return [
+        {
+          type: "named",
+          key: { kind: "identifier", text: text.slice(keyNode.from, keyNode.to), span: spanOf(keyNode) },
+          value: valueNode != null ? argValue(text, valueNode) : undefined,
+          span: spanOf(arg),
+        },
+      ];
+    }
+    const positional = arg.getChild(T.ArgValue);
+    const value = positional != null ? argValue(text, positional) : undefined;
+    return value != null ? [{ type: "positional", value, span: spanOf(arg) }] : [];
+  });
+  return {
+    type: "call",
+    name: {
+      kind: "identifier",
+      text: nameNode != null ? text.slice(nameNode.from, nameNode.to) : "",
+      span: nameNode != null ? spanOf(nameNode) : { from: node.from, to: node.from },
+    },
+    args,
+    isClosed: node.getChild(T.CloseParen) != null,
+    span: spanOf(node),
+  };
+}
+
+function valueOf(text: string, node: SyntaxNode): ILiftographValue | undefined {
+  const inner = node.firstChild;
+  if (inner == null) {
+    return undefined;
+  }
+  switch (inner.type.id) {
+    case T.Call:
+      return callValue(text, inner);
+    case T.Quoted:
+      return quotedValue(text, inner);
+    case T.List:
+      return { type: "list", items: atomsOf(text, inner), span: spanOf(inner) };
+    case T.Atoms:
+      return { type: "atoms", atoms: atomsOf(text, inner), span: spanOf(inner) };
+    default:
+      return undefined;
+  }
+}
+
+function pairOf(text: string, node: SyntaxNode): ILiftographPair | undefined {
+  const keyNode = node.getChild(T.Key);
+  if (keyNode == null) {
+    return undefined;
+  }
+  const valueNode = node.getChild(T.Value);
+  return {
+    key: text.slice(keyNode.from, keyNode.to),
+    keySpan: spanOf(keyNode),
+    hasColon: node.getChild(T.Colon) != null,
+    value: valueNode != null ? valueOf(text, valueNode) : undefined,
+    span: spanOf(node),
+  };
+}
+
+function scriptOf(text: string, node: SyntaxNode): { script: ILiftographScriptNode; isClosed: boolean } {
+  const body = node.getChild(T.ScriptBody);
+  const open = node.getChild(T.ScriptOpen);
+  const close = node.getChild(T.ScriptClose);
+  const bodyFrom = body?.from ?? open?.to ?? node.from;
+  const bodyTo = body?.to ?? close?.from ?? (close == null ? text.length : bodyFrom);
+  const to = close != null ? close.to : text.length;
+  return {
+    script: {
+      text: text.slice(bodyFrom, bodyTo),
+      span: { from: node.from, to },
+      textSpan: { from: bodyFrom, to: bodyTo },
+    },
+    isClosed: close != null,
+  };
+}
+
+function physicalLines(text: string, tree: Tree): IPhysicalLine[] {
+  const lines: IPhysicalLine[] = [];
+  let current: IPhysicalLine = { span: { from: 0, to: text.length }, errors: [], extras: [] };
+  for (const node of children(tree.topNode)) {
+    if (node.type.id === T.LineBreak) {
+      current.span.to = node.from;
+      lines.push(current);
+      current = { span: { from: node.to, to: text.length }, errors: [], extras: [] };
+    } else if (node.type.id === T.Line) {
+      if (current.node == null) {
+        current.node = node;
+      } else {
+        current.extras.push(node);
+      }
+    } else if (node.type.isError) {
+      current.errors.push(node);
+    }
+  }
+  lines.push(current);
   return lines;
 }
 
-function splitOutsideQuotes(text: string, separator: string, from: number): { part: string; from: number }[] {
-  const parts: { part: string; from: number }[] = [];
-  let depth = 0;
-  let start = 0;
-  let i = 0;
-  while (i < text.length) {
-    const char = text[i];
-    if (char === '"') {
-      i = skipQuoted(text, i);
-      continue;
+function lineErrors(node: SyntaxNode): SyntaxNode[] {
+  return children(node).flatMap((child) => {
+    if (child.type.id === T.Script || child.type.id === T.Quoted) {
+      return [];
     }
-    if (char === "(") {
-      depth += 1;
-    } else if (char === ")") {
-      depth = Math.max(0, depth - 1);
-    } else if (char === separator && depth === 0) {
-      parts.push({ part: text.slice(start, i), from: from + start });
-      start = i + 1;
-    }
-    i += 1;
-  }
-  parts.push({ part: text.slice(start), from: from + start });
-  return parts;
-}
-
-function indexOutsideQuotes(text: string, char: string): number {
-  let i = 0;
-  while (i < text.length) {
-    if (text[i] === '"') {
-      i = skipQuoted(text, i);
-      continue;
-    }
-    if (text[i] === char) {
-      return i;
-    }
-    i += 1;
-  }
-  return -1;
-}
-
-function trimmedSpan(part: string, from: number): { text: string; span: ILiftographSpan } {
-  const leading = part.length - part.trimStart().length;
-  const trimmed = part.trim();
-  return { text: trimmed, span: { from: from + leading, to: from + leading + trimmed.length } };
-}
-
-function parsePair(part: string, from: number): ILiftographPair | undefined {
-  const { text, span } = trimmedSpan(part, from);
-  const colon = indexOutsideQuotes(text, ":");
-  if (colon <= 0) {
-    return undefined;
-  }
-  const key = text.slice(0, colon).trim();
-  const rawValue = text.slice(colon + 1);
-  const value = trimmedSpan(rawValue, span.from + colon + 1);
-  return { key, value: value.text, span, valueSpan: value.span };
-}
-
-interface ISplitHead {
-  first?: { text: string; span: ILiftographSpan };
-  pairs: ILiftographPair[];
-  badParts: ILiftographSpan[];
-  opensBlock: boolean;
-}
-
-function splitHead(head: string, headFrom: number, isFirstKind: boolean): ISplitHead {
-  let body = head.trimEnd();
-  let opensBlock = false;
-  if (body.endsWith("{") && indexOutsideQuotes(body, "{") === body.length - 1) {
-    opensBlock = true;
-    body = body.slice(0, -1);
-  }
-  const parts = splitOutsideQuotes(body, "/", headFrom);
-  const pairs: ILiftographPair[] = [];
-  const badParts: ILiftographSpan[] = [];
-  let first: { text: string; span: ILiftographSpan } | undefined;
-  parts.forEach((part, index) => {
-    if (index === 0 && isFirstKind) {
-      first = trimmedSpan(part.part, part.from);
-      return;
-    }
-    const trimmed = trimmedSpan(part.part, part.from);
-    if (trimmed.text === "") {
-      return;
-    }
-    const pair = parsePair(part.part, part.from);
-    if (pair == null) {
-      badParts.push(trimmed.span);
-    } else {
-      pairs.push(pair);
-    }
+    return child.type.isError ? [child, ...lineErrors(child)] : lineErrors(child);
   });
-  return { first, pairs, badParts, opensBlock };
 }
 
-function isKindLine(head: string): boolean {
-  const body = head.trim();
-  const firstPart = splitOutsideQuotes(body, "/", 0)[0]?.part.trim() ?? "";
-  return /^[A-Za-z_][A-Za-z0-9_]*(\s*\{)?$/.test(firstPart);
+function opensBlockAnywhere(tree: Tree, span: ILiftographSpan): boolean {
+  let found = false;
+  tree.iterate({
+    from: span.from,
+    to: span.to,
+    enter: (node) => {
+      if (node.type.id === T.Script || found) {
+        return false;
+      }
+      if (node.type.id === T.BlockOpen && node.from >= span.from && node.to <= span.to) {
+        found = true;
+      }
+      return undefined;
+    },
+  });
+  return found;
 }
 
-export function LiftographDocument_parse(text: string): ILiftographDocument {
+function errorSpan(node: SyntaxNode, line: ILiftographSpan): ILiftographSpan {
+  return node.to > node.from
+    ? spanOf(node)
+    : { from: Math.max(line.from, node.from - 1), to: Math.max(node.from, line.from + 1) };
+}
+
+export function LiftographDocument_parse(text: string, tree: Tree = parser.parse(text)): ILiftographDocument {
   const items: ILiftographDocument["items"] = [];
+  const lines: ILiftographLine[] = [];
   const hiddenSpans: ILiftographSpan[] = [];
   const diagnostics: ILiftographDiagnostic[] = [];
   const stack: IFrame[] = [];
@@ -261,6 +344,16 @@ export function LiftographDocument_parse(text: string): ILiftographDocument {
 
   function isSkipping(): boolean {
     return stack.some((frame) => frame.type === "skip");
+  }
+
+  function owner(): ILiftographLine {
+    const top = stack[stack.length - 1];
+    if (isSkipping()) {
+      return { span: { from: 0, to: 0 }, owner: "skip" };
+    } else if (top?.type === "graph") {
+      return { span: { from: 0, to: 0 }, owner: "graph", widget: top.widget };
+    }
+    return { span: { from: 0, to: 0 }, owner: top?.type === "row" ? "row" : "top" };
   }
 
   function takeText(): ILiftographTextItem | undefined {
@@ -294,102 +387,147 @@ export function LiftographDocument_parse(text: string): ILiftographDocument {
     }
   }
 
-  for (const line of readLogicalLines(text)) {
-    const trimmed = line.head.trim();
-    if (!line.isScriptClosed && line.script != null) {
-      error("The script has no closing '~}'", line.script.span);
+  function closeFrame(span: ILiftographSpan): void {
+    const frame = stack.pop();
+    if (frame == null) {
+      error("This '}' closes nothing", span);
+    } else if (frame.owner != null) {
+      frame.owner.to = span.to;
     }
-    if (line.script == null && trimmed.startsWith("///")) {
-      hiddenSpans.push(line.span);
-      continue;
+  }
+
+  function textLine(node: SyntaxNode, span: ILiftographSpan): void {
+    const markOpen = node.getChild(T.SpacedCaption) != null ? SPACED_CAPTION_MARK : CAPTION_MARK;
+    const markdown = text.slice(node.from + markOpen.length, node.to);
+    if (pendingText == null) {
+      pendingText = { lines: [markdown], span: { ...span } };
+    } else {
+      pendingText.lines.push(markdown);
+      pendingText.span.to = span.to;
     }
-    if (isSkipping()) {
-      if (line.script == null && trimmed === "}") {
-        const frame = stack.pop();
-        if (frame?.owner != null) {
-          frame.owner.to = line.span.to;
-        }
-      } else if (line.script == null && trimmed.endsWith("{")) {
-        stack.push({ type: "skip", openSpan: line.span });
-      }
-      continue;
-    }
-    if (line.script == null && trimmed.startsWith("//")) {
-      const markdown = trimmed.slice(2).replace(/^ /, "");
-      if (pendingText == null) {
-        pendingText = { lines: [markdown], span: { ...line.span } };
-      } else {
-        pendingText.lines.push(markdown);
-        pendingText.span.to = line.span.to;
-      }
-      continue;
-    }
-    if (line.script == null && trimmed === "") {
-      flushTextAsItem();
-      continue;
-    }
-    if (line.script == null && trimmed === "}") {
-      flushTextAsItem();
-      const frame = stack.pop();
-      if (frame == null) {
-        error("This '}' closes nothing", line.span);
-      } else if (frame.owner != null) {
-        frame.owner.to = line.span.to;
-      }
-      continue;
-    }
-    if (line.script == null && /^row\s*\{$/.test(trimmed)) {
+  }
+
+  function fieldLine(node: SyntaxNode, line: IPhysicalLine): void {
+    const span = line.span;
+    const head = node.getChild(T.Head);
+    const headPair = head != null ? pairOf(text, head) : undefined;
+    const fields = node.getChildren(T.Field).flatMap((field) => {
+      const pair = pairOf(text, field);
+      return pair != null ? [pair] : [];
+    });
+    const scriptNode = node.getChild(T.Script);
+    const parsedScript = scriptNode != null ? scriptOf(text, scriptNode) : undefined;
+    const opensBlock = node.getChild(T.BlockOpen) != null;
+    const isKindHead = headPair != null && !headPair.hasColon;
+    const found: ILiftographDiagnostic[] = [
+      ...(parsedScript != null && !parsedScript.isClosed
+        ? [{ message: "The script has no closing '~}'", span: parsedScript.script.span }]
+        : []),
+      ...fields.filter((f) => !f.hasColon).map((f) => ({ message: "Expected 'key: value'", span: f.span })),
+      ...[...line.errors, ...lineErrors(node)].map((bad) => ({
+        message: "Expected 'key: value'",
+        span: errorSpan(bad, span),
+      })),
+      ...line.extras.map((extra) => ({ message: "Unexpected text at the end of the line", span: spanOf(extra) })),
+    ];
+    const syntaxErrors = (): ILiftographDiagnostic | undefined => {
+      diagnostics.push(...found);
+      return found[0];
+    };
+    if (isKindHead && headPair.key === "row" && opensBlock && fields.length === 0 && found.length === 0) {
       const caption = takeText();
       if (stack.length > 0) {
-        error("A row can't be inside another row or a graph", line.span);
-        stack.push({ type: "skip", openSpan: line.span });
-        continue;
+        error("A row can't be inside another row or a graph", span);
+        stack.push({ type: "skip", openSpan: span });
+        return;
       }
-      const row: ILiftographRowItem = { type: "row", items: [], caption, span: { ...line.span } };
+      const row: ILiftographRowItem = { type: "row", items: [], caption, span: { ...span } };
       items.push(row);
-      stack.push({ type: "row", row, openSpan: line.span, owner: row.span });
-      continue;
+      stack.push({ type: "row", row, openSpan: span, owner: row.span });
+      return;
     }
     const top = stack[stack.length - 1];
     if (top?.type === "graph") {
       takeText();
-      if (isKindLine(line.head)) {
-        error("Expected a series line, like 'name: Squat / source: exercise(Squat)'", line.span);
-        continue;
+      if (isKindHead) {
+        error("Expected a series line, like 'name: Squat / source: exercise(Squat)'", span);
+        return;
       }
-      const head = splitHead(line.head, line.headFrom, false);
-      head.badParts.forEach((span) => error("Expected 'key: value'", span));
-      if (head.opensBlock) {
-        error("A series line can't open a block", line.span);
+      const syntaxError = syntaxErrors();
+      if (opensBlock) {
+        error("A series line can't open a block", span);
       }
-      top.widget.series.push({ pairs: head.pairs, script: line.script, span: line.span });
-      continue;
+      top.widget.series.push({
+        pairs: [...(headPair != null ? [headPair] : []), ...fields],
+        script: parsedScript?.script,
+        syntaxError,
+        span,
+      });
+      return;
     }
-    if (!isKindLine(line.head)) {
+    if (!isKindHead) {
       takeText();
-      error("Expected a widget, like 'graph {' or 'value / source: workout'", line.span);
-      continue;
+      error("Expected a widget, like 'graph {' or 'value / source: workout'", span);
+      return;
     }
-    const head = splitHead(line.head, line.headFrom, true);
-    head.badParts.forEach((span) => error("Expected 'key: value'", span));
+    const syntaxError = syntaxErrors();
     const caption = takeText();
     const widget: ILiftographWidgetItem = {
       type: "widget",
-      kind: head.first?.text ?? "",
-      pairs: head.pairs,
-      script: line.script,
+      kind: headPair.key,
+      kindSpan: headPair.keySpan,
+      pairs: fields,
+      script: parsedScript?.script,
       series: [],
-      hasBlock: head.opensBlock,
+      hasBlock: opensBlock,
       caption,
-      span: { ...line.span },
+      syntaxError,
+      span: { ...span },
     };
     addWidget(widget);
-    if (head.opensBlock) {
+    if (opensBlock) {
       if (widget.kind === "graph") {
-        stack.push({ type: "graph", widget, openSpan: line.span, owner: widget.span });
+        stack.push({ type: "graph", widget, openSpan: span, owner: widget.span });
       } else {
-        stack.push({ type: "skip", openSpan: line.span, owner: widget.span });
+        stack.push({ type: "skip", openSpan: span, owner: widget.span });
       }
+    }
+  }
+
+  for (const line of physicalLines(text, tree)) {
+    lines.push({ ...owner(), span: line.span });
+    const node = line.node?.firstChild;
+    if (node?.type.id === T.HiddenLine) {
+      hiddenSpans.push(line.span);
+      continue;
+    }
+    if (isSkipping()) {
+      if (node?.type.id === T.CloseLine) {
+        closeFrame(line.span);
+      } else if (opensBlockAnywhere(tree, line.span)) {
+        stack.push({ type: "skip", openSpan: line.span });
+      }
+      continue;
+    }
+    if (node == null) {
+      if (line.errors.length > 0) {
+        takeText();
+        error("Expected a widget, like 'graph {' or 'value / source: workout'", line.span);
+      } else {
+        flushTextAsItem();
+      }
+      continue;
+    }
+    if (node.type.id === T.TextLine) {
+      textLine(node, line.span);
+    } else if (node.type.id === T.CloseLine) {
+      flushTextAsItem();
+      closeFrame(line.span);
+      for (const extra of [...line.errors, ...line.extras]) {
+        error("Unexpected text at the end of the line", errorSpan(extra, line.span));
+      }
+    } else if (node.type.id === T.FieldLine) {
+      fieldLine(node, line);
     }
   }
   flushTextAsItem();
@@ -399,7 +537,50 @@ export function LiftographDocument_parse(text: string): ILiftographDocument {
       frame.owner.to = text.length;
     }
   }
-  return { text, items, hiddenSpans, diagnostics };
+  return { text, tree, items, lines, hiddenSpans, diagnostics };
+}
+
+export function LiftographDocument_lineAt(doc: ILiftographDocument, pos: number): ILiftographLine | undefined {
+  let lo = 0;
+  let hi = doc.lines.length - 1;
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    const line = doc.lines[mid];
+    if (pos < line.span.from) {
+      hi = mid - 1;
+    } else if (pos > line.span.to) {
+      lo = mid + 1;
+    } else {
+      return line;
+    }
+  }
+  return undefined;
+}
+
+function joinAtoms(atoms: ILiftographAtom[]): string {
+  return atoms.reduce(
+    (memo, atom, i) => memo + (i > 0 && atoms[i - 1].span.to < atom.span.from ? " " : "") + atom.text,
+    ""
+  );
+}
+
+export function LiftographDocument_valueText(value: ILiftographValue): string {
+  switch (value.type) {
+    case "atoms":
+      return joinAtoms(value.atoms);
+    case "quoted":
+      return value.content;
+    case "list":
+      return value.items.map((atom) => atom.text).join(", ");
+    case "call": {
+      const args = value.args.map((arg) =>
+        arg.type === "named"
+          ? `${arg.key.text}: ${arg.value != null ? LiftographDocument_valueText(arg.value) : ""}`
+          : LiftographDocument_valueText(arg.value)
+      );
+      return `${value.name.text}(${args.join(", ")}${value.isClosed ? ")" : ""}`;
+    }
+  }
 }
 
 export function LiftographDocument_scripts(doc: ILiftographDocument): ILiftographScriptNode[] {
@@ -412,21 +593,4 @@ export function LiftographDocument_scripts(doc: ILiftographDocument): ILiftograp
         ]
       : []
   );
-}
-
-export function LiftographDocument_quote(value: string): string {
-  return /[,/():{}"\\]/.test(value) ? `"${value.replace(/(["\\])/g, "\\$1")}"` : value;
-}
-
-export function LiftographDocument_unquote(value: string): string {
-  if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
-    return value.slice(1, -1).replace(/\\(["\\])/g, "$1");
-  }
-  return value;
-}
-
-export function LiftographDocument_splitArgs(value: string): string[] {
-  return splitOutsideQuotes(value, ",", 0)
-    .map((part) => part.part.trim())
-    .filter((part) => part !== "");
 }

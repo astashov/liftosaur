@@ -95,17 +95,30 @@ describe("LiftographCompile_document", () => {
     expect(text.slice(diagnostic.span.from, diagnostic.span.to)).to.equal('"chestt"');
   });
 
-  it("turns unknown kinds, keys, sources and presets into an unsupported widget with no error", () => {
-    const { layout, diagnostics } = compile(
-      "table / source: workout\nvalue / source: workout / color2: red\nvalue / source: health(sleep)\nvalue / source: workout / y: readiness"
-    );
-    expect(diagnostics).to.deep.equal([]);
+  it("turns unknown kinds, keys, sources and presets into an unsupported widget, and marks what it didn't know", () => {
+    const text =
+      "table / source: workout\nvalue / source: workout / color2: red\nvalue / source: health(sleep)\nvalue / source: workout / y: readiness";
+    const { layout, diagnostics } = compile(text);
+    expect(diagnostics.map((d) => [d.message, text.slice(d.span.from, d.span.to)])).to.deep.equal([
+      ["Unknown widget 'table'", "table / source: workout"],
+      ["Unknown key 'color2'", "color2: red"],
+      ["Unknown source 'health'", "health(sleep)"],
+      ["Unknown preset 'readiness'", "readiness"],
+    ]);
     expect(layout.map((row) => row.items[0].kind)).to.deep.equal([
       "unsupported",
       "unsupported",
       "unsupported",
       "unsupported",
     ]);
+  });
+
+  it("marks only the series with an unknown key, and keeps the rest of the graph", () => {
+    const text = "graph {\n  name: Squat / source: exercise(Squat) / rnage: 1y\n  name: BW / source: stats(weight)\n}";
+    const { layout, diagnostics } = compile(text);
+    const graph = layout[0].items[0];
+    expect(graph.kind === "graph" ? graph.series.map((s) => s.status) : []).to.deep.equal(["invalid", "ready"]);
+    expect(diagnostics.map((d) => text.slice(d.span.from, d.span.to))).to.deep.equal(["rnage: 1y"]);
   });
 
   it("reports wrong combinations on their line", () => {
@@ -168,5 +181,35 @@ describe("LiftographCompile_document", () => {
     const { layout } = compile("// ## This week\nrow {\n  // **Workouts**\n  value / source: workout\n}");
     expect(layout[0].caption).to.equal("## This week");
     expect(layout[0].items[0].caption).to.equal("**Workouts**");
+  });
+
+  it("never runs a line with a syntax error", () => {
+    const widget = compile("value / source: workout {~ point(1)").layout[0].items[0];
+    expect(widget).to.deep.include({ kind: "error", message: "The script has no closing '~}'" });
+    const [series] = graphSeries("graph {\n  name: A / source: workout {~ point(1) ~} / x\n}");
+    expect(series.status).to.equal("invalid");
+  });
+
+  it("reads day: as a number only for a whole number", () => {
+    const days = ["2", '"2"', "1.5"].map((day) => {
+      const widget = compile(`value / source: workout(day: ${day})`).layout[0].items[0];
+      return widget.kind === "value" && widget.series.source.type === "workout" ? widget.series.source.day : undefined;
+    });
+    expect(days).to.deep.equal([2, "2", "1.5"]);
+  });
+
+  it("takes exactly one muscle group in muscleSets()", () => {
+    const widget = compile("value / source: workout / y: muscleSets(chest, back)").layout[0].items[0];
+    expect(widget).to.deep.include({
+      kind: "error",
+      message: "'muscleSets' takes one muscle group, like muscleSets(chest)",
+    });
+  });
+
+  it("reads a quoted exercise name with a comma as one name", () => {
+    const widget = compile('value / source: exercise("Squat, Barbell")').layout[0].items[0];
+    expect(widget).to.deep.include({ kind: "error", message: "Unknown exercise 'Squat, Barbell'" });
+    const split = compile("value / source: exercise(Squat, Barbell)").layout[0].items[0];
+    expect(split.kind).to.equal("value");
   });
 });

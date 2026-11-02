@@ -840,6 +840,9 @@ export class Service {
 
   public async getFullHistory(): Promise<IHistoryRecord[]> {
     const firstPage = await this.getHistory({ limit: 20 });
+    if (!Array.isArray(firstPage)) {
+      throw new Error("Failed to fetch history");
+    }
     return this.getAllHistoryRecords({ alreadyFetchedHistory: firstPage, historyLimit: 20 });
   }
 

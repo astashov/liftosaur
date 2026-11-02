@@ -106,6 +106,14 @@ export function DashboardWebSave_rowWrites(
   return { toPut, idsToDelete };
 }
 
+export function DashboardWebSave_blank(id: string): IDashboard {
+  return { vtype: "dashboard", id, name: "New Dashboard", text: "" };
+}
+
+export function DashboardWebSave_copy(dashboard: IDashboard, id: string): IDashboard {
+  return { ...dashboard, id, name: `${dashboard.name} Copy` };
+}
+
 export function DashboardWebSave_isDirty(saved: IDashboardWebSnapshot, draft: IDashboardWebSnapshot): boolean {
   return saved.name !== draft.name || saved.text !== draft.text;
 }

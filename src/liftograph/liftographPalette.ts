@@ -5,7 +5,8 @@ export interface ILiftographPaletteEntry {
   text: string;
 }
 
-const names = ["purple", "blue", "red", "green", "orange", "gray"] as const;
+export const LiftographPalette_names = ["purple", "blue", "red", "green", "orange", "gray"] as const;
+const names = LiftographPalette_names;
 
 function entries(): Record<(typeof names)[number], ILiftographPaletteEntry> {
   const semantic = Tailwind_semantic();

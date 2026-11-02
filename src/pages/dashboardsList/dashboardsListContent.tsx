@@ -9,7 +9,7 @@ import { IconSpinner } from "../../components/icons/iconSpinner";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { UrlUtils_build } from "../../utils/url";
-import { DashboardWebSave_delete } from "../../models/dashboardWebSave";
+import { DashboardWebSave_blank, DashboardWebSave_copy, DashboardWebSave_delete } from "../../models/dashboardWebSave";
 
 export interface IDashboardsListPageData {
   isMobile: boolean;
@@ -32,6 +32,7 @@ export function DashboardsListContent(props: IDashboardsListContentProps): JSX.E
   const [dashboards, setDashboards] = useState(props.dashboards);
   const [currentDashboardId, setCurrentDashboardId] = useState(props.currentDashboardId);
   const [busyId, setBusyId] = useState<string | undefined>(undefined);
+  const isBusy = busyId != null;
 
   const run = async (id: string, action: () => Promise<boolean>): Promise<void> => {
     setBusyId(id);
@@ -57,15 +58,10 @@ export function DashboardsListContent(props: IDashboardsListContentProps): JSX.E
         <Button
           name="new-dashboard"
           kind="purple"
-          disabled={busyId === "new"}
+          disabled={isBusy}
           onClick={() =>
             run("new", async () => {
-              const dashboard: IDashboard = {
-                vtype: "dashboard",
-                id: UidFactory_generateUid(8),
-                name: "New Dashboard",
-                text: "",
-              };
+              const dashboard = DashboardWebSave_blank(UidFactory_generateUid(8));
               const isCreated = await create(dashboard);
               if (isCreated) {
                 window.location.href = dashboardUrl(dashboard.id);
@@ -93,7 +89,7 @@ export function DashboardsListContent(props: IDashboardsListContentProps): JSX.E
             ) : (
               <button
                 className="text-xs underline text-text-link"
-                disabled={busyId === dashboard.id}
+                disabled={isBusy}
                 onClick={() =>
                   run(dashboard.id, async () => {
                     const result = await service.postSelectDashboard(dashboard.id, props.deviceId);
@@ -112,17 +108,13 @@ export function DashboardsListContent(props: IDashboardsListContentProps): JSX.E
             <button
               className="px-2 align-middle"
               title="Duplicate"
-              disabled={busyId === dashboard.id}
+              disabled={isBusy}
               onClick={() =>
                 run(dashboard.id, async () => {
-                  const copy: IDashboard = {
-                    ...dashboard,
-                    id: UidFactory_generateUid(8),
-                    name: `${dashboard.name} Copy`,
-                  };
+                  const copy = DashboardWebSave_copy(dashboard, UidFactory_generateUid(8));
                   const isCreated = await create(copy);
                   if (isCreated) {
-                    setDashboards([...dashboards, copy]);
+                    setDashboards((current) => [...current, copy]);
                   }
                   return isCreated;
                 })
@@ -133,7 +125,7 @@ export function DashboardsListContent(props: IDashboardsListContentProps): JSX.E
             <button
               className="px-2 align-middle"
               title="Delete"
-              disabled={busyId === dashboard.id}
+              disabled={isBusy}
               onClick={async () => {
                 const decision = DashboardWebSave_delete({ dashboards, currentDashboardId }, dashboard.id);
                 if (decision.kind === "error") {

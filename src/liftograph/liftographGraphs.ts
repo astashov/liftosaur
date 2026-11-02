@@ -11,7 +11,7 @@ import {
   IStatsKey,
 } from "../types";
 import { ILiftographSeriesSpec } from "./liftographCompile";
-import { LiftographDocument_quote } from "./liftographDocument";
+import { LiftographWrite_quote } from "./liftographWrite";
 import { LiftographEngine_evaluateWidget } from "./liftographEngine";
 import { ILiftographRow } from "./liftographRows";
 import { ILiftographSeriesEval, LiftographSeriesEval_compile, LiftographSeriesEval_rows } from "./liftographSeriesEval";
@@ -91,9 +91,9 @@ function mergeByTs(rows: IExerciseColumns[]): ILiftographExerciseGraphData["data
 
 export function LiftographGraphs_exerciseSource(exerciseType: IExerciseType, settings: ISettings): string {
   const exercise = Exercise_get(exerciseType, settings.exercises);
-  const args = [LiftographDocument_quote(exercise.name)];
+  const args = [LiftographWrite_quote(exercise.name)];
   if (exerciseType.equipment != null) {
-    args.push(LiftographDocument_quote(equipmentName(exerciseType.equipment)));
+    args.push(LiftographWrite_quote(equipmentName(exerciseType.equipment)));
   }
   return `exercise(${args.join(", ")})`;
 }

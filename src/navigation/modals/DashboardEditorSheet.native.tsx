@@ -7,7 +7,18 @@ import { LiftoEditor } from "../../components/primitives/liftoEditor";
 import type { ILiftoEditorHandle } from "../../components/primitives/liftoEditorBrain";
 import { LiftographPillBar } from "../../components/liftographPillBar";
 import { LiftographHighlight_diagnosticRanges } from "../../liftograph/liftographHighlight";
-import { ILiftographPill, LiftographPills_apply, LiftographPills_forCaret } from "../../liftograph/liftographPills";
+import {
+  ILiftographCompletionOption,
+  ILiftographEditorSnapshot,
+  LiftographCompletions_tap,
+} from "../../liftograph/liftographCompletions";
+import {
+  LiftographEditorEdits_canComplete,
+  LiftographEditorEdits_init,
+  LiftographEditorEdits_saveText,
+  LiftographEditorEdits_selected,
+  LiftographEditorEdits_typed,
+} from "../../liftograph/liftographEditorEdits";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { SheetDragHandle } from "../TransparentModal";
 import { NavScreenScrollContext } from "../NavScreenScrollContext";
@@ -19,8 +30,13 @@ import type { IDashboardEditorSheetProps } from "./dashboardEditorSheetTypes";
 export function DashboardEditorSheet(props: IDashboardEditorSheetProps): JSX.Element {
   const { analysis } = props;
   const handleRef = useRef<ILiftoEditorHandle | undefined>(undefined);
-  const [text, setText] = useState(props.initialText);
-  const [caret, setCaret] = useState(props.initialText.length);
+  const [editor, setEditor] = useState(() => LiftographEditorEdits_init(props.initialText));
+  const editorRef = useRef<ILiftographEditorSnapshot>(editor);
+  const updateEditor = (next: ILiftographEditorSnapshot): void => {
+    editorRef.current = next;
+    setEditor(next);
+  };
+  const { text, start: caret } = editor;
   const insets = useSafeAreaInsets();
   const systemKeyboardHeight = useSystemKeyboardHeight();
   const layout = useLiftoEditorSheetLayout();
@@ -39,13 +55,26 @@ export function DashboardEditorSheet(props: IDashboardEditorSheetProps): JSX.Ele
   }, [caret, text, systemKeyboardHeight]);
 
   const computeStyledRanges = useCallback((value: string) => analysis.styledRanges(value), [analysis]);
-  const pills = useMemo(() => LiftographPills_forCaret(analysis.document(text), text, caret), [analysis, text, caret]);
+  const completion = useMemo(
+    () =>
+      LiftographEditorEdits_canComplete(editor) ? analysis.completions(editor.text, editor.start, "strip") : undefined,
+    [analysis, editor]
+  );
   const firstError = props.diagnostics[0];
 
-  const onPill = (pill: ILiftographPill): void => {
-    const edit = LiftographPills_apply(text, caret, pill);
-    handleRef.current?.replaceRange(edit.from, edit.to, edit.insert);
-    handleRef.current?.setSelection(edit.caret, edit.caret);
+  const onPill = (option: ILiftographCompletionOption): void => {
+    const snapshot = editorRef.current;
+    const tap = LiftographCompletions_tap(
+      snapshot,
+      analysis.completions(snapshot.text, snapshot.start, "strip"),
+      option
+    );
+    if (tap == null) {
+      return;
+    }
+    updateEditor(tap.next);
+    handleRef.current?.replaceRange(tap.edit.from, tap.edit.to, tap.edit.insert);
+    handleRef.current?.setSelection(tap.edit.caret, tap.edit.caret);
   };
 
   return (
@@ -64,7 +93,9 @@ export function DashboardEditorSheet(props: IDashboardEditorSheetProps): JSX.Ele
               testID="dashboard-editor-save"
               kind="purple"
               buttonSize="sm"
-              onPress={() => props.onSave(handleRef.current?.getText() ?? text)}
+              onPress={() =>
+                props.onSave(LiftographEditorEdits_saveText(editorRef.current, handleRef.current?.getText()))
+              }
             >
               Save
             </Button>
@@ -98,17 +129,22 @@ export function DashboardEditorSheet(props: IDashboardEditorSheetProps): JSX.Ele
                     extraStyledRanges={LiftographHighlight_diagnosticRanges(props.diagnostics, text.length)}
                     onCaretRect={revealCaret}
                     onTextChange={(value, newCaret) => {
-                      setText(value);
-                      setCaret(newCaret);
+                      updateEditor(LiftographEditorEdits_typed(value, newCaret));
                       props.onTextChange(value);
                     }}
-                    onSelectionChange={(start) => setCaret(start)}
+                    onSelectionChange={(start, end) => {
+                      updateEditor(LiftographEditorEdits_selected(editorRef.current, start, end));
+                    }}
                   />
                 </View>
               </View>
             </Animated.ScrollView>
           </View>
-          <LiftographPillBar pills={pills} onPress={onPill} onHideKeyboard={() => handleRef.current?.blurEditor()} />
+          <LiftographPillBar
+            completion={completion}
+            onPress={onPill}
+            onHideKeyboard={() => handleRef.current?.blurEditor()}
+          />
           {systemKeyboardHeight > 0 ? (
             <View style={{ height: Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0)) }} />
           ) : null}

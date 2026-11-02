@@ -2,7 +2,14 @@ import "mocha";
 import { expect } from "chai";
 import { LiftographCompile_document, ILiftographSeriesSpec } from "../src/liftograph/liftographCompile";
 import { LiftographDocument_parse } from "../src/liftograph/liftographDocument";
-import { LiftographFold_context, LiftographFold_run } from "../src/liftograph/liftographFold";
+import {
+  LiftographFold_compileScript,
+  LiftographFold_context,
+  LiftographFold_run,
+} from "../src/liftograph/liftographFold";
+import { LiftographEnvironment_forSource } from "../src/liftograph/liftographEnvironments";
+import { LiftographPresets_fromScript } from "../src/liftograph/liftographPresets";
+import { parser as liftoscriptParser } from "../src/liftoscript";
 import { LiftographRows_build } from "../src/liftograph/liftographRows";
 import { History_collectMuscleGroups, History_getMax1RMSet, History_getMaxWeightSet } from "../src/models/history";
 import { Weight_convertTo, Weight_getOneRepMax } from "../src/models/weight";
@@ -65,15 +72,40 @@ describe("Liftograph presets", () => {
     ["duration", "workout", "point(duration)"],
   ];
   for (const [preset, source, script] of cases) {
-    it(`gives the same points for '${preset}' as its script '${script}'`, () => {
-      const [fast, slow] = seriesOf(
+    it(`gives the same points for '${preset}' as its script '${script}', and runs that script as the preset`, () => {
+      const [fast, written] = seriesOf(
         `graph {\n  name: A / source: ${source} / y: ${preset}\n  name: B / source: ${source} {~ ${script} ~}\n}`
       );
       expect(fast.values.type).to.equal("preset");
-      expect(slow.values.type).to.equal("script");
+      expect(written.values).to.deep.equal(fast.values);
+      const compiled = LiftographFold_compileScript(
+        script,
+        0,
+        LiftographEnvironment_forSource(fast.source.type),
+        settings
+      );
+      if (!("environment" in compiled)) {
+        throw new Error(compiled.message);
+      }
+      const slow: ILiftographSeriesSpec = { ...fast, values: { type: "script", script: compiled } };
       expect(emissions(fast)).to.deep.equal(emissions(slow));
     });
   }
+
+  it("matches a preset script by tree structure, and nothing else", () => {
+    const fromScript = (script: string, source: "exercise" | "workout" | "stats"): unknown =>
+      LiftographPresets_fromScript(liftoscriptParser.parse(script), script, source);
+    expect(fromScript(' point ( muscleSets( "chest" ) ); // sets', "workout")).to.deep.equal({
+      preset: "muscleSets",
+      arg: "chest",
+    });
+    expect(fromScript("point(max(completedWeights))", "exercise")).to.deep.equal({ preset: "maxWeight" });
+    expect(fromScript("point(max, completedWeights)", "exercise")).to.equal(undefined);
+    expect(fromScript("point(volume)", "stats")).to.equal(undefined);
+    expect(fromScript("point(volume / 2)", "workout")).to.equal(undefined);
+    expect(fromScript('point(muscleSets("chest"), 1)', "workout")).to.equal(undefined);
+    expect(fromScript('point(muscleSets("chest)', "workout")).to.equal(undefined);
+  });
 
   it("matches the current graph helpers for max weight and e1RM", () => {
     const [maxWeight, e1rm] = seriesOf(

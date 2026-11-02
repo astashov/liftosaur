@@ -433,7 +433,9 @@ export function PlannerCompletions_at(
   if (result == null) {
     return undefined;
   }
-  const options = result.ordered ? result.options.slice(0, HOST_LIMIT) : rank(result.options, result.query, HOST_LIMIT);
+  const options = result.ordered
+    ? result.options.slice(0, HOST_LIMIT)
+    : PlannerCompletions_rank(result.options, result.query, HOST_LIMIT);
   return options.length > 0
     ? { kind: result.kind, from: result.from, to: result.to, query: result.query, options }
     : undefined;
@@ -478,9 +480,9 @@ function matchScore(label: string, query: string): number {
 }
 
 // A strip showing five chips at a time can't afford the alphabetical order
-// Exercise_searchNames comes back in. Internal: only PlannerCompletions_at applies it, and only
-// where the options don't already carry an order of their own.
-function rank(options: ICompletionOption[], query: string, limit?: number): ICompletionOption[] {
+// Exercise_searchNames comes back in. Only strip hosts apply it, and only where the options don't
+// already carry an order of their own.
+export function PlannerCompletions_rank<T extends { label: string }>(options: T[], query: string, limit?: number): T[] {
   const needle = query.trim().toLowerCase();
   const scored = options
     .map((option) => ({ option, score: matchScore(option.label, needle) }))

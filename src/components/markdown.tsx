@@ -1,18 +1,11 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import MarkdownIt from "markdown-it";
 import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
 import { Exercise_findByNameAndEquipment } from "../models/exercise";
 import { ExerciseTooltip } from "./exerciseTooltip";
-
-const md = new MarkdownIt({ html: true, linkify: true });
-const mdWithoutHtml = new MarkdownIt({ html: false, linkify: true });
-
-export function Markdown_toHtml(value: string, isHtmlDisabled: boolean): string {
-  return (isHtmlDisabled ? mdWithoutHtml : md).render(value);
-}
+import { MarkdownHtml_render } from "../utils/markdownHtml";
 
 function preprocessDirectives(text: string, directivesData?: IMarkdownDirectivesData): string {
   let result = text;
@@ -52,7 +45,7 @@ export function Markdown(props: IProps): JSX.Element {
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
   const preprocessed = preprocessDirectives(stringValue, props.directivesData);
   const value = typeof preprocessed === "string" ? preprocessed : String(preprocessed ?? "");
-  const result = Markdown_toHtml(value, !!props.isHtmlDisabled);
+  const result = MarkdownHtml_render(value, !!props.isHtmlDisabled);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
     className += ` line-clamp-${props.truncate}`;

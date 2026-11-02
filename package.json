@@ -57,6 +57,7 @@
     "grammar:liftoscript": "lezer-generator --output ./src/liftoscript.ts ./liftoscript.grammar",
     "grammar:planner":"lezer-generator --output ./src/pages/planner/plannerExerciseParser.ts ./src/pages/planner/plannerExercise.grammar",
     "grammar:liftohistory": "lezer-generator --output ./src/liftohistory/liftohistoryParser.ts ./src/liftohistory/liftohistory.grammar",
+    "grammar:liftograph": "lezer-generator --output ./src/liftograph/liftographParser.ts ./src/liftograph/liftograph.grammar",
     "lint": "eslint . --fix",
     "start": "npm run build:theme && npm run build:markdown && npm run build:programs && npm run build:exercises && webpack-dev-server",
     "start:server": "npm run build:markdown && IS_DEV=true IS_LOCAL=true IMGPREFIX=lambda/ ts-node-dev --inspect --files --poll -r ./register-rn-web.js -T devserver.ts",

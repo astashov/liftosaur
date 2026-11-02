@@ -1,19 +1,27 @@
-import { Exercise_resolveNameAndEquipment } from "../models/exercise";
+import { Exercise_resolveNameAndEquipmentParts } from "../models/exercise";
 import { ISettings, IStatsKey, statsLengthDef, statsPercentageDef, statsWeightDef } from "../types";
 import {
+  ILiftographArg,
+  ILiftographAtom,
   ILiftographDiagnostic,
   ILiftographDocument,
   ILiftographPair,
   ILiftographScriptNode,
   ILiftographSpan,
   ILiftographTextItem,
+  ILiftographValue,
   ILiftographWidgetItem,
-  LiftographDocument_splitArgs,
-  LiftographDocument_unquote,
+  LiftographDocument_valueText,
 } from "./liftographDocument";
 import { LiftographEnvironment_forSource } from "./liftographEnvironments";
+import { parser as liftoscriptParser } from "../liftoscript";
 import { ILiftographCompiledScript, LiftographFold_compileScript } from "./liftographFold";
-import { ILiftographPresetName, LiftographPresets_isName, liftographPresets } from "./liftographPresets";
+import {
+  ILiftographPresetName,
+  LiftographPresets_fromScript,
+  LiftographPresets_isName,
+  liftographPresets,
+} from "./liftographPresets";
 import { ILiftographSource } from "./liftographRows";
 import { LiftographScriptFns_muscleGroupKeys } from "./liftographScriptFns";
 
@@ -61,7 +69,7 @@ export type ILiftographWidget = (
     }
   | { kind: "calendar"; range: ILiftographDuration; span: ILiftographSpan }
   | { kind: "text"; markdown: string; span: ILiftographSpan }
-  | { kind: "unsupported"; span: ILiftographSpan }
+  | { kind: "unsupported"; message: string; span: ILiftographSpan }
   | { kind: "error"; message: string; span: ILiftographSpan }
 ) & { caption?: string };
 
@@ -72,11 +80,19 @@ export interface ILiftographCompiled {
 
 const MAX_ROW_ITEMS = 4;
 const seriesKeys = ["name", "source", "y", "group", "smooth", "mark", "axis", "color"];
-const aggs: ILiftographAgg[] = ["max", "min", "sum", "avg", "last", "count"];
-const smoothAggs: ILiftographSmoothAgg[] = ["max", "min", "sum", "avg", "count"];
+export const LiftographCompile_keys: Record<"series" | "graph" | "value" | "muscles" | "calendar", readonly string[]> =
+  {
+    series: seriesKeys,
+    graph: ["range"],
+    value: [...seriesKeys, "compare", "trend"],
+    muscles: ["range", "show", "source"],
+    calendar: ["range"],
+  };
+export const LiftographCompile_aggs: readonly ILiftographAgg[] = ["max", "min", "sum", "avg", "last", "count"];
+export const LiftographCompile_smoothAggs: readonly ILiftographSmoothAgg[] = ["max", "min", "sum", "avg", "count"];
+const aggs = LiftographCompile_aggs;
+const smoothAggs = LiftographCompile_smoothAggs;
 const statsKeys: readonly string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
-
-class Unsupported extends Error {}
 
 class CompileError extends Error {
   public readonly span: ILiftographSpan;
@@ -86,20 +102,26 @@ class CompileError extends Error {
   }
 }
 
+class Unsupported extends CompileError {}
+
 function isStatsKey(key: string): key is IStatsKey {
   return statsKeys.indexOf(key) !== -1;
 }
 
-export function LiftographCompile_duration(value: string): ILiftographDuration | undefined {
-  if (value === "all") {
+function durationUnit(char: string): "d" | "w" | "m" | "y" | undefined {
+  return char === "d" || char === "w" || char === "m" || char === "y" ? char : undefined;
+}
+
+export function LiftographCompile_duration(atom: ILiftographAtom): ILiftographDuration | undefined {
+  if (atom.kind === "identifier" && atom.text === "all") {
     return "all";
   }
-  const match = value.match(/^(\d+)([dwmy])$/);
-  if (match == null || parseInt(match[1], 10) <= 0) {
+  if (atom.kind !== "duration") {
     return undefined;
   }
-  const unit = match[2] === "d" ? "d" : match[2] === "w" ? "w" : match[2] === "m" ? "m" : "y";
-  return { n: parseInt(match[1], 10), unit };
+  const n = Number(atom.text.slice(0, -1));
+  const unit = durationUnit(atom.text[atom.text.length - 1]);
+  return unit != null && n > 0 ? { n, unit } : undefined;
 }
 
 function durationDays(duration: ILiftographDuration): number {
@@ -115,9 +137,54 @@ function durationDays(duration: ILiftographDuration): number {
         : duration.n * 365;
 }
 
-function call(value: string): { name: string; args?: string } | undefined {
-  const match = value.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\(([\s\S]*)\))?$/);
-  return match != null ? { name: match[1], args: match[2] } : undefined;
+interface ICallShape {
+  name: string;
+  args: ILiftographArg[];
+  hasParens: boolean;
+}
+
+function valueSpan(pair: ILiftographPair): ILiftographSpan {
+  return pair.value?.span ?? pair.span;
+}
+
+function shown(pair: ILiftographPair): string {
+  return pair.value != null ? LiftographDocument_valueText(pair.value) : "";
+}
+
+function requireValue(pair: ILiftographPair): ILiftographValue {
+  if (pair.value == null) {
+    throw new CompileError(`'${pair.key}:' needs a value`, pair.span);
+  }
+  if ((pair.value.type === "call" || pair.value.type === "quoted") && !pair.value.isClosed) {
+    throw new CompileError(
+      pair.value.type === "call" ? `'${pair.value.name.text}(' has no closing ')'` : "This text has no closing quote",
+      pair.value.span
+    );
+  }
+  return pair.value;
+}
+
+function singleAtom(value: ILiftographValue | undefined): ILiftographAtom | undefined {
+  return value?.type === "atoms" && value.atoms.length === 1 ? value.atoms[0] : undefined;
+}
+
+function callShape(pair: ILiftographPair): ICallShape | undefined {
+  const value = requireValue(pair);
+  if (value.type === "call") {
+    return { name: value.name.text, args: value.args, hasParens: true };
+  }
+  const atom = singleAtom(value);
+  return atom?.kind === "identifier" ? { name: atom.text, args: [], hasParens: false } : undefined;
+}
+
+function argText(value: ILiftographValue | undefined, pair: ILiftographPair): string {
+  if (value == null) {
+    throw new CompileError(`'${pair.key}:' has an empty argument`, valueSpan(pair));
+  }
+  if (value.type === "quoted" && !value.isClosed) {
+    throw new CompileError("This text has no closing quote", value.span);
+  }
+  return LiftographDocument_valueText(value);
 }
 
 export const LiftographCompile_maxTrend: ILiftographDuration = { n: 1, unit: "y" };
@@ -144,45 +211,48 @@ function requireDuration(
   max: ILiftographDuration = LiftographCompile_maxDuration,
   allowAll: boolean = true
 ): ILiftographDuration {
-  const duration = LiftographCompile_duration(pair.value);
+  const value = requireValue(pair);
+  const atom = singleAtom(value);
+  const duration = atom != null ? LiftographCompile_duration(atom) : undefined;
   if (duration == null) {
-    throw new CompileError(`'${pair.value}' is not a duration, like 7d, 4w, 3m, 1y or all`, pair.valueSpan);
+    throw new CompileError(`'${shown(pair)}' is not a duration, like 7d, 4w, 3m, 1y or all`, value.span);
   }
-  return limitDuration(duration, max, pair.valueSpan, allowAll);
+  return limitDuration(duration, max, value.span, allowAll);
 }
 
 function parseFilters(
-  args: string[],
+  args: ILiftographArg[],
   pair: ILiftographPair
 ): { words: string[]; label?: string; program?: string; day?: string | number } {
   const result: { words: string[]; label?: string; program?: string; day?: string | number } = { words: [] };
   for (const arg of args) {
-    const colon = arg.startsWith('"') ? -1 : arg.indexOf(":");
-    if (colon === -1) {
-      result.words.push(LiftographDocument_unquote(arg));
+    if (arg.type === "positional") {
+      result.words.push(argText(arg.value, pair));
       continue;
     }
-    const key = arg.slice(0, colon).trim();
-    const value = LiftographDocument_unquote(arg.slice(colon + 1).trim());
+    const key = arg.key.text;
+    const value = argText(arg.value, pair);
     if (key === "label") {
       result.label = value;
     } else if (key === "program") {
       result.program = value;
     } else if (key === "day") {
-      result.day = /^\d+$/.test(value) ? parseInt(value, 10) : value;
+      const atom = singleAtom(arg.value);
+      const day = atom?.kind === "number" ? Number(atom.text) : undefined;
+      result.day = day != null && Number.isInteger(day) ? day : value;
     } else {
-      throw new Unsupported(`Unknown filter '${key}' in ${pair.value}`);
+      throw new Unsupported(`Unknown filter '${key}' in ${shown(pair)}`, valueSpan(pair));
     }
   }
   return result;
 }
 
 function parseSource(pair: ILiftographPair, settings: ISettings): ILiftographSource {
-  const parsed = call(pair.value);
+  const parsed = callShape(pair);
   if (parsed == null) {
-    throw new CompileError(`'${pair.value}' is not a source`, pair.valueSpan);
+    throw new CompileError(`'${shown(pair)}' is not a source`, valueSpan(pair));
   }
-  const args = parsed.args != null ? LiftographDocument_splitArgs(parsed.args) : [];
+  const args = parsed.args;
   if (parsed.name === "exercise") {
     const filters = parseFilters(args, pair);
     const source: ILiftographSource = {
@@ -192,9 +262,9 @@ function parseSource(pair: ILiftographPair, settings: ISettings): ILiftographSou
       day: filters.day,
     };
     if (filters.words.length > 0) {
-      const resolved = Exercise_resolveNameAndEquipment(filters.words.join(", "), settings.exercises);
+      const resolved = Exercise_resolveNameAndEquipmentParts(filters.words, settings.exercises);
       if (resolved == null) {
-        throw new CompileError(`Unknown exercise '${filters.words.join(", ")}'`, pair.valueSpan);
+        throw new CompileError(`Unknown exercise '${filters.words.join(", ")}'`, valueSpan(pair));
       }
       source.exerciseId = resolved.exercise.id;
       source.equipment = resolved.exercise.equipment ?? resolved.exercise.defaultEquipment ?? undefined;
@@ -203,28 +273,31 @@ function parseSource(pair: ILiftographPair, settings: ISettings): ILiftographSou
   } else if (parsed.name === "workout") {
     const filters = parseFilters(args, pair);
     if (filters.words.length > 0 || filters.label != null) {
-      throw new CompileError(`workout() takes only program: and day:`, pair.valueSpan);
+      throw new CompileError(`workout() takes only program: and day:`, valueSpan(pair));
     }
     return { type: "workout", program: filters.program, day: filters.day };
   } else if (parsed.name === "stats") {
-    if (args.length > 1) {
-      throw new Unsupported(`Unknown stats filter in ${pair.value}`);
+    const [first, ...rest] = args;
+    if (rest.length > 0 || first?.type === "named") {
+      throw new Unsupported(`Unknown stats filter in ${shown(pair)}`, valueSpan(pair));
     }
-    const key = args[0];
+    const key = first != null ? argText(first.value, pair) : undefined;
     if (key == null || !isStatsKey(key)) {
-      throw new CompileError(`Unknown stat '${key ?? ""}'`, pair.valueSpan);
+      throw new CompileError(`Unknown stat '${key ?? ""}'`, valueSpan(pair));
     }
     return { type: "stats", key };
   }
-  throw new Unsupported(`Unknown source '${parsed.name}'`);
+  throw new Unsupported(`Unknown source '${parsed.name}'`, valueSpan(pair));
 }
 
-function parseAgg(pair: ILiftographPair): { agg: string; arg?: string } {
-  const parsed = call(pair.value);
-  if (parsed == null) {
-    throw new CompileError(`'${pair.value}' is not an aggregate, like max(1w)`, pair.valueSpan);
+function parseAgg(pair: ILiftographPair): { agg: string; arg?: ILiftographAtom; hasArg: boolean } {
+  const parsed = callShape(pair);
+  const [first, ...rest] = parsed?.args ?? [];
+  const arg = first?.type === "positional" ? singleAtom(first.value) : undefined;
+  if (parsed == null || rest.length > 0 || (first != null && arg == null)) {
+    throw new CompileError(`'${shown(pair)}' is not an aggregate, like max(1w)`, valueSpan(pair));
   }
-  return { agg: parsed.name, arg: parsed.args?.trim() };
+  return { agg: parsed.name, arg, hasArg: first != null };
 }
 
 function compileSeries(
@@ -233,15 +306,9 @@ function compileSeries(
   span: ILiftographSpan,
   text: string,
   settings: ISettings,
-  allowedKeys: string[]
+  allowedKeys: readonly string[]
 ): ILiftographSeriesSpec {
-  const byKey: Partial<Record<string, ILiftographPair>> = {};
-  for (const pair of pairs) {
-    if (allowedKeys.indexOf(pair.key) === -1) {
-      throw new Unsupported(`Unknown key '${pair.key}'`);
-    }
-    byKey[pair.key] = pair;
-  }
+  const byKey = pairsByKey(pairs, allowedKeys);
   const sourcePair = byKey.source;
   if (sourcePair == null) {
     throw new CompileError("A series needs a source, like 'source: exercise(Squat)'", span);
@@ -253,7 +320,16 @@ function compileSeries(
   if (yPair != null && script != null) {
     throw new CompileError("A series takes either 'y:' or a script, not both", yPair.span);
   }
-  if (script != null) {
+  const scriptPreset =
+    script != null
+      ? LiftographPresets_fromScript(liftoscriptParser.parse(script.text), script.text, source.type)
+      : undefined;
+  if (
+    scriptPreset != null &&
+    (scriptPreset.arg == null || LiftographScriptFns_muscleGroupKeys(settings).has(scriptPreset.arg))
+  ) {
+    values = { type: "preset", preset: scriptPreset.preset, arg: scriptPreset.arg };
+  } else if (script != null) {
     const environment = LiftographEnvironment_forSource(source.type);
     const compiled = LiftographFold_compileScript(script.text, script.textSpan.from, environment, settings);
     if (!("environment" in compiled)) {
@@ -264,80 +340,87 @@ function compileSeries(
   } else if (yPair == null) {
     values = defaultValues(source);
   } else {
-    const parsed = call(yPair.value);
+    const parsed = callShape(yPair);
     if (parsed == null || !LiftographPresets_isName(parsed.name)) {
-      throw new Unsupported(`Unknown preset '${yPair.value}'`);
+      throw new Unsupported(`Unknown preset '${shown(yPair)}'`, valueSpan(yPair));
     }
     const preset = liftographPresets[parsed.name];
-    if (!preset.hasArg && parsed.args != null) {
-      throw new Unsupported(`'${preset.name}' takes no arguments`);
+    if (!preset.hasArg && parsed.hasParens) {
+      throw new Unsupported(`'${preset.name}' takes no arguments`, valueSpan(yPair));
     }
     if (preset.sources.indexOf(source.type) === -1) {
       throw new CompileError(`'${preset.name}' doesn't work with a ${source.type} source`, yPair.span);
     }
-    const arg = parsed.args?.trim();
+    const [first, ...rest] = parsed.args;
+    if (preset.hasArg && (rest.length > 0 || first?.type === "named")) {
+      throw new CompileError(`'${preset.name}' takes one muscle group, like ${preset.name}(chest)`, valueSpan(yPair));
+    }
+    const arg = first?.type === "positional" ? argText(first.value, yPair) : undefined;
     if (preset.hasArg && (arg == null || !LiftographScriptFns_muscleGroupKeys(settings).has(arg))) {
-      throw new CompileError(`Unknown muscle group '${arg ?? ""}'`, yPair.valueSpan);
+      throw new CompileError(`Unknown muscle group '${arg ?? ""}'`, valueSpan(yPair));
     }
     values = { type: "preset", preset: preset.name, arg: preset.hasArg ? arg : undefined };
   }
   const spec: ILiftographSeriesSpec = {
     id: text.slice(span.from, span.to),
-    name: byKey.name != null ? LiftographDocument_unquote(byKey.name.value) : undefined,
+    name: byKey.name != null ? LiftographDocument_valueText(requireValue(byKey.name)) : undefined,
     source,
     values,
     xMode,
     span,
   };
   if (byKey.group != null) {
-    const { agg, arg } = parseAgg(byKey.group);
+    const groupPair = byKey.group;
+    const { agg, arg, hasArg } = parseAgg(groupPair);
     const groupAgg = aggs.find((a) => a === agg);
     if (groupAgg == null) {
-      throw new CompileError(`Unknown aggregate '${agg}'`, byKey.group.valueSpan);
+      throw new CompileError(`Unknown aggregate '${agg}'`, valueSpan(groupPair));
     }
-    const duration = arg != null && arg !== "" ? LiftographCompile_duration(arg) : undefined;
+    const duration = arg != null ? LiftographCompile_duration(arg) : undefined;
     if (xMode === "time" && duration == null) {
-      throw new CompileError(`'group:' needs a duration here, like ${agg}(1w)`, byKey.group.valueSpan);
+      throw new CompileError(`'group:' needs a duration here, like ${agg}(1w)`, valueSpan(groupPair));
     }
-    if (xMode === "number" && arg != null && arg !== "") {
-      throw new CompileError(`'group:' takes no duration with point(x, y)`, byKey.group.valueSpan);
+    if (xMode === "number" && hasArg) {
+      throw new CompileError(`'group:' takes no duration with point(x, y)`, valueSpan(groupPair));
     }
     spec.group = { agg: groupAgg, duration };
   }
   if (byKey.smooth != null) {
-    const { agg, arg } = parseAgg(byKey.smooth);
+    const smoothPair = byKey.smooth;
+    const { agg, arg } = parseAgg(smoothPair);
     const smoothAgg = smoothAggs.find((a) => a === agg);
     if (smoothAgg == null || arg == null) {
       throw new CompileError(
-        `'${byKey.smooth.value}' is not a smoothing, like avg(5) or avg(30d)`,
-        byKey.smooth.valueSpan
+        `'${shown(smoothPair)}' is not a smoothing, like avg(5) or avg(30d)`,
+        valueSpan(smoothPair)
       );
     }
-    const window = /^\d+$/.test(arg) ? parseInt(arg, 10) : LiftographCompile_duration(arg);
+    const count = arg.kind === "number" ? Number(arg.text) : undefined;
+    const window = count != null && Number.isInteger(count) ? count : LiftographCompile_duration(arg);
     if (window == null || window === 0 || (xMode === "number" && typeof window !== "number")) {
-      throw new CompileError(`'${arg}' is not a smoothing window here`, byKey.smooth.valueSpan);
+      throw new CompileError(`'${arg.text}' is not a smoothing window here`, valueSpan(smoothPair));
     }
     if (typeof window !== "number") {
-      limitDuration(window, LiftographCompile_maxDuration, byKey.smooth.valueSpan, false);
+      limitDuration(window, LiftographCompile_maxDuration, valueSpan(smoothPair), false);
     }
     spec.smooth = { agg: smoothAgg, window };
   }
   if (byKey.mark != null) {
-    const mark = byKey.mark.value;
+    const mark = singleAtom(requireValue(byKey.mark))?.text;
     if (mark !== "line" && mark !== "bars" && mark !== "dots") {
-      throw new CompileError(`'mark:' is line, bars or dots`, byKey.mark.valueSpan);
+      throw new CompileError(`'mark:' is line, bars or dots`, valueSpan(byKey.mark));
     }
     spec.mark = mark;
   }
   if (byKey.axis != null) {
-    const axis = byKey.axis.value;
+    const axis = singleAtom(requireValue(byKey.axis))?.text;
     if (axis !== "left" && axis !== "right") {
-      throw new CompileError(`'axis:' is left or right`, byKey.axis.valueSpan);
+      throw new CompileError(`'axis:' is left or right`, valueSpan(byKey.axis));
     }
     spec.axis = axis;
   }
   if (byKey.color != null) {
-    spec.color = byKey.color.value;
+    spec.color = LiftographDocument_valueText(requireValue(byKey.color));
   }
   return spec;
 }
@@ -351,11 +434,14 @@ function defaultValues(source: ILiftographSource): ILiftographSeriesSpec["values
   return { type: "preset", preset: "value" };
 }
 
-function pairsByKey(pairs: ILiftographPair[], allowed: string[]): Partial<Record<string, ILiftographPair>> {
+function pairsByKey(pairs: ILiftographPair[], allowed: readonly string[]): Partial<Record<string, ILiftographPair>> {
   const result: Partial<Record<string, ILiftographPair>> = {};
   for (const pair of pairs) {
+    if (!pair.hasColon) {
+      throw new CompileError("Expected 'key: value'", pair.span);
+    }
     if (allowed.indexOf(pair.key) === -1) {
-      throw new Unsupported(`Unknown key '${pair.key}'`);
+      throw new Unsupported(`Unknown key '${pair.key}'`, pair.span);
     }
     result[pair.key] = pair;
   }
@@ -369,7 +455,13 @@ function compileGraphSeries(
   diagnostics: ILiftographDiagnostic[]
 ): ILiftographCompiledSeries {
   try {
-    return { status: "ready", spec: compileSeries(node.pairs, node.script, node.span, doc.text, settings, seriesKeys) };
+    if (node.syntaxError != null) {
+      throw new CompileError(node.syntaxError.message, node.syntaxError.span);
+    }
+    return {
+      status: "ready",
+      spec: compileSeries(node.pairs, node.script, node.span, doc.text, settings, LiftographCompile_keys.series),
+    };
   } catch (e) {
     if (!(e instanceof CompileError)) {
       throw e;
@@ -378,7 +470,7 @@ function compileGraphSeries(
     const name = node.pairs.find((pair) => pair.key === "name");
     return {
       status: "invalid",
-      name: name != null ? LiftographDocument_unquote(name.value) : undefined,
+      name: name?.value != null ? LiftographDocument_valueText(name.value) : undefined,
       message: e.message,
       span: node.span,
     };
@@ -391,6 +483,9 @@ function compileWidget(
   settings: ISettings,
   diagnostics: ILiftographDiagnostic[]
 ): ILiftographWidget {
+  if (widget.syntaxError != null) {
+    throw new CompileError(widget.syntaxError.message, widget.syntaxError.span);
+  }
   if (widget.kind !== "graph" && widget.hasBlock && ["value", "muscles", "calendar"].indexOf(widget.kind) !== -1) {
     throw new CompileError(`'${widget.kind}' takes no '{ }' block`, widget.span);
   }
@@ -398,7 +493,7 @@ function compileWidget(
     throw new CompileError(`'${widget.kind}' takes no script`, widget.script.span);
   }
   if (widget.kind === "graph") {
-    const keys = pairsByKey(widget.pairs, ["range"]);
+    const keys = pairsByKey(widget.pairs, LiftographCompile_keys.graph);
     if (widget.script != null) {
       throw new CompileError("A graph keeps its scripts on its series lines", widget.script.span);
     }
@@ -415,8 +510,15 @@ function compileWidget(
     };
   } else if (widget.kind === "value") {
     const valuePairs = widget.pairs.filter((p) => p.key !== "compare" && p.key !== "trend");
-    const keys = pairsByKey(widget.pairs, [...seriesKeys, "compare", "trend"]);
-    const series = compileSeries(valuePairs, widget.script, widget.span, doc.text, settings, seriesKeys);
+    const keys = pairsByKey(widget.pairs, LiftographCompile_keys.value);
+    const series = compileSeries(
+      valuePairs,
+      widget.script,
+      widget.span,
+      doc.text,
+      settings,
+      LiftographCompile_keys.series
+    );
     if (series.xMode === "number") {
       throw new CompileError("A value takes point(y) only", widget.span);
     }
@@ -428,19 +530,28 @@ function compileWidget(
       span: widget.span,
     };
   } else if (widget.kind === "muscles") {
-    const keys = pairsByKey(widget.pairs, ["range", "show", "source"]);
+    const keys = pairsByKey(widget.pairs, LiftographCompile_keys.muscles);
     const range = keys.range != null ? requireDuration(keys.range) : { n: 7, unit: "d" as const };
     if (durationDays(range) < 7) {
-      throw new CompileError("The muscles range is at least 7d", keys.range?.valueSpan ?? widget.span);
+      throw new CompileError(
+        "The muscles range is at least 7d",
+        keys.range != null ? valueSpan(keys.range) : widget.span
+      );
     }
-    const show = (keys.show?.value ?? "map, sets").split(",").map((s) => s.trim());
+    const showValue = keys.show != null ? requireValue(keys.show) : undefined;
+    const show =
+      showValue == null
+        ? ["map", "sets"]
+        : showValue.type === "list"
+          ? showValue.items.map((item) => item.text)
+          : [singleAtom(showValue)?.text ?? ""];
     if (show.some((s) => s !== "map" && s !== "sets")) {
-      throw new CompileError("'show:' is map, sets, or both", keys.show?.valueSpan ?? widget.span);
+      throw new CompileError("'show:' is map, sets, or both", keys.show != null ? valueSpan(keys.show) : widget.span);
     }
     const sourcePair = keys.source;
     const source = sourcePair != null ? parseSource(sourcePair, settings) : undefined;
     if (sourcePair != null && source?.type !== "workout") {
-      throw new CompileError("The muscles source is a workout(...) filter", sourcePair.valueSpan);
+      throw new CompileError("The muscles source is a workout(...) filter", valueSpan(sourcePair));
     }
     return {
       kind: "muscles",
@@ -450,14 +561,14 @@ function compileWidget(
       span: widget.span,
     };
   } else if (widget.kind === "calendar") {
-    const keys = pairsByKey(widget.pairs, ["range"]);
+    const keys = pairsByKey(widget.pairs, LiftographCompile_keys.calendar);
     return {
       kind: "calendar",
       range: keys.range != null ? requireDuration(keys.range) : { n: 3, unit: "m" },
       span: widget.span,
     };
   }
-  throw new Unsupported(`Unknown widget '${widget.kind}'`);
+  throw new Unsupported(`Unknown widget '${widget.kind}'`, widget.span);
 }
 
 function minShare(widget: ILiftographWidget): number {
@@ -476,7 +587,8 @@ export function LiftographCompile_document(doc: ILiftographDocument, settings: I
       return { ...compileWidget(item, doc, settings, diagnostics), caption };
     } catch (e) {
       if (e instanceof Unsupported) {
-        return { kind: "unsupported", span: item.span, caption };
+        diagnostics.push({ message: e.message, span: e.span });
+        return { kind: "unsupported", message: e.message, span: item.span, caption };
       } else if (e instanceof CompileError) {
         diagnostics.push({ message: e.message, span: e.span });
         return { kind: "error", message: e.message, span: item.span, caption };
@@ -507,5 +619,11 @@ export function LiftographCompile_document(doc: ILiftographDocument, settings: I
       layout.push({ items, caption: item.caption?.markdown });
     }
   }
-  return { layout, diagnostics };
+  const unique = diagnostics.filter(
+    (d, i) =>
+      diagnostics.findIndex(
+        (o) => o.message === d.message && o.span.from === d.span.from && o.span.to === d.span.to
+      ) === i
+  );
+  return { layout, diagnostics: unique };
 }

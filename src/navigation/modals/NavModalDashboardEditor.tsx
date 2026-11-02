@@ -35,9 +35,10 @@ export function NavModalDashboardEditor(): JSX.Element {
     analysisRef.current = new LiftographEditorAnalysis(state.storage.settings);
   }
   const analysis = analysisRef.current;
+  const [diagnosticsAnalysis] = useState(() => new LiftographEditorAnalysis(state.storage.settings));
   const liveTextRef = useRef(opened.text);
   const [diagnostics, setDiagnostics] = useState<ILiftographDiagnostic[]>(() =>
-    analysis.compileDiagnostics(opened.text)
+    diagnosticsAnalysis.compileDiagnostics(opened.text)
   );
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const allowCloseRef = useRef(false);
@@ -47,7 +48,10 @@ export function NavModalDashboardEditor(): JSX.Element {
     if (timerRef.current != null) {
       clearTimeout(timerRef.current);
     }
-    timerRef.current = setTimeout(() => setDiagnostics(analysis.compileDiagnostics(text)), DIAGNOSTICS_DELAY_MS);
+    timerRef.current = setTimeout(
+      () => setDiagnostics(diagnosticsAnalysis.compileDiagnostics(text)),
+      DIAGNOSTICS_DELAY_MS
+    );
   };
   useEffect(() => {
     return () => {

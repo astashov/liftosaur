@@ -5,7 +5,7 @@ import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { DateUtils_format } from "../utils/date";
 import { MathUtils_formatCompact } from "../utils/math";
 import { useLineChartGestures } from "./lineChartGestures";
-import { LineChartBars_width, LineChartBars_withZero } from "./lineChartBars";
+import { LineChartBars_axisDomain, LineChartBars_width } from "./lineChartBars";
 
 const IS_WEB = Platform.OS === "web";
 
@@ -324,18 +324,14 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     });
   }, [props.series, props.data, xMin, xMax, timestamps]);
 
-  const leftDomain = useMemo(() => {
-    const isOnAxis = (i: number): boolean => props.series[i]?.axis !== "right";
-    const domain = yDomain(clippedSeries.filter((_, i) => isOnAxis(i)));
-    const hasBars = props.series.some((s, i) => s.show && s.mark === "bars" && isOnAxis(i));
-    return hasBars ? LineChartBars_withZero(domain) : domain;
-  }, [clippedSeries, props.series]);
-  const rightDomain = useMemo(() => {
-    const isOnAxis = (i: number): boolean => props.series[i]?.axis === "right";
-    const domain = yDomain(clippedSeries.filter((_, i) => isOnAxis(i)));
-    const hasBars = props.series.some((s, i) => s.show && s.mark === "bars" && isOnAxis(i));
-    return hasBars ? LineChartBars_withZero(domain) : domain;
-  }, [clippedSeries, props.series]);
+  const leftDomain = useMemo(
+    () => LineChartBars_axisDomain(props.series, clippedSeries, "left", yDomain),
+    [clippedSeries, props.series]
+  );
+  const rightDomain = useMemo(
+    () => LineChartBars_axisDomain(props.series, clippedSeries, "right", yDomain),
+    [clippedSeries, props.series]
+  );
   const { yMin, yMax } = leftDomain;
   const yRange = Math.max(1e-9, yMax - yMin);
 

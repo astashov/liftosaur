@@ -28,7 +28,7 @@ export interface ILiftographSeriesEval {
   finished?: IHistoryRecord[];
   rowsBySource: Map<string, ILiftographRow[]>;
   compile: (text: string) => ILiftographCompiled;
-  foldBySeries: WeakMap<ILiftographSeriesSpec, ILiftographFoldResult>;
+  foldBySeries: Map<string, ILiftographFoldResult>;
 }
 
 const COMPILED_TEXTS_KEPT = 4;
@@ -41,7 +41,7 @@ export function LiftographSeriesEval_create(input: ILiftographSeriesEvalInput): 
     compile: memoize((text: string) => LiftographCompile_document(LiftographDocument_parse(text), input.settings), {
       maxSize: COMPILED_TEXTS_KEPT,
     }),
-    foldBySeries: new WeakMap(),
+    foldBySeries: new Map(),
   };
 }
 
@@ -87,10 +87,15 @@ export function LiftographSeriesEval_fold(
   evaluation: ILiftographSeriesEval,
   series: ILiftographSeriesSpec
 ): ILiftographFoldResult {
-  let result = evaluation.foldBySeries.get(series);
+  const key = LiftographSeriesEval_foldKey(series);
+  let result = evaluation.foldBySeries.get(key);
   if (result == null) {
     result = LiftographFold_run(series, LiftographSeriesEval_rows(evaluation, series.source), evaluation.context);
-    evaluation.foldBySeries.set(series, result);
+    evaluation.foldBySeries.set(key, result);
   }
   return result;
+}
+
+export function LiftographSeriesEval_foldKey(series: ILiftographSeriesSpec): string {
+  return `${series.span.from}:${series.id}`;
 }

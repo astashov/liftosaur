@@ -2,8 +2,8 @@ import { IHistoryRecord, ISettings } from "../types";
 import { ILiftographSeriesEval, LiftographSeriesEval_rows } from "./liftographSeriesEval";
 import { DateUtils_format } from "../utils/date";
 import { MathUtils_formatCompact } from "../utils/math";
-import { ILiftographDuration, ILiftographSeriesSpec } from "./liftographCompile";
-import { ILiftographWidgetResult } from "./liftographEngine";
+import { ILiftographDuration, ILiftographSeriesSpec, ILiftographWidget } from "./liftographCompile";
+import { ILiftographWidgetResult, LiftographEngine_evaluateWidget } from "./liftographEngine";
 import { LiftographPalette_entry } from "./liftographPalette";
 
 export interface ILiftographChartSeries {
@@ -121,6 +121,21 @@ export function LiftographChartData_records(
     }
   }
   return records;
+}
+
+export function LiftographChartData_prepare(
+  widget: Extract<ILiftographWidget, { kind: "graph" }>,
+  evaluation: ILiftographSeriesEval,
+  rangeOverride?: ILiftographDuration
+): { chart: ILiftographChartData; records: Map<number, IHistoryRecord> } | undefined {
+  const result = LiftographEngine_evaluateWidget(widget, evaluation, rangeOverride);
+  if (result.type !== "graph") {
+    return undefined;
+  }
+  return {
+    chart: LiftographChartData_build(result, evaluation.input.settings),
+    records: LiftographChartData_records(result, evaluation),
+  };
 }
 
 export function LiftographChartData_recordAt(

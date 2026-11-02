@@ -5,6 +5,7 @@ import { LiftographSeriesEval_compile, LiftographSeriesEval_create } from "../sr
 import {
   LiftographChartData_build,
   LiftographChartData_numericWindow,
+  LiftographChartData_prepare,
   LiftographChartData_readout,
   LiftographChartData_hasRecordLinks,
   LiftographChartData_recordAt,
@@ -131,6 +132,23 @@ describe("LiftographChartData", () => {
     const window = LiftographChartData_window({ n: 1, unit: "m" }, today);
     expect(window.xMax).to.equal(today / 1000);
     expect(window.xMin).to.equal(fxDay(2026, 2, 28).getTime() / 1000);
+  });
+
+  it("prepares the chart and the record links for a graph widget, with or without a range override", () => {
+    const evaluation = LiftographSeriesEval_create({ history, stats, settings, today });
+    const text = "graph {\n  name: Squat / source: exercise(Squat)\n}";
+    const widget = LiftographSeriesEval_compile(evaluation, text).layout[0].items[0];
+    if (widget.kind !== "graph") {
+      throw new Error("expected a graph widget");
+    }
+    const prepared = LiftographChartData_prepare(widget, evaluation);
+    expect(prepared?.chart.data[1]).to.eql([200, 210]);
+    expect(Array.from(prepared?.records.keys() ?? [])).to.eql([
+      fxDay(2026, 3, 2).getTime(),
+      fxDay(2026, 3, 5).getTime(),
+    ]);
+    const all = LiftographChartData_prepare(widget, evaluation, "all");
+    expect(all?.chart.data[1]).to.eql([200, 210]);
   });
 
   it("lists failed series as errors and charts the rest", () => {

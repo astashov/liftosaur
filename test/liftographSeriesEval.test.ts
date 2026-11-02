@@ -47,6 +47,17 @@ describe("LiftographSeriesEval", () => {
     expect(LiftographSeriesEval_fold(evaluation, spec)).to.equal(LiftographSeriesEval_fold(evaluation, spec));
   });
 
+  it("keeps a fold when its text is compiled again into new spec objects", () => {
+    const text = "graph {\n  name: A / source: exercise(Squat) / y: e1rm\n}";
+    const evaluation = LiftographSeriesEval_create(input);
+    const [first] = seriesOf(text);
+    const [again] = seriesOf(text);
+    expect(again).to.not.equal(first);
+    expect(LiftographSeriesEval_fold(evaluation, again)).to.equal(LiftographSeriesEval_fold(evaluation, first));
+    const [moved] = seriesOf(`\n${text}`);
+    expect(LiftographSeriesEval_fold(evaluation, moved)).to.not.equal(LiftographSeriesEval_fold(evaluation, first));
+  });
+
   it("reads a stats series without y: the same as its point(value) script", () => {
     const stats = fxStats([
       [fxDay(2026, 3, 1), 180],

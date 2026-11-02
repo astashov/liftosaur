@@ -57,6 +57,7 @@ export enum NodeName {
   Number = "Number",
   Percentage = "Percentage",
   String = "String",
+  UnclosedString = "UnclosedString",
   WeightExpression = "WeightExpression",
   ParenthesisExpression = "ParenthesisExpression",
   BlockExpression = "BlockExpression",
@@ -492,6 +493,8 @@ export class LiftoscriptEvaluator {
       this.checkStaticStrings(cursor.node);
       if (cursor.node.type.isError) {
         this.error("Syntax error", cursor.node, { type: "parse" });
+      } else if (cursor.node.type.name === NodeName.UnclosedString) {
+        this.error("This text has no closing quote", cursor.node, { type: "parse" });
       } else if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
         const [keyword, ...fnArgs] = getChildren(cursor.node);
         if (keyword == null || keyword.type.name !== NodeName.Keyword) {

@@ -33,7 +33,7 @@ function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
   } else if (widget.kind === "error") {
     return <DashboardNotice caption={widget.caption} message={widget.message} isError />;
   } else if (widget.kind === "unsupported") {
-    return <DashboardNotice caption={widget.caption} message="This widget needs a newer version of Liftosaur." />;
+    return <DashboardNotice caption={widget.caption} message={widget.message} isError />;
   }
   return <DashboardNotice caption={widget.caption} message={`The ${widget.kind} widget is coming soon.`} />;
 }

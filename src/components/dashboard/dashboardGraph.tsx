@@ -4,18 +4,16 @@ import { Text } from "../primitives/text";
 import { LineChart } from "../lineChart";
 import { useGraphActiveCursor } from "../graphLegendOverlay";
 import { ILiftographDuration, ILiftographWidget } from "../../liftograph/liftographCompile";
-import { LiftographEngine_evaluateWidget } from "../../liftograph/liftographEngine";
 import { ILiftographSeriesEval } from "../../liftograph/liftographSeriesEval";
 import {
-  LiftographChartData_build,
   LiftographChartData_numericWindow,
+  LiftographChartData_prepare,
   LiftographChartData_rangeLabel,
   LiftographChartData_ranges,
   LiftographChartData_readout,
   LiftographChartData_hasRecordLinks,
   LiftographChartData_recordAt,
   LiftographChartData_recordLabel,
-  LiftographChartData_records,
   LiftographChartData_toggleHidden,
   LiftographChartData_window,
 } from "../../liftograph/liftographChartData";
@@ -37,15 +35,10 @@ export function DashboardGraph(props: {
   const [hidden, setHidden] = useState<number[]>([]);
   const range = rangeOverride ?? widget.range;
   const { cursorIdx, chartRef, handleCursorChange } = useGraphActiveCursor(props.id);
-  const built = useMemo(() => {
-    const result = LiftographEngine_evaluateWidget(widget, evaluation, rangeOverride);
-    return result.type === "graph"
-      ? {
-          chart: LiftographChartData_build(result, evaluation.input.settings),
-          records: LiftographChartData_records(result, evaluation),
-        }
-      : undefined;
-  }, [widget, evaluation, rangeOverride]);
+  const built = useMemo(
+    () => LiftographChartData_prepare(widget, evaluation, rangeOverride),
+    [widget, evaluation, rangeOverride]
+  );
   if (built == null) {
     return <DashboardNotice caption={widget.caption} message="This graph can't be shown" isError />;
   }

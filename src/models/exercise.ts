@@ -4514,9 +4514,29 @@ export function Exercise_resolveNameAndEquipment(
       equipment = null;
     }
   }
-  if (name == null) {
-    name = nameAndEquipment;
-  }
+  return resolveExercise(name ?? nameAndEquipment, equipment, nameAndEquipment, customExercises);
+}
+
+export function Exercise_resolveNameAndEquipmentParts(
+  parts: string[],
+  customExercises: IAllCustomExercises
+): { exercise: IExercise; hasExplicitEquipment: boolean } | undefined {
+  const fullName = parts.join(", ");
+  const last = parts[parts.length - 1];
+  const equipment =
+    parts.length > 1 && last != null
+      ? (equipments.find((e) => equipmentName(e).toLowerCase() === last.toLowerCase()) ?? null)
+      : undefined;
+  const name = equipment != null ? parts.slice(0, -1).join(", ") : fullName;
+  return resolveExercise(name, equipment, fullName, customExercises);
+}
+
+function resolveExercise(
+  name: string,
+  equipment: IEquipment | undefined | null,
+  nameAndEquipment: string,
+  customExercises: IAllCustomExercises
+): { exercise: IExercise; hasExplicitEquipment: boolean } | undefined {
   let exerciseId = Exercise_findIdByName(name, customExercises);
   if (exerciseId != null && equipment !== null) {
     // Users can have both "X" and "X, <Equipment>" custom exercises. Before custom exercises

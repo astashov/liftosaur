@@ -1,0 +1,76 @@
+@top Document { Line? (LineBreak Line?)* }
+
+Line { HiddenLine | TextLine | CloseLine | FieldLine }
+
+TextLine { SpacedCaption | Caption }
+
+CloseLine { CloseBrace }
+
+FieldLine { Head (Sep Field?)* (BlockOpen | Script)? }
+
+Head { Key (Colon Value?)? }
+
+Field { Key (Colon Value?)? }
+
+Key { Identifier }
+
+Value { Call | Quoted | List | Atoms }
+
+Atoms { atom+ }
+
+List { atom (Comma atom)+ }
+
+Call { Identifier OpenParen (Arg? (Comma Arg?)*) CloseParen? }
+
+Arg { NamedArg | ArgValue }
+
+NamedArg { Key Colon ArgValue? }
+
+ArgValue { Quoted | ArgAtoms }
+
+ArgAtoms { (atom | Group)+ }
+
+Group { OpenParen ArgAtoms? CloseParen }
+
+atom { Identifier | Number | Duration | Word }
+
+@skip {} {
+  Script { ScriptOpen ScriptBody? ScriptClose }
+  ScriptBody { scriptContent+ }
+  Quoted { QuoteOpen (QuoteText | Escape)* QuoteClose }
+}
+
+@local tokens {
+  ScriptClose { "~}" }
+  @else scriptContent
+}
+
+@skip { space | Continuation }
+
+@tokens {
+  @precedence { HiddenLine, SpacedCaption, Caption, Sep }
+  @precedence { ScriptOpen, BlockOpen }
+  @precedence { Duration, Number, Identifier, Word }
+  HiddenLine { "///" ![\n]* }
+  SpacedCaption { "// " ![\r\n]* }
+  Caption { "//" ![\r\n]* }
+  Continuation { "\\" $[ \t]* ("\n" | "\r\n") }
+  LineBreak { "\n" | "\r\n" }
+  space { $[ \t]+ }
+  Sep { "/" }
+  Colon { ":" }
+  Comma { "," }
+  OpenParen { "(" }
+  CloseParen { ")" }
+  BlockOpen { "{" }
+  CloseBrace { "}" }
+  ScriptOpen { "{~" }
+  QuoteOpen { '"' }
+  QuoteClose { '"' }
+  QuoteText { !["\\\n\r]+ }
+  Escape { "\\" ![\n\r] }
+  Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
+  Number { @digit+ ("." @digit+)? }
+  Duration { @digit+ $[dwmy] }
+  Word { ![ \t\n\r/,:(){}"\\~]+ }
+}

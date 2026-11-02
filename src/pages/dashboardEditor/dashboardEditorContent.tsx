@@ -8,7 +8,15 @@ import { LinkInlineInput } from "../../components/inlineInput";
 import { Tabs2 } from "../../components/tabs2";
 import { LiftographCodeEditor } from "../../components/liftographCodeEditor";
 import { LiftographEditorAnalysis } from "../../liftograph/liftographEditorAnalysis";
-import { DashboardWebSave_isDirty, IDashboardWebSnapshot } from "../../models/dashboardWebSave";
+import {
+  DashboardDraftSave_edit,
+  DashboardDraftSave_failed,
+  DashboardDraftSave_init,
+  DashboardDraftSave_isDirty,
+  DashboardDraftSave_isSaving,
+  DashboardDraftSave_start,
+  DashboardDraftSave_succeeded,
+} from "../../models/dashboardDraftSave";
 import { Dialog_alert } from "../../utils/dialog";
 import { DashboardEditorPreview, IDashboardEditorData } from "./dashboardEditorPreview";
 
@@ -31,18 +39,17 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
   const { dashboard, settings } = props;
   const service = useMemo(() => new Service(props.client), [props.client]);
   const [analysis] = useState(() => new LiftographEditorAnalysis(settings));
-  const [saved, setSaved] = useState<IDashboardWebSnapshot & { base?: IFieldVersion }>({
-    name: dashboard.name,
-    text: dashboard.text,
-    base: props.base,
-  });
-  const [draft, setDraft] = useState<IDashboardWebSnapshot>({ name: dashboard.name, text: dashboard.text });
+  const [save, setSave] = useState(() =>
+    DashboardDraftSave_init({ name: dashboard.name, text: dashboard.text }, props.base)
+  );
+  const { draft } = save;
   const [previewText, setPreviewText] = useState(dashboard.text);
   const [data, setData] = useState<IDashboardEditorData>({ kind: "loading" });
   const [tab, setTab] = useState<"editor" | "preview">("editor");
-  const [isSaving, setIsSaving] = useState(false);
-  const diagnostics = useMemo(() => analysis.compileDiagnostics(previewText), [analysis, previewText]);
-  const isDirty = DashboardWebSave_isDirty(saved, draft);
+  const [previewAnalysis] = useState(() => new LiftographEditorAnalysis(settings));
+  const diagnostics = useMemo(() => previewAnalysis.compileDiagnostics(previewText), [previewAnalysis, previewText]);
+  const isDirty = DashboardDraftSave_isDirty(save);
+  const isSaving = DashboardDraftSave_isSaving(save);
 
   useEffect(() => {
     Promise.all([service.getFullHistory(), service.getStats()])
@@ -67,17 +74,17 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
   }, [isDirty]);
 
   const onSave = async (): Promise<void> => {
-    const submitted = draft;
-    setIsSaving(true);
-    try {
-      const result = await service.postUpdateDashboard(dashboard.id, submitted, saved.base, props.deviceId);
-      if (result.success) {
-        setSaved({ ...submitted, base: result.data.base });
-      } else {
-        Dialog_alert(result.error);
-      }
-    } finally {
-      setIsSaving(false);
+    const { state, request } = DashboardDraftSave_start(save);
+    if (request == null) {
+      return;
+    }
+    setSave(state);
+    const result = await service.postUpdateDashboard(dashboard.id, request.snapshot, request.base, props.deviceId);
+    if (result.success) {
+      setSave((current) => DashboardDraftSave_succeeded(current, result.data.base));
+    } else {
+      setSave(DashboardDraftSave_failed);
+      Dialog_alert(result.error);
     }
   };
 
@@ -91,7 +98,7 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
           <h1 className="text-2xl font-bold md:text-3xl">
             <LinkInlineInput
               value={draft.name}
-              onInputString={(name) => setDraft((current) => ({ ...current, name }))}
+              onInputString={(name) => setSave((current) => DashboardDraftSave_edit(current, { name }))}
             />
           </h1>
         </div>
@@ -115,7 +122,7 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
             initialText={dashboard.text}
             analysis={analysis}
             diagnostics={diagnostics}
-            onChange={(text) => setDraft((current) => ({ ...current, text }))}
+            onChange={(text) => setSave((current) => DashboardDraftSave_edit(current, { text }))}
           />
         </div>
         <div className={`md:w-1/2 min-w-0 ${tab === "preview" ? "" : "hidden md:block"}`}>

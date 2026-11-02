@@ -1,17 +1,11 @@
+import { IterMode, SyntaxNode, Tree } from "@lezer/common";
 import {
   ILiftoEditorStyledRange,
   LiftoEditorBrain_pushLiftoscriptRanges,
-  LiftoEditorParseCache,
 } from "../components/primitives/liftoEditorBrain";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
-import {
-  ILiftographDiagnostic,
-  ILiftographDocument,
-  ILiftographPair,
-  ILiftographTextItem,
-  ILiftographWidgetItem,
-  LiftographDocument_scripts,
-} from "./liftographDocument";
+import { ILiftographDiagnostic, ILiftographDocument, LiftographDocument_scripts } from "./liftographDocument";
+import * as T from "./liftographParser.terms";
 
 export type ILiftographTokenKind = "kind" | "key" | "value" | "caption" | "hidden";
 
@@ -21,46 +15,38 @@ export interface ILiftographToken {
   kind: ILiftographTokenKind;
 }
 
-function pairTokens(pairs: ILiftographPair[]): ILiftographToken[] {
-  return pairs.flatMap((pair): ILiftographToken[] => [
-    { from: pair.span.from, to: pair.span.from + pair.key.length, kind: "key" },
-    { from: pair.valueSpan.from, to: pair.valueSpan.to, kind: "value" },
-  ]);
-}
-
-function keywordToken(text: string, from: number, keyword: string): ILiftographToken {
-  const start = from + (text.slice(from).length - text.slice(from).trimStart().length);
-  return { from: start, to: start + keyword.length, kind: "kind" };
-}
-
-function textTokens(item: ILiftographTextItem | undefined): ILiftographToken[] {
-  return item != null ? [{ from: item.span.from, to: item.span.to, kind: "caption" }] : [];
-}
-
-function widgetTokens(text: string, widget: ILiftographWidgetItem): ILiftographToken[] {
-  return [
-    ...textTokens(widget.caption),
-    keywordToken(text, widget.span.from, widget.kind),
-    ...pairTokens(widget.pairs),
-    ...widget.series.flatMap((series) => pairTokens(series.pairs)),
-  ];
+function tokenKind(node: SyntaxNode): ILiftographTokenKind | undefined {
+  switch (node.type.id) {
+    case T.TextLine:
+      return "caption";
+    case T.HiddenLine:
+      return "hidden";
+    case T.Value:
+      return "value";
+    case T.Key:
+      return node.parent?.type.id === T.Head && node.parent.getChild(T.Colon) == null ? "kind" : "key";
+    default:
+      return undefined;
+  }
 }
 
 export function LiftographHighlight_tokens(doc: ILiftographDocument): ILiftographToken[] {
-  const tokens = doc.items.flatMap((item): ILiftographToken[] => {
-    if (item.type === "text") {
-      return textTokens(item);
-    } else if (item.type === "row") {
-      return [
-        ...textTokens(item.caption),
-        keywordToken(doc.text, item.span.from, "row"),
-        ...item.items.flatMap((child) => (child.type === "text" ? textTokens(child) : widgetTokens(doc.text, child))),
-      ];
-    }
-    return widgetTokens(doc.text, item);
+  const tokens: ILiftographToken[] = [];
+  doc.tree.iterate({
+    mode: IterMode.IgnoreMounts,
+    enter: (ref) => {
+      if (ref.type.id === T.Script) {
+        return false;
+      }
+      const kind = tokenKind(ref.node);
+      if (kind != null && ref.to > ref.from) {
+        tokens.push({ from: ref.from, to: ref.to, kind });
+        return false;
+      }
+      return true;
+    },
   });
-  const hidden = doc.hiddenSpans.map((span): ILiftographToken => ({ ...span, kind: "hidden" }));
-  return [...tokens, ...hidden].filter((token) => token.to > token.from).sort((a, b) => a.from - b.from);
+  return tokens;
 }
 
 export function LiftographHighlight_clampSpan(
@@ -70,6 +56,23 @@ export function LiftographHighlight_clampSpan(
   const from = Math.min(span.from, Math.max(0, textLength - 1));
   const to = Math.min(Math.max(span.to, from + 1), textLength);
   return to > from ? { from, to } : undefined;
+}
+
+export function LiftographHighlight_markRanges(
+  ranges: ILiftoEditorStyledRange[],
+  textLength: number
+): ILiftoEditorStyledRange[] {
+  return ranges.filter((range) => range.end > range.start && range.end <= textLength);
+}
+
+export function LiftographHighlight_lintSpans(
+  diagnostics: ILiftographDiagnostic[],
+  textLength: number
+): { from: number; to: number; message: string }[] {
+  return diagnostics.flatMap((diagnostic) => {
+    const span = LiftographHighlight_clampSpan(diagnostic.span, textLength);
+    return span != null ? [{ ...span, message: diagnostic.message }] : [];
+  });
 }
 
 export function LiftographHighlight_diagnosticRanges(
@@ -97,7 +100,7 @@ export function LiftographHighlight_cssStyle(range: ILiftoEditorStyledRange): st
 
 export function LiftographHighlight_styledRanges(
   doc: ILiftographDocument,
-  cache: LiftoEditorParseCache,
+  scriptTrees: (script: string) => Tree,
   diagnostics: ILiftographDiagnostic[]
 ): ILiftoEditorStyledRange[] {
   const syntax = Tailwind_semantic().syntax;
@@ -114,7 +117,13 @@ export function LiftographHighlight_styledRanges(
     ...styles[token.kind],
   }));
   for (const script of LiftographDocument_scripts(doc)) {
-    LiftoEditorBrain_pushLiftoscriptRanges(cache, doc.text, script.textSpan.from, script.textSpan.to, ranges);
+    LiftoEditorBrain_pushLiftoscriptRanges(
+      { parseLiftoscript: scriptTrees },
+      doc.text,
+      script.textSpan.from,
+      script.textSpan.to,
+      ranges
+    );
   }
   return [...ranges, ...LiftographHighlight_diagnosticRanges(diagnostics, doc.text.length)];
 }
