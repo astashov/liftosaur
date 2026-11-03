@@ -4,6 +4,7 @@ import {
   ILiftographPair,
   ILiftographRowItem,
   ILiftographWidgetItem,
+  LiftographDocument_diagnosticLabel,
   LiftographDocument_lineAt,
   LiftographDocument_parse,
   LiftographDocument_valueText,
@@ -213,5 +214,14 @@ describe("LiftographDocument helpers", () => {
     const doc = LiftographDocument_parse("graph {\n  name: A / source: workout {~ point(1)\n}");
     const graph = widget(doc.items[0]);
     expect(graph.series[0].syntaxError?.message).to.equal("The script has no closing '~}'");
+  });
+
+  it("labels a diagnostic with its 1-based line and column", () => {
+    const text = "// Hi\ngraph {\n  sparkles\n}";
+    const at = (from: number): string =>
+      LiftographDocument_diagnosticLabel(text, { message: "Bad", span: { from, to: from + 1 } });
+    expect(at(0)).to.equal("1:1 Bad");
+    expect(at(text.indexOf("sparkles"))).to.equal("3:3 Bad");
+    expect(at(text.length + 5)).to.equal("4:2 Bad");
   });
 });

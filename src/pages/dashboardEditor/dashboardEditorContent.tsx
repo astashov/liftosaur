@@ -53,7 +53,10 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
 
   useEffect(() => {
     Promise.all([service.getFullHistory(), service.getStats()])
-      .then(([history, stats]) => setData({ kind: "ready", history, stats }))
+      .then(([history, stats]) => {
+        analysis.setHistory(history);
+        setData({ kind: "ready", history, stats });
+      })
       .catch(() => setData({ kind: "failed", message: "Couldn't load your workouts. Reload the page to try again." }));
   }, [service]);
 

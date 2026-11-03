@@ -15,6 +15,7 @@ import { IconPreview } from "./icons/iconPreview";
 import { IconTrash } from "./icons/iconTrash";
 import type { ILiftoEditorPillCategory } from "./primitives/liftoEditorActions";
 import { ILiftoEditorHint, LiftoEditorHints_helpId } from "./primitives/liftoEditorHints";
+import { EditorHintPreferences_setDismissed } from "./primitives/editorHintPreferences";
 import type { ILiftoEditorController } from "./liftoEditorController";
 import type { ICompletionKind } from "../pages/planner/plannerCompletions";
 
@@ -36,9 +37,11 @@ function pillHue(category: ILiftoEditorPillCategory): { fg: string; bd: string; 
   }
 }
 
-export function useLiftoEditorHintDismissed(): [boolean, (dismissed: boolean) => void] {
+export function useLiftoEditorHintDismissed(
+  helpId: string = LiftoEditorHints_helpId
+): [boolean, (dismissed: boolean) => void] {
   const { state, dispatch } = useAppState();
-  const dismissed = state.storage.helps.includes(LiftoEditorHints_helpId);
+  const dismissed = state.storage.helps.includes(helpId);
   const setDismissed = (value: boolean): void => {
     updateState(
       dispatch,
@@ -46,13 +49,7 @@ export function useLiftoEditorHintDismissed(): [boolean, (dismissed: boolean) =>
         lb<IState>()
           .p("storage")
           .p("helps")
-          .recordModify((helps) =>
-            value
-              ? helps.includes(LiftoEditorHints_helpId)
-                ? helps
-                : [...helps, LiftoEditorHints_helpId]
-              : helps.filter((h) => h !== LiftoEditorHints_helpId)
-          ),
+          .recordModify((helps) => EditorHintPreferences_setDismissed(helps, helpId, value)),
       ],
       value ? "Dismiss editor hints" : "Enable editor hints"
     );
@@ -60,15 +57,24 @@ export function useLiftoEditorHintDismissed(): [boolean, (dismissed: boolean) =>
   return [dismissed, setDismissed];
 }
 
-export function LiftoEditorCrumbs(props: { controller: ILiftoEditorController }): JSX.Element {
+export type ILiftoEditorChromeModel = Pick<
+  ILiftoEditorController,
+  "context" | "activeLevelIndex" | "pills" | "canRemove" | "pressPill" | "selectLevel" | "removeFocused"
+>;
+
+export function LiftoEditorCrumbs(props: { controller: ILiftoEditorChromeModel; centered?: boolean }): JSX.Element {
   const { controller } = props;
   const levels = controller.context?.levels ?? [];
   const semantic = Tailwind_semantic();
   if (levels.length === 0) {
-    return <Text className="text-sm text-text-secondary">Tap a token to focus</Text>;
+    return (
+      <Text className={`text-sm text-text-secondary py-0.5 ${props.centered ? "text-center" : ""}`}>
+        Tap a token to focus
+      </Text>
+    );
   }
   return (
-    <View className="flex-row flex-wrap items-center py-1">
+    <View className={`flex-row flex-wrap items-center py-1 ${props.centered ? "justify-center" : ""}`}>
       {levels.map((level, i) => {
         const isActive = i === controller.activeLevelIndex;
         return (
@@ -99,7 +105,7 @@ export function LiftoEditorCrumbs(props: { controller: ILiftoEditorController })
 }
 
 export function LiftoEditorPillRail(props: {
-  controller: ILiftoEditorController;
+  controller: ILiftoEditorChromeModel;
   className?: string;
   // Hosts that own something the focused text can't be the authority on — the editor sheet
   // forbids removing a section that another day declares.
@@ -139,7 +145,11 @@ export function LiftoEditorPillRail(props: {
             </Pressable>
           );
         })}
-        {controller.pills.length === 0 ? <Text className="text-xs text-text-secondary py-1.5">No actions</Text> : null}
+        {controller.pills.length === 0 ? (
+          <View className="py-1.5" style={{ borderWidth: 1, borderColor: "transparent" }}>
+            <Text className="text-xs text-text-secondary">No actions</Text>
+          </View>
+        ) : null}
       </FadeScrollView>
       {/* Same w-scaled-10 centered column as the hint bar's dismiss and the dock's close, so the three
           right-edge affordances share a vertical axis despite differing icon widths. */}

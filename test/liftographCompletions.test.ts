@@ -6,12 +6,13 @@ import {
   ILiftographCompletionHost,
   LiftographCompletions_apply,
   LiftographCompletions_editTyped,
+  LiftographCompletions_programNames,
   LiftographCompletions_tap,
 } from "../src/liftograph/liftographCompletions";
 import { EditorState } from "@codemirror/state";
 import { LiftographDocument_parse } from "../src/liftograph/liftographDocument";
 import { LiftographLanguage_support, LiftographLanguage_tree } from "../src/liftograph/liftographLanguage";
-import { fxSettings } from "./liftographFixtures";
+import { fxDay, fxEntry, fxRecord, fxSettings } from "./liftographFixtures";
 
 const settings = fxSettings();
 
@@ -75,16 +76,14 @@ describe("LiftographCompletions", () => {
     expect(applied("graph {\n  name: A / so|\n}", "source")).to.equal("graph {\n  name: A / source: |\n}");
   });
 
-  it("offers sources, exercise names with quoting, equipment and filters", () => {
+  it("offers sources, exercise names with quoting, and filters without equipment", () => {
     expect(labels("value / source: |")).to.deep.equal(["exercise", "workout", "workout()", "stats"]);
     expect(applied("value / source: |", "exercise")).to.equal("value / source: exercise(|)");
     expect(labels("value / source: exercise(Bench Pr|)")).to.include("Bench Press");
     expect(applied("value / source: exercise(Ben|ch Press) / y: e1rm", "Bench Press")).to.equal(
       "value / source: exercise(Bench Press|) / y: e1rm"
     );
-    const second = labels("value / source: exercise(Squat, |)");
-    expect(second[0]).to.equal("Barbell");
-    expect(second).to.include.members(["program:", "label:", "day:"]);
+    expect(labels("value / source: exercise(Squat, |)")).to.deep.equal(["program:", "label:", "day:"]);
     expect(labels("value / source: workout(|)")).to.deep.equal(["program:", "day:"]);
     expect(labels("value / source: workout(day: 1, |)")).to.deep.equal(["program:"]);
     expect(labels("value / source: stats(|)")).to.include("weight");
@@ -185,14 +184,6 @@ describe("LiftographCompletions", () => {
     expect(at("value / source: exercise(Bench |", "strip")?.kind).to.equal("exercise");
   });
 
-  it("keeps the default equipment first in both hosts", () => {
-    expect(at("value / source: exercise(Squat, |)", "strip")?.options[0].label).to.equal("Barbell");
-    const popup = at("value / source: exercise(Squat, |)");
-    const barbell = popup?.options.find((o) => o.label === "Barbell");
-    const band = popup?.options.find((o) => o.label === "Band");
-    expect((barbell?.boost ?? 0) > (band?.boost ?? 0)).to.equal(true);
-  });
-
   it("matches only the text before the caret, while replacing the whole token", () => {
     const completion = at("value / source: workout / y: vol| / compare: 4w");
     expect(completion?.query).to.equal("vol");
@@ -262,5 +253,52 @@ describe("LiftographCompletions", () => {
       tree
     );
     expect(completion?.options.map((o) => o.label)).to.include("volume");
+  });
+
+  it("lists history program names once each, newest first", () => {
+    const history = [
+      fxRecord(fxDay(2026, 1, 1), [], { programName: "GZCLP" }),
+      fxRecord(fxDay(2026, 3, 1), [], { programName: "5/3/1, BBB" }),
+      fxRecord(fxDay(2026, 2, 1), [], { programName: "gzclp " }),
+      fxRecord(fxDay(2026, 2, 2), [], { programName: "" }),
+    ];
+    expect(LiftographCompletions_programNames(history)).to.deep.equal(["5/3/1, BBB", "gzclp"]);
+  });
+
+  it("offers program names after program: in exercise() and workout(), quoting when needed", () => {
+    const analysis = new LiftographEditorAnalysis(settings);
+    analysis.setHistory([
+      fxRecord(fxDay(2026, 1, 1), [], { programName: "GZCLP" }),
+      fxRecord(fxDay(2026, 3, 1), [], { programName: "5/3/1, BBB" }),
+    ]);
+    const complete = (marked: string): ILiftographCompletion | undefined =>
+      analysis.completions(marked.replace("|", ""), marked.indexOf("|"), "strip", true);
+    const exercise = "value / name: A / source: exercise(Chin Up, program: |) / y: maxReps";
+    expect(complete(exercise)?.options.map((o) => o.label)).to.deep.equal(["5/3/1, BBB", "GZCLP"]);
+    expect(complete(exercise)?.options[0].insert).to.equal('"5/3/1, BBB"');
+    expect(
+      complete("value / name: A / source: workout(program: gz|) / y: volume")?.options.map((o) => o.label)
+    ).to.deep.equal(["GZCLP"]);
+    expect(complete("value / name: A / source: exercise(Chin Up, day: |) / y: maxReps")).to.equal(undefined);
+  });
+
+  it("offers the labels history used with the first-argument exercise after label:", () => {
+    const analysis = new LiftographEditorAnalysis(settings);
+    analysis.setHistory([
+      fxRecord(fxDay(2026, 1, 1), [
+        fxEntry("squat", [], { programExerciseId: "t2-squat_barbell" }),
+        fxEntry("benchPress", [], { programExerciseId: "heavy-benchpress_barbell" }),
+      ]),
+      fxRecord(fxDay(2026, 2, 1), [
+        fxEntry("squat", [], { programExerciseId: "t1-squat_barbell" }),
+        fxEntry("squat", [], { programExerciseId: "squat_barbell" }),
+      ]),
+    ]);
+    const complete = (marked: string): string[] =>
+      analysis.completions(marked.replace("|", ""), marked.indexOf("|"), "strip", true)?.options.map((o) => o.label) ??
+      [];
+    expect(complete("value / name: A / source: exercise(Squat, label: |) / y: e1rm")).to.deep.equal(["t1", "t2"]);
+    expect(complete("value / name: A / source: exercise(Squat, label: t2|) / y: e1rm")).to.deep.equal(["t2"]);
+    expect(complete("value / name: A / source: exercise(Deadlift, label: |) / y: e1rm")).to.deep.equal([]);
   });
 });

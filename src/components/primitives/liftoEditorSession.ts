@@ -4,27 +4,16 @@ import {
   ILiftoEditorContext,
   ILiftoEditorStyledRange,
   ITextEdit,
-  LiftoEditorBrain_contextAt,
-  LiftoEditorBrain_enclosingSetGroup,
-  LiftoEditorBrain_scriptReuseBody,
   LiftoEditorBrain_stepToken,
-  LiftoEditorBrain_tokens,
-  LiftoEditorParseCache,
 } from "./liftoEditorBrain";
-import { SyntaxNode } from "@lezer/common";
-import { ILiftoEditorPill, ILiftoEditorPillKind } from "./liftoEditorActions";
+import { ILiftoEditorPill } from "./liftoEditorActions";
+import { ILiftoEditorAdapter, ILiftoEditorEditPlan } from "./liftoEditorAdapter";
 import { PlannerNodeName } from "../../pages/planner/plannerExerciseStyles";
-import { PlannerDocument_descriptionAt } from "../../pages/planner/models/plannerDocument";
 import { Weight_build, Weight_convertTo, Weight_decrement, Weight_increment, Weight_round } from "../../models/weight";
 import { Exercise_onerm } from "../../models/exercise";
 import { MathUtils_roundFloat } from "../../utils/math";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { IAllCustomExercises, IExerciseType, IPercentageUnit, ISettings, IUnit } from "../../types";
-import {
-  ICompletionResult,
-  PlannerCompletions_at,
-  PlannerCompletionsIndex,
-} from "../../pages/planner/plannerCompletions";
+import { IExerciseType, IPercentageUnit, ISettings, IUnit } from "../../types";
 
 // The structured-editing interaction state machine, pure by construction: every user
 // gesture is a `(session, input) -> { session, effects }` transition. Timestamps and
@@ -49,20 +38,10 @@ export interface IActiveNumber {
   fresh: boolean;
 }
 
-// How much of the program the document holds — one exercise's declaration, or a whole day.
-// Not about where the editor is embedded: a day is edited both inline on the Program screen
-// and in its own sheet, and both want the same actions (see scopePills).
-export type ILiftoEditorScope = "exercise" | "day" | "preview";
-
 export interface ILiftoEditorSession {
   mode: ILiftoEditorMode;
-  scope: ILiftoEditorScope;
   text: string;
-  // The parse cache this editing session owns. Shared by reference across derived sessions
-  // (the spread copies it along) so every transition and the editor view hit the same trees,
-  // and collected with the session when the editor closes. Mutable, but only as a memo —
-  // it can never change what a transition returns.
-  cache: LiftoEditorParseCache;
+  adapter: ILiftoEditorAdapter;
   // The breadcrumb stack at the anchor; undefined = nothing focused.
   context: ILiftoEditorContext | undefined;
   // Active breadcrumb level; undefined = innermost.
@@ -91,12 +70,11 @@ export interface ILiftoEditorSessionResult {
   effects: ILiftoEditorSessionEffects;
 }
 
-export function LiftoEditorSession_create(text: string, scope: ILiftoEditorScope = "exercise"): ILiftoEditorSession {
+export function LiftoEditorSession_create(text: string, adapter: ILiftoEditorAdapter): ILiftoEditorSession {
   return {
     mode: "structured",
-    scope,
     text,
-    cache: new LiftoEditorParseCache(),
+    adapter,
     context: undefined,
     focusLevel: undefined,
     anchor: undefined,
@@ -173,7 +151,7 @@ function activateToken(session: ILiftoEditorSession, token: IEditorToken): ILift
       active: parsed,
       anchor,
       focusedToken: token,
-      context: LiftoEditorBrain_contextAt(session.cache, session.text, anchor),
+      context: session.adapter.contextAt(session.text, anchor),
       focusLevel: undefined,
     },
     effects: { keypad: "open" },
@@ -190,14 +168,15 @@ export function LiftoEditorSession_tap(
   // punctuation produce no token at all). Two quick taps count as a double tap when they
   // land on the same token, or — in token-free space — within a couple of characters;
   // quick taps on two different tokens are fast navigation, not a double tap.
-  if (session.scope === "preview" && index < previewLockedEnd(session)) {
+  const adapter = session.adapter;
+  if (!adapter.canTap(session.text, index)) {
     return { session, effects: {} };
   }
   const sinceLastTap = now - session.lastTapTime;
   const tapped: ILiftoEditorSession = { ...session, lastTapTime: now, lastTapIndex: index };
-  const tokens = LiftoEditorBrain_tokens(session.cache, session.text);
+  const tokens = adapter.tokens(session.text);
   const tokenAt = (i: number): IEditorToken | undefined => tokens.find((t) => i >= t.start && i <= t.end);
-  if (sinceLastTap < 300 && session.lastTapIndex != null && session.scope !== "preview") {
+  if (sinceLastTap < 300 && session.lastTapIndex != null && adapter.canFreeform(session.text)) {
     const prevToken = tokenAt(session.lastTapIndex);
     const thisToken = tokenAt(index);
     const isSamePlace =
@@ -227,7 +206,7 @@ export function LiftoEditorSession_tap(
       active: undefined,
       anchor: index,
       focusedToken: tokens.find((t) => t.walkStop && index >= t.start && index <= t.end),
-      context: LiftoEditorBrain_contextAt(session.cache, session.text, index),
+      context: adapter.contextAt(session.text, index),
       focusLevel: undefined,
     },
     effects: { keypad: "close" },
@@ -238,7 +217,7 @@ export function LiftoEditorSession_walkFocus(
   session: ILiftoEditorSession,
   direction: 1 | -1
 ): ILiftoEditorSessionResult {
-  const tokens = LiftoEditorBrain_tokens(session.cache, session.text).filter((t) => t.walkStop);
+  const tokens = session.adapter.tokens(session.text).filter((t) => t.walkStop);
   if (tokens.length === 0) {
     return { session, effects: {} };
   }
@@ -270,7 +249,7 @@ export function LiftoEditorSession_walkFocus(
       active: undefined,
       anchor,
       focusedToken: next,
-      context: LiftoEditorBrain_contextAt(session.cache, session.text, anchor),
+      context: session.adapter.contextAt(session.text, anchor),
       focusLevel: undefined,
     },
     effects: { keypad: "close" },
@@ -430,6 +409,9 @@ export function LiftoEditorSession_applyPill(
   const edits = [{ start: pill.start, end: pill.end, text: pill.text }, ...(pill.extraEdits ?? [])].sort(
     (a, b) => a.start - b.start
   );
+  if (pill.focusAt != null || pill.freeformAt != null) {
+    return planResult(session, { edits, focusAt: pill.focusAt, freeformAt: pill.freeformAt });
+  }
   let anchor = session.anchor;
   let focusedToken = session.focusedToken;
   let shift = 0;
@@ -465,102 +447,34 @@ export function LiftoEditorSession_applyPill(
   };
 }
 
-export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): ILiftoEditorSessionResult {
+function focusedRemoval(session: ILiftoEditorSession): ILiftoEditorEditPlan | undefined {
   const levelIndex = focusedLevelIndex(session);
-  const levels = session.context?.levels ?? [];
-  const level = levelIndex != null ? levels[levelIndex] : undefined;
-  if (level == null || !LiftoEditorSession_canRemove(session)) {
-    return { session, effects: {} };
-  }
-  const text = session.text;
-  let nodeName = level.nodeName;
-  let start = level.start;
-  let end = level.end;
-  const scriptBody = LiftoEditorBrain_scriptReuseBody(session.cache, text, level);
-  if (scriptBody != null) {
-    return {
-      session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
-      effects: { edits: [{ start: scriptBody.start, end: scriptBody.end, text: "{~ ~}" }], keypad: "close" },
-    };
-  }
-  // A description occupies whole lines rather than sitting inside one, so removing it is a
-  // question about lines and the blank ones around them — which the document answers, the same
-  // way it answers which runs are descriptions at all.
-  if (nodeName === PlannerNodeName.LineComment) {
-    const found = PlannerDocument_descriptionAt(text, start, session.cache.parse(text));
-    const description = found != null ? found.siblings[found.index] : undefined;
-    if (description == null) {
-      return { session, effects: {} };
-    }
-    return {
-      session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
-      effects: {
-        edits: [{ start: description.removeFrom, end: description.removeTo, text: "" }],
-        keypad: "close",
-      },
-    };
-  }
-  // Removing a group's sets×reps alone leaves nonsense ("warmup: 40%"; "3x8 100lb" minus
-  // "3x8" reads as globals) — promote to the whole set group. And when a property's whole
-  // value would go — its function ("id:" minus "tags(2)"), the last warmup group, or the
-  // Warmup sets level itself — take the whole property: a dangling "name:" doesn't parse.
-  const group = LiftoEditorBrain_enclosingSetGroup(session.cache, text, level);
-  const removesPropertyValue =
-    (group?.isOnlyGroup === true && group.nodeName === "WarmupExerciseSet") ||
-    nodeName === "WarmupExerciseSets" ||
-    nodeName === "FunctionExpression";
-  const propertyLevel = removesPropertyValue
-    ? levels
-        .slice(0, levelIndex)
-        .reverse()
-        .find((l) => l.nodeName === "ExerciseProperty")
+  return session.context != null && levelIndex != null
+    ? session.adapter.removal(session.text, session.context, levelIndex)
     : undefined;
-  const target = propertyLevel ?? group;
-  if (target != null) {
-    nodeName = target.nodeName;
-    start = target.start;
-    end = target.end;
+}
+
+function planResult(session: ILiftoEditorSession, plan: ILiftoEditorEditPlan): ILiftoEditorSessionResult {
+  const edits = [...plan.edits].sort((a, b) => b.start - a.start);
+  const unfocused = { ...session, active: undefined, focusedToken: undefined, focusLevel: undefined };
+  if (plan.freeformAt != null) {
+    return {
+      session: { ...unfocused, mode: "freeform", context: undefined, pendingCaret: plan.freeformAt },
+      effects: { edits, keypad: "close" },
+    };
   }
-  // A removed item takes a separator with it. For list items (set groups and state vars
-  // separated by ",", exercise variations by "|") a trailing separator wins — "3x8, 5x5"
-  // minus the first group must keep its leading " / ". Everything else eats its leading
-  // " / " or ", ", so "5x5 / 100kg / progress" minus the weight yields "5x5 / progress".
-  const isExerciseVariation = nodeName === "ExerciseVariation";
-  const listSeparator =
-    nodeName === "ExerciseSet" || nodeName === "WarmupExerciseSet" || nodeName === "KeyValue"
-      ? ","
-      : isExerciseVariation
-        ? "|"
-        : undefined;
-  let j = end;
-  while (j < text.length && text[j] === " ") {
-    j += 1;
+  if (plan.focusAt != null) {
+    return {
+      session: { ...unfocused, anchor: plan.focusAt, context: session.context ?? { breadcrumb: [], levels: [] } },
+      effects: { edits, keypad: session.active != null ? "close" : undefined },
+    };
   }
-  if (listSeparator != null && text[j] === listSeparator) {
-    j += 1;
-    while (j < text.length && text[j] === " ") {
-      j += 1;
-    }
-    end = j;
-  } else {
-    let i = start - 1;
-    while (i >= 0 && text[i] === " ") {
-      i -= 1;
-    }
-    if (i >= 0 && (isExerciseVariation ? text[i] === "|" : text[i] === "/" || text[i] === ",")) {
-      i -= 1;
-      while (i >= 0 && text[i] === " ") {
-        i -= 1;
-      }
-    }
-    // With no separator this still eats the leading spaces, so removing a mid-group item
-    // ("3x8 auto 60s" minus "auto") doesn't leave a double space behind.
-    start = i + 1;
-  }
-  return {
-    session: { ...session, active: undefined, focusedToken: undefined, context: undefined, focusLevel: undefined },
-    effects: { edits: [{ start, end, text: "" }], keypad: "close" },
-  };
+  return { session: { ...unfocused, context: undefined }, effects: { edits, keypad: "close" } };
+}
+
+export function LiftoEditorSession_removeFocused(session: ILiftoEditorSession): ILiftoEditorSessionResult {
+  const plan = focusedRemoval(session);
+  return plan != null ? planResult(session, plan) : { session, effects: {} };
 }
 
 // The keypad's onBlur: dismissed by tapping elsewhere or the dismiss key.
@@ -589,7 +503,7 @@ export function LiftoEditorSession_blur(session: ILiftoEditorSession): ILiftoEdi
 }
 
 export function LiftoEditorSession_switchToFreeform(session: ILiftoEditorSession): ILiftoEditorSessionResult {
-  if (session.scope === "preview") {
+  if (!session.adapter.canFreeform(session.text)) {
     return { session, effects: {} };
   }
   return {
@@ -607,20 +521,6 @@ export function LiftoEditorSession_switchToFreeform(session: ILiftoEditorSession
 
 export function LiftoEditorSession_switchToStructured(session: ILiftoEditorSession): ILiftoEditorSessionResult {
   return { session: { ...session, mode: "structured" }, effects: {} };
-}
-
-// What the suggestion strip offers at `caret`. The caret is passed in rather than read off the
-// session — it belongs to the controller — but the lookup lives here, next to the parse cache
-// it reads. Pure: same session and caret, same answer.
-export function LiftoEditorSession_completions(
-  session: ILiftoEditorSession,
-  caret: number | undefined,
-  args: { customExercises?: IAllCustomExercises; exerciseFullNames?: string[]; index: PlannerCompletionsIndex }
-): ICompletionResult | undefined {
-  if (session.mode !== "freeform" || caret == null || caret > session.text.length) {
-    return undefined;
-  }
-  return PlannerCompletions_at(session.text, caret, { ...args, cache: session.cache });
 }
 
 // The freeform caret can only be placed once the native side has committed `editable`; the
@@ -641,7 +541,7 @@ export function LiftoEditorSession_textChanged(session: ILiftoEditorSession, new
   if (session.context != null) {
     const anchor = currentAnchor(next);
     if (anchor != null) {
-      return { ...next, context: LiftoEditorBrain_contextAt(session.cache, newText, Math.min(anchor, newText.length)) };
+      return { ...next, context: session.adapter.contextAt(newText, Math.min(anchor, newText.length)) };
     }
   }
   return next;
@@ -658,98 +558,8 @@ export function LiftoEditorSession_focusedExerciseFullName(session: ILiftoEditor
   return session.context?.levels.find((level) => level.nodeName === PlannerNodeName.ExerciseExpression)?.fullName;
 }
 
-function previewExerciseNode(session: ILiftoEditorSession): SyntaxNode | null {
-  return session.cache.parse(session.text).topNode.getChild(PlannerNodeName.ExerciseExpression);
-}
-
-function previewLockedEnd(session: ILiftoEditorSession): number {
-  const exercise = previewExerciseNode(session);
-  const variations = exercise?.getChild(PlannerNodeName.ExerciseVariations);
-  const repeat = exercise?.getChild(PlannerNodeName.Repeat);
-  return repeat?.to ?? variations?.to ?? 0;
-}
-
-type IPreviewGlobalField = "weight" | "rpe" | "timer" | "setTimer";
-
-function previewGlobalFields(session: ILiftoEditorSession): Set<IPreviewGlobalField> {
-  const fields = new Set<IPreviewGlobalField>();
-  const exercise = previewExerciseNode(session);
-  for (const section of exercise?.getChildren(PlannerNodeName.ExerciseSection) ?? []) {
-    for (const set of section.getChild(PlannerNodeName.ExerciseSets)?.getChildren(PlannerNodeName.ExerciseSet) ?? []) {
-      if (set.getChild(PlannerNodeName.SetPart) != null) {
-        continue;
-      }
-      if (
-        set.getChild(PlannerNodeName.WeightWithPlus) != null ||
-        set.getChild(PlannerNodeName.PercentageWithPlus) != null ||
-        set.getChild(PlannerNodeName.AskWeight) != null
-      ) {
-        fields.add("weight");
-      }
-      if (set.getChild(PlannerNodeName.Rpe) != null) {
-        fields.add("rpe");
-      }
-      if (set.getChild(PlannerNodeName.Timer) != null) {
-        fields.add("timer");
-      }
-      // `30s|60s` sets both timers; `30s|?` leaves the rest timer to the per-set values.
-      const setTimer = set.getChild(PlannerNodeName.SetTimer);
-      if (setTimer != null) {
-        fields.add("setTimer");
-        if (!session.text.slice(setTimer.from, setTimer.to).endsWith("?")) {
-          fields.add("timer");
-        }
-      }
-    }
-  }
-  return fields;
-}
-
-const previewDeniedKinds: ReadonlySet<ILiftoEditorPillKind> = new Set<ILiftoEditorPillKind>([
-  "reuse",
-  "reuseScript",
-  "fromWeekDay",
-  "repeat",
-  "forcedOrder",
-  "addLabel",
-]);
-
-const previewGlobalFieldOfKind: Partial<Record<ILiftoEditorPillKind, IPreviewGlobalField>> = {
-  addWeight: "weight",
-  addRpe: "rpe",
-  addSetTimer: "setTimer",
-  addRestTimer: "timer",
-};
-
-// "Edit reused exercise…" opens a second editor on the reuse target. Inline that's noise:
-// the whole day is already on screen, so the target is a few lines up in this very editor.
-// PlannerProgramExercise_sets lets an own global override the set, so a per-set weight, RPE or
-// timer pill under one would insert dead text.
-function scopePills(pills: ILiftoEditorPill[], session: ILiftoEditorSession): ILiftoEditorPill[] {
-  if (session.scope === "day") {
-    return pills.filter((pill) => pill.action !== "editReuse");
-  }
-  if (session.scope !== "preview") {
-    return pills;
-  }
-  const lockedEnd = previewLockedEnd(session);
-  const globalFields = previewGlobalFields(session);
-  return pills.filter((pill) => {
-    if (pill.action != null || previewDeniedKinds.has(pill.kind) || pill.start < lockedEnd) {
-      return false;
-    }
-    const field = previewGlobalFieldOfKind[pill.kind];
-    return field == null || !globalFields.has(field);
-  });
-}
-
 export function LiftoEditorSession_canRemove(session: ILiftoEditorSession): boolean {
-  const levelIndex = focusedLevelIndex(session);
-  const level = levelIndex != null ? session.context?.levels[levelIndex] : undefined;
-  if (level == null) {
-    return false;
-  }
-  return session.scope !== "preview" || level.start >= previewLockedEnd(session);
+  return focusedRemoval(session) != null;
 }
 
 // Levels that own no rail (a set group's `auto`, a reuse target's week/day) are transparent —
@@ -761,7 +571,7 @@ export function LiftoEditorSession_pills(session: ILiftoEditorSession): ILiftoEd
   for (let i = LiftoEditorSession_activeLevelIndex(session); i >= 0; i -= 1) {
     const level = levels[i];
     if (level?.ownsRail) {
-      return scopePills(level.pills, session);
+      return session.adapter.railPills(session.text, level.pills);
     }
   }
   return [];

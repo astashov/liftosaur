@@ -33,7 +33,8 @@ export type ILiftoEditorPillKind =
   | "editReuse"
   | "rename"
   | "editStateVars"
-  | "editAcrossProgram";
+  | "editAcrossProgram"
+  | "liftograph";
 
 export interface ILiftoEditorPill {
   kind: ILiftoEditorPillKind;
@@ -65,6 +66,8 @@ export interface ILiftoEditorPill {
   // "{target}" gets substituted (" / {target}" appends a section, "{ {target} }" swaps a
   // script body, bare "{target}" swaps just the reuse target).
   reuseTemplate?: string;
+  focusAt?: number;
+  freeformAt?: number;
 }
 
 export interface ILiftoEditorStateVarEntry {

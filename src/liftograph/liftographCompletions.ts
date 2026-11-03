@@ -1,7 +1,6 @@
 import type { Tree } from "@lezer/common";
-import { equipments, ISettings, statsLengthDef, statsPercentageDef, statsWeightDef } from "../types";
-import { equipmentName, Exercise_findByName } from "../models/exercise";
-import { ExerciseImageUtils_exists } from "../models/exerciseImage";
+import { IHistoryRecord, ISettings, statsLengthDef, statsPercentageDef, statsWeightDef } from "../types";
+import { Exercise_findByName, Exercise_toKey } from "../models/exercise";
 import { PlannerCompletions_rank, PlannerCompletionsIndex } from "../pages/planner/plannerCompletions";
 import { ILiftographDocument } from "./liftographDocument";
 import { LiftographCompile_aggs, LiftographCompile_keys, LiftographCompile_smoothAggs } from "./liftographCompile";
@@ -31,7 +30,8 @@ export type ILiftographCompletionKind =
   | "nextKey"
   | "source"
   | "exercise"
-  | "equipment"
+  | "program"
+  | "label"
   | "filter"
   | "stat"
   | "preset"
@@ -65,13 +65,15 @@ export interface ILiftographCompletionArgs {
   settings: ISettings;
   index: PlannerCompletionsIndex;
   scriptTrees: (script: string) => Tree;
+  programNames: string[];
+  labelsByExercise: Partial<Record<string, string[]>>;
   host: ILiftographCompletionHost;
   explicit?: boolean;
 }
 
 type IContext<K extends ILiftographCompletionContext["type"]> = Extract<ILiftographCompletionContext, { type: K }>;
 
-interface ICandidates {
+export interface ILiftographCandidates {
   kind: ILiftographCompletionKind;
   from: number;
   to: number;
@@ -140,7 +142,7 @@ function templates(context: IContext<"kind">): ILiftographCompletionOption[] {
   return result;
 }
 
-function kindCandidates(context: IContext<"kind">): ICandidates {
+function kindCandidates(context: IContext<"kind">): ILiftographCandidates {
   return {
     kind: "kind",
     from: context.from,
@@ -149,7 +151,7 @@ function kindCandidates(context: IContext<"kind">): ICandidates {
   };
 }
 
-function keyCandidates(context: IContext<"key">): ICandidates {
+function keyCandidates(context: IContext<"key">): ILiftographCandidates {
   return {
     kind: "key",
     from: context.from,
@@ -160,7 +162,7 @@ function keyCandidates(context: IContext<"key">): ICandidates {
   };
 }
 
-function nextKeyCandidates(context: IContext<"nextKey">): ICandidates {
+function nextKeyCandidates(context: IContext<"nextKey">): ILiftographCandidates {
   return {
     kind: "nextKey",
     from: context.pos,
@@ -171,18 +173,43 @@ function nextKeyCandidates(context: IContext<"nextKey">): ICandidates {
   };
 }
 
-function equipmentOptions(name: string | undefined, settings: ISettings): ILiftographCompletionOption[] {
-  const exercise = name != null ? Exercise_findByName(name, settings.exercises) : undefined;
-  if (exercise?.defaultEquipment == null || settings.exercises[exercise.id] != null) {
-    return [];
+export function LiftographCompletions_programNames(history: IHistoryRecord[]): string[] {
+  const byKey = new Map<string, string>();
+  for (const record of [...history].sort((a, b) => b.startTime - a.startTime)) {
+    const name = record.programName.trim();
+    const key = name.toLowerCase();
+    if (name !== "" && !byKey.has(key)) {
+      byKey.set(key, name);
+    }
   }
-  const ordered = [
-    exercise.defaultEquipment,
-    ...equipments.filter(
-      (e) => e !== exercise.defaultEquipment && ExerciseImageUtils_exists({ id: exercise.id, equipment: e }, "small")
-    ),
-  ];
-  return ordered.map((e, i) => option(equipmentName(e), "type", { boost: ordered.length - i }));
+  return Array.from(byKey.values());
+}
+
+export function LiftographCompletions_labelsByExercise(history: IHistoryRecord[]): Partial<Record<string, string[]>> {
+  const result: Partial<Record<string, string[]>> = {};
+  for (const record of [...history].sort((a, b) => b.startTime - a.startTime)) {
+    for (const entry of record.entries) {
+      const suffix = `-${Exercise_toKey(entry.exercise)}`.toLowerCase();
+      const key = entry.programExerciseId;
+      if (key == null || !key.endsWith(suffix) || key.length === suffix.length) {
+        continue;
+      }
+      const label = key.slice(0, -suffix.length);
+      const labels = result[entry.exercise.id] ?? [];
+      if (labels.indexOf(label) === -1) {
+        result[entry.exercise.id] = [...labels, label];
+      }
+    }
+  }
+  return result;
+}
+
+function labelOptions(firstArg: string | undefined, args: ILiftographCompletionArgs): ILiftographCompletionOption[] {
+  const exercise = firstArg != null ? Exercise_findByName(firstArg, args.settings.exercises) : undefined;
+  const labels = exercise != null ? (args.labelsByExercise[exercise.id] ?? []) : [];
+  return labels.map((label, i) =>
+    option(label, "constant", { insert: LiftographWrite_quote(label), boost: labels.length - i })
+  );
 }
 
 function filterOptions(context: IContext<"argument">, start: number): ILiftographCompletionOption[] {
@@ -197,15 +224,31 @@ function isNumericX(script: string | undefined, args: ILiftographCompletionArgs)
   return script != null && LiftographScriptSyntax_pointArity(args.scriptTrees(script), script).has(2);
 }
 
-function argumentCandidates(context: IContext<"argument">, args: ILiftographCompletionArgs): ICandidates | undefined {
+function argumentCandidates(
+  context: IContext<"argument">,
+  args: ILiftographCompletionArgs
+): ILiftographCandidates | undefined {
   const base = { from: context.from, to: context.to, matchFrom: context.matchFrom };
-  const constants = (kind: ILiftographCompletionKind, values: string[]): ICandidates => ({
+  const constants = (kind: ILiftographCompletionKind, values: string[]): ILiftographCandidates => ({
     ...base,
     kind,
     options: values.map((v) => option(v, "constant")),
   });
   const isSource = context.key === "source";
-  if (isSource && context.hasColonAfter) {
+  if (isSource && context.namedKey === "program") {
+    return {
+      ...base,
+      kind: "program",
+      options: args.programNames.map((name, i) =>
+        option(name, "constant", { insert: LiftographWrite_quote(name), boost: args.programNames.length - i })
+      ),
+      isOrdered: true,
+    };
+  } else if (isSource && context.fn === "exercise" && context.namedKey === "label") {
+    return { ...base, kind: "label", options: labelOptions(context.firstArg, args), isOrdered: true };
+  } else if (context.namedKey != null) {
+    return undefined;
+  } else if (isSource && context.hasColonAfter) {
     return { ...base, kind: "filter", options: filterOptions(context, 2) };
   } else if (isSource && context.fn === "stats") {
     return context.argIndex === 0 ? constants("stat", [...STATS_KEYS]) : undefined;
@@ -222,8 +265,8 @@ function argumentCandidates(context: IContext<"argument">, args: ILiftographComp
   } else if (isSource && context.fn === "exercise") {
     return {
       ...base,
-      kind: "equipment",
-      options: [...equipmentOptions(context.firstArg, args.settings), ...filterOptions(context, 0)],
+      kind: "filter",
+      options: filterOptions(context, 0),
       isOrdered: true,
     };
   } else if (context.key === "y" && LiftographPresets_isName(context.fn) && liftographPresets[context.fn].hasArg) {
@@ -236,9 +279,12 @@ function argumentCandidates(context: IContext<"argument">, args: ILiftographComp
   return undefined;
 }
 
-function valueCandidates(context: IContext<"value">, args: ILiftographCompletionArgs): ICandidates | undefined {
+function valueCandidates(
+  context: IContext<"value">,
+  args: ILiftographCompletionArgs
+): ILiftographCandidates | undefined {
   const { from, to, key, hasParens } = context;
-  const simple = (kind: ILiftographCompletionKind, values: string[]): ICandidates => ({
+  const simple = (kind: ILiftographCompletionKind, values: string[]): ILiftographCandidates => ({
     kind,
     from,
     to,
@@ -288,7 +334,7 @@ function scriptCandidates(
   context: IContext<"script">,
   pos: number,
   args: ILiftographCompletionArgs
-): ICandidates | undefined {
+): ILiftographCandidates | undefined {
   const { source, offset } = context;
   const tree = args.scriptTrees(source);
   const at = LiftographScriptSyntax_contextAt(tree, source, pos - offset);
@@ -322,7 +368,10 @@ function scriptCandidates(
   return undefined;
 }
 
-function candidatesAt(pos: number, args: ILiftographCompletionArgs): ICandidates | undefined {
+export function LiftographCompletions_candidates(
+  pos: number,
+  args: ILiftographCompletionArgs
+): ILiftographCandidates | undefined {
   const context = LiftographCompletionContext_resolve(args.doc, pos);
   switch (context?.type) {
     case "kind":
@@ -351,7 +400,7 @@ export function LiftographCompletions_at(
   pos: number,
   args: ILiftographCompletionArgs
 ): ILiftographCompletion | undefined {
-  const candidates = candidatesAt(pos, args);
+  const candidates = LiftographCompletions_candidates(pos, args);
   if (candidates == null || candidates.from > pos || candidates.to < pos) {
     return undefined;
   }

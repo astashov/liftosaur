@@ -38,6 +38,7 @@ export type ILiftographCompletionContext =
       hasColonAfter: boolean;
       firstArg?: string;
       script?: string;
+      namedKey?: string;
     }
   | { type: "script"; source: string; offset: number; sourceType?: ILiftographCompletionSourceType };
 
@@ -134,6 +135,16 @@ function isValueComplete(value: SyntaxNode | undefined): boolean {
   return true;
 }
 
+function isAwaitingValue(text: string, arg: SyntaxNode, pos: number): boolean {
+  const named = arg.getChild(T.NamedArg);
+  return (
+    named?.getChild(T.Colon) != null &&
+    named.getChild(T.ArgValue) == null &&
+    arg.to <= pos &&
+    text.slice(arg.to, pos).trim() === ""
+  );
+}
+
 function argumentContext(
   text: string,
   call: SyntaxNode,
@@ -144,13 +155,17 @@ function argumentContext(
   const callName = call.getChild(T.Identifier);
   const argIndex = children(call).filter((part) => part.type.id === T.Comma && part.to <= pos).length;
   const args = call.getChildren(T.Arg);
-  const arg = args.find((a) => a.from <= pos && pos <= a.to);
+  const arg = args.find((a) => a.from <= pos && pos <= a.to) ?? args.find((a) => isAwaitingValue(text, a, pos));
   const named = arg?.getChild(T.NamedArg);
   const namedKey = named?.getChild(T.Key);
-  if (named != null && (namedKey == null || pos > namedKey.to)) {
+  const namedColon = named?.getChild(T.Colon);
+  const isNamedValue = namedKey != null && namedColon != null && pos >= namedColon.to;
+  if (named != null && (namedKey == null || pos > namedKey.to) && !isNamedValue) {
     return undefined;
   }
-  const argValue = arg?.getChild(T.ArgValue)?.firstChild ?? namedKey;
+  const argValue = isNamedValue
+    ? named?.getChild(T.ArgValue)?.firstChild
+    : (arg?.getChild(T.ArgValue)?.firstChild ?? namedKey);
   const quoted = argValue?.type.id === T.Quoted ? argValue : undefined;
   const content = quoted != null ? quotedContent(text, quoted) : argValue;
   const replace = argValue ?? { from: pos, to: pos };
@@ -171,6 +186,7 @@ function argumentContext(
     hasColonAfter: named?.getChild(T.Colon) != null,
     firstArg: firstRange != null ? text.slice(firstRange.from, firstRange.to) : undefined,
     script: scriptOf(text, fieldLine),
+    namedKey: isNamedValue ? textOf(text, namedKey) : undefined,
   };
 }
 

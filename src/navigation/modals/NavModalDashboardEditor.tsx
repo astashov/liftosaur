@@ -42,6 +42,13 @@ export function NavModalDashboardEditor(): JSX.Element {
   );
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const allowCloseRef = useRef(false);
+  useEffect(() => {
+    analysis.setSettings(state.storage.settings);
+    diagnosticsAnalysis.setSettings(state.storage.settings);
+  }, [state.storage.settings]);
+  useEffect(() => {
+    analysis.setHistory(state.storage.history);
+  }, [state.storage.history]);
 
   const onTextChange = (text: string): void => {
     liveTextRef.current = text;

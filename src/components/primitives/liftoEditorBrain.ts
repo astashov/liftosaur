@@ -292,6 +292,7 @@ export interface ILiftoEditorLevel {
   // Exercise levels only: every variation, i.e. the planner's fullName. The label is just
   // the first variation — enough for a breadcrumb, but not enough to identify the exercise.
   fullName?: string;
+  removeEdits?: ITextEdit[];
 }
 
 export interface ILiftoEditorContext {

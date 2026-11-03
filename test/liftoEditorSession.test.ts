@@ -27,6 +27,11 @@ import { Exercise_toKey } from "../src/models/exercise";
 import { Weight_build, Weight_increment } from "../src/models/weight";
 import { IExerciseType, ISettings } from "../src/types";
 import { LiftoEditorTestUtils_applyEdits, LiftoEditorTestUtils_pos } from "./utils/liftoEditorTestUtils";
+import { ILiftoEditorScope, LiftoEditorPlannerAdapter } from "../src/components/primitives/liftoEditorPlannerAdapter";
+
+function plannerSession(text: string, scope?: ILiftoEditorScope): ILiftoEditorSession {
+  return LiftoEditorSession_create(text, new LiftoEditorPlannerAdapter(scope));
+}
 
 const exerciseType: IExerciseType = { id: "squat", equipment: "barbell" };
 
@@ -49,7 +54,7 @@ function run(session: ILiftoEditorSession, result: ILiftoEditorSessionResult): I
 }
 
 function tapAt(text: string, needle: string, occurrence: number = 0): ILiftoEditorSessionResult {
-  const session = LiftoEditorSession_create(text);
+  const session = plannerSession(text);
   return LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(text, needle, occurrence), 1000);
 }
 
@@ -87,7 +92,7 @@ describe("LiftoEditorSession", () => {
     it("switches to freeform on a quick double tap in token-free text, like a script body", () => {
       const text = "Squat / 1x5 / progress: custom() {~ weights += 2.5kg ~}";
       const index = LiftoEditorTestUtils_pos(text, "weights");
-      const first = LiftoEditorSession_tap(LiftoEditorSession_create(text), index, 1000);
+      const first = LiftoEditorSession_tap(plannerSession(text), index, 1000);
       expect(first.session.focusedToken).to.equal(undefined);
       const second = LiftoEditorSession_tap(first.session, index + 1, 1200);
       expect(second.session.mode).to.equal("freeform");
@@ -118,7 +123,7 @@ describe("LiftoEditorSession", () => {
     it("reaches freeform by double tapping the number the keypad is open on", () => {
       const text = "Squat / 3x8 100kg";
       const index = LiftoEditorTestUtils_pos(text, "100kg");
-      const opened = LiftoEditorSession_tap(LiftoEditorSession_create(text), index, 1000);
+      const opened = LiftoEditorSession_tap(plannerSession(text), index, 1000);
       const first = LiftoEditorSession_tap(opened.session, index, 5000);
       const second = LiftoEditorSession_tap(first.session, index, 5200);
       expect(second.session.mode).to.equal("freeform");
@@ -332,7 +337,7 @@ describe("LiftoEditorSession", () => {
   describe("preview scope", () => {
     const text = "T1: Squat / 5x3 / 6x2 / 10x1 / 150lb / progress: lp(5lb)";
     function previewTap(source: string, needle: string): ILiftoEditorSessionResult {
-      const session = LiftoEditorSession_create(source, "preview");
+      const session = plannerSession(source, "preview");
       return LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(source, needle), 1000);
     }
 
@@ -349,7 +354,7 @@ describe("LiftoEditorSession", () => {
     });
 
     it("refuses removal on the name and allows it on a set group", () => {
-      const onName = LiftoEditorSession_walkFocus(LiftoEditorSession_create(text, "preview"), 1);
+      const onName = LiftoEditorSession_walkFocus(plannerSession(text, "preview"), 1);
       expect(onName.session.context?.levels[0]?.start).to.equal(0);
       expect(LiftoEditorSession_canRemove(onName.session)).to.equal(false);
       expect(LiftoEditorSession_removeFocused(onName.session).effects).to.deep.equal({});
@@ -583,7 +588,7 @@ describe("LiftoEditorSession", () => {
 
   describe("focused exercise", () => {
     function fullNameAt(text: string, needle: string): string | undefined {
-      const tap = LiftoEditorSession_tap(LiftoEditorSession_create(text), LiftoEditorTestUtils_pos(text, needle), 1000);
+      const tap = LiftoEditorSession_tap(plannerSession(text), LiftoEditorTestUtils_pos(text, needle), 1000);
       return LiftoEditorSession_focusedExerciseFullName(tap.session);
     }
 
@@ -601,13 +606,13 @@ describe("LiftoEditorSession", () => {
     });
 
     it("is undefined when nothing is focused", () => {
-      expect(LiftoEditorSession_focusedExerciseFullName(LiftoEditorSession_create("Squat / 3x8"))).to.equal(undefined);
+      expect(LiftoEditorSession_focusedExerciseFullName(plannerSession("Squat / 3x8"))).to.equal(undefined);
     });
   });
 
   describe("scope", () => {
     function pillsAt(text: string, needle: string, scope: "exercise" | "day"): string[] {
-      const session = LiftoEditorSession_create(text, scope);
+      const session = plannerSession(text, scope);
       const tap = LiftoEditorSession_tap(session, LiftoEditorTestUtils_pos(text, needle), 1000);
       return LiftoEditorSession_pills(tap.session).map((pill) => pill.label);
     }

@@ -583,6 +583,13 @@ export function LiftographDocument_valueText(value: ILiftographValue): string {
   }
 }
 
+export function LiftographDocument_diagnosticLabel(text: string, diagnostic: ILiftographDiagnostic): string {
+  const before = text.slice(0, Math.max(0, Math.min(diagnostic.span.from, text.length)));
+  const line = before.split("\n").length;
+  const column = before.length - before.lastIndexOf("\n");
+  return `${line}:${column} ${diagnostic.message}`;
+}
+
 export function LiftographDocument_scripts(doc: ILiftographDocument): ILiftographScriptNode[] {
   const widgets = doc.items.flatMap((item) => (item.type === "row" ? item.items : [item]));
   return widgets.flatMap((item) =>

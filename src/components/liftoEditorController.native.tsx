@@ -12,14 +12,12 @@ import {
 } from "./primitives/liftoEditorActions";
 import {
   ILiftoEditorMode,
-  ILiftoEditorScope,
   ILiftoEditorSession,
   ILiftoEditorSessionResult,
   LiftoEditorSession_activeLevelIndex,
   LiftoEditorSession_applyPill,
   LiftoEditorSession_blur,
   LiftoEditorSession_canRemove,
-  LiftoEditorSession_completions,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
   LiftoEditorSession_deactivate,
@@ -38,6 +36,7 @@ import {
   LiftoEditorSession_textChanged,
   LiftoEditorSession_walkFocus,
 } from "./primitives/liftoEditorSession";
+import { ILiftoEditorScope, LiftoEditorPlannerAdapter } from "./primitives/liftoEditorPlannerAdapter";
 import { ILiftoEditorBaseProps } from "./primitives/liftoEditor";
 import { ICompletionOption, ICompletionResult, PlannerCompletionsIndex } from "../pages/planner/plannerCompletions";
 import { PlatesCalculator } from "./inputWeight2";
@@ -153,9 +152,8 @@ export function useLiftoEditorController(
   options?: ILiftoEditorControllerOptions
 ): ILiftoEditorController {
   const actions = options?.actions;
-  const [session, setSession] = useState<ILiftoEditorSession>(() =>
-    LiftoEditorSession_create(initialText, options?.scope)
-  );
+  const [adapter] = useState(() => new LiftoEditorPlannerAdapter(options?.scope));
+  const [session, setSession] = useState<ILiftoEditorSession>(() => LiftoEditorSession_create(initialText, adapter));
   // Resolved from the session it's about, never from the render's — dispatch opens the
   // keypad with the *next* session, and that transition is exactly when focus can cross
   // from one exercise to another.
@@ -369,7 +367,7 @@ export function useLiftoEditorController(
     canRemove: LiftoEditorSession_canRemove(session),
     isKeypadActive: session.active != null,
     pills: options?.mapPills?.(LiftoEditorSession_pills(session)) ?? LiftoEditorSession_pills(session),
-    completions: LiftoEditorSession_completions(session, freeformCaret, {
+    completions: adapter.completions(session, freeformCaret, {
       customExercises: settings.exercises,
       exerciseFullNames: options?.exerciseFullNames,
       index: completionsIndexRef.current,
@@ -380,7 +378,7 @@ export function useLiftoEditorController(
     // completion context there any more the tap does nothing rather than something wrong.
     applyCompletion: (option) => {
       const caret = freeformCaretRef.current;
-      const current = LiftoEditorSession_completions(sessionRef.current, caret, {
+      const current = adapter.completions(sessionRef.current, caret, {
         customExercises: settings.exercises,
         exerciseFullNames: options?.exerciseFullNames,
         index: completionsIndexRef.current,
@@ -404,7 +402,7 @@ export function useLiftoEditorController(
     editorProps: {
       initialText,
       autoHeight: true,
-      parseCache: session.cache,
+      parseCache: adapter.cache,
       editable: session.mode === "freeform",
       extraStyledRanges: LiftoEditorSession_highlight(session),
       handleRef,
