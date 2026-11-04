@@ -7,6 +7,7 @@ import {
 import { LiftographScriptFns_muscleGroupKeys } from "../liftograph/liftographScriptFns";
 import { IDashboard, IGraph, ISettings, IStorage } from "../types";
 import { IEither } from "../utils/types";
+import type { IDashboardWebSaveResult } from "./dashboardWebSave";
 import { Exercise_find, Exercise_fromKey, Exercise_nameWithEquipment } from "./exercise";
 import { Muscle_getMuscleGroupName } from "./muscle";
 import { Stats_name } from "./stats";
@@ -68,6 +69,32 @@ export function Dashboard_current(
 ): IDashboard | undefined {
   const dashboards = storage.dashboards ?? [];
   return dashboards.find((d) => d.id === storage.currentDashboardId) ?? dashboards[0];
+}
+
+type IDashboardsStorage = Pick<IStorage, "dashboards" | "currentDashboardId">;
+
+export function Dashboard_add(storage: IDashboardsStorage, dashboard: IDashboard): IDashboardWebSaveResult {
+  const dashboards = [...(storage.dashboards ?? []), dashboard];
+  const validation = Dashboard_validate(dashboards);
+  return validation.success
+    ? { kind: "write", dashboards, currentDashboardId: dashboard.id }
+    : { kind: "error", status: 400, message: validation.error };
+}
+
+export function Dashboard_rename(storage: IDashboardsStorage, id: string, name: string): IDashboardWebSaveResult {
+  const dashboards = storage.dashboards ?? [];
+  const trimmed = name.trim();
+  if (trimmed === "") {
+    return { kind: "error", status: 400, message: "The name can't be empty" };
+  }
+  if (!dashboards.some((d) => d.id === id)) {
+    return { kind: "error", status: 404, message: "Dashboard not found" };
+  }
+  return {
+    kind: "write",
+    dashboards: dashboards.map((d) => (d.id === id ? { ...d, name: trimmed } : d)),
+    currentDashboardId: storage.currentDashboardId,
+  };
 }
 
 export function Dashboard_validate(dashboards: IDashboard[]): IEither<undefined, string> {

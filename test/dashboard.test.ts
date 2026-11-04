@@ -1,7 +1,9 @@
 import "mocha";
 import { expect } from "chai";
 import {
+  Dashboard_add,
   Dashboard_current,
+  Dashboard_rename,
   Dashboard_fromLegacyGraphs,
   Dashboard_maxCount,
   Dashboard_maxTextBytes,
@@ -131,6 +133,36 @@ describe("Dashboard_validate", () => {
     expect(Dashboard_validate([dashboard("a", "ж".repeat(Dashboard_maxTextBytes / 2 + 1))]).success).to.equal(false);
     const many = Array.from({ length: Dashboard_maxCount + 1 }, (_, i) => dashboard(`d${i}`));
     expect(Dashboard_validate(many).success).to.equal(false);
+  });
+});
+
+describe("Dashboard_add and Dashboard_rename", () => {
+  const storage = { dashboards: [dashboard("a"), dashboard("b")], currentDashboardId: "a" };
+
+  it("appends a dashboard and makes it current", () => {
+    expect(Dashboard_add(storage, dashboard("c"))).to.deep.equal({
+      kind: "write",
+      dashboards: [dashboard("a"), dashboard("b"), dashboard("c")],
+      currentDashboardId: "c",
+    });
+  });
+
+  it("refuses to add past the limit", () => {
+    const full = { dashboards: Array.from({ length: Dashboard_maxCount }, (_, i) => dashboard(`d${i}`)) };
+    expect(Dashboard_add(full, dashboard("extra"))).to.deep.include({ kind: "error", status: 400 });
+  });
+
+  it("renames with a trimmed name and keeps the selection", () => {
+    expect(Dashboard_rename(storage, "b", "  Legs  ")).to.deep.equal({
+      kind: "write",
+      dashboards: [dashboard("a"), { ...dashboard("b"), name: "Legs" }],
+      currentDashboardId: "a",
+    });
+  });
+
+  it("refuses a blank name and a missing dashboard", () => {
+    expect(Dashboard_rename(storage, "b", "   ")).to.deep.include({ kind: "error", status: 400 });
+    expect(Dashboard_rename(storage, "gone", "Legs")).to.deep.include({ kind: "error", status: 404 });
   });
 });
 

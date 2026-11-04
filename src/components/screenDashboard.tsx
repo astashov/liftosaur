@@ -12,6 +12,7 @@ import { Thunk_editHistoryRecord } from "../ducks/thunks";
 import { LiftographSeriesEval_compile, LiftographSeriesEval_create } from "../liftograph/liftographSeriesEval";
 import { LiftographDashboard_document } from "../liftograph/liftographDashboard";
 import { DashboardView } from "./dashboard/dashboardView";
+import { Dashboard_current } from "../models/dashboard";
 
 const navRightButtons = [
   <Pressable
@@ -25,6 +26,10 @@ const navRightButtons = [
   </Pressable>,
 ];
 
+function openDashboards(): void {
+  navigateToModal("dashboardsModal");
+}
+
 export function ScreenDashboard(): JSX.Element {
   usePerfRenderCount("ScreenDashboard");
   const trackedState = useTrackedState();
@@ -36,7 +41,8 @@ export function ScreenDashboard(): JSX.Element {
   const currentDashboardId = untrack(trackedState.storage.currentDashboardId);
   const today = DateUtils_formatYYYYMMDD(Date.now());
 
-  useNavOptions({ navTitle: "Graphs", navHelpKey: "graphs", navRightButtons });
+  const title = `${Dashboard_current({ dashboards, currentDashboardId })?.name ?? "Graphs"} ▾`;
+  useNavOptions({ navTitle: title, navHelpKey: "graphs", navRightButtons, navOnTitleClick: openDashboards });
 
   const evaluation = useTimedMemo(
     "screenDashboard.evaluation",

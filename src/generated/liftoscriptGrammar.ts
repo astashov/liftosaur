@@ -21,6 +21,7 @@ expression {
   WeightExpression |
   Percentage |
   String |
+  UnclosedString |
   ParenthesisExpression |
   BlockExpression |
   Ternary |
@@ -97,6 +98,8 @@ UnaryExpression {
   AndOr { ( "&&" | "||" ) }
   Not { "!" }
   String { '"' ![\\"\\\\\\n\\r~]* '"' }
+  UnclosedString { '"' ![\\"\\\\\\n\\r~]* }
+  @precedence { String, UnclosedString }
 }
 `;
 

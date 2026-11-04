@@ -40,6 +40,7 @@ import { NavScreenGraphs } from "./screens/NavScreenGraphs";
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
 import { NavModalDashboardEditor } from "./modals/NavModalDashboardEditor";
+import { NavModalDashboards } from "./modals/NavModalDashboards";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -411,6 +412,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseLiftoEditorModal" component={NavModalExerciseLiftoEditor} />
           <RootStack.Screen name="dayLiftoEditorModal" component={NavModalDayLiftoEditor} />
           <RootStack.Screen name="dashboardEditorModal" component={NavModalDashboardEditor} />
+          <RootStack.Screen name="dashboardsModal" component={NavModalDashboards} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
