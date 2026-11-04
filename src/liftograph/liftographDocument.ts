@@ -18,8 +18,18 @@ export interface ILiftographAtom {
 export type ILiftographValue =
   | { type: "atoms"; atoms: ILiftographAtom[]; span: ILiftographSpan }
   | { type: "quoted"; content: string; contentSpan: ILiftographSpan; isClosed: boolean; span: ILiftographSpan }
-  | { type: "call"; name: ILiftographAtom; args: ILiftographArg[]; isClosed: boolean; span: ILiftographSpan }
-  | { type: "list"; items: ILiftographAtom[]; span: ILiftographSpan };
+  | ILiftographCall
+  | { type: "list"; items: ILiftographListItem[]; span: ILiftographSpan };
+
+export interface ILiftographCall {
+  type: "call";
+  name: ILiftographAtom;
+  args: ILiftographArg[];
+  isClosed: boolean;
+  span: ILiftographSpan;
+}
+
+export type ILiftographListItem = { type: "atom"; atom: ILiftographAtom; span: ILiftographSpan } | ILiftographCall;
 
 export type ILiftographArg =
   | { type: "named"; key: ILiftographAtom; value?: ILiftographValue; span: ILiftographSpan }
@@ -183,7 +193,21 @@ function argValue(text: string, node: SyntaxNode): ILiftographValue | undefined 
   return { type: "atoms", atoms: atomsOf(text, inner), span: spanOf(inner) };
 }
 
-function callValue(text: string, node: SyntaxNode): ILiftographValue {
+function listItems(text: string, node: SyntaxNode): ILiftographListItem[] {
+  return children(node).flatMap((child): ILiftographListItem[] => {
+    if (child.type.id === T.Call) {
+      return [callValue(text, child)];
+    }
+    const kind = atomKind(child);
+    if (kind == null) {
+      return [];
+    }
+    const atom = { kind, text: text.slice(child.from, child.to), span: spanOf(child) };
+    return [{ type: "atom", atom, span: atom.span }];
+  });
+}
+
+function callValue(text: string, node: SyntaxNode): ILiftographCall {
   const nameNode = node.getChild(T.Identifier);
   const args = node.getChildren(T.Arg).flatMap((arg): ILiftographArg[] => {
     const named = arg.getChild(T.NamedArg);
@@ -230,7 +254,7 @@ function valueOf(text: string, node: SyntaxNode): ILiftographValue | undefined {
     case T.Quoted:
       return quotedValue(text, inner);
     case T.List:
-      return { type: "list", items: atomsOf(text, inner), span: spanOf(inner) };
+      return { type: "list", items: listItems(text, inner), span: spanOf(inner) };
     case T.Atoms:
       return { type: "atoms", atoms: atomsOf(text, inner), span: spanOf(inner) };
     default:
@@ -571,7 +595,9 @@ export function LiftographDocument_valueText(value: ILiftographValue): string {
     case "quoted":
       return value.content;
     case "list":
-      return value.items.map((atom) => atom.text).join(", ");
+      return value.items
+        .map((item) => (item.type === "atom" ? item.atom.text : LiftographDocument_valueText(item)))
+        .join(", ");
     case "call": {
       const args = value.args.map((arg) =>
         arg.type === "named"

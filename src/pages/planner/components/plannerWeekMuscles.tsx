@@ -10,7 +10,7 @@ import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IPlannerMusclesProps {
   settings: ISettings;
-  data: IMuscleGroupSetSplit;
+  data: Partial<IMuscleGroupSetSplit>;
   ungroupedMuscleSets: IMusclePoints;
 }
 

@@ -45,8 +45,9 @@ function applied(marked: string, label: string, host: ILiftographCompletionHost 
 
 describe("LiftographCompletions", () => {
   it("offers widget templates at a line start, and drops row inside a row", () => {
-    expect(labels("|")).to.deep.equal(["graph", "value", "//", "row"]);
-    expect(labels("row {\n  |\n}")).to.deep.equal(["graph", "value", "//"]);
+    expect(labels("|")).to.deep.equal(["graph", "value", "muscles", "calendar", "//", "row"]);
+    expect(labels("row {\n  |\n}")).to.deep.equal(["graph", "value", "muscles", "calendar", "//"]);
+    expect(applied("mus|", "muscles")).to.equal("muscles / range: 7d / show: map, sets|");
     expect(applied("gr|", "graph")).to.equal("graph {\n  name: | / source: exercise() / y: e1rm\n}");
     expect(applied("row {\n  |\n}", "graph")).to.equal(
       "row {\n  graph {\n    name: | / source: exercise() / y: e1rm\n  }\n}"
@@ -88,6 +89,14 @@ describe("LiftographCompletions", () => {
     expect(labels("value / source: workout(day: 1, |)")).to.deep.equal(["program:"]);
     expect(labels("value / source: stats(|)")).to.include("weight");
     expect(labels("value / source: stats(weight, |)")).to.deep.equal([]);
+  });
+
+  it("offers show: values with a sets(…) template, and muscle groups inside sets(...)", () => {
+    expect(labels("muscles / show: |")).to.deep.equal(["map", "sets", "map, sets", "map, sets(…)"]);
+    expect(applied("muscles / show: |", "map, sets(…)")).to.equal("muscles / show: map, sets(|)");
+    const groups = labels("muscles / show: map, sets(chest, |)");
+    expect(groups).to.include.members(["lats", "neck"]);
+    expect(groups).to.not.include("total");
   });
 
   it("offers only the presets that work with the line's source, wherever the source sits", () => {

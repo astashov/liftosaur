@@ -1,3 +1,5 @@
+@precedence { callArgs }
+
 @top Document { Line? (LineBreak Line?)* }
 
 Line { HiddenLine | TextLine | CloseLine | FieldLine }
@@ -18,9 +20,11 @@ Value { Call | Quoted | List | Atoms }
 
 Atoms { atom+ }
 
-List { atom (Comma atom)+ }
+List { listItem (Comma listItem)+ }
 
-Call { Identifier OpenParen (Arg? (Comma Arg?)*) CloseParen? }
+listItem { atom | Call }
+
+Call { Identifier OpenParen (Arg? (!callArgs Comma Arg?)*) CloseParen? }
 
 Arg { NamedArg | ArgValue }
 

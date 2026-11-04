@@ -169,7 +169,16 @@ describe("LiftographDocument helpers", () => {
       "positional",
       "named",
     ]);
-    expect(show.value?.type === "list" ? show.value.items.map((a) => a.text) : []).to.deep.equal(["map", "sets"]);
+    expect(show.value?.type === "list" ? show.value.items.map((a) => a.type) : []).to.deep.equal(["atom", "atom"]);
+    expect(LiftographDocument_valueText(show.value!)).to.equal("map, sets");
+  });
+
+  it("parses calls inside a comma list, and keeps commas of an unclosed call as its arguments", () => {
+    const closed = widget(LiftographDocument_parse("muscles / show: map, sets(chest, lats)").items[0]).pairs[0];
+    expect(closed.value?.type === "list" ? closed.value.items.map((a) => a.type) : []).to.deep.equal(["atom", "call"]);
+    expect(LiftographDocument_valueText(closed.value!)).to.equal("map, sets(chest, lats)");
+    const open = widget(LiftographDocument_parse("muscles / show: map, sets(chest, lats").items[0]).pairs[0];
+    expect(LiftographDocument_valueText(open.value!)).to.equal("map, sets(chest, lats");
   });
 
   it("keeps half-typed lines as structure: a bare key, an open call, an open quote", () => {

@@ -114,7 +114,41 @@ describe("LiftographRail", () => {
     const next = apply(text, [{ start: add.start, end: add.end, text: add.text }]);
     expect(next).to.contain("source: workout");
     expect(diagnostics(next)).to.deep.equal([]);
-    expect(pillsOf(contextAt(next, "workout", 1))).to.deep.equal(["workout"]);
+    expect(pillsOf(contextAt(next, "workout", 1))).to.deep.equal(["workout", "Add program", "Add day"]);
+  });
+
+  it("turns a bare workout source into a filtered call and opens text editing after the colon", () => {
+    const text = "muscles / source: workout";
+    const add = pillNamed(contextAt(text, "workout", 1), "Add program");
+    const next = apply(text, [{ start: add.start, end: add.end, text: add.text }]);
+    expect(next).to.equal("muscles / source: workout(program: )");
+    expect(add.freeformAt).to.equal(next.indexOf(")"));
+  });
+
+  it("adds muscles and calendar widgets to a row", () => {
+    const text = "row {\n  value / source: workout\n}";
+    const pills = pillsOf(contextAt(text, "row", 1));
+    expect(pills).to.include.members(["Add muscles", "Add calendar"]);
+    const add = pillNamed(contextAt(text, "row", 1), "Add calendar");
+    const next = apply(text, [{ start: add.start, end: add.end, text: add.text }]);
+    expect(next).to.contain("\n  calendar / range: 3m\n}");
+    expect(diagnostics(next)).to.deep.equal([]);
+  });
+
+  it("keeps show: pills on a list with sets(...), and each one replaces the whole value", () => {
+    const text = "muscles / show: map, sets(chest, lats)";
+    expect(pillsOf(contextAt(text, "map", 1))).to.include.members(["map", "sets", "map, sets"]);
+    const map = pillNamed(contextAt(text, "map", 1), "map");
+    expect(apply(text, [{ start: map.start, end: map.end, text: map.text }])).to.equal("muscles / show: map");
+  });
+
+  it("adds another group inside sets(...)", () => {
+    const text = "muscles / show: map, sets(chest, lats)";
+    const add = pillNamed(contextAt(text, "lats", 1), "Add group");
+    const next = apply(text, [{ start: add.start, end: add.end, text: add.text }]);
+    expect(next).to.equal("muscles / show: map, sets(chest, lats, )");
+    expect(add.freeformAt).to.equal(next.length - 1);
+    expect(pillsOf(contextAt(text, "lats", 1))).to.include("neck");
   });
 
   it("smooths a numeric-axis series with a numeric window", () => {

@@ -12,17 +12,15 @@ import { LinkButton } from "./linkButton";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
 import { StringUtils_pluralize } from "../utils/string";
 import { ISetResults } from "../pages/planner/models/types";
-import { PlannerWeekMuscles } from "../pages/planner/components/plannerWeekMuscles";
 import { PlannerSetSplit } from "../pages/planner/components/plannerStats";
+import { MuscleGroupSets } from "./muscleGroupSets";
 import { MuscleRangeDisplay_pctColor } from "../models/muscleRangeDisplay";
-import { MuscleGroupOrder_sections } from "../models/muscleGroupOrder";
 import { PersonalRecords } from "./personalRecords";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IconCrown } from "./icons/iconCrown";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";
-import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigateToModal } from "../navigation/navigationService";
 
 interface IWeekInsightsProps {
@@ -254,34 +252,12 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
           </Text>
         </View>
       </View>
-      <View className="flex-row items-center mt-2">
-        <View className="flex-1">
-          {MuscleGroupOrder_sections(setResults.muscleGroup, props.settings).map((rows, index) => (
-            <View key={rows[0].muscleGroup} className={index > 0 ? "mt-2" : ""}>
-              {rows.map(({ muscleGroup, split }) => (
-                <Text key={muscleGroup} className="text-sm">
-                  <Text className="text-sm text-text-secondary">
-                    {Muscle_getMuscleGroupName(muscleGroup, props.settings)}:
-                  </Text>{" "}
-                  <PlannerSetSplit
-                    split={split}
-                    settings={props.settings}
-                    shouldIncludeFrequency={true}
-                    muscle={muscleGroup}
-                    textSize="text-sm"
-                  />
-                </Text>
-              ))}
-            </View>
-          ))}
-        </View>
-        <View className="w-scaled-20 mb-2">
-          <PlannerWeekMuscles
-            settings={props.settings}
-            data={setResults.muscleGroup}
-            ungroupedMuscleSets={WeekInsightsUtils_ungroupedMuscleSets(props.thisWeekHistory, props.settings)}
-          />
-        </View>
+      <View className="mt-2">
+        <MuscleGroupSets
+          muscleGroup={setResults.muscleGroup}
+          ungroupedMuscleSets={WeekInsightsUtils_ungroupedMuscleSets(props.thisWeekHistory, props.settings)}
+          settings={props.settings}
+        />
       </View>
       <View className="mt-2">
         <LinkButton

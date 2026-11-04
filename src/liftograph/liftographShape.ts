@@ -62,6 +62,10 @@ function dayStart(ts: number): number {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 }
 
+export function LiftographShape_dayStart(ts: number): number {
+  return dayStart(ts);
+}
+
 function dayEnd(ts: number): number {
   const date = new Date(ts);
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1).getTime() - 1;
@@ -89,6 +93,25 @@ export function LiftographShape_subtract(ts: number, duration: Exclude<ILiftogra
   const month = duration.unit === "m" ? m - duration.n : m;
   const lastDay = new Date(year, month + 1, 0).getDate();
   return new Date(year, month, Math.min(d, lastDay)).getTime();
+}
+
+export interface ILiftographWindow {
+  from: number;
+  to: number;
+  days: number;
+}
+
+export function LiftographShape_window(
+  today: number,
+  range: ILiftographDuration,
+  firstTs: number | undefined
+): ILiftographWindow {
+  const to = dayEnd(today);
+  const from =
+    range === "all"
+      ? dayStart(Math.min(firstTs ?? today, today))
+      : fromDayNumber(dayNumber(LiftographShape_subtract(dayStart(today), range)) + 1);
+  return { from, to, days: Math.max(1, dayNumber(today) - dayNumber(from) + 1) };
 }
 
 function bucketStart(ts: number, duration: Exclude<ILiftographDuration, "all">, settings: ISettings): number {

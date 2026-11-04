@@ -82,6 +82,9 @@ export interface ILiftographCandidates {
   isOrdered?: boolean;
 }
 
+export const LiftographCompletions_musclesTemplate = "muscles / range: 7d / show: map, sets";
+export const LiftographCompletions_calendarTemplate = "calendar / range: 3m";
+
 const STRIP_LIMIT = 30;
 const STATS_KEYS: readonly string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
 const GROUP_DURATIONS = ["1w", "2w", "4w", "1m", "3m"];
@@ -92,8 +95,8 @@ const VALUES_BY_KEY: Partial<Record<string, string[]>> = {
   mark: ["line", "dots", "bars"],
   axis: ["left", "right"],
   color: [...LiftographPalette_names],
-  show: ["map", "sets", "map, sets"],
 };
+const SHOW_VALUES = ["map", "sets", "map, sets"];
 const RANGES: Record<ILiftographCompletionOwner, string[]> = {
   series: [],
   graph: ["1m", "3m", "6m", "1y", "all"],
@@ -134,6 +137,8 @@ function templates(context: IContext<"kind">): ILiftographCompletionOption[] {
   const result = [
     withCaret("graph", `graph {${nl}  name: `, ` / source: exercise() / y: e1rm${nl}}`, "keyword", "{…}"),
     withCaret("value", "value / name: ", " / source: exercise() / y: e1rm / compare: 4w", "keyword", "/ …"),
+    option("muscles", "keyword", { insert: LiftographCompletions_musclesTemplate, detail: "/ …" }),
+    option("calendar", "keyword", { insert: LiftographCompletions_calendarTemplate, detail: "/ …" }),
     option("//", "text", { insert: "// ", display: "// text", detail: "text" }),
   ];
   if (!context.isInRow) {
@@ -147,7 +152,9 @@ function kindCandidates(context: IContext<"kind">): ILiftographCandidates {
     kind: "kind",
     from: context.from,
     to: context.to,
-    options: context.isAlone ? templates(context) : ["graph", "value", "row"].map((kind) => option(kind, "keyword")),
+    options: context.isAlone
+      ? templates(context)
+      : ["graph", "value", "muscles", "calendar", "row"].map((kind) => option(kind, "keyword")),
   };
 }
 
@@ -271,6 +278,11 @@ function argumentCandidates(
     };
   } else if (context.key === "y" && LiftographPresets_isName(context.fn) && liftographPresets[context.fn].hasArg) {
     return constants("muscleGroup", Array.from(LiftographScriptFns_muscleGroupKeys(args.settings)));
+  } else if (context.key === "show" && context.fn === "sets") {
+    return constants(
+      "muscleGroup",
+      Array.from(LiftographScriptFns_muscleGroupKeys(args.settings)).filter((group) => group !== "total")
+    );
   } else if (context.key === "group" && LiftographCompile_aggs.some((agg) => agg === context.fn)) {
     return isNumericX(context.script, args) ? undefined : constants("duration", GROUP_DURATIONS);
   } else if (context.key === "smooth" && LiftographCompile_smoothAggs.some((agg) => agg === context.fn)) {
@@ -325,6 +337,17 @@ function valueCandidates(
     };
   } else if (key === "range") {
     return simple("duration", RANGES[context.owner]);
+  }
+  if (key === "show") {
+    return {
+      kind: "enum",
+      from,
+      to,
+      options: [
+        ...SHOW_VALUES.map((v) => option(v, "constant")),
+        withCaret("map, sets(…)", "map, sets(", ")", "constant", "groups"),
+      ],
+    };
   }
   const values = VALUES_BY_KEY[key];
   return values != null ? simple(key === "compare" || key === "trend" ? "duration" : "enum", values) : undefined;

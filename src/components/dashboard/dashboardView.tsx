@@ -8,6 +8,8 @@ import { ILiftographSeriesEval } from "../../liftograph/liftographSeriesEval";
 import { LiftographDashboard_isHeading, LiftographDashboard_widgetKey } from "../../liftograph/liftographDashboard";
 import { DashboardGraph } from "./dashboardGraph";
 import { DashboardValue } from "./dashboardValue";
+import { DashboardMuscles } from "./dashboardMuscles";
+import { DashboardCalendar } from "./dashboardCalendar";
 import { DashboardNotice } from "./dashboardNotice";
 
 interface IDashboardWidgetProps {
@@ -23,6 +25,10 @@ function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
     return <DashboardGraph id={props.id} widget={widget} evaluation={evaluation} onOpenRecord={props.onOpenRecord} />;
   } else if (widget.kind === "value") {
     return <DashboardValue widget={widget} evaluation={evaluation} />;
+  } else if (widget.kind === "muscles") {
+    return <DashboardMuscles widget={widget} evaluation={evaluation} />;
+  } else if (widget.kind === "calendar") {
+    return <DashboardCalendar widget={widget} evaluation={evaluation} />;
   } else if (widget.kind === "text") {
     return (
       <View className={`flex-1 ${LiftographDashboard_isHeading(widget.markdown) ? "mt-2" : "py-1"}`}>
@@ -32,10 +38,8 @@ function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
     );
   } else if (widget.kind === "error") {
     return <DashboardNotice caption={widget.caption} message={widget.message} isError />;
-  } else if (widget.kind === "unsupported") {
-    return <DashboardNotice caption={widget.caption} message={widget.message} isError />;
   }
-  return <DashboardNotice caption={widget.caption} message={`The ${widget.kind} widget is coming soon.`} />;
+  return <DashboardNotice caption={widget.caption} message={widget.message} isError />;
 }
 
 export function DashboardView(props: {

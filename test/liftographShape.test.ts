@@ -12,6 +12,7 @@ import {
   LiftographShape_subtract,
   LiftographShape_value,
   LiftographShape_valueAt,
+  LiftographShape_window,
 } from "../src/liftograph/liftographShape";
 import { fxDay, fxSettings } from "./liftographFixtures";
 
@@ -53,6 +54,27 @@ describe("LiftographShape_subtract", () => {
     expect(new Date(LiftographShape_subtract(fxDay(2026, 3, 9, 23).getTime(), { n: 1, unit: "d" }))).to.deep.equal(
       new Date(2026, 2, 8)
     );
+  });
+});
+
+describe("LiftographShape_window", () => {
+  it("starts the day after the subtracted date and counts local days, today included", () => {
+    const march31 = fxDay(2026, 3, 31, 15).getTime();
+    const month = LiftographShape_window(march31, { n: 1, unit: "m" }, undefined);
+    expect(new Date(month.from)).to.deep.equal(new Date(2026, 2, 1));
+    expect(month.days).to.equal(31);
+    expect(new Date(month.to)).to.deep.equal(new Date(2026, 3, 1, 0, 0, 0, -1));
+    expect(LiftographShape_window(march31, { n: 7, unit: "d" }, undefined).days).to.equal(7);
+    expect(LiftographShape_window(march31, { n: 2, unit: "w" }, undefined).days).to.equal(14);
+    expect(LiftographShape_window(march31, { n: 1, unit: "y" }, undefined).days).to.equal(365);
+  });
+
+  it("starts 'all' at the first workout's day, or today with no history", () => {
+    const march31 = fxDay(2026, 3, 31, 15).getTime();
+    const all = LiftographShape_window(march31, "all", fxDay(2026, 3, 20, 18).getTime());
+    expect(new Date(all.from)).to.deep.equal(new Date(2026, 2, 20));
+    expect(all.days).to.equal(12);
+    expect(LiftographShape_window(march31, "all", undefined).days).to.equal(1);
   });
 });
 

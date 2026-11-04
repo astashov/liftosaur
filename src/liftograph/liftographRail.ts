@@ -14,7 +14,9 @@ import { LiftographCompile_keys } from "./liftographCompile";
 import {
   ILiftographCompletionArgs,
   ILiftographCompletionOption,
+  LiftographCompletions_calendarTemplate,
   LiftographCompletions_candidates,
+  LiftographCompletions_musclesTemplate,
 } from "./liftographCompletions";
 import { liftographPresets, LiftographPresets_isName } from "./liftographPresets";
 import { LiftographPalette_names } from "./liftographPalette";
@@ -261,6 +263,21 @@ function optionPills(
   };
 }
 
+function bareWorkoutFilterPills(text: string, value: SyntaxNode | null): ILiftoEditorPill[] {
+  const atoms = value?.firstChild?.type.id === T.Atoms ? value.firstChild : undefined;
+  if (atoms == null || textOf(text, atoms) !== "workout") {
+    return [];
+  }
+  return (FILTERS.workout ?? []).map((filter) => {
+    const insert = `(${filter}: )`;
+    return makePill(
+      `Add ${filter}`,
+      { start: atoms.to, end: atoms.to, text: insert },
+      { freeformAt: atoms.to + insert.length - 1 }
+    );
+  });
+}
+
 function sourcePills(value: SyntaxNode | null, colon: SyntaxNode, kind: string): ILiftoEditorPill[] {
   const span = value != null ? { start: value.from, end: value.to } : { start: colon.to, end: colon.to };
   const lead = value != null ? "" : " ";
@@ -304,7 +321,9 @@ function fieldLevel(
     const span = value != null ? { start: value.from, end: value.to } : { start: colon.to, end: colon.to };
     pills = [makePill("Rename", { ...span, text: value != null ? textOf(text, value) : "" }, { action: "rename" })];
   } else if (key === "source") {
-    pills = sourcePills(value, colon, kind);
+    pills = [...sourcePills(value, colon, kind), ...bareWorkoutFilterPills(text, value)];
+  } else if (key === "show" && value != null) {
+    pills = (optionPills(doc, value.from, args)?.pills ?? []).map((p) => ({ ...p, end: value.to }));
   } else {
     const call = value?.firstChild?.type.id === T.Call ? value.firstChild : undefined;
     const pos = call != null ? (call.getChild(T.Identifier)?.to ?? value?.to) : (value?.to ?? colon.to);
@@ -411,6 +430,10 @@ function argumentLevel(
         const insert = `, ${f}: `;
         return makePill(`Add ${f}`, { start: close, end: close, text: insert }, { freeformAt: close + insert.length });
       });
+  } else if (key === "show" && fn === "sets") {
+    const close = call.getChild(T.CloseParen)?.from ?? call.to;
+    const add = makePill("Add group", { start: close, end: close, text: ", " }, { freeformAt: close + 2 });
+    pills = [...(optionPills(doc, arg.to, args)?.pills ?? []), add];
   } else {
     pills = named != null ? [] : (optionPills(doc, arg.to, args)?.pills ?? []);
   }
@@ -454,6 +477,8 @@ function rowLevel(doc: ILiftographDocument, row: ILiftographRowItem): ILiftoEdit
     [
       add("graph", `graph {\n${indent}  ${NEW_SERIES}\n${indent}}`),
       add("value", `value / ${NEW_SERIES.replace("name: New series / ", "")}`),
+      add("muscles", LiftographCompletions_musclesTemplate),
+      add("calendar", LiftographCompletions_calendarTemplate),
     ],
     [wholeLines(doc, row.caption?.span.from ?? row.span.from, row.span.to)]
   );

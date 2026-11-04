@@ -6,6 +6,8 @@ import {
 } from "./liftographCompile";
 import { ILiftographDiagnostic, ILiftographSpan, LiftographDocument_parse } from "./liftographDocument";
 import { ILiftographFoldError } from "./liftographFold";
+import { ILiftographMusclesResult, LiftographMuscles_evaluate } from "./liftographMuscles";
+import { ILiftographCalendarResult, LiftographCalendar_evaluate } from "./liftographCalendar";
 import {
   ILiftographSeriesEval,
   ILiftographSeriesEvalInput,
@@ -31,7 +33,9 @@ export type ILiftographWidgetResult =
       value?: ILiftographValueResult;
       error?: ILiftographFoldError;
     }
-  | { type: "static"; widget: Exclude<ILiftographWidget, { kind: "graph" | "value" }> };
+  | { type: "muscles"; widget: Extract<ILiftographWidget, { kind: "muscles" }>; muscles: ILiftographMusclesResult }
+  | { type: "calendar"; widget: Extract<ILiftographWidget, { kind: "calendar" }>; calendar: ILiftographCalendarResult }
+  | { type: "static"; widget: Exclude<ILiftographWidget, { kind: "graph" | "value" | "muscles" | "calendar" }> };
 
 export interface ILiftographEngineResult {
   layout: { caption?: string; items: ILiftographWidgetResult[] }[];
@@ -74,6 +78,10 @@ export function LiftographEngine_evaluateWidget(
       return { type: "value", widget, error: { ...result.error, span: result.error.span ?? widget.span } };
     }
     return { type: "value", widget, value: LiftographShape_value(result, widget, input.settings, input.today) };
+  } else if (widget.kind === "muscles") {
+    return { type: "muscles", widget, muscles: LiftographMuscles_evaluate(widget, evaluation) };
+  } else if (widget.kind === "calendar") {
+    return { type: "calendar", widget, calendar: LiftographCalendar_evaluate(widget, evaluation) };
   }
   return { type: "static", widget };
 }

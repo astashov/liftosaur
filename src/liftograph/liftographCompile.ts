@@ -5,6 +5,7 @@ import {
   ILiftographAtom,
   ILiftographDiagnostic,
   ILiftographDocument,
+  ILiftographListItem,
   ILiftographPair,
   ILiftographScriptNode,
   ILiftographSpan,
@@ -63,7 +64,8 @@ export type ILiftographWidget = (
   | {
       kind: "muscles";
       range: ILiftographDuration;
-      show: ("map" | "sets")[];
+      show: ILiftographMusclesPart[];
+      groups?: string[];
       source?: ILiftographSource;
       span: ILiftographSpan;
     }
@@ -185,6 +187,52 @@ function argText(value: ILiftographValue | undefined, pair: ILiftographPair): st
     throw new CompileError("This text has no closing quote", value.span);
   }
   return LiftographDocument_valueText(value);
+}
+
+export type ILiftographMusclesPart = "map" | "sets";
+const SHOW_ALL: ILiftographMusclesPart[] = ["map", "sets"];
+
+function parseShow(pair: ILiftographPair, settings: ISettings): { show: ILiftographMusclesPart[]; groups?: string[] } {
+  const value = requireValue(pair);
+  const items: ILiftographListItem[] =
+    value.type === "list"
+      ? value.items
+      : value.type === "call"
+        ? [value]
+        : value.type === "atoms" && value.atoms.length === 1
+          ? [{ type: "atom", atom: value.atoms[0], span: value.span }]
+          : [];
+  if (items.length === 0) {
+    throw new CompileError("'show:' is map, sets, or both", valueSpan(pair));
+  }
+  const show: ILiftographMusclesPart[] = [];
+  let groups: string[] | undefined;
+  for (const item of items) {
+    const name = item.type === "atom" ? item.atom.text : item.name.text;
+    if (name !== "map" && name !== "sets") {
+      throw new CompileError("'show:' is map, sets, or both", item.span);
+    }
+    if (item.type === "call") {
+      if (name !== "sets") {
+        throw new CompileError("Only sets(...) takes muscle groups", item.span);
+      }
+      if (!item.isClosed) {
+        throw new CompileError("'sets(' has no closing ')'", item.span);
+      }
+      groups = item.args.map((arg) => {
+        const group = arg.type === "positional" ? argText(arg.value, pair) : undefined;
+        if (group == null || group === "total" || !LiftographScriptFns_muscleGroupKeys(settings).has(group)) {
+          throw new CompileError(`Unknown muscle group '${group ?? ""}'`, arg.span);
+        }
+        return group;
+      });
+      if (groups.length === 0) {
+        throw new CompileError("sets(...) needs at least one muscle group, like sets(chest)", item.span);
+      }
+    }
+    show.push(name);
+  }
+  return { show, groups };
 }
 
 export const LiftographCompile_maxTrend: ILiftographDuration = { n: 1, unit: "y" };
@@ -538,16 +586,7 @@ function compileWidget(
         keys.range != null ? valueSpan(keys.range) : widget.span
       );
     }
-    const showValue = keys.show != null ? requireValue(keys.show) : undefined;
-    const show =
-      showValue == null
-        ? ["map", "sets"]
-        : showValue.type === "list"
-          ? showValue.items.map((item) => item.text)
-          : [singleAtom(showValue)?.text ?? ""];
-    if (show.some((s) => s !== "map" && s !== "sets")) {
-      throw new CompileError("'show:' is map, sets, or both", keys.show != null ? valueSpan(keys.show) : widget.span);
-    }
+    const { show, groups } = keys.show != null ? parseShow(keys.show, settings) : { show: SHOW_ALL, groups: undefined };
     const sourcePair = keys.source;
     const source = sourcePair != null ? parseSource(sourcePair, settings) : undefined;
     if (sourcePair != null && source?.type !== "workout") {
@@ -556,7 +595,8 @@ function compileWidget(
     return {
       kind: "muscles",
       range,
-      show: show.filter((s): s is "map" | "sets" => s === "map" || s === "sets"),
+      show,
+      groups,
       source,
       span: widget.span,
     };
