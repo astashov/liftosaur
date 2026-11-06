@@ -1,12 +1,12 @@
+import type { ReactNode } from "react";
 import type { ILiftographDiagnostic } from "../../liftograph/liftographDocument";
 import type { LiftographEditorAnalysis } from "../../liftograph/liftographEditorAnalysis";
 
-export interface IDashboardEditorSheetProps {
-  initialText: string;
-  title: string;
+export interface IDashboardTextEditorProps {
+  header: ReactNode;
+  text: string;
+  initialCaret?: number;
   analysis: LiftographEditorAnalysis;
   diagnostics: ILiftographDiagnostic[];
-  onTextChange: (text: string) => void;
-  onCancel: () => void;
-  onSave: (text: string) => void;
+  onChange: (text: string) => void;
 }

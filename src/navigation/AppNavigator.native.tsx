@@ -36,10 +36,9 @@ import {
   NavScreenProgramPreviewOnboarding,
 } from "./screens/NavScreenOnboarding";
 import { NavScreenProgress, NavScreenFinishDay, NavScreenSubscription } from "./screens/NavScreenWorkout";
-import { NavScreenGraphs } from "./screens/NavScreenGraphs";
+import { NavScreenDashboardEdit, NavScreenGraphs } from "./screens/NavScreenGraphs";
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
-import { NavModalDashboardEditor } from "./modals/NavModalDashboardEditor";
 import { NavModalDashboards } from "./modals/NavModalDashboards";
 import {
   NavScreenSettings,
@@ -319,6 +318,11 @@ function GraphsStackScreen(): JSX.Element {
         options={{ headerShown: true, header: NavHeader }}
       />
       <GraphsStack.Screen
+        name="dashboardEdit"
+        component={NavScreenDashboardEdit}
+        options={{ headerShown: true, header: NavHeader }}
+      />
+      <GraphsStack.Screen
         name="progress"
         component={NavScreenProgress}
         getId={({ params }) => String(params?.id ?? 0)}
@@ -411,7 +415,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
           <RootStack.Screen name="exerciseLiftoEditorModal" component={NavModalExerciseLiftoEditor} />
           <RootStack.Screen name="dayLiftoEditorModal" component={NavModalDayLiftoEditor} />
-          <RootStack.Screen name="dashboardEditorModal" component={NavModalDashboardEditor} />
           <RootStack.Screen name="dashboardsModal" component={NavModalDashboards} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />

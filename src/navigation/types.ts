@@ -40,6 +40,7 @@ export type IWorkoutStackParamList = {
 
 export type IGraphsStackParamList = {
   graphsList: undefined;
+  dashboardEdit: { mode?: "ui" | "text"; caret?: number } | undefined;
   progress: { id?: number } | undefined;
 };
 
@@ -157,7 +158,6 @@ export type IRootStackParamList = {
   exerciseStatsModal: { programId: string };
   editExerciseChangeModal: { programId: string };
   graphsModal: undefined;
-  dashboardEditorModal: undefined;
   dashboardsModal: undefined;
   statsSettingsModal: undefined;
   programInfoModal: { programId: string; hasCustomPrograms: boolean };

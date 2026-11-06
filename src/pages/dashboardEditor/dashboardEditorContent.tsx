@@ -6,14 +6,16 @@ import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { LinkInlineInput } from "../../components/inlineInput";
 import { Tabs2 } from "../../components/tabs2";
-import { LiftographCodeEditor } from "../../components/liftographCodeEditor";
+import { ILiftographCodeEditorReveal, LiftographCodeEditor } from "../../components/liftographCodeEditor";
+import { useDashboardDraft } from "../../components/dashboard/useDashboardDraft";
+import { useUndoRedo } from "../builder/utils/undoredo";
 import { LiftographEditorAnalysis } from "../../liftograph/liftographEditorAnalysis";
 import {
-  DashboardDraftSave_edit,
   DashboardDraftSave_failed,
   DashboardDraftSave_init,
   DashboardDraftSave_isDirty,
   DashboardDraftSave_isSaving,
+  DashboardDraftSave_rename,
   DashboardDraftSave_start,
   DashboardDraftSave_succeeded,
 } from "../../models/dashboardDraftSave";
@@ -42,13 +44,16 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
   const [save, setSave] = useState(() =>
     DashboardDraftSave_init({ name: dashboard.name, text: dashboard.text }, props.base)
   );
-  const { draft } = save;
+  const textDraft = useDashboardDraft(dashboard.text);
+  const [isLayoutEditing, setIsLayoutEditing] = useState(false);
+  const [reveal, setReveal] = useState<ILiftographCodeEditorReveal | undefined>(undefined);
+  useUndoRedo(textDraft.state, textDraft.dispatch);
   const [previewText, setPreviewText] = useState(dashboard.text);
   const [data, setData] = useState<IDashboardEditorData>({ kind: "loading" });
   const [tab, setTab] = useState<"editor" | "preview">("editor");
   const [previewAnalysis] = useState(() => new LiftographEditorAnalysis(settings));
   const diagnostics = useMemo(() => previewAnalysis.compileDiagnostics(previewText), [previewAnalysis, previewText]);
-  const isDirty = DashboardDraftSave_isDirty(save);
+  const isDirty = DashboardDraftSave_isDirty(save, textDraft.text);
   const isSaving = DashboardDraftSave_isSaving(save);
 
   useEffect(() => {
@@ -61,9 +66,14 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
   }, [service]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setPreviewText(draft.text), PREVIEW_DELAY_MS);
+    const timer = setTimeout(() => setPreviewText(textDraft.text), PREVIEW_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [draft.text]);
+  }, [textDraft.text]);
+
+  const onOpenEditor = (caret: number): void => {
+    setReveal((current) => ({ at: caret, key: (current?.key ?? 0) + 1 }));
+    setTab("editor");
+  };
 
   useEffect(() => {
     if (!isDirty) {
@@ -77,7 +87,7 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
   }, [isDirty]);
 
   const onSave = async (): Promise<void> => {
-    const { state, request } = DashboardDraftSave_start(save);
+    const { state, request } = DashboardDraftSave_start(save, textDraft.text);
     if (request == null) {
       return;
     }
@@ -100,17 +110,25 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
           </a>
           <h1 className="text-2xl font-bold md:text-3xl">
             <LinkInlineInput
-              value={draft.name}
-              onInputString={(name) => setSave((current) => DashboardDraftSave_edit(current, { name }))}
+              value={save.name}
+              onInputString={(name) => setSave((current) => DashboardDraftSave_rename(current, name))}
             />
           </h1>
         </div>
+        <Button name="dashboard-undo" kind="lightgrayv3" disabled={!textDraft.canUndo} onClick={textDraft.undo}>
+          Undo
+        </Button>
+        <Button name="dashboard-redo" kind="lightgrayv3" disabled={!textDraft.canRedo} onClick={textDraft.redo}>
+          Redo
+        </Button>
         <Button name="dashboard-save" kind="purple" disabled={!isDirty || isSaving} onClick={onSave}>
           {isSaving ? "Saving…" : isDirty ? "Save" : "Saved"}
         </Button>
       </div>
       <div className="mb-4 md:hidden">
         <Tabs2
+          key={tab}
+          defaultIndex={tab === "editor" ? 0 : 1}
           tabs={[
             ["Editor", null],
             ["Preview", null],
@@ -123,13 +141,30 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
           <LiftographCodeEditor
             isFullHeight
             initialText={dashboard.text}
+            value={textDraft.text}
+            reveal={reveal}
             analysis={analysis}
             diagnostics={diagnostics}
-            onChange={(text) => setSave((current) => DashboardDraftSave_edit(current, { text }))}
+            onChange={textDraft.setText}
           />
         </div>
         <div className={`md:w-1/2 min-w-0 ${tab === "preview" ? "" : "hidden md:block"}`}>
-          <DashboardEditorPreview text={previewText} settings={settings} data={data} />
+          <div className="flex justify-end pb-2">
+            <Button
+              name="dashboard-edit-layout"
+              kind={isLayoutEditing ? "purple" : "lightgrayv3"}
+              buttonSize="sm"
+              onClick={() => setIsLayoutEditing(!isLayoutEditing)}
+            >
+              {isLayoutEditing ? "Done editing layout" : "Edit layout"}
+            </Button>
+          </div>
+          <DashboardEditorPreview
+            text={isLayoutEditing ? textDraft.text : previewText}
+            settings={settings}
+            data={data}
+            layoutEditing={isLayoutEditing ? { onChange: textDraft.setText, onOpenEditor } : undefined}
+          />
         </div>
       </div>
     </div>

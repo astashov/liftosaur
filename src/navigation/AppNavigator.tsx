@@ -37,7 +37,7 @@ import {
   NavScreenProgramPreviewOnboarding,
 } from "./screens/NavScreenOnboarding";
 import { NavScreenProgress, NavScreenFinishDay, NavScreenSubscription } from "./screens/NavScreenWorkout";
-import { NavScreenGraphs } from "./screens/NavScreenGraphs";
+import { NavScreenDashboardEdit, NavScreenGraphs } from "./screens/NavScreenGraphs";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -129,7 +129,6 @@ import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesP
 import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
-import { NavModalDashboardEditor } from "./modals/NavModalDashboardEditor";
 import { NavModalDashboards } from "./modals/NavModalDashboards";
 
 function renderScreenWithErrorBoundary(args: {
@@ -250,6 +249,7 @@ function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={screenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <GraphsStack.Screen name="graphsList" component={NavScreenGraphs} />
+      <GraphsStack.Screen name="dashboardEdit" component={NavScreenDashboardEdit} />
       <GraphsStack.Screen
         name="progress"
         component={NavScreenProgress}
@@ -426,7 +426,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="helpModal" component={NavModalHelp} />
           <RootStack.Screen name="exerciseLiftoEditorModal" component={NavModalExerciseLiftoEditor} />
           <RootStack.Screen name="dayLiftoEditorModal" component={NavModalDayLiftoEditor} />
-          <RootStack.Screen name="dashboardEditorModal" component={NavModalDashboardEditor} />
           <RootStack.Screen name="dashboardsModal" component={NavModalDashboards} />
         </RootStack.Group>
       </RootStack.Navigator>

@@ -16,6 +16,7 @@ import { autocompletion, CompletionContext, CompletionResult, completionKeymap }
 import { Diagnostic, setDiagnostics } from "@codemirror/lint";
 import { bracketMatching, foldKeymap, syntaxTree } from "@codemirror/language";
 import { ILiftographDiagnostic } from "../liftograph/liftographDocument";
+import { TextDiff_minimalEdit, TextDiff_toLf } from "../utils/textDiff";
 import { LiftographEditorAnalysis } from "../liftograph/liftographEditorAnalysis";
 import { LiftographLanguage_support, LiftographLanguage_tree } from "../liftograph/liftographLanguage";
 import { LiftographCompletions_editTyped } from "../liftograph/liftographCompletions";
@@ -25,8 +26,16 @@ import {
   LiftographHighlight_markRanges,
 } from "../liftograph/liftographHighlight";
 
+export interface ILiftographCodeEditorReveal {
+  at: number;
+  key: number;
+}
+
 interface IProps {
   initialText: string;
+  initialCaret?: number;
+  value?: string;
+  reveal?: ILiftographCodeEditorReveal;
   analysis: LiftographEditorAnalysis;
   diagnostics: ILiftographDiagnostic[];
   onChange: (text: string) => void;
@@ -89,6 +98,8 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
   onChangeRef.current = props.onChange;
   const analysisRef = useRef(props.analysis);
   analysisRef.current = props.analysis;
+  const isApplyingValueRef = useRef(false);
+  const isControlled = props.value != null;
 
   useEffect(() => {
     const highlight = ViewPlugin.fromClass(
@@ -108,20 +119,22 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
     const view = new EditorView({
       state: EditorState.create({
         doc: props.initialText,
+        selection:
+          props.initialCaret != null ? { anchor: Math.min(props.initialCaret, props.initialText.length) } : undefined,
         extensions: [
           lineNumbers(),
           highlightSpecialChars(),
-          history(),
+          isControlled ? [] : history(),
           drawSelection(),
           LiftographLanguage_support((state) =>
             analysisRef.current.document(state.doc.toString(), LiftographLanguage_tree(state))
           ),
           bracketMatching(),
           autocompletion({ icons: false, override: [completionSource(() => analysisRef.current)] }),
-          keymap.of([...completionKeymap, ...foldKeymap, ...defaultKeymap, ...historyKeymap]),
+          keymap.of([...completionKeymap, ...foldKeymap, ...defaultKeymap, ...(isControlled ? [] : historyKeymap)]),
           highlight,
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (update.docChanged && !isApplyingValueRef.current) {
               onChangeRef.current(update.state.doc.toString());
             }
           }),
@@ -133,8 +146,41 @@ export function LiftographCodeEditor(props: IProps): JSX.Element {
       parent: divRef.current ?? undefined,
     });
     viewRef.current = view;
+    if (props.initialCaret != null) {
+      view.dispatch({ effects: EditorView.scrollIntoView(view.state.selection.main.head, { y: "center" }) });
+      view.focus();
+    }
     return () => view.destroy();
   }, []);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const value = props.value != null ? TextDiff_toLf(props.value) : undefined;
+    const edit = view != null && value != null ? TextDiff_minimalEdit(view.state.doc.toString(), value) : undefined;
+    if (view == null || edit == null) {
+      return;
+    }
+    isApplyingValueRef.current = true;
+    try {
+      view.dispatch({
+        changes: { from: edit.start, to: edit.end, insert: edit.text },
+        selection: view.hasFocus ? { anchor: edit.start + edit.text.length } : undefined,
+      });
+    } finally {
+      isApplyingValueRef.current = false;
+    }
+  }, [props.value]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const reveal = props.reveal;
+    if (view == null || reveal == null) {
+      return;
+    }
+    const anchor = Math.min(reveal.at, view.state.doc.length);
+    view.dispatch({ selection: { anchor }, effects: EditorView.scrollIntoView(anchor, { y: "center" }) });
+    view.focus();
+  }, [props.reveal?.key]);
 
   useEffect(() => {
     const view = viewRef.current;

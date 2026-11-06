@@ -25,6 +25,7 @@ import {
 } from "./liftographPresets";
 import { ILiftographSource } from "./liftographRows";
 import { LiftographScriptFns_muscleGroupKeys } from "./liftographScriptFns";
+import { LiftographLayout_maxRowItems, LiftographLayout_minShare } from "./liftographLayout";
 
 export type { ILiftographSource } from "./liftographRows";
 
@@ -80,7 +81,6 @@ export interface ILiftographCompiled {
   diagnostics: ILiftographDiagnostic[];
 }
 
-const MAX_ROW_ITEMS = 4;
 const seriesKeys = ["name", "source", "y", "group", "smooth", "mark", "axis", "color"];
 export const LiftographCompile_keys: Record<"series" | "graph" | "value" | "muscles" | "calendar", readonly string[]> =
   {
@@ -611,10 +611,6 @@ function compileWidget(
   throw new Unsupported(`Unknown widget '${widget.kind}'`, widget.span);
 }
 
-function minShare(widget: ILiftographWidget): number {
-  return widget.kind === "graph" || widget.kind === "muscles" || widget.kind === "calendar" ? 2 : 4;
-}
-
 export function LiftographCompile_document(doc: ILiftographDocument, settings: ISettings): ILiftographCompiled {
   const diagnostics: ILiftographDiagnostic[] = [...doc.diagnostics];
 
@@ -644,15 +640,13 @@ export function LiftographCompile_document(doc: ILiftographDocument, settings: I
       continue;
     }
     const items = item.items.map(compileItem);
-    if (items.length > MAX_ROW_ITEMS) {
-      diagnostics.push({ message: `A row holds at most ${MAX_ROW_ITEMS} items`, span: item.span });
+    if (items.length > LiftographLayout_maxRowItems) {
+      diagnostics.push({ message: `A row holds at most ${LiftographLayout_maxRowItems} items`, span: item.span });
     }
     items.forEach((widget) => {
-      if (items.length > minShare(widget)) {
-        diagnostics.push({
-          message: `A ${widget.kind} needs at least 1/${minShare(widget)} of the row`,
-          span: widget.span,
-        });
+      const share = LiftographLayout_minShare(widget.kind);
+      if (items.length > share) {
+        diagnostics.push({ message: `A ${widget.kind} needs at least 1/${share} of the row`, span: widget.span });
       }
     });
     if (items.length > 0) {

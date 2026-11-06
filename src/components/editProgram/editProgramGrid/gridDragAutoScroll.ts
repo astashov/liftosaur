@@ -76,7 +76,7 @@ interface IGridDragAutoScrollOptions {
   maxHorizontalScroll: () => number;
 }
 
-export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGridDragAutoScroll {
+export function useGridDragAutoScroll(options: Partial<IGridDragAutoScrollOptions> = {}): IGridDragAutoScroll {
   const scrollCtx = useContext(NavScreenScrollContext);
   const axisRef = useRef<"x" | "y">("y");
   const applyRef = useRef<IApplyDrag | undefined>(undefined);
@@ -105,7 +105,7 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
     if (targetRef.current != null) {
       return targetRef.current;
     }
-    return axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : horizontalOffsetRef.current;
+    return axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : (horizontalOffsetRef?.current ?? 0);
   }, [scrollCtx, horizontalOffsetRef]);
 
   const stop = useCallback(() => {
@@ -118,7 +118,7 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
   const tick = useCallback(() => {
     const bounds = boundsRef.current;
     const apply = applyRef.current;
-    const node = axisRef.current === "y" ? scrollCtx?.scrollRef.current : horizontalRef.current;
+    const node = axisRef.current === "y" ? scrollCtx?.scrollRef.current : horizontalRef?.current;
     if (bounds == null || apply == null || node == null) {
       return;
     }
@@ -128,11 +128,11 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
       zone: autoScrollZone,
       maxStep: autoScrollMaxStep,
       current: scrollNow(),
-      reported: axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : horizontalOffsetRef.current,
+      reported: axisRef.current === "y" ? (scrollCtx?.scrollYRef.current ?? 0) : (horizontalOffsetRef?.current ?? 0),
       target: targetRef.current,
       // Vertical is unknown until the screen reports; horizontal is known from the content and
       // container widths, so a 0 there means it genuinely does not scroll.
-      knownMax: axisRef.current === "y" ? maxVerticalRef.current : maxHorizontalScroll(),
+      knownMax: axisRef.current === "y" ? maxVerticalRef.current : (maxHorizontalScroll?.() ?? 0),
     });
     if (step.kind === "idle") {
       return;
@@ -166,7 +166,7 @@ export function useGridDragAutoScroll(options: IGridDragAutoScrollOptions): IGri
           };
         });
       } else {
-        horizontalViewportRef.current?.measureInWindow((x, _y, width) => {
+        horizontalViewportRef?.current?.measureInWindow((x, _y, width) => {
           boundsRef.current = { start: x, end: x + width };
         });
       }

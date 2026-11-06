@@ -1,6 +1,7 @@
 import { Dashboard_seedId, Dashboard_validate } from "./dashboard";
 import { IDashboard, IStorage } from "../types";
 import type { ILiftographDashboardDocument } from "../liftograph/liftographDashboard";
+import type { IUndoRedoState } from "../pages/builder/utils/undoredo";
 
 export interface IDashboardEditorSession {
   dashboardId: string;
@@ -13,6 +14,12 @@ export type IDashboardEditorSaveDecision =
   | { kind: "alert"; message: string }
   | { kind: "askSaveAsNew" }
   | { kind: "write"; dashboard: IDashboard; currentDashboardId?: string };
+
+export type IDashboardEditorDraft = IUndoRedoState<{ text: string }>;
+
+export function DashboardEditorSave_draft(text: string): IDashboardEditorDraft {
+  return { history: { past: [], future: [] }, current: { text } };
+}
 
 export function DashboardEditorSave_session(document: ILiftographDashboardDocument): IDashboardEditorSession {
   return { dashboardId: document.dashboardId, baseText: document.text, origin: document.origin };

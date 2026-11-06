@@ -3,7 +3,7 @@ import { DashboardWebSave_isDirty, IDashboardWebSnapshot } from "./dashboardWebS
 
 export interface IDashboardDraftSave {
   saved: IDashboardWebSnapshot & { base?: IFieldVersion };
-  draft: IDashboardWebSnapshot;
+  name: string;
   pending?: IDashboardWebSnapshot;
 }
 
@@ -13,34 +13,35 @@ export interface IDashboardDraftSaveRequest {
 }
 
 export function DashboardDraftSave_init(snapshot: IDashboardWebSnapshot, base?: IFieldVersion): IDashboardDraftSave {
-  return { saved: { ...snapshot, base }, draft: snapshot };
+  return { saved: { ...snapshot, base }, name: snapshot.name };
 }
 
-export function DashboardDraftSave_edit(
-  state: IDashboardDraftSave,
-  change: Partial<IDashboardWebSnapshot>
-): IDashboardDraftSave {
-  return { ...state, draft: { ...state.draft, ...change } };
+export function DashboardDraftSave_rename(state: IDashboardDraftSave, name: string): IDashboardDraftSave {
+  return { ...state, name };
 }
 
-export function DashboardDraftSave_isDirty(state: IDashboardDraftSave): boolean {
-  return DashboardWebSave_isDirty(state.saved, state.draft);
+export function DashboardDraftSave_isDirty(state: IDashboardDraftSave, text: string): boolean {
+  return DashboardWebSave_isDirty(state.saved, { name: state.name, text });
 }
 
 export function DashboardDraftSave_isSaving(state: IDashboardDraftSave): boolean {
   return state.pending != null;
 }
 
-export function DashboardDraftSave_start(state: IDashboardDraftSave): {
+export function DashboardDraftSave_start(
+  state: IDashboardDraftSave,
+  text: string
+): {
   state: IDashboardDraftSave;
   request?: IDashboardDraftSaveRequest;
 } {
-  if (DashboardDraftSave_isSaving(state) || !DashboardDraftSave_isDirty(state)) {
+  if (DashboardDraftSave_isSaving(state) || !DashboardDraftSave_isDirty(state, text)) {
     return { state };
   }
+  const snapshot = { name: state.name, text };
   return {
-    state: { ...state, pending: state.draft },
-    request: { snapshot: state.draft, base: state.saved.base },
+    state: { ...state, pending: snapshot },
+    request: { snapshot, base: state.saved.base },
   };
 }
 

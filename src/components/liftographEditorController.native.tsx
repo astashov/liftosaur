@@ -9,6 +9,7 @@ import {
   ILiftoEditorSessionResult,
   LiftoEditorSession_activeLevelIndex,
   LiftoEditorSession_applyPill,
+  LiftoEditorSession_blur,
   LiftoEditorSession_canRemove,
   LiftoEditorSession_consumePendingCaret,
   LiftoEditorSession_create,
@@ -54,6 +55,7 @@ export interface ILiftographEditorController extends ILiftoEditorChromeModel {
   applyCompletion: (option: ILiftographCompletionOption) => void;
   walkFocus: (direction: 1 | -1) => void;
   switchToStructured: () => void;
+  blur: () => void;
   hideKeyboard: () => void;
   getText: () => string;
   editorProps: ILiftoEditorBaseProps;
@@ -62,6 +64,7 @@ export interface ILiftographEditorController extends ILiftoEditorChromeModel {
 export interface ILiftographEditorControllerOptions {
   onTextChange: (text: string) => void;
   onSelectionChange?: (start: number, end: number) => void;
+  initialCaret?: number;
 }
 
 export function useLiftographEditorController(
@@ -69,9 +72,10 @@ export function useLiftographEditorController(
   analysis: LiftographEditorAnalysis,
   options: ILiftographEditorControllerOptions
 ): ILiftographEditorController {
-  const [session, setSession] = useState<ILiftoEditorSession>(() =>
-    LiftoEditorSession_create(initialText, new LiftographEditorAdapter(analysis))
-  );
+  const [session, setSession] = useState<ILiftoEditorSession>(() => {
+    const created = LiftoEditorSession_create(initialText, new LiftographEditorAdapter(analysis));
+    return options.initialCaret != null ? LiftoEditorSession_tap(created, options.initialCaret, 0).session : created;
+  });
   const sessionRef = useRef(session);
   const [snapshot, setSnapshot] = useState<ILiftographEditorSnapshot>(() =>
     LiftographEditorEdits_typed(initialText, initialText.length)
@@ -179,6 +183,7 @@ export function useLiftographEditorController(
     pressPill,
     removeFocused: () => dispatch(LiftoEditorSession_removeFocused(sessionRef.current)),
     switchToStructured: () => dispatch(LiftoEditorSession_switchToStructured(sessionRef.current)),
+    blur: () => dispatch(LiftoEditorSession_blur(sessionRef.current)),
     hideKeyboard: () => handleRef.current?.blurEditor(),
     getText: () => handleRef.current?.getText() ?? sessionRef.current.text,
     editorProps: {

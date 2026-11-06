@@ -1,13 +1,14 @@
 import { RefObject, useCallback, useRef } from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { Platform, View } from "react-native";
+import type { INavScrollTarget, INavViewport } from "../NavScreenScrollContext";
 
 // Breathing room between the focused token and the bottom of the scroll area. Android needs
 // more: its caret drags a drop handle that hangs below the line.
 const caretRevealMargin = Platform.OS === "android" ? 32 : 16;
 
 export function useLiftoEditorCaretReveal(args: {
-  scrollRef: RefObject<ScrollView | null>;
-  viewportRef: RefObject<View | null>;
+  scrollRef: RefObject<INavScrollTarget | null>;
+  viewportRef: RefObject<INavViewport | null>;
   scrollYRef: RefObject<number>;
 }): { editorBoxRef: RefObject<View | null>; revealCaret: (rect: { top: number; bottom: number }) => void } {
   const { scrollRef, viewportRef, scrollYRef } = args;

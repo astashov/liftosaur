@@ -19,6 +19,7 @@ export type IScreenData =
   | { name: "programs"; params?: Record<string, never> }
   | { name: "progress"; params?: { id?: number } }
   | { name: "graphsList"; params?: Record<string, never> }
+  | { name: "dashboardEdit"; params?: { mode?: "ui" | "text"; caret?: number } }
   | { name: "finishDay"; params?: { id?: number } }
   | { name: "muscles"; params?: Record<string, never> }
   | { name: "muscleGroups"; params?: Record<string, never> }
@@ -117,6 +118,9 @@ export function Screen_tab(screen: IScreen): ITab {
       return "workout";
     }
     case "graphsList": {
+      return "graphs";
+    }
+    case "dashboardEdit": {
       return "graphs";
     }
     case "finishDay": {

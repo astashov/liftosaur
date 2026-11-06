@@ -6,7 +6,7 @@ import {
   INavScrollTarget,
   INavViewport,
   NavScreenScrollContext,
-} from "../../../navigation/NavScreenScrollContext";
+} from "../navigation/NavScreenScrollContext";
 
 function windowScrollEvent(): { nativeEvent: NativeScrollEvent } {
   const doc = document.documentElement;
@@ -36,7 +36,7 @@ const windowViewport: INavViewport = {
   measureInWindow: (callback) => callback(0, 0, window.innerWidth, window.innerHeight),
 };
 
-export function PlannerWindowScrollProvider(props: {
+export function WindowScrollProvider(props: {
   stickyHeaderHeight: number;
   footerHeight: number;
   children: ReactNode;

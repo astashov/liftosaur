@@ -49,7 +49,7 @@ export const GridResizeHandle = memo(function GridResizeHandle(props: IGridResiz
   const onTerminate = useCallback(() => onEnd(false), [onEnd]);
   // Same trap as the drag handle: dragging the cursor sideways selects the text it crosses, and
   // react-native-web treats that selection as grounds to take the responder away mid-resize — which
-  // arrives here as a cancel, so the new range is thrown out. See gridDragHandle.tsx.
+  // arrives here as a cancel, so the new range is thrown out. See dragHandle.tsx.
   const onTerminationRequest = useCallback(() => !isResizingRef.current, []);
 
   return (

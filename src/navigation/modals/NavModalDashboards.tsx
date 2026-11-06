@@ -4,7 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
 import { useModal } from "../ModalStateContext";
-import { navigateToModal } from "../navigationService";
+import { navigateTo } from "../navigationService";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { Text } from "../../components/primitives/text";
@@ -87,7 +87,7 @@ export function NavModalDashboards(): JSX.Element {
   const onNew = (): void => {
     if (apply(Dashboard_add(stateRef.current.storage, DashboardWebSave_blank(UidFactory_generateUid(8))))) {
       onClose();
-      setTimeout(() => navigateToModal("dashboardEditorModal"), OPEN_EDITOR_DELAY_MS);
+      setTimeout(() => navigateTo("dashboardEdit"), OPEN_EDITOR_DELAY_MS);
     }
   };
 

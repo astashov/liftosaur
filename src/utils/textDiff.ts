@@ -4,6 +4,10 @@ export interface ITextEdit {
   text: string;
 }
 
+export function TextDiff_toLf(text: string): string {
+  return text.replace(/\r\n?/g, "\n");
+}
+
 export function TextDiff_minimalEdit(current: string, next: string): ITextEdit | undefined {
   if (current === next) {
     return undefined;

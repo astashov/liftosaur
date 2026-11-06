@@ -12,14 +12,14 @@ import { DashboardMuscles } from "./dashboardMuscles";
 import { DashboardCalendar } from "./dashboardCalendar";
 import { DashboardNotice } from "./dashboardNotice";
 
-interface IDashboardWidgetProps {
+export interface IDashboardWidgetProps {
   id: string;
   widget: ILiftographWidget;
   evaluation: ILiftographSeriesEval;
   onOpenRecord?: (record: IHistoryRecord) => void;
 }
 
-function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
+export function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
   const { widget, evaluation } = props;
   if (widget.kind === "graph") {
     return <DashboardGraph id={props.id} widget={widget} evaluation={evaluation} onOpenRecord={props.onOpenRecord} />;

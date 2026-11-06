@@ -5,7 +5,7 @@ import { IEvaluatedProgram } from "../../../models/program";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { IPlannerState } from "../models/types";
-import { PlannerWindowScrollProvider } from "./plannerWindowScroll";
+import { WindowScrollProvider } from "../../../components/windowScrollProvider";
 
 export interface IPlannerGridProps {
   state: IPlannerState;
@@ -18,7 +18,7 @@ export interface IPlannerGridProps {
 
 export function PlannerGrid(props: IPlannerGridProps): JSX.Element {
   return (
-    <PlannerWindowScrollProvider stickyHeaderHeight={props.stickyHeaderHeight} footerHeight={0}>
+    <WindowScrollProvider stickyHeaderHeight={props.stickyHeaderHeight} footerHeight={0}>
       {/* The grid sizes its lanes for the default line height (React Native's on native); the
           page's body line-height of 1.55em is inherited as a fixed 24.8px and overflows them. */}
       <div style={{ lineHeight: "normal" }}>
@@ -30,6 +30,6 @@ export function PlannerGrid(props: IPlannerGridProps): JSX.Element {
           plannerDispatch={props.plannerDispatch}
         />
       </div>
-    </PlannerWindowScrollProvider>
+    </WindowScrollProvider>
   );
 }

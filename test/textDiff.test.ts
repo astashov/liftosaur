@@ -1,6 +1,6 @@
 import "mocha";
 import { expect } from "chai";
-import { TextDiff_minimalEdit } from "../src/utils/textDiff";
+import { TextDiff_minimalEdit, TextDiff_toLf } from "../src/utils/textDiff";
 
 function applied(current: string, next: string): string {
   const edit = TextDiff_minimalEdit(current, next);
@@ -58,5 +58,11 @@ describe("TextDiff_minimalEdit", () => {
     for (const [current, next] of cases) {
       expect(applied(current, next)).to.equal(next);
     }
+  });
+});
+
+describe("TextDiff_toLf", () => {
+  it("turns CRLF and lone CR into LF, the way CodeMirror stores a document", () => {
+    expect(TextDiff_toLf("a\r\nb\rc\nd")).to.equal("a\nb\nc\nd");
   });
 });

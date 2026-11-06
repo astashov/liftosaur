@@ -22,11 +22,7 @@ import { useRem } from "../utils/useRem";
 // NavScreenContent's footer slot (absolute, bottom-anchored, and the scroll content is
 // padded by its height), lifted above the custom keypad — which the root
 // CustomKeyboardProvider draws as its own bottom overlay.
-export function LiftoEditorDock(): JSX.Element | null {
-  const entry = useLiftoEditorFocusEntry();
-  const freeformEntry = useLiftoEditorFreeformEntry();
-  const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
-  const blurFocused = useLiftoEditorBlurFocused();
+export function useLiftoEditorDockLift(): Animated.AnimatedInterpolation<number> {
   const keypadHeight = useCustomKeyboardAnimatedHeight();
   // This dock bottoms out at the tab bar (NavScreenContent's footer lives inside the screen),
   // but the keypad is a root-level overlay that covers the tab bar too — so only the part of
@@ -41,7 +37,7 @@ export function LiftoEditorDock(): JSX.Element | null {
   const isKeypadOpen = useCustomKeyboardHeight() > 0;
   const imeHeight = useSystemKeyboardHeightFromScreenBottom();
   const systemKeyboardHeight = isKeypadOpen ? 0 : imeHeight;
-  const keypadLift = useMemo(
+  return useMemo(
     () =>
       Animated.subtract(Animated.add(keypadHeight, systemKeyboardHeight), tabBarHeight).interpolate({
         inputRange: [0, 1],
@@ -51,6 +47,14 @@ export function LiftoEditorDock(): JSX.Element | null {
       }),
     [keypadHeight, systemKeyboardHeight, tabBarHeight]
   );
+}
+
+export function LiftoEditorDock(): JSX.Element | null {
+  const entry = useLiftoEditorFocusEntry();
+  const freeformEntry = useLiftoEditorFreeformEntry();
+  const [hintDismissed, setHintDismissed] = useLiftoEditorHintDismissed();
+  const blurFocused = useLiftoEditorBlurFocused();
+  const keypadLift = useLiftoEditorDockLift();
   const iconScale = useRem() / 16;
 
   // Nothing focused, which includes freeform — that's plain text editing against the system
