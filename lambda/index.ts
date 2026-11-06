@@ -30,6 +30,11 @@ import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
 import { renderUserHtml, userImage } from "./user";
 import { renderProgramDetailsHtml } from "./programDetails";
+import {
+  ProgramMarkdown_linkHeader,
+  ProgramMarkdown_parseRouteId,
+  ProgramMarkdown_render,
+} from "./utils/programMarkdown";
 import { renderProgramPreviewHtml } from "./programPreview";
 import { renderUsersHtml } from "../src/components/admin/usersHtml";
 import {
@@ -2858,21 +2863,37 @@ const getProgramDetailsHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
   typeof getProgramDetailsEndpoint
-> = async ({ payload, match: { params } }) => {
+> = async ({ payload, match: { params } }): Promise<APIGatewayProxyResult> => {
   const { di } = payload;
   const dao = new ProgramDao(di);
-  const result = await dao.getById(params.id);
+  const route = ProgramMarkdown_parseRouteId(params.id);
+  const result = await dao.getById(route.id);
   const userAgent = getUserAgent(payload.event);
   if (result != null) {
     const { program, indexEntry } = result;
     let fullDescription: string | undefined;
     let faq: string | undefined;
     try {
-      const detail = await dao.getDetail(params.id);
+      const detail = await dao.getDetail(route.id);
       fullDescription = detail.fullDescription || program.description;
       faq = detail.faq;
     } catch (e) {
       // Fall back to description from program
+    }
+    if (route.isMarkdown) {
+      return {
+        statusCode: 200,
+        body: ProgramMarkdown_render({
+          indexEntry,
+          fullDescription,
+          faq,
+          programText: program.planner ? PlannerProgram_generateFullText(program.planner.weeks) : undefined,
+        }),
+        headers: {
+          "content-type": "text/markdown; charset=utf-8",
+          "cache-control": "public, s-maxage=86400, max-age=0",
+        },
+      };
     }
     const isLoggedIn = getIsLoggedIn(payload.event);
 
@@ -2882,6 +2903,7 @@ const getProgramDetailsHandler: RouteHandler<
       headers: {
         "content-type": "text/html",
         "cache-control": "public, s-maxage=86400, max-age=0",
+        link: ProgramMarkdown_linkHeader(program.id),
       },
     };
   } else {

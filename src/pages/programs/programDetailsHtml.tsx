@@ -39,7 +39,10 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       maxBodyWidth={10000}
       data={data}
       postHead={
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
+        <>
+          <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.21.0/themes/prism.min.css" rel="stylesheet" />
+          <link rel="alternate" type="text/markdown" href={`${url}.md`} />
+        </>
       }
       client={client}
       isLoggedIn={!!props.isLoggedIn}
