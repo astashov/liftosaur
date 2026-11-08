@@ -29,7 +29,17 @@ describe("LiftographWrite_quote", () => {
       "back\\slash",
       "tilde ~ here",
       "21s",
+      "My  Plan",
+      " Leading",
+      "Trailing ",
+      "",
     ];
     expect(names.map(roundTrip)).to.deep.equal(names);
+  });
+
+  it("quotes empty strings and spacing the bare form would lose", () => {
+    expect(LiftographWrite_quote("")).to.equal('""');
+    expect(LiftographWrite_quote("My  Plan")).to.equal('"My  Plan"');
+    expect(LiftographWrite_quote("My Plan")).to.equal("My Plan");
   });
 });

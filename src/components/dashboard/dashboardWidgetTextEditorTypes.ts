@@ -4,6 +4,7 @@ import type { LiftographEditorAnalysis } from "../../liftograph/liftographEditor
 
 export interface IDashboardWidgetTextEditorProps {
   header: ReactNode;
+  isHeaderPinned: boolean;
   text: string;
   analysis: LiftographEditorAnalysis;
   diagnostics: ILiftographDiagnostic[];

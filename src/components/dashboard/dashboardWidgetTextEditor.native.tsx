@@ -11,7 +11,7 @@ import { LiftographHighlight_diagnosticRanges } from "../../liftograph/liftograp
 import { LiftographDocument_diagnosticLabel } from "../../liftograph/liftographDocument";
 import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import type { IDashboardWidgetTextEditorProps } from "./dashboardWidgetTextEditorTypes";
-import { useFreeformKeyboardExit } from "./useFreeformKeyboardExit";
+import { useFreeformKeyboardExit } from "../useFreeformKeyboardExit";
 
 export function DashboardWidgetTextEditor(props: IDashboardWidgetTextEditorProps): JSX.Element {
   const controller = useLiftographEditorController(props.text, props.analysis, { onTextChange: props.onChange });
@@ -30,7 +30,7 @@ export function DashboardWidgetTextEditor(props: IDashboardWidgetTextEditorProps
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
-        stickyHeaderIndices={[0]}
+        stickyHeaderIndices={props.isHeaderPinned ? [0] : undefined}
       >
         {props.header}
         <View testID="dashboard-widget-text-editor" className="px-4 py-3">

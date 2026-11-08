@@ -111,19 +111,12 @@ export function ScreenDashboardEdit(props: { mode?: IDashboardEditMode; caret?: 
     allowLeaveRef.current = true;
     navigation.goBack();
   };
-  const draftTextRef = useRef(draft.text);
-  draftTextRef.current = draft.text;
   const openWidget = useModal("dashboardWidgetModal", (result) => {
-    const resolved = DashboardWidgetCommit_resolve(draftTextRef.current, result);
-    if (resolved.alert != null) {
-      Dialog_alert(resolved.alert);
-    }
-    if (resolved.text != null) {
+    const resolved = DashboardWidgetCommit_resolve(draft.text, result);
+    if (resolved.kind === "alert") {
+      Dialog_alert(resolved.message);
+    } else if (resolved.kind === "write") {
       draft.setText(resolved.text);
-    }
-    if (resolved.textModeCaret != null) {
-      setCaret(resolved.textModeCaret);
-      setMode("text");
     }
   });
 

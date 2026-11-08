@@ -3,14 +3,17 @@ import { Pressable, View } from "react-native";
 import { Text } from "../primitives/text";
 import { ExerciseImage } from "../exerciseImage";
 import { ISettings, statsLengthDef, statsPercentageDef, statsWeightDef } from "../../types";
+import { ILiftographModelSeries, ILiftographModelSource } from "../../liftograph/liftographWidgetModel";
 import {
-  ILiftographModelSeries,
-  ILiftographModelSource,
-  LiftographWidgetModel_dayFromText,
-  LiftographWidgetModel_dayText,
-  LiftographWidgetModel_exerciseType,
-  LiftographWidgetModel_setSource,
-} from "../../liftograph/liftographWidgetModel";
+  ILiftographSourceKind,
+  LiftographWidgetEdit_chooseSource,
+  LiftographWidgetEdit_setSource,
+} from "../../liftograph/liftographWidgetEdit";
+import {
+  DashboardWidgetFields_dayFromText,
+  DashboardWidgetFields_dayText,
+  DashboardWidgetFields_exerciseType,
+} from "../../models/dashboardWidgetFields";
 import {
   DashboardFormChevron,
   DashboardFormChips,
@@ -33,7 +36,7 @@ function ExerciseRow(props: {
   settings: ISettings;
   onPress: () => void;
 }): JSX.Element {
-  const exerciseType = LiftographWidgetModel_exerciseType(props.source, props.settings.exercises);
+  const exerciseType = DashboardWidgetFields_exerciseType(props.source, props.settings.exercises);
   return (
     <Pressable
       testID="dashboard-series-exercise"
@@ -89,7 +92,7 @@ export function DashboardSourceFields(props: {
   const { series, options } = props;
   const source = series.source;
   const setSource = (next: ILiftographModelSource): void =>
-    props.onChange(LiftographWidgetModel_setSource(series, next));
+    props.onChange(LiftographWidgetEdit_setSource(series, next));
   if (source?.type === "raw") {
     return (
       <DashboardFormField label="Source">
@@ -98,13 +101,13 @@ export function DashboardSourceFields(props: {
     );
   }
   const exerciseType =
-    source?.type === "exercise" ? LiftographWidgetModel_exerciseType(source, options.settings.exercises) : undefined;
+    source?.type === "exercise" ? DashboardWidgetFields_exerciseType(source, options.settings.exercises) : undefined;
   const labels = exerciseType != null ? (options.labelsByExercise[exerciseType.id] ?? []) : [];
   return (
     <View>
       <DashboardFormField label="Source">
         <View className="gap-2">
-          <DashboardFormChips<ILiftographModelSource["type"] | undefined>
+          <DashboardFormChips<ILiftographSourceKind | undefined>
             testID="dashboard-series-source"
             options={[
               { value: "exercise", label: "Exercise" },
@@ -113,15 +116,14 @@ export function DashboardSourceFields(props: {
             ]}
             selected={source?.type}
             onSelect={(kind) => {
-              if (kind === source?.type) {
+              if (kind == null) {
                 return;
               }
-              if (kind === "exercise") {
+              const choice = LiftographWidgetEdit_chooseSource(series, kind);
+              if (choice.type === "pickExercise") {
                 props.onPickExercise();
-              } else if (kind === "workout") {
-                setSource({ type: "workout" });
-              } else {
-                setSource({ type: "stats", key: "weight" });
+              } else if (choice.type === "set") {
+                props.onChange(choice.series);
               }
             }}
           />
@@ -160,9 +162,9 @@ export function DashboardSourceFields(props: {
           <DashboardFormField label="Day" hint="A day number like 2, or a day name. Empty means any day.">
             <DashboardFormInput
               testID="dashboard-series-day"
-              value={LiftographWidgetModel_dayText(source.day)}
+              value={DashboardWidgetFields_dayText(source.day)}
               placeholder="Any day"
-              onChange={(text) => setSource({ ...source, day: LiftographWidgetModel_dayFromText(text ?? "") })}
+              onChange={(text) => setSource({ ...source, day: DashboardWidgetFields_dayFromText(text ?? "") })}
             />
           </DashboardFormField>
         </>

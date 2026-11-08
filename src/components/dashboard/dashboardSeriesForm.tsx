@@ -6,17 +6,19 @@ import {
   LiftographCompile_smoothAggs,
 } from "../../liftograph/liftographCompile";
 import { liftographPresets } from "../../liftograph/liftographPresets";
+import { ILiftographModelAgg, ILiftographModelSeries } from "../../liftograph/liftographWidgetModel";
 import {
-  ILiftographModelAgg,
   ILiftographModelAggField,
-  ILiftographModelSeries,
-  LiftographWidgetModel_aggHint,
-  LiftographWidgetModel_isNumeric,
-  LiftographWidgetModel_presetLabel,
-  LiftographWidgetModel_presetsFor,
-  LiftographWidgetModel_windows,
-  LiftographWidgetModel_withAgg,
-} from "../../liftograph/liftographWidgetModel";
+  LiftographWidgetEdit_presetsFor,
+  LiftographWidgetEdit_withAgg,
+  LiftographWidgetEdit_withPreset,
+} from "../../liftograph/liftographWidgetEdit";
+import {
+  DashboardWidgetFields_aggHint,
+  DashboardWidgetFields_isNumeric,
+  DashboardWidgetFields_presetLabel,
+  DashboardWidgetFields_windows,
+} from "../../models/dashboardWidgetFields";
 import {
   DashboardFormChips,
   DashboardFormColors,
@@ -34,7 +36,6 @@ const AGG_LABELS: Record<ILiftographAgg, string> = {
   last: "Last",
   count: "Count",
 };
-const DEFAULT_WINDOWS: Record<ILiftographModelAggField, string> = { group: "1w", smooth: "5" };
 
 function ValuesFields(props: {
   series: ILiftographModelSeries;
@@ -50,7 +51,7 @@ function ValuesFields(props: {
       </DashboardFormField>
     );
   }
-  const presets = LiftographWidgetModel_presetsFor(series.source);
+  const presets = LiftographWidgetEdit_presetsFor(series.source);
   const selected = values?.preset ?? presets[0];
   const preset = selected != null ? liftographPresets[selected] : undefined;
   return (
@@ -58,9 +59,9 @@ function ValuesFields(props: {
       <View className="gap-2">
         <DashboardFormChips
           testID="dashboard-series-preset"
-          options={presets.map((name) => ({ value: name, label: LiftographWidgetModel_presetLabel(name) }))}
+          options={presets.map((name) => ({ value: name, label: DashboardWidgetFields_presetLabel(name) }))}
           selected={selected}
-          onSelect={(name) => props.onChange({ ...series, values: { type: "preset", preset: name } })}
+          onSelect={(name) => props.onChange({ ...series, values: LiftographWidgetEdit_withPreset(values, name) })}
         />
         {preset?.hasArg ? (
           <DashboardFormInput
@@ -100,7 +101,7 @@ function AggField(props: {
     return null;
   }
   return (
-    <DashboardFormField label={props.label} hint={LiftographWidgetModel_aggHint(field, value)}>
+    <DashboardFormField label={props.label} hint={DashboardWidgetFields_aggHint(field, value)}>
       <View className="gap-2">
         <DashboardFormChips<ILiftographAgg | undefined>
           testID={testID}
@@ -109,12 +110,12 @@ function AggField(props: {
             ...props.aggs.map((agg) => ({ value: agg, label: AGG_LABELS[agg] })),
           ]}
           selected={value?.agg}
-          onSelect={(agg) => props.onChange(LiftographWidgetModel_withAgg(value, agg, DEFAULT_WINDOWS[field]))}
+          onSelect={(agg) => props.onChange(LiftographWidgetEdit_withAgg(value, agg, field))}
         />
         {value != null ? (
           <DashboardFormChips<string | undefined>
             testID={`${testID}-window`}
-            options={LiftographWidgetModel_windows(field, value.window).map((window) => ({
+            options={DashboardWidgetFields_windows(field, value.window).map((window) => ({
               value: window,
               label: window,
             }))}
@@ -138,7 +139,7 @@ export function DashboardSeriesForm(props: {
   onEditAsText: () => void;
 }): JSX.Element {
   const { series, onChange } = props;
-  const isNumeric = LiftographWidgetModel_isNumeric(series);
+  const isNumeric = DashboardWidgetFields_isNumeric(series);
   return (
     <View>
       <DashboardFormField label="Name">

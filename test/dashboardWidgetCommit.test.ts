@@ -30,9 +30,8 @@ describe("DashboardWidgetCommit", () => {
     const a = anchor(text, 0);
     expect(DashboardWidgetCommit_snippet(a)).to.equal("value / source: workout");
     expect(DashboardWidgetCommit_apply(text, a, "value / name: V / source: workout / y: volume")).to.deep.equal({
-      kind: "ok",
+      kind: "write",
       text: "// Volume\nvalue / name: V / source: workout / y: volume\ncalendar",
-      caret: 10,
     });
   });
 
@@ -48,20 +47,15 @@ describe("DashboardWidgetCommit", () => {
   });
 
   it("refuses to write over text that changed", () => {
-    const text = "calendar";
-    const a = anchor(text, 0);
+    const a = anchor("calendar", 0);
     expect(DashboardWidgetCommit_apply("calendar\ncalendar", a, "calendar / range: 1y").kind).to.equal("alert");
   });
 
-  it("inserts a new widget and puts the caret on it", () => {
-    const text = "calendar";
-    const a = DashboardWidgetCommit_insertAnchor(layout(text), { kind: "newRow", before: 1, isRow: false });
-    const result = DashboardWidgetCommit_apply(text, a, "value / source: workout / y: volume");
-    expect(result.kind).to.equal("ok");
-    if (result.kind === "ok") {
-      expect(result.text).to.contain("calendar");
-      expect(result.text.slice(result.caret)).to.match(/^value \/ source/);
-    }
+  it("inserts a new widget", () => {
+    const a = DashboardWidgetCommit_insertAnchor(layout("calendar"), { kind: "newRow", before: 1, isRow: false });
+    const result = DashboardWidgetCommit_apply("calendar", a, "value / source: workout / y: volume");
+    expect(result.kind).to.equal("write");
+    expect(result.kind === "write" ? result.text : "").to.contain("value / source: workout / y: volume");
   });
 
   it("alerts when the insert does not fit the row", () => {
@@ -74,8 +68,9 @@ describe("DashboardWidgetCommit", () => {
 describe("DashboardWidgetCommit_result and _resolve", () => {
   it("an untouched replace writes nothing", () => {
     const a = anchor("calendar", 0);
-    expect(DashboardWidgetCommit_result(a, false, "calendar").snippet).to.equal(undefined);
-    expect(DashboardWidgetCommit_resolve("calendar", DashboardWidgetCommit_result(a, false, "calendar"))).to.eql({});
+    expect(DashboardWidgetCommit_resolve("calendar", DashboardWidgetCommit_result(a, false, "calendar"))).to.eql({
+      kind: "noop",
+    });
   });
 
   it("an untouched insert still inserts the template", () => {
@@ -84,33 +79,23 @@ describe("DashboardWidgetCommit_result and _resolve", () => {
       "calendar",
       DashboardWidgetCommit_result(a, false, "calendar / range: 1y")
     );
-    expect(resolved.text).to.contain("calendar / range: 1y");
+    expect(resolved.kind === "write" ? resolved.text : "").to.contain("calendar / range: 1y");
   });
 
-  it("Edit as text writes and opens text mode on the widget", () => {
+  it("a touched replace writes the new text", () => {
     const text = "// cap\ncalendar";
-    const a = anchor(text, 0);
     const resolved = DashboardWidgetCommit_resolve(
       text,
-      DashboardWidgetCommit_result(a, true, "calendar / range: 1y", "text")
+      DashboardWidgetCommit_result(anchor(text, 0), true, "calendar / range: 1y")
     );
-    expect(resolved).to.eql({ text: "// cap\ncalendar / range: 1y", textModeCaret: 7 });
-  });
-
-  it("Edit as text on an untouched widget only opens text mode", () => {
-    const text = "// cap\ncalendar";
-    const a = anchor(text, 0);
-    expect(DashboardWidgetCommit_resolve(text, DashboardWidgetCommit_result(a, false, "calendar", "text"))).to.eql({
-      textModeCaret: 7,
-    });
+    expect(resolved).to.eql({ kind: "write", text: "// cap\ncalendar / range: 1y" });
   });
 
   it("a stale text turns into an alert", () => {
-    const a = anchor("calendar", 0);
     const resolved = DashboardWidgetCommit_resolve(
       "value / source: workout",
-      DashboardWidgetCommit_result(a, true, "calendar / range: 1y")
+      DashboardWidgetCommit_result(anchor("calendar", 0), true, "calendar / range: 1y")
     );
-    expect(resolved.alert).to.be.a("string");
+    expect(resolved.kind).to.equal("alert");
   });
 });

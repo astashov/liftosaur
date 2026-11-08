@@ -1,5 +1,7 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -18,14 +20,13 @@ import {
   LiftographCompletions_labelsByExercise,
   LiftographCompletions_programNames,
 } from "../../liftograph/liftographCompletions";
-import {
-  LiftographWidgetModel_pickExercise,
-  LiftographWidgetModel_pickerExercise,
-  LiftographWidgetModel_read,
-} from "../../liftograph/liftographWidgetModel";
+import { LiftographWidgetModel_read } from "../../liftograph/liftographWidgetModel";
+import { LiftographWidgetEdit_pickExercise } from "../../liftograph/liftographWidgetEdit";
+import { DashboardWidgetFields_pickerExercise } from "../../models/dashboardWidgetFields";
 import { DashboardWidgetCommit_result } from "../../models/dashboardWidgetCommit";
 import {
   DashboardWidgetSheet_init,
+  DashboardWidgetSheet_isPreviewPinned,
   DashboardWidgetSheet_setModel,
   DashboardWidgetSheet_setText,
   DashboardWidgetSheet_toForm,
@@ -47,15 +48,16 @@ export function NavModalDashboardWidget(): JSX.Element {
   const data = useModalData("dashboardWidgetModal");
   const { state } = useAppState();
   const { settings, stats, history } = state.storage;
-  const [evaluationSettings] = useState(settings);
-  const evaluation = useDashboardEvaluation({ history, stats, settings: evaluationSettings });
+  const evaluation = useDashboardEvaluation({ history, stats, settings });
   const [sheet, setSheet] = useState<IDashboardWidgetSheetState | undefined>(() => {
     const model = data != null ? LiftographWidgetModel_read(data.snippet) : undefined;
     return model != null ? DashboardWidgetSheet_init(model) : undefined;
   });
-  const sheetRef = useRef(sheet);
-  sheetRef.current = sheet;
   const [analysis] = useState(() => new LiftographEditorAnalysis(settings));
+  const systemKeyboardHeight = useSystemKeyboardHeight();
+  const insets = useSafeAreaInsets();
+  const keyboardSpace = Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0));
+  const isPreviewPinned = sheet != null && DashboardWidgetSheet_isPreviewPinned(sheet.model.kind);
   const pickEntryRef = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
   const isTouched = sheet?.isTouched ?? false;
@@ -69,10 +71,8 @@ export function NavModalDashboardWidget(): JSX.Element {
     [settings, history]
   );
 
-  useEffect(() => {
-    analysis.setSettings(settings);
-    analysis.setHistory(history);
-  }, [settings, history]);
+  analysis.setSettings(settings);
+  useEffect(() => analysis.setHistory(history), [history]);
 
   const written = useMemo(
     () => (sheet != null && format != null ? DashboardWidgetSheet_written(sheet, format) : ""),
@@ -84,21 +84,23 @@ export function NavModalDashboardWidget(): JSX.Element {
   );
   const diagnostics = useMemo(
     () => (sheet?.mode === "text" ? analysis.compileDiagnostics(written) : []),
-    [sheet?.mode, written]
+    [sheet?.mode, written, settings]
   );
 
   const openPicker = useModal("liftoEditorExercisePickerModal", (selected) => {
-    const current = sheetRef.current;
     const picked = LiftographRail_pickedExercise(selected, settings);
-    if (current != null && picked != null) {
-      const model = LiftographWidgetModel_pickExercise(
-        current.model,
-        pickEntryRef.current,
-        picked.name,
-        picked.equipment
-      );
-      setSheet(DashboardWidgetSheet_setModel(current, model));
+    if (picked == null) {
+      return;
     }
+    const entryIndex = pickEntryRef.current;
+    setSheet((current) =>
+      current != null
+        ? DashboardWidgetSheet_setModel(
+            current,
+            LiftographWidgetEdit_pickExercise(current.model, entryIndex, picked.name, picked.equipment)
+          )
+        : current
+    );
   });
 
   const close = (): void => {
@@ -187,33 +189,36 @@ export function NavModalDashboardWidget(): JSX.Element {
             {
               label: "Form",
               children: () => (
-                <ScrollView
-                  ref={scrollRef}
-                  keyboardShouldPersistTaps="handled"
-                  stickyHeaderIndices={[0]}
-                  contentContainerStyle={{ paddingBottom: 32 }}
-                >
-                  {previewView}
-                  <View className="px-4">
-                    <DashboardWidgetForm
-                      model={sheet.model}
-                      options={formOptions}
-                      onChange={(model) => setSheet(DashboardWidgetSheet_setModel(sheet, model))}
-                      onPickExercise={(entryIndex) => {
-                        pickEntryRef.current = entryIndex;
-                        openPicker({
-                          exerciseType: LiftographWidgetModel_pickerExercise(
-                            sheet.model,
-                            entryIndex,
-                            settings.exercises
-                          ),
-                        });
-                      }}
-                      onEditAsText={() => setMode("text")}
-                      onNavigate={() => scrollRef.current?.scrollTo({ y: 0, animated: false })}
-                    />
-                  </View>
-                </ScrollView>
+                <View style={{ flex: 1 }}>
+                  <ScrollView
+                    ref={scrollRef}
+                    keyboardShouldPersistTaps="handled"
+                    stickyHeaderIndices={isPreviewPinned ? [0] : undefined}
+                    contentContainerStyle={{ paddingBottom: 32 }}
+                  >
+                    {previewView}
+                    <View className="px-4">
+                      <DashboardWidgetForm
+                        model={sheet.model}
+                        options={formOptions}
+                        onChange={(model) => setSheet(DashboardWidgetSheet_setModel(sheet, model))}
+                        onPickExercise={(entryIndex) => {
+                          pickEntryRef.current = entryIndex;
+                          openPicker({
+                            exerciseType: DashboardWidgetFields_pickerExercise(
+                              sheet.model,
+                              entryIndex,
+                              settings.exercises
+                            ),
+                          });
+                        }}
+                        onEditAsText={() => setMode("text")}
+                        onNavigate={() => scrollRef.current?.scrollTo({ y: 0, animated: false })}
+                      />
+                    </View>
+                  </ScrollView>
+                  {keyboardSpace > 0 ? <View style={{ height: keyboardSpace }} /> : null}
+                </View>
               ),
             },
             {
@@ -221,6 +226,7 @@ export function NavModalDashboardWidget(): JSX.Element {
               children: () => (
                 <DashboardWidgetTextEditor
                   header={previewView}
+                  isHeaderPinned={isPreviewPinned}
                   text={sheet.text}
                   analysis={analysis}
                   diagnostics={diagnostics}

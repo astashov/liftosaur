@@ -7,18 +7,19 @@ import { Button } from "../button";
 import { IconHandle } from "../icons/iconHandle";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { LiftographPalette_entry } from "../../liftograph/liftographPalette";
+import { ILiftographModelSeries, ILiftographWidgetModel } from "../../liftograph/liftographWidgetModel";
 import {
-  ILiftographModelSeries,
-  ILiftographWidgetModel,
-  LiftographWidgetModel_addSeries,
-  LiftographWidgetModel_groupsFromText,
-  LiftographWidgetModel_moveSeries,
-  LiftographWidgetModel_newSeries,
-  LiftographWidgetModel_removeSeries,
-  LiftographWidgetModel_seriesIndices,
-  LiftographWidgetModel_seriesSummary,
-  LiftographWidgetModel_setSeries,
-} from "../../liftograph/liftographWidgetModel";
+  LiftographWidgetEdit_addSeries,
+  LiftographWidgetEdit_moveSeries,
+  LiftographWidgetEdit_newSeries,
+  LiftographWidgetEdit_removeSeries,
+  LiftographWidgetEdit_seriesIndices,
+  LiftographWidgetEdit_setSeries,
+} from "../../liftograph/liftographWidgetEdit";
+import {
+  DashboardWidgetFields_groupsFromText,
+  DashboardWidgetFields_seriesSummary,
+} from "../../models/dashboardWidgetFields";
 import { DashboardFormChevron, DashboardFormChips, DashboardFormField, DashboardFormInput } from "./dashboardFormParts";
 import { DashboardSeriesForm } from "./dashboardSeriesForm";
 import { IDashboardFormOptions } from "./dashboardSourceFields";
@@ -35,7 +36,6 @@ export interface IDashboardWidgetFormProps {
 }
 
 function RangeField(props: { value: string | undefined; onChange: (value: string | undefined) => void }): JSX.Element {
-  const [version, setVersion] = useState(0);
   return (
     <DashboardFormField label="Range">
       <View className="gap-2">
@@ -43,13 +43,9 @@ function RangeField(props: { value: string | undefined; onChange: (value: string
           testID="dashboard-widget-range"
           options={RANGES.map((range) => ({ value: range, label: range }))}
           selected={props.value}
-          onSelect={(range) => {
-            props.onChange(range);
-            setVersion(version + 1);
-          }}
+          onSelect={props.onChange}
         />
         <DashboardFormInput
-          key={version}
           testID="dashboard-widget-range-input"
           value={props.value}
           placeholder="Like 8w"
@@ -66,13 +62,13 @@ function SeriesList(props: {
   onOpen: (entryIndex: number) => void;
 }): JSX.Element {
   const { model } = props;
-  const indices = LiftographWidgetModel_seriesIndices(model);
+  const indices = LiftographWidgetEdit_seriesIndices(model);
   const entries = model.kind === "graph" ? model.entries : [];
   return (
     <DashboardFormField label="Series">
       <DraggableList2
         items={indices}
-        onDragEnd={(from, to) => props.onChange(LiftographWidgetModel_moveSeries(model, from, to))}
+        onDragEnd={(from, to) => props.onChange(LiftographWidgetEdit_moveSeries(model, from, to))}
         element={(entryIndex, listIndex, handle) => {
           const entry = entries[entryIndex];
           const series = entry?.type === "series" ? entry.series : undefined;
@@ -104,7 +100,7 @@ function SeriesList(props: {
                     {series?.name ?? "Untitled series"}
                   </Text>
                   <Text className="text-xs text-text-secondary" numberOfLines={1}>
-                    {series != null ? LiftographWidgetModel_seriesSummary(series) : ""}
+                    {series != null ? DashboardWidgetFields_seriesSummary(series) : ""}
                   </Text>
                 </View>
                 <DashboardFormChevron direction="forward" />
@@ -118,7 +114,7 @@ function SeriesList(props: {
         data-testid="dashboard-widget-add-series"
         className="py-3"
         onPress={() => {
-          const next = LiftographWidgetModel_addSeries(model, LiftographWidgetModel_newSeries());
+          const next = LiftographWidgetEdit_addSeries(model, LiftographWidgetEdit_newSeries());
           props.onChange(next);
           props.onOpen(next.kind === "graph" ? next.entries.length - 1 : 0);
         }}
@@ -161,7 +157,7 @@ function GraphForm(props: IDashboardWidgetFormProps): JSX.Element {
           series={entry.series}
           isValue={false}
           onChange={(series: ILiftographModelSeries) =>
-            props.onChange(LiftographWidgetModel_setSeries(model, openEntry, series))
+            props.onChange(LiftographWidgetEdit_setSeries(model, openEntry, series))
           }
           onPickExercise={() => props.onPickExercise(openEntry)}
           onEditAsText={props.onEditAsText}
@@ -174,7 +170,7 @@ function GraphForm(props: IDashboardWidgetFormProps): JSX.Element {
             buttonSize="md"
             className="w-full"
             onClick={() => {
-              props.onChange(LiftographWidgetModel_removeSeries(model, openEntry));
+              props.onChange(LiftographWidgetEdit_removeSeries(model, openEntry));
               open(undefined);
             }}
           >
@@ -227,7 +223,7 @@ function MusclesForm(props: IDashboardWidgetFormProps): JSX.Element {
                 value={show.groups?.join(", ")}
                 placeholder="Muscle groups, like chest, back"
                 onChange={(text) =>
-                  props.onChange({ ...model, show: { ...show, groups: LiftographWidgetModel_groupsFromText(text) } })
+                  props.onChange({ ...model, show: { ...show, groups: DashboardWidgetFields_groupsFromText(text) } })
                 }
               />
             ) : null}

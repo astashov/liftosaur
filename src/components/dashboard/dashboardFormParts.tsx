@@ -1,7 +1,7 @@
 import { JSX, ReactNode, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "../primitives/text";
-import { TextInput } from "../primitives/textInput";
+import { Input } from "../input";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useRem } from "../../utils/useRem";
 import { IconArrowRight } from "../icons/iconArrowRight";
@@ -11,7 +11,10 @@ import {
   LiftographPalette_isHex,
   LiftographPalette_names,
 } from "../../liftograph/liftographPalette";
-import { LiftographWidgetModel_splitOptions } from "../../liftograph/liftographWidgetModel";
+import {
+  DashboardWidgetFields_splitOptions,
+  DashboardWidgetFields_textValue,
+} from "../../models/dashboardWidgetFields";
 
 export interface IDashboardFormChip<T> {
   value: T;
@@ -67,7 +70,7 @@ export function DashboardFormChoice(props: {
   anyLabel?: string;
   onChange: (value: string | undefined) => void;
 }): JSX.Element {
-  const { visible, rest } = LiftographWidgetModel_splitOptions(props.options, props.value, VISIBLE_CHOICES);
+  const { visible, rest } = DashboardWidgetFields_splitOptions(props.options, props.value, VISIBLE_CHOICES);
   const anyLabel = props.anyLabel;
   return (
     <View className="flex-row flex-wrap gap-2">
@@ -202,15 +205,18 @@ export function DashboardFormInput(props: {
   onChange: (value: string | undefined) => void;
 }): JSX.Element {
   return (
-    <TextInput
-      testID={props.testID}
-      data-testid={props.testID}
-      className="px-3 py-2 text-base border rounded-lg border-border-neutral bg-background-default text-text-primary"
-      defaultValue={props.value ?? ""}
+    <Input
+      identifier={props.testID}
+      value={props.value ?? ""}
       placeholder={props.placeholder}
+      changeType="oninput"
       autoCapitalize="none"
       autoCorrect={false}
-      onChangeText={(text) => props.onChange(text.trim() === "" ? undefined : text.trim())}
+      changeHandler={(e) => {
+        if (e.success) {
+          props.onChange(DashboardWidgetFields_textValue(e.data));
+        }
+      }}
     />
   );
 }

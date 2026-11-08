@@ -1,6 +1,6 @@
 import { JSX, useContext, useEffect, useRef } from "react";
 import { Animated, Platform, Pressable, View } from "react-native";
-import { useFreeformKeyboardExit } from "./useFreeformKeyboardExit";
+import { useFreeformKeyboardExit } from "../useFreeformKeyboardExit";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Text } from "../primitives/text";
 import { LiftoEditor } from "../primitives/liftoEditor";

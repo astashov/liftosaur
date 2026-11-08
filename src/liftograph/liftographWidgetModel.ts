@@ -10,14 +10,9 @@ import {
   LiftographDocument_parse,
   LiftographDocument_valueText,
 } from "./liftographDocument";
-import { ILiftographAgg, LiftographCompile_aggs, LiftographCompile_duration } from "./liftographCompile";
-import { Exercise_resolveNameAndEquipmentParts } from "../models/exercise";
-import { IAllCustomExercises, IExerciseType } from "../types";
-import { ILiftographPresetName, LiftographPresets_isName, liftographPresets } from "./liftographPresets";
-import { LiftographScriptSyntax_pointArity } from "./liftographScriptSyntax";
+import { ILiftographAgg, LiftographCompile_aggs } from "./liftographCompile";
+import { ILiftographPresetName, LiftographPresets_isName } from "./liftographPresets";
 import { LiftographWrite_quote, LiftographWrite_quoted } from "./liftographWrite";
-import { parser as liftoscriptParser } from "../liftoscript";
-import { LiftographPalette_names } from "./liftographPalette";
 
 export interface ILiftographModelRaw {
   type: "raw";
@@ -373,6 +368,10 @@ export function LiftographWidgetModel_read(snippet: string): ILiftographWidgetMo
   if (blocked || (item.script != null && item.kind !== "value")) {
     return undefined;
   }
+  const hasOutsideLines = doc.hiddenSpans.some((span) => span.from < item.span.from || span.to > item.span.to);
+  if (item.caption != null || hasOutsideLines) {
+    return undefined;
+  }
   if (item.kind === "graph") {
     const keys = widgetKeys(snippet, item.pairs, ["range"]);
     const entries = graphEntries(doc, item);
@@ -448,7 +447,9 @@ function writeAgg(agg: ILiftographModelAgg): string {
   return agg.type === "raw" ? agg.text : agg.window != null ? `${agg.agg}(${agg.window})` : agg.agg;
 }
 
-function defaultPreset(source: ILiftographModelSource | undefined): ILiftographPresetName | undefined {
+export function LiftographWidgetModel_defaultPreset(
+  source: ILiftographModelSource | undefined
+): ILiftographPresetName | undefined {
   switch (source?.type) {
     case "exercise":
       return "maxWeight";
@@ -464,7 +465,7 @@ function defaultPreset(source: ILiftographModelSource | undefined): ILiftographP
 function writeValues(series: ILiftographModelSeries): string | undefined {
   const values = series.values;
   if (values == null) {
-    return defaultPreset(series.source);
+    return LiftographWidgetModel_defaultPreset(series.source);
   } else if (values.type === "raw") {
     return values.text;
   } else if (values.type === "preset") {
@@ -473,33 +474,39 @@ function writeValues(series: ILiftographModelSeries): string | undefined {
   return undefined;
 }
 
-function pair(key: string, value: string | undefined): string[] {
-  return value != null ? [`${key}: ${value}`] : [];
+function written(key: string, value: string | undefined): ILiftographModelPair[] {
+  return value != null ? [{ key, text: value }] : [];
 }
 
-function seriesFields(series: ILiftographModelSeries): string[] {
+function seriesFields(series: ILiftographModelSeries): ILiftographModelPair[] {
   return [
-    ...pair("name", series.name != null ? LiftographWrite_quote(series.name) : undefined),
-    ...pair("source", series.source != null ? writeSource(series.source) : undefined),
-    ...pair("y", writeValues(series)),
-    ...pair("group", series.group != null ? writeAgg(series.group) : undefined),
-    ...pair("smooth", series.smooth != null ? writeAgg(series.smooth) : undefined),
-    ...pair("mark", series.mark),
-    ...pair("axis", series.axis),
-    ...pair("color", series.color != null ? LiftographWrite_quote(series.color) : undefined),
+    ...written("name", series.name != null ? LiftographWrite_quote(series.name) : undefined),
+    ...written("source", series.source != null ? writeSource(series.source) : undefined),
+    ...written("y", writeValues(series)),
+    ...written("group", series.group != null ? writeAgg(series.group) : undefined),
+    ...written("smooth", series.smooth != null ? writeAgg(series.smooth) : undefined),
+    ...written("mark", series.mark),
+    ...written("axis", series.axis),
+    ...written("color", series.color != null ? LiftographWrite_quote(series.color) : undefined),
   ];
 }
 
-function extraFields(extra: ILiftographModelPair[]): string[] {
-  return extra.map((p) => `${p.key}: ${p.text}`);
+function withUnsetExtra(fields: ILiftographModelPair[], extra: ILiftographModelPair[]): ILiftographModelPair[] {
+  return [...fields, ...extra.filter((p) => fields.every((field) => field.key !== p.key))];
 }
 
 function scriptTail(series: ILiftographModelSeries): string {
   return series.values?.type === "script" ? ` {~${series.values.text}~}` : "";
 }
 
-function line(fields: string[], tail: string = ""): string {
-  return fields.join(" / ") + tail;
+function joinLine(head: string, fields: ILiftographModelPair[], tail: string = ""): string {
+  return [head, ...fields.map((field) => `${field.key}: ${field.text}`)].join(" / ") + tail;
+}
+
+function seriesLine(series: ILiftographModelSeries): string {
+  const fields = withUnsetExtra(seriesFields(series), series.extra);
+  const [first, ...rest] = fields;
+  return first != null ? joinLine(`${first.key}: ${first.text}`, rest, scriptTail(series)) : scriptTail(series).trim();
 }
 
 function writeShow(show: ILiftographModelShow | ILiftographModelRaw): string {
@@ -514,404 +521,31 @@ export function LiftographWidgetModel_write(model: ILiftographWidgetModel, forma
   const indent = format.indent;
   switch (model.kind) {
     case "graph": {
-      const head = indent + line(["graph", ...pair("range", model.range), ...extraFields(model.extra)]) + " {";
+      const head = indent + joinLine("graph", withUnsetExtra(written("range", model.range), model.extra)) + " {";
       const body = model.entries.map((entry) =>
         entry.type === "line" && entry.text === ""
           ? ""
-          : indent +
-            BLOCK_INDENT +
-            (entry.type === "line"
-              ? entry.text
-              : line([...seriesFields(entry.series), ...extraFields(entry.series.extra)], scriptTail(entry.series)))
+          : indent + BLOCK_INDENT + (entry.type === "line" ? entry.text : seriesLine(entry.series))
       );
       return [head, ...body, `${indent}}`].join(format.eol);
     }
-    case "value":
-      return (
-        indent +
-        line(
-          [
-            "value",
-            ...seriesFields(model.series),
-            ...pair("compare", model.compare),
-            ...pair("trend", model.trend),
-            ...extraFields(model.series.extra),
-          ],
-          scriptTail(model.series)
-        )
-      );
-    case "muscles":
-      return (
-        indent +
-        line([
-          "muscles",
-          ...pair("range", model.range),
-          ...pair("show", model.show != null ? writeShow(model.show) : undefined),
-          ...pair("source", model.source != null ? writeSource(model.source) : undefined),
-          ...extraFields(model.extra),
-        ])
-      );
-    case "calendar":
-      return indent + line(["calendar", ...pair("range", model.range), ...extraFields(model.extra)]);
-  }
-}
-
-export function LiftographWidgetModel_newSeries(): ILiftographModelSeries {
-  return { name: "New series", source: { type: "exercise", name: "Squat" }, extra: [] };
-}
-
-export function LiftographWidgetModel_presetsFor(source: ILiftographModelSource | undefined): ILiftographPresetName[] {
-  if (source == null || source.type === "raw") {
-    return [];
-  }
-  return Object.values(liftographPresets)
-    .filter((preset) => preset.sources.indexOf(source.type) !== -1)
-    .map((preset) => preset.name);
-}
-
-export function LiftographWidgetModel_setSource(
-  series: ILiftographModelSeries,
-  source: ILiftographModelSource
-): ILiftographModelSeries {
-  const values = series.values;
-  const isAllowed =
-    values?.type !== "preset" ||
-    source.type === "raw" ||
-    LiftographWidgetModel_presetsFor(source).indexOf(values.preset) !== -1;
-  return { ...series, source, values: isAllowed ? values : undefined };
-}
-
-export function LiftographWidgetModel_isNumeric(series: ILiftographModelSeries): boolean {
-  const values = series.values;
-  if (values?.type !== "script") {
-    return false;
-  }
-  return LiftographScriptSyntax_pointArity(liftoscriptParser.parse(values.text), values.text).has(2);
-}
-
-function mapEntries(
-  model: ILiftographWidgetModel,
-  fn: (entries: ILiftographModelEntry[]) => ILiftographModelEntry[]
-): ILiftographWidgetModel {
-  return model.kind === "graph" ? { ...model, entries: fn(model.entries) } : model;
-}
-
-export function LiftographWidgetModel_addSeries(
-  model: ILiftographWidgetModel,
-  series: ILiftographModelSeries
-): ILiftographWidgetModel {
-  return mapEntries(model, (entries) => [...entries, { type: "series", series }]);
-}
-
-function autoColor(position: number): string {
-  return LiftographPalette_names[position % LiftographPalette_names.length];
-}
-
-function keepingColors(
-  entries: ILiftographModelEntry[],
-  change: (entries: ILiftographModelEntry[]) => ILiftographModelEntry[]
-): ILiftographModelEntry[] {
-  const before = new Map<ILiftographModelSeries, string>();
-  entries
-    .flatMap((entry) => (entry.type === "series" ? [entry.series] : []))
-    .forEach((series, position) => {
-      if (series.color == null) {
-        before.set(series, autoColor(position));
-      }
-    });
-  let position = 0;
-  return change(entries).map((entry) => {
-    if (entry.type !== "series") {
-      return entry;
+    case "value": {
+      const fields = [
+        ...seriesFields(model.series),
+        ...written("compare", model.compare),
+        ...written("trend", model.trend),
+      ];
+      return indent + joinLine("value", withUnsetExtra(fields, model.series.extra), scriptTail(model.series));
     }
-    const color = before.get(entry.series);
-    const current = autoColor(position);
-    position += 1;
-    return color != null && color !== current ? { type: "series", series: { ...entry.series, color } } : entry;
-  });
-}
-
-export function LiftographWidgetModel_removeSeries(
-  model: ILiftographWidgetModel,
-  entryIndex: number
-): ILiftographWidgetModel {
-  return mapEntries(model, (entries) => keepingColors(entries, (all) => all.filter((_entry, i) => i !== entryIndex)));
-}
-
-export function LiftographWidgetModel_setSeries(
-  model: ILiftographWidgetModel,
-  entryIndex: number,
-  series: ILiftographModelSeries
-): ILiftographWidgetModel {
-  if (model.kind === "value") {
-    return { ...model, series };
+    case "muscles": {
+      const fields = [
+        ...written("range", model.range),
+        ...written("show", model.show != null ? writeShow(model.show) : undefined),
+        ...written("source", model.source != null ? writeSource(model.source) : undefined),
+      ];
+      return indent + joinLine("muscles", withUnsetExtra(fields, model.extra));
+    }
+    case "calendar":
+      return indent + joinLine("calendar", withUnsetExtra(written("range", model.range), model.extra));
   }
-  return mapEntries(model, (entries) =>
-    entries.map(
-      (entry, i): ILiftographModelEntry =>
-        i === entryIndex && entry.type === "series" ? { type: "series", series } : entry
-    )
-  );
-}
-
-export function LiftographWidgetModel_seriesIndices(model: ILiftographWidgetModel): number[] {
-  return model.kind === "graph" ? model.entries.flatMap((entry, i) => (entry.type === "series" ? [i] : [])) : [];
-}
-
-export function LiftographWidgetModel_moveSeries(
-  model: ILiftographWidgetModel,
-  from: number,
-  to: number
-): ILiftographWidgetModel {
-  const indices = LiftographWidgetModel_seriesIndices(model);
-  if (from === to || indices[from] == null || indices[to] == null) {
-    return model;
-  }
-  return mapEntries(model, (entries) =>
-    keepingColors(entries, (all) => {
-      const order = indices.map((i) => all[i]);
-      const [moved] = order.splice(from, 1);
-      order.splice(to, 0, moved);
-      const result = [...all];
-      indices.forEach((entryIndex, i) => {
-        result[entryIndex] = order[i];
-      });
-      return result;
-    })
-  );
-}
-
-export function LiftographWidgetModel_withExercise(
-  source: ILiftographModelSource | undefined,
-  name: string,
-  equipment: string | undefined
-): ILiftographModelSource {
-  const filters =
-    source?.type === "exercise"
-      ? {
-          ...(source.label != null ? { label: source.label } : {}),
-          ...(source.program != null ? { program: source.program } : {}),
-          ...(source.day != null ? { day: source.day } : {}),
-        }
-      : {};
-  return { type: "exercise", name, ...(equipment != null ? { equipment } : {}), ...filters };
-}
-
-export function LiftographWidgetModel_seriesAt(
-  model: ILiftographWidgetModel,
-  entryIndex: number
-): ILiftographModelSeries | undefined {
-  if (model.kind === "value") {
-    return model.series;
-  }
-  const entry = model.kind === "graph" ? model.entries[entryIndex] : undefined;
-  return entry?.type === "series" ? entry.series : undefined;
-}
-
-export function LiftographWidgetModel_pickExercise(
-  model: ILiftographWidgetModel,
-  entryIndex: number,
-  name: string,
-  equipment: string | undefined
-): ILiftographWidgetModel {
-  const series = LiftographWidgetModel_seriesAt(model, entryIndex);
-  if (series == null) {
-    return model;
-  }
-  const source = LiftographWidgetModel_withExercise(series.source, name, equipment);
-  return LiftographWidgetModel_setSeries(model, entryIndex, LiftographWidgetModel_setSource(series, source));
-}
-
-export function LiftographWidgetModel_groupsFromText(text: string | undefined): string[] | undefined {
-  const groups = (text ?? "")
-    .split(",")
-    .map((group) => group.trim())
-    .filter((group) => group !== "");
-  return groups.length > 0 ? groups : undefined;
-}
-
-export function LiftographWidgetModel_withAgg(
-  current: ILiftographModelAgg | undefined,
-  agg: ILiftographAgg | undefined,
-  defaultWindow: string | undefined
-): ILiftographModelAgg | undefined {
-  if (agg == null) {
-    return undefined;
-  }
-  const window = current?.type === "agg" ? current.window : defaultWindow;
-  return window != null ? { type: "agg", agg, window } : { type: "agg", agg };
-}
-
-export function LiftographWidgetModel_dayFromText(text: string): ILiftographModelDay | undefined {
-  const trimmed = text.trim();
-  if (trimmed === "") {
-    return undefined;
-  }
-  const probe = LiftographDocument_parse(`value / day: ${trimmed}`).items[0];
-  const atom = singleAtom(probe?.type === "widget" ? probe.pairs[0]?.value : undefined);
-  const n = atom?.kind === "number" ? Number(atom.text) : undefined;
-  return n != null && Number.isInteger(n) ? { type: "number", value: n } : { type: "name", value: trimmed };
-}
-
-export function LiftographWidgetModel_dayText(day: ILiftographModelDay | undefined): string {
-  return day == null ? "" : `${day.value}`;
-}
-
-export function LiftographWidgetModel_sourceLabel(source: ILiftographModelSource | undefined): string {
-  switch (source?.type) {
-    case undefined:
-      return "No source";
-    case "raw":
-      return source.text;
-    case "stats":
-      return source.key;
-    case "workout":
-      return "All workouts";
-    case "exercise":
-      return source.name == null ? "Any exercise" : [source.name, source.equipment].filter((w) => w != null).join(", ");
-  }
-}
-
-export function LiftographWidgetModel_exerciseType(
-  source: ILiftographModelSource | undefined,
-  exercises: IAllCustomExercises
-): IExerciseType | undefined {
-  if (source?.type !== "exercise" || source.name == null) {
-    return undefined;
-  }
-  const parts = source.equipment != null ? [source.name, source.equipment] : [source.name];
-  const resolved = Exercise_resolveNameAndEquipmentParts(parts, exercises);
-  if (resolved == null) {
-    return undefined;
-  }
-  const equipment = resolved.exercise.equipment ?? resolved.exercise.defaultEquipment;
-  return equipment != null ? { id: resolved.exercise.id, equipment } : { id: resolved.exercise.id };
-}
-
-export type ILiftographModelAggField = "group" | "smooth";
-
-const WINDOWS: Record<ILiftographModelAggField, string[]> = {
-  group: ["1w", "2w", "1m", "3m"],
-  smooth: ["3", "5", "10", "30d"],
-};
-
-export function LiftographWidgetModel_filterOptions(options: string[], current: string | undefined): string[] {
-  return current != null && options.indexOf(current) === -1 ? [...options, current] : options;
-}
-
-export function LiftographWidgetModel_windows(field: ILiftographModelAggField, current: string | undefined): string[] {
-  return LiftographWidgetModel_filterOptions(WINDOWS[field], current);
-}
-
-const AGG_WORDS: Record<ILiftographAgg, string> = {
-  max: "the max",
-  min: "the min",
-  sum: "the sum",
-  avg: "the average",
-  last: "the last value",
-  count: "the count",
-};
-
-const UNIT_WORDS: Record<"d" | "w" | "m" | "y", string> = { d: "day", w: "week", m: "month", y: "year" };
-
-function windowAtom(window: string): ILiftographAtom | undefined {
-  const probe = LiftographDocument_parse(`value / w: ${window}`).items[0];
-  return singleAtom(probe?.type === "widget" ? probe.pairs[0]?.value : undefined);
-}
-
-function periodWords(window: string): string {
-  const atom = windowAtom(window);
-  const duration = atom != null ? LiftographCompile_duration(atom) : undefined;
-  if (duration == null || duration === "all") {
-    return window;
-  }
-  const unit = UNIT_WORDS[duration.unit];
-  return duration.n === 1 ? unit : `${duration.n} ${unit}s`;
-}
-
-export function LiftographWidgetModel_aggHint(
-  field: ILiftographModelAggField,
-  agg: ILiftographModelAgg | undefined
-): string {
-  if (agg == null) {
-    return field === "group" ? "One point per workout." : "No smoothing, the line follows every point.";
-  }
-  if (agg.type === "raw") {
-    return "";
-  }
-  const what = AGG_WORDS[agg.agg];
-  if (agg.window == null) {
-    return field === "group" ? `One point per x value: ${what} of the points there.` : "";
-  }
-  if (field === "group") {
-    return `One point per ${periodWords(agg.window)}: ${what} of that period.`;
-  }
-  const atom = windowAtom(agg.window);
-  const last = atom?.kind === "number" ? `${atom.text} points` : periodWords(agg.window);
-  return `Each point becomes ${what} of the last ${last}.`;
-}
-
-const PRESET_LABELS: Record<ILiftographPresetName, string> = {
-  maxWeight: "Max weight",
-  e1rm: "e1RM",
-  volume: "Volume",
-  maxReps: "Max reps",
-  muscleSets: "Sets per muscle",
-  muscleVolume: "Volume per muscle",
-  duration: "Duration",
-  value: "Value",
-};
-
-export function LiftographWidgetModel_presetLabel(preset: ILiftographPresetName): string {
-  return PRESET_LABELS[preset];
-}
-
-function valuesLabel(series: ILiftographModelSeries): string | undefined {
-  const values = series.values;
-  if (values == null) {
-    const preset = defaultPreset(series.source);
-    return preset != null ? PRESET_LABELS[preset] : undefined;
-  } else if (values.type === "preset") {
-    return values.arg != null ? `${PRESET_LABELS[values.preset]} (${values.arg})` : PRESET_LABELS[values.preset];
-  } else if (values.type === "script") {
-    return "Custom script";
-  }
-  return values.text;
-}
-
-function groupLabel(group: ILiftographModelAgg | undefined): string | undefined {
-  if (group == null) {
-    return undefined;
-  } else if (group.type === "raw") {
-    return group.text;
-  }
-  return group.window != null ? `${group.agg} per ${periodWords(group.window)}` : group.agg;
-}
-
-export function LiftographWidgetModel_seriesSummary(series: ILiftographModelSeries): string {
-  return [LiftographWidgetModel_sourceLabel(series.source), valuesLabel(series), groupLabel(series.group)]
-    .filter((part): part is string => part != null)
-    .join(" · ");
-}
-
-export function LiftographWidgetModel_splitOptions(
-  options: string[],
-  current: string | undefined,
-  limit: number
-): { visible: string[]; rest: string[] } {
-  const visible = options.slice(0, limit);
-  const rest = options.slice(limit).filter((option) => option !== current);
-  const isHidden = current != null && visible.indexOf(current) === -1;
-  return { visible: isHidden ? [...visible, current] : visible, rest };
-}
-
-const PICKER_FALLBACK: IExerciseType = { id: "squat", equipment: "barbell" };
-
-export function LiftographWidgetModel_pickerExercise(
-  model: ILiftographWidgetModel,
-  entryIndex: number,
-  exercises: IAllCustomExercises
-): IExerciseType {
-  const series = LiftographWidgetModel_seriesAt(model, entryIndex);
-  return LiftographWidgetModel_exerciseType(series?.source, exercises) ?? PICKER_FALLBACK;
 }

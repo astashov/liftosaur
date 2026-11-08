@@ -26,7 +26,11 @@ export function DashboardWidgetSheet_setModel(
   state: IDashboardWidgetSheetState,
   model: ILiftographWidgetModel
 ): IDashboardWidgetSheetState {
-  return { ...state, model, isTouched: true };
+  return model === state.model ? state : { ...state, model, isTouched: true };
+}
+
+export function DashboardWidgetSheet_isPreviewPinned(kind: ILiftographWidgetModel["kind"]): boolean {
+  return kind === "graph" || kind === "value";
 }
 
 export function DashboardWidgetSheet_setText(

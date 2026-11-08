@@ -4,6 +4,7 @@ import { ILiftographWidgetModel, LiftographWidgetModel_read } from "../src/lifto
 import {
   DashboardWidgetSheet_formError,
   DashboardWidgetSheet_init,
+  DashboardWidgetSheet_isPreviewPinned,
   DashboardWidgetSheet_setModel,
   DashboardWidgetSheet_setText,
   DashboardWidgetSheet_toForm,
@@ -62,5 +63,19 @@ describe("DashboardWidgetSheet", () => {
     const next = DashboardWidgetSheet_setModel(state, { kind: "calendar", range: "6m", extra: [] });
     expect(next.isTouched).to.equal(true);
     expect(DashboardWidgetSheet_written(next, LF)).to.equal("calendar / range: 6m");
+  });
+});
+
+describe("DashboardWidgetSheet review fixes", () => {
+  it("an unchanged model keeps the sheet untouched", () => {
+    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"));
+    expect(DashboardWidgetSheet_setModel(state, state.model)).to.equal(state);
+  });
+
+  it("pins the preview only for compact widgets", () => {
+    expect(DashboardWidgetSheet_isPreviewPinned("graph")).to.equal(true);
+    expect(DashboardWidgetSheet_isPreviewPinned("value")).to.equal(true);
+    expect(DashboardWidgetSheet_isPreviewPinned("muscles")).to.equal(false);
+    expect(DashboardWidgetSheet_isPreviewPinned("calendar")).to.equal(false);
   });
 });

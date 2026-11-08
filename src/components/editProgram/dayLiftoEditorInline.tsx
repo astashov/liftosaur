@@ -1,6 +1,6 @@
 import type { JSX, ReactNode } from "react";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Keyboard, LayoutChangeEvent, Platform, View } from "react-native";
+import { Animated, LayoutChangeEvent, Platform, View } from "react-native";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { BottomTabBarHeightContext } from "@react-navigation/bottom-tabs";
 import { Text } from "../primitives/text";
@@ -23,6 +23,7 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { useCustomKeyboardHeight } from "../../navigation/CustomKeyboardContext";
 import { useSystemKeyboardHeight, useSystemKeyboardHeightFromScreenBottom } from "../../utils/useSystemKeyboardHeight";
+import { useFreeformKeyboardExit } from "../useFreeformKeyboardExit";
 
 // Breathing room between the focused token and whatever is docked below it. Android needs
 // more: its caret drags a drop handle that hangs below the line, and clearing only the line
@@ -347,30 +348,7 @@ export function DayLiftoEditorInline(props: IDayLiftoEditorInlineProps): JSX.Ele
   // evict rather than blur, and this editor's rather than the screen's: the keyboard also goes
   // away when another editor takes over, and by then that editor holds the dock and has the
   // keypad open on its own token — a blur here would close both out from under it.
-  const exitFreeformRef = useRef<() => void>(() => undefined);
-  exitFreeformRef.current = () => controller.evict();
-  // Only after the keyboard has actually appeared: entering freeform flips this flag ~50ms
-  // before the caret placement summons the IME (the controller waits for the native side to
-  // commit `editable` first), and a hide event landing in that window — a stale one, or the
-  // custom keypad closing on the way in — would bounce straight back out.
-  useEffect(() => {
-    if (!isFreeform) {
-      return;
-    }
-    let hasShown = false;
-    const showSub = Keyboard.addListener("keyboardDidShow", () => {
-      hasShown = true;
-    });
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
-      if (hasShown) {
-        exitFreeformRef.current();
-      }
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [isFreeform]);
+  useFreeformKeyboardExit(isFreeform, () => controller.evict());
   useEffect(() => {
     const selection = lastSelectionRef.current;
     if (isFreeform && selection != null) {
