@@ -10,6 +10,7 @@ import type {
   IProgramStateMetadata,
 } from "../types";
 import type { IEvaluatedProgram } from "../models/program";
+import type { IDashboardWidgetModalData, IDashboardWidgetModalResult } from "../models/dashboardWidgetCommit";
 import { getNavigationRef } from "./navUtils";
 import { UidFactory_generateUid } from "../utils/generator";
 import type { IStateVariableType } from "../components/editProgramExercise/progressions/modalCreateStateVariable";
@@ -130,6 +131,7 @@ export interface IModalDataMap {
   stateVarsModal: IStateVarsModalData;
   createStateVarModal: { existingNames?: string[] };
   liftoEditorExercisePickerModal: ILiftoEditorExercisePickerModalData;
+  dashboardWidgetModal: IDashboardWidgetModalData;
   textInputModal: ITextInputModalData;
   editDetailsModal: IEditDetailsModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
@@ -149,6 +151,7 @@ export interface IModalResultMap {
   stateVarsModal: string;
   createStateVarModal: ICreateStateVarModalResult;
   liftoEditorExercisePickerModal: IExercisePickerSelectedExercise;
+  dashboardWidgetModal: IDashboardWidgetModalResult;
   textInputModal: string;
   editDetailsModal: IEditDetailsModalResult;
   repMaxCalculatorModal: number;

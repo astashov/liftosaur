@@ -5,7 +5,7 @@ export interface ILiftographPaletteEntry {
   text: string;
 }
 
-export const LiftographPalette_names = ["purple", "blue", "red", "green", "orange", "gray"] as const;
+export const LiftographPalette_names = ["red", "blue", "green", "orange", "purple", "gray"] as const;
 const names = LiftographPalette_names;
 
 function entries(): Record<(typeof names)[number], ILiftographPaletteEntry> {
@@ -20,7 +20,21 @@ function entries(): Record<(typeof names)[number], ILiftographPaletteEntry> {
   };
 }
 
+const HEX_DIGITS = "0123456789abcdefABCDEF";
+const HEX_LENGTHS = [4, 7, 9];
+
+export function LiftographPalette_isHex(color: string): boolean {
+  return (
+    color[0] === "#" &&
+    HEX_LENGTHS.indexOf(color.length) !== -1 &&
+    Array.from(color.slice(1)).every((char) => HEX_DIGITS.indexOf(char) !== -1)
+  );
+}
+
 export function LiftographPalette_entry(color: string | undefined, index: number): ILiftographPaletteEntry {
+  if (color != null && LiftographPalette_isHex(color)) {
+    return { stroke: color, text: color };
+  }
   const palette = entries();
   const named = names.find((name) => name === color);
   return palette[named ?? names[index % names.length]];

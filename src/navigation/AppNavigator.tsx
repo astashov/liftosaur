@@ -130,6 +130,8 @@ import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
 import { NavModalDashboards } from "./modals/NavModalDashboards";
+import { NavModalDashboardWidget } from "./modals/NavModalDashboardWidget";
+import { NavModalLiftoEditorExercisePicker } from "./modals/NavModalLiftoEditorExercisePicker";
 
 function renderScreenWithErrorBoundary(args: {
   route: { name: string };
@@ -386,6 +388,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
           <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
+          <RootStack.Screen name="dashboardWidgetModal" component={NavModalDashboardWidget} />
+          <RootStack.Screen name="liftoEditorExercisePickerModal" component={NavModalLiftoEditorExercisePicker} />
           <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
           <RootStack.Screen name="tourModal" component={NavModalTour} />
           <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />

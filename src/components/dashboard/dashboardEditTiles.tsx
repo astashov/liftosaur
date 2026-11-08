@@ -78,6 +78,7 @@ export interface IDashboardEditSlotProps {
   cellIndex: number;
   evaluation: ILiftographSeriesEval;
   drag: IDashboardDrag;
+  hasWidgetSheet: boolean;
   onAction: (action: IDashboardEditAction) => void;
 }
 
@@ -122,6 +123,15 @@ export const DashboardEditSlot = memo(function DashboardEditSlot(props: IDashboa
               testID: "dashboard-edit-menu-edit",
               onPress: () => onAction({ type: "edit", slotId: slot.id }),
             },
+            ...(props.hasWidgetSheet && slot.kind !== "text"
+              ? [
+                  {
+                    label: "Edit as text",
+                    testID: "dashboard-edit-menu-edit-text",
+                    onPress: () => onAction({ type: "editText", slotId: slot.id }),
+                  },
+                ]
+              : []),
             {
               label: "Duplicate",
               testID: "dashboard-edit-menu-duplicate",

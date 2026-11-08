@@ -16,13 +16,22 @@ export interface IDashboardWidgetProps {
   id: string;
   widget: ILiftographWidget;
   evaluation: ILiftographSeriesEval;
+  isCompact?: boolean;
   onOpenRecord?: (record: IHistoryRecord) => void;
 }
 
 export function DashboardWidget(props: IDashboardWidgetProps): JSX.Element | null {
   const { widget, evaluation } = props;
   if (widget.kind === "graph") {
-    return <DashboardGraph id={props.id} widget={widget} evaluation={evaluation} onOpenRecord={props.onOpenRecord} />;
+    return (
+      <DashboardGraph
+        id={props.id}
+        widget={widget}
+        evaluation={evaluation}
+        isCompact={props.isCompact}
+        onOpenRecord={props.onOpenRecord}
+      />
+    );
   } else if (widget.kind === "value") {
     return <DashboardValue widget={widget} evaluation={evaluation} />;
   } else if (widget.kind === "muscles") {

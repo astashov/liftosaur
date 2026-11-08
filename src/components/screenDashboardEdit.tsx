@@ -23,6 +23,8 @@ import {
   DashboardEditorSave_session,
 } from "../models/dashboardEditorSave";
 import { DashboardEditorWrite_apply } from "../models/dashboardEditorWrite";
+import { DashboardWidgetCommit_resolve } from "../models/dashboardWidgetCommit";
+import { useModal } from "../navigation/ModalStateContext";
 
 const DISCARD_MESSAGE = "Discard unsaved changes to this dashboard?";
 
@@ -109,6 +111,22 @@ export function ScreenDashboardEdit(props: { mode?: IDashboardEditMode; caret?: 
     allowLeaveRef.current = true;
     navigation.goBack();
   };
+  const draftTextRef = useRef(draft.text);
+  draftTextRef.current = draft.text;
+  const openWidget = useModal("dashboardWidgetModal", (result) => {
+    const resolved = DashboardWidgetCommit_resolve(draftTextRef.current, result);
+    if (resolved.alert != null) {
+      Dialog_alert(resolved.alert);
+    }
+    if (resolved.text != null) {
+      draft.setText(resolved.text);
+    }
+    if (resolved.textModeCaret != null) {
+      setCaret(resolved.textModeCaret);
+      setMode("text");
+    }
+  });
+
   const saveRef = useRef(save);
   saveRef.current = save;
   const navRightButtons = useMemo(
@@ -165,6 +183,7 @@ export function ScreenDashboardEdit(props: { mode?: IDashboardEditMode; caret?: 
             setCaret(at);
             setMode("text");
           }}
+          onOpenWidget={openWidget}
         />
       </View>
     </NavScreenContent>

@@ -40,6 +40,7 @@ import { NavScreenDashboardEdit, NavScreenGraphs } from "./screens/NavScreenGrap
 import { NavModalExerciseLiftoEditor } from "./modals/NavModalExerciseLiftoEditor";
 import { NavModalDayLiftoEditor } from "./modals/NavModalDayLiftoEditor";
 import { NavModalDashboards } from "./modals/NavModalDashboards";
+import { NavModalDashboardWidget } from "./modals/NavModalDashboardWidget";
 import {
   NavScreenSettings,
   NavScreenAccount,
@@ -424,6 +425,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
           <RootStack.Screen name="liftoEditorExercisePickerModal" component={NavModalLiftoEditorExercisePicker} />
+          <RootStack.Screen name="dashboardWidgetModal" component={NavModalDashboardWidget} />
           {/* Sheets that host the custom keypad. Not formSheets: that sheet takes its height when
               it is first laid out and never grows, so on Android the keypad landed below the
               bottom of the screen. These draw their own sheet, which can grow. */}

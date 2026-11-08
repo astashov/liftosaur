@@ -14,6 +14,7 @@ export interface IScrollableTabsProps {
   }[];
   color?: "orange" | "purple";
   defaultIndex?: number;
+  selectedIndex?: number;
   className?: string;
   type?: "tabs" | "squares";
   shouldNotExpand?: boolean;
@@ -28,7 +29,8 @@ export interface IScrollableTabsProps {
 
 export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
   const { tabs } = props;
-  const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
+  const [ownIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
+  const selectedIndex = props.selectedIndex ?? ownIndex;
   const [barWidth, setBarWidth] = useState<number>(0);
   const color = props.color || "orange";
 

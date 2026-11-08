@@ -23,6 +23,13 @@ import {
 import { IEither } from "../utils/types";
 import type { ILiftographCompiled, ILiftographWidget } from "../liftograph/liftographCompile";
 import type { IDashboardDrop } from "./dashboardDrop";
+import {
+  DashboardWidgetCommit_anchor,
+  DashboardWidgetCommit_insertAnchor,
+  DashboardWidgetCommit_snippet,
+  IDashboardWidgetAnchor,
+} from "./dashboardWidgetCommit";
+import { LiftographWidgetModel_read } from "../liftograph/liftographWidgetModel";
 
 export type IDashboardReservation =
   | { kind: "row"; row: number; count: number }
@@ -50,13 +57,23 @@ export type IDashboardEditAction =
   | { type: "delete"; slotId: number }
   | { type: "duplicate"; slotId: number }
   | { type: "edit"; slotId: number }
+  | { type: "editText"; slotId: number }
   | { type: "drop"; slotId: number; drop: IDashboardDrop }
   | { type: "setCount"; rowKey: string; count: number }
   | { type: "addRow"; before: number; count: number }
   | { type: "cancelRow"; before: number }
   | { type: "insert"; target: ILiftographLayoutTarget; kind: string };
 
-export type IDashboardEditEffect = { type: "openEditor"; caret: number } | { type: "alert"; message: string };
+export type IDashboardEditEffect =
+  | { type: "openEditor"; caret: number }
+  | { type: "openWidget"; anchor: IDashboardWidgetAnchor; snippet: string }
+  | { type: "alert"; message: string };
+
+export interface IDashboardEditOptions {
+  hasWidgetSheet: boolean;
+}
+
+const WIDGET_SHEET_KINDS = ["graph", "value", "muscles", "calendar"];
 
 export interface IDashboardEditResult {
   text: string;
@@ -290,11 +307,16 @@ function insert(
   layout: ILiftographLayout,
   reservations: IDashboardReservations,
   target: ILiftographLayoutTarget,
-  kind: string
+  kind: string,
+  options: IDashboardEditOptions
 ): IDashboardEditResult {
   const rows = DashboardEdit_rows(layout, reservations);
   if (DashboardEdit_kindsFor(rows, target).indexOf(kind) === -1) {
     return unchanged(layout, reservations, { type: "alert", message: `A ${kind} does not fit here` });
+  }
+  if (options.hasWidgetSheet && WIDGET_SHEET_KINDS.indexOf(kind) !== -1) {
+    const anchor = DashboardWidgetCommit_insertAnchor(layout, target);
+    return unchanged(layout, reservations, { type: "openWidget", anchor, snippet: DashboardEdit_template(kind) });
   }
   const result = LiftographLayoutEdit_insert(layout, target, DashboardEdit_template(kind));
   if (!result.success) {
@@ -306,14 +328,17 @@ function insert(
 export function DashboardEdit_apply(
   layout: ILiftographLayout,
   reservations: IDashboardReservations,
-  action: IDashboardEditAction
+  action: IDashboardEditAction,
+  options: IDashboardEditOptions = { hasWidgetSheet: false }
 ): IDashboardEditResult {
   switch (action.type) {
     case "delete":
       return written(LiftographLayoutEdit_delete(layout, action.slotId));
     case "duplicate":
       return written(LiftographLayoutEdit_duplicate(layout, action.slotId));
-    case "edit": {
+    case "edit":
+      return unchanged(layout, reservations, editEffect(layout, action.slotId, options));
+    case "editText": {
       const slot = LiftographLayout_slot(layout, action.slotId);
       return unchanged(layout, reservations, slot != null ? { type: "openEditor", caret: slot.caret } : undefined);
     }
@@ -335,6 +360,23 @@ export function DashboardEdit_apply(
       return { text: layout.text, reservations: { text: layout.text, items } };
     }
     case "insert":
-      return insert(layout, reservations, action.target, action.kind);
+      return insert(layout, reservations, action.target, action.kind, options);
   }
+}
+
+function editEffect(
+  layout: ILiftographLayout,
+  slotId: number,
+  options: IDashboardEditOptions
+): IDashboardEditEffect | undefined {
+  const slot = LiftographLayout_slot(layout, slotId);
+  if (slot == null) {
+    return undefined;
+  }
+  const anchor = options.hasWidgetSheet ? DashboardWidgetCommit_anchor(layout, slotId) : undefined;
+  const snippet = anchor != null ? DashboardWidgetCommit_snippet(anchor) : undefined;
+  if (anchor == null || snippet == null || LiftographWidgetModel_read(snippet) == null) {
+    return { type: "openEditor", caret: slot.caret };
+  }
+  return { type: "openWidget", anchor, snippet };
 }

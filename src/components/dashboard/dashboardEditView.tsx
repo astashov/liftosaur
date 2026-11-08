@@ -14,6 +14,7 @@ import {
   IDashboardEditAction,
   IDashboardEditRow,
 } from "../../models/dashboardEdit";
+import type { IDashboardWidgetModalData } from "../../models/dashboardWidgetCommit";
 import { DashboardDrop_endKey, IDashboardDrop } from "../../models/dashboardDrop";
 import { Dialog_alert } from "../../utils/dialog";
 import { useRem } from "../../utils/useRem";
@@ -31,6 +32,7 @@ export interface IDashboardEditViewProps {
   evaluation: ILiftographSeriesEval;
   onChange: (text: string) => void;
   onOpenEditor: (caret: number) => void;
+  onOpenWidget?: (data: IDashboardWidgetModalData) => void;
 }
 
 function nextBefore(row: IDashboardEditRow): number {
@@ -94,13 +96,18 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
   stateRef.current = { layout, reservations, props };
   const run = useCallback((action: IDashboardEditAction) => {
     const current = stateRef.current;
-    const result = DashboardEdit_apply(current.layout, current.reservations, action);
+    const onOpenWidget = current.props.onOpenWidget;
+    const result = DashboardEdit_apply(current.layout, current.reservations, action, {
+      hasWidgetSheet: onOpenWidget != null,
+    });
     setReservations(result.reservations);
     if (result.text !== current.layout.text) {
       current.props.onChange(result.text);
     }
     if (result.effect?.type === "openEditor") {
       current.props.onOpenEditor(result.effect.caret);
+    } else if (result.effect?.type === "openWidget") {
+      onOpenWidget?.({ anchor: result.effect.anchor, snippet: result.effect.snippet });
     } else if (result.effect?.type === "alert") {
       Dialog_alert(result.effect.message);
     }
@@ -136,6 +143,7 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
                   cellIndex={cellIndex}
                   evaluation={evaluation}
                   drag={drag}
+                  hasWidgetSheet={props.onOpenWidget != null}
                   onAction={run}
                 />
               ) : (

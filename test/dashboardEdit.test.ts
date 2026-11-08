@@ -150,3 +150,48 @@ describe("DashboardEdit_apply", () => {
     });
   });
 });
+
+describe("DashboardEdit_apply with the widget sheet", () => {
+  const sheet = { hasWidgetSheet: true };
+  function applySheet(text: string, action: IDashboardEditAction): IDashboardEditResult {
+    return DashboardEdit_apply(layout(text), DashboardEdit_reservations(text), action, sheet);
+  }
+
+  it("edit opens the sheet on a readable widget", () => {
+    const effect = applySheet("// cap\ncalendar / range: 1y", { type: "edit", slotId: 0 }).effect;
+    expect(effect?.type).to.equal("openWidget");
+    if (effect?.type === "openWidget") {
+      expect(effect.snippet).to.equal("calendar / range: 1y");
+    }
+  });
+
+  it("edit opens the text editor on a text item or a broken widget", () => {
+    expect(applySheet("// Hello", { type: "edit", slotId: 0 }).effect?.type).to.equal("openEditor");
+    expect(
+      applySheet("value / source: workout / y: volume {~ point(1) ~}", { type: "edit", slotId: 0 }).effect?.type
+    ).to.equal("openEditor");
+  });
+
+  it("editText always opens the text editor", () => {
+    expect(applySheet("calendar", { type: "editText", slotId: 0 }).effect).to.eql({ type: "openEditor", caret: 0 });
+  });
+
+  it("insert of a widget kind opens the sheet and leaves the text", () => {
+    const result = applySheet("calendar", {
+      type: "insert",
+      target: { kind: "newRow", before: 1, isRow: false },
+      kind: "value",
+    });
+    expect(result.text).to.equal("calendar");
+    expect(result.effect?.type).to.equal("openWidget");
+  });
+
+  it("insert of text still writes at once", () => {
+    const result = applySheet("calendar", {
+      type: "insert",
+      target: { kind: "newRow", before: 1, isRow: false },
+      kind: "text",
+    });
+    expect(result.text).to.contain("// Text");
+  });
+});

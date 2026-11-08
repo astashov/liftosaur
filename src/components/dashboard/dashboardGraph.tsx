@@ -6,6 +6,8 @@ import { useGraphActiveCursor } from "../graphLegendOverlay";
 import { ILiftographDuration, ILiftographWidget } from "../../liftograph/liftographCompile";
 import { ILiftographSeriesEval } from "../../liftograph/liftographSeriesEval";
 import {
+  ILiftographChartData,
+  ILiftographChartReadout,
   LiftographChartData_numericWindow,
   LiftographChartData_prepare,
   LiftographChartData_rangeLabel,
@@ -23,11 +25,13 @@ import { DashboardCard } from "./dashboardCard";
 import { DashboardNotice } from "./dashboardNotice";
 
 const CHART_HEIGHT = 176;
+const COMPACT_CHART_HEIGHT = 88;
 
 export function DashboardGraph(props: {
   id: string;
   widget: Extract<ILiftographWidget, { kind: "graph" }>;
   evaluation: ILiftographSeriesEval;
+  isCompact?: boolean;
   onOpenRecord?: (record: IHistoryRecord) => void;
 }): JSX.Element {
   const { widget, evaluation } = props;
@@ -83,7 +87,7 @@ export function DashboardGraph(props: {
         ref={chartRef}
         data={chart.data}
         series={chart.series.map((series) => ({ ...series, show: hidden.indexOf(series.id) === -1 }))}
-        height={CHART_HEIGHT}
+        height={props.isCompact ? COMPACT_CHART_HEIGHT : CHART_HEIGHT}
         xMode={chart.xMode}
         xMin={window.xMin}
         xMax={window.xMax}
@@ -92,6 +96,35 @@ export function DashboardGraph(props: {
         onCursorChange={handleCursorChange}
         yAxisFormatter={(v) => MathUtils_formatCompact(v)}
       />
+      {props.isCompact ? null : (
+        <DashboardGraphFooter
+          chart={chart}
+          records={records}
+          readout={readout}
+          record={record}
+          cursorIdx={cursorIdx}
+          rangeLabel={rangeLabel}
+          onOpenRecord={props.onOpenRecord}
+          onRange={setRangeOverride}
+        />
+      )}
+    </DashboardCard>
+  );
+}
+
+function DashboardGraphFooter(props: {
+  chart: ILiftographChartData;
+  records: Map<number, IHistoryRecord>;
+  readout: ILiftographChartReadout;
+  record: IHistoryRecord | undefined;
+  cursorIdx: number | null;
+  rangeLabel: string;
+  onOpenRecord?: (record: IHistoryRecord) => void;
+  onRange: (range: ILiftographDuration) => void;
+}): JSX.Element {
+  const { chart, records, readout, record, cursorIdx, rangeLabel } = props;
+  return (
+    <>
       <View className="flex-row flex-wrap items-baseline mt-1">
         <Text className={`mr-3 text-xs ${cursorIdx == null ? "text-text-secondarysubtle" : "font-semibold"}`}>
           {readout.label}
@@ -125,7 +158,7 @@ export function DashboardGraph(props: {
               key={label}
               testID={`dashboard-graph-range-${label}`}
               className={`items-center flex-1 py-1.5 rounded-md ${isActive ? "bg-background-default" : ""}`}
-              onPress={() => setRangeOverride(option)}
+              onPress={() => props.onRange(option)}
             >
               <Text className={`text-xs ${isActive ? "font-semibold text-text-purple" : "text-text-secondary"}`}>
                 {label}
@@ -134,6 +167,6 @@ export function DashboardGraph(props: {
           );
         })}
       </View>
-    </DashboardCard>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { JSX, useContext, useEffect, useRef } from "react";
-import { Animated, Keyboard, Platform, Pressable, View } from "react-native";
+import { Animated, Platform, Pressable, View } from "react-native";
+import { useFreeformKeyboardExit } from "./useFreeformKeyboardExit";
 import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Text } from "../primitives/text";
 import { LiftoEditor } from "../primitives/liftoEditor";
@@ -46,30 +47,10 @@ export function DashboardTextEditor(props: IDashboardTextEditorProps): JSX.Eleme
   const handleRef = controller.editorProps.handleRef;
   const blurRef = useRef(controller.blur);
   blurRef.current = controller.blur;
-  const exitFreeformRef = useRef<() => void>(() => undefined);
-  exitFreeformRef.current = () => {
+  useFreeformKeyboardExit(isFreeform, () => {
     controller.switchToStructured();
     controller.blur();
-  };
-
-  useEffect(() => {
-    if (!isFreeform) {
-      return undefined;
-    }
-    let hasShown = false;
-    const showSub = Keyboard.addListener("keyboardDidShow", () => {
-      hasShown = true;
-    });
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
-      if (hasShown) {
-        exitFreeformRef.current();
-      }
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, [isFreeform]);
+  });
 
   const outsideText = props.text;
   useEffect(() => {
