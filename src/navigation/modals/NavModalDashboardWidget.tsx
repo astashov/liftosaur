@@ -11,7 +11,7 @@ import { DashboardWidget } from "../../components/dashboard/dashboardView";
 import { DashboardWidgetForm } from "../../components/dashboard/dashboardWidgetForm";
 import { DashboardWidgetTextEditor } from "../../components/dashboard/dashboardWidgetTextEditor";
 import { ScrollableTabs } from "../../components/scrollableTabs";
-import { useDashboardEvaluation } from "../../components/screenDashboard";
+import { useDashboardEvaluation } from "../../components/dashboard/dashboardEvaluation";
 import { LiftographSeriesEval_compile } from "../../liftograph/liftographSeriesEval";
 import { LiftographRail_pickedExercise } from "../../liftograph/liftographRail";
 import { LiftographEditorAnalysis } from "../../liftograph/liftographEditorAnalysis";
@@ -48,8 +48,8 @@ export function NavModalDashboardWidget(): JSX.Element {
   const modalDispatch = useModalDispatch();
   const data = useModalData("dashboardWidgetModal");
   const { state } = useAppState();
-  const { settings, stats, history } = state.storage;
-  const evaluation = useDashboardEvaluation({ history, stats, settings });
+  const { settings, history } = state.storage;
+  const evaluation = useDashboardEvaluation();
   const [sheet, setSheet] = useState<IDashboardWidgetSheetState | undefined>(() => {
     const model = data != null ? LiftographWidgetModel_read(data.snippet) : undefined;
     return model != null && data != null

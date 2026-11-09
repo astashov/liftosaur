@@ -15,7 +15,7 @@ import { DashboardEditView } from "./dashboard/dashboardEditView";
 import { DashboardEditStrip, IDashboardEditMode } from "./dashboard/dashboardEditStrip";
 import { DashboardTextEditor } from "./dashboard/dashboardTextEditor";
 import { useDashboardDraft } from "./dashboard/useDashboardDraft";
-import { useDashboardEvaluation } from "./screenDashboard";
+import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 import {
   DashboardEditorSave_confirmAsNew,
   DashboardEditorSave_decide,
@@ -60,11 +60,10 @@ export function ScreenDashboardEdit(props: { mode?: IDashboardEditMode; caret?: 
   const trackedState = useTrackedState();
   const dispatch = useTrackedDispatch();
   const settings = untrack(trackedState.storage.settings);
-  const stats = untrack(trackedState.storage.stats);
   const history = untrack(trackedState.storage.history);
   const dashboards = untrack(trackedState.storage.dashboards);
   const currentDashboardId = untrack(trackedState.storage.currentDashboardId);
-  const evaluation = useDashboardEvaluation({ history, stats, settings });
+  const evaluation = useDashboardEvaluation();
   const [opened] = useState(() => LiftographDashboard_document({ dashboards, currentDashboardId, settings }));
   const draft = useDashboardDraft(opened.text);
   const [mode, setMode] = useState<IDashboardEditMode>(props.mode ?? "ui");

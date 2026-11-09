@@ -41,8 +41,10 @@ interface IRegisteredCell {
 }
 
 export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag {
-  const scrollCtx = useContext(NavScreenScrollContext);
+  const scrollYRef = useContext(NavScreenScrollContext)?.scrollYRef;
   const autoScroll = useGridDragAutoScroll();
+  const autoScrollRef = useRef(autoScroll);
+  autoScrollRef.current = autoScroll;
   const optionsRef = useRef(options);
   optionsRef.current = options;
   const [draggedId, setDraggedId] = useState<number | undefined>(undefined);
@@ -70,7 +72,7 @@ export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag
     (token: number) => {
       const entries = Array.from(cellsRef.current.values());
       optionsRef.current.containerRef.current?.measureInWindow((ox, oy) => {
-        const scrollAtMeasure = scrollCtx?.scrollYRef.current ?? 0;
+        const scrollAtMeasure = scrollYRef?.current ?? 0;
         const cells: IDashboardDropCell[] = [];
         entries.forEach((entry) => {
           entry.view.measureInWindow((x, y, width, height) => {
@@ -86,7 +88,7 @@ export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag
         });
       });
     },
-    [scrollCtx]
+    [scrollYRef]
   );
 
   const apply = useCallback(
@@ -96,13 +98,13 @@ export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag
           measure(effect.token);
           break;
         case "scrollBegin":
-          autoScroll.begin("y", effect.y, () => runRef.current({ type: "scrolled" }));
+          autoScrollRef.current.begin("y", effect.y, () => runRef.current({ type: "scrolled" }));
           break;
         case "scrollMove":
-          autoScroll.move(effect.dy, effect.y);
+          autoScrollRef.current.move(effect.dy, effect.y);
           break;
         case "scrollEnd":
-          autoScroll.end();
+          autoScrollRef.current.end();
           break;
         case "showGhost":
           ghostWidth.value = effect.width;
@@ -124,12 +126,12 @@ export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag
           break;
       }
     },
-    [measure, autoScroll, ghostX, ghostY, ghostWidth, ghostGrab, hoverKey, isHoverRejected]
+    [measure, ghostX, ghostY, ghostWidth, ghostGrab, hoverKey, isHoverRejected]
   );
 
   const run = useCallback(
     (event: IDashboardDragEvent) => {
-      const context = { rows: optionsRef.current.rows, scrollY: scrollCtx?.scrollYRef.current ?? 0 };
+      const context = { rows: optionsRef.current.rows, scrollY: scrollYRef?.current ?? 0 };
       const previous = stateRef.current;
       const result = DashboardDrag_transition(previous, event, context);
       stateRef.current = result.state;
@@ -138,7 +140,7 @@ export function useDashboardDrag(options: IDashboardDragOptions): IDashboardDrag
       }
       result.effects.forEach(apply);
     },
-    [scrollCtx, apply]
+    [scrollYRef, apply]
   );
   runRef.current = run;
 

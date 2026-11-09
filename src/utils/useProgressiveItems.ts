@@ -46,6 +46,14 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
     setCount(effectiveCount);
     dbg(debugLabel, `reset → ${effectiveCount}/${total} (resetKey changed)`);
   }
+  const [prevTotal, setPrevTotal] = useState(total);
+  if (total !== prevTotal) {
+    setPrevTotal(total);
+    if (resetKey === prevResetKey && effectiveCount >= prevTotal) {
+      effectiveCount = total;
+      setCount(total);
+    }
+  }
   const countRef = useRef(effectiveCount);
   countRef.current = effectiveCount;
   const lastBumpRef = useRef(0);

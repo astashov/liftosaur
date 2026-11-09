@@ -18,6 +18,7 @@ import type { IDashboardWidgetModalData } from "../../models/dashboardWidgetComm
 import { DashboardDrop_endKey, IDashboardDrop } from "../../models/dashboardDrop";
 import { Dialog_alert } from "../../utils/dialog";
 import { useRem } from "../../utils/useRem";
+import { useProgressiveItems } from "../../utils/useProgressiveItems";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useDashboardDrag } from "./useDashboardDrag";
 import {
@@ -104,6 +105,12 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
   const widgets = useMemo(() => DashboardEdit_widgets(compiledLayout), [compiledLayout]);
   const [reservations, setReservations] = useState(() => DashboardEdit_reservations(text));
   const rows = useMemo(() => DashboardEdit_rows(layout, reservations), [layout, reservations]);
+  const shownRows = useProgressiveItems(rows, {
+    initialBatch: 3,
+    batchSize: 2,
+    idleCap: 6,
+    debugLabel: "DashboardEdit",
+  });
   const containerRef = useRef<View>(null);
 
   const stateRef = useRef({ layout, reservations, props });
@@ -139,7 +146,7 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
           onAction={run}
         />
       ) : null}
-      {rows.map((row) => (
+      {shownRows.map((row) => (
         <View key={row.key} style={{ position: "relative" }}>
           {row.row != null && compiledLayout[row.row.index]?.caption != null ? (
             <Markdown value={compiledLayout[row.row.index]?.caption ?? ""} className="mb-1" isHtmlDisabled />
@@ -181,9 +188,11 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
           />
         </View>
       ))}
-      <View style={{ position: "relative", height: rowHeaderHeight }}>
-        <DashboardEditDropLine drag={drag} rowKey={DashboardDrop_endKey} offset={0} />
-      </View>
+      {shownRows.length === rows.length ? (
+        <View style={{ position: "relative", height: rowHeaderHeight }}>
+          <DashboardEditDropLine drag={drag} rowKey={DashboardDrop_endKey} offset={0} />
+        </View>
+      ) : null}
       <DashboardEditGhost
         drag={drag}
         widget={draggedSlot != null ? widgets.get(draggedSlot.itemFrom) : undefined}
