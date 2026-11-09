@@ -158,6 +158,7 @@ import {
 } from "../utils/liveActivityManager";
 import { IAuthToken } from "../utils/keychain";
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
+import { ILoginAdoption, LoginAdoptLocal_plan, LoginAdoptLocal_storage } from "../models/loginAdoptLocal";
 
 declare let Rollbar: RB;
 
@@ -182,7 +183,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
         return env.service.googleSignIn(token, userId, {});
       });
       await load(dispatch, "Signing in", () => {
-        return handleLogin(dispatch, loginResult, env, userId);
+        return handleLogin(dispatch, getState, env, loginResult, { oldUserId: userId, adoption: "if-empty" });
       });
       if (cb) {
         cb(getState());
@@ -201,7 +202,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
           return env.service.googleSignIn(accessToken, userId, {});
         });
         await load(dispatch, "Signing in", () => {
-          return handleLogin(dispatch, result, env, userId);
+          return handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" });
         });
         if (cb) {
           cb(getState());
@@ -212,7 +213,9 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
       const state = getState();
       const userId = state.user?.id || state.storage.tempUserId;
       const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
-      await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env, userId));
+      await load(dispatch, "Logging in", () =>
+        handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" })
+      );
       if (cb) {
         cb(getState());
       }
@@ -243,7 +246,9 @@ export function Thunk_emailAuth(
         : env.service.emailSignIn(email, password, userId);
     });
     if (result.type === "success") {
-      await load(dispatch, "Signing in", () => handleLogin(dispatch, result.response, env, userId));
+      await load(dispatch, "Signing in", () =>
+        handleLogin(dispatch, getState, env, result.response, { oldUserId: userId, adoption: "if-empty" })
+      );
       dispatch(Thunk_sync2());
       cb({}, getState());
     } else if (result.type === "confirmation_sent") {
@@ -300,7 +305,9 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
       const result = await load(dispatch, "Logging in", async () =>
         env.service.appleSignIn(code ?? "", id_token!, userId)
       );
-      await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env, userId));
+      await load(dispatch, "Signing in", () =>
+        handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" })
+      );
       if (cb) {
         cb(getState());
       }
@@ -583,7 +590,7 @@ async function switchToSyncAccount(
     dispatch(Thunk_fetchInitial());
   } else if (plan === "fetch-server") {
     const result = await env.service.getStorage(mismatch.userId);
-    await handleLogin(dispatch, result, env, sentTempUserId);
+    await handleLogin(dispatch, getState, env, result, { oldUserId: sentTempUserId, adoption: "never" });
   }
 }
 
@@ -1288,7 +1295,10 @@ export function Thunk_fetchStorage(storageId?: string): IThunk {
         const userId = url != null ? url.searchParams.get("userid") : state.user?.id;
         return env.service.getStorage(state.storage.tempUserId, userId || undefined, storageId, state.adminKey);
       });
-      await handleLogin(dispatch, result, env, getState().user?.id || getState().storage.tempUserId);
+      await handleLogin(dispatch, getState, env, result, {
+        oldUserId: getState().user?.id || getState().storage.tempUserId,
+        adoption: "never",
+      });
     }
   };
 }
@@ -2209,7 +2219,10 @@ export function Thunk_debugTestLogin(
         await env.service.signout().catch(() => undefined);
         throw e;
       }
-      await handleLogin(dispatch, result, env, getState().user?.id || getState().storage.tempUserId);
+      await handleLogin(dispatch, getState, env, result, {
+        oldUserId: getState().user?.id || getState().storage.tempUserId,
+        adoption: "never",
+      });
       updateState(
         dispatch,
         [lb<IState>().p("storage").p("subscription").p("key").record(setup.key)],
@@ -2504,10 +2517,12 @@ function _load<T>(
 
 async function handleLogin(
   dispatch: IDispatch,
-  result: IGetStorageResponse,
+  getState: () => IState,
   env: IEnv,
-  oldUserId?: string
+  result: IGetStorageResponse,
+  opts: { oldUserId?: string; adoption: ILoginAdoption }
 ): Promise<void> {
+  const { oldUserId } = opts;
   const client = env.service.client;
   try {
     if (result.email != null) {
@@ -2542,7 +2557,14 @@ async function handleLogin(
           }
         }
       }
-      if (oldUserId === result.user_id) {
+      const plan = LoginAdoptLocal_plan({
+        oldUserId,
+        newUserId: result.user_id,
+        adoption: opts.adoption,
+        local: getState().storage,
+        server: storage,
+      });
+      if (plan === "same-user") {
         dispatch(Thunk_postevent("login-same-user"));
         updateState(dispatch, [lb<IState>().p("lastSynced").record(lastSynced)], "Set last synced on login");
         dispatch({ type: "Login", email: result.email, userId: result.user_id });
@@ -2553,6 +2575,21 @@ async function handleLogin(
             "Set subscription key from login"
           );
         }
+      } else if (plan === "adopt") {
+        dispatch(Thunk_postevent("login-adopt-local"));
+        const adopted = LoginAdoptLocal_storage(
+          getState().storage,
+          storage,
+          { userId: result.user_id, email: result.email, key: result.key },
+          getState().deviceId,
+          Date.now()
+        );
+        updateState(
+          dispatch,
+          [lb<IState>().p("lastSynced").record(lastSynced), lb<IState>().p("storage").record(adopted)],
+          "Adopt local storage on login"
+        );
+        dispatch({ type: "Login", email: result.email, userId: result.user_id });
       } else {
         dispatch(Thunk_postevent("login-different-user"));
         storage.subscription.key = result.key;
