@@ -18,8 +18,17 @@ export interface IDashboardWidgetSheetState {
 export const DashboardWidgetSheet_formError =
   "This text can't be shown as a form. Fix the errors, or finish editing it as text.";
 
-export function DashboardWidgetSheet_init(model: ILiftographWidgetModel): IDashboardWidgetSheetState {
-  return { mode: "form", model, text: "", isTouched: false };
+export function DashboardWidgetSheet_init(
+  model: ILiftographWidgetModel,
+  mode: IDashboardWidgetSheetMode,
+  format: ILiftographModelFormat
+): IDashboardWidgetSheetState {
+  const state: IDashboardWidgetSheetState = { mode: "form", model, text: "", isTouched: false };
+  return mode === "text" ? DashboardWidgetSheet_toText(state, format) : state;
+}
+
+export function DashboardWidgetSheet_isPreviewCollapsible(kind: ILiftographWidgetModel["kind"]): boolean {
+  return kind === "muscles";
 }
 
 export function DashboardWidgetSheet_setModel(

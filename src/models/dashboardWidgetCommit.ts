@@ -16,6 +16,7 @@ export type IDashboardWidgetCommitResult =
 export interface IDashboardWidgetModalData {
   snippet: string;
   anchor: IDashboardWidgetAnchor;
+  mode?: "form" | "text";
 }
 
 export interface IDashboardWidgetModalResult {

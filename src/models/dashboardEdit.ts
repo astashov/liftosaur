@@ -66,7 +66,7 @@ export type IDashboardEditAction =
 
 export type IDashboardEditEffect =
   | { type: "openEditor"; caret: number }
-  | { type: "openWidget"; anchor: IDashboardWidgetAnchor; snippet: string }
+  | { type: "openWidget"; anchor: IDashboardWidgetAnchor; snippet: string; mode: "form" | "text" }
   | { type: "alert"; message: string };
 
 export interface IDashboardEditOptions {
@@ -316,7 +316,12 @@ function insert(
   }
   if (options.hasWidgetSheet && WIDGET_SHEET_KINDS.indexOf(kind) !== -1) {
     const anchor = DashboardWidgetCommit_insertAnchor(layout, target);
-    return unchanged(layout, reservations, { type: "openWidget", anchor, snippet: DashboardEdit_template(kind) });
+    return unchanged(layout, reservations, {
+      type: "openWidget",
+      anchor,
+      snippet: DashboardEdit_template(kind),
+      mode: "form",
+    });
   }
   const result = LiftographLayoutEdit_insert(layout, target, DashboardEdit_template(kind));
   if (!result.success) {
@@ -337,11 +342,9 @@ export function DashboardEdit_apply(
     case "duplicate":
       return written(LiftographLayoutEdit_duplicate(layout, action.slotId));
     case "edit":
-      return unchanged(layout, reservations, editEffect(layout, action.slotId, options));
-    case "editText": {
-      const slot = LiftographLayout_slot(layout, action.slotId);
-      return unchanged(layout, reservations, slot != null ? { type: "openEditor", caret: slot.caret } : undefined);
-    }
+      return unchanged(layout, reservations, editEffect(layout, action.slotId, options, "form"));
+    case "editText":
+      return unchanged(layout, reservations, editEffect(layout, action.slotId, options, "text"));
     case "drop":
       return applyDrop(layout, reservations, action.slotId, action.drop);
     case "setCount":
@@ -367,7 +370,8 @@ export function DashboardEdit_apply(
 function editEffect(
   layout: ILiftographLayout,
   slotId: number,
-  options: IDashboardEditOptions
+  options: IDashboardEditOptions,
+  mode: "form" | "text"
 ): IDashboardEditEffect | undefined {
   const slot = LiftographLayout_slot(layout, slotId);
   if (slot == null) {
@@ -378,5 +382,5 @@ function editEffect(
   if (anchor == null || snippet == null || LiftographWidgetModel_read(snippet) == null) {
     return { type: "openEditor", caret: slot.caret };
   }
-  return { type: "openWidget", anchor, snippet };
+  return { type: "openWidget", anchor, snippet, mode };
 }

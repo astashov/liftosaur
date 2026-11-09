@@ -21,6 +21,7 @@ import {
   DashboardFormField,
   DashboardFormInput,
   DashboardFormRaw,
+  DashboardFormSubField,
 } from "./dashboardFormParts";
 
 const STATS_KEYS: string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
@@ -131,13 +132,15 @@ export function DashboardSourceFields(props: {
             <ExerciseRow source={source} settings={options.settings} onPress={props.onPickExercise} />
           ) : null}
           {source?.type === "stats" ? (
-            <DashboardFormChoice
-              testID="dashboard-series-stat"
-              title="Body stat"
-              options={STATS_KEYS}
-              value={source.key}
-              onChange={(key) => setSource({ type: "stats", key: key ?? source.key })}
-            />
+            <DashboardFormSubField label="Body stat">
+              <DashboardFormChoice
+                testID="dashboard-series-stat"
+                title="Body stat"
+                options={STATS_KEYS}
+                value={source.key}
+                onChange={(key) => setSource({ type: "stats", key: key ?? source.key })}
+              />
+            </DashboardFormSubField>
           ) : null}
         </View>
       </DashboardFormField>

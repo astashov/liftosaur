@@ -18,6 +18,7 @@ import type { IDashboardWidgetModalData } from "../../models/dashboardWidgetComm
 import { DashboardDrop_endKey, IDashboardDrop } from "../../models/dashboardDrop";
 import { Dialog_alert } from "../../utils/dialog";
 import { useRem } from "../../utils/useRem";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { useDashboardDrag } from "./useDashboardDrag";
 import {
   DashboardEditDropLine,
@@ -48,23 +49,36 @@ function DashboardEditRowHeader(props: {
   return (
     <View className="flex-row items-center gap-2" style={{ height: props.height }}>
       <Text className="text-xs font-semibold tracking-wider text-text-secondary">ROW</Text>
-      <View className="flex-row overflow-hidden border rounded border-border-neutral">
-        {row.counts.map((option) => (
-          <Pressable
-            key={option.count}
-            testID={`dashboard-edit-count-${row.key}-${option.count}`}
-            disabled={!option.isAllowed}
-            className={`px-2 ${option.count === row.count ? "bg-background-cardpurple" : ""}`}
-            onPress={() => onAction({ type: "setCount", rowKey: row.key, count: option.count })}
-          >
-            <Text
-              className={`text-xs ${option.isAllowed ? "text-text-primary" : "text-text-disabled line-through"}`}
-              style={option.isAllowed ? undefined : { textDecorationLine: "line-through" }}
+      <View className="flex-row overflow-hidden border rounded-lg border-border-neutral">
+        {row.counts.map((option, index) => {
+          const isSelected = option.count === row.count;
+          return (
+            <Pressable
+              key={option.count}
+              testID={`dashboard-edit-count-${row.key}-${option.count}`}
+              disabled={!option.isAllowed}
+              hitSlop={{ top: 6, bottom: 6 }}
+              className="items-center justify-center w-10 h-8"
+              style={{
+                borderLeftWidth: index > 0 ? 1 : 0,
+                borderColor: Tailwind_semantic().border.neutral,
+                backgroundColor: isSelected
+                  ? Tailwind_semantic().background.cardpurpleselected
+                  : option.isAllowed
+                    ? "transparent"
+                    : Tailwind_semantic().background.subtle,
+              }}
+              onPress={() => onAction({ type: "setCount", rowKey: row.key, count: option.count })}
             >
-              {option.count}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                className={`text-sm ${isSelected ? "font-semibold text-text-purple" : option.isAllowed ? "text-text-primary" : "text-text-disabled"}`}
+                style={option.isAllowed ? undefined : { opacity: 0.4 }}
+              >
+                {option.count}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
       <View className="flex-1" />
       {row.row == null ? (
@@ -84,7 +98,7 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
   const { text, evaluation } = props;
   const rem = useRem();
   const tileHeight = 4 * rem;
-  const rowHeaderHeight = 1.75 * rem;
+  const rowHeaderHeight = 2.75 * rem;
   const layout = useMemo(() => LiftographLayout_build(LiftographDocument_parse(text)), [text]);
   const compiledLayout = useMemo(() => LiftographSeriesEval_compile(evaluation, text).layout, [evaluation, text]);
   const widgets = useMemo(() => DashboardEdit_widgets(compiledLayout), [compiledLayout]);
@@ -107,7 +121,7 @@ export function DashboardEditView(props: IDashboardEditViewProps): JSX.Element {
     if (result.effect?.type === "openEditor") {
       current.props.onOpenEditor(result.effect.caret);
     } else if (result.effect?.type === "openWidget") {
-      onOpenWidget?.({ anchor: result.effect.anchor, snippet: result.effect.snippet });
+      onOpenWidget?.({ anchor: result.effect.anchor, snippet: result.effect.snippet, mode: result.effect.mode });
     } else if (result.effect?.type === "alert") {
       Dialog_alert(result.effect.message);
     }

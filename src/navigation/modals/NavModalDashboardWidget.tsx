@@ -1,7 +1,6 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSystemKeyboardHeight } from "../../utils/useSystemKeyboardHeight";
+import { Pressable, ScrollView, View } from "react-native";
+import { SystemKeyboardSpacer } from "../../components/systemKeyboardSpacer";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -26,6 +25,7 @@ import { DashboardWidgetFields_pickerExercise } from "../../models/dashboardWidg
 import { DashboardWidgetCommit_result } from "../../models/dashboardWidgetCommit";
 import {
   DashboardWidgetSheet_init,
+  DashboardWidgetSheet_isPreviewCollapsible,
   DashboardWidgetSheet_isPreviewPinned,
   DashboardWidgetSheet_setModel,
   DashboardWidgetSheet_setText,
@@ -36,6 +36,7 @@ import {
   IDashboardWidgetSheetState,
 } from "../../models/dashboardWidgetSheet";
 import { DashboardEditTiles_label } from "../../components/dashboard/dashboardEditTiles";
+import { DashboardFormChevron } from "../../components/dashboard/dashboardFormParts";
 import { Dialog_confirm } from "../../utils/dialog";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
@@ -51,12 +52,12 @@ export function NavModalDashboardWidget(): JSX.Element {
   const evaluation = useDashboardEvaluation({ history, stats, settings });
   const [sheet, setSheet] = useState<IDashboardWidgetSheetState | undefined>(() => {
     const model = data != null ? LiftographWidgetModel_read(data.snippet) : undefined;
-    return model != null ? DashboardWidgetSheet_init(model) : undefined;
+    return model != null && data != null
+      ? DashboardWidgetSheet_init(model, data.mode ?? "form", data.anchor.format)
+      : undefined;
   });
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [analysis] = useState(() => new LiftographEditorAnalysis(settings));
-  const systemKeyboardHeight = useSystemKeyboardHeight();
-  const insets = useSafeAreaInsets();
-  const keyboardSpace = Math.max(0, systemKeyboardHeight - (Platform.OS === "ios" ? insets.bottom : 0));
   const isPreviewPinned = sheet != null && DashboardWidgetSheet_isPreviewPinned(sheet.model.kind);
   const pickEntryRef = useRef(0);
   const scrollRef = useRef<ScrollView>(null);
@@ -140,20 +141,43 @@ export function NavModalDashboardWidget(): JSX.Element {
     return <></>;
   }
 
+  const isPreviewCollapsible = DashboardWidgetSheet_isPreviewCollapsible(sheet.model.kind);
+  const previewBody =
+    preview == null ? null : preview.kind === "error" || preview.kind === "unsupported" ? (
+      <Text className="text-sm text-text-error" style={{ flexShrink: 1 }}>
+        {preview.message}
+      </Text>
+    ) : (
+      <DashboardWidget id="widget-preview" widget={preview} evaluation={evaluation} isCompact={true} />
+    );
   const previewView = (
     <View
-      testID="dashboard-widget-preview"
-      className="flex-row px-4 py-2 border-b border-border-neutral"
+      className="border-b border-border-neutral"
       style={{ backgroundColor: Tailwind_semantic().background.default, zIndex: 1 }}
-      pointerEvents="none"
     >
-      {preview == null ? null : preview.kind === "error" || preview.kind === "unsupported" ? (
-        <Text className="text-sm text-text-error" style={{ flexShrink: 1 }}>
-          {preview.message}
-        </Text>
-      ) : (
-        <DashboardWidget id="widget-preview" widget={preview} evaluation={evaluation} isCompact={true} />
-      )}
+      {isPreviewCollapsible ? (
+        <Pressable
+          testID="dashboard-widget-preview-toggle"
+          data-testid="dashboard-widget-preview-toggle"
+          className="flex-row items-center justify-between px-4 py-2"
+          onPress={() => setIsPreviewOpen(!isPreviewOpen)}
+        >
+          <Text className="text-sm text-text-link">{isPreviewOpen ? "Hide preview" : "Show preview"}</Text>
+          <View style={{ transform: [{ rotate: isPreviewOpen ? "-90deg" : "90deg" }] }}>
+            <DashboardFormChevron direction="forward" color={Tailwind_semantic().text.link} />
+          </View>
+        </Pressable>
+      ) : null}
+      {!isPreviewCollapsible || isPreviewOpen ? (
+        <View
+          testID="dashboard-widget-preview"
+          className="flex-row px-4 pb-2"
+          style={isPreviewCollapsible ? undefined : { paddingTop: 8 }}
+          pointerEvents="none"
+        >
+          {previewBody}
+        </View>
+      ) : null}
     </View>
   );
 
@@ -216,8 +240,8 @@ export function NavModalDashboardWidget(): JSX.Element {
                         onNavigate={() => scrollRef.current?.scrollTo({ y: 0, animated: false })}
                       />
                     </View>
+                    <SystemKeyboardSpacer scrollRef={scrollRef} />
                   </ScrollView>
-                  {keyboardSpace > 0 ? <View style={{ height: keyboardSpace }} /> : null}
                 </View>
               ),
             },

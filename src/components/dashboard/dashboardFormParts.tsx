@@ -12,6 +12,7 @@ import {
   LiftographPalette_names,
 } from "../../liftograph/liftographPalette";
 import {
+  DashboardWidgetFields_isCustom,
   DashboardWidgetFields_splitOptions,
   DashboardWidgetFields_textValue,
 } from "../../models/dashboardWidgetFields";
@@ -60,6 +61,86 @@ export function DashboardFormChips<T>(props: {
   );
 }
 
+export function DashboardFormToggles(props: {
+  testID: string;
+  allLabel: string;
+  options: IDashboardFormChip<string>[];
+  selected: string[] | undefined;
+  onAll: () => void;
+  onToggle: (value: string) => void;
+}): JSX.Element {
+  const selected = props.selected;
+  return (
+    <View className="flex-row flex-wrap gap-2">
+      <Chip testID={`${props.testID}-all`} label={props.allLabel} isSelected={selected == null} onPress={props.onAll} />
+      {props.options.map((option) => (
+        <Chip
+          key={option.value}
+          testID={`${props.testID}-${option.value}`}
+          label={option.label}
+          isSelected={selected != null && selected.indexOf(option.value) !== -1}
+          onPress={() => props.onToggle(option.value)}
+        />
+      ))}
+    </View>
+  );
+}
+
+export function DashboardFormPresetInput(props: {
+  testID: string;
+  options: string[];
+  value: string | undefined;
+  noneLabel?: string;
+  placeholder: string;
+  onChange: (value: string | undefined) => void;
+}): JSX.Element {
+  const isCustom = DashboardWidgetFields_isCustom(props.options, props.value);
+  const [isCustomOpen, setIsCustomOpen] = useState(isCustom);
+  const isInputShown = isCustomOpen || isCustom;
+  const noneLabel = props.noneLabel;
+  const pick = (value: string | undefined): void => {
+    setIsCustomOpen(false);
+    props.onChange(value);
+  };
+  return (
+    <View className="gap-2">
+      <View className="flex-row flex-wrap gap-2">
+        {noneLabel != null ? (
+          <Chip
+            testID={`${props.testID}-${noneLabel}`}
+            label={noneLabel}
+            isSelected={props.value == null && !isInputShown}
+            onPress={() => pick(undefined)}
+          />
+        ) : null}
+        {props.options.map((option) => (
+          <Chip
+            key={option}
+            testID={`${props.testID}-${option}`}
+            label={option}
+            isSelected={option === props.value && !isInputShown}
+            onPress={() => pick(option)}
+          />
+        ))}
+        <Chip
+          testID={`${props.testID}-custom`}
+          label="Custom"
+          isSelected={isInputShown}
+          onPress={() => setIsCustomOpen(true)}
+        />
+      </View>
+      {isInputShown ? (
+        <DashboardFormInput
+          testID={`${props.testID}-input`}
+          value={props.value}
+          placeholder={props.placeholder}
+          onChange={props.onChange}
+        />
+      ) : null}
+    </View>
+  );
+}
+
 const VISIBLE_CHOICES = 10;
 
 export function DashboardFormChoice(props: {
@@ -68,10 +149,12 @@ export function DashboardFormChoice(props: {
   options: string[];
   value: string | undefined;
   anyLabel?: string;
+  labelOf?: (value: string) => string;
   onChange: (value: string | undefined) => void;
 }): JSX.Element {
   const { visible, rest } = DashboardWidgetFields_splitOptions(props.options, props.value, VISIBLE_CHOICES);
   const anyLabel = props.anyLabel;
+  const labelOf = props.labelOf ?? ((value: string): string => value);
   return (
     <View className="flex-row flex-wrap gap-2">
       {anyLabel != null ? (
@@ -86,7 +169,7 @@ export function DashboardFormChoice(props: {
         <Chip
           key={option}
           testID={`${props.testID}-${option}`}
-          label={option}
+          label={labelOf(option)}
           isSelected={option === props.value}
           onPress={() => props.onChange(option)}
         />
@@ -94,7 +177,7 @@ export function DashboardFormChoice(props: {
       {rest.length > 0 ? (
         <ActionMenu
           title={props.title}
-          actions={rest.map((option) => ({ label: option, onPress: () => props.onChange(option) }))}
+          actions={rest.map((option) => ({ label: labelOf(option), onPress: () => props.onChange(option) }))}
           renderTrigger={(open) => (
             <Chip testID={`${props.testID}-more`} label={`… ${rest.length} more`} isSelected={false} onPress={open} />
           )}
@@ -194,6 +277,18 @@ export function DashboardFormField(props: { label: string; hint?: string; childr
       {props.hint != null && props.hint !== "" ? (
         <Text className="pt-1 text-xs text-text-secondary">{props.hint}</Text>
       ) : null}
+    </View>
+  );
+}
+
+export function DashboardFormSubField(props: { label: string; children: ReactNode }): JSX.Element {
+  return (
+    <View
+      className="pl-3 mt-3 ml-1"
+      style={{ borderLeftWidth: 2, borderLeftColor: Tailwind_semantic().border.neutral }}
+    >
+      <Text className="pb-1 text-xs text-text-secondary">{props.label}</Text>
+      {props.children}
     </View>
   );
 }

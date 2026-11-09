@@ -4,6 +4,7 @@ import { ILiftographWidgetModel, LiftographWidgetModel_read } from "../src/lifto
 import {
   DashboardWidgetSheet_formError,
   DashboardWidgetSheet_init,
+  DashboardWidgetSheet_isPreviewCollapsible,
   DashboardWidgetSheet_isPreviewPinned,
   DashboardWidgetSheet_setModel,
   DashboardWidgetSheet_setText,
@@ -24,34 +25,46 @@ function model(snippet: string): ILiftographWidgetModel {
 
 describe("DashboardWidgetSheet", () => {
   it("starts untouched in form mode", () => {
-    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"));
+    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF);
     expect(state.mode).to.equal("form");
     expect(state.isTouched).to.equal(false);
   });
 
+  it("opens on the Text tab with the written widget, untouched", () => {
+    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"), "text", LF);
+    expect(state.mode).to.equal("text");
+    expect(state.text).to.equal("calendar / range: 3m");
+    expect(state.isTouched).to.equal(false);
+  });
+
+  it("collapses the preview only for muscles", () => {
+    expect(DashboardWidgetSheet_isPreviewCollapsible("muscles")).to.equal(true);
+    expect(DashboardWidgetSheet_isPreviewCollapsible("graph")).to.equal(false);
+  });
+
   it("switching to text writes the model and does not count as a change", () => {
-    const state = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m")), LF);
+    const state = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF), LF);
     expect(state.mode).to.equal("text");
     expect(state.text).to.equal("calendar / range: 3m");
     expect(state.isTouched).to.equal(false);
   });
 
   it("typing marks it touched and the written text is the typed text", () => {
-    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m")), LF);
+    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF), LF);
     const typed = DashboardWidgetSheet_setText(text, "calendar / range: 1y");
     expect(typed.isTouched).to.equal(true);
     expect(DashboardWidgetSheet_written(typed, LF)).to.equal("calendar / range: 1y");
   });
 
   it("back to form reads the typed text", () => {
-    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m")), LF);
+    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF), LF);
     const form = DashboardWidgetSheet_toForm(DashboardWidgetSheet_setText(text, "calendar / range: 1y"));
     expect(form.mode).to.equal("form");
     expect(form.model).to.eql({ kind: "calendar", range: "1y", extra: [] });
   });
 
   it("stays in text mode with an error when the text has no form", () => {
-    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m")), LF);
+    const text = DashboardWidgetSheet_toText(DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF), LF);
     const broken = DashboardWidgetSheet_toForm(DashboardWidgetSheet_setText(text, "calendar / range: 1y {"));
     expect(broken.mode).to.equal("text");
     expect(broken.formError).to.equal(DashboardWidgetSheet_formError);
@@ -59,7 +72,7 @@ describe("DashboardWidgetSheet", () => {
   });
 
   it("a form edit marks it touched", () => {
-    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"));
+    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF);
     const next = DashboardWidgetSheet_setModel(state, { kind: "calendar", range: "6m", extra: [] });
     expect(next.isTouched).to.equal(true);
     expect(DashboardWidgetSheet_written(next, LF)).to.equal("calendar / range: 6m");
@@ -68,7 +81,7 @@ describe("DashboardWidgetSheet", () => {
 
 describe("DashboardWidgetSheet review fixes", () => {
   it("an unchanged model keeps the sheet untouched", () => {
-    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"));
+    const state = DashboardWidgetSheet_init(model("calendar / range: 3m"), "form", LF);
     expect(DashboardWidgetSheet_setModel(state, state.model)).to.equal(state);
   });
 

@@ -1,5 +1,6 @@
-import { IAllCustomExercises, IExerciseType } from "../types";
+import { IAllCustomExercises, IExerciseType, ISettings } from "../types";
 import { Exercise_resolveNameAndEquipmentParts } from "./exercise";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "./muscle";
 import { ILiftographAtom, ILiftographValue, LiftographDocument_parse } from "../liftograph/liftographDocument";
 import { ILiftographAgg, LiftographCompile_duration } from "../liftograph/liftographCompile";
 import { ILiftographPresetName } from "../liftograph/liftographPresets";
@@ -14,6 +15,13 @@ import {
   LiftographWidgetModel_defaultPreset,
 } from "../liftograph/liftographWidgetModel";
 import { ILiftographModelAggField, LiftographWidgetEdit_seriesAt } from "../liftograph/liftographWidgetEdit";
+
+export type IDashboardValueField = "compare" | "trend";
+
+const VALUE_DURATIONS: Record<IDashboardValueField, string[]> = {
+  compare: ["1w", "4w", "3m", "1y"],
+  trend: ["4w", "3m", "6m", "1y"],
+};
 
 const WINDOWS: Record<ILiftographModelAggField, string[]> = {
   group: ["1w", "2w", "1m", "3m"],
@@ -54,14 +62,59 @@ function probeAtom(key: string, text: string): ILiftographAtom | undefined {
   return pairs.length === 1 ? singleAtom(pairs[0]?.value) : undefined;
 }
 
-function periodWords(window: string): string {
+function periodWords(window: string, isCounted: boolean = false): string {
   const atom = probeAtom("w", window);
   const duration = atom != null ? LiftographCompile_duration(atom) : undefined;
   if (duration == null || duration === "all") {
     return window;
   }
   const unit = UNIT_WORDS[duration.unit];
-  return duration.n === 1 ? unit : `${duration.n} ${unit}s`;
+  if (duration.n === 1) {
+    return isCounted ? `1 ${unit}` : unit;
+  }
+  return `${duration.n} ${unit}s`;
+}
+
+export function DashboardWidgetFields_durations(field: IDashboardValueField): string[] {
+  return VALUE_DURATIONS[field];
+}
+
+export function DashboardWidgetFields_isCustom(options: string[], value: string | undefined): boolean {
+  return value != null && options.indexOf(value) === -1;
+}
+
+export function DashboardWidgetFields_valueHint(field: IDashboardValueField, duration: string | undefined): string {
+  if (field === "compare") {
+    return duration == null
+      ? "Shows only the current value."
+      : `Shows the change since ${periodWords(duration, true)} ago, like "▲ 7.5 vs ${duration}".`;
+  }
+  return duration == null
+    ? "No small chart under the number."
+    : `Draws a small chart of the last ${periodWords(duration, true)} under the number.`;
+}
+
+export function DashboardWidgetFields_muscleGroups(settings: ISettings, hasTotal: boolean): string[] {
+  const groups = Muscle_getAvailableMuscleGroups(settings);
+  return hasTotal ? ["total", ...groups] : groups;
+}
+
+export function DashboardWidgetFields_muscleGroupLabel(group: string, settings: ISettings): string {
+  return group === "total" ? "All muscles" : Muscle_getMuscleGroupName(group, settings);
+}
+
+export function DashboardWidgetFields_toggleGroup(
+  groups: string[] | undefined,
+  group: string,
+  all: string[]
+): string[] | undefined {
+  const current = groups ?? [];
+  if (current.indexOf(group) !== -1) {
+    const removed = current.filter((g) => g !== group);
+    return removed.length > 0 ? removed : undefined;
+  }
+  const added = [...current, group];
+  return [...all.filter((g) => added.indexOf(g) !== -1), ...added.filter((g) => all.indexOf(g) === -1)];
 }
 
 export function DashboardWidgetFields_isNumeric(series: ILiftographModelSeries): boolean {
@@ -137,14 +190,6 @@ export function DashboardWidgetFields_textValue(text: string): string | undefine
   return text.trim() === "" ? undefined : text;
 }
 
-export function DashboardWidgetFields_groupsFromText(text: string | undefined): string[] | undefined {
-  const groups = (text ?? "")
-    .split(",")
-    .map((group) => group.trim())
-    .filter((group) => group !== "");
-  return groups.length > 0 ? groups : undefined;
-}
-
 export function DashboardWidgetFields_exerciseType(
   source: ILiftographModelSource | undefined,
   exercises: IAllCustomExercises
@@ -170,9 +215,8 @@ export function DashboardWidgetFields_pickerExercise(
   return DashboardWidgetFields_exerciseType(series?.source, exercises) ?? PICKER_FALLBACK;
 }
 
-export function DashboardWidgetFields_windows(field: ILiftographModelAggField, current: string | undefined): string[] {
-  const windows = WINDOWS[field];
-  return current != null && windows.indexOf(current) === -1 ? [...windows, current] : windows;
+export function DashboardWidgetFields_windows(field: ILiftographModelAggField): string[] {
+  return WINDOWS[field];
 }
 
 export function DashboardWidgetFields_splitOptions(

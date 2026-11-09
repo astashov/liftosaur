@@ -17,10 +17,21 @@ import {
   LiftographWidgetEdit_setSeries,
 } from "../../liftograph/liftographWidgetEdit";
 import {
-  DashboardWidgetFields_groupsFromText,
+  DashboardWidgetFields_durations,
+  DashboardWidgetFields_muscleGroupLabel,
+  DashboardWidgetFields_muscleGroups,
   DashboardWidgetFields_seriesSummary,
+  DashboardWidgetFields_toggleGroup,
+  DashboardWidgetFields_valueHint,
+  IDashboardValueField,
 } from "../../models/dashboardWidgetFields";
-import { DashboardFormChevron, DashboardFormChips, DashboardFormField, DashboardFormInput } from "./dashboardFormParts";
+import {
+  DashboardFormChevron,
+  DashboardFormChips,
+  DashboardFormField,
+  DashboardFormPresetInput,
+  DashboardFormToggles,
+} from "./dashboardFormParts";
 import { DashboardSeriesForm } from "./dashboardSeriesForm";
 import { IDashboardFormOptions } from "./dashboardSourceFields";
 
@@ -38,20 +49,13 @@ export interface IDashboardWidgetFormProps {
 function RangeField(props: { value: string | undefined; onChange: (value: string | undefined) => void }): JSX.Element {
   return (
     <DashboardFormField label="Range">
-      <View className="gap-2">
-        <DashboardFormChips
-          testID="dashboard-widget-range"
-          options={RANGES.map((range) => ({ value: range, label: range }))}
-          selected={props.value}
-          onSelect={props.onChange}
-        />
-        <DashboardFormInput
-          testID="dashboard-widget-range-input"
-          value={props.value}
-          placeholder="Like 8w"
-          onChange={props.onChange}
-        />
-      </View>
+      <DashboardFormPresetInput
+        testID="dashboard-widget-range"
+        options={RANGES}
+        value={props.value}
+        placeholder="Like 8w"
+        onChange={props.onChange}
+      />
     </DashboardFormField>
   );
 }
@@ -188,6 +192,48 @@ function GraphForm(props: IDashboardWidgetFormProps): JSX.Element {
   );
 }
 
+function MuscleGroupToggles(props: {
+  groups: string[] | undefined;
+  options: IDashboardFormOptions;
+  onChange: (groups: string[] | undefined) => void;
+}): JSX.Element {
+  const settings = props.options.settings;
+  const all = DashboardWidgetFields_muscleGroups(settings, false);
+  return (
+    <DashboardFormToggles
+      testID="dashboard-widget-show-groups"
+      allLabel="All"
+      options={[...all, ...(props.groups ?? []).filter((group) => all.indexOf(group) === -1)].map((group) => ({
+        value: group,
+        label: DashboardWidgetFields_muscleGroupLabel(group, settings),
+      }))}
+      selected={props.groups}
+      onAll={() => props.onChange(undefined)}
+      onToggle={(group) => props.onChange(DashboardWidgetFields_toggleGroup(props.groups, group, all))}
+    />
+  );
+}
+
+function DurationField(props: {
+  field: IDashboardValueField;
+  label: string;
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+}): JSX.Element {
+  return (
+    <DashboardFormField label={props.label} hint={DashboardWidgetFields_valueHint(props.field, props.value)}>
+      <DashboardFormPresetInput
+        testID={`dashboard-widget-${props.field}`}
+        options={DashboardWidgetFields_durations(props.field)}
+        value={props.value}
+        noneLabel="None"
+        placeholder={props.field === "compare" ? "Like 2w" : "Like 8w"}
+        onChange={props.onChange}
+      />
+    </DashboardFormField>
+  );
+}
+
 function MusclesForm(props: IDashboardWidgetFormProps): JSX.Element {
   const { model } = props;
   if (model.kind !== "muscles") {
@@ -217,19 +263,18 @@ function MusclesForm(props: IDashboardWidgetFormProps): JSX.Element {
                 })
               }
             />
-            {show.sets ? (
-              <DashboardFormInput
-                testID="dashboard-widget-show-groups"
-                value={show.groups?.join(", ")}
-                placeholder="Muscle groups, like chest, back"
-                onChange={(text) =>
-                  props.onChange({ ...model, show: { ...show, groups: DashboardWidgetFields_groupsFromText(text) } })
-                }
-              />
-            ) : null}
           </View>
         )}
       </DashboardFormField>
+      {show.type === "show" && show.sets ? (
+        <DashboardFormField label="Muscle groups in the sets list">
+          <MuscleGroupToggles
+            groups={show.groups}
+            options={props.options}
+            onChange={(groups) => props.onChange({ ...model, show: { ...show, groups } })}
+          />
+        </DashboardFormField>
+      ) : null}
     </View>
   );
 }
@@ -250,22 +295,18 @@ export function DashboardWidgetForm(props: IDashboardWidgetFormProps): JSX.Eleme
             onPickExercise={() => props.onPickExercise(0)}
             onEditAsText={props.onEditAsText}
           />
-          <DashboardFormField label="Compare with">
-            <DashboardFormInput
-              testID="dashboard-widget-compare"
-              value={model.compare}
-              placeholder="Like 4w"
-              onChange={(compare) => props.onChange({ ...model, compare })}
-            />
-          </DashboardFormField>
-          <DashboardFormField label="Trend">
-            <DashboardFormInput
-              testID="dashboard-widget-trend"
-              value={model.trend}
-              placeholder="Like 3m"
-              onChange={(trend) => props.onChange({ ...model, trend })}
-            />
-          </DashboardFormField>
+          <DurationField
+            field="compare"
+            label="Compare with"
+            value={model.compare}
+            onChange={(compare) => props.onChange({ ...model, compare })}
+          />
+          <DurationField
+            field="trend"
+            label="Trend"
+            value={model.trend}
+            onChange={(trend) => props.onChange({ ...model, trend })}
+          />
         </View>
       );
     case "muscles":

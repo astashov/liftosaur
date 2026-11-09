@@ -16,15 +16,21 @@ import {
 import {
   DashboardWidgetFields_aggHint,
   DashboardWidgetFields_isNumeric,
+  DashboardWidgetFields_muscleGroupLabel,
+  DashboardWidgetFields_muscleGroups,
   DashboardWidgetFields_presetLabel,
   DashboardWidgetFields_windows,
 } from "../../models/dashboardWidgetFields";
+import { ISettings } from "../../types";
 import {
+  DashboardFormChoice,
   DashboardFormChips,
   DashboardFormColors,
   DashboardFormField,
   DashboardFormInput,
+  DashboardFormPresetInput,
   DashboardFormRaw,
+  DashboardFormSubField,
 } from "./dashboardFormParts";
 import { DashboardSourceFields, IDashboardFormOptions } from "./dashboardSourceFields";
 
@@ -39,6 +45,7 @@ const AGG_LABELS: Record<ILiftographAgg, string> = {
 
 function ValuesFields(props: {
   series: ILiftographModelSeries;
+  settings: ISettings;
   onChange: (series: ILiftographModelSeries) => void;
   onEditAsText: () => void;
 }): JSX.Element {
@@ -56,22 +63,24 @@ function ValuesFields(props: {
   const preset = selected != null ? liftographPresets[selected] : undefined;
   return (
     <DashboardFormField label="What to plot">
-      <View className="gap-2">
-        <DashboardFormChips
-          testID="dashboard-series-preset"
-          options={presets.map((name) => ({ value: name, label: DashboardWidgetFields_presetLabel(name) }))}
-          selected={selected}
-          onSelect={(name) => props.onChange({ ...series, values: LiftographWidgetEdit_withPreset(values, name) })}
-        />
-        {preset?.hasArg ? (
-          <DashboardFormInput
+      <DashboardFormChips
+        testID="dashboard-series-preset"
+        options={presets.map((name) => ({ value: name, label: DashboardWidgetFields_presetLabel(name) }))}
+        selected={selected}
+        onSelect={(name) => props.onChange({ ...series, values: LiftographWidgetEdit_withPreset(values, name) })}
+      />
+      {preset?.hasArg ? (
+        <DashboardFormSubField label="Muscle group">
+          <DashboardFormChoice
             testID="dashboard-series-muscle"
+            title="Muscle group"
+            options={DashboardWidgetFields_muscleGroups(props.settings, true)}
             value={values?.arg}
-            placeholder="Muscle group, like chest"
+            labelOf={(group) => DashboardWidgetFields_muscleGroupLabel(group, props.settings)}
             onChange={(arg) => props.onChange({ ...series, values: { type: "preset", preset: preset.name, arg } })}
           />
-        ) : null}
-      </View>
+        </DashboardFormSubField>
+      ) : null}
     </DashboardFormField>
   );
 }
@@ -102,30 +111,28 @@ function AggField(props: {
   }
   return (
     <DashboardFormField label={props.label} hint={DashboardWidgetFields_aggHint(field, value)}>
-      <View className="gap-2">
-        <DashboardFormChips<ILiftographAgg | undefined>
-          testID={testID}
-          options={[
-            { value: undefined, label: "None" },
-            ...props.aggs.map((agg) => ({ value: agg, label: AGG_LABELS[agg] })),
-          ]}
-          selected={value?.agg}
-          onSelect={(agg) => props.onChange(LiftographWidgetEdit_withAgg(value, agg, field))}
-        />
-        {value != null ? (
-          <DashboardFormChips<string | undefined>
+      <DashboardFormChips<ILiftographAgg | undefined>
+        testID={testID}
+        options={[
+          { value: undefined, label: "None" },
+          ...props.aggs.map((agg) => ({ value: agg, label: AGG_LABELS[agg] })),
+        ]}
+        selected={value?.agg}
+        onSelect={(agg) => props.onChange(LiftographWidgetEdit_withAgg(value, agg, field))}
+      />
+      {value != null ? (
+        <DashboardFormSubField label={field === "group" ? "Period" : "Over the last"}>
+          <DashboardFormPresetInput
             testID={`${testID}-window`}
-            options={DashboardWidgetFields_windows(field, value.window).map((window) => ({
-              value: window,
-              label: window,
-            }))}
-            selected={value.window}
-            onSelect={(window) =>
+            options={DashboardWidgetFields_windows(field)}
+            value={value.window}
+            placeholder={field === "group" ? "Like 6w" : "Points like 7, or days like 14d"}
+            onChange={(window) =>
               props.onChange({ type: "agg", agg: value.agg, ...(window != null ? { window } : {}) })
             }
           />
-        ) : null}
-      </View>
+        </DashboardFormSubField>
+      ) : null}
     </DashboardFormField>
   );
 }
@@ -157,7 +164,12 @@ export function DashboardSeriesForm(props: {
         onPickExercise={props.onPickExercise}
         onEditAsText={props.onEditAsText}
       />
-      <ValuesFields series={series} onChange={onChange} onEditAsText={props.onEditAsText} />
+      <ValuesFields
+        series={series}
+        settings={props.options.settings}
+        onChange={onChange}
+        onEditAsText={props.onEditAsText}
+      />
       <AggField
         field="group"
         label="Group"

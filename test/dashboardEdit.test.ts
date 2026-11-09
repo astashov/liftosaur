@@ -172,8 +172,10 @@ describe("DashboardEdit_apply with the widget sheet", () => {
     ).to.equal("openEditor");
   });
 
-  it("editText always opens the text editor", () => {
-    expect(applySheet("calendar", { type: "editText", slotId: 0 }).effect).to.eql({ type: "openEditor", caret: 0 });
+  it("editText opens the sheet on its Text tab, or the text editor for a broken widget", () => {
+    const effect = applySheet("calendar", { type: "editText", slotId: 0 }).effect;
+    expect(effect?.type === "openWidget" ? effect.mode : effect?.type).to.equal("text");
+    expect(applySheet("// Hello", { type: "editText", slotId: 0 }).effect).to.eql({ type: "openEditor", caret: 0 });
   });
 
   it("insert of a widget kind opens the sheet and leaves the text", () => {

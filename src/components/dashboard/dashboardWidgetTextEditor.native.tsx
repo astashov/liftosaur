@@ -38,7 +38,7 @@ export function DashboardWidgetTextEditor(props: IDashboardWidgetTextEditorProps
           {!isFreeform ? (
             <View className="pb-2">
               <LiftoEditorCrumbs controller={controller} />
-              <LiftoEditorPillRail controller={controller} />
+              <LiftoEditorPillRail controller={controller} className="-mx-3" />
             </View>
           ) : null}
           {firstError != null ? (

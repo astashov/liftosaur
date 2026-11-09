@@ -3,6 +3,7 @@ import { ILiftographPresetName, liftographPresets } from "./liftographPresets";
 import { LiftographPalette_names } from "./liftographPalette";
 import {
   ILiftographModelAgg,
+  ILiftographModelDay,
   ILiftographModelEntry,
   ILiftographModelSeries,
   ILiftographModelSource,
@@ -19,6 +20,7 @@ export type ILiftographSourceChoice =
 
 const DEFAULT_WINDOWS: Record<ILiftographModelAggField, string> = { group: "1w", smooth: "5" };
 const DEFAULT_STAT = "weight";
+const DEFAULT_MUSCLE_GROUP = "total";
 
 export function LiftographWidgetEdit_newSeries(): ILiftographModelSeries {
   return { name: "New series", source: { type: "exercise", name: "Squat" }, extra: [] };
@@ -55,7 +57,7 @@ export function LiftographWidgetEdit_chooseSource(
     return { type: "pickExercise" };
   }
   const source: ILiftographModelSource =
-    kind === "workout" ? { type: "workout" } : { type: "stats", key: DEFAULT_STAT };
+    kind === "workout" ? { type: "workout", ...programAndDay(series.source) } : { type: "stats", key: DEFAULT_STAT };
   return { type: "set", series: LiftographWidgetEdit_setSource(series, source) };
 }
 
@@ -63,8 +65,11 @@ export function LiftographWidgetEdit_withPreset(
   values: ILiftographModelValues | undefined,
   preset: ILiftographPresetName
 ): ILiftographModelValues {
-  const arg = values?.type === "preset" && liftographPresets[preset].hasArg ? values.arg : undefined;
-  return arg != null ? { type: "preset", preset, arg } : { type: "preset", preset };
+  if (!liftographPresets[preset].hasArg) {
+    return { type: "preset", preset };
+  }
+  const arg = values?.type === "preset" ? values.arg : undefined;
+  return { type: "preset", preset, arg: arg ?? DEFAULT_MUSCLE_GROUP };
 }
 
 export function LiftographWidgetEdit_withAgg(
@@ -182,19 +187,25 @@ export function LiftographWidgetEdit_seriesAt(
   return entry?.type === "series" ? entry.series : undefined;
 }
 
+function programAndDay(source: ILiftographModelSource | undefined): { program?: string; day?: ILiftographModelDay } {
+  if (source?.type !== "exercise" && source?.type !== "workout") {
+    return {};
+  }
+  return {
+    ...(source.program != null ? { program: source.program } : {}),
+    ...(source.day != null ? { day: source.day } : {}),
+  };
+}
+
 function withExercise(
   source: ILiftographModelSource | undefined,
   name: string,
   equipment: string | undefined
 ): ILiftographModelSource {
-  const filters =
-    source?.type === "exercise"
-      ? {
-          ...(source.label != null ? { label: source.label } : {}),
-          ...(source.program != null ? { program: source.program } : {}),
-          ...(source.day != null ? { day: source.day } : {}),
-        }
-      : {};
+  const filters = {
+    ...(source?.type === "exercise" && source.label != null ? { label: source.label } : {}),
+    ...programAndDay(source),
+  };
   return { type: "exercise", name, ...(equipment != null ? { equipment } : {}), ...filters };
 }
 

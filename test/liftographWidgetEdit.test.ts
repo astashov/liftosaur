@@ -76,6 +76,31 @@ describe("LiftographWidgetEdit", () => {
     expect(LiftographWidgetEdit_withPreset(sets, "volume")).to.eql({ type: "preset", preset: "volume" });
   });
 
+  it("withPreset starts a muscle preset on all muscles", () => {
+    expect(LiftographWidgetEdit_withPreset({ type: "preset", preset: "volume" }, "muscleSets")).to.eql({
+      type: "preset",
+      preset: "muscleSets",
+      arg: "total",
+    });
+  });
+
+  it("switching between exercise and workouts keeps program and day", () => {
+    const filtered: ILiftographModelSeries = {
+      source: { type: "exercise", name: "Squat", label: "T1", program: "GZCL", day: { type: "number", value: 2 } },
+      extra: [],
+    };
+    const choice = LiftographWidgetEdit_chooseSource(filtered, "workout");
+    expect(choice.type === "set" ? choice.series.source : undefined).to.eql({
+      type: "workout",
+      program: "GZCL",
+      day: { type: "number", value: 2 },
+    });
+    const model = read("graph {\n  name: A / source: workout(program: GZCL, day: 2)\n}");
+    expect(write(LiftographWidgetEdit_pickExercise(model, 0, "Squat", undefined))).to.equal(
+      "graph {\n  name: A / source: exercise(Squat, program: GZCL, day: 2) / y: maxWeight\n}"
+    );
+  });
+
   it("withAgg keeps the window or uses the field default", () => {
     expect(LiftographWidgetEdit_withAgg(undefined, "max", "group")).to.eql({ type: "agg", agg: "max", window: "1w" });
     expect(LiftographWidgetEdit_withAgg(undefined, "avg", "smooth")).to.eql({ type: "agg", agg: "avg", window: "5" });

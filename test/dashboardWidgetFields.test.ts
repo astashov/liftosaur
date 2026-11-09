@@ -4,12 +4,18 @@ import { LiftographWidgetModel_read } from "../src/liftograph/liftographWidgetMo
 import {
   DashboardWidgetFields_aggHint,
   DashboardWidgetFields_dayFromText,
+  DashboardWidgetFields_durations,
   DashboardWidgetFields_exerciseType,
+  DashboardWidgetFields_isCustom,
   DashboardWidgetFields_isNumeric,
+  DashboardWidgetFields_muscleGroupLabel,
+  DashboardWidgetFields_muscleGroups,
   DashboardWidgetFields_pickerExercise,
   DashboardWidgetFields_seriesSummary,
   DashboardWidgetFields_splitOptions,
   DashboardWidgetFields_textValue,
+  DashboardWidgetFields_toggleGroup,
+  DashboardWidgetFields_valueHint,
   DashboardWidgetFields_windows,
 } from "../src/models/dashboardWidgetFields";
 import { fxSettings } from "./liftographFixtures";
@@ -40,9 +46,11 @@ describe("DashboardWidgetFields", () => {
     );
   });
 
-  it("windows keep a custom window as an extra option", () => {
-    expect(DashboardWidgetFields_windows("group", "1w")).to.eql(["1w", "2w", "1m", "3m"]);
-    expect(DashboardWidgetFields_windows("group", "6w")).to.eql(["1w", "2w", "1m", "3m", "6w"]);
+  it("a value outside the preset pills counts as custom", () => {
+    const windows = DashboardWidgetFields_windows("group");
+    expect(DashboardWidgetFields_isCustom(windows, "1w")).to.equal(false);
+    expect(DashboardWidgetFields_isCustom(windows, "6w")).to.equal(true);
+    expect(DashboardWidgetFields_isCustom(windows, undefined)).to.equal(false);
   });
 
   it("exerciseType resolves the written name and equipment", () => {
@@ -103,6 +111,32 @@ describe("DashboardWidgetFields", () => {
     expect(DashboardWidgetFields_dayFromText("2")).to.eql({ type: "number", value: 2 });
     expect(DashboardWidgetFields_dayFromText("2 / Upper")).to.eql({ type: "name", value: "2 / Upper" });
     expect(DashboardWidgetFields_dayFromText("Upper")).to.eql({ type: "name", value: "Upper" });
+  });
+
+  it("toggleGroup adds in list order, removes, and clears to all", () => {
+    const all = ["chest", "back", "legs"];
+    expect(DashboardWidgetFields_toggleGroup(undefined, "back", all)).to.eql(["back"]);
+    expect(DashboardWidgetFields_toggleGroup(["legs"], "chest", all)).to.eql(["chest", "legs"]);
+    expect(DashboardWidgetFields_toggleGroup(["legs", "custom1"], "legs", all)).to.eql(["custom1"]);
+    expect(DashboardWidgetFields_toggleGroup(["legs"], "legs", all)).to.equal(undefined);
+  });
+
+  it("durations list the pills and hints explain compare and trend", () => {
+    expect(DashboardWidgetFields_durations("trend")).to.eql(["4w", "3m", "6m", "1y"]);
+    expect(DashboardWidgetFields_valueHint("compare", "4w")).to.equal(
+      'Shows the change since 4 weeks ago, like "▲ 7.5 vs 4w".'
+    );
+    expect(DashboardWidgetFields_valueHint("trend", "1y")).to.equal(
+      "Draws a small chart of the last 1 year under the number."
+    );
+    expect(DashboardWidgetFields_valueHint("compare", undefined)).to.equal("Shows only the current value.");
+  });
+
+  it("muscleGroups can lead with total", () => {
+    const groups = DashboardWidgetFields_muscleGroups(fxSettings(), true);
+    expect(groups[0]).to.equal("total");
+    expect(groups).to.include("chest");
+    expect(DashboardWidgetFields_muscleGroupLabel("total", fxSettings())).to.equal("All muscles");
   });
 
   it("textValue keeps typed spaces and treats blank as unset", () => {
