@@ -129,13 +129,13 @@ import {
 import {
   DashboardWebSave_create,
   DashboardWebSave_delete,
-  DashboardWebSave_rowWrites,
   DashboardWebSave_select,
   DashboardWebSave_update,
   IDashboardWebSaveResult,
 } from "../src/models/dashboardWebSave";
 import { Dashboard_current } from "../src/models/dashboard";
 import { renderDashboardsListHtml } from "./dashboardsList";
+import { DashboardStorageWrite_apply } from "./utils/dashboardStorageWrite";
 import { renderDashboardEditorHtml } from "./dashboardEditor";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
 import { Settings_applyExportedProgram, Settings_applyWebEditorSettings } from "../src/models/settings";
@@ -176,6 +176,18 @@ import {
   deleteV1HistoryHandler,
   getV1ProgramsEndpoint,
   getV1ProgramsHandler,
+  getV1DashboardsEndpoint,
+  getV1DashboardsHandler,
+  getV1DashboardEndpoint,
+  getV1DashboardHandler,
+  postV1DashboardEndpoint,
+  postV1DashboardHandler,
+  putV1DashboardEndpoint,
+  putV1DashboardHandler,
+  deleteV1DashboardEndpoint,
+  deleteV1DashboardHandler,
+  postV1DashboardPreviewEndpoint,
+  postV1DashboardPreviewHandler,
   getV1ProgramEndpoint,
   getV1ProgramHandler,
   postV1ProgramEndpoint,
@@ -1940,42 +1952,12 @@ async function applyDashboardWebSave(
   }
   const bodyJson = event.body ? getBodyJson(event) : {};
   const deviceId = typeof bodyJson.deviceId === "string" ? bodyJson.deviceId : VersionTrackerUtils_SERVER_DEVICE_ID;
-  const userDao = new UserDao(di);
-  const migration = await userDao.migrateStoredStorage(currentUser, deviceId);
-  if (!migration.success) {
-    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
+  const result = await DashboardStorageWrite_apply(di, currentUser, deviceId, decide);
+  if (!result.success) {
+    return ResponseUtils_json(result.error.status, event, { error: result.error.message });
   }
-  const user = migration.data.user;
-  const dashboards = await userDao.getDashboardsByUserId(user.id);
-  const oldStorageResult = Storage_get({ ...user.storage, dashboards });
-  if (!oldStorageResult.success) {
-    di.log.log("Dashboard Save: Error loading old storage", oldStorageResult.error);
-    return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
-  }
-  const oldStorage = oldStorageResult.data;
-  const decision = decide(oldStorage);
-  if (decision.kind === "error") {
-    return ResponseUtils_json(decision.status, event, { error: decision.message });
-  }
-  const originalId = Date.now();
-  const newStorage: IPartialStorage = {
-    ...oldStorage,
-    dashboards: decision.dashboards,
-    currentDashboardId: decision.currentDashboardId,
-    originalId,
-  };
-  const newVersions = Storage_updateVersions(oldStorage, newStorage, deviceId);
-  const writes = DashboardWebSave_rowWrites(oldStorage.dashboards ?? [], decision.dashboards);
-  await Promise.all([
-    ...writes.toPut.map((dashboard) => userDao.saveDashboard(user.id, dashboard)),
-    ...writes.idsToDelete.map((id) => userDao.deleteDashboard(user.id, id)),
-  ]);
-  const { dashboards: _dashboards, programs: _programs, history: _history, stats: _stats, ...userStorage } = newStorage;
-  user.storage = { ...user.storage, ...userStorage, _versions: newVersions };
-  await userDao.store(user);
-  await PushSync_notify(di, user.id, deviceId, originalId);
   return ResponseUtils_json(200, event, {
-    data: { id: dashboardId, base: FieldRevision_dashboardText(newVersions, dashboardId) },
+    data: { id: dashboardId, base: FieldRevision_dashboardText(result.data.storage._versions, dashboardId) },
   });
 }
 
@@ -4423,6 +4405,12 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
       .post(postV1ProgramStatsEndpoint, postV1ProgramStatsHandler)
+      .get(getV1DashboardsEndpoint, getV1DashboardsHandler)
+      .get(getV1DashboardEndpoint, getV1DashboardHandler)
+      .post(postV1DashboardEndpoint, postV1DashboardHandler)
+      .put(putV1DashboardEndpoint, putV1DashboardHandler)
+      .delete(deleteV1DashboardEndpoint, deleteV1DashboardHandler)
+      .post(postV1DashboardPreviewEndpoint, postV1DashboardPreviewHandler)
       .get(getV1EquipmentListEndpoint, getV1EquipmentListHandler)
       .get(getV1EquipmentEndpoint, getV1EquipmentHandler)
       .post(postV1EquipmentEndpoint, postV1EquipmentHandler)

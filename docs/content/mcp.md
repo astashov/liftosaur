@@ -214,6 +214,7 @@ Once connected, you can ask the AI to:
 - **Manage custom exercises** - create, update, or delete exercises not in the built-in list
 - **Configure gyms and equipment** - set up bars, plates, and fixed weights per gym
 - **Tune per-exercise settings** - set your 1RM, weight rounding, equipment, or notes for an exercise
+- **Build dashboards** - "Make me a dashboard with my big three e1RMs, weekly chest sets and bodyweight"
 
 The AI has access to the Liftoscript language reference and built-in program examples, so it can learn the syntax on the fly.
 
@@ -283,6 +284,19 @@ These are the tools the AI assistant can call on your behalf:
 | `update_measurement` | Change the reading at a given timestamp (the timestamp itself is fixed — re-date via delete + add) |
 | `delete_measurement` | Delete a single recorded value (imported health records are hidden rather than deleted) |
 
+### Dashboards
+
+Dashboards are the Graphs tab. Each one is a text document in Liftograph format: graphs, big numbers, a muscle map and a training calendar.
+
+| Tool | What it does |
+|------|-------------|
+| `list_dashboards` | List your dashboards (id, name, which one the app shows) |
+| `get_dashboard` | Get a dashboard's Liftograph text. Use `id=current` for the one the app shows |
+| `run_dashboard` | Evaluate dashboard text against your real history and measurements without saving: errors, and a summary of each widget's data |
+| `create_dashboard` | Create a dashboard. It becomes the one the app shows unless `makeCurrent` is `false` |
+| `update_dashboard` | Change a dashboard's name, text, or both. `makeCurrent: true` switches the app to it |
+| `delete_dashboard` | Delete a dashboard (can't delete the last one) |
+
 ### Testing and Analysis
 
 | Tool | What it does |
@@ -300,6 +314,7 @@ These tools don't need authentication - the AI can call them anytime:
 | `get_liftoscript_examples` | Complete program examples (5/3/1, GZCLP, PPL, etc.) |
 | `get_program_design_guide` | Evidence-based program design guide - volume targets, progressions, splits, deloads |
 | `get_liftohistory_reference` | Liftoscript Workouts format reference for workout records |
+| `get_liftograph_reference` | Liftograph dashboard format reference, with complete example dashboards |
 | `list_exercises` | All built-in exercise names and equipment variants |
 | `list_builtin_programs` | List of built-in programs available in the app |
 | `get_builtin_program` | Full source of a built-in program - great for learning Liftoscript |

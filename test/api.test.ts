@@ -369,6 +369,92 @@ Squat / 3x5 / 120lb / progress: lp(5lb)`;
     });
   });
 
+  describe("dashboard endpoints", () => {
+    let apiKey: string;
+    const ctx = { getRemainingTimeInMillis: (): number => 10000 };
+    const text = "graph {\n  name: Squat / source: exercise(Squat) / y: e1rm\n}";
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Dashboard Key");
+      apiKey = created!.key;
+      await di.dynamo.put({
+        tableName: userTableNames.prod.dashboards,
+        item: { vtype: "dashboard", id: "graphs", name: "Graphs", text: "", userId },
+      });
+    });
+
+    function call(method: string, path: string, body?: unknown): Promise<APIGatewayProxyResult> {
+      return handler(buildEvent(method, path, { headers: apiHeaders(apiKey), body }), ctx);
+    }
+
+    it("creates, lists, reads, updates, selects and deletes dashboards", async () => {
+      const first = parseBody(await call("GET", "/api/v1/dashboards")).data.dashboards;
+      expect(first.map((d: any) => [d.id, d.isCurrent])).to.deep.equal([["graphs", true]]);
+
+      const createResult = await call("POST", "/api/v1/dashboards", { name: "Strength", text });
+      expect(createResult.statusCode).to.equal(201);
+      const created = parseBody(createResult).data;
+      expect(created).to.deep.include({ name: "Strength", text, isCurrent: true });
+
+      const current = parseBody(await call("GET", "/api/v1/dashboards/current")).data;
+      expect(current.id).to.equal(created.id);
+
+      const updated = parseBody(await call("PUT", `/api/v1/dashboards/${created.id}`, { name: "Big Lifts" })).data;
+      expect(updated).to.deep.include({ name: "Big Lifts", text });
+
+      const selected = parseBody(await call("PUT", "/api/v1/dashboards/graphs", { makeCurrent: true })).data;
+      expect(selected).to.deep.include({ id: "graphs", isCurrent: true });
+
+      const deleteResult = await call("DELETE", `/api/v1/dashboards/${created.id}`);
+      expect(parseBody(deleteResult).data).to.deep.equal({ id: created.id, deleted: true });
+      const left = parseBody(await call("GET", "/api/v1/dashboards")).data.dashboards;
+      expect(left.map((d: any) => d.id)).to.deep.equal(["graphs"]);
+    });
+
+    it("returns 422 with line details for invalid dashboard text", async () => {
+      const result = await call("POST", "/api/v1/dashboards", {
+        name: "Bad",
+        text: "graph {\n  name: X / source: exercise(Nope Lift)\n}",
+      });
+      expect(result.statusCode).to.equal(422);
+      const error = parseBody(result).error;
+      expect(error.code).to.equal("invalid_dashboard");
+      expect(error.details[0]).to.deep.include({ line: 2, message: "Unknown exercise 'Nope Lift'" });
+    });
+
+    it("returns 400 naming the field when a field has the wrong type, and saves nothing", async () => {
+      const create = await call("POST", "/api/v1/dashboards", { name: "Mine", text, makeCurrent: "false" });
+      expect(create.statusCode).to.equal(400);
+      expect(parseBody(create).error.message).to.equal(`'makeCurrent' must be true or false, got "false"`);
+
+      const update = await call("PUT", "/api/v1/dashboards/graphs", { name: "Rename", text: 123 });
+      expect(update.statusCode).to.equal(400);
+      expect(parseBody(update).error.message).to.equal("'text' must be a string, got number");
+      const graphs = parseBody(await call("GET", "/api/v1/dashboards/graphs")).data;
+      expect(graphs.name).to.equal("Graphs");
+    });
+
+    it("refuses to delete the only dashboard", async () => {
+      await call("GET", "/api/v1/dashboards");
+      const result = await call("DELETE", "/api/v1/dashboards/graphs");
+      expect(result.statusCode).to.equal(400);
+    });
+
+    it("previews a dashboard against the user's data", async () => {
+      const result = await call("POST", "/api/v1/dashboard-preview", { text: `${text}\n\ncalendar / range: 1m` });
+      expect(result.statusCode).to.equal(200);
+      const data = parseBody(result).data;
+      expect(data.errors).to.deep.equal([]);
+      expect(data.widgets.map((w: any) => w.kind)).to.deep.equal(["graph", "calendar"]);
+      expect(data.widgets[0].series[0]).to.deep.include({ status: "ready", pointCount: 0 });
+    });
+
+    it("rejects dashboard requests without an API key", async () => {
+      const result = await handler(buildEvent("GET", "/api/v1/dashboards"), ctx);
+      expect(result.statusCode).to.equal(401);
+    });
+  });
+
   describe("playground endpoint", () => {
     let apiKey: string;
 

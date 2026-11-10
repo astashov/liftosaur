@@ -50,6 +50,10 @@ export function McpReference_getProgramDesignGuide(): string {
   return cachedProgramDesignGuide;
 }
 
+export function McpReference_getLiftographReference(): string {
+  return readFile("llms/liftograph_llm.md");
+}
+
 export function McpReference_getLiftohistoryReference(): string {
   if (cachedLiftohistoryReference) {
     return cachedLiftohistoryReference;

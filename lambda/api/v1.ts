@@ -17,6 +17,19 @@ import {
   IApiError,
 } from "../utils/apiv1";
 import {
+  ApiV1_listDashboards,
+  ApiV1_getDashboard,
+  ApiV1_createDashboard,
+  ApiV1_updateDashboard,
+  ApiV1_deleteDashboard,
+  ApiV1_previewDashboard,
+} from "../utils/apiv1Dashboards";
+import {
+  DashboardApi_parseCreate,
+  DashboardApi_parsePreview,
+  DashboardApi_parseUpdate,
+} from "../../src/models/dashboardApi";
+import {
   ApiV1_listGyms,
   ApiV1_createGym,
   ApiV1_updateGym,
@@ -301,6 +314,94 @@ export const postV1ProgramStatsHandler: RouteHandler<
       return apiError(400, "invalid_input", "Missing 'programText' field");
     }
     return resultToResponse(ApiV1_programStats(auth.user, body.programText as string));
+  });
+};
+
+// --- Dashboard Endpoints ---
+
+const strictBooleans = { acceptsBooleanStrings: false };
+
+export const getV1DashboardsEndpoint = Endpoint.build("/api/v1/dashboards");
+export const getV1DashboardsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1DashboardsEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-dashboards", async (auth) => {
+    return resultToResponse(await ApiV1_listDashboards(auth.user, auth.deviceId, di));
+  });
+};
+
+export const getV1DashboardEndpoint = Endpoint.build("/api/v1/dashboards/:id");
+export const getV1DashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1DashboardEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-dashboard", async (auth) => {
+    return resultToResponse(await ApiV1_getDashboard(auth.user, auth.deviceId, params.id, di));
+  });
+};
+
+export const postV1DashboardEndpoint = Endpoint.build("/api/v1/dashboards");
+export const postV1DashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1DashboardEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-create-dashboard", async (auth) => {
+    const input = DashboardApi_parseCreate(getBodyJson(event), strictBooleans);
+    if (!input.success) {
+      return apiError(400, "invalid_input", input.error);
+    }
+    return resultToResponse(await ApiV1_createDashboard(auth.user, auth.deviceId, input.data, di), 201);
+  });
+};
+
+export const putV1DashboardEndpoint = Endpoint.build("/api/v1/dashboards/:id");
+export const putV1DashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1DashboardEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-dashboard", async (auth) => {
+    const input = DashboardApi_parseUpdate(getBodyJson(event), strictBooleans);
+    if (!input.success) {
+      return apiError(400, "invalid_input", input.error);
+    }
+    return resultToResponse(await ApiV1_updateDashboard(auth.user, auth.deviceId, params.id, input.data, di));
+  });
+};
+
+export const deleteV1DashboardEndpoint = Endpoint.build("/api/v1/dashboards/:id");
+export const deleteV1DashboardHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1DashboardEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-dashboard", async (auth) => {
+    return resultToResponse(await ApiV1_deleteDashboard(auth.user, auth.deviceId, params.id, di));
+  });
+};
+
+export const postV1DashboardPreviewEndpoint = Endpoint.build("/api/v1/dashboard-preview");
+export const postV1DashboardPreviewHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1DashboardPreviewEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-dashboard-preview", async (auth) => {
+    const input = DashboardApi_parsePreview(getBodyJson(event));
+    if (!input.success) {
+      return apiError(400, "invalid_input", input.error);
+    }
+    return resultToResponse(await ApiV1_previewDashboard(auth.user, auth.deviceId, input.data.text, di));
   });
 };
 

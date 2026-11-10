@@ -371,6 +371,147 @@ Content-Type: application/json
 }
 ```
 
+### List Dashboards
+
+Dashboards are the Graphs tab. Each one is a text document in Liftograph format. The MCP tool `get_liftograph_reference` returns the full format reference.
+
+```
+GET /api/v1/dashboards
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "dashboards": [
+      { "id": "graphs", "name": "Graphs", "isCurrent": true }
+    ]
+  }
+}
+```
+
+`isCurrent` marks the dashboard the app shows.
+
+### Get a Dashboard
+
+```
+GET /api/v1/dashboards/:id
+```
+
+Use `current` as the id to get the dashboard the app shows.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "graphs",
+    "name": "Graphs",
+    "text": "graph {\n  name: Squat / source: exercise(Squat) / y: e1rm\n}",
+    "isCurrent": true
+  }
+}
+```
+
+### Create a Dashboard
+
+```
+POST /api/v1/dashboards
+Content-Type: application/json
+
+{
+  "name": "Strength",
+  "text": "graph / range: 1y {\n  name: Squat / source: exercise(Squat) / y: e1rm\n}",
+  "makeCurrent": true
+}
+```
+
+`makeCurrent` defaults to `true`, so the app shows the new dashboard. Returns `201` with the dashboard in the same shape as Get a Dashboard. Text with errors returns `422` with code `invalid_dashboard` and one entry per error in `details`, each with `line`, `offset` (the column) and `message`. Unknown exercise names and unknown stats are errors.
+
+### Update a Dashboard
+
+```
+PUT /api/v1/dashboards/:id
+Content-Type: application/json
+
+{
+  "name": "Big Lifts",
+  "text": "...",
+  "makeCurrent": true
+}
+```
+
+Every field is optional, but pass at least one. `makeCurrent: true` on its own switches the app to this dashboard. Use `current` as the id to update the dashboard the app shows.
+
+On create and update, a field with the wrong type returns `400` with code `invalid_input` and a message naming the field, such as `'makeCurrent' must be true or false, got "false"`. Nothing is saved.
+
+### Delete a Dashboard
+
+```
+DELETE /api/v1/dashboards/:id
+```
+
+Returns `{ "data": { "id": "...", "deleted": true } }`. The last dashboard can't be deleted.
+
+### Preview a Dashboard
+
+Evaluate dashboard text against your history and measurements without saving it.
+
+```
+POST /api/v1/dashboard-preview
+Content-Type: application/json
+
+{
+  "text": "graph {\n  name: Squat / source: exercise(Squat) / y: e1rm\n}\n\ncalendar / range: 3m"
+}
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "evaluatedAt": "2026-11-10T12:00:00.000Z",
+    "errors": [],
+    "widgets": [
+      {
+        "row": 1,
+        "kind": "graph",
+        "xMode": "time",
+        "series": [
+          {
+            "name": "Squat",
+            "status": "ready",
+            "pointCount": 42,
+            "unit": "lb",
+            "first": { "x": "2025-11-12", "y": 245 },
+            "last": { "x": "2026-11-08", "y": 290 }
+          }
+        ]
+      },
+      {
+        "row": 2,
+        "kind": "calendar",
+        "window": { "from": "2026-08-11", "to": "2026-11-10" },
+        "total": 37,
+        "streakWeeks": 12
+      }
+    ]
+  }
+}
+```
+
+- `errors` are the errors that would block a save, in the same shape as the `422` details.
+- Every widget has `row` (1-based), `rowCaption` when its row has a caption, and `caption` when the widget has one.
+- A graph's `xMode` is `time`, `number` (the script calls `point(x, y)`), or `unknown` when no series compiled.
+- A `text` widget has its `markdown`. An `unsupported` or `error` widget has a `message`.
+- A graph series with `pointCount: 0` has no data to draw.
+- A `value` widget has its `name`, `value`, `delta` (today's value minus the value one `compare:` window ago) and `isEmpty`.
+- A `muscles` widget has `groups`, each with `key`, `name` and `sets` per week, capped at 12 with `truncated`.
+- A `calendar` widget has the workout `total` in its window and `streakWeeks`, which counts back past the window.
+- Dates are evaluated in UTC, so day buckets near midnight can differ from the app.
+
 ### List Gyms
 
 Equipment (bars, plates, fixed weights) is configured per gym. Most accounts have a single gym. You need a gym's `id` before reading or editing its equipment.

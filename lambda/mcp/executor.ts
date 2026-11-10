@@ -20,6 +20,19 @@ import {
   IApiError,
 } from "../utils/apiv1";
 import {
+  ApiV1_listDashboards,
+  ApiV1_getDashboard,
+  ApiV1_createDashboard,
+  ApiV1_updateDashboard,
+  ApiV1_deleteDashboard,
+  ApiV1_previewDashboard,
+} from "../utils/apiv1Dashboards";
+import {
+  DashboardApi_parseCreate,
+  DashboardApi_parsePreview,
+  DashboardApi_parseUpdate,
+} from "../../src/models/dashboardApi";
+import {
   ApiV1_listGyms,
   ApiV1_createGym,
   ApiV1_updateGym,
@@ -55,6 +68,18 @@ function err(status: number, code: string, message: string): IToolResult {
 }
 
 // Models reuse run_playground's `programText` name in create_program and update_program, so accept both.
+const lenientBooleans = { acceptsBooleanStrings: true };
+
+function dashboardIdArg(args: Record<string, unknown>): IEither<string, IApiError> {
+  const id = args.id;
+  return typeof id === "string" && id !== ""
+    ? { success: true, data: id }
+    : {
+        success: false,
+        error: { status: 400, code: "invalid_input", message: "Missing 'id' (a dashboard id or \"current\")" },
+      };
+}
+
 function programTextArg(args: Record<string, unknown>): string | undefined {
   const text = args.text ?? args.programText;
   return typeof text === "string" ? text : undefined;
@@ -265,6 +290,44 @@ export async function McpToolExecutor_execute(
 
     case "delete_program":
       return ApiV1_deleteProgram(userId, user, args.id as string, deviceId, di);
+
+    case "list_dashboards":
+      return ApiV1_listDashboards(user, deviceId, di);
+
+    case "get_dashboard": {
+      const id = dashboardIdArg(args);
+      return id.success ? ApiV1_getDashboard(user, deviceId, id.data, di) : id;
+    }
+
+    case "run_dashboard": {
+      const input = DashboardApi_parsePreview(args);
+      return input.success
+        ? ApiV1_previewDashboard(user, deviceId, input.data.text, di)
+        : err(400, "invalid_input", input.error);
+    }
+
+    case "create_dashboard": {
+      const input = DashboardApi_parseCreate(args, lenientBooleans);
+      return input.success
+        ? ApiV1_createDashboard(user, deviceId, input.data, di)
+        : err(400, "invalid_input", input.error);
+    }
+
+    case "update_dashboard": {
+      const id = dashboardIdArg(args);
+      if (!id.success) {
+        return id;
+      }
+      const input = DashboardApi_parseUpdate(args, lenientBooleans);
+      return input.success
+        ? ApiV1_updateDashboard(user, deviceId, id.data, input.data, di)
+        : err(400, "invalid_input", input.error);
+    }
+
+    case "delete_dashboard": {
+      const id = dashboardIdArg(args);
+      return id.success ? ApiV1_deleteDashboard(user, deviceId, id.data, di) : id;
+    }
 
     case "run_playground": {
       const programText = args.programText as string | undefined;

@@ -172,6 +172,15 @@ describe("MCP", () => {
       expect(toolNames).to.include("get_history");
       expect(toolNames).to.include("run_playground");
       expect(toolNames).to.include("get_liftoscript_reference");
+      expect(toolNames).to.include.members([
+        "get_liftograph_reference",
+        "list_dashboards",
+        "get_dashboard",
+        "run_dashboard",
+        "create_dashboard",
+        "update_dashboard",
+        "delete_dashboard",
+      ]);
       for (const tool of body.result.tools) {
         expect(tool.outputSchema?.type).to.equal("object");
       }
@@ -485,6 +494,13 @@ describe("MCP", () => {
       expect(body.result.content[0].text).to.include("Program Design Guide");
     });
 
+    it("returns liftograph reference", async () => {
+      const result = await handler(buildMcpEvent(toolCall("get_liftograph_reference")), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.content[0].text).to.include("Liftograph Reference");
+    });
+
     it("returns liftohistory reference", async () => {
       const result = await handler(buildMcpEvent(toolCall("get_liftohistory_reference")), ctx);
       expect(result.statusCode).to.equal(200);
@@ -518,6 +534,40 @@ describe("MCP", () => {
       expect(result.statusCode).to.equal(200);
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
+    });
+  });
+
+  describe("dashboards", () => {
+    let token: string;
+
+    beforeEach(async () => {
+      token = await createOauthToken();
+    });
+
+    it("previews and creates a dashboard, and shows compile errors with the reference hint", async () => {
+      const text = "calendar / range: 1m";
+      const preview = await handler(buildMcpEvent(toolCall("run_dashboard", { text }), authHeaders(token)), ctx);
+      const previewData = JSON.parse(parseBody(preview).result.content[0].text);
+      expect(previewData.widgets[0]).to.deep.include({ kind: "calendar", total: 0 });
+
+      const created = await handler(
+        buildMcpEvent(toolCall("create_dashboard", { name: "Mine", text }), authHeaders(token)),
+        ctx
+      );
+      const createdData = JSON.parse(parseBody(created).result.content[0].text);
+      expect(createdData).to.deep.include({ name: "Mine", isCurrent: true });
+
+      const bad = await handler(
+        buildMcpEvent(
+          toolCall("create_dashboard", { name: "Bad", text: "value / source: stats(steps)" }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const badBody = parseBody(bad);
+      expect(badBody.result.isError).to.equal(true);
+      expect(badBody.result.content[0].text).to.include("Line 1, col 17: Unknown stat 'steps'");
+      expect(badBody.result.content[0].text).to.include("get_liftograph_reference");
     });
   });
 

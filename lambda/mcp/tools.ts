@@ -426,6 +426,93 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     },
   },
 
+  // --- Dashboards (Liftograph) ---
+  {
+    name: "get_liftograph_reference",
+    description:
+      "Get the Liftograph language reference. Liftograph is the custom text format for Liftosaur dashboards (the Graphs tab): graphs, values, muscle maps and calendars built from workout history and body measurements. It is NOT a standard format and you cannot guess the syntax.\n\nYou MUST call this BEFORE writing or editing any dashboard text. It includes complete example dashboards.",
+    annotations: {
+      title: "Get Liftograph reference",
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "list_dashboards",
+    description:
+      "List the user's dashboards (the Graphs tab). Returns id, name, and whether each is the dashboard the app shows now.",
+    annotations: { title: "List dashboards", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "get_dashboard",
+    description:
+      'Get a dashboard\'s Liftograph text. Use id="current" for the dashboard the app shows now. Call get_liftograph_reference to understand the format.',
+    annotations: { title: "Get dashboard", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string", description: 'Dashboard ID, or "current"' } },
+      required: ["id"],
+    },
+  },
+  {
+    name: "run_dashboard",
+    description:
+      "Evaluate Liftograph dashboard text against the user's real workout history and measurements, without saving. Returns compile errors (with line and column) and a summary per widget: point counts with first and last points for graphs, the number and its delta for values, sets per week for muscles, workout totals for calendars.\n\nUse it to check your work before create_dashboard or update_dashboard: a graph with pointCount 0 has no data to show. Dates are evaluated in UTC, so day buckets can differ slightly from the user's phone.\n\nIMPORTANT: You MUST call get_liftograph_reference BEFORE writing dashboard text.",
+    annotations: { title: "Preview dashboard", readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: { text: { type: "string", description: "Dashboard source in Liftograph format" } },
+      required: ["text"],
+    },
+  },
+  {
+    name: "create_dashboard",
+    description:
+      "Create a new dashboard from Liftograph text. By default it becomes the dashboard the app shows (makeCurrent: true). Text with compile errors is rejected with the errors listed.\n\nIMPORTANT: You MUST call get_liftograph_reference BEFORE using this tool, and run_dashboard to check that every widget has data.",
+    annotations: { title: "Create dashboard", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: 'Dashboard name (default "New Dashboard")' },
+        text: { type: "string", description: "Dashboard source in Liftograph format" },
+        makeCurrent: {
+          type: "boolean",
+          description: "Show this dashboard in the app now (default true)",
+        },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    name: "update_dashboard",
+    description:
+      'Update a dashboard\'s name, Liftograph text, or both. Use id="current" for the dashboard the app shows now. Pass makeCurrent: true to switch the app to this dashboard; it can be passed alone. Text with compile errors is rejected with the errors listed.\n\nIMPORTANT: You MUST call get_liftograph_reference BEFORE editing dashboard text, and run_dashboard to check the result.',
+    annotations: { title: "Update dashboard", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: 'Dashboard ID, or "current"' },
+        name: { type: "string", description: "New name (optional)" },
+        text: { type: "string", description: "New Liftograph text (optional)" },
+        makeCurrent: { type: "boolean", description: "Switch the app to this dashboard (optional)" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "delete_dashboard",
+    description: "Delete a dashboard by ID. The user's only dashboard cannot be deleted.",
+    annotations: { title: "Delete dashboard", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string", description: "Dashboard ID to delete" } },
+      required: ["id"],
+    },
+  },
+
   // --- Playground & Reference ---
   {
     name: "run_playground",

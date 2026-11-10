@@ -25,6 +25,10 @@ function utf8Length(text: string): number {
   return length;
 }
 
+export function Dashboard_isTextTooLarge(text: string): boolean {
+  return utf8Length(text) > Dashboard_maxTextBytes;
+}
+
 function legacyGraphBlock(graph: IGraph, settings: ISettings): string | undefined {
   if (graph.type === "exercise") {
     const exerciseType = Exercise_fromKey(graph.id);
@@ -101,7 +105,7 @@ export function Dashboard_validate(dashboards: IDashboard[]): IEither<undefined,
   if (dashboards.length > Dashboard_maxCount) {
     return { success: false, error: `You can have at most ${Dashboard_maxCount} dashboards` };
   }
-  const tooLarge = dashboards.find((d) => utf8Length(d.text) > Dashboard_maxTextBytes);
+  const tooLarge = dashboards.find((d) => Dashboard_isTextTooLarge(d.text));
   if (tooLarge != null) {
     return { success: false, error: `Dashboard '${tooLarge.name}' is larger than 64 KB` };
   }

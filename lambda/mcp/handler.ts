@@ -10,6 +10,7 @@ import {
   McpReference_getLiftoscriptReference,
   McpReference_getLiftoscriptExamples,
   McpReference_getLiftohistoryReference,
+  McpReference_getLiftographReference,
   McpReference_getProgramDesignGuide,
   McpReference_listBuiltinPrograms,
   McpReference_getBuiltinProgram,
@@ -208,6 +209,12 @@ async function handleToolCall(
     return textResult(req.id, McpReference_getProgramDesignGuide());
   }
 
+  if (toolName === "get_liftograph_reference") {
+    fireEvent();
+    di.log.log(`[MCP] ${toolName} -> ok (reference)`);
+    return textResult(req.id, McpReference_getLiftographReference());
+  }
+
   if (toolName === "get_liftohistory_reference") {
     fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
@@ -336,7 +343,9 @@ async function handleToolCall(
     const hint =
       toolName === "create_program" || toolName === "update_program" || toolName === "run_playground"
         ? "\n\nHint: If you haven't read the Liftoscript reference yet, call get_liftoscript_reference first."
-        : "";
+        : toolName === "create_dashboard" || toolName === "update_dashboard" || toolName === "run_dashboard"
+          ? "\n\nHint: If you haven't read the Liftograph reference yet, call get_liftograph_reference first."
+          : "";
     return textResult(req.id, `${errorText}${hint}`, { isError: true });
   }
 

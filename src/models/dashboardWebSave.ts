@@ -4,11 +4,12 @@ import { isCollectionVersions, isFieldVersion } from "./versionTracker/types";
 import { FieldRevision_dashboardText, FieldRevision_isStale } from "../utils/fieldRevision";
 import { Dashboard_validate } from "./dashboard";
 import { DashboardEditorSave_upsert } from "./dashboardEditorSave";
+import type { IDashboardApiDetail } from "./dashboardApi";
 
 export type IDashboardWebStorage = Pick<IStorage, "dashboards" | "currentDashboardId" | "_versions">;
 
 export type IDashboardWebSaveResult =
-  | { kind: "error"; status: 400 | 404 | 409; message: string }
+  | { kind: "error"; status: 400 | 404 | 409 | 422; message: string; details?: IDashboardApiDetail[] }
   | { kind: "write"; dashboards: IDashboard[]; currentDashboardId?: string };
 
 export interface IDashboardWebSnapshot {
