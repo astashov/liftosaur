@@ -128,10 +128,23 @@ describe("LiftographChartData", () => {
   });
 
   it("opens a range window ending today, and no window for all", () => {
-    expect(LiftographChartData_window("all", today)).to.eql({});
-    const window = LiftographChartData_window({ n: 1, unit: "m" }, today);
+    const chart = LiftographChartData_build(graphOf("graph {\n  name: Squat / source: exercise(Squat)\n}"), settings);
+    const empty = { ...chart, data: [[]] };
+    expect(LiftographChartData_window("all", today, empty)).to.eql({});
+    const window = LiftographChartData_window({ n: 1, unit: "m" }, today, empty);
     expect(window.xMax).to.equal(today / 1000);
     expect(window.xMin).to.equal(fxDay(2026, 2, 28).getTime() / 1000);
+  });
+
+  it("starts the range window at the first point when the data starts later", () => {
+    const firstX = fxDay(2026, 3, 10).getTime() / 1000;
+    const chart = LiftographChartData_build(graphOf("graph {\n  name: Squat / source: exercise(Squat)\n}"), settings);
+    const later = { ...chart, data: [[firstX, firstX + 86400]] };
+    expect(LiftographChartData_window({ n: 1, unit: "y" }, today, later)).to.eql({ xMin: firstX, xMax: today / 1000 });
+    const earlier = { ...chart, data: [[fxDay(2025, 1, 1).getTime() / 1000]] };
+    expect(LiftographChartData_window({ n: 1, unit: "m" }, today, earlier).xMin).to.equal(
+      fxDay(2026, 2, 28).getTime() / 1000
+    );
   });
 
   it("prepares the chart and the record links for a graph widget, with or without a range override", () => {

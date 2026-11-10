@@ -88,11 +88,7 @@ function Entry(props: IEntryProps): JSX.Element {
       </div>
       <div className="record-graph">
         <GraphExercise
-          isWithProgramLines={true}
-          isSameXAxis={false}
-          minX={0}
-          isWithOneRm={true}
-          maxX={0}
+          id="user-progress-graph"
           title="Progress Graph"
           evaluation={LiftographSeriesEval_create({
             history,

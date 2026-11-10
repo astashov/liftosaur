@@ -1,5 +1,3 @@
-import type { ILiftographBenchSample } from "../liftograph/liftographBench";
-
 export interface IPerfRecentAction {
   type: string;
   desc?: string;
@@ -100,8 +98,7 @@ export type IPerfEvent =
       actual_ms: number;
       base_ms: number;
       ts: number;
-    }
-  | ({ type: "liftograph_bench"; session: string; ts: number } & ILiftographBenchSample);
+    };
 
 export function PerfTracker_mark(_name: string, _screen?: string): void {}
 export function PerfTracker_recordEvent(_event: IPerfEvent): void {}

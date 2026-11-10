@@ -187,12 +187,18 @@ function shiftDate(today: number, duration: Exclude<ILiftographDuration, "all">)
 
 export function LiftographChartData_window(
   range: ILiftographDuration,
-  today: number
+  today: number,
+  chart: ILiftographChartData
 ): { xMin?: number; xMax?: number } {
   if (range === "all") {
     return {};
   }
-  return { xMin: shiftDate(today, range) / 1000, xMax: today / 1000 };
+  const xMax = today / 1000;
+  const rangeStart = shiftDate(today, range) / 1000;
+  const xs = (chart.data[0] ?? []).filter((x): x is number => x != null);
+  const firstX = xs.length > 0 ? Math.min(...xs) : undefined;
+  const xMin = firstX != null && firstX > rangeStart && firstX < xMax ? firstX : rangeStart;
+  return { xMin, xMax };
 }
 
 export function LiftographChartData_numericWindow(chart: ILiftographChartData): { xMin?: number; xMax?: number } {

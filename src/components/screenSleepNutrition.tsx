@@ -12,8 +12,9 @@ import { IconTrash } from "./icons/iconTrash";
 import { IconUndo } from "./icons/iconUndo";
 import { DateUtils_format } from "../utils/date";
 import { ScrollableTabs } from "./scrollableTabs";
-import { GraphStats, getHealthDataForGraph } from "./graphStats";
-import { LiftographGraphs_pairsData } from "../liftograph/liftographGraphs";
+import { LiftographGraphs_statsDocument } from "../liftograph/liftographGraphs";
+import { DashboardTextGraph } from "./dashboard/dashboardTextGraph";
+import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 import { Locker } from "./locker";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 
@@ -28,10 +29,6 @@ interface IProps {
 interface IHealthValue {
   timestamp: number;
   value: number;
-}
-
-function unitForMetric(key: IStatsHealthKey): string {
-  return key === "sleep" ? "h" : key === "calories" ? "kcal" : "g";
 }
 
 function formatHealthValue(key: IStatsHealthKey, value: number): string {
@@ -93,8 +90,9 @@ interface IHealthMetricListProps {
 }
 
 function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
-  const { statsKey, stats, settings, subscription, dispatch } = props;
+  const { statsKey, stats, subscription, dispatch } = props;
   const [showHidden, setShowHidden] = useState(false);
+  const evaluation = useDashboardEvaluation();
   const all = stats.health?.[statsKey] || [];
 
   if (all.length === 0) {
@@ -111,26 +109,16 @@ function HealthMetricList(props: IHealthMetricListProps): JSX.Element {
   visible.sort(byTimestampDesc);
   hidden.sort(byTimestampDesc);
 
-  const graphPoints = getHealthDataForGraph(
-    all.filter((v) => !v.hidden),
-    statsKey
-  );
-
   return (
     <View className="px-gutter pb-8">
       <View className="relative">
-        {graphPoints.length > 2 && (
+        {visible.length > 2 && (
           <>
-            <GraphStats
+            <DashboardTextGraph
+              id={`health-graph-${statsKey}`}
               key={statsKey}
-              title={null}
-              isSameXAxis={false}
-              minX={graphPoints[0][0]}
-              maxX={graphPoints[graphPoints.length - 1][0]}
-              units={unitForMetric(statsKey)}
-              settings={settings}
-              data={LiftographGraphs_pairsData(graphPoints)}
-              statsKey={statsKey}
+              text={LiftographGraphs_statsDocument(statsKey)}
+              evaluation={evaluation}
               isInteractive={Subscriptions_hasSubscription(subscription)}
             />
             <Locker topic="Graphs" dispatch={dispatch} blur={8} subscription={subscription} />

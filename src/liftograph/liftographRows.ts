@@ -6,12 +6,30 @@ import {
   IHistoryEntry,
   IHistoryRecord,
   IStats,
+  IStatsHealthKey,
   IStatsKey,
   ISettings,
   IWeight,
+  statsHealthDef,
   statsLengthDef,
   statsPercentageDef,
+  statsWeightDef,
 } from "../types";
+
+export type ILiftographStatsKey = IStatsKey | IStatsHealthKey;
+
+export const LiftographRows_statsKeys: readonly ILiftographStatsKey[] = [
+  ...statsWeightDef,
+  ...statsLengthDef,
+  ...statsPercentageDef,
+  ...statsHealthDef,
+];
+
+export function LiftographRows_isStatsKey(key: string): key is ILiftographStatsKey {
+  return LiftographRows_statsKeys.some((k) => k === key);
+}
+
+const MINUTES_PER_HOUR = 60;
 
 export type ILiftographSource =
   | {
@@ -23,7 +41,7 @@ export type ILiftographSource =
       day?: string | number;
     }
   | { type: "workout"; program?: string; day?: string | number }
-  | { type: "stats"; key: IStatsKey };
+  | { type: "stats"; key: ILiftographStatsKey };
 
 export type ILiftographRow =
   | { type: "exercise"; id: string; ts: number; record: IHistoryRecord; entry: IHistoryEntry }
@@ -76,9 +94,17 @@ export function LiftographRows_finished(history: IHistoryRecord[]): IHistoryReco
     .sort((a, b) => a.startTime - b.startTime || a.id - b.id);
 }
 
-function statsRows(key: IStatsKey, stats: IStats, settings: ISettings): ILiftographRow[] {
+function statsRows(key: ILiftographStatsKey, stats: IStats, settings: ISettings): ILiftographRow[] {
   const rows: ILiftographRow[] = [];
-  if (key === "weight") {
+  const healthKey = statsHealthDef.find((k) => k === key);
+  if (healthKey != null) {
+    for (const stat of stats.health?.[healthKey] ?? []) {
+      if (!stat.hidden) {
+        const value = healthKey === "sleep" ? stat.value / MINUTES_PER_HOUR : stat.value;
+        rows.push({ type: "stats", id: `stat:${key}:${stat.timestamp}`, ts: stat.timestamp, value });
+      }
+    }
+  } else if (key === "weight") {
     for (const stat of stats.weight.weight ?? []) {
       rows.push({ type: "stats", id: `stat:${key}:${stat.timestamp}`, ts: stat.timestamp, value: stat.value });
     }

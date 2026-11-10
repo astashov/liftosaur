@@ -27,7 +27,6 @@ interface ILineChartProps {
   xMode?: "time" | "linear";
   xAxisFormatter?: (value: number) => string;
   xAxisTicks?: number[];
-  programLines?: [number, string][];
   onCursorChange?: (idx: number | null) => void;
   onInteract?: () => void;
   yAxisFormatter?: (value: number) => string;
@@ -437,15 +436,6 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const yAxisFormatter = props.yAxisFormatter || ((v: number) => `${Math.round(v * 100) / 100}`);
   const rightAxisFormatter = props.rightAxisFormatter || yAxisFormatter;
 
-  const programLinePositions = useMemo(() => {
-    if (!props.programLines) {
-      return [];
-    }
-    return props.programLines
-      .map<[number, string]>((p) => [xToPx(p[0]), p[1]])
-      .filter(([px]) => px >= padLeft && px <= padLeft + plotWidth);
-  }, [props.programLines, xToPx, padLeft, plotWidth]);
-
   const renderSvg = width > 0 && plotHeight > 0;
   const reactId = useId();
   const clipId = `lineChart-clip-${reactId.replace(/:/g, "")}`;
@@ -569,27 +559,6 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                         </>
                       );
                     })()}
-                  </G>
-                );
-              })}
-            </G>
-
-            <G clipPath={`url(#${clipId})`}>
-              {programLinePositions.map(([px, name], i) => {
-                const labelX = px + 3;
-                const labelY = padTop + 4;
-                return (
-                  <G key={`prog-${i}`}>
-                    <Line x1={px} x2={px} y1={padTop} y2={padTop + plotHeight} stroke={colors.grid} strokeWidth={1} />
-                    <SvgText
-                      x={labelX}
-                      y={labelY}
-                      fill={colors.secondary}
-                      fontSize={9}
-                      transform={`rotate(90, ${labelX}, ${labelY})`}
-                    >
-                      {name}
-                    </SvgText>
                   </G>
                 );
               })}

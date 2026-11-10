@@ -235,8 +235,6 @@ import {
 } from "./ducks/thunks";
 import { PushRegistration_identityOf } from "./utils/pushRegistration";
 import { History_getHomeAggregates } from "./models/history";
-import { LiftographBench_run } from "./liftograph/liftographBench";
-import { PerfTracker_getSessionId, PerfTracker_recordEvent } from "./utils/perfTracker";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling, PerfFrameSampler_flush } from "./utils/perfFrameCallback";
 import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
@@ -374,25 +372,6 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
     });
     return () => handle.cancel();
   }, [state.storage.history, state.storage.settings]);
-
-  useEffect(() => {
-    if (typeof __PERF__ === "undefined" || __PERF__ !== true) {
-      return undefined;
-    }
-    let handle: { cancel: () => void } | undefined;
-    const timer = setTimeout(() => {
-      handle = InteractionManager.runAfterInteractions(() => {
-        const session = PerfTracker_getSessionId();
-        for (const sample of LiftographBench_run(stateRef.current.storage, Date.now(), () => performance.now())) {
-          PerfTracker_recordEvent({ type: "liftograph_bench", session, ts: Date.now(), ...sample });
-        }
-      });
-    }, 10000);
-    return () => {
-      clearTimeout(timer);
-      handle?.cancel();
-    };
-  }, []);
 
   useEffect(() => {
     if (state.storage.settings.alwaysOnDisplay) {

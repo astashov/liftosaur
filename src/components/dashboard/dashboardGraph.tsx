@@ -32,6 +32,8 @@ export function DashboardGraph(props: {
   widget: Extract<ILiftographWidget, { kind: "graph" }>;
   evaluation: ILiftographSeriesEval;
   isCompact?: boolean;
+  isInteractive?: boolean;
+  onInteract?: () => void;
   onOpenRecord?: (record: IHistoryRecord) => void;
 }): JSX.Element {
   const { widget, evaluation } = props;
@@ -51,7 +53,7 @@ export function DashboardGraph(props: {
   const record = LiftographChartData_recordAt(chart, records, cursorIdx, hidden);
   const window =
     chart.xMode === "time"
-      ? LiftographChartData_window(range, evaluation.input.today)
+      ? LiftographChartData_window(range, evaluation.input.today, chart)
       : LiftographChartData_numericWindow(chart);
   const rangeLabel = LiftographChartData_rangeLabel(range);
   return (
@@ -94,6 +96,8 @@ export function DashboardGraph(props: {
         maxInitialSpan={Infinity}
         viewportKey={rangeLabel}
         onCursorChange={handleCursorChange}
+        onInteract={props.onInteract}
+        isInteractive={props.isInteractive}
         yAxisFormatter={(v) => MathUtils_formatCompact(v)}
       />
       {props.isCompact ? null : (

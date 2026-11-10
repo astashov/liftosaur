@@ -2,7 +2,8 @@ import { JSX } from "react";
 import { Pressable, View } from "react-native";
 import { Text } from "../primitives/text";
 import { ExerciseImage } from "../exerciseImage";
-import { ISettings, statsLengthDef, statsPercentageDef, statsWeightDef } from "../../types";
+import { ISettings } from "../../types";
+import { LiftographRows_statsKeys } from "../../liftograph/liftographRows";
 import { ILiftographModelSeries, ILiftographModelSource } from "../../liftograph/liftographWidgetModel";
 import {
   ILiftographSourceKind,
@@ -24,7 +25,7 @@ import {
   DashboardFormSubField,
 } from "./dashboardFormParts";
 
-const STATS_KEYS: string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
+const STATS_KEYS: string[] = [...LiftographRows_statsKeys];
 
 export interface IDashboardFormOptions {
   settings: ISettings;

@@ -1,5 +1,5 @@
 import { Exercise_resolveNameAndEquipmentParts } from "../models/exercise";
-import { ISettings, IStatsKey, statsLengthDef, statsPercentageDef, statsWeightDef } from "../types";
+import { ISettings } from "../types";
 import {
   ILiftographArg,
   ILiftographAtom,
@@ -23,7 +23,7 @@ import {
   LiftographPresets_isName,
   liftographPresets,
 } from "./liftographPresets";
-import { ILiftographSource } from "./liftographRows";
+import { ILiftographSource, LiftographRows_isStatsKey } from "./liftographRows";
 import { LiftographScriptFns_muscleGroupKeys } from "./liftographScriptFns";
 import { LiftographLayout_maxRowItems, LiftographLayout_minShare } from "./liftographLayout";
 
@@ -94,7 +94,6 @@ export const LiftographCompile_aggs: readonly ILiftographAgg[] = ["max", "min", 
 export const LiftographCompile_smoothAggs: readonly ILiftographSmoothAgg[] = ["max", "min", "sum", "avg", "count"];
 const aggs = LiftographCompile_aggs;
 const smoothAggs = LiftographCompile_smoothAggs;
-const statsKeys: readonly string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
 
 class CompileError extends Error {
   public readonly span: ILiftographSpan;
@@ -105,10 +104,6 @@ class CompileError extends Error {
 }
 
 class Unsupported extends CompileError {}
-
-function isStatsKey(key: string): key is IStatsKey {
-  return statsKeys.indexOf(key) !== -1;
-}
 
 function durationUnit(char: string): "d" | "w" | "m" | "y" | undefined {
   return char === "d" || char === "w" || char === "m" || char === "y" ? char : undefined;
@@ -330,7 +325,7 @@ function parseSource(pair: ILiftographPair, settings: ISettings): ILiftographSou
       throw new Unsupported(`Unknown stats filter in ${shown(pair)}`, valueSpan(pair));
     }
     const key = first != null ? argText(first.value, pair) : undefined;
-    if (key == null || !isStatsKey(key)) {
+    if (key == null || !LiftographRows_isStatsKey(key)) {
       throw new CompileError(`Unknown stat '${key ?? ""}'`, valueSpan(pair));
     }
     return { type: "stats", key };

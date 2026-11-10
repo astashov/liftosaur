@@ -70,6 +70,13 @@ describe("LiftographCompile_document", () => {
     ]);
   });
 
+  it("accepts the health stats and rejects unknown ones", () => {
+    expect(
+      messages("value / source: stats(sleep)\nvalue / source: stats(calories)\nvalue / source: stats(protein)")
+    ).to.deep.equal([]);
+    expect(messages("value / source: stats(steps)")).to.deep.equal(["Unknown stat 'steps'"]);
+  });
+
   it("keeps the valid series of a graph when one series is invalid", () => {
     const series = graphSeries(
       "graph {\n  name: Gone / source: exercise(Deleted Custom Lift)\n  name: Squat / source: exercise(Squat)\n}"

@@ -24,9 +24,9 @@ import { ObjectUtils_keys } from "../utils/object";
 import { MenuItemWrapper } from "./menuItem";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemEditable } from "./menuItemEditable";
-import { GraphStats } from "./graphStats";
-import { LiftographGraphs_statsData } from "../liftograph/liftographGraphs";
-import { LiftographSeriesEval_create } from "../liftograph/liftographSeriesEval";
+import { LiftographGraphs_statsDocument } from "../liftograph/liftographGraphs";
+import { DashboardTextGraph } from "./dashboard/dashboardTextGraph";
+import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 import { IconTrash } from "./icons/iconTrash";
 import { Locker } from "./locker";
 import { Button } from "./button";
@@ -86,6 +86,11 @@ export function StatsList(props: IProps): JSX.Element {
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(props.initialKey || statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
   const values = useMemo(() => getValues(props.stats, selectedKey), [props.stats, selectedKey]);
+  const evaluation = useDashboardEvaluation();
+  const graphText = useMemo(
+    () => LiftographGraphs_statsDocument(selectedKey, movingAverageWindowSize),
+    [selectedKey, movingAverageWindowSize]
+  );
   const { visibleItems: visibleValues, onScroll: onProgressiveScroll } = useScrollProgressiveList(values, {
     batchSize: 10,
   });
@@ -126,15 +131,6 @@ export function StatsList(props: IProps): JSX.Element {
     );
   }
   const units =
-    selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
-  const graphData = LiftographGraphs_statsData(
-    LiftographSeriesEval_create({ history: [], stats: props.stats, settings: props.settings, today: Date.now() }),
-    selectedKey,
-    movingAverageWindowSize
-  );
-  const graphTimestamps = graphData[0];
-
-  const graphUnit =
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
 
   return (
@@ -188,18 +184,13 @@ export function StatsList(props: IProps): JSX.Element {
         />
       )}
       <View className="relative">
-        {graphTimestamps.length > 2 && (
+        {values.length > 2 && (
           <>
-            <GraphStats
-              title={null}
-              isSameXAxis={false}
-              minX={graphTimestamps[0]}
-              maxX={graphTimestamps[graphTimestamps.length - 1]}
-              units={graphUnit}
-              key={`${selectedKey}_${movingAverageWindowSize}`}
-              settings={props.settings}
-              data={graphData}
-              statsKey={selectedKey}
+            <DashboardTextGraph
+              id={`measurements-graph-${selectedKey}`}
+              key={selectedKey}
+              text={graphText}
+              evaluation={evaluation}
               isInteractive={Subscriptions_hasSubscription(props.subscription)}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />

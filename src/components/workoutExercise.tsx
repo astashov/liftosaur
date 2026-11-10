@@ -12,12 +12,11 @@ import { lb } from "lens-shmens";
 import { Exercise_toKey } from "../models/exercise";
 import {
   History_collectAllHistoryRecordsOfExerciseType,
-  History_collectMinAndMaxTime,
   History_collectWeightPersonalRecord,
   History_collect1RMPersonalRecord,
   IPrevExerciseData,
 } from "../models/history";
-import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../liftograph/liftographSeriesEval";
+import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils_sort } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
@@ -107,30 +106,19 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   // This full per-exercise filter + sort + time range only feeds the deferred graph/PRs/history
   // blocks below, so it's gated behind isHeavyContentReady to keep it off the mount frame (it was the
   // dominant workout-screen mount jank for users with large histories).
-  const [history, { maxTime: maxX, minTime: minX }] = useMemo(() => {
+  const history = useMemo(() => {
     if (!isHeavyContentReady) {
-      return [[], { maxTime: 0, minTime: 0 }] as [IHistoryRecord[], { maxTime: number; minTime: number }];
+      return [];
     }
-    const results = Collector.build(props.history)
+    const [records] = Collector.build(props.history)
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
-      .addFn(History_collectMinAndMaxTime())
       .run();
-    results[0] = CollectionUtils_sort(results[0], (a, b) => {
+    return CollectionUtils_sort(records, (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
-    return results;
   }, [isHeavyContentReady, props.history, exerciseType, props.settings.exerciseStatsSettings.ascendingSort]);
 
-  const graphEvaluation = useMemo(
-    () =>
-      LiftographSeriesEval_create({
-        history: props.history,
-        stats: LiftographSeriesEval_emptyStats(),
-        settings: props.settings,
-        today: Date.now(),
-      }),
-    [props.history, props.settings]
-  );
+  const graphEvaluation = useDashboardEvaluation();
 
   // PRs feed only the (already deferred) graphs/PRs block, and the per-record 1RM math is the
   // expensive part — so defer it and run it over the already-filtered slice, not all history.
@@ -221,13 +209,8 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
                   <PerfProbeSubtree id="graph">
                     <GraphExercise
                       id={`workout-graph-${Exercise_toKey(exerciseType)}`}
-                      isSameXAxis={false}
-                      minX={Math.round(minX / 1000)}
-                      maxX={Math.round(maxX / 1000)}
-                      isWithOneRm={true}
                       key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
                       settings={props.settings}
-                      isWithProgramLines={true}
                       evaluation={graphEvaluation}
                       exercise={exerciseType}
                       initialType={props.settings.graphsSettings.defaultType}

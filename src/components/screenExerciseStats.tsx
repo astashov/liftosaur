@@ -5,7 +5,6 @@ import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon, updateSettings } from "../models/state";
 import {
-  History_collectMinAndMaxTime,
   History_collectAllUsedExerciseTypes,
   History_collectAllHistoryRecordsOfExerciseType,
   History_collectWeightPersonalRecord,
@@ -43,7 +42,7 @@ import { StringUtils_capitalize } from "../utils/string";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
-import { LiftographSeriesEval_create, LiftographSeriesEval_emptyStats } from "../liftograph/liftographSeriesEval";
+import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -78,7 +77,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const units = settings.units;
   const collectorResult = useMemo(() => {
     const historyCollector = Collector.build(rawHistory)
-      .addFn(History_collectMinAndMaxTime())
       .addFn(History_collectAllUsedExerciseTypes())
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectWeightPersonalRecord(exerciseType, units))
@@ -87,7 +85,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   }, [rawHistory, exerciseType, units]);
 
   const [
-    { maxTime: maxX, minTime: minX },
     _exerciseTypes,
     unsortedHistory,
     { maxWeight, maxWeightHistoryRecord },
@@ -153,16 +150,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     [fullExercise.id, settings.exercises]
   );
   const exerciseKey = useMemo(() => Exercise_toKey(exerciseType), [exerciseType]);
-  const evaluation = useMemo(
-    () =>
-      LiftographSeriesEval_create({
-        history: rawHistory,
-        stats: LiftographSeriesEval_emptyStats(),
-        settings,
-        today: Date.now(),
-      }),
-    [rawHistory, settings]
-  );
+  const evaluation = useDashboardEvaluation();
   const fullName = useMemo(() => Exercise_fullName(fullExercise, settings), [fullExercise, settings]);
   const isInteractive = useMemo(() => Subscriptions_hasSubscription(props.subscription), [props.subscription]);
 
@@ -226,13 +214,9 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         <View data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">
           <Locker topic="Graphs" dispatch={dispatch} blur={8} subscription={props.subscription} />
           <GraphExercise
-            isSameXAxis={false}
-            minX={Math.round(minX / 1000)}
-            maxX={Math.round(maxX / 1000)}
-            isWithOneRm={true}
+            id={`exercise-stats-graph-${exerciseKey}`}
             key={exerciseKey}
             settings={settings}
-            isWithProgramLines={true}
             evaluation={evaluation}
             exercise={exerciseType}
             initialType={settings.graphsSettings.defaultType}

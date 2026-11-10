@@ -278,6 +278,12 @@ function axisOf(
     return { kind: "weight", unit: settings.units };
   } else if (series.source.type === "stats" && series.source.key === "bodyfat") {
     return { kind: "number", unit: "%" };
+  } else if (series.source.type === "stats" && series.source.key === "sleep") {
+    return { kind: "number", unit: "h" };
+  } else if (series.source.type === "stats" && series.source.key === "calories") {
+    return { kind: "number", unit: "kcal" };
+  } else if (series.source.type === "stats" && series.source.key === "protein") {
+    return { kind: "number", unit: "g" };
   } else if (series.source.type === "stats" && series.source.key !== "weight") {
     return { kind: "number", unit: settings.lengthUnits };
   }

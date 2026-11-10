@@ -1,5 +1,6 @@
 import type { Tree } from "@lezer/common";
-import { IHistoryRecord, ISettings, statsLengthDef, statsPercentageDef, statsWeightDef } from "../types";
+import { IHistoryRecord, ISettings } from "../types";
+import { LiftographRows_statsKeys } from "./liftographRows";
 import { Exercise_findByName, Exercise_toKey } from "../models/exercise";
 import { PlannerCompletions_rank, PlannerCompletionsIndex } from "../pages/planner/plannerCompletions";
 import { ILiftographDocument } from "./liftographDocument";
@@ -86,7 +87,6 @@ export const LiftographCompletions_musclesTemplate = "muscles / range: 7d / show
 export const LiftographCompletions_calendarTemplate = "calendar / range: 3m";
 
 const STRIP_LIMIT = 30;
-const STATS_KEYS: readonly string[] = [...statsWeightDef, ...statsLengthDef, ...statsPercentageDef];
 const GROUP_DURATIONS = ["1w", "2w", "4w", "1m", "3m"];
 const SMOOTH_WINDOWS = ["1w", "4w", "3m", "3", "5", "10"];
 const VALUES_BY_KEY: Partial<Record<string, string[]>> = {
@@ -258,7 +258,7 @@ function argumentCandidates(
   } else if (isSource && context.hasColonAfter) {
     return { ...base, kind: "filter", options: filterOptions(context, 2) };
   } else if (isSource && context.fn === "stats") {
-    return context.argIndex === 0 ? constants("stat", [...STATS_KEYS]) : undefined;
+    return context.argIndex === 0 ? constants("stat", [...LiftographRows_statsKeys]) : undefined;
   } else if (isSource && context.fn === "workout") {
     return { ...base, kind: "filter", options: filterOptions(context, 2) };
   } else if (isSource && context.fn === "exercise" && context.argIndex === 0) {

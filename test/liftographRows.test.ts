@@ -91,4 +91,20 @@ describe("LiftographRows_build", () => {
     const rows = LiftographRows_build({ type: "stats", key: "bicepLeft" }, [], stats, settings);
     expect(rows.map((r) => (r.type === "stats" ? r.value : undefined))).to.deep.equal([1]);
   });
+
+  it("reads sleep in hours and skips hidden health records", () => {
+    const stats = fxStats();
+    stats.health = {
+      sleep: [
+        { vtype: "stat", value: 450, timestamp: fxDay(2026, 3, 2).getTime() },
+        { vtype: "stat", value: 300, timestamp: fxDay(2026, 3, 3).getTime(), hidden: true },
+        { vtype: "stat", value: 480, timestamp: fxDay(2026, 3, 1).getTime() },
+      ],
+      protein: [{ vtype: "stat", value: 160, timestamp: fxDay(2026, 3, 1).getTime() }],
+    };
+    const sleep = LiftographRows_build({ type: "stats", key: "sleep" }, [], stats, settings);
+    expect(sleep.map((r) => (r.type === "stats" ? r.value : undefined))).to.deep.equal([8, 7.5]);
+    const protein = LiftographRows_build({ type: "stats", key: "protein" }, [], stats, settings);
+    expect(protein.map((r) => (r.type === "stats" ? r.value : undefined))).to.deep.equal([160]);
+  });
 });
