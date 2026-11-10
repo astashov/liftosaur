@@ -50,7 +50,7 @@ import {
 import { ProgramRowWrites_plan } from "../utils/programRowWrites";
 import { IUserRowItem, UserRow_pack, UserRow_unpack } from "../utils/userRow";
 import { IProgramRowItem, ProgramRow_pack, ProgramRow_unpack } from "../utils/programRow";
-import { StatRowWrites_plan } from "../utils/statRowWrites";
+import { StatRowWrites_deletes, StatRowWrites_plan, StatRowWrites_rows } from "../utils/statRowWrites";
 
 export const userTableNames = {
   dev: {
@@ -398,54 +398,14 @@ export class UserDao {
       items: programWrites.programsToPut.map((record) => ({ ...ProgramRow_pack(record), userId: limitedUser.id })),
     });
 
-    const versionsStats = storageUpdate.versions?.stats as ICollectionVersions | undefined;
-    const deletedVersionsStats = ObjectUtils_keys(versionsStats?.deleted || {}).map((v) => Number(v));
-    const stats = storageUpdate.storage?.stats! || {};
-    const statsDb: IStatDb[] = [];
-    for (const type of ObjectUtils_keys(stats.weight || {})) {
-      for (const stat of stats.weight[type] || []) {
-        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, type: "weight", name: `${stat.timestamp}_${type}` });
-        }
-      }
-    }
-    for (const type of ObjectUtils_keys(stats.length || {})) {
-      for (const stat of stats.length[type] || []) {
-        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, type: "length", name: `${stat.timestamp}_${type}` });
-        }
-      }
-    }
-    for (const type of ObjectUtils_keys(stats.percentage || {})) {
-      for (const stat of stats.percentage[type] || []) {
-        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, type: "percentage", name: `${stat.timestamp}_${type}` });
-        }
-      }
-    }
-    for (const type of ObjectUtils_keys(stats.health || {})) {
-      for (const stat of stats.health?.[type] || []) {
-        if (deletedVersionsStats.indexOf(stat.timestamp) === -1) {
-          statsDb.push({ ...stat, type: "health", name: `${stat.timestamp}_${type}` });
-        }
-      }
-    }
-    const statsDeletes =
-      deletedVersionsStats.length > 0
-        ? (async () => {
-            const userStats = await this.di.dynamo.query<IStatDb & { userId?: string }>({
-              tableName: userTableNames[env].stats,
-              expression: "#userId = :userId",
-              attrs: { "#userId": "userId" },
-              values: { ":userId": limitedUser.id },
-            });
-            const statsIdToDelete = userStats.filter((s) => deletedVersionsStats?.indexOf(s.timestamp) !== -1);
-            return this.di.dynamo.batchDelete({
-              tableName: userTableNames[env].stats,
-              keys: statsIdToDelete.map((s) => ({ userId: limitedUser.id, name: s.name })),
-            });
-          })()
-        : Promise.resolve();
+    const deletedStatNames = StatRowWrites_deletes(storageUpdate.versions?.stats, newStorage._versions?.stats);
+    const statsDb = StatRowWrites_rows(storageUpdate.storage?.stats! || {}).filter(
+      (row) => !deletedStatNames.includes(row.name)
+    );
+    const statsDeletes = this.di.dynamo.batchDelete({
+      tableName: userTableNames[env].stats,
+      keys: deletedStatNames.map((name) => ({ userId: limitedUser.id, name })),
+    });
     const statsUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].stats,
       items: statsDb.map((record) => ({ ...record, userId: limitedUser.id })),
@@ -458,7 +418,7 @@ export class UserDao {
       noop,
       historyDeletes: deletedVersionsHistory.length,
       statPuts: statsDb.length,
-      statDeletes: deletedVersionsStats.length,
+      statDeletes: deletedStatNames.length,
     });
     try {
       await Promise.all([historyUpdates, historyDeletes, programUpdates, programDeletes, statsDeletes, statsUpdates]);

@@ -1,7 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import { IStats } from "../src/types";
-import { StatRowWrites_plan } from "../lambda/utils/statRowWrites";
+import { StatRowWrites_deletedNames, StatRowWrites_deletes, StatRowWrites_plan, StatRowWrites_rows } from "../lambda/utils/statRowWrites";
 
 function stat(
   timestamp: number,
@@ -19,6 +19,49 @@ function stats(args: { weights?: number[]; sleep?: number[] | null }): IStats {
     ...(args.sleep === null ? {} : { health: { sleep: (args.sleep || []).map((t) => stat(t, 420)) } }),
   } as IStats;
 }
+
+describe("StatRowWrites_deletedNames", () => {
+  it("returns no names without stats versions", () => {
+    expect(StatRowWrites_deletedNames(undefined)).to.eql([]);
+  });
+
+  it("builds row names from nested markers", () => {
+    const names = StatRowWrites_deletedNames({
+      weight: { weight: { items: {}, deleted: { "5": 100 } } },
+      length: { neck: { deleted: { "6": 100 } } },
+      percentage: { bodyfat: { deleted: { "7": 100 } } },
+      health: { sleep: { deleted: { "8": 100 } } },
+    });
+    expect(names).to.have.members(["5_weight", "6_neck", "7_bodyfat", "8_sleep"]);
+  });
+
+  it("deletes only the marked measurement at a shared timestamp", () => {
+    const names = StatRowWrites_deletedNames({
+      weight: { weight: { deleted: { "5": 100 } } },
+      length: { waist: { items: { "5": 100 } } },
+    });
+    expect(names).to.eql(["5_weight"]);
+  });
+
+  it("matches the names of stored rows", () => {
+    const rows = StatRowWrites_rows(stats({ weights: [5, 6] }));
+    const names = StatRowWrites_deletedNames({ weight: { weight: { deleted: { "5": 100 } } } });
+    expect(rows.filter((row) => names.includes(row.name)).map((row) => row.timestamp)).to.eql([5]);
+  });
+});
+
+describe("StatRowWrites_deletes", () => {
+  it("skips an incoming marker the merged versions no longer hold", () => {
+    const incoming = { weight: { weight: { deleted: { "5": 100, "6": 100 } } } };
+    const merged = { weight: { weight: { items: { "5": 200 }, deleted: { "6": 100 } } } };
+    expect(StatRowWrites_deletes(incoming, merged)).to.eql(["6_weight"]);
+  });
+
+  it("does not repeat old merged deletes the update did not send", () => {
+    const merged = { weight: { weight: { deleted: { "5": 100 } } } };
+    expect(StatRowWrites_deletes(undefined, merged)).to.eql([]);
+  });
+});
 
 describe("StatRowWrites_plan", () => {
   it("deletes removed rows and puts only changed ones with a snapshot", () => {

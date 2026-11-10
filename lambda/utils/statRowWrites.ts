@@ -2,6 +2,7 @@ import type { IStatDb } from "../dao/userDao";
 import type { IStats } from "../../src/types";
 import { ObjectUtils_keys } from "../../src/utils/object";
 import { CollectionUtils_diffByKey } from "../../src/utils/collection";
+import { IVersionValue, isCollectionVersions, isVersionsObject } from "../../src/models/versionTracker";
 
 export interface IStatRowWrites {
   puts: IStatDb[];
@@ -20,6 +21,29 @@ export function StatRowWrites_rows(stats: IStats): IStatDb[] {
     .concat(rows("weight", stats.weight))
     .concat(rows("percentage", stats.percentage))
     .concat(rows("health", stats.health));
+}
+
+export function StatRowWrites_deletedNames(statsVersions: IVersionValue | undefined): string[] {
+  if (!isVersionsObject(statsVersions)) {
+    return [];
+  }
+  return Object.values(statsVersions).flatMap((group) =>
+    isVersionsObject(group)
+      ? Object.entries(group).flatMap(([key, versions]) =>
+          isCollectionVersions(versions)
+            ? Object.keys(versions.deleted || {}).map((timestamp) => `${timestamp}_${key}`)
+            : []
+        )
+      : []
+  );
+}
+
+export function StatRowWrites_deletes(
+  incomingVersions: IVersionValue | undefined,
+  mergedVersions: IVersionValue | undefined
+): string[] {
+  const merged = StatRowWrites_deletedNames(mergedVersions);
+  return StatRowWrites_deletedNames(incomingVersions).filter((name) => merged.includes(name));
 }
 
 export function StatRowWrites_plan(before: IStats, next: IStats, putUnchanged: boolean): IStatRowWrites {
