@@ -107,6 +107,8 @@ import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
 import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
 import { IAccount, Account_getFromStorage } from "../src/models/account";
 import { Storage_get, Storage_updateVersions, Storage_validate } from "../src/models/storage";
+import { LoginAdoptLocal_planFromIds } from "../src/models/loginAdoptLocal";
+import { LoginConflictSummary_fromIds, LoginConflictSummary_parsePhoneIds } from "../src/models/loginConflictSummary";
 import {
   VersionTrackerUtils_SERVER_DEVICE_ID,
   VersionTrackerUtils_UNIDENTIFIED_DEVICE_ID,
@@ -1063,7 +1065,38 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   const { event, di } = payload;
   const env = Utils_getEnv();
   const bodyJson = getBodyJson(event);
-  const { idToken, id, historylimit } = bodyJson;
+  const { id, historylimit } = bodyJson;
+  const identity = await verifyAppleIdentity(di, env, bodyJson);
+  if ("status" in identity) {
+    return ResponseUtils_json(identity.status, event, identity.body);
+  }
+  const { sub, email } = identity;
+  const userDao = new UserDao(di);
+  let user = await userDao.getByAppleId(sub, { historyLimit: historylimit });
+  let isNewUser = false;
+
+  if (user == null) {
+    const linkTarget = email !== noEmail ? pickEmailLinkTarget(di, await userDao.getAllByEmail(email)) : undefined;
+    if (linkTarget) {
+      di.log.log("Linking appleId to existing user with same email", linkTarget.id);
+      user = await userDao.getById(linkTarget.id, { historyLimit: historylimit });
+      user!.appleId = sub;
+      await userDao.store(user!);
+    } else {
+      user = await createNewUser(userDao, di, id, email, { appleId: sub });
+      isNewUser = true;
+    }
+  }
+
+  return signInResponse(di, event, user!, isNewUser);
+};
+
+async function verifyAppleIdentity(
+  di: IDI,
+  env: IEnv,
+  bodyJson: IBodyJson
+): Promise<IVerifiedIdentity | IIdentityError> {
+  const { idToken } = bodyJson;
   const keysResponse = await di.fetch("https://appleid.apple.com/auth/keys");
   const keysJson = (await keysResponse.json()) as IAppleKeysResponse;
   const decodedToken = JWT.decode(idToken!, { complete: true });
@@ -1087,31 +1120,13 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         const email = result.email && emailVerified ? normalizeEmail(result.email) : noEmail;
 
         await new AppleAuthTokenDao(di).store(env, idToken, result.sub);
-        const userDao = new UserDao(di);
-        let user = await userDao.getByAppleId(result.sub, { historyLimit: historylimit });
-        let isNewUser = false;
-
-        if (user == null) {
-          const linkTarget =
-            email !== noEmail ? pickEmailLinkTarget(di, await userDao.getAllByEmail(email)) : undefined;
-          if (linkTarget) {
-            di.log.log("Linking appleId to existing user with same email", linkTarget.id);
-            user = await userDao.getById(linkTarget.id, { historyLimit: historylimit });
-            user!.appleId = result.sub;
-            await userDao.store(user!);
-          } else {
-            user = await createNewUser(userDao, di, id, email, { appleId: result.sub });
-            isNewUser = true;
-          }
-        }
-
-        return signInResponse(di, event, user!, isNewUser);
+        return { sub: result.sub, email };
       }
     }
   }
 
-  return ResponseUtils_json(403, event, { error: "invalid_token" });
-};
+  return { status: 403, body: { error: "invalid_token" } };
+}
 
 const appleCallbackMobileEndpoint = Endpoint.build("/appleauthcallback-mobile.html");
 const appleCallbackMobileHandler: RouteHandler<
@@ -1153,14 +1168,24 @@ const appleCallbackMobileHandler: RouteHandler<
   };
 };
 
-const googleLoginEndpoint = Endpoint.build("/api/signin/google");
-const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof googleLoginEndpoint> = async ({
-  payload,
-}) => {
-  const { event, di } = payload;
-  const env = Utils_getEnv();
-  const bodyJson = getBodyJson(event);
-  const { token, id, forceuseremail, forceunverified, historylimit } = bodyJson;
+interface IVerifiedIdentity {
+  sub: string;
+  email: string;
+}
+
+interface IIdentityError {
+  status: number;
+  body: object;
+}
+
+type IBodyJson = ReturnType<typeof getBodyJson>;
+
+async function verifyGoogleIdentity(
+  di: IDI,
+  env: IEnv,
+  bodyJson: IBodyJson
+): Promise<IVerifiedIdentity | IIdentityError> {
+  const { token, forceuseremail, forceunverified } = bodyJson;
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
   if (env === "dev" && forceuseremail != null) {
     openIdJson = {
@@ -1179,7 +1204,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     const googleApiResponse = await di.fetch(url);
     const response = await googleApiResponse.json();
     if ("error" in response) {
-      return ResponseUtils_json(403, event, openIdJson);
+      return { status: 403, body: openIdJson };
     } else {
       openIdJson = {
         sub: response.user_id,
@@ -1197,9 +1222,24 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   // tokens can assert an email the holder doesn't own) must never be stored as
   // the account email, or pickEmailLinkTarget would later treat it as a verified
   // link/reset target via the googleId.
-  const email = emailVerified ? normalizeEmail(openIdJson.email) : noEmail;
+  return { sub: openIdJson.sub, email: emailVerified ? normalizeEmail(openIdJson.email) : noEmail };
+}
+
+const googleLoginEndpoint = Endpoint.build("/api/signin/google");
+const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof googleLoginEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const bodyJson = getBodyJson(event);
+  const { id, historylimit } = bodyJson;
+  const identity = await verifyGoogleIdentity(di, env, bodyJson);
+  if ("status" in identity) {
+    return ResponseUtils_json(identity.status, event, identity.body);
+  }
+  const { sub, email } = identity;
   const userDao = new UserDao(di);
-  let user = await userDao.getByGoogleId(openIdJson.sub, { historyLimit: historylimit });
+  let user = await userDao.getByGoogleId(sub, { historyLimit: historylimit });
   let isNewUser = false;
 
   if (user == null) {
@@ -1207,10 +1247,10 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     if (linkTarget) {
       di.log.log("Linking googleId to existing user with same email", linkTarget.id);
       user = await userDao.getById(linkTarget.id, { historyLimit: historylimit });
-      user!.googleId = openIdJson.sub;
+      user!.googleId = sub;
       await userDao.store(user!);
     } else {
-      user = await createNewUser(userDao, di, id, email, { googleId: openIdJson.sub });
+      user = await createNewUser(userDao, di, id, email, { googleId: sub });
       isNewUser = true;
     }
   }
@@ -1305,16 +1345,32 @@ const emailSigninHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof e
   const { event, di } = payload;
   const env = Utils_getEnv();
   const bodyJson = getBodyJson(event);
-  const { password, historylimit } = bodyJson;
+  const verified = await verifyEmailPassword(di, env, bodyJson);
+  if ("status" in verified) {
+    return ResponseUtils_json(verified.status, event, verified.body);
+  }
+  const user = await new UserDao(di).getById(verified.userId, { historyLimit: bodyJson.historylimit });
+  if (user == null) {
+    return ResponseUtils_json(403, event, { error: "account_not_found" });
+  }
+  return signInResponse(di, event, user, false);
+};
+
+async function verifyEmailPassword(
+  di: IDI,
+  env: IEnv,
+  bodyJson: IBodyJson
+): Promise<{ userId: string } | IIdentityError> {
+  const { password } = bodyJson;
   const email = normalizeEmail(bodyJson.email);
   // No account can have a >max password, so rejecting early (before any scrypt
   // work) keeps the uniform error while avoiding hashing huge payloads
   if (!email || typeof password !== "string" || password.length > maxPasswordLength) {
-    return ResponseUtils_json(403, event, { error: "invalid_credentials" });
+    return { status: 403, body: { error: "invalid_credentials" } };
   }
   const emailAuthTokenDao = new EmailAuthTokenDao(di);
   if (await emailAuthTokenDao.bumpAttemptsAndCheckLimit(env, email)) {
-    return ResponseUtils_json(429, event, { error: "too_many_attempts" });
+    return { status: 429, body: { error: "too_many_attempts" } };
   }
   const userDao = new UserDao(di);
   const candidates = await userDao.getAllByEmail(email);
@@ -1326,19 +1382,90 @@ const emailSigninHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof e
       new Set(candidates.flatMap((u) => [...(u.googleId ? ["Google"] : []), ...(u.appleId ? ["Apple"] : [])]))
     );
     if (providers.length > 0) {
-      return ResponseUtils_json(403, event, { error: "use_oauth", providers });
+      return { status: 403, body: { error: "use_oauth", providers } };
     }
-    return ResponseUtils_json(403, event, { error: "account_not_found" });
+    return { status: 403, body: { error: "account_not_found" } };
   }
   if (!(await PasswordHash_verify(password, match.passwordHash))) {
-    return ResponseUtils_json(403, event, { error: "wrong_password" });
+    return { status: 403, body: { error: "wrong_password" } };
   }
   await emailAuthTokenDao.clearAttempts(env, email);
-  const user = await userDao.getById(match.id, { historyLimit: historylimit });
-  if (user == null) {
-    return ResponseUtils_json(403, event, { error: "account_not_found" });
+  return { userId: match.id };
+}
+
+async function findOAuthUserId(
+  di: IDI,
+  attr: "googleId" | "appleId",
+  identity: IVerifiedIdentity
+): Promise<string | undefined> {
+  const userDao = new UserDao(di);
+  const userId = await userDao.getIdByProviderId(attr, identity.sub);
+  if (userId != null || identity.email === noEmail) {
+    return userId;
   }
-  return signInResponse(di, event, user, false);
+  return pickEmailLinkTarget(di, await userDao.getAllByEmail(identity.email))?.id;
+}
+
+async function checkLoginUserId(
+  di: IDI,
+  env: IEnv,
+  bodyJson: IBodyJson
+): Promise<{ userId?: string } | IIdentityError> {
+  if (bodyJson.provider === "email") {
+    return verifyEmailPassword(di, env, bodyJson);
+  }
+  if (bodyJson.provider === "google" || bodyJson.provider === "apple") {
+    const identity =
+      bodyJson.provider === "google"
+        ? await verifyGoogleIdentity(di, env, bodyJson)
+        : await verifyAppleIdentity(di, env, bodyJson);
+    if ("status" in identity) {
+      return identity;
+    }
+    const attr = bodyJson.provider === "google" ? "googleId" : "appleId";
+    return { userId: await findOAuthUserId(di, attr, identity) };
+  }
+  return { status: 400, body: { error: "invalid_provider" } };
+}
+
+const checkLoginEndpoint = Endpoint.build("/api/checklogin");
+const checkLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof checkLoginEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const phone = LoginConflictSummary_parsePhoneIds(bodyJson.phone);
+  if (phone == null) {
+    return ResponseUtils_json(400, event, { error: "invalid_phone" });
+  }
+  const found = await checkLoginUserId(di, Utils_getEnv(), bodyJson);
+  if ("status" in found) {
+    return ResponseUtils_json(found.status, event, found.body);
+  }
+  const userId = found.userId;
+  if (userId == null || userId === bodyJson.id) {
+    return ResponseUtils_json(200, event, { status: "ok" });
+  }
+  const user = await new UserDao(di).getById(userId);
+  const storage = user != null ? Storage_get(user.storage) : undefined;
+  if (user == null || storage == null || !storage.success) {
+    return ResponseUtils_json(200, event, { status: "ok" });
+  }
+  const plan = LoginAdoptLocal_planFromIds({
+    oldUserId: bodyJson.id,
+    newUserId: userId,
+    adoption: "if-empty",
+    phone,
+    server: storage.data,
+  });
+  if (plan !== "conflict") {
+    return ResponseUtils_json(200, event, { status: "ok" });
+  }
+  return ResponseUtils_json(200, event, {
+    status: "conflict",
+    email: user.email,
+    summary: LoginConflictSummary_fromIds(phone, storage.data),
+  });
 };
 
 const verifyEmailEndpoint = Endpoint.build("/api/auth/verifyemail");
@@ -2721,6 +2848,34 @@ const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   }
 };
 
+export const postBackupAccountEndpoint = Endpoint.build("/api/backupaccount");
+const postBackupAccountHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postBackupAccountEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const currentUserId = await getCurrentUserId(event, di);
+  if (currentUserId == null) {
+    return ResponseUtils_json(401, event, {});
+  }
+  const user = await new UserDao(di).getById(currentUserId);
+  const storageId = await new StorageDao(di).store(currentUserId, user?.storage, undefined);
+  if (storageId == null) {
+    return ResponseUtils_json(404, event, {});
+  }
+  await new EventDao(di).post({
+    type: "event",
+    name: "account-backup",
+    userId: currentUserId,
+    commithash: process.env.COMMIT_HASH ?? "",
+    timestamp: Date.now(),
+    isMobile: Mobile_isMobile(getUserAgent(event)),
+    extra: { storage_id: storageId },
+  });
+  return ResponseUtils_json(200, event, { storageId });
+};
+
 const getAllProgramsEndpoint = Endpoint.build("/programs");
 const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllProgramsEndpoint> = async ({
   payload,
@@ -3986,6 +4141,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(appleLoginEndpoint, appleLoginHandler)
       .post(emailSignupEndpoint, emailSignupHandler)
       .post(emailSigninEndpoint, emailSigninHandler)
+      .post(checkLoginEndpoint, checkLoginHandler)
       .post(verifyEmailEndpoint, verifyEmailHandler)
       .post(forgotPasswordEndpoint, forgotPasswordHandler)
       .post(resetPasswordEndpoint, resetPasswordHandler)
@@ -4018,6 +4174,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(saveDebugEndpoint, saveDebugHandler)
       .post(debugLogsEndpoint, debugLogsHandler)
       .post(postWatchCrashReportEndpoint, postWatchCrashReportHandler)
+      .post(postBackupAccountEndpoint, postBackupAccountHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)

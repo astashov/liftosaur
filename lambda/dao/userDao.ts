@@ -439,6 +439,11 @@ export class UserDao {
     return { data: { originalId, newStorage, didWrite: true }, success: true };
   }
 
+  public async getIdByProviderId(attr: "googleId" | "appleId", value: string): Promise<string | undefined> {
+    const [id] = await this.queryUserIds(attr, value);
+    return id;
+  }
+
   public async getByAppleId(appleId: string, args: { historyLimit?: number }): Promise<IUserDao | undefined> {
     const [id] = await this.queryUserIds("appleId", appleId);
     return id != null ? this.getById(id, args) : undefined;

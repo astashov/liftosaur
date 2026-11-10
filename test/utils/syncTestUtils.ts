@@ -18,6 +18,7 @@ import { basicBeginnerProgram } from "../../src/programs/basicBeginnerProgram";
 import { IProgram, IHistoryRecord } from "../../src/types";
 import { AsyncQueue } from "../../src/utils/asyncQueue";
 import { HeartRateStore } from "../../src/utils/heartRateStore";
+import { LoginConflictPrompt } from "../../src/utils/loginConflictPrompt";
 import { UrlUtils_build } from "../../src/utils/url";
 import { IMockDI, buildMockDi } from "./mockDi";
 import { IMockFetchLog, MockFetch } from "./mockFetch";
@@ -195,6 +196,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
     mirroring: bridges.mirroring,
     heartRate: new HeartRateStore(bridges.mirroring),
     persistence: new Persistence(),
+    loginConflict: new LoginConflictPrompt(async () => undefined),
   };
   const url = UrlUtils_build("https://www.liftosaur.com");
   const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });

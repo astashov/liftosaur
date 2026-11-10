@@ -130,6 +130,7 @@ export type IRootStackParamList = {
   signupRequestModal: undefined;
   hearAboutUsModal: undefined;
   corruptedStateModal: undefined;
+  loginConflictModal: undefined;
   debugModal: undefined;
   workoutShareModal: { progressId: number };
   socialShareModal: { type: "igstory" | "igfeed" | "tiktok"; progressId?: number; historyRecordId?: number };

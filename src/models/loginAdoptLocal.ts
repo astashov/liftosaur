@@ -1,12 +1,23 @@
-import { IStorage, STORAGE_VERSION_TYPES } from "../types";
+import { IStorage, ISubscription, STORAGE_VERSION_TYPES } from "../types";
 import { CollectionUtils_uniqBy } from "../utils/collection";
 import { ObjectUtils_values } from "../utils/object";
+import {
+  ILoginPhoneIds,
+  LoginConflictSummary_fromIds,
+  LoginConflictSummary_hasPhoneOnlyData,
+  LoginConflictSummary_phoneIds,
+} from "./loginConflictSummary";
 import { Stats_isEmpty } from "./stats";
 import { IVersionValue, VersionTracker, isCollectionVersions, isVersionsObject } from "./versionTracker";
 import { VersionTrackerUtils_isRecord, VersionTrackerUtils_isTypedObject } from "./versionTracker/utils";
 
 export type ILoginAdoption = "if-empty" | "never";
-export type ILoginPlan = "same-user" | "adopt" | "replace";
+export type ILoginPlan = "same-user" | "adopt" | "replace" | "conflict";
+export interface ILoginAccount {
+  userId: string;
+  email: string;
+  key?: string;
+}
 
 function isFreshAccount(storage: IStorage): boolean {
   const hasHealthStats = ObjectUtils_values(storage.stats.health || {}).some((values) => (values || []).length > 0);
@@ -35,13 +46,36 @@ export function LoginAdoptLocal_plan(args: {
   local: IStorage;
   server: IStorage;
 }): ILoginPlan {
+  return LoginAdoptLocal_planFromIds({ ...args, phone: LoginConflictSummary_phoneIds(args.local) });
+}
+
+export function LoginAdoptLocal_planFromIds(args: {
+  oldUserId?: string;
+  newUserId: string;
+  adoption: ILoginAdoption;
+  phone: ILoginPhoneIds;
+  server: IStorage;
+}): ILoginPlan {
   if (args.oldUserId === args.newUserId) {
     return "same-user";
   }
-  if (args.adoption === "if-empty" && isFreshAccount(args.server)) {
+  if (args.adoption === "never") {
+    return "replace";
+  }
+  if (isFreshAccount(args.server)) {
     return "adopt";
   }
-  return "replace";
+  return LoginConflictSummary_hasPhoneOnlyData(LoginConflictSummary_fromIds(args.phone, args.server))
+    ? "conflict"
+    : "replace";
+}
+
+export function LoginAdoptLocal_subscription(local: IStorage, server: IStorage, key?: string): ISubscription {
+  return {
+    apple: CollectionUtils_uniqBy([...local.subscription.apple, ...server.subscription.apple], "id"),
+    google: CollectionUtils_uniqBy([...local.subscription.google, ...server.subscription.google], "id"),
+    key,
+  };
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -74,7 +108,7 @@ function withServerOnlyFields<T extends Record<string, unknown>>(
 export function LoginAdoptLocal_storage(
   local: IStorage,
   server: IStorage,
-  account: { userId: string; email: string; key?: string },
+  account: ILoginAccount,
   deviceId: string,
   now: number
 ): IStorage {
@@ -82,11 +116,7 @@ export function LoginAdoptLocal_storage(
     ...local,
     tempUserId: account.userId,
     email: account.email,
-    subscription: {
-      apple: CollectionUtils_uniqBy([...local.subscription.apple, ...server.subscription.apple], "id"),
-      google: CollectionUtils_uniqBy([...local.subscription.google, ...server.subscription.google], "id"),
-      key: account.key,
-    },
+    subscription: LoginAdoptLocal_subscription(local, server, account.key),
   };
   const { id: _serverId, originalId: _serverOriginalId, _versions: serverVersions, ...serverFields } = server;
   const { id: _localId, originalId: _localOriginalId, _versions: localVersions, ...adoptedFields } = adopted;

@@ -62,24 +62,52 @@ describe("LoginAdoptLocal_plan freshness", () => {
     expect(planFor(serverStorage())).to.equal("adopt");
   });
 
-  it("replaces with a workout", () => {
-    expect(planFor({ ...Storage_getDefault(), history: [historyRecord(1)] })).to.equal("replace");
+  it("asks with a workout", () => {
+    expect(planFor({ ...Storage_getDefault(), history: [historyRecord(1)] })).to.equal("conflict");
   });
 
-  it("replaces with a program", () => {
-    expect(planFor({ ...Storage_getDefault(), programs: [Program_create("P")] })).to.equal("replace");
+  it("asks with a program", () => {
+    expect(planFor({ ...Storage_getDefault(), programs: [Program_create("P")] })).to.equal("conflict");
   });
 
-  it("replaces with a body stat", () => {
+  it("asks with a body stat", () => {
     const storage = Storage_getDefault();
     storage.stats.weight.weight = [{ vtype: "stat", value: { value: 80, unit: "kg" }, timestamp: 1 }];
-    expect(planFor(storage)).to.equal("replace");
+    expect(planFor(storage)).to.equal("conflict");
   });
 
-  it("replaces with a health stat", () => {
+  it("asks with a health stat", () => {
     const storage = Storage_getDefault();
     storage.stats.health = { sleep: [{ vtype: "stat", value: 480, timestamp: 1 }] };
-    expect(planFor(storage)).to.equal("replace");
+    expect(planFor(storage)).to.equal("conflict");
+  });
+
+  it("replaces when the account already has every phone item", () => {
+    expect(planFor({ ...Storage_getDefault(), history: [historyRecord(1000)] })).to.equal("replace");
+  });
+
+  it("replaces when adoption is not allowed, even with phone-only data", () => {
+    expect(
+      LoginAdoptLocal_plan({
+        oldUserId: "localid",
+        newUserId: "cloudid",
+        adoption: "never",
+        local: localStorage(),
+        server: { ...Storage_getDefault(), history: [historyRecord(1)] },
+      })
+    ).to.equal("replace");
+  });
+
+  it("asks when the phone only has a program", () => {
+    expect(
+      LoginAdoptLocal_plan({
+        oldUserId: "localid",
+        newUserId: "cloudid",
+        adoption: "if-empty",
+        local: { ...Storage_getDefault(), programs: [Program_create("Phone")] },
+        server: { ...Storage_getDefault(), history: [historyRecord(1)] },
+      })
+    ).to.equal("conflict");
   });
 });
 
@@ -157,26 +185,26 @@ function withDeletedWorkout(server: IStorage, id: number): IStorage {
 }
 
 describe("LoginAdoptLocal_plan with delete markers", () => {
-  it("replaces with a workout marker", () => {
-    expect(planFor(withDeletedWorkout(serverStorage(), 2000))).to.equal("replace");
+  it("asks with a workout marker", () => {
+    expect(planFor(withDeletedWorkout(serverStorage(), 2000))).to.equal("conflict");
   });
 
-  it("replaces with a program marker", () => {
+  it("asks with a program marker", () => {
     const server = serverStorage();
     const programs = { items: {}, deleted: { "123": now - 1000 } };
-    expect(planFor({ ...server, _versions: { ...server._versions, programs } })).to.equal("replace");
+    expect(planFor({ ...server, _versions: { ...server._versions, programs } })).to.equal("conflict");
   });
 
-  it("replaces with a nested bodyweight marker", () => {
+  it("asks with a nested bodyweight marker", () => {
     const server = serverStorage();
     const stats = { weight: { weight: { items: {}, deleted: { "5": now - 1000 } } } };
-    expect(planFor({ ...server, _versions: { ...server._versions, stats } })).to.equal("replace");
+    expect(planFor({ ...server, _versions: { ...server._versions, stats } })).to.equal("conflict");
   });
 
-  it("replaces with a custom exercise marker", () => {
+  it("asks with a custom exercise marker", () => {
     const server = serverStorage();
     const settings = { exercises: { items: {}, deleted: { abc: now - 1000 } } };
-    expect(planFor({ ...server, _versions: { ...server._versions, settings } })).to.equal("replace");
+    expect(planFor({ ...server, _versions: { ...server._versions, settings } })).to.equal("conflict");
   });
 
   it("adopts when the delete markers are empty", () => {

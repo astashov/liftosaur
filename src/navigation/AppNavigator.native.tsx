@@ -120,6 +120,7 @@ import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
 import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavModalAffiliate } from "./modals/NavModalAffiliate";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
+import { NavModalLoginConflict } from "./modals/NavModalLoginConflict";
 import { NavModalCoupon } from "./modals/NavModalCoupon";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalEditMuscleGroups } from "./modals/NavModalEditMuscleGroups";
@@ -515,6 +516,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             name="corruptedStateModal"
             component={NavModalCorruptedState}
             options={{ gestureEnabled: false }}
+          />
+          <RootStack.Screen
+            name="loginConflictModal"
+            component={NavModalLoginConflict}
+            options={{ gestureEnabled: false, sheetGrabberVisible: false }}
           />
           <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
         </RootStack.Group>

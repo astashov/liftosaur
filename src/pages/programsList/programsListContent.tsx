@@ -9,6 +9,8 @@ import { TimerBridge } from "../../utils/nativeTimerBridge";
 import { WorkoutBridge } from "../../utils/nativeWorkoutBridge";
 import { WatchBridge } from "../../utils/nativeWatchBridge";
 import { Keychain } from "../../utils/keychainStore";
+import { Dialog_prompt } from "../../utils/dialog";
+import { LoginConflictPrompt } from "../../utils/loginConflictPrompt";
 import { WorkoutMirroring } from "../../utils/nativeWorkoutMirroringBridge";
 import { HeartRateStore } from "../../utils/heartRateStore";
 import { ProgramContentList } from "../program/programContentList";
@@ -38,6 +40,7 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
     keychain: new Keychain(),
     mirroring,
     heartRate: new HeartRateStore(mirroring),
+    loginConflict: new LoginConflictPrompt(Dialog_prompt),
   };
   return (
     <ProgramContentList

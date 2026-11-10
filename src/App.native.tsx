@@ -217,6 +217,7 @@ import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
+  Thunk_syncOnBoot,
   Thunk_syncHealthKit,
   Thunk_iapFetchProducts,
   Thunk_iapRestoreOnStartup,
@@ -297,7 +298,7 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
   const lastScreenNameRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    dispatch(Thunk_sync2({ force: true }));
+    dispatch(Thunk_syncOnBoot());
     dispatch(Thunk_fetchInitial());
     dispatch(Thunk_syncHealthKit());
     const userId = stateRef.current.user?.id || stateRef.current.storage.tempUserId;
@@ -645,6 +646,13 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
+
+  const loginConflictRequest = state.loginConflictRequest;
+  useEffect(() => {
+    if (isNavReady && loginConflictRequest != null) {
+      navigateToModal("loginConflictModal");
+    }
+  }, [isNavReady, loginConflictRequest]);
 
   useOnloadModals(state, dispatch, isNavReady);
   useAppliedTextSize(state.storage.settings);

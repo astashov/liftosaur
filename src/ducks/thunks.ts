@@ -6,7 +6,13 @@ import type { IAllScreenParamList } from "../navigation/types";
 
 import { getNavigationService } from "../navigation/navUtils";
 import RB from "rollbar";
-import { IGetStorageResponse, IPostSyncResponse, Service, Service_adminTarget } from "../api/service";
+import {
+  ICheckLoginCredentials,
+  IGetStorageResponse,
+  IPostSyncResponse,
+  Service,
+  Service_adminTarget,
+} from "../api/service";
 import { lb } from "lens-shmens";
 import {
   Program_getProgram,
@@ -29,6 +35,7 @@ import {
   IApplePromotionalOffer,
   IEnv,
   IGooglePromotionalOffer,
+  ILastSynced,
   ILocalStorage,
   IOfferData,
   IState,
@@ -69,7 +76,7 @@ import { CSV_toString } from "../utils/csv";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
-import { IndexedDBUtils_set } from "../utils/indexeddb";
+import { IndexedDBUtils_get, IndexedDBUtils_remove, IndexedDBUtils_set } from "../utils/indexeddb";
 import { Account_getAll, IAccount } from "../models/account";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { WatchAuthHandoff_accountId } from "../utils/watchAuthHandoff";
@@ -159,11 +166,46 @@ import {
 import { IAuthToken } from "../utils/keychain";
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
 import { ILoginAdoption, LoginAdoptLocal_plan, LoginAdoptLocal_storage } from "../models/loginAdoptLocal";
+import {
+  ILoginConflictChoice,
+  LoginConflict_mergedStorage,
+  LoginConflict_overwrittenStorage,
+} from "../models/loginConflict";
+import {
+  LoginConflictSummary_build,
+  LoginConflictSummary_hasAnyData,
+  LoginConflictSummary_phoneIds,
+} from "../models/loginConflictSummary";
+import type { ILoginConflictRequest } from "../utils/loginConflictPrompt";
 
 declare let Rollbar: RB;
 
 export class NoRetryError extends Error {
   public noretry = true;
+}
+
+async function googleLogin(
+  dispatch: IDispatch,
+  getState: () => IState,
+  env: IEnv,
+  token: string,
+  forcedUserEmail?: string
+): Promise<void> {
+  const preflight = await preflightLogin(dispatch, getState, env, {
+    provider: "google",
+    token,
+    forceuseremail: forcedUserEmail,
+  });
+  if (preflight.kind === "cancel") {
+    return;
+  }
+  const userId = getState().user?.id || getState().storage.tempUserId;
+  const result = await load(dispatch, "Logging in", () => env.service.googleSignIn(token, userId, { forcedUserEmail }));
+  await handleLogin(dispatch, getState, env, result, {
+    oldUserId: userId,
+    adoption: "if-empty",
+    choice: preflight.choice,
+  });
 }
 
 export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
@@ -176,15 +218,7 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
         }
         return;
       }
-      const token = result.idToken || result.accessToken!;
-      const state = getState();
-      const userId = state.user?.id || state.storage.tempUserId;
-      const loginResult = await load(dispatch, "Logging in", async () => {
-        return env.service.googleSignIn(token, userId, {});
-      });
-      await load(dispatch, "Signing in", () => {
-        return handleLogin(dispatch, getState, env, loginResult, { oldUserId: userId, adoption: "if-empty" });
-      });
+      await googleLogin(dispatch, getState, env, result.idToken || result.accessToken!);
       if (cb) {
         cb(getState());
       }
@@ -192,30 +226,10 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
       return;
     }
     const url = UrlUtils_build(window.location.href);
-    const forcedUserEmail = url.searchParams.get("forceuseremail");
-    if (forcedUserEmail == null) {
-      const accessToken = await getGoogleAccessToken();
-      if (accessToken != null) {
-        const state = getState();
-        const userId = state.user?.id || state.storage.tempUserId;
-        const result = await load(dispatch, "Logging in", async () => {
-          return env.service.googleSignIn(accessToken, userId, {});
-        });
-        await load(dispatch, "Signing in", () => {
-          return handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" });
-        });
-        if (cb) {
-          cb(getState());
-        }
-        dispatch(Thunk_sync2());
-      }
-    } else {
-      const state = getState();
-      const userId = state.user?.id || state.storage.tempUserId;
-      const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
-      await load(dispatch, "Logging in", () =>
-        handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" })
-      );
+    const forcedUserEmail = url.searchParams.get("forceuseremail") ?? undefined;
+    const token = forcedUserEmail ?? (await getGoogleAccessToken());
+    if (token != null) {
+      await googleLogin(dispatch, getState, env, token, forcedUserEmail);
       if (cb) {
         cb(getState());
       }
@@ -238,6 +252,14 @@ export function Thunk_emailAuth(
 ): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent(`email-${mode}`));
+    const preflight =
+      mode === "signin"
+        ? await preflightLogin(dispatch, getState, env, { provider: "email", email, password })
+        : { kind: "proceed" as const };
+    if (preflight.kind === "cancel") {
+      cb({}, getState());
+      return;
+    }
     const state = getState();
     const userId = state.user?.id || state.storage.tempUserId;
     const result = await load(dispatch, "Logging in", () => {
@@ -246,9 +268,11 @@ export function Thunk_emailAuth(
         : env.service.emailSignIn(email, password, userId);
     });
     if (result.type === "success") {
-      await load(dispatch, "Signing in", () =>
-        handleLogin(dispatch, getState, env, result.response, { oldUserId: userId, adoption: "if-empty" })
-      );
+      await handleLogin(dispatch, getState, env, result.response, {
+        oldUserId: userId,
+        adoption: "if-empty",
+        choice: preflight.choice,
+      });
       dispatch(Thunk_sync2());
       cb({}, getState());
     } else if (result.type === "confirmation_sent") {
@@ -300,14 +324,22 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
       ({ id_token, code } = response.authorization);
     }
     if (id_token != null) {
+      const idToken = id_token;
+      const preflight = await preflightLogin(dispatch, getState, env, { provider: "apple", idToken });
+      if (preflight.kind === "cancel") {
+        cb?.(getState());
+        return;
+      }
       const state = getState();
       const userId = state.user?.id || state.storage.tempUserId;
       const result = await load(dispatch, "Logging in", async () =>
-        env.service.appleSignIn(code ?? "", id_token!, userId)
+        env.service.appleSignIn(code ?? "", idToken, userId)
       );
-      await load(dispatch, "Signing in", () =>
-        handleLogin(dispatch, getState, env, result, { oldUserId: userId, adoption: "if-empty" })
-      );
+      await handleLogin(dispatch, getState, env, result, {
+        oldUserId: userId,
+        adoption: "if-empty",
+        choice: preflight.choice,
+      });
       if (cb) {
         cb(getState());
       }
@@ -775,9 +807,17 @@ export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boo
     }
     try {
       const state = getState();
-      if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
+      if (
+        state.errors.corruptedstorage == null &&
+        !state.nosync &&
+        !state.loginDecisionPending &&
+        (state.user != null || args?.force)
+      ) {
         await env.queue.enqueue(
           async (args2, signal) => {
+            if (getState().loginDecisionPending) {
+              return;
+            }
             await load(dispatch, "Sync", async () => {
               if (args2?.log) {
                 dispatch(Thunk_postevent("sync2-start"));
@@ -2515,104 +2555,251 @@ function _load<T>(
     });
 }
 
+interface IParsedLogin {
+  storage: IStorage;
+  lastSynced: ILastSynced;
+  email: string;
+}
+
+const loginDecisionKey = "login_decision_pending";
+
+export function Thunk_chooseLoginConflict(choice: ILoginConflictChoice): IThunk {
+  return async (dispatch, getState, env) => {
+    await env.loginConflict.choose(choice);
+  };
+}
+
+export function Thunk_syncOnBoot(): IThunk {
+  return async (dispatch, getState, env) => {
+    if ((await IndexedDBUtils_get(loginDecisionKey)) != null) {
+      dispatch(Thunk_postevent("login-conflict-interrupted"));
+      try {
+        await env.service.signout();
+        await IndexedDBUtils_remove(loginDecisionKey);
+      } catch (e) {
+        lg("login-conflict-signout-fail", { error: e instanceof Error ? e.message : String(e) });
+        return;
+      }
+    }
+    dispatch(Thunk_sync2({ force: true }));
+  };
+}
+
+type ILoginDecision =
+  | { kind: "same-user" }
+  | { kind: "replace" }
+  | { kind: "keep-device"; storage: IStorage; event: string };
+
+async function parseLogin(
+  env: IEnv,
+  result: IGetStorageResponse,
+  email: string,
+  oldUserId: string | undefined
+): Promise<IParsedLogin> {
+  let storage: IStorage;
+  const lastSynced = SyncBaseline_fromServer(
+    { _versions: result.storage._versions, tempUserId: result.user_id },
+    Date.now()
+  );
+  const storageResult = Storage_get(result.storage, true);
+  const service = new Service(env.service.client);
+  if (storageResult.success) {
+    storage = storageResult.data;
+  } else {
+    storage = result.storage;
+    const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory_generateUid(8)}`;
+    await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
+  }
+  storage.tempUserId = result.user_id;
+  storage.email = email;
+  if (result.is_new_user) {
+    Analytics_trackSignUp();
+    if (oldUserId) {
+      try {
+        await service.postDebug(oldUserId, JSON.stringify(window.state || {}), {
+          new_userid: result.user_id,
+          email,
+        });
+      } catch (e) {
+        console.error("Failed to upload debug data for old user", e);
+      }
+    }
+  }
+  return { storage, lastSynced, email };
+}
+
+async function isAccountBackedUp(dispatch: IDispatch, env: IEnv): Promise<boolean> {
+  try {
+    await load(dispatch, "Backing up account", () => env.service.postBackupAccount());
+    return true;
+  } catch (e) {
+    lg("login-conflict-backup-fail", { error: e instanceof Error ? e.message : String(e) });
+    Dialog_alert(
+      "Couldn't back up the account, so nothing was changed. This device's data is under Other local accounts."
+    );
+    return false;
+  }
+}
+
+async function askLoginConflict(
+  dispatch: IDispatch,
+  getState: () => IState,
+  env: IEnv,
+  request: ILoginConflictRequest
+): Promise<ILoginConflictChoice> {
+  updateState(dispatch, [lb<IState>().p("loginConflictRequest").record(request)], "Show login conflict");
+  try {
+    const choice = await env.loginConflict.ask(request);
+    dispatch(Thunk_postevent(`login-conflict-${choice}`));
+    return choice;
+  } finally {
+    if (getState().loginConflictRequest === request) {
+      updateState(dispatch, [lb<IState>().p("loginConflictRequest").record(undefined)], "Hide login conflict");
+    }
+  }
+}
+
+async function preflightLogin(
+  dispatch: IDispatch,
+  getState: () => IState,
+  env: IEnv,
+  credentials: ICheckLoginCredentials
+): Promise<{ kind: "cancel" } | { kind: "proceed"; choice?: ILoginConflictChoice }> {
+  const phone = LoginConflictSummary_phoneIds(getState().storage);
+  if (!LoginConflictSummary_hasAnyData(phone)) {
+    return { kind: "proceed" };
+  }
+  const userId = getState().user?.id || getState().storage.tempUserId;
+  const check = await load(dispatch, "Logging in", () => env.service.checkLogin(credentials, userId, phone));
+  if (check.status !== "conflict") {
+    return { kind: "proceed" };
+  }
+  const choice = await askLoginConflict(dispatch, getState, env, {
+    summary: check.summary,
+    email: check.email,
+    canCancel: true,
+  });
+  return choice === "cancel" ? { kind: "cancel" } : { kind: "proceed", choice };
+}
+
+async function decideLogin(
+  dispatch: IDispatch,
+  getState: () => IState,
+  env: IEnv,
+  result: IGetStorageResponse,
+  parsed: IParsedLogin,
+  opts: { oldUserId?: string; adoption: ILoginAdoption; choice?: ILoginConflictChoice }
+): Promise<ILoginDecision> {
+  const account = { userId: result.user_id, email: parsed.email, key: result.key };
+  const plan = LoginAdoptLocal_plan({
+    oldUserId: opts.oldUserId,
+    newUserId: result.user_id,
+    adoption: opts.adoption,
+    local: getState().storage,
+    server: parsed.storage,
+  });
+  if (plan === "same-user" || plan === "replace") {
+    return { kind: plan };
+  }
+  if (plan === "adopt") {
+    const storage = LoginAdoptLocal_storage(
+      getState().storage,
+      parsed.storage,
+      account,
+      getState().deviceId,
+      Date.now()
+    );
+    return { kind: "keep-device", storage, event: "login-adopt-local" };
+  }
+  updateState(dispatch, [lb<IState>().p("loginDecisionPending").record(true)], "Start login decision");
+  let choice = opts.choice;
+  if (choice == null) {
+    await IndexedDBUtils_set(loginDecisionKey, result.user_id);
+    const summary = LoginConflictSummary_build(getState().storage, parsed.storage);
+    choice = await askLoginConflict(dispatch, getState, env, { summary, email: parsed.email, canCancel: false });
+  }
+  if (choice === "switch" || choice === "cancel" || !(await isAccountBackedUp(dispatch, env))) {
+    return { kind: "replace" };
+  }
+  const build = choice === "merge" ? LoginConflict_mergedStorage : LoginConflict_overwrittenStorage;
+  const storage = build(getState().storage, parsed.storage, account, getState().deviceId, Date.now());
+  return { kind: "keep-device", storage, event: `login-conflict-${choice}-apply` };
+}
+
+async function commitLogin(
+  dispatch: IDispatch,
+  env: IEnv,
+  result: IGetStorageResponse,
+  parsed: IParsedLogin,
+  decision: ILoginDecision
+): Promise<void> {
+  const { storage, lastSynced, email } = parsed;
+  if (decision.kind === "same-user") {
+    dispatch(Thunk_postevent("login-same-user"));
+    updateState(dispatch, [lb<IState>().p("lastSynced").record(lastSynced)], "Set last synced on login");
+    dispatch({ type: "Login", email, userId: result.user_id });
+    if (storage.subscription.key !== result.key) {
+      updateState(
+        dispatch,
+        [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
+        "Set subscription key from login"
+      );
+    }
+  } else if (decision.kind === "keep-device") {
+    dispatch(Thunk_postevent(decision.event));
+    updateState(
+      dispatch,
+      [lb<IState>().p("lastSynced").record(lastSynced), lb<IState>().p("storage").record(decision.storage)],
+      "Keep device storage on login"
+    );
+    dispatch({ type: "Login", email, userId: result.user_id });
+  } else {
+    dispatch(Thunk_postevent("login-different-user"));
+    storage.subscription.key = result.key;
+    const newState = await getInitialState(env.service.client, { storage, deviceId: await DeviceId_get() });
+    newState.lastSynced = lastSynced;
+    newState.user = { id: result.user_id, email };
+    dispatch({ type: "ReplaceState", state: newState });
+  }
+  dispatch(Thunk_fetchInitial());
+  if (result.session) {
+    const auth: IAuthToken = {
+      token: result.session,
+      expiresAt: Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60,
+      userId: result.user_id,
+    };
+    try {
+      await env.keychain.setAuthToken(auth);
+    } catch (e) {
+      lg("ls-keychain-set-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+    }
+    if (WatchAuthHandoff_accountId({ id: result.user_id, email }, storage) != null) {
+      env.watch.sendAuthToWatch(auth);
+    }
+  }
+}
+
 async function handleLogin(
   dispatch: IDispatch,
   getState: () => IState,
   env: IEnv,
   result: IGetStorageResponse,
-  opts: { oldUserId?: string; adoption: ILoginAdoption }
+  opts: { oldUserId?: string; adoption: ILoginAdoption; choice?: ILoginConflictChoice }
 ): Promise<void> {
-  const { oldUserId } = opts;
-  const client = env.service.client;
   try {
-    if (result.email != null) {
+    const email = result.email;
+    if (email != null) {
       dispatch(Thunk_postevent("login"));
-      Rollbar.configure(RollbarUtils_config({ person: { email: result.email, id: result.user_id } }));
-      let storage: IStorage;
-      const lastSynced = SyncBaseline_fromServer(
-        { _versions: result.storage._versions, tempUserId: result.user_id },
-        Date.now()
-      );
-      const storageResult = Storage_get(result.storage, true);
-      const service = new Service(client);
-      if (storageResult.success) {
-        storage = storageResult.data;
-      } else {
-        storage = result.storage;
-        const userid = result.user_id || result.storage.tempUserId || `missing-${UidFactory_generateUid(8)}`;
-        await service.postDebug(userid, JSON.stringify(result.storage), { local: "false" });
-      }
-      storage.tempUserId = result.user_id;
-      storage.email = result.email;
-      if (result.is_new_user) {
-        Analytics_trackSignUp();
-        if (oldUserId) {
-          try {
-            await service.postDebug(oldUserId, JSON.stringify(window.state || {}), {
-              new_userid: result.user_id,
-              email: result.email,
-            });
-          } catch (e) {
-            console.error("Failed to upload debug data for old user", e);
-          }
+      Rollbar.configure(RollbarUtils_config({ person: { email, id: result.user_id } }));
+      const parsed = await parseLogin(env, result, email, opts.oldUserId);
+      try {
+        const decision = await decideLogin(dispatch, getState, env, result, parsed, opts);
+        await load(dispatch, "Signing in", () => commitLogin(dispatch, env, result, parsed, decision));
+      } finally {
+        if (getState().loginDecisionPending) {
+          updateState(dispatch, [lb<IState>().p("loginDecisionPending").record(false)], "End login decision");
         }
-      }
-      const plan = LoginAdoptLocal_plan({
-        oldUserId,
-        newUserId: result.user_id,
-        adoption: opts.adoption,
-        local: getState().storage,
-        server: storage,
-      });
-      if (plan === "same-user") {
-        dispatch(Thunk_postevent("login-same-user"));
-        updateState(dispatch, [lb<IState>().p("lastSynced").record(lastSynced)], "Set last synced on login");
-        dispatch({ type: "Login", email: result.email, userId: result.user_id });
-        if (storage.subscription.key !== result.key) {
-          updateState(
-            dispatch,
-            [lb<IState>().p("storage").p("subscription").p("key").record(result.key)],
-            "Set subscription key from login"
-          );
-        }
-      } else if (plan === "adopt") {
-        dispatch(Thunk_postevent("login-adopt-local"));
-        const adopted = LoginAdoptLocal_storage(
-          getState().storage,
-          storage,
-          { userId: result.user_id, email: result.email, key: result.key },
-          getState().deviceId,
-          Date.now()
-        );
-        updateState(
-          dispatch,
-          [lb<IState>().p("lastSynced").record(lastSynced), lb<IState>().p("storage").record(adopted)],
-          "Adopt local storage on login"
-        );
-        dispatch({ type: "Login", email: result.email, userId: result.user_id });
-      } else {
-        dispatch(Thunk_postevent("login-different-user"));
-        storage.subscription.key = result.key;
-        const newState = await getInitialState(client, { storage, deviceId: await DeviceId_get() });
-        newState.lastSynced = lastSynced;
-        newState.user = { id: result.user_id, email: result.email };
-        dispatch({ type: "ReplaceState", state: newState });
-      }
-      dispatch(Thunk_fetchInitial());
-      if (result.session) {
-        const auth: IAuthToken = {
-          token: result.session,
-          expiresAt: Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60,
-          userId: result.user_id,
-        };
-        try {
-          await env.keychain.setAuthToken(auth);
-        } catch (e) {
-          lg("ls-keychain-set-auth-fail", { error: e instanceof Error ? e.message : String(e) });
-        }
-        if (WatchAuthHandoff_accountId({ id: result.user_id, email: result.email }, storage) != null) {
-          env.watch.sendAuthToWatch(auth);
-        }
+        await IndexedDBUtils_remove(loginDecisionKey);
       }
     } else if (result.key) {
       updateState(

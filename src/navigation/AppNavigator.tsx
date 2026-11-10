@@ -84,6 +84,7 @@ import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
 import { NavModalHearAboutUs } from "./modals/NavModalHearAboutUs";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
+import { NavModalLoginConflict } from "./modals/NavModalLoginConflict";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
@@ -378,6 +379,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
           <RootStack.Screen name="hearAboutUsModal" component={NavModalHearAboutUs} />
           <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
+          <RootStack.Screen name="loginConflictModal" component={NavModalLoginConflict} />
           <RootStack.Screen name="debugModal" component={NavModalDebug} />
           <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
           <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />

@@ -34,6 +34,7 @@ import type { IWatchBridge } from "../utils/watchBridge";
 import type { IKeychain } from "../utils/keychain";
 import type { IWorkoutMirroring } from "../utils/workoutMirroring";
 import type { IHeartRateStore } from "../utils/heartRateStore";
+import type { ILoginConflictRequest, LoginConflictPrompt } from "../utils/loginConflictPrompt";
 
 export type IEnv = {
   service: Service;
@@ -51,6 +52,7 @@ export type IEnv = {
   keychain: IKeychain;
   mirroring: IWorkoutMirroring;
   heartRate: IHeartRateStore;
+  loginConflict: LoginConflictPrompt;
 };
 
 export interface INotification {
@@ -151,6 +153,8 @@ export interface IState {
   user?: IUser;
   storage: IStorage;
   lastSynced?: ILastSynced;
+  loginDecisionPending?: boolean;
+  loginConflictRequest?: ILoginConflictRequest;
   programs: IProgram[];
   programsIndex: IProgramIndexEntry[];
   notification?: INotification;

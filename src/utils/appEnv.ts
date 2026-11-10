@@ -6,6 +6,8 @@ import { navigationRef } from "../navigation/navigationRef";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import NativeLiftosaurPush from "../specs/NativeLiftosaurPush";
 import { AsyncQueue } from "./asyncQueue";
+import { Dialog_prompt } from "./dialog";
+import { LoginConflictPrompt } from "./loginConflictPrompt";
 import { HealthAdapter } from "./health";
 import { IapAdapter } from "./iap";
 import { Keychain } from "./keychainStore";
@@ -37,5 +39,6 @@ export function AppEnv_build(persistence: Persistence): IEnv {
     workout: new WorkoutBridge(timer),
     watch: new WatchBridge(),
     keychain: new Keychain(),
+    loginConflict: new LoginConflictPrompt(Dialog_prompt),
   };
 }

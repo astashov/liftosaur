@@ -2,12 +2,13 @@ import { JSX, useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { ActiveSheetHeightProvider } from "../navigation/ActiveSheetHeightContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
-import { Dialog_alert } from "../utils/dialog";
+import { Dialog_alert, Dialog_prompt } from "../utils/dialog";
+import { LoginConflictPrompt } from "../utils/loginConflictPrompt";
 import { Program_getProgram } from "../models/program";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
   Thunk_fetchStorage,
-  Thunk_sync2,
+  Thunk_syncOnBoot,
   Thunk_postevent,
   Thunk_log,
   Thunk_fetchInitial,
@@ -116,6 +117,7 @@ export function AppView(props: IProps): JSX.Element | null {
       keychain: new Keychain(),
       mirroring,
       heartRate: new HeartRateStore(mirroring),
+      loginConflict: new LoginConflictPrompt(Dialog_prompt),
     };
   }, [client, audio, queue, persistence, timerBridge]);
   const service = env.service;
@@ -163,6 +165,13 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
+
+  const loginConflictRequest = state.loginConflictRequest;
+  useEffect(() => {
+    if (isNavReady && loginConflictRequest != null) {
+      navigateToModal("loginConflictModal");
+    }
+  }, [isNavReady, loginConflictRequest]);
 
   const prevShowSignupRequest = useRef(false);
   useEffect(() => {
@@ -213,7 +222,7 @@ export function AppView(props: IProps): JSX.Element | null {
       const storageId = url != null ? url.searchParams.get("storageid") || undefined : undefined;
       dispatch(Thunk_fetchStorage(storageId));
     } else {
-      dispatch(Thunk_sync2({ force: true }));
+      dispatch(Thunk_syncOnBoot());
     }
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;

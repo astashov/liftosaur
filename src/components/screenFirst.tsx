@@ -27,6 +27,7 @@ const onboardingImages = [
   "/images/dinoplates.png",
   "/images/dinoprogramselect.png",
   "/images/dino-scope.png",
+  "/images/dino-warning.png",
 ];
 
 export function ScreenFirst(props: IProps): JSX.Element {

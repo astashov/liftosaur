@@ -17,6 +17,7 @@ import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils_inGroupsOf, CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder_encode, Encoder_decode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
+import type { ILoginConflictSummary, ILoginPhoneIds } from "../models/loginConflictSummary";
 import {
   HistoryDelta_apply,
   HistoryDelta_missingIds,
@@ -52,6 +53,16 @@ export interface IProgramDetail {
     weeks: IPlannerProgramWeek[];
   };
 }
+
+export type ICheckLoginCredentials =
+  | { provider: "google"; token: string; forceuseremail?: string }
+  | { provider: "apple"; idToken: string }
+  | { provider: "email"; email: string; password: string };
+
+export type ICheckLoginResponse =
+  | { status: "conflict"; email: string; summary: ILoginConflictSummary }
+  | { status: "ok" }
+  | { status: "unavailable" };
 
 export type IEmailAuthResponse =
   | { type: "success"; response: IGetStorageResponse }
@@ -324,6 +335,28 @@ export class Service {
       })
     );
     return pages.flat();
+  }
+
+  public async checkLogin(
+    credentials: ICheckLoginCredentials,
+    id: string,
+    phone: ILoginPhoneIds
+  ): Promise<ICheckLoginResponse> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/checklogin`, {
+        method: "POST",
+        body: JSON.stringify({ ...credentials, id, phone }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (!response.ok) {
+        return { status: "unavailable" };
+      }
+      const json: ICheckLoginResponse = await response.json();
+      return json.status === "conflict" ? json : { status: "ok" };
+    } catch (e) {
+      return { status: "unavailable" };
+    }
   }
 
   public async appleSignIn(code: string, idToken: string, id: string): Promise<IGetStorageResponse> {
@@ -983,6 +1016,16 @@ export class Service {
     } catch {
       return { clear: false };
     }
+  }
+
+  public async postBackupAccount(): Promise<string> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/backupaccount`);
+    const response = await this.client(url.toString(), { method: "POST", credentials: "include" });
+    if (!response.ok) {
+      throw new Error(`Account backup failed with status ${response.status}`);
+    }
+    const json: { storageId: string } = await response.json();
+    return json.storageId;
   }
 
   public async deleteAccount(): Promise<boolean> {
