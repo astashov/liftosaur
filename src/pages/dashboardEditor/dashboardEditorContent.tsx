@@ -1,4 +1,7 @@
 import { JSX, useEffect, useMemo, useState } from "react";
+import { Pressable, View } from "react-native";
+import { IconUndo } from "../../components/icons/iconUndo";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IAccount } from "../../models/account";
 import { IDashboard, ISettings } from "../../types";
 import { IFieldVersion } from "../../models/versionTracker/types";
@@ -23,6 +26,10 @@ import { Dialog_alert } from "../../utils/dialog";
 import { DashboardEditorPreview, IDashboardEditorData } from "./dashboardEditorPreview";
 
 const PREVIEW_DELAY_MS = 300;
+
+function undoColor(isEnabled: boolean): string {
+  return isEnabled ? Tailwind_semantic().icon.neutral : Tailwind_semantic().icon.light;
+}
 
 export interface IDashboardEditorPageData {
   isMobile: boolean;
@@ -115,12 +122,28 @@ export function DashboardEditorContent(props: IDashboardEditorContentProps): JSX
             />
           </h1>
         </div>
-        <Button name="dashboard-undo" kind="lightgrayv3" disabled={!textDraft.canUndo} onClick={textDraft.undo}>
-          Undo
-        </Button>
-        <Button name="dashboard-redo" kind="lightgrayv3" disabled={!textDraft.canRedo} onClick={textDraft.redo}>
-          Redo
-        </Button>
+        <Pressable
+          testID="dashboard-undo"
+          data-testid="dashboard-undo"
+          accessibilityLabel="Undo"
+          className="p-2"
+          disabled={!textDraft.canUndo}
+          onPress={textDraft.undo}
+        >
+          <IconUndo width={22} height={22} color={undoColor(textDraft.canUndo)} />
+        </Pressable>
+        <Pressable
+          testID="dashboard-redo"
+          data-testid="dashboard-redo"
+          accessibilityLabel="Redo"
+          className="p-2"
+          disabled={!textDraft.canRedo}
+          onPress={textDraft.redo}
+        >
+          <View style={{ transform: [{ scaleX: -1 }] }}>
+            <IconUndo width={22} height={22} color={undoColor(textDraft.canRedo)} />
+          </View>
+        </Pressable>
         <Button name="dashboard-save" kind="purple" disabled={!isDirty || isSaving} onClick={onSave}>
           {isSaving ? "Saving…" : isDirty ? "Save" : "Saved"}
         </Button>

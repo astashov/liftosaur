@@ -180,7 +180,7 @@ function getMenuItems(isLoggedIn: boolean, affiliateEnabled: boolean): readonly 
     ["Web Editor", "/planner"],
     ["Docs", "/doc"],
     ["Blog", "/blog"],
-    ...(isLoggedIn ? [["My Programs", "/user/programs"] as const] : []),
+    ...(isLoggedIn ? [["My Programs", "/user/programs"] as const, ["Dashboards", "/user/dashboards"] as const] : []),
     ...(isLoggedIn && affiliateEnabled ? [["Affiliate Stats", "/user/affiliates"] as const] : []),
   ];
 }

@@ -2,6 +2,7 @@ import { JSX, useCallback, useState } from "react";
 import { View, Pressable, Platform, ActionSheetIOS, Modal as RNModal } from "react-native";
 import { Text } from "./primitives/text";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
+import { ActionMenuPopup, ActionMenuPopup_anchor, IActionMenuAnchor } from "./actionMenuPopup";
 
 export interface IActionMenuAction {
   label: string;
@@ -12,7 +13,7 @@ export interface IActionMenuAction {
 }
 
 export interface IActionMenuProps {
-  renderTrigger: (open: () => void) => JSX.Element;
+  renderTrigger: (open: (event?: unknown) => void) => JSX.Element;
   title?: string;
   actions: IActionMenuAction[];
   onOpenChange?: (isOpen: boolean) => void;
@@ -20,59 +21,73 @@ export interface IActionMenuProps {
 
 export function ActionMenu(props: IActionMenuProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const [anchor, setAnchor] = useState<IActionMenuAnchor | undefined>(undefined);
   const { onOpenChange } = props;
 
-  const open = useCallback(() => {
-    if (Platform.OS === "ios") {
-      const actions = props.actions;
-      const labels = actions.map((a) => a.label).concat("Cancel");
-      const destructiveIndex = actions.findIndex((a) => a.destructive);
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: props.title,
-          options: labels,
-          cancelButtonIndex: labels.length - 1,
-          destructiveButtonIndex: destructiveIndex >= 0 ? destructiveIndex : undefined,
-        },
-        (buttonIndex) => {
-          if (buttonIndex != null && buttonIndex < actions.length && !actions[buttonIndex].disabled) {
-            actions[buttonIndex].onPress();
+  const open = useCallback(
+    (event?: unknown) => {
+      if (Platform.OS === "ios") {
+        const actions = props.actions;
+        const labels = actions.map((a) => a.label).concat("Cancel");
+        const destructiveIndex = actions.findIndex((a) => a.destructive);
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            title: props.title,
+            options: labels,
+            cancelButtonIndex: labels.length - 1,
+            destructiveButtonIndex: destructiveIndex >= 0 ? destructiveIndex : undefined,
+          },
+          (buttonIndex) => {
+            if (buttonIndex != null && buttonIndex < actions.length && !actions[buttonIndex].disabled) {
+              actions[buttonIndex].onPress();
+            }
           }
-        }
-      );
-      return;
-    }
-    setIsOpen(true);
-    onOpenChange?.(true);
-  }, [props.actions, props.title, onOpenChange]);
+        );
+        return;
+      }
+      setAnchor(ActionMenuPopup_anchor(event));
+      setIsOpen(true);
+      onOpenChange?.(true);
+    },
+    [props.actions, props.title, onOpenChange]
+  );
 
   const close = useCallback(() => {
     setIsOpen(false);
     onOpenChange?.(false);
   }, [onOpenChange]);
 
+  const webItems = props.actions.map((a, i) => (
+    <DropdownMenuItem
+      key={a.label}
+      isTop={i === 0}
+      data-testid={a.testID}
+      testID={a.testID}
+      disabled={a.disabled}
+      onClick={() => {
+        close();
+        if (!a.disabled) {
+          a.onPress();
+        }
+      }}
+    >
+      <Text className={`whitespace-nowrap ${a.destructive ? "text-text-error" : ""}`}>{a.label}</Text>
+    </DropdownMenuItem>
+  ));
+
   return (
     <>
       {props.renderTrigger(open)}
-      {isOpen && Platform.OS === "web" && (
+      {isOpen && Platform.OS === "web" && anchor != null && (
+        <ActionMenuPopup anchor={anchor} onClose={close}>
+          <DropdownMenu rightOffset="0" onClose={close}>
+            {webItems}
+          </DropdownMenu>
+        </ActionMenuPopup>
+      )}
+      {isOpen && Platform.OS === "web" && anchor == null && (
         <DropdownMenu rightOffset="3rem" onClose={close}>
-          {props.actions.map((a, i) => (
-            <DropdownMenuItem
-              key={a.label}
-              isTop={i === 0}
-              data-testid={a.testID}
-              testID={a.testID}
-              disabled={a.disabled}
-              onClick={() => {
-                close();
-                if (!a.disabled) {
-                  a.onPress();
-                }
-              }}
-            >
-              <Text className={`whitespace-nowrap ${a.destructive ? "text-text-error" : ""}`}>{a.label}</Text>
-            </DropdownMenuItem>
-          ))}
+          {webItems}
         </DropdownMenu>
       )}
       {Platform.OS === "android" && (

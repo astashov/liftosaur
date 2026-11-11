@@ -1,4 +1,4 @@
-import { JSX, useMemo } from "react";
+import { JSX, useContext, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
@@ -7,6 +7,9 @@ import { LiftographSeriesEval_compile, LiftographSeriesEval_create } from "../..
 import { DashboardView } from "../../components/dashboard/dashboardView";
 import { DashboardEditView } from "../../components/dashboard/dashboardEditView";
 import { WindowScrollProvider } from "../../components/windowScrollProvider";
+import { DashboardWidgetCommit_resolve, IDashboardWidgetModalData } from "../../models/dashboardWidgetCommit";
+import { Dialog_alert } from "../../utils/dialog";
+import { DashboardEditorBrowserContext } from "./dashboardEditorBrowserContext";
 
 export type IDashboardEditorData =
   | { kind: "loading" }
@@ -25,21 +28,42 @@ function DashboardEditorPreviewReady(props: {
   stats: IStats;
   layoutEditing?: IDashboardEditorLayoutEditing;
 }): JSX.Element {
-  const { history, stats, settings } = props;
+  const { history, stats, settings, layoutEditing } = props;
   const today = DateUtils_formatYYYYMMDD(Date.now());
   const evaluation = useMemo(
     () => LiftographSeriesEval_create({ history, stats, settings, today: Date.now() }),
     [history, stats, settings, today]
   );
-  if (props.layoutEditing != null) {
+  const [widget, setWidget] = useState<IDashboardWidgetModalData | undefined>(undefined);
+  const WidgetModal = useContext(DashboardEditorBrowserContext)?.WidgetModal;
+  if (layoutEditing != null) {
     return (
       <WindowScrollProvider stickyHeaderHeight={0} footerHeight={0}>
         <DashboardEditView
           text={props.text}
           evaluation={evaluation}
-          onChange={props.layoutEditing.onChange}
-          onOpenEditor={props.layoutEditing.onOpenEditor}
+          onChange={layoutEditing.onChange}
+          onOpenEditor={layoutEditing.onOpenEditor}
+          onOpenWidget={WidgetModal != null ? setWidget : undefined}
         />
+        {widget != null && WidgetModal != null ? (
+          <WidgetModal
+            data={widget}
+            settings={settings}
+            history={history}
+            evaluation={evaluation}
+            onClose={() => setWidget(undefined)}
+            onDone={(result) => {
+              setWidget(undefined);
+              const resolved = DashboardWidgetCommit_resolve(props.text, result);
+              if (resolved.kind === "alert") {
+                Dialog_alert(resolved.message);
+              } else if (resolved.kind === "write") {
+                layoutEditing.onChange(resolved.text);
+              }
+            }}
+          />
+        ) : null}
       </WindowScrollProvider>
     );
   }

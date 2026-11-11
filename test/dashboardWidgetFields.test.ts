@@ -65,7 +65,7 @@ describe("DashboardWidgetFields", () => {
     expect(DashboardWidgetFields_exerciseType({ type: "workout" }, exercises)).to.equal(undefined);
   });
 
-  it("pickerExercise uses the series exercise or falls back to squat", () => {
+  it("pickerExercise uses the series exercise, and has none for a series without one", () => {
     const exercises = fxSettings().exercises;
     const model = LiftographWidgetModel_read(
       "graph {\n  name: A / source: exercise(Bench Press, Dumbbell)\n  name: B / source: workout\n}"
@@ -77,7 +77,7 @@ describe("DashboardWidgetFields", () => {
       id: "benchPress",
       equipment: "dumbbell",
     });
-    expect(DashboardWidgetFields_pickerExercise(model, 1, exercises)).to.eql({ id: "squat", equipment: "barbell" });
+    expect(DashboardWidgetFields_pickerExercise(model, 1, exercises)).to.equal(undefined);
   });
 
   it("seriesSummary joins source, what to plot and grouping", () => {

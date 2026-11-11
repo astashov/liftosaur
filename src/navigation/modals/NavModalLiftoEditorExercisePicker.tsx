@@ -4,6 +4,7 @@ import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
+import { ExercisePickerUtils_swapState } from "../../components/exercisePicker/exercisePickerUtils";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
 import { Program_getExerciseTypesForWeekDay } from "../../models/program";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
@@ -22,22 +23,9 @@ export function NavModalLiftoEditorExercisePicker(): JSX.Element {
   const { state, dispatch } = useAppState();
   const settings = state.storage.settings;
 
-  const [pickerState, setPickerState] = useState<IExercisePickerState>(() => ({
-    mode: "program",
-    screenStack: ["exercisePicker"],
-    sort: data?.exerciseType ? (settings.workoutSettings.pickerSort ?? "name_asc") : "name_asc",
-    filters: {},
-    label: data?.label,
-    templateName: data?.templateName,
-    exerciseType: data?.exerciseType,
-    selectedTab: 0,
-    // The sheet only swaps the name token, so labels/templates are edited in the text itself.
-    hideLabel: true,
-    hideTemplate: true,
-    selectedExercises: data?.exerciseType
-      ? [{ type: "adhoc", exerciseType: data.exerciseType, label: data.label }]
-      : [],
-  }));
+  const [pickerState, setPickerState] = useState<IExercisePickerState>(() =>
+    ExercisePickerUtils_swapState(data ?? {}, settings)
+  );
 
   const pickerDispatch: ILensDispatch<IExercisePickerState> = useCallback((recordings) => {
     const all = Array.isArray(recordings) ? recordings : [recordings];

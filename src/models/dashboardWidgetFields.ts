@@ -50,8 +50,6 @@ const PRESET_LABELS: Record<ILiftographPresetName, string> = {
   value: "Value",
 };
 
-const PICKER_FALLBACK: IExerciseType = { id: "squat", equipment: "barbell" };
-
 function singleAtom(value: ILiftographValue | undefined): ILiftographAtom | undefined {
   return value?.type === "atoms" && value.atoms.length === 1 ? value.atoms[0] : undefined;
 }
@@ -210,9 +208,9 @@ export function DashboardWidgetFields_pickerExercise(
   model: ILiftographWidgetModel,
   entryIndex: number,
   exercises: IAllCustomExercises
-): IExerciseType {
+): IExerciseType | undefined {
   const series = LiftographWidgetEdit_seriesAt(model, entryIndex);
-  return DashboardWidgetFields_exerciseType(series?.source, exercises) ?? PICKER_FALLBACK;
+  return DashboardWidgetFields_exerciseType(series?.source, exercises);
 }
 
 export function DashboardWidgetFields_windows(field: ILiftographModelAggField): string[] {

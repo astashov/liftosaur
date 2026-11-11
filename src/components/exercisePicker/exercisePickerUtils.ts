@@ -327,3 +327,24 @@ export function ExercisePickerUtils_getProgramExercisefullName(
   }
   return `${name}${isMultipleInstances ? `[${suffix.join(":")}]` : ""}`;
 }
+
+export function ExercisePickerUtils_swapState(
+  input: { exerciseType?: IExerciseType; label?: string; templateName?: string },
+  settings: ISettings
+): IExercisePickerState {
+  return {
+    mode: "program",
+    screenStack: ["exercisePicker"],
+    sort: input.exerciseType ? (settings.workoutSettings.pickerSort ?? "name_asc") : "name_asc",
+    filters: {},
+    label: input.label,
+    templateName: input.templateName,
+    exerciseType: input.exerciseType,
+    selectedTab: 0,
+    hideLabel: true,
+    hideTemplate: true,
+    selectedExercises: input.exerciseType
+      ? [{ type: "adhoc", exerciseType: input.exerciseType, label: input.label }]
+      : [],
+  };
+}
