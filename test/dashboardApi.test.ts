@@ -161,14 +161,15 @@ describe("DashboardApi", () => {
     expect(result.kind === "error" && result.status).to.equal(404);
   });
 
-  for (const file of [
-    ["llms", "liftograph_llm.md"],
-    ["docs", "content", "liftograph.md"],
-  ]) {
+  for (const [file, minExamples] of [
+    [["llms", "liftograph_llm.md"], 9],
+    [["docs", "content", "liftograph.md"], 9],
+    [["CHANGELOG.md"], 1],
+  ] as const) {
     it(`compiles every example in ${file.join("/")} without errors`, () => {
       const reference = fs.readFileSync(path.join(__dirname, "..", ...file), "utf8");
       const examples = Array.from(reference.matchAll(/```liftograph\n([\s\S]*?)```/g)).map((m) => m[1]);
-      expect(examples.length).to.be.greaterThan(8);
+      expect(examples.length).to.be.at.least(minExamples);
       const failures = examples.flatMap((example) =>
         DashboardApi_compileErrors(example, settings).map((e) => `${e.message} in:\n${example}`)
       );

@@ -13,7 +13,45 @@
       ::icon-day-text-mode:: (per-day text), ::icon-full-text-mode:: (full text)
     [label](internal:/path)        — internal app/website link
     ```liftoscript ... ```          — Liftoscript code block with syntax highlighting
+    ```liftograph ... ```           — Liftograph (dashboard) code block with syntax highlighting
 -->
+
+---
+date: 2026-11-11
+title: 📈 Graphs redesign - Dashboards!
+---
+
+The Graphs tab is now called **Dashboards**! You can add widgets there, in rows of 1 to 4 items, with your own headings and notes between them.
+
+There are 5 kinds of widgets:
+
+* **Graph** - lines, bars or dots over time. You can put several lines on one graph, e.g. Squat and Deadlift e1RM, or bodyweight on a second axis next to your bench.
+* **Value** - one big number, like your current e1RM, with the change since e.g. 4 weeks ago and a small trend line under it.
+* **Muscles** - a body map and the sets per week for each muscle group.
+* **Calendar** - your training days for the last few months, and your week streak.
+* **Text** - headings and notes, with Markdown.
+
+Graphs can show way more than before. For an exercise - they can show max weight, e1RM, volume or max reps, filtered by program, day or label (e.g. only T1 squats). For the workouts - they can show total volume, sets or volume per muscle group, workout duration, workouts per week. Can show bodyweight, body fat, body measurements, and sleep, calories and protein from Apple Health / Health Connect. You can also group graph points by week or month, and smooth jumpy lines with a moving average.
+
+You can have up to 20 dashboards - e.g. one for strength, one for body composition, one for your current program. Tap the dashboard name at the top of the Graphs tab to switch between them or make a new one. Tap the pencil to edit it.
+
+The graphs that were previously on the Graphs tab should be migrated to the new Dashboard.
+
+Under the hood, every dashboard is written in an extension of Liftoscript, that supports graphs now - similar to how programs are. You don't need to learn it, the edit screen has forms for everything. But you can switch to the text and edit it directly, and do things the forms can't - like define what you want to plot exactly. You have the same access to workouts variables there like in `progress` blocks in Liftoscript, and you can use `point()` function to add points to the graphs or calculate values. You can read about the syntax in the [docs](internal:/docs/liftograph).
+
+For example, you can add the "Rep-max curve" graph - where x-axis is reps, and y-axis is max weight, like this:
+
+```liftograph
+graph / range: 1y {
+  name: Squat / source: exercise(Squat) / group: max {~
+    for (var.i in completedReps) {
+      point(completedReps[var.i], completedWeights[var.i])
+    }
+  ~}
+}
+```
+
+Probably the easiest way to get a nice dashboard though is to ask an AI. If you connect ChatGPT or Claude through the [MCP server](internal:/docs/mcp), and ask something like "make me a dashboard with my bench and squat e1RM, weekly chest and back sets, and my bodyweight". It writes the dashboard, checks it against your data, and saves it - and it will show up on your Dashboards tab right away.
 
 ---
 date: 2026-10-28

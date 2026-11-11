@@ -16,6 +16,7 @@ import { IconUiMode } from "./icons/iconUiMode";
 import { IconDayTextMode } from "./icons/iconDayTextMode";
 import { IconFullTextMode } from "./icons/iconFullTextMode";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
+import { LiftographCodeBlock } from "./liftographCodeBlock";
 import { MarkdownImage } from "./markdownImage";
 
 const md = new MarkdownIt({ html: false, linkify: true });
@@ -81,10 +82,17 @@ function renderBlocks(tokens: Token[], start: number, end: number, depth = 0): I
       );
       i = listEnd + 1;
     } else if (token.type === "fence" || token.type === "code_block") {
-      if (token.info && token.info.trim() === "liftoscript") {
+      const lang = token.info?.trim();
+      if (lang === "liftoscript") {
         elements.push(
           <ScrollView key={i} horizontal className="mb-2" showsHorizontalScrollIndicator={false}>
             <PlannerCodeBlock className="text-sm" script={token.content.replace(/\n+$/, "")} />
+          </ScrollView>
+        );
+      } else if (lang === "liftograph") {
+        elements.push(
+          <ScrollView key={i} horizontal className="mb-2" showsHorizontalScrollIndicator={false}>
+            <LiftographCodeBlock className="text-sm" text={token.content.replace(/\n+$/, "")} />
           </ScrollView>
         );
       } else {
