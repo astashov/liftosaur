@@ -31,7 +31,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -48,7 +48,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -78,7 +78,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-deadlift").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
@@ -101,7 +101,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");

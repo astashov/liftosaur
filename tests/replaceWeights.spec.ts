@@ -43,7 +43,7 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
   await page.waitForTimeout(1000);
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-edit-mode").first().click();

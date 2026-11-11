@@ -107,8 +107,8 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("editor-v2-week-muscles").click();
-  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Shoulders: 2");
-  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Hamstrings: 2");
-  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Abs: 1");
+  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Rear Delts: 2");
+  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Adductors: 2");
+  await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Obliques: 1");
   await expect(page.getByTestId("modal").and(page.locator(":visible"))).toContainText("Triceps: 0");
 });
