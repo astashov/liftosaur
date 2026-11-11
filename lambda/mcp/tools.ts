@@ -490,7 +490,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_dashboard",
     description:
       'Update a dashboard\'s name, Liftograph text, or both. Use id="current" for the dashboard the app shows now. Pass makeCurrent: true to switch the app to this dashboard; it can be passed alone. Text with compile errors is rejected with the errors listed.\n\nIMPORTANT: You MUST call get_liftograph_reference BEFORE editing dashboard text, and run_dashboard to check the result.',
-    annotations: { title: "Update dashboard", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update dashboard", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -819,7 +819,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
     name: "update_equipment",
     description:
       'Update a gym\'s equipment. To change how it loads, send `setup`: it covers plates, multi-horn machines, weight stacks, fixed weights, electric trainers and bands, and replaces the whole setup. name, notes, similarTo and isDeleted can be sent alongside it. The older flat fields (bar, plates, fixed, multiplier, isFixed, unit, useBodyweightForBar, isAssisting) still work but describe only bar-and-plates or fixed weights, so writing them turns a stack, electric or bands setup into plates. Only provided fields change; omitted fields keep their current values. Flat-field weights are strings like "45lb" or "20kg". Out-of-range values are clamped. Works for built-in and custom equipment. To soft-delete or restore equipment, set the isDeleted field (true removes it from workout pickers — the config is kept — false restores it).',
-    annotations: { title: "Update equipment", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update equipment", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
@@ -954,7 +954,7 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   {
     name: "update_measurement",
     description: `Change the reading of an existing measurement value, identified by its key and timestamp (from list/get). ${MEASUREMENT_WRITE_KEYS_DESC} The timestamp is the entry's identity and can't be changed here — to re-date an entry, delete_measurement it and add_measurement it at the new time.`,
-    annotations: { title: "Update measurement", readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    annotations: { title: "Update measurement", readOnlyHint: false, destructiveHint: true, openWorldHint: false },
     inputSchema: {
       type: "object",
       properties: {
