@@ -47,7 +47,9 @@ describe("LiftographLayoutEdit_delete", () => {
 
   it("leaves text it does not touch byte for byte", () => {
     const text = "calendar\r\n  \r\n///  odd  \r\nvalue / source: workout   \r\n\r\ncalendar";
-    expect(LiftographLayoutEdit_delete(layout(text), 2)).to.equal("calendar\r\n  \r\n///  odd  \r\nvalue / source: workout   ");
+    expect(LiftographLayoutEdit_delete(layout(text), 2)).to.equal(
+      "calendar\r\n  \r\n///  odd  \r\nvalue / source: workout   "
+    );
   });
 });
 
@@ -58,6 +60,13 @@ describe("LiftographLayoutEdit_duplicate", () => {
     expect(kinds(LiftographLayoutEdit_duplicate(layout(row), 0))).to.eql([["value", "calendar"], ["value"]]);
     expect(kinds(LiftographLayoutEdit_duplicate(layout(row), 1))).to.eql([["value", "calendar"], ["calendar"]]);
     expect(LiftographLayoutEdit_duplicate(layout("calendar"), 0)).to.equal("calendar\n\ncalendar");
+  });
+
+  it("copies the caption with the widget", () => {
+    expect(LiftographLayoutEdit_duplicate(layout("// Streak\ncalendar"), 0)).to.equal(
+      "// Streak\ncalendar\n\n// Streak\ncalendar"
+    );
+    expect(LiftographLayoutEdit_duplicate(layout(row), 1)).to.equal(`${row}\n\n// cap\ncalendar`);
   });
 });
 
@@ -92,6 +101,16 @@ describe("LiftographLayoutEdit_move", () => {
     const moved = ok(LiftographLayoutEdit_move(layout(text), 0, { kind: "slot", row: 1, index: 0 }));
     expect(moved).to.equal("row {\n  // note\n\n  calendar\n}");
     expect(kinds(moved)).to.eql([["text", "calendar"]]);
+  });
+
+  it("carries the caption when a widget moves out of a row or into one", () => {
+    expect(ok(LiftographLayoutEdit_move(layout(row), 1, { kind: "newRow", before: 0, isRow: false }))).to.equal(
+      "// cap\ncalendar\n\nrow {\n  value / source: workout\n}"
+    );
+    const top = "// Streak\ncalendar\n\nrow {\n  value / source: workout\n}";
+    expect(ok(LiftographLayoutEdit_move(layout(top), 0, { kind: "slot", row: 1, index: 1 }))).to.equal(
+      "row {\n  value / source: workout\n  // Streak\n  calendar\n}"
+    );
   });
 
   it("does nothing when the slot stays where it is", () => {
@@ -134,16 +153,24 @@ describe("LiftographLayoutEdit_splitRow", () => {
 
 describe("LiftographLayoutEdit_insert", () => {
   it("adds a snippet into a row slot or as a new row", () => {
-    expect(ok(LiftographLayoutEdit_insert(layout("calendar"), { kind: "newRow", before: 1, isRow: false }, "value / source: workout"))).to.equal(
-      "calendar\n\nvalue / source: workout"
+    expect(
+      ok(
+        LiftographLayoutEdit_insert(
+          layout("calendar"),
+          { kind: "newRow", before: 1, isRow: false },
+          "value / source: workout"
+        )
+      )
+    ).to.equal("calendar\n\nvalue / source: workout");
+    expect(
+      ok(LiftographLayoutEdit_insert(layout("calendar"), { kind: "newRow", before: 0, isRow: true }, "calendar"))
+    ).to.equal("row {\n  calendar\n}\n\ncalendar");
+    expect(
+      ok(LiftographLayoutEdit_insert(layout(""), { kind: "newRow", before: 0, isRow: false }, "calendar"))
+    ).to.equal("calendar");
+    expect(LiftographLayoutEdit_insert(layout(row), { kind: "slot", row: 0, index: 2 }, "calendar").success).to.equal(
+      false
     );
-    expect(ok(LiftographLayoutEdit_insert(layout("calendar"), { kind: "newRow", before: 0, isRow: true }, "calendar"))).to.equal(
-      "row {\n  calendar\n}\n\ncalendar"
-    );
-    expect(ok(LiftographLayoutEdit_insert(layout(""), { kind: "newRow", before: 0, isRow: false }, "calendar"))).to.equal(
-      "calendar"
-    );
-    expect(LiftographLayoutEdit_insert(layout(row), { kind: "slot", row: 0, index: 2 }, "calendar").success).to.equal(false);
     const values = "row {\n  value / source: workout\n  // cap\n  value / source: workout\n}";
     expect(ok(LiftographLayoutEdit_insert(layout(values), { kind: "slot", row: 0, index: 1 }, "// hi"))).to.equal(
       "row {\n  value / source: workout\n  // hi\n\n  // cap\n  value / source: workout\n}"

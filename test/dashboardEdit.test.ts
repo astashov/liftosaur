@@ -161,7 +161,7 @@ describe("DashboardEdit_apply with the widget sheet", () => {
     const effect = applySheet("// cap\ncalendar / range: 1y", { type: "edit", slotId: 0 }).effect;
     expect(effect?.type).to.equal("openWidget");
     if (effect?.type === "openWidget") {
-      expect(effect.snippet).to.equal("calendar / range: 1y");
+      expect(effect.snippet).to.equal("// cap\ncalendar / range: 1y");
     }
   });
 

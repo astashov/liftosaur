@@ -25,14 +25,29 @@ function anchor(text: string, slotId: number): IDashboardWidgetAnchor {
 }
 
 describe("DashboardWidgetCommit", () => {
-  it("replaces the widget and keeps its caption", () => {
-    const text = "// Volume\nvalue / source: workout\ncalendar";
+  it("edits the caption together with the widget", () => {
+    const text = "// Volume\n// per workout\nvalue / source: workout\ncalendar";
     const a = anchor(text, 0);
-    expect(DashboardWidgetCommit_snippet(a)).to.equal("value / source: workout");
-    expect(DashboardWidgetCommit_apply(text, a, "value / name: V / source: workout / y: volume")).to.deep.equal({
+    expect(DashboardWidgetCommit_snippet(a)).to.equal("// Volume\n// per workout\nvalue / source: workout");
+    expect(DashboardWidgetCommit_apply(text, a, "// Load\nvalue / source: workout / y: volume")).to.deep.equal({
       kind: "write",
-      text: "// Volume\nvalue / name: V / source: workout / y: volume\ncalendar",
+      text: "// Load\nvalue / source: workout / y: volume\ncalendar",
     });
+    expect(DashboardWidgetCommit_apply(text, a, "value / source: workout")).to.deep.equal({
+      kind: "write",
+      text: "value / source: workout\ncalendar",
+    });
+  });
+
+  it("includes an indented caption inside a row, but not the row's own caption", () => {
+    const text = "// Row title\nrow {\n  // Streak\n  calendar\n  value / source: workout\n}";
+    expect(DashboardWidgetCommit_snippet(anchor(text, 0))).to.equal("  // Streak\n  calendar");
+    expect(DashboardWidgetCommit_snippet(anchor(text, 1))).to.equal("  value / source: workout");
+  });
+
+  it("starts at the widget when the text above it is a separate block", () => {
+    const text = "// Notes\n\ncalendar";
+    expect(DashboardWidgetCommit_snippet(anchor(text, 1))).to.equal("calendar");
   });
 
   it("keeps the indent of a widget inside a row", () => {
@@ -86,7 +101,7 @@ describe("DashboardWidgetCommit_result and _resolve", () => {
     const text = "// cap\ncalendar";
     const resolved = DashboardWidgetCommit_resolve(
       text,
-      DashboardWidgetCommit_result(anchor(text, 0), true, "calendar / range: 1y")
+      DashboardWidgetCommit_result(anchor(text, 0), true, "// cap\ncalendar / range: 1y")
     );
     expect(resolved).to.eql({ kind: "write", text: "// cap\ncalendar / range: 1y" });
   });

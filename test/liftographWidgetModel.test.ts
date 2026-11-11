@@ -184,10 +184,41 @@ describe("LiftographWidgetModel", () => {
   });
 });
 
+describe("LiftographWidgetModel caption", () => {
+  it("reads a multi-line caption as Markdown without the // marks", () => {
+    expect(read("// **Strength**\n//\n// last year\ncalendar / range: 1y").caption).to.equal(
+      "**Strength**\n\nlast year"
+    );
+    expect(read("calendar").caption).to.equal(undefined);
+  });
+
+  it("writes the caption back above the widget, with the widget's indent", () => {
+    expect(roundTrip("// **Strength**\n//\n// last year\ncalendar / range: 1y")).to.equal(
+      "// **Strength**\n//\n// last year\ncalendar / range: 1y"
+    );
+    expect(roundTrip("  // Streak\n  calendar", { eol: "\r\n", indent: "  " })).to.equal("  // Streak\r\n  calendar");
+    expect(roundTrip("// Weekly\ngraph {\n  name: A / source: workout\n}")).to.equal(
+      "// Weekly\ngraph {\n  name: A / source: workout / y: volume\n}"
+    );
+  });
+
+  it("drops a blank caption and trailing blank lines", () => {
+    expect(LiftographWidgetModel_write({ ...read("// Streak\ncalendar"), caption: "  " }, LF)).to.equal("calendar");
+    expect(LiftographWidgetModel_write({ ...read("calendar"), caption: "Streak\n\n" }, LF)).to.equal(
+      "// Streak\ncalendar"
+    );
+  });
+
+  it("writes a caption that the parser reads back as the same caption", () => {
+    const written = LiftographWidgetModel_write({ ...read("calendar"), caption: "## Big three\n- squat\n- bench" }, LF);
+    expect(read(written).caption).to.equal("## Big three\n- squat\n- bench");
+  });
+});
+
 describe("LiftographWidgetModel review fixes", () => {
-  it("refuses a snippet with a caption or /// lines outside the widget", () => {
-    expect(LiftographWidgetModel_read("// My caption\ncalendar")).to.equal(undefined);
+  it("refuses a snippet with /// lines outside the widget", () => {
     expect(LiftographWidgetModel_read("calendar\n/// note")).to.equal(undefined);
+    expect(LiftographWidgetModel_read("// Streak\n/// note\ncalendar")).to.equal(undefined);
     expect(LiftographWidgetModel_read("graph {\n  /// hidden\n  name: A / source: workout\n}")).to.not.equal(undefined);
   });
 

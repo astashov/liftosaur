@@ -111,7 +111,9 @@ To move a widget, touch the tile and hold for half a second, then drag it. A pur
 
 Tap **Edit** in the tile menu. A sheet opens with a preview of the widget at the top. The preview changes as you change the settings. **Done** keeps the changes and **Cancel** drops them. The **Text** tab shows the same widget as text.
 
-The fields depend on the kind of widget.
+Every widget starts with a **Caption**: text shown right above it, like a title or a note. It can use **bold**, _italic_, headings and lists. Leave it empty for no caption.
+
+The other fields depend on the kind of widget.
 
 ### Graph
 

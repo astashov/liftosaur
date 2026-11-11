@@ -13,6 +13,7 @@ interface IProps {
   isTransparent?: boolean;
   onChange?: (newValue: string) => void;
   debounceMs?: number;
+  minLines?: number;
 }
 
 function parseMarkdownWorklet(input: string): MarkdownRange[] {
@@ -169,13 +170,13 @@ const FONT_SIZE = 14;
 const CHARS_PER_LINE = 40;
 const LINE_HEIGHT = 20;
 const VERTICAL_PADDING = 0;
-const MIN_HEIGHT = 60;
+const DEFAULT_MIN_LINES = 3;
 
 // Bigger type fits fewer characters per line, so the character budget shrinks as the rest grows.
-function estimateHeight(value: string, scale: number): number {
+function estimateHeight(value: string, scale: number, minLines: number): number {
   const widthChars = Math.max(1, Math.round(CHARS_PER_LINE / scale));
   const lines = value.split("\n").reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / widthChars)), 0);
-  return Math.max(MIN_HEIGHT * scale, lines * LINE_HEIGHT * scale + VERTICAL_PADDING);
+  return Math.max(minLines * LINE_HEIGHT * scale, lines * LINE_HEIGHT * scale + VERTICAL_PADDING);
 }
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
@@ -191,7 +192,7 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   }
   // Floor it on the estimate for the *current* text rather than only the initial value -
   // onContentSizeChange reports the laid-out height, which can't exceed the height we gave it.
-  const minHeight = Math.max(estimateHeight(text, scale), measuredHeight);
+  const minHeight = Math.max(estimateHeight(text, scale, props.minLines ?? DEFAULT_MIN_LINES), measuredHeight);
 
   const debouncedOnChange = useMemo(() => {
     if (props.onChange && props.debounceMs) {

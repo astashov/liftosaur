@@ -46,7 +46,7 @@ export function DashboardWidgetCommit_anchor(
     type: "replace",
     baseText: layout.text,
     format: { eol: layout.eol, indent: layout.text.slice(widget.span.from, widget.kindSpan.from) },
-    from: widget.span.from,
+    from: widget.caption?.span.from ?? widget.span.from,
     to: widget.span.to,
   };
 }

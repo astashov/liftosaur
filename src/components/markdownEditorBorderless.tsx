@@ -12,6 +12,7 @@ interface IProps {
   isTransparent?: boolean;
   onChange?: (newValue: string) => void;
   debounceMs?: number;
+  minLines?: number;
 }
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {

@@ -60,7 +60,7 @@ export interface ILiftographModelShow {
   groups?: string[];
 }
 
-export type ILiftographWidgetModel =
+type ILiftographWidgetBody =
   | { kind: "graph"; range?: string; entries: ILiftographModelEntry[]; extra: ILiftographModelPair[] }
   | { kind: "value"; series: ILiftographModelSeries; compare?: string; trend?: string }
   | {
@@ -71,6 +71,7 @@ export type ILiftographWidgetModel =
       extra: ILiftographModelPair[];
     }
   | { kind: "calendar"; range?: string; extra: ILiftographModelPair[] };
+export type ILiftographWidgetModel = ILiftographWidgetBody & { caption?: string };
 export interface ILiftographModelFormat {
   eol: string;
   indent: string;
@@ -369,9 +370,18 @@ export function LiftographWidgetModel_read(snippet: string): ILiftographWidgetMo
     return undefined;
   }
   const hasOutsideLines = doc.hiddenSpans.some((span) => span.from < item.span.from || span.to > item.span.to);
-  if (item.caption != null || hasOutsideLines) {
+  if (hasOutsideLines) {
     return undefined;
   }
+  const body = readBody(snippet, doc, item);
+  return body != null && item.caption != null ? { ...body, caption: item.caption.markdown } : body;
+}
+
+function readBody(
+  snippet: string,
+  doc: ILiftographDocument,
+  item: ILiftographWidgetItem
+): ILiftographWidgetBody | undefined {
   if (item.kind === "graph") {
     const keys = widgetKeys(snippet, item.pairs, ["range"]);
     const entries = graphEntries(doc, item);
@@ -517,7 +527,21 @@ function writeShow(show: ILiftographModelShow | ILiftographModelRaw): string {
   return [...(show.map ? ["map"] : []), ...(show.sets ? [sets] : [])].join(", ");
 }
 
+function captionLines(caption: string | undefined, format: ILiftographModelFormat): string[] {
+  if (caption == null || caption.trim() === "") {
+    return [];
+  }
+  return caption
+    .trimEnd()
+    .split(/\r?\n/)
+    .map((line) => format.indent + (line === "" ? "//" : `// ${line}`));
+}
+
 export function LiftographWidgetModel_write(model: ILiftographWidgetModel, format: ILiftographModelFormat): string {
+  return [...captionLines(model.caption, format), writeBody(model, format)].join(format.eol);
+}
+
+function writeBody(model: ILiftographWidgetBody, format: ILiftographModelFormat): string {
   const indent = format.indent;
   switch (model.kind) {
     case "graph": {

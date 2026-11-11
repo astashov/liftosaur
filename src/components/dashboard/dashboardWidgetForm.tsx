@@ -21,6 +21,7 @@ import {
   DashboardWidgetFields_muscleGroupLabel,
   DashboardWidgetFields_muscleGroups,
   DashboardWidgetFields_seriesSummary,
+  DashboardWidgetFields_textValue,
   DashboardWidgetFields_toggleGroup,
   DashboardWidgetFields_valueHint,
   IDashboardValueField,
@@ -33,6 +34,7 @@ import {
   DashboardFormToggles,
 } from "./dashboardFormParts";
 import { DashboardSeriesForm } from "./dashboardSeriesForm";
+import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
 import { IDashboardFormOptions } from "./dashboardSourceFields";
 
 const RANGES = ["4w", "3m", "6m", "1y", "all"];
@@ -44,6 +46,24 @@ export interface IDashboardWidgetFormProps {
   onPickExercise: (entryIndex: number) => void;
   onEditAsText: () => void;
   onNavigate?: () => void;
+}
+
+function CaptionField(props: {
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
+}): JSX.Element {
+  return (
+    <DashboardFormField label="Caption" hint="Shown above the widget. Markdown works: **bold**, _italic_, ## heading.">
+      <View testID="dashboard-widget-caption" className="px-1 border rounded-lg border-border-neutral">
+        <MarkdownEditorBorderless
+          value={props.value}
+          placeholder="No caption"
+          minLines={1}
+          onChange={(text) => props.onChange(DashboardWidgetFields_textValue(text))}
+        />
+      </View>
+    </DashboardFormField>
+  );
 }
 
 function RangeField(props: { value: string | undefined; onChange: (value: string | undefined) => void }): JSX.Element {
@@ -186,6 +206,7 @@ function GraphForm(props: IDashboardWidgetFormProps): JSX.Element {
   }
   return (
     <Animated.View key="list" entering={view.hasMoved ? SlideBack : undefined}>
+      <CaptionField value={model.caption} onChange={(caption) => props.onChange({ ...model, caption })} />
       <RangeField value={model.range} onChange={(range) => props.onChange({ ...model, range })} />
       <SeriesList model={model} onChange={props.onChange} onOpen={open} />
     </Animated.View>
@@ -242,6 +263,7 @@ function MusclesForm(props: IDashboardWidgetFormProps): JSX.Element {
   const show = model.show ?? { type: "show", map: true, sets: true };
   return (
     <View>
+      <CaptionField value={model.caption} onChange={(caption) => props.onChange({ ...model, caption })} />
       <RangeField value={model.range} onChange={(range) => props.onChange({ ...model, range })} />
       <DashboardFormField label="Show">
         {show.type === "raw" ? (
@@ -287,6 +309,7 @@ export function DashboardWidgetForm(props: IDashboardWidgetFormProps): JSX.Eleme
     case "value":
       return (
         <View>
+          <CaptionField value={model.caption} onChange={(caption) => props.onChange({ ...model, caption })} />
           <DashboardSeriesForm
             series={model.series}
             options={props.options}
@@ -312,6 +335,11 @@ export function DashboardWidgetForm(props: IDashboardWidgetFormProps): JSX.Eleme
     case "muscles":
       return <MusclesForm {...props} />;
     case "calendar":
-      return <RangeField value={model.range} onChange={(range) => props.onChange({ ...model, range })} />;
+      return (
+        <View>
+          <CaptionField value={model.caption} onChange={(caption) => props.onChange({ ...model, caption })} />
+          <RangeField value={model.range} onChange={(range) => props.onChange({ ...model, range })} />
+        </View>
+      );
   }
 }
