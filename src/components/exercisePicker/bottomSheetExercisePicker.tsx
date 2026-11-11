@@ -22,6 +22,7 @@ interface IExercisePickerContentProps {
   settings: ISettings;
   exercisePicker: IExercisePickerState;
   usedExerciseTypes: IExerciseType[];
+  programExerciseTypes?: IExerciseType[];
   onStar: (key: string) => void;
   onChangeSettings: (settings: IExercisePickerSettings) => void;
   onChangeCustomExercise: (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => void;
@@ -42,6 +43,7 @@ export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.E
         onStar={props.onStar}
         isHidden={false}
         usedExerciseTypes={props.usedExerciseTypes}
+        programExerciseTypes={props.programExerciseTypes}
         onChoose={props.onChoose}
         state={state}
         settings={props.settings}

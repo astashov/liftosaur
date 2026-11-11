@@ -19,6 +19,7 @@ import {
   Program_getProgramExerciseByTypeWeekAndDay,
   Program_nextHistoryEntry,
   Program_getDayData,
+  Program_getAllProgramExercisesWithType,
 } from "../../models/program";
 import {
   Settings_toggleStarredExercise,
@@ -50,12 +51,21 @@ export function NavModalExercisePicker(): JSX.Element {
 
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getFullProgram(state, state.storage.currentProgramId) : undefined;
-  const program =
-    progress && Progress_isCurrent(progress)
-      ? Program_getFullProgram(state, progress.programId) ||
-        (currentProgram ? Program_fullProgram(currentProgram, state.storage.settings) : undefined)
-      : undefined;
+  const workoutProgram = progress
+    ? Program_getFullProgram(state, progress.programId) ||
+      (currentProgram ? Program_fullProgram(currentProgram, state.storage.settings) : undefined)
+    : undefined;
+  const program = progress && Progress_isCurrent(progress) ? workoutProgram : undefined;
   const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
+  const programExerciseTypes = useMemo(
+    () =>
+      workoutProgram
+        ? Program_getAllProgramExercisesWithType(Program_evaluate(workoutProgram, state.storage.settings)).map(
+            (e) => e.exerciseType
+          )
+        : [],
+    [workoutProgram, state.storage.settings]
+  );
   const evaluatedCurrentProgram =
     Program_isEmpty(evaluatedProgram) && currentProgram
       ? Program_evaluate(currentProgram, state.storage.settings)
@@ -221,6 +231,7 @@ export function NavModalExercisePicker(): JSX.Element {
           isLoggedIn={!!state.user?.id}
           exercisePicker={exercisePickerState}
           usedExerciseTypes={usedExerciseTypes}
+          programExerciseTypes={programExerciseTypes}
           evaluatedProgram={evaluatedCurrentProgram}
           dispatch={pickerDispatch}
           onChoose={onChoose}

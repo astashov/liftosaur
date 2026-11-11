@@ -4709,6 +4709,24 @@ export function Exercise_allExpanded(customExercises: IAllCustomExercises): IExe
     );
 }
 
+export function Exercise_allExpandedWithTypes(extraTypes: IExerciseType[]): IExercise[] {
+  const result = Exercise_allExpanded({});
+  const keys = new Set(result.map((e) => Exercise_toKey(e)));
+  for (const type of extraTypes) {
+    const exercise = maybeGetExercise(type.id, {});
+    if (exercise == null) {
+      continue;
+    }
+    const expanded = { ...exercise, equipment: type.equipment ?? exercise.defaultEquipment };
+    const key = Exercise_toKey(expanded);
+    if (!keys.has(key)) {
+      keys.add(key);
+      result.push(expanded);
+    }
+  }
+  return result;
+}
+
 export function Exercise_toExternalUrl(type: IExerciseType): string {
   return `/exercises/${Exercise_toUrlSlug(type)}`;
 }
@@ -5165,7 +5183,10 @@ export function Exercise_applyCustomExerciseChange(
     .p("notes")
     .set({ ...settings, exercises }, notes);
   if (program && oldExercise && oldExercise.name !== exercise.name) {
-    return { settings: newSettings, program: Program_changeExerciseName(oldExercise.name, exercise.name, program, newSettings) };
+    return {
+      settings: newSettings,
+      program: Program_changeExerciseName(oldExercise.name, exercise.name, program, newSettings),
+    };
   }
   return { settings: newSettings };
 }

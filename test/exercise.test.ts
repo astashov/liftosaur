@@ -3,6 +3,7 @@ import { expect } from "chai";
 import {
   Exercise_all,
   Exercise_allExpanded,
+  Exercise_allExpandedWithTypes,
   Exercise_searchNames,
   Exercise_filterCustomExercises,
   Exercise_filterCustomExercisesByType,
@@ -50,6 +51,28 @@ describe("Exercise — deleted custom exercises", () => {
     const names = Exercise_allExpanded(customExercises).map((e) => e.name);
     expect(names).to.include("Active Curl");
     expect(names).to.not.include("Deleted Curl");
+  });
+
+  it("Exercise_allExpandedWithTypes adds built-in pairs that have no image", () => {
+    const pullovers = (types: IExerciseType[]): (string | undefined)[] =>
+      Exercise_allExpandedWithTypes(types)
+        .filter((e) => e.id === "pullover")
+        .map((e) => e.equipment);
+    expect(pullovers([])).to.deep.equal(["barbell", "dumbbell"]);
+    expect(pullovers([{ id: "pullover", equipment: "cable" }])).to.deep.equal(["barbell", "dumbbell", "cable"]);
+    expect(pullovers([{ id: "pullover", equipment: "dumbbell" }])).to.deep.equal(["barbell", "dumbbell"]);
+    expect(
+      pullovers([
+        { id: "pullover", equipment: "cable" },
+        { id: "pullover", equipment: "cable" },
+      ])
+    ).to.deep.equal(["barbell", "dumbbell", "cable"]);
+  });
+
+  it("Exercise_allExpandedWithTypes skips custom exercise ids", () => {
+    const before = Exercise_allExpandedWithTypes([]).length;
+    const after = Exercise_allExpandedWithTypes([{ id: "custom-active" }]).length;
+    expect(after).to.equal(before);
   });
 
   it("Exercise_searchNames excludes deleted custom exercises", () => {

@@ -35,7 +35,7 @@ import {
   Exercise_fullName,
   Exercise_toKey,
   Exercise_createCustomExercise,
-  Exercise_allExpanded,
+  Exercise_allExpandedWithTypes,
   Exercise_filterAndRankByQuery,
   Exercise_filterAndRankCustomByQuery,
   Exercise_matchesQuery,
@@ -84,6 +84,7 @@ interface IProps {
   onStar: (key: string) => void;
   onChoose: (selectedExercises: IExercisePickerSelectedExercise[]) => void;
   usedExerciseTypes: IExerciseType[];
+  programExerciseTypes?: IExerciseType[];
   state: IExercisePickerState;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
@@ -122,7 +123,8 @@ interface ITabDef {
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
   const remScale = useRemScale();
-  const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
+  const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes, programExerciseTypes } =
+    props;
   const {
     mode,
     search,
@@ -184,7 +186,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
   const useRankOrdering = !!search && !(sort === "similar_muscles" && exerciseType);
 
   const builtinExercises = useMemo(() => {
-    let result = Exercise_allExpanded({});
+    let result = Exercise_allExpandedWithTypes(programExerciseTypes ?? []);
     result = ExercisePickerUtils_filterExercises(result, filters, settings);
     if (filters.isStarred) {
       result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
@@ -198,7 +200,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
     }
     return result;
-  }, [search, useRankOrdering, filters, sort, settings, exerciseType]);
+  }, [search, useRankOrdering, filters, sort, settings, exerciseType, programExerciseTypes]);
 
   const customExercises = useMemo(() => {
     const exercises = ExercisePickerUtils_filterCustomExercises(settings.exercises, filters);
