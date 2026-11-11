@@ -96,7 +96,6 @@ import { NavModalEditTarget } from "./modals/NavModalEditTarget";
 import { NavModalSetTimer } from "./modals/NavModalSetTimer";
 import { NavModalSetTimerEdit } from "./modals/NavModalSetTimerEdit";
 import { NavModalRoundingInfo } from "./modals/NavModalRoundingInfo";
-import { NavModalGraphs } from "./modals/NavModalGraphs";
 import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModal1RM } from "./modals/NavModal1RM";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
@@ -478,7 +477,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             />
             <RootStack.Screen name="programPreviewMusclesModal" component={NavModalProgramPreviewMuscles} />
             <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
-            <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
             <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
             <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
             <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />

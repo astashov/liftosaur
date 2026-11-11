@@ -1,11 +1,11 @@
 ---
 id: chatgpt-claude-and-ai
 title: "Using AI with Liftosaur"
-shortDescription: "Add Liftosaur to ChatGPT, or connect Claude and Gemini through the MCP server, and ask the assistant to write programs, log workouts and analyze your history."
+shortDescription: "Connect ChatGPT, Claude or Gemini to Liftosaur and ask the assistant to write programs, log workouts, build dashboards and analyze your history."
 category: "Start here"
 order: 20
 datePublished: "2026-09-27"
-dateModified: "2026-10-07"
+dateModified: "2026-11-10"
 screenshots: [chatgpt-claude-and-ai-autofill]
 headerScreenshots: false
 ---
@@ -25,6 +25,7 @@ From then on you talk to it like this:
 - "@Liftosaur I did 3x5 squats at 225 lb today, log it."
 - "@Liftosaur how has my bench press progressed over the last month?"
 - "@Liftosaur my program does not have enough back work, fix it."
+- "@Liftosaur make me a dashboard with my bench e1RM and my weekly chest sets."
 
 The change lands in the app right away. There is no need to close and reopen it.
 
@@ -40,8 +41,9 @@ Behind the plugin is the Liftosaur MCP server. MCP (Model Context Protocol) is a
 - **Gyms and equipment**: list your gyms, add one, rename one or make it current, and edit bars, plates and fixed weights.
 - **Exercise settings**: read and set your 1RM, weight rounding, equipment and notes per exercise.
 - **Measurements**: read your bodyweight, body part and body fat history, add a value, edit one, or delete one.
+- **Dashboards**: list your dashboards on the Graphs tab, read one, create one, edit one, switch to one, or delete one. `run_dashboard` tries a dashboard on your data before saving it.
 - **Testing and analysis**: `run_playground` simulates a workout to check that a progression works. `get_program_stats` reports duration per day, weekly volume per muscle group, and the strength vs hypertrophy split.
-- **Reference**: the Liftoscript language reference, complete program examples, the program design guide, the workout record format, the built-in exercise list, and the source of every built-in program.
+- **Reference**: the Liftoscript language reference, complete program examples, the program design guide, the Liftograph dashboard reference, the workout record format, the built-in exercise list, and the source of every built-in program.
 
 Everything that touches your account needs [Premium](/features/premium). The reference tools work without an account.
 
@@ -52,6 +54,20 @@ Ask for the program you want. The assistant reads the Liftoscript reference, wri
 To change a program, describe the change. The assistant reads your current program with `get_program`, edits the Liftoscript, and saves it with `update_program`.
 
 To check balance, ask for `get_program_stats`. It returns volume per muscle group and session length.
+
+## Build a dashboard with an assistant
+
+A dashboard is the page on the Graphs tab: your graphs, numbers, muscle map and training calendar. See [Graphs and Dashboards](/features/graphs) for what it can show. Instead of building one by hand, describe it:
+
+- "Make me a dashboard with my squat, bench and deadlift e1RM for the last year."
+- "Add a row with my weekly sets for chest and back, and my bodyweight next to it."
+- "Show how many workouts I did per week, and my training calendar for 6 months."
+
+The assistant reads the dashboard reference, writes the dashboard, and runs it on your real data with `run_dashboard`. This shows when a graph would come out empty, for example because you never logged that exercise. The assistant fixes it before saving. Then it saves the dashboard with `create_dashboard`. The new dashboard opens on your Graphs tab right away.
+
+To change a dashboard, describe the change, like "make the bench graph show only the last 6 months". The assistant reads the dashboard with `get_dashboard` and saves the change with `update_dashboard`. If it gets the format wrong, tell it to call `get_liftograph_reference` first.
+
+You can keep editing a dashboard in the app after the assistant creates it. Dashboards need [Premium](/features/premium), like the rest of the Graphs tab.
 
 ## Connect Claude, Gemini and other clients
 

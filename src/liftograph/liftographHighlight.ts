@@ -127,3 +127,32 @@ export function LiftographHighlight_styledRanges(
   }
   return [...ranges, ...LiftographHighlight_diagnosticRanges(diagnostics, doc.text.length)];
 }
+
+export interface ILiftographHighlightSegment {
+  text: string;
+  style?: Omit<ILiftoEditorStyledRange, "start" | "end">;
+}
+
+export function LiftographHighlight_segments(
+  doc: ILiftographDocument,
+  scriptTrees: (script: string) => Tree
+): ILiftographHighlightSegment[] {
+  const ranges = LiftographHighlight_styledRanges(doc, scriptTrees, []).sort((a, b) => a.start - b.start);
+  const text = doc.text;
+  const segments: ILiftographHighlightSegment[] = [];
+  let cursor = 0;
+  for (const { start, end, ...style } of ranges) {
+    if (start < cursor) {
+      continue;
+    }
+    if (start > cursor) {
+      segments.push({ text: text.slice(cursor, start) });
+    }
+    segments.push({ text: text.slice(start, end), style });
+    cursor = end;
+  }
+  if (cursor < text.length) {
+    segments.push({ text: text.slice(cursor) });
+  }
+  return segments;
+}

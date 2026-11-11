@@ -4,6 +4,7 @@ import { LiftographDocument_parse } from "../src/liftograph/liftographDocument";
 import {
   LiftographHighlight_lintSpans,
   LiftographHighlight_markRanges,
+  LiftographHighlight_segments,
   LiftographHighlight_styledRanges,
   LiftographHighlight_tokens,
 } from "../src/liftograph/liftographHighlight";
@@ -27,6 +28,17 @@ describe("LiftographHighlight", () => {
     const diagnostics = [{ message: "bad", span: { from: 8, to: 12 } }];
     expect(LiftographHighlight_lintSpans(diagnostics, 5)).to.eql([{ from: 4, to: 5, message: "bad" }]);
     expect(LiftographHighlight_lintSpans(diagnostics, 0)).to.eql([]);
+  });
+
+  it("splits a document into segments that cover the whole text, with styles on the tokens", () => {
+    const text = "// **Squat**\ngraph / range: 1y {\n  name: Squat / source: exercise(Squat) {~ point(e1rm[0]) ~}\n}";
+    const cache = new LiftoEditorParseCache();
+    const segments = LiftographHighlight_segments(LiftographDocument_parse(text), (s) => cache.parseLiftoscript(s));
+    expect(segments.map((s) => s.text).join("")).to.equal(text);
+    const styled = segments.filter((s) => s.style != null).map((s) => s.text);
+    expect(styled).to.include.members(["// **Squat**", "graph", "range", "1y", "exercise(Squat)"]);
+    expect(segments.find((s) => s.text === "graph")?.style?.bold).to.equal(true);
+    expect(styled.some((s) => s.indexOf("point") !== -1)).to.equal(true);
   });
 
   it("marks the kind, keys and values of a widget line", () => {

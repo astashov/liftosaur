@@ -239,33 +239,41 @@
     "width": 600,
     "height": 1304
   },
-  "graphs/graphs-bodyweight": {
+  "graphs/graphs-cursor": {
     "width": 600,
-    "height": 1304
+    "height": 1299
   },
-  "graphs/graphs-choose": {
+  "graphs/graphs-dashboard": {
     "width": 600,
-    "height": 1304
+    "height": 1299
   },
-  "graphs/graphs-exercise": {
+  "graphs/graphs-dashboards": {
     "width": 600,
-    "height": 1304
+    "height": 1299
   },
-  "graphs/graphs-legend": {
+  "graphs/graphs-edit": {
     "width": 600,
-    "height": 1304
-  },
-  "graphs/graphs-muscle-group": {
-    "width": 600,
-    "height": 1304
+    "height": 1299
   },
   "graphs/graphs-personal-records": {
     "width": 600,
-    "height": 1304
+    "height": 1299
   },
-  "graphs/graphs-settings": {
+  "graphs/graphs-series": {
     "width": 600,
-    "height": 1304
+    "height": 1299
+  },
+  "graphs/graphs-text": {
+    "width": 600,
+    "height": 1299
+  },
+  "graphs/graphs-tile-menu": {
+    "width": 600,
+    "height": 1299
+  },
+  "graphs/graphs-widget": {
+    "width": 600,
+    "height": 1299
   },
   "health-sync/android-health-sync-measurements": {
     "width": 600,

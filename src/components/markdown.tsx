@@ -64,6 +64,7 @@ export function Markdown(props: IProps): JSX.Element {
         }
       }
       hydrateLiftoscriptCodeBlocks(container);
+      hydrateLiftographCodeBlocks(container);
       setTimeout(() => {
         if (props.directivesData?.exercise) {
           hydrateExerciseDirectives(container, props.directivesData.exercise.settings);
@@ -115,6 +116,29 @@ function hydrateLiftoscriptCodeBlocks(container: HTMLElement): void {
         wrapper.className = "md-liftoscript-block";
         pre.parentNode!.replaceChild(wrapper, pre);
         createRoot(wrapper).render(<mod.PlannerCodeBlock script={script} />);
+      }
+    }
+  });
+}
+
+function hydrateLiftographCodeBlocks(container: HTMLElement): void {
+  const codeEls = Array.from(container.querySelectorAll("code.language-liftograph"));
+  if (codeEls.length === 0) {
+    return;
+  }
+  import("./liftographCodeBlock").then((mod) => {
+    for (const codeEl of codeEls) {
+      if (codeEl.getAttribute("data-hydrated")) {
+        continue;
+      }
+      codeEl.setAttribute("data-hydrated", "true");
+      const text = (codeEl.textContent || "").replace(/\n+$/, "");
+      const pre = codeEl.parentElement;
+      if (pre && pre.tagName === "PRE") {
+        const wrapper = document.createElement("div");
+        wrapper.className = "md-liftoscript-block";
+        pre.parentNode!.replaceChild(wrapper, pre);
+        createRoot(wrapper).render(<mod.LiftographCodeBlock text={text} />);
       }
     }
   });

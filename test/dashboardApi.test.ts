@@ -161,15 +161,20 @@ describe("DashboardApi", () => {
     expect(result.kind === "error" && result.status).to.equal(404);
   });
 
-  it("compiles every example in the Liftograph reference without errors", () => {
-    const reference = fs.readFileSync(path.join(__dirname, "..", "llms", "liftograph_llm.md"), "utf8");
-    const examples = Array.from(reference.matchAll(/```liftograph\n([\s\S]*?)```/g)).map((m) => m[1]);
-    expect(examples.length).to.be.greaterThan(8);
-    const failures = examples.flatMap((example) =>
-      DashboardApi_compileErrors(example, settings).map((e) => `${e.message} in:\n${example}`)
-    );
-    expect(failures).to.deep.equal([]);
-  });
+  for (const file of [
+    ["llms", "liftograph_llm.md"],
+    ["docs", "content", "liftograph.md"],
+  ]) {
+    it(`compiles every example in ${file.join("/")} without errors`, () => {
+      const reference = fs.readFileSync(path.join(__dirname, "..", ...file), "utf8");
+      const examples = Array.from(reference.matchAll(/```liftograph\n([\s\S]*?)```/g)).map((m) => m[1]);
+      expect(examples.length).to.be.greaterThan(8);
+      const failures = examples.flatMap((example) =>
+        DashboardApi_compileErrors(example, settings).map((e) => `${e.message} in:\n${example}`)
+      );
+      expect(failures).to.deep.equal([]);
+    });
+  }
 
   it("deletes by id or 'current', and keeps the only dashboard", () => {
     const byCurrent = DashboardApi_delete(storage("b"), "current");

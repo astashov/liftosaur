@@ -158,7 +158,6 @@ export type IRootStackParamList = {
   dayStatsModal: { programId: string };
   exerciseStatsModal: { programId: string };
   editExerciseChangeModal: { programId: string };
-  graphsModal: undefined;
   dashboardsModal: undefined;
   statsSettingsModal: undefined;
   programInfoModal: { programId: string; hasCustomPrograms: boolean };

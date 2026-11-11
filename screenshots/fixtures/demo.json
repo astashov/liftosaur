@@ -2,6 +2,15 @@
   "id": 1790527397606,
   "originalId": 1790527397606,
   "currentProgramId": "demo",
+  "dashboards": [
+    {
+      "vtype": "dashboard",
+      "id": "strength",
+      "name": "Strength",
+      "text": "// ## Strength\nrow {\n  value / name: Squat e1RM / source: exercise(Squat) / y: e1rm / compare: 4w\n  value / name: Bench e1RM / source: exercise(Bench Press) / y: e1rm / compare: 4w\n}\n\ngraph / range: 1y {\n  name: Squat / source: exercise(Squat) / y: e1rm\n  name: Deadlift / source: exercise(Deadlift) / y: e1rm\n}\n\nrow {\n  muscles / range: 7d / show: map\n  calendar / range: 6m\n}"
+    }
+  ],
+  "currentDashboardId": "strength",
   "reviewRequests": [],
   "signupRequests": [],
   "deletedHistory": [],

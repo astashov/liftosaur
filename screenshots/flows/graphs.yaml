@@ -3,61 +3,57 @@ appId: ${APP_ID}
 - runFlow: lib/login.yaml
 - tapOn:
     id: footer-graphs
-- tapOn:
-    id: graphs-modify
-- takeScreenshot: graphs-settings
-- scrollUntilVisible:
-    element:
-      id: item-graph-bench-press
-    direction: DOWN
-    centerElement: true
-- tapOn:
-    id: item-graph-bench-press
-- scrollUntilVisible:
-    element:
-      id: item-graph-chest
-    direction: DOWN
-    centerElement: true
-- tapOn:
-    id: item-graph-chest
-- scrollUntilVisible:
-    element:
-      id: menu-item-bodyweight
-    direction: DOWN
-- tapOn:
-    id: menu-item-bodyweight
-- scrollUntilVisible:
-    element:
-      id: group-header-selected-graphs
-    direction: UP
-- takeScreenshot: graphs-choose
-- swipe:
-    start: 50%, 15%
-    end: 50%, 95%
-    duration: 400
-- tapOn:
-    point: 50%, 4%
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
-      id: graphs-modify
-    timeout: 5000
-- takeScreenshot: graphs-exercise
+      id: dashboard-graph
+    timeout: 10000
+- takeScreenshot: graphs-dashboard
 - longPressOn:
-    id: graph
-    index: 0
-- takeScreenshot: graphs-legend
-- scrollUntilVisible:
-    element:
-      text: ".*Chest Weekly Volume.*"
-    direction: DOWN
-    centerElement: true
-- takeScreenshot: graphs-muscle-group
-- scrollUntilVisible:
-    element:
-      text: "Bodyweight"
-    direction: DOWN
-    centerElement: true
-- takeScreenshot: graphs-bodyweight
+    id: dashboard-graph
+- takeScreenshot: graphs-cursor
+- tapOn:
+    text: "Strength ▾"
+- extendedWaitUntil:
+    visible:
+      id: dashboards-new
+    timeout: 5000
+- takeScreenshot: graphs-dashboards
+- tapOn:
+    id: dashboards-select-strength
+- waitForAnimationToEnd
+- tapOn:
+    id: dashboard-edit
+- extendedWaitUntil:
+    visible:
+      id: dashboard-edit-view
+    timeout: 10000
+- takeScreenshot: graphs-edit
+- tapOn:
+    id: dashboard-edit-menu-2
+- waitForAnimationToEnd
+- takeScreenshot: graphs-tile-menu
+- tapOn:
+    id: dashboard-edit-menu-edit
+- extendedWaitUntil:
+    visible:
+      id: dashboard-widget-series-0
+    timeout: 5000
+- takeScreenshot: graphs-widget
+- tapOn:
+    id: dashboard-widget-series-0
+- waitForAnimationToEnd
+- takeScreenshot: graphs-series
+- tapOn:
+    text: "Cancel"
+- waitForAnimationToEnd
+- tapOn:
+    id: dashboard-edit-mode-text
+- waitForAnimationToEnd
+- takeScreenshot: graphs-text
+- tapOn:
+    id: navbar-back
+- waitForAnimationToEnd
 - tapOn:
     id: footer-me
 - scrollUntilVisible:

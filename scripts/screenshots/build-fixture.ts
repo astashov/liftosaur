@@ -22,6 +22,24 @@ const root = path.resolve(__dirname, "../..");
 const programText = fs.readFileSync(path.join(root, "screenshots/fixtures/demo-program.txt"), "utf8");
 const outPath = path.join(root, "screenshots/fixtures/demo.json");
 
+const dashboardText = [
+  "// ## Strength",
+  "row {",
+  "  value / name: Squat e1RM / source: exercise(Squat) / y: e1rm / compare: 4w",
+  "  value / name: Bench e1RM / source: exercise(Bench Press) / y: e1rm / compare: 4w",
+  "}",
+  "",
+  "graph / range: 1y {",
+  "  name: Squat / source: exercise(Squat) / y: e1rm",
+  "  name: Deadlift / source: exercise(Deadlift) / y: e1rm",
+  "}",
+  "",
+  "row {",
+  "  muscles / range: 7d / show: map",
+  "  calendar / range: 6m",
+  "}",
+].join("\n");
+
 const weeksOfHistory = 12;
 const workoutWeekdayOffsets = [0, 1, 3, 4];
 const workoutHour = 18;
@@ -165,6 +183,8 @@ function main(): void {
   storage.history = history;
   storage.stats = buildStats();
   storage.settings = settings;
+  storage.dashboards = [{ vtype: "dashboard", id: "strength", name: "Strength", text: dashboardText }];
+  storage.currentDashboardId = "strength";
 
   const validated = Storage_validateStorage(JSON.parse(JSON.stringify(storage)));
   if (!validated.success) {
