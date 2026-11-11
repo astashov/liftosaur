@@ -67,7 +67,12 @@ export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerPro
         evaluatedProgram={evaluatedProgram}
         dispatch={pickerDispatch}
         onClose={onClose}
-        onStar={(key) => props.onChangeSettings({ ...settings, starredExercises: Settings_toggleStarred(settings.starredExercises, key) })}
+        onStar={(key) =>
+          props.onChangeSettings({
+            ...settings,
+            starredExercises: Settings_toggleStarred(settings.starredExercises, key),
+          })
+        }
         onChangeSettings={(pickerSettings) =>
           props.onChangeSettings({ ...settings, workoutSettings: { ...settings.workoutSettings, ...pickerSettings } })
         }
@@ -108,8 +113,16 @@ export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerPro
               : undefined;
           if (result != null) {
             UndoingFlag_set(true);
-            dispatch(lb<IPlannerState>().p("current").p("program").pi("planner").record(result.planner), result.description);
-            dispatch(lb<IPlannerState>().p("ui").recordModify((ui) => ui), "stop-is-undoing");
+            dispatch(
+              lb<IPlannerState>().p("current").p("program").pi("planner").record(result.planner),
+              result.description
+            );
+            dispatch(
+              lb<IPlannerState>()
+                .p("ui")
+                .recordModify((ui) => ui),
+              "stop-is-undoing"
+            );
           }
           onClose();
         }}

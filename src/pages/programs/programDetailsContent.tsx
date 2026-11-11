@@ -161,13 +161,7 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               </div>
               <div>Week Stats</div>
             </button>
-            {isWeekStatsOpen && (
-              <PlannerWeekStats
-                hideTitle={true}
-                evaluatedDays={evaluatedDays}
-                settings={settings}
-              />
-            )}
+            {isWeekStatsOpen && <PlannerWeekStats hideTitle={true} evaluatedDays={evaluatedDays} settings={settings} />}
           </div>
         </div>
       </div>

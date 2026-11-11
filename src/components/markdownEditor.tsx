@@ -68,7 +68,8 @@ export function MarkdownEditor(props: IProps): JSX.Element {
   useEffect(() => {
     if (window.isUndoing) {
       const ce = codeEditor.current;
-      const edit = ce != null && props.value != null ? TextDiff_minimalEdit(ce.state.doc.toString(), props.value) : undefined;
+      const edit =
+        ce != null && props.value != null ? TextDiff_minimalEdit(ce.state.doc.toString(), props.value) : undefined;
       if (ce != null && edit != null) {
         ce.dispatch({
           changes: { from: edit.start, to: edit.end, insert: edit.text },

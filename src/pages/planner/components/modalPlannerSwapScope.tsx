@@ -37,10 +37,20 @@ export function ModalPlannerSwapScope(props: {
     <Modal name="planner-swap-scope" shouldShowClose={true} onClose={onClose}>
       <GroupHeader size="large" name="Change Exercise" />
       <div className="flex gap-4 py-2">
-        <Button name="edit-exercise-change-one" data-testid="edit-exercise-change-one" kind="purple" onClick={() => openPicker("one")}>
+        <Button
+          name="edit-exercise-change-one"
+          data-testid="edit-exercise-change-one"
+          kind="purple"
+          onClick={() => openPicker("one")}
+        >
           Change only for this week/day
         </Button>
-        <Button name="edit-exercise-change-all" data-testid="edit-exercise-change-all" kind="purple" onClick={() => openPicker("all")}>
+        <Button
+          name="edit-exercise-change-all"
+          data-testid="edit-exercise-change-all"
+          kind="purple"
+          onClick={() => openPicker("all")}
+        >
           Change across whole program
         </Button>
       </div>

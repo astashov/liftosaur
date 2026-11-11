@@ -19,7 +19,9 @@ describe("HeartRateStore", () => {
     const mirroring = new MockWorkoutMirroring(new MockBridgeLog());
     const store = new HeartRateStore(mirroring);
     let notified = 0;
-    store.subscribe(() => notified++);
+    store.subscribe(() => {
+      notified += 1;
+    });
 
     mirroring.emitMirroringEvent({ type: "heartRate", bpm: 120, measuredAt: 99000, source: "phone" });
     expect(store.getBpm()).to.equal(120);

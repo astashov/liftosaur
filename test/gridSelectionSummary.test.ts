@@ -100,7 +100,11 @@ describe("GridSelectionSummary_build", () => {
       payloadFor({ kind: "day", rowIndexes: [0], name: "Day 1", placements: [] }, []),
       noStats
     );
-    expect(exercise.actions.map((a) => a.label)).to.deep.equal(["Swap exercise", "Duplicate exercise", "Delete exercise"]);
+    expect(exercise.actions.map((a) => a.label)).to.deep.equal([
+      "Swap exercise",
+      "Duplicate exercise",
+      "Delete exercise",
+    ]);
     expect(week.actions.map((a) => a.label)).to.deep.equal(["Duplicate week", "Delete week"]);
     expect(day.actions.map((a) => a.label)).to.deep.equal(["Duplicate day", "Delete day"]);
   });

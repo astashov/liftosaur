@@ -1,7 +1,10 @@
 import { JSX } from "react";
 import { Modal } from "../../../components/modal";
 import { EditDetailsForm } from "../../../components/editDetailsForm";
-import { IGridEditDetailsRequest, IGridEditDetailsResult } from "../../../components/editProgram/editProgramGrid/gridHost";
+import {
+  IGridEditDetailsRequest,
+  IGridEditDetailsResult,
+} from "../../../components/editProgram/editProgramGrid/gridHost";
 
 export function ModalPlannerEditDetails(props: {
   request: IGridEditDetailsRequest;

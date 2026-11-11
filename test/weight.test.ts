@@ -1,12 +1,7 @@
 import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
-import {
-  Weight_build,
-  Weight_calculatePlates,
-  Weight_platesWeight,
-  Weight_strictParse,
-} from "../src/models/weight";
+import { Weight_build, Weight_calculatePlates, Weight_platesWeight, Weight_strictParse } from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
 import { Exercise_toKey } from "../src/models/exercise";
 

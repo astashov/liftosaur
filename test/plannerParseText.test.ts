@@ -1,9 +1,6 @@
 import "mocha";
 import { expect } from "chai";
-import {
-  PlannerProgram_evaluateText,
-  PlannerProgram_parseText,
-} from "../src/pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluateText, PlannerProgram_parseText } from "../src/pages/planner/models/plannerProgram";
 
 describe("PlannerProgram_parseText", () => {
   it("splits complete text into weeks and days", () => {
@@ -24,7 +21,10 @@ describe("PlannerProgram_parseText", () => {
 
   it("gives the default week for empty text", () => {
     const result = PlannerProgram_parseText("");
-    expect(result).to.deep.equal({ success: true, data: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }] });
+    expect(result).to.deep.equal({
+      success: true,
+      data: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+    });
   });
 
   it("reports a day before any week at the day's line", () => {

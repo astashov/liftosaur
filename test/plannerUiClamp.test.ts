@@ -25,25 +25,48 @@ function uiOf(over: Partial<IPlannerUi> = {}): IPlannerUi {
   };
 }
 
-const threeWeeks = plannerOf([["A", "B"], ["A", "B"], ["A", "B"]]);
+const threeWeeks = plannerOf([
+  ["A", "B"],
+  ["A", "B"],
+  ["A", "B"],
+]);
 
 describe("PlannerUiClamp_apply", () => {
   it("keeps the same object when the structure did not change", () => {
     const ui = uiOf();
-    const edited = plannerOf([["A", "B"], ["A", "B"], ["A", "B"]]);
+    const edited = plannerOf([
+      ["A", "B"],
+      ["A", "B"],
+      ["A", "B"],
+    ]);
     edited.weeks[0].days[0].exerciseText = "Bench Press / 3x5";
     expect(PlannerUiClamp_apply(ui, threeWeeks, edited)).to.equal(ui);
   });
 
   it("clamps the week tab and clears positions after the last week is deleted", () => {
-    const result = PlannerUiClamp_apply(uiOf(), threeWeeks, plannerOf([["A", "B"], ["A", "B"]]));
+    const result = PlannerUiClamp_apply(
+      uiOf(),
+      threeWeeks,
+      plannerOf([
+        ["A", "B"],
+        ["A", "B"],
+      ])
+    );
     expect(result.weekIndex).to.equal(1);
     expect(result.focusedExercise).to.equal(undefined);
     expect(result.dayUi.collapsed.size).to.equal(0);
   });
 
   it("clears positions after days move inside a week", () => {
-    const result = PlannerUiClamp_apply(uiOf(), threeWeeks, plannerOf([["A", "B"], ["A", "B"], ["B", "A"]]));
+    const result = PlannerUiClamp_apply(
+      uiOf(),
+      threeWeeks,
+      plannerOf([
+        ["A", "B"],
+        ["A", "B"],
+        ["B", "A"],
+      ])
+    );
     expect(result.weekIndex).to.equal(2);
     expect(result.focusedExercise).to.equal(undefined);
     expect(result.dayUi.collapsed.size).to.equal(0);

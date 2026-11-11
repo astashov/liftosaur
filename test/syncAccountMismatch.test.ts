@@ -17,7 +17,12 @@ describe("SyncAccountMismatch", () => {
   it("ignores every other response", () => {
     expect(SyncAccountMismatch_fromResponse({ type: "error", error: "not_authorized" })).to.equal(undefined);
     expect(
-      SyncAccountMismatch_fromResponse({ type: "clean", new_original_id: 1, email: "h@example.com", user_id: "husband" })
+      SyncAccountMismatch_fromResponse({
+        type: "clean",
+        new_original_id: 1,
+        email: "h@example.com",
+        user_id: "husband",
+      })
     ).to.equal(undefined);
   });
 
@@ -28,9 +33,9 @@ describe("SyncAccountMismatch", () => {
   });
 
   it("loads the cookie account's local copy when the browser has one", () => {
-    expect(SyncAccountMismatch_plan({ sentTempUserId: "wife", currentTempUserId: "wife", hasLocalCopy: true })).to.equal(
-      "load-local"
-    );
+    expect(
+      SyncAccountMismatch_plan({ sentTempUserId: "wife", currentTempUserId: "wife", hasLocalCopy: true })
+    ).to.equal("load-local");
   });
 
   it("fetches the cookie account from the server when the browser has no copy of it", () => {

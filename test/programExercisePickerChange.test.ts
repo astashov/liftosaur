@@ -2,7 +2,11 @@ import "mocha";
 import { expect } from "chai";
 import { ProgramExercisePickerChange_apply } from "../src/models/programExercisePickerChange";
 import { PlannerProgram_evaluateText } from "../src/pages/planner/models/plannerProgram";
-import { Program_create, Program_evaluate, Program_getProgramExerciseForKeyAndShortDayData } from "../src/models/program";
+import {
+  Program_create,
+  Program_evaluate,
+  Program_getProgramExerciseForKeyAndShortDayData,
+} from "../src/models/program";
 import { Settings_build } from "../src/models/settings";
 import { IPlannerProgram } from "../src/types";
 

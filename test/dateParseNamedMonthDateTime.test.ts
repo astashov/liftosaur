@@ -14,9 +14,7 @@ describe("DateUtils_parseNamedMonthDateTime", () => {
   });
 
   it("maps 12 AM to midnight and 12 PM to noon", () => {
-    expect(DateUtils_parseNamedMonthDateTime("Oct 17, 2026, 12:05 AM")).to.equal(
-      new Date(2026, 9, 17, 0, 5).getTime()
-    );
+    expect(DateUtils_parseNamedMonthDateTime("Oct 17, 2026, 12:05 AM")).to.equal(new Date(2026, 9, 17, 0, 5).getTime());
     expect(DateUtils_parseNamedMonthDateTime("Oct 17, 2026, 12:05 PM")).to.equal(
       new Date(2026, 9, 17, 12, 5).getTime()
     );

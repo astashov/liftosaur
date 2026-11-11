@@ -17,7 +17,9 @@ function daysOf(text: string): ReturnType<typeof PlannerProgram_evaluate>["evalu
 
 describe("PlannerStatsUtils_summary", () => {
   it("counts exercises per day and averages the time", () => {
-    const days = daysOf("# Week 1\n## Day 1\nSquat / 3x5\nBench Press / 3x5\n## Day 2\nDeadlift / 1x5\nBench Press / 3x5");
+    const days = daysOf(
+      "# Week 1\n## Day 1\nSquat / 3x5\nBench Press / 3x5\n## Day 2\nDeadlift / 1x5\nBench Press / 3x5"
+    );
     const summary = PlannerStatsUtils_summary(days, settings);
     expect(summary.days).to.equal(2);
     expect(summary.exercisesPerDay).to.equal(2);

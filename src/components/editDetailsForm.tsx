@@ -28,11 +28,7 @@ export function EditDetailsForm(props: {
   const inputHandle = useRef<IInputHandle>(null);
 
   const name =
-    typedNameResult == null
-      ? data.name.trim()
-      : typedNameResult.success
-        ? typedNameResult.data.trim()
-        : undefined;
+    typedNameResult == null ? data.name.trim() : typedNameResult.success ? typedNameResult.data.trim() : undefined;
 
   const onSubmit = (): void => {
     if (!name) {

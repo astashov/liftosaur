@@ -9,9 +9,9 @@ export function PlannerHelp(props: { onClose: () => void }): JSX.Element {
     <div className="relative px-8 py-4 mb-4 border rounded-lg border-border-cardyellow bg-background-cardyellow">
       <p className="mb-2">
         This tool allows you to quickly build your weightlifting programs, ensure you have proper{" "}
-        <strong>weekly volume per muscle group</strong>, and balance it with the <strong>time you spend in a gym</strong>.
-        You can build multi-week programs, plan your mesocycles, deload weeks, testing 1RM weeks, and see the weekly
-        undulation of volume and intensity of each exercise on a graph.
+        <strong>weekly volume per muscle group</strong>, and balance it with the{" "}
+        <strong>time you spend in a gym</strong>. You can build multi-week programs, plan your mesocycles, deload weeks,
+        testing 1RM weeks, and see the weekly undulation of volume and intensity of each exercise on a graph.
       </p>
       <p className="mb-2">
         Set the program name, create weeks and days, type the list of exercises for each day, putting each exercise on a

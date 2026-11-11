@@ -36,9 +36,7 @@ function initialState(): IPlannerState {
 
 function run(act: (nav: ReturnType<typeof PlannerGridNavigation_create>) => void): IPlannerState {
   let state = initialState();
-  const dispatch = (
-    recording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[]
-  ): void => {
+  const dispatch = (recording: ILensRecordingPayload<IPlannerState> | ILensRecordingPayload<IPlannerState>[]): void => {
     for (const r of Array.isArray(recording) ? recording : [recording]) {
       state = r.fn(state);
     }

@@ -56,10 +56,7 @@ export function NavModalDayStats(): JSX.Element {
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
       <FormSheet>
-        <PlannerDayStats
-          settings={settings}
-          evaluatedDay={evaluatedWeeks[weekIndex][dayIndex!]}
-        />
+        <PlannerDayStats settings={settings} evaluatedDay={evaluatedWeeks[weekIndex][dayIndex!]} />
       </FormSheet>
     </ModalScreenContainer>
   );

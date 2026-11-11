@@ -10,7 +10,9 @@ export function PlannerGridNavigation_create(context: IGridNavigationContext): I
   const { grid, evaluatedProgram, settings, plannerDispatch } = context;
   const lbUi = lb<IPlannerState>().p("ui");
 
-  function exerciseAt(placement: IProgramGridPlacement): ReturnType<typeof Program_getProgramExerciseForKeyAndShortDayData> {
+  function exerciseAt(
+    placement: IProgramGridPlacement
+  ): ReturnType<typeof Program_getProgramExerciseForKeyAndShortDayData> {
     const dayData = ProgramGrid_dayDataAt(grid, placement.rowIndex, placement.colStart);
     return Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, placement.key);
   }

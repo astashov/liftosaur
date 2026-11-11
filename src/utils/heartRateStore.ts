@@ -7,8 +7,8 @@ import {
 import { IWorkoutMirroring } from "./workoutMirroring";
 
 export interface IHeartRateStore {
-  getBpm(): number | undefined;
-  subscribe(listener: () => void): () => void;
+  getBpm: () => number | undefined;
+  subscribe: (listener: () => void) => () => void;
 }
 
 export class HeartRateStore implements IHeartRateStore {

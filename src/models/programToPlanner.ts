@@ -93,7 +93,11 @@ export class ProgramToPlanner {
     return this.program.weeks[weekIndex]?.days[dayInWeekIndex]?.exercises?.find((e) => e.key === key);
   }
 
-  private isInheritedDescription(exercise: IPlannerProgramExercise, weekIndex: number, dayInWeekIndex: number): boolean {
+  private isInheritedDescription(
+    exercise: IPlannerProgramExercise,
+    weekIndex: number,
+    dayInWeekIndex: number
+  ): boolean {
     for (let i = weekIndex - 1; i >= 0; i -= 1) {
       const day = this.program.weeks[i]?.days[dayInWeekIndex];
       if (day == null) {

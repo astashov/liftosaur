@@ -215,5 +215,6 @@ module.exports = defineConfig([
     "codemods",
     "**/*.generated.ts",
     "**/*.generated.tsx",
+    "src/liftohistory/liftohistoryParser.ts",
   ]),
 ]);

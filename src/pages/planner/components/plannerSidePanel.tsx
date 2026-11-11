@@ -214,13 +214,7 @@ function PanelStats(props: IPlannerSidePanelProps): JSX.Element {
         />
       );
     case "day":
-      return (
-        <PlannerDayStats
-          hideTitle={true}
-          settings={props.settings}
-          evaluatedDay={stats.evaluatedDay}
-        />
-      );
+      return <PlannerDayStats hideTitle={true} settings={props.settings} evaluatedDay={stats.evaluatedDay} />;
     case "exercise":
       return (
         <PlannerExerciseStats

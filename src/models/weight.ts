@@ -327,9 +327,7 @@ export function Weight_setupForExercise(
   exerciseType: IExerciseType
 ): IEquipmentSetup | undefined {
   const equipmentData = Equipment_getEquipmentDataForExerciseType(settings, exerciseType);
-  return equipmentData != null
-    ? Equipment_setupIn(equipmentData, equipmentData.unit ?? weight.unit)
-    : undefined;
+  return equipmentData != null ? Equipment_setupIn(equipmentData, equipmentData.unit ?? weight.unit) : undefined;
 }
 
 export function Weight_realizeLoad(

@@ -1,7 +1,12 @@
 import "mocha";
 import { expect } from "chai";
 import { IStats } from "../src/types";
-import { StatRowWrites_deletedNames, StatRowWrites_deletes, StatRowWrites_plan, StatRowWrites_rows } from "../lambda/utils/statRowWrites";
+import {
+  StatRowWrites_deletedNames,
+  StatRowWrites_deletes,
+  StatRowWrites_plan,
+  StatRowWrites_rows,
+} from "../lambda/utils/statRowWrites";
 
 function stat(
   timestamp: number,
