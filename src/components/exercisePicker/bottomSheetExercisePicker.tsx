@@ -15,6 +15,8 @@ import { ExercisePickerSettings, IExercisePickerSettings } from "./exercisePicke
 import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
 import { lb } from "lens-shmens";
 import { buildCustomLensDispatch } from "../../ducks/types";
+import { useAndroidBack } from "../../navigation/useAndroidBack";
+import { ExercisePickerBack_canPop, ExercisePickerBack_pop } from "./exercisePickerBack";
 
 interface IExercisePickerContentProps {
   isLoggedIn: boolean;
@@ -36,6 +38,9 @@ export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.E
   const { evaluatedProgram } = props;
   const state = props.exercisePicker;
   const currentScreen = state.screenStack[state.screenStack.length - 1] ?? "exercisePicker";
+  useAndroidBack(ExercisePickerBack_canPop(state), () => {
+    props.dispatch(lb<IExercisePickerState>().record(ExercisePickerBack_pop(state)), "Android back in exercise picker");
+  });
   if (currentScreen === "exercisePicker") {
     return (
       <ExercisePickerMain
@@ -81,16 +86,8 @@ export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.E
           props.onChangeCustomExercise(action, exercise, notes);
         }}
         onGoBack={(desc) => {
-          if (state.screenStack.length > 1) {
-            props.dispatch(
-              [
-                lb<IExercisePickerState>()
-                  .p("screenStack")
-                  .recordModify((stack) => stack.slice(0, -1)),
-                lb<IExercisePickerState>().p("editCustomExercise").record(undefined),
-              ],
-              desc
-            );
+          if (ExercisePickerBack_canPop(state)) {
+            props.dispatch(lb<IExercisePickerState>().record(ExercisePickerBack_pop(state)), desc);
           } else {
             props.onClose();
           }

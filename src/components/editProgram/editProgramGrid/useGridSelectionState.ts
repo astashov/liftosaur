@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { IProgramGrid, IProgramGridSelection, ProgramGrid_select } from "../../../pages/planner/models/programGrid";
 import { IGridLaneRef } from "./useGridDrags";
+import { useAndroidBack } from "../../../navigation/useAndroidBack";
 
 // Three selections, and only ever one of them: an exercise, a day row, or a week column. Each setter
 // clears the other two, because the dock shows one target with one set of verbs — a day is a day,
@@ -62,6 +63,8 @@ export function useGridSelectionState(grid: IProgramGrid): IGridSelectionState {
     setSelectedDayRows([]);
     setSelectedWeek(undefined);
   }, []);
+  const hasSelection = selectedIds.length > 0 || selectedDayRows.length > 0 || selectedWeek != null;
+  useAndroidBack(hasSelection, onClear);
 
   return {
     selectedIds,
