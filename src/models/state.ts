@@ -35,6 +35,7 @@ import type { IKeychain } from "../utils/keychain";
 import type { IWorkoutMirroring } from "../utils/workoutMirroring";
 import type { IHeartRateStore } from "../utils/heartRateStore";
 import type { ILoginConflictRequest, LoginConflictPrompt } from "../utils/loginConflictPrompt";
+import type { ISocialState } from "./socialState";
 
 export type IEnv = {
   service: Service;
@@ -201,6 +202,7 @@ export interface IState {
   editProgramStates: Record<string, IPlannerState>;
   playgroundState?: IProgramPreviewPlaygroundState;
   importPreview?: IImportPreview;
+  social?: ISocialState;
 }
 
 export interface IImportPreview {

@@ -9,6 +9,7 @@ import { ChooseProgramView } from "../../components/chooseProgram";
 import { Program_getProgram } from "../../models/program";
 import { useScreenPerf } from "../../utils/useScreenPerf";
 import { ImagePreloader_preload } from "../../utils/imagePreloader";
+import { SocialState_forAccount } from "../../models/socialState";
 
 const subscriptionImages = ["/images/subscriptionhero.png"];
 
@@ -59,6 +60,7 @@ export function NavScreenMain(): JSX.Element {
         subscription={untrack(state.storage.subscription)}
         dispatch={dispatch}
         initialHistoryRecordId={route.params?.historyRecordId}
+        social={SocialState_forAccount(untrack(state.social), state.user?.id)}
       />
     </View>
   );

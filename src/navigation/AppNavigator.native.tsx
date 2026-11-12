@@ -19,6 +19,16 @@ import type {
 import type { IScreen } from "../models/screen";
 import { NavScreenMain } from "./screens/NavScreenHome";
 import {
+  NavScreenFeedFilter,
+  NavScreenFollowInvite,
+  NavScreenFriendFollower,
+  NavScreenFriendInvite,
+  NavScreenFriendProfile,
+  NavScreenFriendRequest,
+  NavScreenFriends,
+  NavScreenFriendWorkout,
+} from "./screens/NavScreenFriends";
+import {
   NavScreenPrograms,
   NavScreenEditProgram,
   NavScreenMuscles,
@@ -266,6 +276,21 @@ function HomeStackScreen(): JSX.Element {
         component={NavScreenExerciseStats}
         options={{ headerShown: true, header: NavHeader }}
       />
+      <HomeStack.Screen
+        name="friendProfile"
+        component={NavScreenFriendProfile}
+        options={{ headerShown: true, header: NavHeader }}
+      />
+      <HomeStack.Screen
+        name="friendWorkout"
+        component={NavScreenFriendWorkout}
+        options={{ headerShown: true, header: NavHeader }}
+      />
+      <HomeStack.Screen
+        name="feedFilter"
+        component={NavScreenFeedFilter}
+        options={{ headerShown: true, header: NavHeader }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -359,6 +384,13 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="onerms" component={NavScreenOnerms} />
       <MeStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <MeStack.Screen name="programPreview" component={NavScreenProgramPreview} />
+      <MeStack.Screen name="friends" component={NavScreenFriends} />
+      <MeStack.Screen name="friendInvite" component={NavScreenFriendInvite} />
+      <MeStack.Screen name="followInvite" component={NavScreenFollowInvite} />
+      <MeStack.Screen name="friendRequest" component={NavScreenFriendRequest} />
+      <MeStack.Screen name="friendFollower" component={NavScreenFriendFollower} />
+      <MeStack.Screen name="friendProfile" component={NavScreenFriendProfile} />
+      <MeStack.Screen name="friendWorkout" component={NavScreenFriendWorkout} />
     </MeStack.Navigator>
   );
 }

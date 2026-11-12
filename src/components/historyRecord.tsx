@@ -6,7 +6,7 @@ import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHOrMin } from "../utils/time";
 import { Progress_isCurrent, Progress_isFullyEmptySet, Progress_getSupersetToColor } from "../models/progress";
 import { ComparerUtils_noFns } from "../utils/comparer";
-import { IHistoryRecord, ISettings } from "../types";
+import { IHistoryRecord, ISettings, IWeight } from "../types";
 import {
   IPersonalRecords,
   History_workoutTime,
@@ -23,6 +23,8 @@ import { StringUtils_pluralize } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
 import { Thunk_startProgramDay, Thunk_editHistoryRecord } from "../ducks/thunks";
+import { IReactionSummary, Reactions_reactorsLine } from "../models/reactions";
+import { ReactionBar } from "./social/reactionBar";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -31,10 +33,11 @@ interface IProps {
   isOngoing: boolean;
   prs?: IPersonalRecords;
   settings: ISettings;
+  reactions?: IReactionSummary;
   dispatch: IDispatch;
 }
 
-function getNativeCardShadow(): Record<string, unknown> {
+export function getNativeCardShadow(): Record<string, unknown> {
   return Platform.select({
     ios: {
       shadowColor: "#000",
@@ -130,6 +133,17 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               </Text>
             </View>
           )}
+          {props.reactions != null && props.reactions.total > 0 && (
+            <View className="pt-3 mt-3 border-t border-border-cardpurple">
+              <ReactionBar
+                summary={props.reactions}
+                canReact={false}
+                onReact={() => undefined}
+                testIdPrefix={`own-reaction-${historyRecord.id}`}
+              />
+              <Text className="mt-2 text-xs text-text-secondary">{Reactions_reactorsLine(props.reactions)}</Text>
+            </View>
+          )}
           {isCurrent && (
             <View className="mt-2">
               {!props.isOngoing ? (
@@ -170,10 +184,26 @@ interface IHistoryRecordStats {
 
 function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
   const record = props.historyRecord;
-  const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
-  const totalWeight = History_totalRecordWeight(record, props.settings);
-  const totalReps = History_totalRecordReps(record);
-  const totalSets = History_totalRecordSets(record);
+  return (
+    <HistoryRecordStatsRow
+      durationMs={History_workoutTime(record)}
+      volume={History_totalRecordWeight(record, props.settings)}
+      sets={History_totalRecordSets(record)}
+      reps={History_totalRecordReps(record)}
+    />
+  );
+}
+
+export function HistoryRecordStatsRow(props: {
+  durationMs: number;
+  volume: IWeight;
+  sets: number;
+  reps: number;
+}): JSX.Element {
+  const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(props.durationMs);
+  const totalWeight = props.volume;
+  const totalReps = props.reps;
+  const totalSets = props.sets;
   const setsUnit = StringUtils_pluralize("set", totalSets);
   const repsUnit = StringUtils_pluralize("rep", totalReps);
 

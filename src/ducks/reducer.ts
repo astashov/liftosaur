@@ -88,6 +88,7 @@ import { PerfProbe_onAction } from "../utils/perfSetCompleteProbe";
 import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 import { EquipmentUnits_follow } from "../models/equipmentUnits";
+import { SocialState_forAccount } from "../models/socialState";
 
 declare let __COMMIT_HASH__: string;
 
@@ -828,9 +829,15 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
       ...state,
       user: { email: action.email, id: action.userId },
       storage: { ...state.storage, email: action.email },
+      social: SocialState_forAccount(state.social, action.userId),
     };
   } else if (action.type === "Logout") {
-    return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
+    return {
+      ...state,
+      user: undefined,
+      storage: { ...state.storage, email: undefined },
+      social: SocialState_forAccount(state.social, undefined),
+    };
   } else if (action.type === "StopTimer") {
     const progress = Progress_getProgress(state);
     if (progress != null) {

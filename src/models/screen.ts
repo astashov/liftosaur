@@ -41,7 +41,15 @@ export type IScreenData =
   | { name: "programPreview"; params?: Record<string, never> }
   | { name: "apiKeys"; params?: Record<string, never> }
   | { name: "recentImports"; params?: Record<string, never> }
-  | { name: "importPreview"; params?: Record<string, never> };
+  | { name: "importPreview"; params?: Record<string, never> }
+  | { name: "friends"; params?: Record<string, never> }
+  | { name: "friendInvite"; params?: Record<string, never> }
+  | { name: "followInvite"; params: { token: string } }
+  | { name: "friendRequest"; params: { requestId: string } }
+  | { name: "friendFollower"; params: { userId: string } }
+  | { name: "friendProfile"; params: { userId: string } }
+  | { name: "friendWorkout"; params: { ownerId: string; recordId: number } }
+  | { name: "feedFilter"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
@@ -182,6 +190,18 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "importPreview": {
       return "me";
+    }
+    case "friends":
+    case "friendInvite":
+    case "followInvite":
+    case "friendRequest":
+    case "friendFollower":
+    case "friendProfile":
+    case "friendWorkout": {
+      return "me";
+    }
+    case "feedFilter": {
+      return "home";
     }
   }
 }

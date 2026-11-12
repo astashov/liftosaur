@@ -13,6 +13,7 @@ import {
   BatchGetCommandInput,
   BatchWriteCommand,
   BatchWriteCommandInput,
+  TransactWriteCommand,
   NativeAttributeValue,
 } from "@aws-sdk/lib-dynamodb";
 import { CollectionUtils_inGroupsOf, CollectionUtils_compact } from "../../src/utils/collection";
@@ -25,7 +26,37 @@ export interface IDynamoCondition {
   values?: Partial<Record<string, string | number>>;
 }
 
+export interface IDynamoQueryPageArgs {
+  tableName: string;
+  expression: string;
+  indexName?: string;
+  scanIndexForward?: boolean;
+  attrs?: Record<string, string>;
+  values?: Partial<Record<string, string | number>>;
+  limit: number;
+  exclusiveStartKey?: Record<string, NativeAttributeValue>;
+}
+
+export interface IDynamoQueryPage<T> {
+  items: T[];
+  lastEvaluatedKey?: Record<string, NativeAttributeValue>;
+}
+
+export interface IDynamoTransactPut {
+  tableName: string;
+  item: Record<string, NativeAttributeValue>;
+  condition?: IDynamoCondition;
+}
+
+export interface IDynamoTransactDelete {
+  tableName: string;
+  key: Record<string, NativeAttributeValue>;
+  condition?: IDynamoCondition;
+}
+
 export interface IDynamoUtil {
+  queryPage<T>(args: IDynamoQueryPageArgs): Promise<IDynamoQueryPage<T>>;
+  transactWrite(args: { puts?: IDynamoTransactPut[]; deletes?: IDynamoTransactDelete[] }): Promise<boolean>;
   query<T>(args: {
     tableName: string;
     expression: string;
@@ -153,6 +184,69 @@ export class DynamoUtil implements IDynamoUtil {
       );
       throw e;
     }
+  }
+
+  public async queryPage<T>(args: IDynamoQueryPageArgs): Promise<IDynamoQueryPage<T>> {
+    const startTime = Date.now();
+    const label = `${args.tableName}${args.indexName ? ` (${args.indexName})` : ""}`;
+    try {
+      const result = await this.dynamo.send(
+        new QueryCommand({
+          TableName: args.tableName,
+          IndexName: args.indexName,
+          ExclusiveStartKey: args.exclusiveStartKey,
+          ScanIndexForward: args.scanIndexForward,
+          KeyConditionExpression: args.expression,
+          ExpressionAttributeNames: args.attrs,
+          ExpressionAttributeValues: args.values,
+          Limit: args.limit,
+        })
+      );
+      this.log.log(`Dynamo query page: ${label} - `, args.expression, args.values, ` - ${Date.now() - startTime}ms`);
+      return { items: (result.Items || []) as T[], lastEvaluatedKey: result.LastEvaluatedKey };
+    } catch (e) {
+      this.log.log(`FAILED Dynamo query page: ${label} - `, args.expression, args.values);
+      throw e;
+    }
+  }
+
+  public async transactWrite(args: {
+    puts?: IDynamoTransactPut[];
+    deletes?: IDynamoTransactDelete[];
+  }): Promise<boolean> {
+    const startTime = Date.now();
+    const items = [
+      ...(args.puts || []).map((put) => ({
+        Put: {
+          TableName: put.tableName,
+          Item: put.item,
+          ConditionExpression: put.condition?.expression,
+          ExpressionAttributeNames: put.condition?.attrs,
+          ExpressionAttributeValues: put.condition?.values,
+        },
+      })),
+      ...(args.deletes || []).map((del) => ({
+        Delete: {
+          TableName: del.tableName,
+          Key: del.key,
+          ConditionExpression: del.condition?.expression,
+          ExpressionAttributeNames: del.condition?.attrs,
+          ExpressionAttributeValues: del.condition?.values,
+        },
+      })),
+    ];
+    try {
+      await this.dynamo.send(new TransactWriteCommand({ TransactItems: items }));
+    } catch (e) {
+      if (e instanceof Error && e.name === "TransactionCanceledException") {
+        this.log.log(`Dynamo transaction cancelled by a condition - ${Date.now() - startTime}ms`);
+        return false;
+      }
+      this.log.log(`FAILED Dynamo transaction - ${Date.now() - startTime}ms`);
+      throw e;
+    }
+    this.log.log(`Dynamo transaction: ${items.length} items - ${Date.now() - startTime}ms`);
+    return true;
   }
 
   public async scan<T>(args: {

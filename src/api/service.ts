@@ -13,6 +13,9 @@ import {
 } from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
+import { IFollowPermissions, IFollowRequest, IFollowsResponse } from "../models/follow";
+import { IFeedResponse } from "../models/feedWorkout";
+import { IReaction, IReactionSummary } from "../models/reactions";
 import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IFieldVersion } from "../models/versionTracker/types";
@@ -1164,6 +1167,95 @@ export class Service {
       return { account: json.account || undefined, units: json.units || undefined };
     }
     return {};
+  }
+
+  private async socialRequest<T>(method: string, path: string, body?: unknown): Promise<IEither<T, string>> {
+    try {
+      const result = await this.client(`${__API_HOST__}${path}`, {
+        method,
+        credentials: "include",
+        ...(body != null ? { body: JSON.stringify(body), headers: { "Content-Type": "application/json" } } : {}),
+      });
+      const json = await result.json().catch(() => ({}));
+      if (result.ok) {
+        return { success: true, data: json.data as T };
+      }
+      return { success: false, error: typeof json.error === "string" ? json.error : `http${result.status}` };
+    } catch (e) {
+      return { success: false, error: "network" };
+    }
+  }
+
+  public createFollowInvite(): Promise<IEither<{ token: string; url: string; expiresAt: number }, string>> {
+    return this.socialRequest("POST", "/api/follow/invites", {});
+  }
+
+  public getFollowInvite(token: string): Promise<IEither<{ nickname?: string; isSelf: boolean }, string>> {
+    return this.socialRequest("GET", `/api/follow/invites/${encodeURIComponent(token)}`);
+  }
+
+  public requestFollow(token: string): Promise<IEither<IFollowRequest & { status: "pending" | "approved" }, string>> {
+    return this.socialRequest("POST", `/api/follow/invites/${encodeURIComponent(token)}/request`, {});
+  }
+
+  public getFollows(): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("GET", "/api/follows");
+  }
+
+  public approveFollow(
+    requestId: string,
+    permissions: IFollowPermissions,
+    followBack: boolean
+  ): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("POST", `/api/follows/requests/${encodeURIComponent(requestId)}/approve`, {
+      permissions,
+      followBack,
+    });
+  }
+
+  public removeFollowRequest(requestId: string): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("DELETE", `/api/follows/requests/${encodeURIComponent(requestId)}`);
+  }
+
+  public setFollowerPermissions(
+    userId: string,
+    permissions: IFollowPermissions
+  ): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("PUT", `/api/follows/followers/${encodeURIComponent(userId)}/permissions`, {
+      permissions,
+    });
+  }
+
+  public unfollow(userId: string): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("DELETE", `/api/follows/following/${encodeURIComponent(userId)}`);
+  }
+
+  public removeFollower(userId: string): Promise<IEither<IFollowsResponse, string>> {
+    return this.socialRequest("DELETE", `/api/follows/followers/${encodeURIComponent(userId)}`);
+  }
+
+  public getFeed(args: { cursor?: string; owners?: string[] }): Promise<IEither<IFeedResponse, string>> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/feed`);
+    if (args.cursor) {
+      url.searchParams.set("cursor", args.cursor);
+    }
+    if (args.owners) {
+      url.searchParams.set("owners", args.owners.join(","));
+    }
+    return this.socialRequest("GET", `${url.pathname}${url.search}`);
+  }
+
+  public getOwnReactions(recordIds: number[]): Promise<IEither<Partial<Record<string, IReactionSummary>>, string>> {
+    return this.socialRequest("GET", `/api/reactions?ids=${recordIds.join(",")}`);
+  }
+
+  public setReaction(
+    ownerId: string,
+    recordId: number,
+    reaction: IReaction | undefined
+  ): Promise<IEither<unknown, string>> {
+    const path = `/api/reactions/${encodeURIComponent(ownerId)}/${recordId}`;
+    return reaction != null ? this.socialRequest("PUT", path, { reaction }) : this.socialRequest("DELETE", path);
   }
 
   public async getApiKeys(): Promise<{ key: string; name: string; createdAt: number }[]> {

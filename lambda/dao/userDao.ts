@@ -13,6 +13,7 @@ import {
   IStatsWeightValue,
   IStatsPercentageValue,
   IStatsHealthValue,
+  ISettings,
 } from "../../src/types";
 import {
   Storage_get,
@@ -26,11 +27,15 @@ import {
   CollectionUtils_inGroupsOf,
   CollectionUtils_diffByKey,
   CollectionUtils_groupByKey,
+  CollectionUtils_compact,
 } from "../../src/utils/collection";
 import { ObjectUtils_keys, ObjectUtils_clone } from "../../src/utils/object";
 import { IDI } from "../utils/di";
 import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
+import { ReactionDao } from "./reactionDao";
+import { FollowDao } from "./followDao";
+import { FollowInviteDao } from "./followInviteDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
 import { IStorageUpdate2 } from "../../src/utils/sync";
@@ -674,6 +679,45 @@ export class UserDao {
     return items.map((item) => UserRow_unpack(item));
   }
 
+  public async getSettingsByIds(userIds: string[]): Promise<{ id: string; settings: ISettings }[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { settings?: ISettings } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#settings",
+      attrs: { "#id": "id", "#storage": "storage", "#settings": "settings" },
+    });
+    return CollectionUtils_compact(
+      items.map((item) =>
+        item.storage?.settings != null ? { id: item.id, settings: item.storage.settings } : undefined
+      )
+    );
+  }
+
+  public async getNicknamesByIds(userIds: string[]): Promise<Partial<Record<string, string>>> {
+    if (userIds.length === 0) {
+      return {};
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { settings?: { nickname?: string } } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#settings.#nickname",
+      attrs: { "#id": "id", "#storage": "storage", "#settings": "settings", "#nickname": "nickname" },
+    });
+    const result: Partial<Record<string, string>> = {};
+    for (const item of items) {
+      const nickname = item.storage?.settings?.nickname?.trim();
+      if (nickname) {
+        result[item.id] = nickname;
+      }
+    }
+    return result;
+  }
+
   public async getStatsFieldsByIds(userIds: string[]): Promise<IUserStatsFields[]> {
     const env = Utils_getEnv();
     return this.di.dynamo.batchGet<IUserStatsFields>({
@@ -982,6 +1026,10 @@ export class UserDao {
 
     const historyRecords = await this.getHistoryByUserId(userId);
     const historyRecordIds = Array.from(new Set(historyRecords.map((p) => p.id)));
+    await new ReactionDao(this.di).removeForRecords(userId, historyRecordIds);
+    await new ReactionDao(this.di).removeAllForUser(userId);
+    await new FollowDao(this.di).removeAllForUser(userId);
+    await new FollowInviteDao(this.di).removeAllForUser(userId);
     if (historyRecordIds.length > 0) {
       await Promise.all(
         CollectionUtils_inGroupsOf(23, historyRecordIds).map((group) => {

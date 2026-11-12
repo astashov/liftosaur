@@ -1,5 +1,12 @@
 import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
-import { IDynamoCondition, IDynamoUtil } from "../../lambda/utils/dynamo";
+import {
+  IDynamoCondition,
+  IDynamoQueryPage,
+  IDynamoQueryPageArgs,
+  IDynamoTransactDelete,
+  IDynamoTransactPut,
+  IDynamoUtil,
+} from "../../lambda/utils/dynamo";
 import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
 import { userTableNames } from "../../lambda/dao/userDao";
@@ -7,6 +14,9 @@ import { apiKeyTableNames } from "../../lambda/dao/apiKeyDao";
 import { pushEndpointTableNames } from "../../lambda/dao/pushEndpointDao";
 import { oauthTableNames } from "../../lambda/dao/oauthDao";
 import { freeUsersTableNames } from "../../lambda/dao/freeUserDao";
+import { followTableNames } from "../../lambda/dao/followDao";
+import { followInviteTableNames } from "../../lambda/dao/followInviteDao";
+import { reactionTableNames } from "../../lambda/dao/reactionDao";
 import { CollectionUtils_compact } from "../../src/utils/collection";
 import { ObjectUtils_entries, ObjectUtils_values, ObjectUtils_clone } from "../../src/utils/object";
 
@@ -27,6 +37,9 @@ const idKeys: Partial<Record<string, string[]>> = {
   lftPayments: ["userId", "transactionId"],
   lftAffiliates: ["affiliateId", "userId"],
   lftEmailAuthTokens: ["token"],
+  [followTableNames.prod.follows]: ["followerId", "followeeId"],
+  [followInviteTableNames.prod.followInvites]: ["token"],
+  [reactionTableNames.prod.reactions]: ["target", "reactorId"],
 };
 
 // Sort key used to order results when a query passes scanIndexForward. GSIs sort by a different attribute
@@ -184,6 +197,112 @@ export class MockDynamoUtil implements IDynamoUtil {
     }
 
     return Promise.resolve(ObjectUtils_clone(values));
+  }
+
+  public async queryPage<T>(args: IDynamoQueryPageArgs): Promise<IDynamoQueryPage<T>> {
+    const keyCondition = this.buildCondition<Record<string, unknown>>({
+      filterExpression: args.expression,
+      attrs: args.attrs,
+      values: args.values,
+    });
+    const keyNames = idKeys[args.tableName] || [];
+    const sortKey = args.indexName ? indexSortKeys[args.indexName] : tableSortKeys[args.tableName];
+    const direction = args.scanIndexForward === false ? -1 : 1;
+    const items = (ObjectUtils_values(this.data[args.tableName] || {}) as Record<string, unknown>[])
+      .filter((item) => keyCondition(item))
+      .sort((a, b) => {
+        const bySort = sortKey ? compareValues(a[sortKey], b[sortKey]) : 0;
+        if (bySort !== 0) {
+          return bySort * direction;
+        }
+        for (const k of keyNames) {
+          const c = compareValues(a[k], b[k]);
+          if (c !== 0) {
+            return c * direction;
+          }
+        }
+        return 0;
+      });
+    const startKey = args.exclusiveStartKey;
+    const startIndex =
+      startKey != null ? items.findIndex((item) => keyNames.every((k) => `${item[k]}` === `${startKey[k]}`)) + 1 : 0;
+    const page = items.slice(startIndex, startIndex + args.limit);
+    const last = page[page.length - 1];
+    const hasMore = startIndex + args.limit < items.length;
+    const lastEvaluatedKey =
+      hasMore && last != null
+        ? Object.fromEntries([...keyNames, ...(sortKey ? [sortKey] : [])].map((k) => [k, last[k]]))
+        : undefined;
+    return { items: ObjectUtils_clone(page) as unknown as T[], lastEvaluatedKey };
+  }
+
+  private matchesCondition(item: Record<string, unknown> | undefined, condition?: IDynamoCondition): boolean {
+    if (condition == null) {
+      return true;
+    }
+    const resolve = (name: string): string => condition.attrs?.[name.trim()] ?? name.trim();
+    let rest = condition.expression;
+    let ok = true;
+    rest = rest.replace(/attribute_not_exists\(\s*([^)]+?)\s*\)/gi, (_m, name: string) => {
+      ok = ok && (item == null || item[resolve(name)] === undefined);
+      return "";
+    });
+    rest = rest.replace(/attribute_exists\(\s*([^)]+?)\s*\)/gi, (_m, name: string) => {
+      ok = ok && item != null && item[resolve(name)] !== undefined;
+      return "";
+    });
+    const remaining = rest
+      .split(/\s+AND\s+/i)
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0)
+      .join(" AND ");
+    if (!ok) {
+      return false;
+    }
+    if (remaining.length === 0) {
+      return true;
+    }
+    if (item == null) {
+      return false;
+    }
+    return this.buildCondition<Record<string, unknown>>({
+      filterExpression: remaining,
+      attrs: condition.attrs,
+      values: condition.values as Partial<Record<string, string | number>>,
+    })(item);
+  }
+
+  private itemKey(tableName: string, item: Record<string, NativeAttributeValue>): Record<string, NativeAttributeValue> {
+    const keyNames = idKeys[tableName];
+    if (!keyNames) {
+      throw new Error(`MockDynamo: Missing put key mapping for ${tableName}`);
+    }
+    return keyNames.reduce((memo, k) => ({ ...memo, [k]: item[k] }), {});
+  }
+
+  public async transactWrite(args: {
+    puts?: IDynamoTransactPut[];
+    deletes?: IDynamoTransactDelete[];
+  }): Promise<boolean> {
+    for (const put of args.puts || []) {
+      const existing = this.data[put.tableName]?.[this.getKey(this.itemKey(put.tableName, put.item))];
+      if (!this.matchesCondition(existing as Record<string, unknown> | undefined, put.condition)) {
+        return false;
+      }
+    }
+    for (const del of args.deletes || []) {
+      const existing = this.data[del.tableName]?.[this.getKey(del.key)];
+      if (!this.matchesCondition(existing as Record<string, unknown> | undefined, del.condition)) {
+        return false;
+      }
+    }
+    for (const put of args.puts || []) {
+      await this.put({ tableName: put.tableName, item: put.item });
+    }
+    for (const del of args.deletes || []) {
+      delete this.data[del.tableName]?.[this.getKey(del.key)];
+    }
+    return true;
   }
 
   public async scan<T>(args: {

@@ -74,6 +74,7 @@
             <data android:host="www.liftosaur.com" />
             <data android:path="/program" />
             <data android:pathPrefix="/p/" />
+            <data android:pathPrefix="/f/" />
         </intent-filter>
       </activity>
       <provider

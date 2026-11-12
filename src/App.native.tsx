@@ -199,6 +199,8 @@ import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
 import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanup";
 import { navigateToModal } from "./navigation/navigationService";
+import { FollowInviteLink_token } from "./models/followInviteLink";
+import { OpenFollowInvite_open } from "./navigation/openFollowInvite";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
 import { DeviceId_get } from "./utils/deviceId";
@@ -451,6 +453,11 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
       }
       const isLiftosaurHost = parsed.host === "liftosaur.com" || parsed.host === "www.liftosaur.com";
       if (!isLiftosaurHost) {
+        return;
+      }
+      const followInviteToken = FollowInviteLink_token(url);
+      if (followInviteToken != null) {
+        OpenFollowInvite_open(followInviteToken);
         return;
       }
       const isImportPath =

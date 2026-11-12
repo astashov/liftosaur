@@ -20,6 +20,16 @@ import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { useSystemTheme } from "../utils/theme";
 import { NavScreenMain } from "./screens/NavScreenHome";
 import {
+  NavScreenFeedFilter,
+  NavScreenFollowInvite,
+  NavScreenFriendFollower,
+  NavScreenFriendInvite,
+  NavScreenFriendProfile,
+  NavScreenFriendRequest,
+  NavScreenFriends,
+  NavScreenFriendWorkout,
+} from "./screens/NavScreenFriends";
+import {
   NavScreenPrograms,
   NavScreenEditProgram,
   NavScreenMuscles,
@@ -213,6 +223,9 @@ function HomeStackScreen(): JSX.Element {
       <HomeStack.Screen name="main" component={NavScreenMain} />
       <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <HomeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
+      <HomeStack.Screen name="friendProfile" component={NavScreenFriendProfile} />
+      <HomeStack.Screen name="friendWorkout" component={NavScreenFriendWorkout} />
+      <HomeStack.Screen name="feedFilter" component={NavScreenFeedFilter} />
     </HomeStack.Navigator>
   );
 }
@@ -288,6 +301,13 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <MeStack.Screen name="onerms" component={NavScreenOnerms} />
       <MeStack.Screen name="editProgram" component={NavScreenEditProgram} />
+      <MeStack.Screen name="friends" component={NavScreenFriends} />
+      <MeStack.Screen name="friendInvite" component={NavScreenFriendInvite} />
+      <MeStack.Screen name="followInvite" component={NavScreenFollowInvite} />
+      <MeStack.Screen name="friendRequest" component={NavScreenFriendRequest} />
+      <MeStack.Screen name="friendFollower" component={NavScreenFriendFollower} />
+      <MeStack.Screen name="friendProfile" component={NavScreenFriendProfile} />
+      <MeStack.Screen name="friendWorkout" component={NavScreenFriendWorkout} />
     </MeStack.Navigator>
   );
 }

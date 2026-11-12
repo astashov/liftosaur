@@ -164,6 +164,12 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
 
       <MenuItem
+        name="Friends"
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("friends"))}
+      />
+
+      <MenuItem
         name="API Keys"
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
