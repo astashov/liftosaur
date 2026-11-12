@@ -311,7 +311,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <div id="data" style={{ display: "none" }}>
           {JSON.stringify(props.data)}
         </div>
-        {props.js.map((js) => (
+        {["common", ...props.js].map((js) => (
           <script key={js} src={`/${js}.js?version=${commitHash}`}></script>
         ))}
         <div id="modal"></div>

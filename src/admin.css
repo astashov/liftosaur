@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(".");
 @import "../theme.generated.css";
 
 @custom-variant light (&:where(.light, .light *, :not(.dark, .dark *)));
