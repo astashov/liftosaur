@@ -81,10 +81,13 @@ import { Account_getAll, IAccount } from "../models/account";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { WatchAuthHandoff_accountId } from "../utils/watchAuthHandoff";
 import { OnloadModal_getNext, OnloadModal_shouldShowHearAboutUs } from "../models/onloadModal";
+import { ThanksgivingPromo_imagePath } from "../models/thanksgivingPromo";
+import { ImagePreloader_preload } from "../utils/imagePreloader";
 import { Screen_shouldConfirmNavigation } from "../models/screen";
 import {
   Subscriptions_listOfSubscriptions,
   Subscriptions_hasSubscription,
+  Subscriptions_isEligibleForThanksgivingPromo,
   Subscriptions_verifyAppleReceipt,
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_setAppleReceipt,
@@ -1557,9 +1560,17 @@ export function Thunk_maybeRequestSignup(): IThunk {
 export function Thunk_maybeShowOnloadModal(): IThunk {
   return async (dispatch, getState) => {
     try {
-      const next = OnloadModal_getNext(getState());
+      const state = getState();
+      const isThanksgivingPromo = Subscriptions_isEligibleForThanksgivingPromo(state);
+      if (isThanksgivingPromo) {
+        ImagePreloader_preload(ThanksgivingPromo_imagePath);
+      }
+      const next = OnloadModal_getNext(state, isThanksgivingPromo);
       if (next === "whatsnew") {
         updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)], "Show what's new on load");
+      } else if (next === "thanksgiving") {
+        const { navigateToModal } = await getNavigationService();
+        navigateToModal("thanksgivingModal");
       } else if (next === "hearaboutus") {
         dispatch(Thunk_maybeRequestHearAboutUs());
       }

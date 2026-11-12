@@ -1,7 +1,8 @@
 import { IState } from "./state";
 import { WhatsNew_doesHaveNewUpdates } from "./whatsnew";
+import { ThanksgivingPromo_shouldShowModal } from "./thanksgivingPromo";
 
-export type IOnloadModal = "whatsnew" | "hearaboutus";
+export type IOnloadModal = "whatsnew" | "thanksgiving" | "hearaboutus";
 
 const HEAR_ABOUT_US_COOLDOWN_MS = 1000 * 60 * 60 * 24 * 7;
 
@@ -24,9 +25,12 @@ export function OnloadModal_shouldShowHearAboutUs(state: IState): boolean {
   );
 }
 
-export function OnloadModal_getNext(state: IState): IOnloadModal | undefined {
+export function OnloadModal_getNext(state: IState, isThanksgivingPromo: boolean): IOnloadModal | undefined {
   if (OnloadModal_shouldShowWhatsNew(state)) {
     return "whatsnew";
+  }
+  if (ThanksgivingPromo_shouldShowModal(isThanksgivingPromo, state.storage.helps)) {
+    return "thanksgiving";
   }
   if (OnloadModal_shouldShowHearAboutUs(state)) {
     return "hearaboutus";

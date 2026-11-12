@@ -4,6 +4,7 @@ import { untrack } from "./TrackedStateContext";
 import type { IScreen } from "../models/screen";
 import type { IHistoryRecord } from "../types";
 import type { NavigationState } from "@react-navigation/native";
+import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
 
 export interface IAdhocRecordParams {
   progressId?: number;
@@ -32,6 +33,7 @@ export function buildNavCommon(state: IState): INavCommon {
     currentProgram: untrack(currentProgram),
     settings: untrack(state.storage.settings),
     isOngoingProgress: (state.storage.progress?.length ?? 0) > 0,
+    isThanksgivingPromo: Subscriptions_isEligibleForThanksgivingPromo(state),
     stats: untrack(state.storage.stats),
     userId: state.user?.id,
   };

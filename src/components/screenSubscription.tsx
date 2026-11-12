@@ -41,6 +41,8 @@ import { IIapActiveSubscription } from "../utils/iapAdapter";
 import { SubscriptionPlan_derive, ISubscriptionPlanKind, IDerivedSubscriptionPlan } from "../utils/subscriptionPlan";
 import { DateUtils_format } from "../utils/date";
 import { IconFire } from "./icons/iconFire";
+import { ThanksgivingPromoCodes } from "./thanksgivingPromoCodes";
+import { ThanksgivingPromo_imagePath } from "../models/thanksgivingPromo";
 import { StoreRuntime_isIos, StoreRuntime_isNative, StoreRuntime_storeName } from "../utils/storeRuntime";
 
 interface IProps {
@@ -201,6 +203,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     <NavScreenContent>
       <SubscriptionHero />
       <View className="flex-1 px-gutter" style={{ paddingBottom: insets.bottom + 16 }}>
+        {props.navCommon.isThanksgivingPromo && plan.state === "none" && <ThanksgivingBanner />}
         {isPitch || isUnclaimed ? <PitchHeader /> : <StatusHeader plan={plan} />}
         <FeatureList isIos={isIos} />
         <View>
@@ -325,6 +328,22 @@ function SubscriptionHero(): JSX.Element {
       />
       <View className="absolute right-4 bottom-0">
         <IconDinoSunglasses width={102} height={136} />
+      </View>
+    </View>
+  );
+}
+
+function ThanksgivingBanner(): JSX.Element {
+  return (
+    <View className="flex-row items-center gap-4 p-2 mt-4 border rounded-lg bg-background-cardyellow border-border-cardyellow">
+      <Image
+        source={{ uri: ImagePreloader_uri(ThanksgivingPromo_imagePath) }}
+        style={{ width: 120, aspectRatio: 793 / 658 }}
+        resizeMode="contain"
+        accessibilityLabel="Happy Thanksgiving!"
+      />
+      <View className="flex-1">
+        <ThanksgivingPromoCodes isCompact />
       </View>
     </View>
   );

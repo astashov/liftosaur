@@ -65,6 +65,7 @@ export interface INavCommon {
   userId?: string;
   currentProgram?: IProgram;
   isOngoingProgress: boolean;
+  isThanksgivingPromo?: boolean;
   stats: IStats;
   settings: ISettings;
 }

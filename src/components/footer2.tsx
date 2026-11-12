@@ -1,5 +1,6 @@
 import { JSX } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { View, Pressable, Platform, Image } from "react-native";
+import { ImagePreloader_uri } from "../utils/imagePreloader";
 import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
@@ -95,13 +96,29 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             Workout
           </Text>
         </View>
-        <FooterButton
-          name="graphs"
-          currentTab={currentTab}
-          icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
-          text="Graphs"
-          onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
-        />
+        {props.navCommon.isThanksgivingPromo ? (
+          <FooterButton
+            name="graphs"
+            currentTab={currentTab}
+            icon={() => (
+              <Image
+                source={{ uri: ImagePreloader_uri("/images/turkeyicon.png") }}
+                style={{ width: 24, height: 24 }}
+                accessibilityLabel="Thanksgiving promo"
+              />
+            )}
+            text="Promo"
+            onClick={() => navigateToModal("thanksgivingModal")}
+          />
+        ) : (
+          <FooterButton
+            name="graphs"
+            currentTab={currentTab}
+            icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
+            text="Graphs"
+            onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
+          />
+        )}
         <FooterButton
           name="me"
           currentTab={currentTab}

@@ -119,6 +119,7 @@ export type IRootStackParamList = {
     | { context: "playground"; weekIndex: number; dayIndex: number }
     | { context: "preview"; programId: string };
   couponModal: undefined;
+  thanksgivingModal: undefined;
   newGymModal: undefined;
   newEquipmentModal: { gymId: string; linkExercise?: IExerciseType } | undefined;
   newPlateModal: { gymId: string; equipmentId: string; list: IEquipmentWeightList };

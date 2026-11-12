@@ -7,6 +7,8 @@ import { UidFactory_generateUid } from "./generator";
 import { CollectionUtils_removeBy } from "./collection";
 import { SubscriptionReceipts_cleanupApple } from "./subscriptionReceipts";
 import { Thunk_postevent } from "../ducks/thunks";
+import { Platform } from "react-native";
+import { ThanksgivingPromo_isEligible } from "../models/thanksgivingPromo";
 
 export function Subscriptions_hasSubscription(subscription: ISubscription): boolean {
   if (subscription.key && subscription.key !== "unclaimed") {
@@ -15,6 +17,15 @@ export function Subscriptions_hasSubscription(subscription: ISubscription): bool
   const hasApple = hasAppleSubscription(subscription);
   const hasGoogle = hasGoogleSubscription(subscription);
   return hasApple || hasGoogle;
+}
+
+export function Subscriptions_isEligibleForThanksgivingPromo(state: IState): boolean {
+  return ThanksgivingPromo_isEligible({
+    now: Date.now(),
+    platform: Platform.OS,
+    hasWorkouts: state.storage.history.length > 0,
+    hasSubscription: Subscriptions_hasSubscription(state.storage.subscription),
+  });
 }
 
 export function Subscriptions_listOfSubscriptions(subscription: ISubscription): string[] {

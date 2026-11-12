@@ -2215,6 +2215,10 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     return ResponseUtils_json(404, event, { error: "coupon_disabled" });
   }
 
+  if (coupon.expiresAt != null && Date.now() > coupon.expiresAt) {
+    return ResponseUtils_json(404, event, { error: "coupon_expired" });
+  }
+
   if (coupon.isClaimed) {
     return ResponseUtils_json(400, event, { error: "coupon_already_claimed" });
   }

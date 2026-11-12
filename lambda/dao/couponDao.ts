@@ -39,6 +39,7 @@ export interface ICouponDao {
   ttlMs: number;
   isClaimed: boolean;
   isDisabled?: boolean;
+  expiresAt?: number;
   affiliate?: string;
   info?: string;
   applePromotionalOfferIdMonthly?: string;
@@ -124,13 +125,15 @@ export class CouponDao {
     affiliate?: string;
     info?: string;
     data?: ICouponData;
+    expiresAt?: number;
   }): Promise<ICouponDao> {
     const env = Utils_getEnv();
     const code = args.code || UidFactory_generateUid(8);
-    const { ttlMs, data, info, affiliate } = args;
+    const { ttlMs, data, info, affiliate, expiresAt } = args;
     const coupon: ICouponDao = {
       code: code.toLowerCase(),
       ttlMs,
+      expiresAt,
       affiliate,
       isClaimed: false,
       info,

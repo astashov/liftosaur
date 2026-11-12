@@ -124,6 +124,7 @@ import { NavModalAffiliate } from "./modals/NavModalAffiliate";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 import { NavModalLoginConflict } from "./modals/NavModalLoginConflict";
 import { NavModalCoupon } from "./modals/NavModalCoupon";
+import { NavModalThanksgiving } from "./modals/NavModalThanksgiving";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalEditMuscleGroups } from "./modals/NavModalEditMuscleGroups";
 import { NavModalImportFromOtherApps } from "./modals/NavModalImportFromOtherApps";
@@ -508,6 +509,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="helpModal" component={NavModalHelp} />
             <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
             <RootStack.Screen name="couponModal" component={NavModalCoupon} />
+            <RootStack.Screen name="thanksgivingModal" component={NavModalThanksgiving} />
             <RootStack.Screen name="debugModal" component={NavModalDebug} />
             <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
             <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
