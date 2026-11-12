@@ -50,7 +50,7 @@
     "plannerhighlighter": "tsc --skipLibCheck --outDir dist-plannerhighlighter ./src/pages/planner/plannerHighlighter.ts",
     "blog": "eleventy",
     "build:server": "webpack --config webpack.server.config.js",
-    "build:dev": "webpack",
+    "build:dev": "NODE_OPTIONS=--max-old-space-size=4096 webpack",
     "build:watch-bundle": "npm run build:markdown && webpack --config-name watch",
     "publish:watch-bundle": "./scripts/publish-watch-bundle.sh",
     "check": "tsc --noEmit",
