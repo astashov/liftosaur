@@ -31,6 +31,26 @@ describe("FeedPage", () => {
     expect(FeedPage_decodeCursor(undefined)).to.eql({ owners: {} });
   });
 
+  it("drops cursor positions with a malformed shape", () => {
+    const forged = FeedPage_encodeCursor({ owners: { a: { userId: "a", id: "5", date: "x" } } });
+    expect(FeedPage_decodeCursor(forged)).to.eql({ owners: {} });
+  });
+
+  it("keeps a cursor for the 100-follow cap well under CloudFront's 8192-byte URL limit", () => {
+    const owners: IFeedCursor["owners"] = {};
+    for (let i = 0; i < 100; i += 1) {
+      const ownerId = `owner${String(i).padStart(7, "0")}`;
+      owners[ownerId] = {
+        userId: ownerId,
+        id: 1700000000000 + i * 7919,
+        date: `2026-11-${10 + (i % 18)}T10:00:00.000Z`,
+      };
+    }
+    const encoded = FeedPage_encodeCursor({ owners });
+    expect(encoded.length).to.be.below(5000);
+    expect(FeedPage_decodeCursor(encoded)).to.eql({ owners });
+  });
+
   it("takes the newest records across owners", () => {
     const merged = FeedPage_merge({
       results: [

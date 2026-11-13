@@ -1,3 +1,4 @@
+import { deflateSync, inflateSync, strFromU8, strToU8 } from "fflate";
 import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
 import { IHistoryRecord } from "../../src/types";
 
@@ -26,26 +27,64 @@ export interface IFeedMergeResult {
   failedOwners: string[];
 }
 
+type ICompactPosition = [ownerId: string, id: number, date: string];
+
+interface ICompactCursor {
+  p: ICompactPosition[];
+  d: string[];
+}
+
+function isCompactPosition(value: unknown): value is ICompactPosition {
+  return (
+    Array.isArray(value) &&
+    value.length === 3 &&
+    typeof value[0] === "string" &&
+    typeof value[1] === "number" &&
+    typeof value[2] === "string"
+  );
+}
+
+function isCompactCursor(value: unknown): value is ICompactCursor {
+  if (value == null || typeof value !== "object" || !("p" in value) || !("d" in value)) {
+    return false;
+  }
+  const { p, d } = value;
+  return Array.isArray(p) && p.every(isCompactPosition) && Array.isArray(d) && d.every((o) => typeof o === "string");
+}
+
 export function FeedPage_decodeCursor(value: string | undefined): IFeedCursor {
   if (value == null || value === "") {
     return { owners: {} };
   }
   try {
-    const parsed: unknown = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    if (parsed != null && typeof parsed === "object" && "owners" in parsed) {
-      const owners = (parsed as { owners: unknown }).owners;
-      if (owners != null && typeof owners === "object") {
-        return { owners: owners as IFeedCursor["owners"] };
-      }
+    const parsed: unknown = JSON.parse(strFromU8(inflateSync(Buffer.from(value, "base64url"))));
+    if (!isCompactCursor(parsed)) {
+      return { owners: {} };
     }
+    const owners: IFeedCursor["owners"] = {};
+    for (const [ownerId, id, date] of parsed.p) {
+      owners[ownerId] = { userId: ownerId, id, date };
+    }
+    for (const ownerId of parsed.d) {
+      owners[ownerId] = "done";
+    }
+    return { owners };
   } catch (e) {
     return { owners: {} };
   }
-  return { owners: {} };
 }
 
 export function FeedPage_encodeCursor(cursor: IFeedCursor): string {
-  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+  const compact: ICompactCursor = { p: [], d: [] };
+  for (const ownerId of Object.keys(cursor.owners)) {
+    const position = cursor.owners[ownerId];
+    if (position === "done") {
+      compact.d.push(ownerId);
+    } else if (position != null && typeof position.id === "number" && typeof position.date === "string") {
+      compact.p.push([ownerId, position.id, position.date]);
+    }
+  }
+  return Buffer.from(deflateSync(strToU8(JSON.stringify(compact)), { level: 9 })).toString("base64url");
 }
 
 export function FeedPage_isOwnerDone(cursor: IFeedCursor, ownerId: string): boolean {
