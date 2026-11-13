@@ -309,6 +309,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       partitionKey: { name: "reactorId", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
+    reactionsTable.addGlobalSecondaryIndex({
+      indexName: `lftReactionsOwnerId${suffix}`,
+      partitionKey: { name: "ownerId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
 
     const oauthClientsTable = new dynamodb.Table(this, `LftOauthClients${suffix}`, {
       tableName: `lftOauthClients${suffix}`,

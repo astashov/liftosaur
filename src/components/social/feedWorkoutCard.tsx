@@ -2,7 +2,7 @@ import { JSX, memo } from "react";
 import { Image, Pressable, View } from "react-native";
 import { Text } from "../primitives/text";
 import { IFeedExercise, IFeedWorkout } from "../../models/feedWorkout";
-import { IReaction, IReactionSummary } from "../../models/reactions";
+import { IReaction, IReactionSummary, Reactions_reactorsLine } from "../../models/reactions";
 import { ISettings } from "../../types";
 import { ExerciseImage } from "../exerciseImage";
 import { HistoryRecordSetsView } from "../historyRecordSets";
@@ -11,7 +11,6 @@ import { IconDefaultExercise } from "../icons/iconDefaultExercise";
 import { HostConfig_resolveUrl } from "../../utils/hostConfig";
 import { Avatar } from "./avatar";
 import { ReactionBar } from "./reactionBar";
-import { RelativeTime_ago } from "../../utils/relativeTime";
 import { DateUtils_format } from "../../utils/date";
 
 interface IFeedIdentityProps {
@@ -29,7 +28,9 @@ export function FeedIdentity(props: IFeedIdentityProps): JSX.Element {
         <Text className="text-base font-semibold" numberOfLines={1}>
           {props.nickname || props.ownerId}
         </Text>
-        <Text className="text-xs text-text-secondary">{props.subtitle}</Text>
+        <Text className="text-xs text-text-secondary" numberOfLines={1}>
+          {props.subtitle}
+        </Text>
       </View>
     </Pressable>
   );
@@ -52,7 +53,7 @@ function FeedExerciseImage(props: { exercise: IFeedExercise; settings: ISettings
   return <IconDefaultExercise />;
 }
 
-function FeedExerciseRow(props: { exercise: IFeedExercise; settings: ISettings; showNotes: boolean }): JSX.Element {
+function FeedExerciseRow(props: { exercise: IFeedExercise; settings: ISettings }): JSX.Element {
   const { exercise } = props;
   return (
     <View testID="feed-workout-exercise" data-testid="feed-workout-exercise" className="flex-row items-center gap-2">
@@ -62,9 +63,7 @@ function FeedExerciseRow(props: { exercise: IFeedExercise; settings: ISettings; 
       <View className="flex-row items-center flex-1 py-2 border-b min-h-scaled-16 border-border-neutral">
         <View className="flex-1 shrink" style={{ minWidth: "45%" }}>
           <Text className="text-sm font-semibold">{exercise.name}</Text>
-          {props.showNotes && exercise.notes ? (
-            <Text className="mt-1 text-sm text-text-secondary">{exercise.notes}</Text>
-          ) : null}
+          {exercise.notes ? <Text className="mt-1 text-sm text-text-secondary">{exercise.notes}</Text> : null}
         </View>
         <View className="shrink">
           <HistoryRecordSetsView sets={exercise.sets} units={props.settings.units} isNext={false} />
@@ -79,74 +78,67 @@ interface IFeedWorkoutCardProps {
   nickname?: string;
   reactions?: IReactionSummary;
   settings: ISettings;
-  now: number;
-  maxExercises?: number;
   showIdentity: boolean;
-  onOpen?: () => void;
+  showDate: boolean;
   onOpenOwner?: () => void;
   onReact: (reaction: IReaction | undefined) => void;
 }
 
 export const FeedWorkoutCard = memo(function FeedWorkoutCard(props: IFeedWorkoutCardProps): JSX.Element {
   const { workout } = props;
-  const exercises = props.maxExercises != null ? workout.exercises.slice(0, props.maxExercises) : workout.exercises;
-  const hidden = workout.exercises.length - exercises.length;
-  const trainedAt = workout.endTime ?? workout.startTime;
   return (
-    <View testID="feed-workout" data-testid="feed-workout">
-      <Pressable
-        className="px-4 py-4 border rounded-2xl bg-background-cardpurple border-border-cardpurple"
+    <View testID="feed-workout" data-testid="feed-workout" className="pt-2">
+      {props.showDate && (
+        <Text testID="feed-workout-date" data-testid="feed-workout-date" className="mx-1 mb-1 text-base font-semibold">
+          {DateUtils_format(workout.date)}
+        </Text>
+      )}
+      <View
+        className="px-4 py-4 border rounded-2xl bg-background-cardyellow border-border-cardyellow"
         style={getNativeCardShadow()}
-        onPress={props.onOpen}
-        disabled={props.onOpen == null}
       >
-        {props.showIdentity && (
-          <View className="pb-3 mb-3 border-b border-border-cardpurple">
+        {props.showIdentity ? (
+          <View className="pb-3 mb-1 border-b border-border-cardyellow">
             <FeedIdentity
               ownerId={workout.ownerId}
               nickname={props.nickname}
-              subtitle={`Trained ${RelativeTime_ago(trainedAt, props.now)} · ${DateUtils_format(workout.date, false, true)}`}
+              subtitle={`${workout.programName} · ${workout.dayName}`}
               onPress={props.onOpenOwner}
             />
           </View>
+        ) : (
+          <View className="pb-2">
+            <Text className="text-sm font-semibold">{workout.dayName}</Text>
+            <Text className="text-xs text-text-secondary">{workout.programName}</Text>
+          </View>
         )}
-        <View className="pb-2">
-          <Text className="text-sm font-semibold">{workout.dayName}</Text>
-          <Text className="text-xs text-text-secondary">{workout.programName}</Text>
-        </View>
-        {exercises.map((exercise, i) => (
-          <FeedExerciseRow
-            key={i}
-            exercise={exercise}
-            settings={props.settings}
-            showNotes={props.maxExercises == null}
-          />
+        {workout.exercises.map((exercise, i) => (
+          <FeedExerciseRow key={i} exercise={exercise} settings={props.settings} />
         ))}
-        {hidden > 0 && (
-          <Text className="pt-2 text-xs text-text-secondary">
-            +{hidden} more {hidden === 1 ? "exercise" : "exercises"}
-          </Text>
-        )}
         <HistoryRecordStatsRow
           durationMs={workout.stats.durationMs}
           volume={workout.stats.volume}
           sets={workout.stats.sets}
           reps={workout.stats.reps}
         />
-        {props.maxExercises == null && workout.notes ? (
+        {workout.notes ? (
           <View className="mt-2">
             <Text className="text-sm text-text-secondary">{workout.notes}</Text>
           </View>
         ) : null}
-        <View className="pt-3 mt-3 border-t border-border-cardpurple">
+        <View className="pt-3 mt-3 border-t border-border-cardyellow">
           <ReactionBar
             summary={props.reactions}
             canReact={true}
+            tone="yellow"
             onReact={props.onReact}
             testIdPrefix={`reaction-${workout.ownerId}-${workout.recordId}`}
           />
+          {props.reactions != null && props.reactions.total > 0 && (
+            <Text className="mt-2 text-xs text-text-secondary">{Reactions_reactorsLine(props.reactions)}</Text>
+          )}
         </View>
-      </Pressable>
+      </View>
     </View>
   );
 });

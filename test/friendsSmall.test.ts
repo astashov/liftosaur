@@ -51,7 +51,7 @@ describe("RecordShare", () => {
 
   it("removes per-exercise notes from settings and keeps the rest", () => {
     const settings = Settings_build();
-    settings.exerciseData = { "benchPress_barbell": { notes: "shoulder", rm1: { value: 200, unit: "lb" } } };
+    settings.exerciseData = { benchPress_barbell: { notes: "shoulder", rm1: { value: 200, unit: "lb" } } };
     const result = RecordShare_settingsWithoutNotes(settings);
     expect(result.exerciseData.benchPress_barbell?.notes).to.equal(undefined);
     expect(result.exerciseData.benchPress_barbell?.rm1).to.eql({ value: 200, unit: "lb" });

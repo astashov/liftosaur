@@ -1,5 +1,5 @@
+import { CommonActions } from "@react-navigation/native";
 import { navigationRef } from "./navigationRef";
-import { navigateTo } from "./navigationService";
 
 const readyPollMs = 200;
 const readyPollAttempts = 50;
@@ -11,6 +11,25 @@ export function OpenFollowInvite_open(token: string, attempt: number = 0): void 
     }
     return;
   }
-  navigateTo("friends", undefined, { tab: "me" });
-  navigateTo("followInvite", { token });
+  navigationRef.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [
+        {
+          name: "mainTabs",
+          state: {
+            routes: [
+              {
+                name: "me",
+                state: {
+                  index: 1,
+                  routes: [{ name: "friends" }, { name: "followInvite", params: { token } }],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    })
+  );
 }

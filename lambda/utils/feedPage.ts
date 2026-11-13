@@ -76,6 +76,7 @@ function positionAfter(ownerId: string, record: IHistoryRecord): Record<string, 
 export function FeedPage_merge(args: {
   results: IFeedOwnerResult[];
   previous: IFeedCursor;
+  activeOwners: string[];
   limit: number;
 }): IFeedMergeResult {
   const candidates: IFeedWinner[] = [];
@@ -89,7 +90,13 @@ export function FeedPage_merge(args: {
   candidates.sort(compareWinners);
   const winners = candidates.slice(0, args.limit);
 
-  const owners: IFeedCursor["owners"] = { ...args.previous.owners };
+  const owners: IFeedCursor["owners"] = {};
+  for (const ownerId of args.activeOwners) {
+    const position = args.previous.owners[ownerId];
+    if (position != null) {
+      owners[ownerId] = position;
+    }
+  }
   const failedOwners: string[] = [];
   for (const result of args.results) {
     if (result.failed) {

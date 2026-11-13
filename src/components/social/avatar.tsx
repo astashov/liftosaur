@@ -25,14 +25,20 @@ function palette(): string[] {
   ];
 }
 
+const initialsScale = 0.38;
+
 export function Avatar(props: IProps): JSX.Element {
   const color = palette()[Avatar_colorIndex(props.seed)];
+  const fontSize = Math.round(props.size * initialsScale);
   return (
     <View
       className="items-center justify-center rounded-full"
       style={{ width: props.size, height: props.size, backgroundColor: color, opacity: props.dimmed ? 0.4 : 1 }}
     >
-      <Text className="font-semibold text-text-alwayswhite" style={{ fontSize: Math.round(props.size * 0.38) }}>
+      <Text
+        className="font-semibold text-center text-text-alwayswhite"
+        style={{ fontSize, lineHeight: props.size, height: props.size, includeFontPadding: false }}
+      >
         {Avatar_initials(props.nickname, props.seed)}
       </Text>
     </View>

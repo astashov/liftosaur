@@ -20,7 +20,6 @@ type IInviteStatus = { kind: "loading" } | { kind: "ready"; url: string } | { ki
 export function ScreenFriendInvite(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Invite a friend" });
   const [status, setStatus] = useState<IInviteStatus>({ kind: "loading" });
-  const [nonce, setNonce] = useState(0);
   const [shareNote, setShareNote] = useState<string | undefined>(undefined);
 
   useEffect(() => {
@@ -34,7 +33,7 @@ export function ScreenFriendInvite(props: IProps): JSX.Element {
     return () => {
       cancelled = true;
     };
-  }, [nonce]);
+  }, []);
 
   const share = async (url: string): Promise<void> => {
     const outcome = await LinkShare_share({ url, message: "Follow my training on Liftosaur:" });
@@ -70,16 +69,6 @@ export function ScreenFriendInvite(props: IProps): JSX.Element {
             Share invite link
           </Button>
         )}
-        <Button
-          kind="lightgrayv3"
-          name="friend-invite-new"
-          data-testid="friend-invite-new"
-          testID="friend-invite-new"
-          className="w-full"
-          onClick={() => setNonce(nonce + 1)}
-        >
-          New code
-        </Button>
         {shareNote ? <Text className="text-sm text-center text-text-secondary">{shareNote}</Text> : null}
       </View>
     </View>

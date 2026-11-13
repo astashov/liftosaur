@@ -1,4 +1,5 @@
-import { JSX, ReactNode, useEffect } from "react";
+import { JSX, ReactNode, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { Pressable, View } from "react-native";
 import { Text } from "../primitives/text";
 import { IDispatch } from "../../ducks/types";
@@ -62,11 +63,13 @@ function PersonRow(props: {
 export function ScreenFriends(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Friends" });
   const isLoggedIn = props.userId != null;
-  useEffect(() => {
-    if (isLoggedIn) {
-      props.dispatch(Thunk_loadFollows());
-    }
-  }, [isLoggedIn]);
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn) {
+        props.dispatch(Thunk_loadFollows());
+      }
+    }, [isLoggedIn, props.userId])
+  );
 
   if (!isLoggedIn) {
     return (

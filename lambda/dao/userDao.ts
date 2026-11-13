@@ -392,10 +392,13 @@ export class UserDao {
       this.logMergeCounts(noopArgs, { noop, historyDeletes: 0, statPuts: 0, statDeletes: 0 });
       return { data: { originalId: originalStorage.originalId!, didWrite: migrated }, success: true };
     }
-    const historyDeletes = this.di.dynamo.batchDelete({
-      tableName: userTableNames[env].historyRecords,
-      keys: deletedVersionsHistory.map((id) => ({ id, userId: limitedUser.id })),
-    });
+    const historyDeletes = Promise.all([
+      this.di.dynamo.batchDelete({
+        tableName: userTableNames[env].historyRecords,
+        keys: deletedVersionsHistory.map((id) => ({ id, userId: limitedUser.id })),
+      }),
+      new ReactionDao(this.di).removeForRecords(limitedUser.id, deletedVersionsHistory),
+    ]);
     const historyUpdates = this.di.dynamo.batchPut({
       tableName: userTableNames[env].historyRecords,
       items: CollectionUtils_uniqBy(newStorage.history || [], "id")
@@ -592,6 +595,7 @@ export class UserDao {
       tableName: userTableNames[env].historyRecords,
       key: { id, userId },
     });
+    await new ReactionDao(this.di).removeForRecords(userId, [id]);
   }
 
   // Stats are stored one row per measurement value, keyed by name = `${timestamp}_${statKey}` (statKey is
@@ -1026,7 +1030,6 @@ export class UserDao {
 
     const historyRecords = await this.getHistoryByUserId(userId);
     const historyRecordIds = Array.from(new Set(historyRecords.map((p) => p.id)));
-    await new ReactionDao(this.di).removeForRecords(userId, historyRecordIds);
     await new ReactionDao(this.di).removeAllForUser(userId);
     await new FollowDao(this.di).removeAllForUser(userId);
     await new FollowInviteDao(this.di).removeAllForUser(userId);
@@ -1205,6 +1208,7 @@ export class UserDao {
           keys: group.map((id) => ({ id, userId: user.id })),
         });
       });
+      historyDeletes.push(new ReactionDao(this.di).removeForRecords(user.id, historyIdsToDelete));
 
       historyUpdates = CollectionUtils_inGroupsOf(23, historyToPut).map(async (group) => {
         const items = CollectionUtils_uniqBy(group, "id").map((record) => ({ ...record, userId: user.id }));

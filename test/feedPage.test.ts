@@ -38,6 +38,7 @@ describe("FeedPage", () => {
         result("b", [30], () => "2026-11-15T10:00:00.000Z", false),
       ],
       previous: { owners: {} },
+      activeOwners: ["a", "b"],
       limit: 2,
     });
     expect(merged.winners.map((w) => `${w.ownerId}:${w.record.id}`)).to.eql(["a:40", "b:30"]);
@@ -50,6 +51,7 @@ describe("FeedPage", () => {
     const first = FeedPage_merge({
       results: [result("a", [5, 4, 3], sameDate, true)],
       previous: { owners: {} },
+      activeOwners: ["a"],
       limit: 2,
     });
     expect(first.winners.map((w) => w.record.id)).to.eql([5, 4]);
@@ -57,7 +59,12 @@ describe("FeedPage", () => {
   });
 
   it("marks an owner done when all its records are taken and there is no next key", () => {
-    const merged = FeedPage_merge({ results: [result("a", [5], sameDate, false)], previous: { owners: {} }, limit: 10 });
+    const merged = FeedPage_merge({
+      results: [result("a", [5], sameDate, false)],
+      previous: { owners: {} },
+      activeOwners: ["a"],
+      limit: 10,
+    });
     expect(merged.next.owners.a).to.equal("done");
     expect(merged.hasMore).to.equal(false);
   });
@@ -67,10 +74,18 @@ describe("FeedPage", () => {
     const merged = FeedPage_merge({
       results: [{ ownerId: "a", records: [], failed: true }, result("b", [1], sameDate, false)],
       previous,
+      activeOwners: ["a", "b"],
       limit: 10,
     });
     expect(merged.failedOwners).to.eql(["a"]);
     expect(merged.next.owners.a).to.eql({ userId: "a", id: 9, date: "x" });
     expect(merged.hasMore).to.equal(true);
+  });
+
+  it("drops a removed owner's position so the feed can finish", () => {
+    const previous: IFeedCursor = { owners: { gone: { userId: "gone", id: 9, date: "x" }, b: "done" } };
+    const merged = FeedPage_merge({ results: [], previous, activeOwners: ["b"], limit: 10 });
+    expect(merged.next.owners).to.eql({ b: "done" });
+    expect(merged.hasMore).to.equal(false);
   });
 });

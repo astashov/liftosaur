@@ -4,6 +4,9 @@ import { IState, updateState } from "../models/state";
 import {
   ISocialState,
   SocialState_applyFeedPage,
+  SocialState_applyFeedRefresh,
+  SocialState_isPageStale,
+  SocialState_startRefresh,
   SocialState_applyFollows,
   SocialState_applyOwnReactions,
   SocialState_applyReaction,
@@ -121,16 +124,52 @@ export function Thunk_loadFeed(pageKey: string, isFirstPage: boolean): IThunk {
   };
 }
 
+export function Thunk_refreshFeedIfStale(pageKey: string): IThunk {
+  return async (dispatch, getState, env) => {
+    const accountId = getState().user?.id;
+    const social = currentSocial(getState());
+    if (accountId == null || social == null) {
+      return;
+    }
+    const page = social.pages[pageKey];
+    const now = Date.now();
+    if (!SocialState_isPageStale(page, now)) {
+      return;
+    }
+    if (pageKey === SocialState_homePage) {
+      dispatch(Thunk_loadFollows());
+    }
+    if (page == null) {
+      dispatch(Thunk_loadFeed(pageKey, true));
+      return;
+    }
+    const owners = ownersForPage(social, pageKey);
+    if (owners != null && owners.length === 0) {
+      return;
+    }
+    modifySocial(dispatch, accountId, "Start feed refresh", (s) => SocialState_startRefresh(s, pageKey));
+    const result = await env.service.getFeed({ cursor: undefined, owners });
+    if (result.success) {
+      modifySocial(dispatch, accountId, "Apply feed refresh", (s) =>
+        SocialState_applyFeedRefresh(s, pageKey, result.data, now)
+      );
+    } else {
+      modifySocial(dispatch, accountId, "Fail feed refresh", (s) => SocialState_failLoading(s, pageKey));
+    }
+  };
+}
+
 export function Thunk_loadOwnReactions(recordIds: number[]): IThunk {
   return async (dispatch, getState, env) => {
     const accountId = getState().user?.id;
     if (accountId == null || recordIds.length === 0) {
       return;
     }
-    const result = await env.service.getOwnReactions(recordIds.slice(0, ownReactionsBatch));
+    const requestedIds = recordIds.slice(0, ownReactionsBatch);
+    const result = await env.service.getOwnReactions(requestedIds);
     if (result.success) {
       modifySocial(dispatch, accountId, "Own reactions", (s) =>
-        SocialState_applyOwnReactions(s, accountId, result.data)
+        SocialState_applyOwnReactions(s, accountId, requestedIds, result.data)
       );
     }
   };

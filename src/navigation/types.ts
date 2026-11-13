@@ -8,7 +8,6 @@ export type IHomeStackParamList = {
   progress: { id?: number } | undefined;
   exerciseStats: undefined;
   friendProfile: { userId: string };
-  friendWorkout: { ownerId: string; recordId: number };
   feedFilter: undefined;
 };
 
@@ -76,7 +75,6 @@ export type IMeStackParamList = {
   friendRequest: { requestId: string };
   friendFollower: { userId: string };
   friendProfile: { userId: string };
-  friendWorkout: { ownerId: string; recordId: number };
 };
 
 export type IRootTabParamList = {

@@ -9,7 +9,6 @@ import { ScreenFriendInvite } from "../../components/social/screenFriendInvite";
 import { ScreenFollowInvite } from "../../components/social/screenFollowInvite";
 import { ScreenFriendFollower, ScreenFriendRequest } from "../../components/social/screenFriendRequest";
 import { ScreenFriendProfile } from "../../components/social/screenFriendProfile";
-import { ScreenFriendWorkout } from "../../components/social/screenFriendWorkout";
 import { ScreenFeedFilter } from "../../components/social/screenFeedFilter";
 import { SocialState_forAccount } from "../../models/socialState";
 import type { IAllScreenParamList } from "../types";
@@ -97,24 +96,6 @@ export function NavScreenFriendProfile(): JSX.Element {
         dispatch={dispatch}
       />
     </View>
-  );
-}
-
-export function NavScreenFriendWorkout(): JSX.Element {
-  const state = useTrackedState();
-  const dispatch = useTrackedDispatch();
-  const social = useSocial();
-  const params = useParams<"friendWorkout">();
-  return (
-    <NavScreenContent>
-      <ScreenFriendWorkout
-        ownerId={params.ownerId}
-        recordId={params.recordId}
-        social={social}
-        settings={untrack(state.storage.settings)}
-        dispatch={dispatch}
-      />
-    </NavScreenContent>
   );
 }
 

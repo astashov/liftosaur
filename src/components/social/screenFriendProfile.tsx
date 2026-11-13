@@ -1,15 +1,18 @@
-import { JSX, useCallback, useEffect } from "react";
+import { JSX, useCallback, useEffect, useMemo } from "react";
+import { FeedMerge_dateHeaderKeys } from "../../models/feedMerge";
+import { DateUtils_formatYYYYMMDD } from "../../utils/date";
 import { View } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "../primitives/text";
 import { useNavOptions } from "../../navigation/useNavOptions";
+import { useNavIsScrolled } from "../../navigation/useNavIsScrolled";
 import { IDispatch } from "../../ducks/types";
 import { ISocialState } from "../../models/socialState";
 import { IFeedWorkout } from "../../models/feedWorkout";
 import { FeedWorkout_key } from "../../models/feedWorkout";
 import { ISettings } from "../../types";
 import { Thunk_loadFeed, Thunk_react, Thunk_unfollow } from "../../ducks/socialThunks";
-import { Thunk_pullScreen, Thunk_pushScreen } from "../../ducks/thunks";
+import { Thunk_pullScreen } from "../../ducks/thunks";
 import { CollectionUtils_compact } from "../../utils/collection";
 import { FeedWorkoutCard } from "./feedWorkoutCard";
 import { Avatar } from "./avatar";
@@ -27,15 +30,33 @@ interface IProps {
 export function ScreenFriendProfile(props: IProps): JSX.Element {
   const person = props.social?.follows?.following.find((f) => f.userId === props.userId);
   const nickname = person?.nickname ?? props.social?.owners[props.userId]?.nickname;
-  useNavOptions({ navTitle: nickname || "Friend" });
+  useNavOptions({ navTitle: "Friend", navSubtitle: nickname || props.userId });
+  const onScroll = useNavIsScrolled();
   const page = props.social?.pages[props.userId];
-  const workouts = CollectionUtils_compact((page?.keys ?? []).map((key) => props.social?.workouts[key]));
+  const socialWorkouts = props.social?.workouts;
+  const workouts = useMemo(
+    () => CollectionUtils_compact((page?.keys ?? []).map((key) => socialWorkouts?.[key])),
+    [page?.keys, socialWorkouts]
+  );
+
+  const dateHeaderKeys = useMemo(
+    () =>
+      FeedMerge_dateHeaderKeys(
+        workouts,
+        (w) => FeedWorkout_key(w.ownerId, w.recordId),
+        (w) => DateUtils_formatYYYYMMDD(w.date)
+      ),
+    [workouts]
+  );
+  const listExtraData = useMemo(
+    () => ({ reactions: props.social?.reactions, dateHeaderKeys }),
+    [props.social?.reactions, dateHeaderKeys]
+  );
 
   useEffect(() => {
     props.dispatch(Thunk_loadFeed(props.userId, true));
   }, [props.userId]);
 
-  const now = Date.now();
   const renderItem = useCallback(
     ({ item }: { item: IFeedWorkout }) => (
       <View className="mx-4 mb-6">
@@ -44,17 +65,13 @@ export function ScreenFriendProfile(props: IProps): JSX.Element {
           nickname={nickname}
           reactions={props.social?.reactions[FeedWorkout_key(item.ownerId, item.recordId)]}
           settings={props.settings}
-          now={now}
-          maxExercises={4}
           showIdentity={false}
-          onOpen={() =>
-            props.dispatch(Thunk_pushScreen("friendWorkout", { ownerId: item.ownerId, recordId: item.recordId }))
-          }
+          showDate={dateHeaderKeys.has(FeedWorkout_key(item.ownerId, item.recordId))}
           onReact={(reaction) => props.dispatch(Thunk_react(item.ownerId, item.recordId, reaction))}
         />
       </View>
     ),
-    [props.social?.reactions, props.settings, nickname]
+    [props.social?.reactions, props.settings, nickname, dateHeaderKeys]
   );
 
   const header = (
@@ -87,6 +104,8 @@ export function ScreenFriendProfile(props: IProps): JSX.Element {
       <LegendList
         data={workouts}
         renderItem={renderItem}
+        extraData={listExtraData}
+        onScroll={onScroll}
         keyExtractor={(item: IFeedWorkout) => FeedWorkout_key(item.ownerId, item.recordId)}
         estimatedItemSize={360}
         ListHeaderComponent={header}

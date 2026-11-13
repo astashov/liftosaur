@@ -100,7 +100,7 @@ export async function Feed_load(
     ownerIds.map((ownerId) => () => queryOwner(di, ownerId, FeedPage_startKey(cursor, ownerId), limit)),
     feedQueryConcurrency
   );
-  const merged = FeedPage_merge({ results, previous: cursor, limit });
+  const merged = FeedPage_merge({ results, previous: cursor, activeOwners: rows.map((r) => r.followeeId), limit });
 
   const winnerOwners = Array.from(new Set(merged.winners.map((w) => w.ownerId)));
   const settingsRows = await new UserDao(di).getSettingsByIds(winnerOwners);

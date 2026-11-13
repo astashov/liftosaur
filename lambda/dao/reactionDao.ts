@@ -10,10 +10,12 @@ export const reactionTableNames = {
   dev: {
     reactions: "lftReactionsDev",
     reactionsReactorId: "lftReactionsReactorIdDev",
+    reactionsOwnerId: "lftReactionsOwnerIdDev",
   },
   prod: {
     reactions: "lftReactions",
     reactionsReactorId: "lftReactionsReactorId",
+    reactionsOwnerId: "lftReactionsOwnerId",
   },
 } as const;
 
@@ -88,17 +90,30 @@ export class ReactionDao {
 
   public async removeAllForUser(userId: string): Promise<void> {
     const env = Utils_getEnv();
-    const given = await this.di.dynamo.query<IReactionDao>({
-      tableName: reactionTableNames[env].reactions,
-      indexName: reactionTableNames[env].reactionsReactorId,
-      expression: "#reactorId = :reactorId",
-      attrs: { "#reactorId": "reactorId" },
-      values: { ":reactorId": userId },
-    });
-    if (given.length > 0) {
+    const [given, received] = await Promise.all([
+      this.di.dynamo.query<IReactionDao>({
+        tableName: reactionTableNames[env].reactions,
+        indexName: reactionTableNames[env].reactionsReactorId,
+        expression: "#reactorId = :reactorId",
+        attrs: { "#reactorId": "reactorId" },
+        values: { ":reactorId": userId },
+      }),
+      this.di.dynamo.query<IReactionDao>({
+        tableName: reactionTableNames[env].reactions,
+        indexName: reactionTableNames[env].reactionsOwnerId,
+        expression: "#ownerId = :ownerId",
+        attrs: { "#ownerId": "ownerId" },
+        values: { ":ownerId": userId },
+      }),
+    ]);
+    const keys = new Map<string, { target: string; reactorId: string }>();
+    for (const item of [...given, ...received]) {
+      keys.set(`${item.target}|${item.reactorId}`, { target: item.target, reactorId: item.reactorId });
+    }
+    if (keys.size > 0) {
       await this.di.dynamo.batchDelete({
         tableName: reactionTableNames[env].reactions,
-        keys: given.map((i) => ({ target: i.target, reactorId: i.reactorId })),
+        keys: Array.from(keys.values()),
       });
     }
   }

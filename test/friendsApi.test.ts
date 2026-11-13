@@ -118,7 +118,7 @@ describe("Friends API", () => {
     expect(invite.url).to.equal(`https://www.liftosaur.com/f/${invite.token}`);
     const preview = await call(event("GET", `/api/follow/invites/${invite.token}`, "anna"));
     expect(body(preview).data).to.eql({ nickname: "Boris", isSelf: false });
-    expect(preview.body).to.not.contain("boris\"");
+    expect(preview.body).to.not.contain('boris"');
   });
 
   it("uses an invite once and returns the same request on retry", async () => {
@@ -239,6 +239,23 @@ describe("Friends API", () => {
     await call(event("PUT", "/api/reactions/boris/1000", "anna", { body: { reaction: "dino_fire" } }));
     await new UserDao(di).removeUser("anna");
     expect(Object.keys(di.dynamo.data[followTableNames.prod.follows] || {})).to.eql([]);
+    expect(Object.keys(di.dynamo.data[reactionTableNames.prod.reactions] || {})).to.eql([]);
+  });
+
+  it("removes reactions when the workout is deleted", async () => {
+    await befriend("anna", "boris");
+    await addRecord("boris", 1000, "2026-11-01T10:00:00.000Z");
+    await call(event("PUT", "/api/reactions/boris/1000", "anna", { body: { reaction: "dino_fire" } }));
+    await new UserDao(di).deleteHistoryRecord("boris", 1000);
+    expect(Object.keys(di.dynamo.data[reactionTableNames.prod.reactions] || {})).to.eql([]);
+  });
+
+  it("removes received reactions with the owner's account even when the workout is already gone", async () => {
+    await befriend("anna", "boris");
+    await addRecord("boris", 1000, "2026-11-01T10:00:00.000Z");
+    await call(event("PUT", "/api/reactions/boris/1000", "anna", { body: { reaction: "dino_fire" } }));
+    await di.dynamo.remove({ tableName: userTableNames.prod.historyRecords, key: { id: 1000, userId: "boris" } });
+    await new UserDao(di).removeUser("boris");
     expect(Object.keys(di.dynamo.data[reactionTableNames.prod.reactions] || {})).to.eql([]);
   });
 

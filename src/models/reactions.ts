@@ -21,7 +21,7 @@ export interface IReactionRow {
 }
 
 export interface IReactor {
-  userId: string;
+  userId?: string;
   nickname?: string;
 }
 
@@ -36,13 +36,29 @@ export function Reactions_imagePath(reaction: IReaction): string {
   return `/images/reactions/${reaction}.png`;
 }
 
+function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 export function Reactions_reactorsLine(summary: IReactionSummary, shown: number = 2): string {
-  const names = summary.reactors.slice(0, shown).map((r) => r.nickname || "a lifter");
-  const others = summary.total - names.length;
-  if (others <= 0) {
-    return names.length === 2 ? `${names[0]} & ${names[1]}` : names.join(", ");
+  const names: string[] = summary.mine != null ? ["You"] : [];
+  const rest = summary.mine != null ? summary.reactors.slice(1) : summary.reactors;
+  for (const reactor of rest) {
+    if (names.length >= shown) {
+      break;
+    }
+    if (reactor.nickname) {
+      names.push(reactor.nickname);
+    }
   }
-  return `${names.join(", ")} & ${others} ${others === 1 ? "other" : "others"}`;
+  const others = summary.total - names.length;
+  if (names.length === 0) {
+    return plural(others, "lifter", "lifters");
+  }
+  if (others > 0) {
+    return `${names.join(", ")} & ${plural(others, "other", "others")}`;
+  }
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
 }
 
 export function Reactions_isReaction(value: unknown): value is IReaction {
@@ -67,7 +83,15 @@ export function Reactions_summarize(
       mine = row.reaction;
     }
   }
-  const reactors = sorted.map((row) => ({ userId: row.reactorId, nickname: nicknames[row.reactorId] }));
+  const byViewerFirst = [
+    ...sorted.filter((row) => row.reactorId === viewerId),
+    ...sorted.filter((row) => row.reactorId !== viewerId),
+  ];
+  const reactors = byViewerFirst.map((row) =>
+    row.reactorId === viewerId
+      ? { userId: row.reactorId, nickname: nicknames[row.reactorId] }
+      : { nickname: nicknames[row.reactorId] }
+  );
   return { counts, mine, reactors, total: sorted.length };
 }
 

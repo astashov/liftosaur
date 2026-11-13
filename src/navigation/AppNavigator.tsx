@@ -27,7 +27,6 @@ import {
   NavScreenFriendProfile,
   NavScreenFriendRequest,
   NavScreenFriends,
-  NavScreenFriendWorkout,
 } from "./screens/NavScreenFriends";
 import {
   NavScreenPrograms,
@@ -224,7 +223,6 @@ function HomeStackScreen(): JSX.Element {
       <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <HomeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <HomeStack.Screen name="friendProfile" component={NavScreenFriendProfile} />
-      <HomeStack.Screen name="friendWorkout" component={NavScreenFriendWorkout} />
       <HomeStack.Screen name="feedFilter" component={NavScreenFeedFilter} />
     </HomeStack.Navigator>
   );
@@ -307,7 +305,6 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="friendRequest" component={NavScreenFriendRequest} />
       <MeStack.Screen name="friendFollower" component={NavScreenFriendFollower} />
       <MeStack.Screen name="friendProfile" component={NavScreenFriendProfile} />
-      <MeStack.Screen name="friendWorkout" component={NavScreenFriendWorkout} />
     </MeStack.Navigator>
   );
 }

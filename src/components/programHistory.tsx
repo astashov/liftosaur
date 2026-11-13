@@ -1,12 +1,20 @@
-import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 import { Pressable, View } from "react-native";
 import { ISocialState, SocialState_homePage } from "../models/socialState";
-import { FeedMerge_rowKey, FeedMerge_rows, IFeedRow } from "../models/feedMerge";
+import {
+  FeedMerge_dateHeaderKeys,
+  FeedMerge_ownFromDate,
+  FeedMerge_rowDay,
+  FeedMerge_rowKey,
+  FeedMerge_rows,
+  IFeedRow,
+} from "../models/feedMerge";
 import { FeedWorkout_key } from "../models/feedWorkout";
 import { FeedWorkoutCard } from "./social/feedWorkoutCard";
-import { Thunk_loadFeed, Thunk_loadFollows, Thunk_loadOwnReactions, Thunk_react } from "../ducks/socialThunks";
+import { useFocusEffect } from "@react-navigation/native";
+import { Thunk_loadFeed, Thunk_loadOwnReactions, Thunk_react, Thunk_refreshFeedIfStale } from "../ducks/socialThunks";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IconFilter } from "./icons/iconFilter";
 import { LegendList, LegendListRef } from "@legendapp/list";
@@ -80,6 +88,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const homePage = social?.pages[SocialState_homePage];
   const hasFollowing = (social?.follows?.following.length ?? 0) > 0;
   const hasFollowers = (social?.follows?.followers.length ?? 0) > 0;
+  const [ownFromDate, setOwnFromDate] = useState<string | undefined>(
+    () => sortedHistoryDesc.find((r) => r.id === props.initialHistoryRecordId)?.date
+  );
   const rows = useTimedMemo(
     "programHistory.rows",
     () => {
@@ -91,18 +102,31 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         hasMoreFriends: hasFollowing && (homePage?.hasMore ?? false),
         hiddenOwners: social?.hiddenOwners ?? [],
         selfId: userId,
+        ownFromDate,
       });
       return head != null ? [{ kind: "own" as const, record: head }, ...merged] : merged;
     },
-    [sortedHistory, sortedHistoryDesc, homePage, social?.workouts, social?.hiddenOwners, hasFollowing, userId]
+    [
+      sortedHistory,
+      sortedHistoryDesc,
+      homePage,
+      social?.workouts,
+      social?.hiddenOwners,
+      hasFollowing,
+      userId,
+      ownFromDate,
+    ]
   );
 
-  useEffect(() => {
-    if (userId != null) {
-      dispatch(Thunk_loadFollows());
-      dispatch(Thunk_loadFeed(SocialState_homePage, true));
-    }
-  }, [userId]);
+  const dateHeaderKeys = useMemo(() => FeedMerge_dateHeaderKeys(rows, FeedMerge_rowKey, FeedMerge_rowDay), [rows]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (userId != null) {
+        dispatch(Thunk_refreshFeedIfStale(SocialState_homePage));
+      }
+    }, [userId])
+  );
 
   useEffect(() => {
     if (userId != null && hasFollowers) {
@@ -170,16 +194,28 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const trackedState = useTrackedState();
   const scrollToRecordId = trackedState.scrollToHistoryRecordId;
+  const [pendingScrollId, setPendingScrollId] = useState<number | undefined>(undefined);
   useEffect(() => {
     if (scrollToRecordId != null) {
       updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
-      const index = rows.findIndex((row) => row.kind === "own" && row.record.id === scrollToRecordId);
-      if (index >= 0) {
-        setInitialScrollIndex(index);
-        setListRemountKey((k) => k + 1);
+      const target = sortedHistoryDesc.find((r) => r.id === scrollToRecordId);
+      if (target != null) {
+        setOwnFromDate((current) => FeedMerge_ownFromDate(current, target.date));
+        setPendingScrollId(scrollToRecordId);
       }
     }
   }, [scrollToRecordId]);
+  useEffect(() => {
+    if (pendingScrollId == null) {
+      return;
+    }
+    const index = rows.findIndex((row) => row.kind === "own" && row.record.id === pendingScrollId);
+    if (index >= 0) {
+      setPendingScrollId(undefined);
+      setInitialScrollIndex(index);
+      setListRemountKey((k) => k + 1);
+    }
+  }, [pendingScrollId, rows]);
 
   useNavOptions({ navHidden: true });
 
@@ -196,12 +232,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
               nickname={socialOwners?.[workout.ownerId]?.nickname}
               reactions={socialReactions?.[item.key]}
               settings={props.settings}
-              now={Date.now()}
-              maxExercises={3}
               showIdentity={true}
-              onOpen={() =>
-                dispatch(Thunk_pushScreen("friendWorkout", { ownerId: workout.ownerId, recordId: workout.recordId }))
-              }
+              showDate={dateHeaderKeys.has(item.key)}
               onOpenOwner={() => dispatch(Thunk_pushScreen("friendProfile", { userId: workout.ownerId }))}
               onReact={(reaction) => dispatch(Thunk_react(workout.ownerId, workout.recordId, reaction))}
             />
@@ -212,7 +244,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         <View className="mx-4 mb-6">
           <HistoryRecordView
             isOngoing={isOngoing}
-            showTitle={true}
+            showTitle={dateHeaderKeys.has(FeedMerge_rowKey(item))}
             programDay={programDay}
             prs={prs}
             settings={props.settings}
@@ -223,8 +255,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         </View>
       );
     },
-    [isOngoing, programDay, prs, props.settings, dispatch, socialReactions, socialOwners, userId]
+    [isOngoing, programDay, prs, props.settings, dispatch, socialReactions, socialOwners, userId, dateHeaderKeys]
   );
+  const listExtraData = useMemo(() => ({ socialReactions, dateHeaderKeys }), [socialReactions, dateHeaderKeys]);
 
   const keyExtractor = useCallback((item: IFeedRow) => FeedMerge_rowKey(item), []);
 
@@ -289,6 +322,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         ref={flatListRef}
         data={rows}
         renderItem={renderItem}
+        extraData={listExtraData}
         keyExtractor={keyExtractor}
         estimatedItemSize={300}
         onEndReached={() => {

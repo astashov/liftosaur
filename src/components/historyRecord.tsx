@@ -138,6 +138,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               <ReactionBar
                 summary={props.reactions}
                 canReact={false}
+                tone="purple"
                 onReact={() => undefined}
                 testIdPrefix={`own-reaction-${historyRecord.id}`}
               />

@@ -8,6 +8,7 @@ export interface ISocialPage {
   isLoading: boolean;
   hasMore: boolean;
   failedOwners: string[];
+  loadedAt?: number;
 }
 
 export interface ISocialState {
@@ -21,6 +22,14 @@ export interface ISocialState {
 }
 
 export const SocialState_homePage = "home";
+export const SocialState_pageTtlMs = 60_000;
+
+export function SocialState_isPageStale(page: ISocialPage | undefined, now: number): boolean {
+  if (page == null) {
+    return true;
+  }
+  return !page.isLoading && (page.loadedAt == null || now - page.loadedAt > SocialState_pageTtlMs);
+}
 
 export function SocialState_empty(accountId: string): ISocialState {
   return { accountId, workouts: {}, owners: {}, reactions: {}, pages: {}, hiddenOwners: [] };
@@ -60,28 +69,72 @@ export function SocialState_applyFeedPage(
   state: ISocialState,
   pageKey: string,
   response: IFeedResponse,
-  isFirstPage: boolean
+  isFirstPage: boolean,
+  now: number = Date.now()
 ): ISocialState {
   if (response.accountId !== state.accountId) {
     return state;
   }
-  const workouts = { ...state.workouts };
-  const newKeys: string[] = [];
-  for (const workout of response.workouts) {
-    const key = FeedWorkout_key(workout.ownerId, workout.recordId);
-    workouts[key] = workout;
-    newKeys.push(key);
-  }
-  const previous = isFirstPage ? [] : (state.pages[pageKey]?.keys ?? []);
-  const seen = new Set(previous);
-  const keys = [...previous, ...newKeys.filter((k) => !seen.has(k))];
+  const newKeys = response.workouts.map((w) => FeedWorkout_key(w.ownerId, w.recordId));
+  const previousPage = state.pages[pageKey];
+  const previous = isFirstPage ? [] : (previousPage?.keys ?? []);
   const page: ISocialPage = {
-    keys,
+    keys: unionKeys(previous, newKeys),
     cursor: response.cursor,
     isLoading: false,
     hasMore: response.cursor != null,
     failedOwners: response.failedOwners,
+    loadedAt: isFirstPage ? now : previousPage?.loadedAt,
   };
+  return withFeedResponse(state, pageKey, response, page);
+}
+
+export function SocialState_applyFeedRefresh(
+  state: ISocialState,
+  pageKey: string,
+  response: IFeedResponse,
+  now: number
+): ISocialState {
+  const previousPage = state.pages[pageKey];
+  if (previousPage == null) {
+    return SocialState_applyFeedPage(state, pageKey, response, true, now);
+  }
+  if (response.accountId !== state.accountId) {
+    return state;
+  }
+  const newKeys = response.workouts.map((w) => FeedWorkout_key(w.ownerId, w.recordId));
+  const page: ISocialPage = {
+    ...previousPage,
+    keys: unionKeys(newKeys, previousPage.keys),
+    isLoading: false,
+    loadedAt: now,
+  };
+  return withFeedResponse(state, pageKey, response, page);
+}
+
+export function SocialState_startRefresh(state: ISocialState, pageKey: string): ISocialState {
+  const page = state.pages[pageKey];
+  if (page == null) {
+    return state;
+  }
+  return { ...state, pages: { ...state.pages, [pageKey]: { ...page, isLoading: true } } };
+}
+
+function unionKeys(first: string[], second: string[]): string[] {
+  const seen = new Set(first);
+  return [...first, ...second.filter((k) => !seen.has(k))];
+}
+
+function withFeedResponse(
+  state: ISocialState,
+  pageKey: string,
+  response: IFeedResponse,
+  page: ISocialPage
+): ISocialState {
+  const workouts = { ...state.workouts };
+  for (const workout of response.workouts) {
+    workouts[FeedWorkout_key(workout.ownerId, workout.recordId)] = workout;
+  }
   return {
     ...state,
     workouts,
@@ -94,11 +147,18 @@ export function SocialState_applyFeedPage(
 export function SocialState_applyOwnReactions(
   state: ISocialState,
   ownerId: string,
+  requestedIds: number[],
   summaries: Partial<Record<string, IReactionSummary>>
 ): ISocialState {
   const reactions = { ...state.reactions };
-  for (const recordId of Object.keys(summaries)) {
-    reactions[FeedWorkout_key(ownerId, Number(recordId))] = summaries[recordId];
+  for (const recordId of requestedIds) {
+    const key = FeedWorkout_key(ownerId, recordId);
+    const summary = summaries[String(recordId)];
+    if (summary != null) {
+      reactions[key] = summary;
+    } else {
+      delete reactions[key];
+    }
   }
   return { ...state, reactions };
 }

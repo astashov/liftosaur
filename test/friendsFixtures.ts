@@ -26,7 +26,11 @@ export function FriendsFixtures_entry(overrides: Partial<IHistoryEntry> = {}): I
   };
 }
 
-export function FriendsFixtures_record(id: number, date: string, overrides: Partial<IHistoryRecord> = {}): IHistoryRecord {
+export function FriendsFixtures_record(
+  id: number,
+  date: string,
+  overrides: Partial<IHistoryRecord> = {}
+): IHistoryRecord {
   return {
     vtype: "history_record",
     id,
