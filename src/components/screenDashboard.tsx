@@ -14,6 +14,29 @@ import { LiftographDashboard_document } from "../liftograph/liftographDashboard"
 import { DashboardView } from "./dashboard/dashboardView";
 import { Dashboard_current } from "../models/dashboard";
 import { IconEdit2 } from "./icons/iconEdit2";
+import { Button } from "./button";
+import { DashboardStarter_isOffered, DashboardStarter_lifts, DashboardStarter_text } from "../models/dashboardStarter";
+import { DashboardEditorSave_decide, DashboardEditorSave_session } from "../models/dashboardEditorSave";
+import { DashboardEditorWrite_apply } from "../models/dashboardEditorWrite";
+import { Program_getEvaluatedProgramFromState } from "../models/program";
+import { IState } from "../models/state";
+import { IDispatch } from "../ducks/types";
+import { ILiftographDashboardDocument } from "../liftograph/liftographDashboard";
+
+function generateStarter(dispatch: IDispatch, state: IState, document: ILiftographDashboardDocument): void {
+  const storage = state.storage;
+  const lifts = DashboardStarter_lifts(
+    storage.history,
+    () => Program_getEvaluatedProgramFromState(state),
+    storage.settings,
+    Date.now()
+  );
+  const text = DashboardStarter_text(lifts, storage.settings);
+  DashboardEditorWrite_apply(
+    dispatch,
+    DashboardEditorSave_decide(storage, DashboardEditorSave_session(document), text)
+  );
+}
 
 function openDashboards(): void {
   navigateToModal("dashboardsModal");
@@ -71,8 +94,30 @@ export function ScreenDashboard(): JSX.Element {
           </Text>
         </Pressable>
       ) : null}
-      {compiled.layout.length === 0 ? (
-        <Text className="py-8 text-center text-text-secondary">This dashboard is empty. Tap the pencil to add graphs.</Text>
+      {DashboardStarter_isOffered(dashboards, compiled.layout.length) ? (
+        <View className="items-center px-4 py-8">
+          <Text className="pb-4 text-lg font-bold text-center">Your dashboard is empty</Text>
+          <Button
+            name="dashboard-generate-starter"
+            kind="purple"
+            onClick={() => {
+              generateStarter(dispatch, untrack(trackedState), document);
+            }}
+          >
+            Generate my first dashboard
+          </Button>
+          <Text className="pt-3 text-sm text-center text-text-secondary">
+            Adds your most-trained lifts, a muscle map, a workout calendar and your bodyweight. You can change all of it
+            later.
+          </Text>
+          <Text className="pt-4 text-sm text-center text-text-secondary">
+            Or tap the pencil to add widgets one by one.
+          </Text>
+        </View>
+      ) : compiled.layout.length === 0 ? (
+        <Text className="py-8 text-center text-text-secondary">
+          This dashboard is empty. Tap the pencil to add graphs.
+        </Text>
       ) : null}
       <DashboardView
         layout={rows}
