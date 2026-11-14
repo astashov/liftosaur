@@ -12,6 +12,12 @@ export interface IFollower extends IFollowPerson {
   permissions: IFollowPermissions;
 }
 
+export interface IApiFriend {
+  userId: string;
+  nickname?: string;
+  canSeeNotes: boolean;
+}
+
 export interface IFollowRequest {
   requestId: string;
   nickname?: string;

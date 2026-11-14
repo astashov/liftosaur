@@ -43,6 +43,9 @@ function PermissionsCard(props: {
           />
         </View>
       </View>
+      <Text className="px-1 mt-2 text-xs text-text-secondary">
+        They can also see these through apps they connect, like AI assistants.
+      </Text>
     </View>
   );
 }
@@ -63,12 +66,12 @@ export function ScreenFriendRequest(props: {
       </View>
     );
   }
-  const decide = (approve: boolean): void => {
-    props.dispatch(
-      approve
-        ? Thunk_approveFollow(request.requestId, permissions, followBack)
-        : Thunk_removeFollowRequest(request.requestId)
-    );
+  const approve = (): void => {
+    props.dispatch(Thunk_approveFollow(request.requestId, permissions, followBack));
+    props.dispatch(Thunk_pullScreen());
+  };
+  const decline = (): void => {
+    props.dispatch(Thunk_removeFollowRequest(request.requestId));
     props.dispatch(Thunk_pullScreen());
   };
   return (
@@ -86,7 +89,7 @@ export function ScreenFriendRequest(props: {
       </Text>
       <View className="flex-row w-full mt-8 gap-3">
         <View className="flex-1">
-          <Button kind="lightgrayv3" name="follow-decline" className="w-full" onClick={() => decide(false)}>
+          <Button kind="lightgrayv3" name="follow-decline" className="w-full" onClick={decline}>
             Decline
           </Button>
         </View>
@@ -97,7 +100,7 @@ export function ScreenFriendRequest(props: {
             data-testid="follow-approve"
             testID="follow-approve"
             className="w-full"
-            onClick={() => decide(true)}
+            onClick={approve}
           >
             Approve
           </Button>

@@ -15,6 +15,8 @@ import { OauthDao } from "../lambda/dao/oauthDao";
 import { ApiKeyDao } from "../lambda/dao/apiKeyDao";
 import { Storage_getDefault } from "../src/models/storage";
 import { MockFetch } from "./utils/mockFetch";
+import { FollowDao } from "../lambda/dao/followDao";
+import { FriendsFixtures_record } from "./friendsFixtures";
 import sinon from "sinon";
 import JWT from "jsonwebtoken";
 
@@ -812,6 +814,63 @@ describe("MCP", () => {
       expect(result.statusCode).to.equal(200);
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
+    });
+  });
+
+  describe("friends", () => {
+    async function callTool(token: string, name: string, args?: Record<string, unknown>): Promise<any> {
+      return parseBody(await handler(buildMcpEvent(toolCall(name, args), authHeaders(token)), ctx)).result;
+    }
+
+    beforeEach(async () => {
+      const storage = Storage_getDefault();
+      storage.settings.nickname = "Sam";
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: { id: "sam", email: "sam@example.com", createdAt: 1, storage },
+      });
+      await new FollowDao(di).put({
+        followerId: userId,
+        followeeId: "sam",
+        status: "approved",
+        requestId: "req-sam",
+        permissions: { notes: false },
+        createdAt: 1,
+      });
+      const record = FriendsFixtures_record(1000, "2026-11-01T10:00:00.000Z", { notes: "private" });
+      await di.dynamo.put({ tableName: userTableNames.prod.historyRecords, item: { ...record, userId: "sam" } });
+    });
+
+    it("marks the friend tools read-only", async () => {
+      const token = await createOauthToken();
+      const tools = parseBody(await handler(buildMcpEvent(jsonRpc("tools/list"), authHeaders(token)), ctx)).result
+        .tools;
+      for (const name of ["list_friends", "get_friend_history", "get_friend_history_record"]) {
+        const tool = tools.find((t: any) => t.name === name);
+        expect(tool.annotations.readOnlyHint).to.equal(true);
+      }
+    });
+
+    it("lists friends and reads their history through OAuth and API keys", async () => {
+      for (const token of [await createOauthToken(), await createApiKey()]) {
+        const friends = JSON.parse((await callTool(token, "list_friends")).content[0].text).friends;
+        expect(friends).to.eql([{ userId: "sam", nickname: "Sam", canSeeNotes: false }]);
+        const history = await callTool(token, "get_friend_history", { userId: "sam" });
+        expect(history.isError).to.be.undefined;
+        const page = JSON.parse(history.content[0].text);
+        expect(page.ownerId).to.equal("sam");
+        expect(page.records[0].text).to.not.contain("private");
+        const record = JSON.parse(
+          (await callTool(token, "get_friend_history_record", { userId: "sam", id: "1000" })).content[0].text
+        );
+        expect(record).to.include({ ownerId: "sam", id: 1000 });
+      }
+    });
+
+    it("refuses a user the caller does not follow", async () => {
+      const token = await createOauthToken();
+      const result = await callTool(token, "get_friend_history", { userId: "someone" });
+      expect(result.isError).to.equal(true);
     });
   });
 

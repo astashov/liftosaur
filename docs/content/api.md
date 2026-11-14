@@ -277,6 +277,75 @@ DELETE /api/v1/history/:id
 }
 ```
 
+### List Friends
+
+```
+GET /api/v1/friends
+```
+
+Lists the people you follow in Liftosaur. These are the friends whose workouts you can read. `canSeeNotes` says whether that friend shares their workout notes with you.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "friends": [{ "userId": "abc123", "nickname": "Sam", "canSeeNotes": false }]
+  }
+}
+```
+
+### List a Friend's History
+
+```
+GET /api/v1/friends/:userId/history?startDate=2026-11-01&limit=50
+```
+
+Read-only. Returns a friend's workouts, newest first, in the same text format as your own history. Notes are included only if the friend shares them with you. A user you don't follow, or whose follow request is still pending, returns `404`.
+
+Query parameters (all optional):
+- `startDate` - ISO date or unix timestamp; workouts on or after it
+- `endDate` - ISO date or unix timestamp; workouts on or before it
+- `limit` - max records to return (default 50, max 100)
+- `cursor` - `nextCursor` from the previous response
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "records": [
+      {
+        "id": 1,
+        "text": "2026-11-10T10:00:00Z / program: \"GZCLP\" / day: 1 / duration: 3600s / exercises: {\n  Bench Press, Barbell / 2x5 185lb\n}"
+      }
+    ],
+    "nextCursor": "eyJpZCI6MSwiZGF0ZSI6IjIwMjYtMTEtMTBUMTA6MDA6MDAuMDAwWiJ9"
+  }
+}
+```
+
+`nextCursor` is absent on the last page.
+
+### Get a Friend's History Record
+
+```
+GET /api/v1/friends/:userId/history/:id
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "id": 1,
+    "text": "2026-11-10T10:00:00Z / program: \"GZCLP\" / day: 1 / exercises: {\n  Bench Press, Barbell / 2x5 185lb\n}"
+  }
+}
+```
+
 ### Playground
 
 Simulate a workout without saving anything. Use this to test program logic and progressions before committing.

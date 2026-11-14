@@ -57,6 +57,7 @@ import {
   ApiV1_updateMeasurement,
   ApiV1_deleteMeasurement,
 } from "../utils/apiv1Measurements";
+import { ApiV1_getFriendHistory, ApiV1_getFriendHistoryRecord, ApiV1_listFriends } from "../utils/apiv1Friends";
 import { IEither } from "../../src/utils/types";
 import { IMuscle, IExerciseKind } from "../../src/types";
 import * as v from "valibot";
@@ -232,6 +233,20 @@ export async function McpToolExecutor_execute(
       }
       return { success: true, data: record };
     }
+
+    case "list_friends":
+      return ApiV1_listFriends(userId, di);
+
+    case "get_friend_history":
+      return ApiV1_getFriendHistory(
+        userId,
+        String(args.userId ?? ""),
+        { startDate: args.startDate, endDate: args.endDate, limit: args.limit, cursor: args.cursor },
+        di
+      );
+
+    case "get_friend_history_record":
+      return ApiV1_getFriendHistoryRecord(userId, String(args.userId ?? ""), parseInt(String(args.id), 10), di);
 
     case "create_history_record":
       return ApiV1_createHistory(userId, user, args.text as string, deviceId, di);

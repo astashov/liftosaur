@@ -88,10 +88,14 @@ function syntaxErrorDetails(errors: (LiftohistorySyntaxError | PlannerSyntaxErro
   });
 }
 
+export function ApiV1_dateFromEpoch(value: number): Date {
+  return new Date(value > 9999999999 ? value : value * 1000);
+}
+
 function parseDate(dateStr: string): string {
   const asNum = Number(dateStr);
   if (!isNaN(asNum) && asNum > 1000000000) {
-    return new Date(asNum > 9999999999 ? asNum : asNum * 1000).toISOString();
+    return ApiV1_dateFromEpoch(asNum).toISOString();
   }
   return new Date(dateStr).toISOString();
 }

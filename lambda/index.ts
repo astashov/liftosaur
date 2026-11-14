@@ -193,6 +193,12 @@ import {
   putV1HistoryHandler,
   deleteV1HistoryEndpoint,
   deleteV1HistoryHandler,
+  getV1FriendsEndpoint,
+  getV1FriendsHandler,
+  getV1FriendHistoryEndpoint,
+  getV1FriendHistoryHandler,
+  getV1FriendHistoryRecordEndpoint,
+  getV1FriendHistoryRecordHandler,
   getV1ProgramsEndpoint,
   getV1ProgramsHandler,
   getV1DashboardsEndpoint,
@@ -4730,6 +4736,9 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postV1HistoryEndpoint, postV1HistoryHandler)
       .put(putV1HistoryEndpoint, putV1HistoryHandler)
       .delete(deleteV1HistoryEndpoint, deleteV1HistoryHandler)
+      .get(getV1FriendsEndpoint, getV1FriendsHandler)
+      .get(getV1FriendHistoryEndpoint, getV1FriendHistoryHandler)
+      .get(getV1FriendHistoryRecordEndpoint, getV1FriendHistoryRecordHandler)
       .get(getV1ProgramsEndpoint, getV1ProgramsHandler)
       .get(getV1ProgramEndpoint, getV1ProgramHandler)
       .post(postV1ProgramEndpoint, postV1ProgramHandler)

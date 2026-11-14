@@ -12,6 +12,8 @@ import { Storage_getDefault } from "../src/models/storage";
 import { Service } from "../src/api/service";
 import { MockFetch } from "./utils/mockFetch";
 import { ApiKeyAuth_deviceIdForKey } from "../lambda/utils/apiKeyAuth";
+import { FollowDao } from "../lambda/dao/followDao";
+import { FriendsFixtures_entry, FriendsFixtures_record } from "./friendsFixtures";
 import sinon from "sinon";
 
 function buildEvent(
@@ -290,6 +292,105 @@ Bench Press / 3x8 / 80lb`;
       );
       expect(result.statusCode).to.equal(422);
       expect(parseBody(result).error.code).to.equal("parse_error");
+    });
+  });
+
+  describe("friends endpoints", () => {
+    let apiKey: string;
+    const ctx = { getRemainingTimeInMillis: (): number => 10000 };
+    const get = async (path: string, qs?: Record<string, string>): Promise<APIGatewayProxyResult> =>
+      handler(buildEvent("GET", path, { headers: apiHeaders(apiKey), qs }), ctx);
+
+    async function addUser(id: string, nickname: string): Promise<void> {
+      const storage = Storage_getDefault();
+      storage.tempUserId = id;
+      storage.settings.nickname = nickname;
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: { id, email: `${id}@example.com`, createdAt: 1, storage },
+      });
+    }
+
+    async function addRecord(ownerId: string, id: number, date: string, notes?: string): Promise<void> {
+      const record = FriendsFixtures_record(id, date, {
+        notes,
+        entries: [FriendsFixtures_entry({ notes: notes ? `${notes} entry` : undefined })],
+      });
+      await di.dynamo.put({ tableName: userTableNames.prod.historyRecords, item: { ...record, userId: ownerId } });
+    }
+
+    async function follow(followeeId: string, status: "approved" | "pending", notes: boolean): Promise<void> {
+      await new FollowDao(di).put({
+        followerId: userId,
+        followeeId,
+        status,
+        requestId: `req-${followeeId}`,
+        permissions: { notes },
+        createdAt: 1,
+      });
+    }
+
+    beforeEach(async () => {
+      apiKey = (await service.createApiKey("Friends Key"))!.key;
+      await addUser("sam", "Sam");
+      await addUser("nora", "Nora");
+      await addUser("pete", "Pete");
+      await addUser("stranger", "Stranger");
+      await follow("sam", "approved", false);
+      await follow("nora", "approved", true);
+      await follow("pete", "pending", false);
+    });
+
+    it("lists approved follows only", async () => {
+      const body = parseBody(await get("/api/v1/friends"));
+      const friends = body.data.friends.sort((a: any, b: any) => a.userId.localeCompare(b.userId));
+      expect(friends).to.eql([
+        { userId: "nora", nickname: "Nora", canSeeNotes: true },
+        { userId: "sam", nickname: "Sam", canSeeNotes: false },
+      ]);
+    });
+
+    it("answers 404 for pending, stranger and missing users, and 400 for yourself", async () => {
+      for (const id of ["pete", "stranger", "nobody"]) {
+        const result = await get(`/api/v1/friends/${id}/history`);
+        expect(result.statusCode).to.equal(404);
+        expect(parseBody(result).error.code).to.equal("not_found");
+      }
+      expect((await get(`/api/v1/friends/${userId}/history`)).statusCode).to.equal(400);
+    });
+
+    it("strips notes unless the friend shares them", async () => {
+      await addRecord("sam", 1000, "2026-11-01T10:00:00.000Z", "sam private");
+      await addRecord("nora", 1000, "2026-11-01T10:00:00.000Z", "nora shared");
+      const sam = parseBody(await get("/api/v1/friends/sam/history")).data;
+      expect(sam.ownerId).to.equal("sam");
+      expect(sam.records[0].text).to.not.contain("sam private");
+      const nora = parseBody(await get("/api/v1/friends/nora/history")).data;
+      expect(nora.records[0].text).to.contain("// nora shared");
+      expect(nora.records[0].text).to.contain("// nora shared entry");
+    });
+
+    it("pages a date range without repeating workouts", async () => {
+      for (let day = 1; day <= 6; day += 1) {
+        await addRecord("sam", 1000 + day, `2026-11-0${day}T10:00:00.000Z`);
+      }
+      const qs = { startDate: "2026-11-02", endDate: "2026-11-05", limit: "2" };
+      const first = parseBody(await get("/api/v1/friends/sam/history", qs)).data;
+      expect(first.records.map((r: any) => r.id)).to.eql([1005, 1004]);
+      expect(first.nextCursor).to.be.a("string");
+      const second = parseBody(await get("/api/v1/friends/sam/history", { ...qs, cursor: first.nextCursor })).data;
+      expect(second.records.map((r: any) => r.id)).to.eql([1003, 1002]);
+    });
+
+    it("finds a single workout older than the newest 200", async () => {
+      for (let i = 0; i < 201; i += 1) {
+        await addRecord("sam", 2000 + i, new Date(Date.UTC(2026, 0, 1) + i * 86400000).toISOString());
+      }
+      const result = await get("/api/v1/friends/sam/history/2000");
+      expect(result.statusCode).to.equal(200);
+      expect(parseBody(result).data).to.include({ ownerId: "sam", id: 2000 });
+      expect((await get("/api/v1/friends/sam/history/99999")).statusCode).to.equal(404);
+      expect((await get("/api/v1/friends/stranger/history/2000")).statusCode).to.equal(404);
     });
   });
 

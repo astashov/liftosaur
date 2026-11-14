@@ -7,6 +7,7 @@ import { FollowAccess_canDecide } from "./followAccess";
 import {
   Follow_defaultPermissions,
   Follow_maxFollows,
+  IApiFriend,
   IFollowPermissions,
   IFollowsResponse,
 } from "../../src/models/follow";
@@ -36,6 +37,16 @@ async function lastWorkoutAt(di: IDI, userId: string): Promise<number | undefine
   } catch (e) {
     return undefined;
   }
+}
+
+export async function Follows_listApproved(di: IDI, viewerId: string): Promise<IApiFriend[]> {
+  const following = (await new FollowDao(di).listFollowing(viewerId)).filter((r) => r.status === "approved");
+  const nicknames = await new UserDao(di).getNicknamesByIds(following.map((r) => r.followeeId));
+  return following.map((r) => ({
+    userId: r.followeeId,
+    nickname: nicknames[r.followeeId],
+    canSeeNotes: r.permissions.notes,
+  }));
 }
 
 export async function Follows_load(di: IDI, userId: string): Promise<IFollowsResponse> {

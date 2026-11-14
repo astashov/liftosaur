@@ -1,3 +1,5 @@
+import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
+import { IDynamoQueryPage } from "../utils/dynamo";
 import {
   IStorage,
   IHistoryRecord,
@@ -773,6 +775,40 @@ export class UserDao {
     } else {
       return undefined;
     }
+  }
+
+  public async queryHistoryPage(
+    userId: string,
+    args: { startDate?: string; endDate?: string; limit: number; startKey?: Record<string, NativeAttributeValue> }
+  ): Promise<IDynamoQueryPage<IHistoryRecord>> {
+    const env = Utils_getEnv();
+    const range =
+      args.startDate != null && args.endDate != null
+        ? " AND #date BETWEEN :startDate AND :endDate"
+        : args.startDate != null
+          ? " AND #date >= :startDate"
+          : args.endDate != null
+            ? " AND #date <= :endDate"
+            : "";
+    const page = await this.di.dynamo.queryPage<IHistoryRecord & { userId?: string }>({
+      tableName: userTableNames[env].historyRecords,
+      indexName: userTableNames[env].historyRecordsDate,
+      expression: `#userId = :userId${range}`,
+      attrs: { "#userId": "userId", ...(range !== "" ? { "#date": "date" } : {}) },
+      values: {
+        ":userId": userId,
+        ...(args.startDate != null ? { ":startDate": args.startDate } : {}),
+        ...(args.endDate != null ? { ":endDate": args.endDate } : {}),
+      },
+      scanIndexForward: false,
+      limit: args.limit,
+      exclusiveStartKey: args.startKey,
+    });
+    const items = page.items.map((r) => {
+      delete r.userId;
+      return r;
+    });
+    return { items, lastEvaluatedKey: page.lastEvaluatedKey };
   }
 
   public getHistoryByUserId(

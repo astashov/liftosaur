@@ -83,7 +83,7 @@ export function FeedWorkout_key(ownerId: string, recordId: number): string {
   return `${ownerId}:${recordId}`;
 }
 
-function projectSet(set: ISet): IFeedSet {
+export function FeedWorkout_projectSet(set: ISet): IFeedSet {
   return {
     vtype: set.vtype,
     index: set.index,
@@ -121,7 +121,7 @@ function projectEntry(entry: IHistoryEntry, ownerSettings: ISettings, permission
     name: Exercise_nameWithEquipment(exercise, ownerSettings),
     imageUrl: isBuiltin ? undefined : custom?.smallImageUrl,
     superset: entry.superset,
-    sets: entry.sets.map(projectSet),
+    sets: entry.sets.map(FeedWorkout_projectSet),
     notes: permissions.notes ? entry.notes : undefined,
   };
 }
