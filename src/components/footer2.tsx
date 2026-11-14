@@ -132,6 +132,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                   : Tailwind_colors().red[600];
             return <IconMe isSelected={isActive} color={color} />;
           }}
+          hasDot={(props.navCommon.pendingFollowRequests ?? 0) > 0}
           text="Me"
           onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
         />

@@ -48,6 +48,13 @@ export function SocialState_forAccount(
   return SocialState_empty(accountId);
 }
 
+export function SocialState_pendingRequestCount(
+  state: ISocialState | undefined,
+  accountId: string | undefined
+): number {
+  return state != null && state.accountId === accountId ? (state.follows?.incoming.length ?? 0) : 0;
+}
+
 export function SocialState_startLoading(state: ISocialState, pageKey: string, isFirstPage: boolean): ISocialState {
   const page = state.pages[pageKey];
   const next: ISocialPage =

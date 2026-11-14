@@ -69,6 +69,7 @@ export interface INavCommon {
   isThanksgivingPromo?: boolean;
   stats: IStats;
   settings: ISettings;
+  pendingFollowRequests?: number;
 }
 
 export interface ILoadingItem {

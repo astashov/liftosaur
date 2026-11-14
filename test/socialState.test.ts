@@ -10,6 +10,7 @@ import {
   SocialState_applyReaction,
   SocialState_empty,
   SocialState_forAccount,
+  SocialState_pendingRequestCount,
   SocialState_restoreReaction,
 } from "../src/models/socialState";
 import { FeedWorkout_fromRecord, IFeedResponse } from "../src/models/feedWorkout";
@@ -32,6 +33,24 @@ function response(accountId: string, ids: number[], cursor?: string): IFeedRespo
 }
 
 describe("SocialState", () => {
+  it("counts pending requests only for the signed-in account", () => {
+    const request = { requestId: "r1", nickname: "Bob", createdAt: 1 };
+    const social = {
+      ...SocialState_empty("me"),
+      follows: {
+        accountId: "me",
+        following: [],
+        followers: [],
+        incoming: [request, { ...request, requestId: "r2" }],
+        outgoing: [],
+      },
+    };
+    expect(SocialState_pendingRequestCount(social, "me")).to.equal(2);
+    expect(SocialState_pendingRequestCount(social, "other")).to.equal(0);
+    expect(SocialState_pendingRequestCount(SocialState_empty("me"), "me")).to.equal(0);
+    expect(SocialState_pendingRequestCount(undefined, undefined)).to.equal(0);
+  });
+
   it("appends pages without duplicating keys and tracks the cursor", () => {
     let state = SocialState_empty("me");
     state = SocialState_applyFeedPage(state, "home", response("me", [1, 2], "c1"), true);

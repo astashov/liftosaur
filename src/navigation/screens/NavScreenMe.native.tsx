@@ -18,6 +18,7 @@ import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../compone
 import { ScreenSleepNutrition as ScreenSleepNutritionComponent } from "../../components/screenSleepNutrition";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
+import { SocialState_pendingRequestCount } from "../../models/socialState";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
 import { ScreenRecentImports as ScreenRecentImportsComponent } from "../../components/screenRecentImports";
 import { ScreenImportPreview as ScreenImportPreviewComponent } from "../../components/screenImportPreview";
@@ -40,6 +41,7 @@ export function NavScreenSettings(): React.JSX.Element {
   const currentProgramId = state.storage.currentProgramId;
   const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
   const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
+  const pendingFollowRequests = SocialState_pendingRequestCount(state.social, state.user?.id);
   const navCommon = useMemo(
     () => ({
       loading,
@@ -48,8 +50,9 @@ export function NavScreenSettings(): React.JSX.Element {
       isOngoingProgress,
       stats,
       userId: user?.id,
+      pendingFollowRequests,
     }),
-    [loading, currentProgram, settings, isOngoingProgress, stats, user]
+    [loading, currentProgram, settings, isOngoingProgress, stats, user, pendingFollowRequests]
   );
   return (
     <View className="flex-1 bg-background-default">

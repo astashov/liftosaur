@@ -165,6 +165,18 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
 
       <MenuItem
         name="Friends"
+        value={
+          props.navCommon.pendingFollowRequests ? (
+            <View
+              testID="friends-pending-badge"
+              className="items-center justify-center h-5 px-2 rounded-full min-w-5 bg-background-error"
+            >
+              <Text className="text-xs font-semibold text-text-alwayswhite">
+                {props.navCommon.pendingFollowRequests}
+              </Text>
+            </View>
+          ) : undefined
+        }
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("friends"))}
       />
