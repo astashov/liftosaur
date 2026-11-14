@@ -315,6 +315,20 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
 
+    const userProgramEditsTable = new dynamodb.Table(this, `LftUserProgramEdits${suffix}`, {
+      tableName: `lftUserProgramEdits${suffix}`,
+      partitionKey: { name: "ownerId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    userProgramEditsTable.addGlobalSecondaryIndex({
+      indexName: `lftUserProgramEditsEditor${suffix}`,
+      partitionKey: { name: "editorId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
+
     const oauthClientsTable = new dynamodb.Table(this, `LftOauthClients${suffix}`, {
       tableName: `lftOauthClients${suffix}`,
       partitionKey: { name: "clientId", type: dynamodb.AttributeType.STRING },
@@ -756,6 +770,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     followsTable.grantReadWriteData(lambdaFunction);
     followInvitesTable.grantReadWriteData(lambdaFunction);
     reactionsTable.grantReadWriteData(lambdaFunction);
+    userProgramEditsTable.grantReadWriteData(lambdaFunction);
     oauthClientsTable.grantReadWriteData(lambdaFunction);
     oauthAuthCodesTable.grantReadWriteData(lambdaFunction);
     oauthTokensTable.grantReadWriteData(lambdaFunction);
