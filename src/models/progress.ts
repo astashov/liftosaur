@@ -116,6 +116,7 @@ import {
   LiftoscriptExerciseName_isProgramExercise,
 } from "../liftoscriptExerciseName";
 import deepmerge from "deepmerge";
+import { NotificationPrefs_isOn, NotificationPrefs_reminder } from "./notificationPrefs";
 import { Dialog_alert } from "../utils/dialog";
 
 export type { IScriptBindings } from "../liftoscriptFns";
@@ -416,6 +417,10 @@ export function Progress_scheduleTimerNotification(
   timerSinceMs: number,
   timerSeconds: number
 ): void {
+  if (!NotificationPrefs_isOn(settings, "restTimer")) {
+    effects.push({ type: "stopTimer" });
+    return;
+  }
   const title = "It's time for the next set!";
   let subtitle = "";
   let body = "Time to lift!";
@@ -2352,7 +2357,7 @@ export function Progress_changeAmrapAction(
     effects,
     newProgress,
     action.isPlayground,
-    settings.timers.reminder,
+    NotificationPrefs_reminder(settings),
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
   LiveActivityManager_updateLiveActivityForNextEntry(
@@ -2548,7 +2553,7 @@ export function Progress_completeSetAction(
       effects,
       stopped,
       action.isPlayground,
-      settings.timers.reminder,
+      NotificationPrefs_reminder(settings),
       subscription != null && Subscriptions_hasSubscription(subscription)
     );
     LiveActivityManager_updateLiveActivityForNextEntry(
@@ -2677,7 +2682,7 @@ export function Progress_completeSetAction(
     effects,
     newProgress,
     action.isPlayground,
-    settings.timers.reminder,
+    NotificationPrefs_reminder(settings),
     subscription != null && Subscriptions_hasSubscription(subscription)
   );
   LiveActivityManager_updateLiveActivityForNextEntry(

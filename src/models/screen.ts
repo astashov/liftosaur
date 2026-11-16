@@ -13,6 +13,7 @@ export type IScreenData =
   | { name: "settings"; params?: Record<string, never> }
   | { name: "account"; params?: Record<string, never> }
   | { name: "timers"; params?: Record<string, never> }
+  | { name: "notifications"; params?: Record<string, never> }
   | { name: "plates"; params?: Record<string, never> }
   | { name: "equipmentDetail"; params: { gymId: string; equipmentId: string } }
   | { name: "gyms"; params?: Record<string, never> }
@@ -41,7 +42,17 @@ export type IScreenData =
   | { name: "programPreview"; params?: Record<string, never> }
   | { name: "apiKeys"; params?: Record<string, never> }
   | { name: "recentImports"; params?: Record<string, never> }
-  | { name: "importPreview"; params?: Record<string, never> };
+  | { name: "importPreview"; params?: Record<string, never> }
+  | { name: "friends"; params?: Record<string, never> }
+  | { name: "friendInvite"; params?: Record<string, never> }
+  | { name: "followInvite"; params: { token: string } }
+  | { name: "friendRequest"; params: { requestId: string } }
+  | { name: "friendFollower"; params: { userId: string } }
+  | { name: "friendProfile"; params: { userId: string } }
+  | { name: "friendPrograms"; params: { userId: string } }
+  | { name: "friendProgram"; params: { userId: string; programId: string } }
+  | { name: "programEdits"; params: { programId: string } }
+  | { name: "feedFilter"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
@@ -91,6 +102,9 @@ export function Screen_tab(screen: IScreen): ITab {
       return "me";
     }
     case "timers": {
+      return "me";
+    }
+    case "notifications": {
       return "me";
     }
     case "plates": {
@@ -182,6 +196,22 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "importPreview": {
       return "me";
+    }
+    case "friends":
+    case "friendInvite":
+    case "followInvite":
+    case "friendRequest":
+    case "friendFollower":
+    case "friendProfile":
+    case "friendPrograms":
+    case "friendProgram": {
+      return "me";
+    }
+    case "programEdits": {
+      return "program";
+    }
+    case "feedFilter": {
+      return "home";
     }
   }
 }

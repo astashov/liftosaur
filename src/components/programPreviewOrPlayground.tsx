@@ -15,6 +15,7 @@ interface IProgramPreviewOrPlaygroundProps {
   onChangeUnit?: (unit: IUnit) => void;
   stats: IStats;
   useNavModals?: boolean;
+  isReadOnly?: boolean;
   headerContent?: ReactNode;
   scrollableTabsProps?: Partial<IScrollableTabsProps>;
 }
@@ -105,6 +106,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
       settings={props.settings}
       stats={props.stats}
       useNavModals={props.useNavModals}
+      isReadOnly={props.isReadOnly}
       scrollableTabsProps={props.scrollableTabsProps}
     />
   );

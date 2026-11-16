@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback } from "react";
+import { JSX, memo, useCallback, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";
@@ -32,6 +32,9 @@ import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 import { Equipment_currentEquipment } from "../models/equipment";
 import { useRemScale } from "../utils/useRem";
+import { SocialState_programEditLine } from "../models/socialState";
+import { IProgramEditsResponse } from "../models/friendProgram";
+import { Thunk_pushScreen } from "../ducks/thunks";
 
 interface IProps {
   programs: IProgram[];
@@ -39,6 +42,7 @@ interface IProps {
   settings: ISettings;
   dispatch: IDispatch;
   search?: string;
+  programEdits?: IProgramEditsResponse;
 }
 
 export function CustomProgramsList(props: IProps): JSX.Element {
@@ -54,7 +58,7 @@ export function CustomProgramsList(props: IProps): JSX.Element {
     [sortedPrograms, searchLower]
   );
 
-  const { settings, progress, dispatch } = props;
+  const { settings, progress, dispatch, programEdits } = props;
   const renderItem = useCallback(
     ({ item }: { item: IProgram }) => (
       <CustomProgram
@@ -63,9 +67,10 @@ export function CustomProgramsList(props: IProps): JSX.Element {
         progress={progress}
         program={item}
         dispatch={dispatch}
+        programEdits={programEdits}
       />
     ),
-    [sortedPrograms, settings, progress, dispatch]
+    [sortedPrograms, settings, progress, dispatch, programEdits]
   );
 
   const keyExtractor = useCallback((item: IProgram) => item.id, []);
@@ -76,6 +81,7 @@ export function CustomProgramsList(props: IProps): JSX.Element {
     <LegendList
       style={{ flex: 1 }}
       data={programs}
+      extraData={programEdits}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       // LegendList never grows totalSize past the items it has measured, so an estimate below the
@@ -96,10 +102,15 @@ interface ICustomProgramProps {
   editProgramId?: string;
   settings: ISettings;
   dispatch: IDispatch;
+  programEdits?: IProgramEditsResponse;
 }
 
 const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): JSX.Element {
-  const { program, settings } = props;
+  const { program, settings, programEdits } = props;
+  const friendEditLine = useMemo(
+    () => SocialState_programEditLine(programEdits, program.id, Date.now()),
+    [programEdits, program.id]
+  );
   const aggregates = useTimedMemo(
     "customPrograms.row",
     () => {
@@ -187,6 +198,16 @@ const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): J
               </View>
             )}
           </View>
+          {friendEditLine && (
+            <Pressable
+              className="flex-row items-center pt-1"
+              testID={`program-friend-edits-${props.program.id}`}
+              onPress={() => props.dispatch(Thunk_pushScreen("programEdits", { programId: props.program.id }))}
+            >
+              {friendEditLine.isUnseen && <View className="w-2 h-2 mr-1 rounded-full bg-background-error" />}
+              <Text className="text-xs text-text-link">{friendEditLine.text} ›</Text>
+            </Pressable>
+          )}
           <View className="flex-row flex-wrap py-3">
             {visibleExercises.map((e) => (
               <ExerciseImage

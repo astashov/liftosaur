@@ -13,6 +13,22 @@ object PushDispatcher {
     private var jsSubscribed = false
     private var pendingToken: String? = null
     private var pendingPush: WritableMap? = null
+    private var pendingTap: String? = null
+    private var pendingReceived: String? = null
+
+    fun emitTap(data: String) {
+        main.post {
+            pendingTap = data
+            deliver()
+        }
+    }
+
+    fun emitReceived(data: String) {
+        main.post {
+            pendingReceived = data
+            deliver()
+        }
+    }
 
     fun setModule(m: LiftosaurPushModule?) {
         main.post {
@@ -59,6 +75,14 @@ object PushDispatcher {
         pendingPush?.let { push ->
             pendingPush = null
             m.dispatchPush(push)
+        }
+        pendingTap?.let { tap ->
+            pendingTap = null
+            m.dispatchTap(Arguments.createMap().apply { putString("data", tap) })
+        }
+        pendingReceived?.let { received ->
+            pendingReceived = null
+            m.dispatchReceived(Arguments.createMap().apply { putString("data", received) })
         }
     }
 }

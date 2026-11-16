@@ -32,6 +32,14 @@ RCT_EXPORT_MODULE(LiftosaurPush)
     RCTLiftosaurPush *target = gCodegenWiredInstance;
     if (target == nil) return;
     [target emitOnPush:event];
+  } tap:^(NSDictionary *event) {
+    RCTLiftosaurPush *target = gCodegenWiredInstance;
+    if (target == nil) return;
+    [target emitOnNotificationTap:event];
+  } received:^(NSDictionary *event) {
+    RCTLiftosaurPush *target = gCodegenWiredInstance;
+    if (target == nil) return;
+    [target emitOnNotificationReceived:event];
   }];
 }
 

@@ -9,6 +9,7 @@ export interface IAccount {
   numberOfPrograms?: number;
   numberOfWorkouts?: number;
   affiliateEnabled?: boolean;
+  hasFriends?: boolean;
   isCurrent: boolean;
 }
 

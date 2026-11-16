@@ -1,4 +1,8 @@
-import type { LiftosaurPushEvent, LiftosaurPushTokenEvent } from "../specs/NativeLiftosaurPush";
+import type {
+  LiftosaurNotificationEvent,
+  LiftosaurPushEvent,
+  LiftosaurPushTokenEvent,
+} from "../specs/NativeLiftosaurPush";
 import { Service } from "../api/service";
 import { lg } from "./posthog";
 import { PushMessage_parse } from "./pushMessage";
@@ -17,6 +21,8 @@ export interface INativeLiftosaurPush {
   complete(deliveryId: string, newData: boolean): Promise<void>;
   onToken(handler: (event: LiftosaurPushTokenEvent) => void): { remove(): void };
   onPush(handler: (event: LiftosaurPushEvent) => void): { remove(): void };
+  onNotificationTap?: (handler: (event: LiftosaurNotificationEvent) => void) => { remove(): void };
+  onNotificationReceived?: (handler: (event: LiftosaurNotificationEvent) => void) => { remove(): void };
 }
 
 // AsyncQueue never settles an aborted sync, so a backgrounded sync would otherwise leave `syncing` set forever.
@@ -38,8 +44,20 @@ export class PushSyncClient implements IPushSync {
     identity: IPushIdentity | undefined;
     getLocalOriginalId: () => number | undefined;
     onSync: (done: () => void) => void;
+    onNotificationTap?: (data: unknown) => void;
+    onNotificationReceived?: (data: unknown) => void;
   }): () => void {
     this.getLocalOriginalId = args.getLocalOriginalId;
+    const onTap = args.onNotificationTap;
+    const tapSubscription =
+      onTap != null && typeof this.native.onNotificationTap === "function"
+        ? this.native.onNotificationTap((event) => onTap(parseJson(event.data)))
+        : undefined;
+    const onReceived = args.onNotificationReceived;
+    const receivedSubscription =
+      onReceived != null && typeof this.native.onNotificationReceived === "function"
+        ? this.native.onNotificationReceived((event) => onReceived(parseJson(event.data)))
+        : undefined;
     this.onSync = args.onSync;
     const tokenSubscription = this.native.onToken((event) => {
       this.apply({ type: "token", token: event.token });
@@ -50,12 +68,16 @@ export class PushSyncClient implements IPushSync {
         this.native.complete(event.deliveryId, false).catch(() => undefined);
         return;
       }
-      this.apply({
-        type: "push",
-        originalId: message.originalId,
-        localOriginalId: this.getLocalOriginalId(),
-        deliveryId: event.deliveryId,
-      });
+      this.apply(
+        message.type === "social"
+          ? { type: "socialPush", deliveryId: event.deliveryId }
+          : {
+              type: "push",
+              originalId: message.originalId,
+              localOriginalId: this.getLocalOriginalId(),
+              deliveryId: event.deliveryId,
+            }
+      );
     });
     this.apply({ type: "identity", identity: args.identity });
     this.native.start().catch((e) => lg("ls-push-start-fail", { error: errorMessage(e) }));
@@ -63,6 +85,8 @@ export class PushSyncClient implements IPushSync {
     return () => {
       tokenSubscription.remove();
       pushSubscription.remove();
+      tapSubscription?.remove();
+      receivedSubscription?.remove();
     };
   }
 
@@ -127,6 +151,14 @@ export class PushSyncClient implements IPushSync {
 
   private enqueue(request: () => Promise<void>, failureEvent: string): void {
     this.requests = this.requests.then(request).catch((e) => lg(failureEvent, { error: errorMessage(e) }));
+  }
+}
+
+function parseJson(text: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    return undefined;
   }
 }
 

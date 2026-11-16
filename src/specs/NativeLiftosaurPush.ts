@@ -13,6 +13,10 @@ export type LiftosaurPushEvent = {
   deliveryId: string;
 };
 
+export type LiftosaurNotificationEvent = {
+  data: string;
+};
+
 export interface Spec extends TurboModule {
   start(): Promise<void>;
   flushPending(): Promise<void>;
@@ -20,6 +24,8 @@ export interface Spec extends TurboModule {
 
   readonly onToken: EventEmitter<LiftosaurPushTokenEvent>;
   readonly onPush: EventEmitter<LiftosaurPushEvent>;
+  readonly onNotificationTap: EventEmitter<LiftosaurNotificationEvent>;
+  readonly onNotificationReceived: EventEmitter<LiftosaurNotificationEvent>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>("LiftosaurPush");

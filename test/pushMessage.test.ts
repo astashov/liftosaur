@@ -24,4 +24,8 @@ describe("PushMessage_parse", () => {
     expect(PushMessage_parse({ reason: "storage" })).to.equal(undefined);
     expect(PushMessage_parse({})).to.equal(undefined);
   });
+
+  it("reads a social push without an originalId", () => {
+    expect(PushMessage_parse({ reason: "social", originalId: "" })).to.eql({ type: "social" });
+  });
 });

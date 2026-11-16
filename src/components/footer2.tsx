@@ -70,7 +70,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
           name="program"
           currentTab={currentTab}
           icon={(isActive) => <IconDoc2 isSelected={isActive} />}
-          hasDot={hasErrorsInProgram}
+          hasDot={hasErrorsInProgram || (props.navCommon.unseenProgramEdits ?? 0) > 0}
           text="Program"
           onClick={() => props.dispatch(Thunk_pushToEditProgram())}
         />
@@ -132,6 +132,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                   : Tailwind_colors().red[600];
             return <IconMe isSelected={isActive} color={color} />;
           }}
+          hasDot={(props.navCommon.pendingFollowRequests ?? 0) > 0}
           text="Me"
           onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
         />

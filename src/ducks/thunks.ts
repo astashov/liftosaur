@@ -3,6 +3,7 @@ import type { NavigationAction } from "@react-navigation/native";
 import { IScreen, IScreenData, IScreenParams } from "../models/screen";
 import type { INavigateOpts } from "../navigation/navigationService";
 import type { IAllScreenParamList } from "../navigation/types";
+import { ScreensWithoutProgram_allows } from "../navigation/screensWithoutProgram";
 
 import { getNavigationService } from "../navigation/navUtils";
 import RB from "rollbar";
@@ -29,6 +30,8 @@ import {
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { SignIn_google, SignIn_apple, SignOut_google } from "../utils/signIn";
 import { Platform } from "react-native";
+import { SocialThunks_applyInbound } from "./socialThunks";
+import { InboundSocial_shouldRequest, InboundSocial_sinceRecordId } from "../models/inboundSocial";
 import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
 import { InAppReview_request } from "../utils/inAppReview";
 import {
@@ -587,17 +590,25 @@ async function _sync2(
     }
     if (args?.force || storageUpdate.storage) {
       const sentStorage = state.storage;
+      const social = InboundSocial_shouldRequest({ isForced: !!args?.force, isNative: Platform.OS !== "web" })
+        ? { sinceRecordId: InboundSocial_sinceRecordId(state.storage.history) }
+        : undefined;
+      const socialRequestedAt = Date.now();
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: storageUpdate,
         signal,
         deviceId: state.deviceId,
         history: { mode: "delta", local: { history: state.storage.history, versions: state.storage._versions } },
+        social,
       });
       if (signal?.aborted || (await switchedAccount(result))) {
         return;
       }
       handleResponse(result, { kind: "upload", sent: sentStorage });
+      if (social != null && (result.type === "clean" || result.type === "dirty") && result.social != null) {
+        dispatch(SocialThunks_applyInbound(result.social, social.sinceRecordId, socialRequestedAt));
+      }
     }
   }
 }
@@ -1469,19 +1480,7 @@ export function Thunk_pushScreen<T extends IScreen>(
     if (screen === "subscription") {
       opts = { ...opts, stack: "subscription" };
     }
-    const screensWithoutCurrentProgram = [
-      "first",
-      "onboarding",
-      "units",
-      "programs",
-      "programPreview",
-      "setupequipment",
-      "setupplates",
-      "equipmentDetail",
-      "hearaboutus",
-      "programselect",
-    ];
-    if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
+    if (getState().storage.currentProgramId == null && !ScreensWithoutProgram_allows(screen)) {
       screen = "programs" as T;
     }
     const { navigateTo } = await getNavigationService();

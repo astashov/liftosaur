@@ -262,6 +262,9 @@
   "src/navigation/modals/NavModalPlaygroundEditExercise.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"
   },
+  "src/navigation/screens/NavScreenMe.native.tsx": {
+    "long-view": "one thin state-to-props wrapper per Me-stack screen; length grows with the screen count, not with logic"
+  },
   "src/navigation/screens/NavScreenProgram.native.tsx": {
     "decision-in-view:React.useEffect#1": "predates the rule",
     "decision-in-view:React.useLayoutEffect#1": "predates the rule"

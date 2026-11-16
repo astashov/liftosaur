@@ -58,6 +58,8 @@ import { StateContext } from "../navigation/StateContext";
 import { TrackedStateProvider } from "../navigation/TrackedStateContext";
 import { ClickTrackingContext } from "../utils/clickTracking";
 import { AppNavigator } from "../navigation/AppNavigator";
+import { FollowInviteLink_token } from "../models/followInviteLink";
+import { OpenFollowInvite_open } from "../navigation/openFollowInvite";
 import type { IScreen } from "../models/screen";
 
 declare let Rollbar: RB;
@@ -133,6 +135,13 @@ export function AppView(props: IProps): JSX.Element | null {
   });
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
+  }, []);
+  useEffect(() => {
+    const followInviteToken =
+      typeof window !== "undefined" && window.location ? FollowInviteLink_token(window.location.href, true) : undefined;
+    if (followInviteToken != null) {
+      OpenFollowInvite_open(followInviteToken);
+    }
   }, []);
 
   useEffect(() => {

@@ -8,6 +8,8 @@ export interface IPushSync {
     identity: IPushIdentity | undefined;
     getLocalOriginalId: () => number | undefined;
     onSync: (done: () => void) => void;
+    onNotificationTap?: (data: unknown) => void;
+    onNotificationReceived?: (data: unknown) => void;
   }): () => void;
   setIdentity(identity: IPushIdentity | undefined): void;
   unregisterBeforeSignout(): Promise<void>;

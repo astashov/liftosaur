@@ -38,6 +38,14 @@ class LiftosaurPushModule(reactContext: ReactApplicationContext) :
         emitOnPush(event)
     }
 
+    fun dispatchTap(event: WritableMap) {
+        emitOnNotificationTap(event)
+    }
+
+    fun dispatchReceived(event: WritableMap) {
+        emitOnNotificationReceived(event)
+    }
+
     override fun invalidate() {
         PushDispatcher.setModule(null)
         super.invalidate()

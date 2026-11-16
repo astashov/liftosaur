@@ -26,7 +26,9 @@ export function FooterButton(props: IProps): JSX.Element {
     >
       <View className="relative flex-row items-center justify-center w-scaled-6 h-scaled-6">
         {props.icon(isActive)}
-        {props.hasDot && <View className="absolute w-2 h-2 rounded-full bg-redv2-700" style={{ top: -1, right: -1 }} />}
+        {props.hasDot && (
+          <View className="absolute w-2 h-2 rounded-full bg-background-error" style={{ top: -1, right: -1 }} />
+        )}
       </View>
       <Text numberOfLines={1} className={`pt-1 text-2xs ${isActive ? "text-text-purple" : "text-text-secondary"}`}>
         {props.text}

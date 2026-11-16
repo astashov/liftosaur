@@ -17,6 +17,7 @@ const footerLinks: [string, string][] = [
   ["1RM Calculator", "/one-rep-max-calculator"],
   ["Your Programs", "/user/programs"],
   ["Your Dashboards", "/user/dashboards"],
+  ["Your Friends", "/user/friends"],
   ["Blog", "/blog"],
   ["Exercises", "/exercises"],
   ["Terms & Conditions", "/terms.html"],

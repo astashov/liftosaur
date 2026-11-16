@@ -229,18 +229,17 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
     }
 
     override fun getNotificationPermission(promise: Promise) {
-        val granted = NotificationManagerCompat.from(reactApplicationContext).areNotificationsEnabled()
-        promise.resolve(if (granted) "granted" else "denied")
+        promise.resolve(NotificationPermission.status(reactApplicationContext))
     }
 
     override fun requestNotificationPermission(promise: Promise) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            promise.resolve("granted")
+            promise.resolve(NotificationPermission.status(reactApplicationContext))
             return
         }
         val activity = currentActivity as? PermissionAwareActivity
         if (activity == null) {
-            promise.resolve("denied")
+            promise.resolve(NotificationPermission.status(reactApplicationContext))
             return
         }
         if (ContextCompat.checkSelfPermission(reactApplicationContext, Manifest.permission.POST_NOTIFICATIONS)
@@ -249,6 +248,7 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
             promise.resolve("granted")
             return
         }
+        NotificationPermission.markAsked(reactApplicationContext)
         val requestCode = NOTIFICATION_PERMISSION_REQUEST_CODE
         activity.requestPermissions(
             arrayOf(Manifest.permission.POST_NOTIFICATIONS),
@@ -311,6 +311,5 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
     companion object {
         const val CHANNEL_ID = "liftosaur_notifs_v2"
         const val CHANNEL_ID_DND = "liftosaur_notifs_dnd_v2"
-        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 41001
-    }
+        private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 41001    }
 }

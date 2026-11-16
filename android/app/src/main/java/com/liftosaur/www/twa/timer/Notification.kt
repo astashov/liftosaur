@@ -107,6 +107,7 @@ If you don't want the alarm and timers, set Rest Timers to 0 in Settings."""
 If you don't want the notifications and timers, set Rest Timers to 0 in Settings."""
             ) {
                 val act = activity as? PermissionAwareActivity ?: return@showAlertOnce
+                NotificationPermission.markAsked(context)
                 act.requestPermissions(
                     arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                     NOTIF_PERM_REQUEST_CODE,

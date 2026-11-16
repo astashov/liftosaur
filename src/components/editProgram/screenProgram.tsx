@@ -26,6 +26,12 @@ import { EditProgram_setName, EditProgram_tabLabels, EditProgram_mode } from "..
 import { EditProgramNavbar, EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
 import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
+import {
+  IProgramEditLine,
+  SocialState_programEditLine,
+  SocialState_unseenEditsInOtherPrograms,
+} from "../../models/socialState";
+import { Thunk_loadProgramEdits } from "../../ducks/socialThunks";
 import { PlannerDispatch_logEditAction } from "../../utils/plannerDispatch";
 import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
@@ -189,6 +195,11 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
       openPickerIfNeeded();
     }
   }, [isFocused, openPickerIfNeeded]);
+  useEffect(() => {
+    if (isFocused) {
+      dispatch(Thunk_loadProgramEdits());
+    }
+  }, [isFocused, dispatch]);
 
   const navRightButtons = useMemo(
     () => [
@@ -296,6 +307,15 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   const onChangeProgram = useCallback(() => {
     dispatch(Thunk_pushScreen("programs"));
   }, [dispatch]);
+  const programEdits = props.navCommon.programEdits;
+  const friendEditLine = useMemo(
+    () => SocialState_programEditLine(programEdits, programId, Date.now()),
+    [programEdits, programId]
+  );
+  const hasOtherProgramEdits = SocialState_unseenEditsInOtherPrograms(programEdits, programId) > 0;
+  const onOpenFriendEdits = useCallback(() => {
+    dispatch(Thunk_pushScreen("programEdits", { programId }));
+  }, [dispatch, programId]);
   const onChangeDay = useCallback(() => {
     navigateToModal("programNextDayModal", { programId });
   }, [programId]);
@@ -450,6 +470,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
                 onChangeProgram={onChangeProgram}
                 onChangeDay={onChangeDay}
                 onChangeName={onChangeName}
+                friendEditLine={friendEditLine}
+                hasOtherProgramEdits={hasOtherProgramEdits}
+                onOpenFriendEdits={onOpenFriendEdits}
               />
             </PerfProfiler>
             <OuterTabBar
@@ -560,6 +583,9 @@ interface IEditProgramHeaderProps {
   onChangeDay: () => void;
   onChangeName: (newValue: string) => void;
   settings: ISettings;
+  friendEditLine?: IProgramEditLine;
+  hasOtherProgramEdits: boolean;
+  onOpenFriendEdits: () => void;
 }
 
 const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
@@ -583,11 +609,19 @@ const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHea
         <View className="flex-row items-center">
           <Pressable
             className="px-2"
+            testID="change-program"
+            data-testid="change-program"
             onPress={() => {
               props.onChangeProgram();
             }}
           >
             <IconSwap size={16} />
+            {props.hasOtherProgramEdits && (
+              <View
+                testID="change-program-edits-dot"
+                className="absolute top-0 w-2 h-2 rounded-full right-1 bg-background-error"
+              />
+            )}
           </Pressable>
         </View>
       </View>
@@ -621,6 +655,24 @@ const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHea
           {Program_getDayName(evaluatedProgram, evaluatedProgram.nextDay)}
         </LinkButton>
       </View>
+      {props.friendEditLine && (
+        <Pressable
+          className="flex-row items-center mt-1"
+          data-testid="program-friend-edits"
+          testID="program-friend-edits"
+          onPress={props.onOpenFriendEdits}
+        >
+          {props.friendEditLine.isUnseen && <View className="w-2 h-2 mr-1 rounded-full bg-background-error" />}
+          <Text className={friendEditLineClassName[props.friendEditLine.isUnseen ? "unseen" : "seen"]}>
+            {props.friendEditLine.text} ›
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 });
+
+const friendEditLineClassName = {
+  unseen: "text-xs font-bold text-text-link",
+  seen: "text-xs text-text-link",
+};

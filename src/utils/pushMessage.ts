@@ -1,9 +1,9 @@
-export interface IPushMessage {
-  type: "storage";
-  originalId: number;
-}
+export type IPushMessage = { type: "storage"; originalId: number } | { type: "social" };
 
 export function PushMessage_parse(raw: { reason?: string; originalId?: string | number }): IPushMessage | undefined {
+  if (raw.reason === "social") {
+    return { type: "social" };
+  }
   if (raw.reason !== "storage") {
     return undefined;
   }

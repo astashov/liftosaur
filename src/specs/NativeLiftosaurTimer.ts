@@ -3,7 +3,7 @@ import type { TurboModule } from "react-native";
 import type { EventEmitter } from "react-native/Libraries/Types/CodegenTypes";
 import { TurboModuleRegistry } from "react-native";
 
-export type LiftosaurTimerPermissionStatus = "granted" | "denied" | "unavailable";
+export type LiftosaurTimerPermissionStatus = "granted" | "denied" | "unavailable" | "notDetermined";
 
 export type LiftosaurTimerStartResult = {
   scheduled: boolean;
