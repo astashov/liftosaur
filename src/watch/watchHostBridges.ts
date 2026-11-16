@@ -1,9 +1,17 @@
 import { ILiveActivityState } from "../utils/liveActivityState";
-import { INativeTimerStartParams, ITimerBridge } from "../utils/timerBridge";
+import { INativeTimerStartParams, INotificationPermission, ITimerBridge } from "../utils/timerBridge";
 import { INativeWorkoutBridgeLiveActivityAction, IWorkoutBridge } from "../utils/workoutBridge";
 import { WatchHost_send } from "../utils/watchHost";
 
 export class WatchHostTimerBridge implements ITimerBridge {
+  public async getNotificationPermission(): Promise<INotificationPermission> {
+    return "unavailable";
+  }
+
+  public async requestNotificationPermission(): Promise<INotificationPermission> {
+    return "unavailable";
+  }
+
   public startTimer(params: INativeTimerStartParams): void {
     WatchHost_send({
       type: "startTimer",
@@ -42,6 +50,8 @@ export class WatchHostWorkoutBridge implements IWorkoutBridge {
   public pauseWorkout(): void {}
 
   public resumeWorkout(): void {}
+
+  public setReminder(): void {}
 
   public finishWorkout(): void {}
 

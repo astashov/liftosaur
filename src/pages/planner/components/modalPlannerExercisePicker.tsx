@@ -25,6 +25,7 @@ export interface IModalPlannerExercisePickerProps {
   isLoggedIn: boolean;
   dispatch: ILensDispatch<IPlannerState>;
   onChangeSettings: (settings: ISettings) => void;
+  customExercisesLockedReason?: string;
 }
 
 export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerProps): JSX.Element {
@@ -61,6 +62,7 @@ export function ModalPlannerExercisePicker(props: IModalPlannerExercisePickerPro
       <ExercisePickerContent
         settings={settings}
         isLoggedIn={props.isLoggedIn}
+        customExercisesLockedReason={props.customExercisesLockedReason}
         useInlineModals={true}
         exercisePicker={picker.state}
         usedExerciseTypes={usedExerciseTypes}

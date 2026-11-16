@@ -2,6 +2,7 @@ import "mocha";
 import { expect } from "chai";
 import {
   FieldRevision_dashboardText,
+  FieldRevision_isSame,
   FieldRevision_isStale,
   FieldRevision_programPlanner,
 } from "../src/utils/fieldRevision";
@@ -18,6 +19,22 @@ describe("FieldRevision_isStale", () => {
   it("skips the check without a base or a stored clock", () => {
     expect(FieldRevision_isStale({ vc: { phone: 1 }, t: 200 }, undefined)).to.equal(false);
     expect(FieldRevision_isStale(undefined, { vc: { web: 1 }, t: 100 })).to.equal(false);
+  });
+});
+
+describe("FieldRevision_isSame", () => {
+  it("matches only the exact clock, including a newer base", () => {
+    const stored = { vc: { web: 1, phone: 2 }, t: 100 };
+    expect(FieldRevision_isSame(stored, { vc: { web: 1, phone: 2 }, t: 100 })).to.equal(true);
+    expect(FieldRevision_isSame(stored, { vc: { web: 1, phone: 2 }, t: 101 })).to.equal(false);
+    expect(FieldRevision_isSame(stored, { vc: { web: 2, phone: 2 }, t: 150 })).to.equal(false);
+    expect(FieldRevision_isSame(stored, { vc: { web: 1 }, t: 50 })).to.equal(false);
+  });
+
+  it("treats a missing clock as a value of its own", () => {
+    expect(FieldRevision_isSame(undefined, undefined)).to.equal(true);
+    expect(FieldRevision_isSame(undefined, { vc: { web: 1 }, t: 100 })).to.equal(false);
+    expect(FieldRevision_isSame({ vc: { web: 1 }, t: 100 }, undefined)).to.equal(false);
   });
 });
 

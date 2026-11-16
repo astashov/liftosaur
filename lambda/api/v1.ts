@@ -63,6 +63,14 @@ import {
   IApiWorkoutContext,
 } from "../utils/apiv1Workout";
 import { EventDao } from "../dao/eventDao";
+import {
+  ApiV1_getFriendHistory,
+  ApiV1_getFriendHistoryRecord,
+  ApiV1_getFriendProgram,
+  ApiV1_listFriendPrograms,
+  ApiV1_listFriends,
+  ApiV1_updateFriendProgram,
+} from "../utils/apiv1Friends";
 
 interface IPayload {
   event: APIGatewayProxyEvent;
@@ -182,6 +190,89 @@ export const deleteV1HistoryHandler: RouteHandler<
   return withApiAuthAndEvent(event, di, "api-v1-delete-history", async (auth) => {
     return resultToResponse(
       await ApiV1_deleteHistory(auth.userId, auth.user, parseInt(params.id, 10), auth.deviceId, di)
+    );
+  });
+};
+
+// --- Friends Endpoints ---
+
+export const getV1FriendsEndpoint = Endpoint.build("/api/v1/friends");
+export const getV1FriendsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getV1FriendsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-friends", async (auth) => {
+    return resultToResponse(await ApiV1_listFriends(auth.userId, di));
+  });
+};
+
+export const getV1FriendHistoryEndpoint = Endpoint.build("/api/v1/friends/:userId/history", {
+  startDate: "string?",
+  endDate: "string?",
+  limit: "string?",
+  cursor: "string?",
+});
+export const getV1FriendHistoryHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1FriendHistoryEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-friend-history", async (auth) => {
+    const { userId, ...query } = params;
+    return resultToResponse(await ApiV1_getFriendHistory(auth.userId, userId, query, di));
+  });
+};
+
+export const getV1FriendHistoryRecordEndpoint = Endpoint.build("/api/v1/friends/:userId/history/:id");
+export const getV1FriendHistoryRecordHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1FriendHistoryRecordEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-friend-history-record", async (auth) => {
+    return resultToResponse(
+      await ApiV1_getFriendHistoryRecord(auth.userId, params.userId, parseInt(params.id, 10), di)
+    );
+  });
+};
+
+export const getV1FriendProgramsEndpoint = Endpoint.build("/api/v1/friends/:userId/programs");
+export const getV1FriendProgramsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1FriendProgramsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-friend-programs", async (auth) => {
+    return resultToResponse(await ApiV1_listFriendPrograms(auth.userId, params.userId, di));
+  });
+};
+
+export const getV1FriendProgramEndpoint = Endpoint.build("/api/v1/friends/:userId/programs/:id");
+export const getV1FriendProgramHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1FriendProgramEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-friend-program", async (auth) => {
+    return resultToResponse(await ApiV1_getFriendProgram(auth.userId, params.userId, params.id, di));
+  });
+};
+
+export const putV1FriendProgramEndpoint = Endpoint.build("/api/v1/friends/:userId/programs/:id");
+export const putV1FriendProgramHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1FriendProgramEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-friend-program", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(
+      await ApiV1_updateFriendProgram(auth.userId, params.userId, params.id, body.text, body.base, di)
     );
   });
 };

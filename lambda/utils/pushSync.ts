@@ -70,6 +70,27 @@ export function PushSync_buildMessage(
   return { message: JSON.stringify({ default: "storage", GCM: JSON.stringify(fcm) }), attributes: {} };
 }
 
+export function PushSync_buildSocialMessage(
+  platform: IPushPlatform,
+  env: "dev" | "prod"
+): { message: string; attributes: Record<string, string> } {
+  if (platform === "ios") {
+    const payload = { aps: { "content-available": 1 }, reason: "social" };
+    return {
+      message: JSON.stringify({ default: "social", [PushPlatforms_apnsKey(env)]: JSON.stringify(payload) }),
+      attributes: { "AWS.SNS.MOBILE.APNS.PUSH_TYPE": "background", "AWS.SNS.MOBILE.APNS.PRIORITY": "5" },
+    };
+  }
+  const fcm = { fcmV1Message: { message: { data: { reason: "social" }, android: { priority: "high" } } } };
+  return { message: JSON.stringify({ default: "social", GCM: JSON.stringify(fcm) }), attributes: {} };
+}
+
+export async function PushSync_notifySocial(di: IDI, userId: string): Promise<void> {
+  const env = Utils_getEnv();
+  const rows = await new PushEndpointDao(di).listByUserId(userId);
+  await PushSync_publish(di, rows, (platform) => PushSync_buildSocialMessage(platform, env));
+}
+
 export async function PushSync_register(di: IDI, userId: string, registration: IPushRegistration): Promise<void> {
   const dao = new PushEndpointDao(di);
   const existing = await dao.get(userId, registration.deviceId);
@@ -141,17 +162,27 @@ export async function PushSync_notify(
     di.log.log("push notify: failed to list endpoints", e);
     return;
   }
-  const targets = PushSync_targets(rows, originDeviceId);
+  await PushSync_publish(di, PushSync_targets(rows, originDeviceId), (platform) =>
+    PushSync_buildMessage(platform, env, originalId)
+  );
+}
+
+export async function PushSync_publish(
+  di: IDI,
+  rows: IPushEndpointDao[],
+  build: (platform: IPushPlatform) => { message: string; attributes: Record<string, string> }
+): Promise<void> {
+  const dao = new PushEndpointDao(di);
   await Promise.all(
-    targets.map(async (row) => {
+    rows.map(async (row) => {
       try {
-        const { message, attributes } = PushSync_buildMessage(row.platform, env, originalId);
+        const { message, attributes } = build(row.platform);
         const outcome = await di.sns.publish({ endpointArn: row.endpointArn, message, attributes });
         if (outcome !== "ok") {
           await dao.remove(row.userId, row.deviceId, row.endpointArn);
         }
       } catch (e) {
-        di.log.log(`push notify: failed for ${row.deviceId}`, e);
+        di.log.log(`push publish: failed for ${row.deviceId}`, e);
       }
     })
   );

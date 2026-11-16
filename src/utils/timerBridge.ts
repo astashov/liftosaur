@@ -12,7 +12,11 @@ export type INativeTimerStartParams = {
   timerSeconds: number;
 };
 
+export type INotificationPermission = "granted" | "denied" | "unavailable" | "notDetermined";
+
 export interface ITimerBridge {
+  getNotificationPermission(): Promise<INotificationPermission>;
+  requestNotificationPermission(): Promise<INotificationPermission>;
   startTimer(params: INativeTimerStartParams): void;
   stopTimer(): void;
   playSound(volume: number, vibration: boolean, sound: string): boolean;

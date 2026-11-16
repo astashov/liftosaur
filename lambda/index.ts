@@ -16,6 +16,44 @@ import {
   PushSync_validateRegistration,
 } from "./utils/pushSync";
 import { DirtySyncRead_args } from "./utils/dirtySyncRead";
+import { FollowInviteDao } from "./dao/followInviteDao";
+import { FollowDao } from "./dao/followDao";
+import { ReactionDao } from "./dao/reactionDao";
+import { HistoryRecordsDao } from "./dao/historyRecordDao";
+import {
+  Follows_approve,
+  Follows_load,
+  Follows_currentProgramNames,
+  Follows_newRequestId,
+  Follows_removeRequest,
+  Follows_setPermissions,
+  IFollowsError,
+} from "./utils/follows";
+import { Feed_load, Feed_summarizeReactions } from "./utils/feed";
+import {
+  FriendPrograms_editorContext,
+  FriendPrograms_get,
+  FriendPrograms_list,
+  FriendPrograms_cards,
+  FriendPrograms_listEdits,
+  FriendPrograms_listEditsFor,
+  FriendPrograms_markEditsSeen,
+  FriendPrograms_update,
+} from "./utils/friendPrograms";
+import type { IApiError } from "./utils/apiv1";
+import { FollowAccess_canReact } from "./utils/followAccess";
+import { FollowInvitePage_html } from "./followInvitePage";
+import {
+  Follow_defaultPermissions,
+  Follow_displayName,
+  Follow_parsePermissions,
+  Follow_parsePermissionsPatch,
+} from "../src/models/follow";
+import { FriendsWeb_rows, IFriendsPageData } from "../src/models/friendsWeb";
+import { renderFriendsPageHtml } from "./friendsWeb";
+import { IReactionSummary, Reactions_isReaction } from "../src/models/reactions";
+import { FeedWorkout_key } from "../src/models/feedWorkout";
+import { RecordShare_settingsWithoutNotes, RecordShare_withoutNotes } from "../src/models/recordShare";
 import { SyncAccountGuard_decide } from "./utils/syncAccountGuard";
 import { HistoryIds_parse } from "../src/utils/historyIds";
 import * as Cookie from "cookie";
@@ -24,7 +62,16 @@ import { UidFactory_generateUid } from "./utils/generator";
 import { Utils_getEnv, Utils_isLocal } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
-import { IPartialStorage, IStorage, VDeletedSettingsKeys, VWebEditorSettings } from "../src/types";
+import { IHistoryRecord, IPartialStorage, IStorage, VDeletedSettingsKeys, VWebEditorSettings } from "../src/types";
+import { InboundSocial_loadBounded } from "./utils/inboundSocial";
+import { InboundSocial_parseRequest } from "../src/models/inboundSocial";
+import {
+  FriendPush_followApproved,
+  FriendPush_followRequested,
+  FriendPush_reactionAdded,
+  FriendPush_reactionRemoved,
+  FriendPush_send,
+} from "./utils/friendPush";
 import { ProgramDao } from "./dao/programDao";
 import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
@@ -101,7 +148,7 @@ import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { adminDebugPrefix } from "../src/models/adminDebug";
 import { Updates_handleManifest } from "./updates/manifestHandler";
-import { renderPlannerHtml } from "./planner";
+import { renderFriendPlannerHtml, renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
 import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
@@ -174,6 +221,18 @@ import {
   putV1HistoryHandler,
   deleteV1HistoryEndpoint,
   deleteV1HistoryHandler,
+  getV1FriendsEndpoint,
+  getV1FriendsHandler,
+  getV1FriendHistoryEndpoint,
+  getV1FriendHistoryHandler,
+  getV1FriendHistoryRecordEndpoint,
+  getV1FriendHistoryRecordHandler,
+  getV1FriendProgramsEndpoint,
+  getV1FriendProgramsHandler,
+  getV1FriendProgramEndpoint,
+  getV1FriendProgramHandler,
+  putV1FriendProgramEndpoint,
+  putV1FriendProgramHandler,
   getV1ProgramsEndpoint,
   getV1ProgramsHandler,
   getV1DashboardsEndpoint,
@@ -638,6 +697,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   const timestamp: number = (bodyJson.timestamp as number) || Date.now();
   const historylimit = bodyJson.historylimit as number | undefined;
   const isWatch = bodyJson.isWatch as boolean | undefined;
+  const socialRequest = InboundSocial_parseRequest(bodyJson.social);
   const rawStorageUpdate = bodyJson.storageUpdate as IStorageUpdate2;
   const storageUpdate: IStorageUpdate2 = isWatch
     ? {
@@ -676,6 +736,10 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
           key,
         });
       }
+      const socialPromise =
+        socialRequest != null
+          ? InboundSocial_loadBounded(di, limitedUser.id, socialRequest)
+          : Promise.resolve(undefined);
       di.log.log(`Server oid: ${limitedUser.storage.originalId}, update oid: ${storageUpdate.originalId}`);
       if (storageUpdate.originalId != null && limitedUser.storage.originalId === storageUpdate.originalId) {
         di.log.log("Fetch: Safe update");
@@ -708,6 +772,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             email: limitedUser.email,
             user_id: limitedUser.id,
             key,
+            social: await socialPromise,
           });
         } else {
           return response(400, { type: "error", error: result.error, key });
@@ -765,6 +830,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
             email: limitedUser.email,
             user_id: limitedUser.id,
             key,
+            social: await socialPromise,
           });
         } else {
           di.log.log("Error", result.error);
@@ -918,6 +984,46 @@ const postDebugSessionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     expires: new Date(new Date().getFullYear() + 10, 0, 1),
   });
   return ResponseUtils_json(200, event, { session, userId: debugId, email }, { "set-cookie": setCookie });
+};
+
+const postDevFriendPushEndpoint = Endpoint.build("/api/dev/friendpush");
+const postDevFriendPushHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postDevFriendPushEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  if (!Utils_isLocal()) {
+    return ResponseUtils_json(404, event, { error: "not_found" });
+  }
+  const userId = await getCurrentUserId(event, di);
+  if (userId == null) {
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
+  }
+  const { kind, recordId } = getBodyJson(event) ?? {};
+  if (kind === "reactions") {
+    const id = Number(recordId);
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return ResponseUtils_json(400, event, { error: "recordId required" });
+    }
+    await FriendPush_send(di, {
+      kind,
+      recipientId: userId,
+      recordId: id,
+      workoutLabel: "Test program · Day 1",
+      summary: { counts: { dino_fire: 2 }, reactors: [{ nickname: "Alice" }, { nickname: "Bob" }], total: 2 },
+    });
+  } else if (kind === "followRequest" || kind === "followApproved") {
+    await FriendPush_send(
+      di,
+      kind === "followRequest"
+        ? { kind, recipientId: userId, actorId: userId, requestId: "devtest" }
+        : { kind, recipientId: userId, actorId: userId, requestId: "devtest", isFollowBackRequested: false }
+    );
+  } else {
+    return ResponseUtils_json(400, event, { error: "kind must be followRequest, followApproved or reactions" });
+  }
+  return ResponseUtils_json(200, event, { data: { sent: kind } });
 };
 
 const postSetupTestAccountEndpoint = Endpoint.build("/api/dev/setuptestaccount");
@@ -2000,9 +2106,7 @@ const deleteDashboardHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 };
 
 const getStatsEndpoint = Endpoint.build("/api/stats");
-const getStatsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStatsEndpoint> = async ({
-  payload,
-}) => {
+const getStatsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getStatsEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
   const userId = await getCurrentUserId(event, di);
   if (userId == null) {
@@ -2079,14 +2183,14 @@ const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     const result = await new UserDao(di).getById(params.user);
     if (result != null) {
       const storage: IStorage = result.storage;
-      const history = storage.history;
+      const history = storage.history.map(RecordShare_withoutNotes);
       const historyRecord = history.find((hi) => hi.id === params.id);
       if (historyRecord != null) {
         return {
           statusCode: 200,
           body: renderRecordHtml(
             di.fetch,
-            { history, record: historyRecord, settings: storage.settings },
+            { history, record: historyRecord, settings: RecordShare_settingsWithoutNotes(storage.settings) },
             params.user,
             params.id
           ),
@@ -2481,6 +2585,399 @@ const deletePushTokenHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   }
   await PushSync_unregister(di, userId, params.deviceId);
   return ResponseUtils_json(200, event, { data: { deleted: true } });
+};
+
+const postFollowInviteEndpoint = Endpoint.build("/api/follow/invites");
+const postFollowInviteHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postFollowInviteEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const invite = await new FollowInviteDao(di).create(userId);
+  const url = `${process.env.HOST || "https://www.liftosaur.com"}/f/${invite.token}`;
+  return ResponseUtils_json(200, event, { data: { token: invite.token, url, expiresAt: invite.expiresAt } });
+};
+
+const getFollowInviteEndpoint = Endpoint.build("/api/follow/invites/:token");
+const getFollowInviteHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFollowInviteEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const invite = await new FollowInviteDao(di).get(params.token);
+  if (invite == null) {
+    return ResponseUtils_json(404, event, { error: "notfound" });
+  }
+  const nicknames = await new UserDao(di).getNicknamesByIds([invite.inviterId]);
+  return ResponseUtils_json(200, event, {
+    data: { nickname: nicknames[invite.inviterId], isSelf: invite.inviterId === userId },
+  });
+};
+
+const postFollowInviteRequestEndpoint = Endpoint.build("/api/follow/invites/:token/request");
+const postFollowInviteRequestHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postFollowInviteRequestEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const result = await new FollowInviteDao(di).consumeIntoRequest(params.token, userId, Follows_newRequestId());
+  if (!result.success) {
+    const status = result.error === "notfound" ? 404 : result.error === "self" ? 400 : 409;
+    return ResponseUtils_json(status, event, { error: result.error });
+  }
+  const { row, isCreated } = result.data;
+  await FriendPush_followRequested(di, row, isCreated);
+  const nicknames = await new UserDao(di).getNicknamesByIds([row.followeeId]);
+  return ResponseUtils_json(200, event, {
+    data: {
+      requestId: row.requestId,
+      nickname: nicknames[row.followeeId],
+      createdAt: row.createdAt,
+      status: row.status,
+    },
+  });
+};
+
+const getFollowsEndpoint = Endpoint.build("/api/follows");
+const getFollowsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFollowsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+function followsErrorStatus(error: IFollowsError): number {
+  return error === "notfound" ? 404 : error === "forbidden" ? 403 : 409;
+}
+
+const postFollowApproveEndpoint = Endpoint.build("/api/follows/requests/:requestId/approve");
+const postFollowApproveHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postFollowApproveEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const body = getBodyJson(event);
+  const permissions = Follow_parsePermissions(body?.permissions) ?? Follow_defaultPermissions;
+  const result = await Follows_approve(di, userId, params.requestId, permissions, body?.followBack === true);
+  if (!result.success) {
+    return ResponseUtils_json(followsErrorStatus(result.error), event, { error: result.error });
+  }
+  await FriendPush_followApproved(di, result.data.row, result.data.isFollowBackRequested);
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+const deleteFollowRequestEndpoint = Endpoint.build("/api/follows/requests/:requestId");
+const deleteFollowRequestHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteFollowRequestEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const result = await Follows_removeRequest(di, userId, params.requestId);
+  if (!result.success) {
+    return ResponseUtils_json(followsErrorStatus(result.error), event, { error: result.error });
+  }
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+const putFollowerPermissionsEndpoint = Endpoint.build("/api/follows/followers/:userId/permissions");
+const putFollowerPermissionsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putFollowerPermissionsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const patch = Follow_parsePermissionsPatch(getBodyJson(event)?.permissions);
+  if (patch == null) {
+    return ResponseUtils_json(400, event, { error: "Invalid permissions" });
+  }
+  const result = await Follows_setPermissions(di, userId, params.userId, patch);
+  if (!result.success) {
+    return ResponseUtils_json(followsErrorStatus(result.error), event, { error: result.error });
+  }
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+const deleteFollowingEndpoint = Endpoint.build("/api/follows/following/:userId");
+const deleteFollowingHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteFollowingEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  await new FollowDao(di).remove(userId, params.userId);
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+const deleteFollowerEndpoint = Endpoint.build("/api/follows/followers/:userId");
+const deleteFollowerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteFollowerEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  await new FollowDao(di).remove(params.userId, userId);
+  return ResponseUtils_json(200, event, { data: await Follows_load(di, userId) });
+};
+
+const getFeedEndpoint = Endpoint.build("/api/feed", { cursor: "string?", owners: "string?", limit: "number?" });
+const getFeedHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFeedEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const owners = params.owners != null ? params.owners.split(",").filter((o) => o.length > 0) : undefined;
+  const feed = await Feed_load(di, userId, { cursor: params.cursor, owners, limit: params.limit ?? 20 });
+  return ResponseUtils_json(200, event, { data: feed });
+};
+
+function apiResultToJson<T>(event: APIGatewayProxyEvent, result: IEither<T, IApiError>): APIGatewayProxyResult {
+  return result.success
+    ? ResponseUtils_json(200, event, { data: result.data })
+    : ResponseUtils_json(result.error.status, event, { error: result.error.message, code: result.error.code });
+}
+
+const getFriendProgramsEndpoint = Endpoint.build("/api/friends/:userId/programs");
+const getFriendProgramsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getFriendProgramsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  return apiResultToJson(event, await FriendPrograms_list(di, userId, params.userId));
+};
+
+const getFriendProgramEndpoint = Endpoint.build("/api/friends/:userId/programs/:id");
+const getFriendProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFriendProgramEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  return apiResultToJson(event, await FriendPrograms_get(di, userId, params.userId, params.id));
+};
+
+const postFriendProgramEndpoint = Endpoint.build("/api/friends/:userId/programs/:id");
+const postFriendProgramHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postFriendProgramEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const body = getBodyJson(event) ?? {};
+  return apiResultToJson(
+    event,
+    await FriendPrograms_update(di, userId, params.userId, params.id, { text: body.text, base: body.base })
+  );
+};
+
+const getProgramEditsEndpoint = Endpoint.build("/api/program-edits");
+const getProgramEditsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getProgramEditsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  return ResponseUtils_json(200, event, { data: await FriendPrograms_listEdits(di, userId) });
+};
+
+const getProgramEditsForProgramEndpoint = Endpoint.build("/api/program-edits/:programId");
+const getProgramEditsForProgramHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramEditsForProgramEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  return ResponseUtils_json(200, event, { data: await FriendPrograms_listEditsFor(di, userId, params.programId) });
+};
+
+const postProgramEditsSeenEndpoint = Endpoint.build("/api/program-edits/seen");
+const postProgramEditsSeenHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postProgramEditsSeenEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  await FriendPrograms_markEditsSeen(di, userId, getBodyJson(event)?.programId);
+  return ResponseUtils_json(200, event, { data: await FriendPrograms_listEdits(di, userId) });
+};
+
+const getOwnReactionsEndpoint = Endpoint.build("/api/reactions", { ids: "string" });
+const getOwnReactionsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getOwnReactionsEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const ids = Array.from(
+    new Set(
+      params.ids
+        .split(",")
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id))
+    )
+  ).slice(0, 50);
+  const byKey = await Feed_summarizeReactions(
+    di,
+    userId,
+    ids.map((recordId) => ({ ownerId: userId, recordId }))
+  );
+  const byRecordId: Partial<Record<number, IReactionSummary>> = {};
+  for (const recordId of ids) {
+    const summary = byKey[FeedWorkout_key(userId, recordId)];
+    if (summary != null && summary.total > 0) {
+      byRecordId[recordId] = summary;
+    }
+  }
+  return ResponseUtils_json(200, event, { data: byRecordId });
+};
+
+async function reactionAccess(
+  di: IDI,
+  actorId: string,
+  ownerId: string,
+  recordId: number
+): Promise<{ kind: "ok"; record: IHistoryRecord } | { kind: "forbidden" } | { kind: "notfound" }> {
+  const row = actorId === ownerId ? undefined : await new FollowDao(di).get(actorId, ownerId);
+  if (!FollowAccess_canReact(actorId, ownerId, row)) {
+    return { kind: "forbidden" };
+  }
+  const record = await new HistoryRecordsDao(di).get(ownerId, recordId);
+  return record != null ? { kind: "ok", record } : { kind: "notfound" };
+}
+
+const putReactionEndpoint = Endpoint.build("/api/reactions/:ownerId/:recordId");
+const putReactionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof putReactionEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const recordId = Number(params.recordId);
+  const reaction = getBodyJson(event)?.reaction;
+  if (!Number.isFinite(recordId) || !Reactions_isReaction(reaction)) {
+    return ResponseUtils_json(400, event, { error: "Invalid reaction" });
+  }
+  const access = await reactionAccess(di, userId, params.ownerId, recordId);
+  if (access.kind !== "ok") {
+    return ResponseUtils_json(access.kind === "forbidden" ? 403 : 404, event, { error: access.kind });
+  }
+  const { isNew } = await new ReactionDao(di).put({
+    ownerId: params.ownerId,
+    recordId,
+    reactorId: userId,
+    reaction,
+    createdAt: Date.now(),
+  });
+  await FriendPush_reactionAdded(di, { ownerId: params.ownerId, reactorId: userId, record: access.record, isNew });
+  return ResponseUtils_json(200, event, { data: { reaction } });
+};
+
+const deleteReactionEndpoint = Endpoint.build("/api/reactions/:ownerId/:recordId");
+const deleteReactionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteReactionEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const recordId = Number(params.recordId);
+  if (!Number.isFinite(recordId)) {
+    return ResponseUtils_json(400, event, { error: "Invalid record" });
+  }
+  const isRemoved = await new ReactionDao(di).remove(params.ownerId, recordId, userId);
+  if (isRemoved) {
+    await FriendPush_reactionRemoved(di, { ownerId: params.ownerId, reactorId: userId });
+  }
+  return ResponseUtils_json(200, event, { data: { deleted: true } });
+};
+
+const getFollowInvitePageEndpoint = Endpoint.build("/f/:token");
+const getFollowInvitePageHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getFollowInvitePageEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
+  const invite = await new FollowInviteDao(di).get(params.token);
+  const nicknames = invite != null ? await new UserDao(di).getNicknamesByIds([invite.inviterId]) : {};
+  return {
+    statusCode: invite != null ? 200 : 404,
+    body: FollowInvitePage_html({
+      token: params.token,
+      nickname: invite != null ? nicknames[invite.inviterId] : undefined,
+      isValid: invite != null,
+    }),
+    headers: { "content-type": "text/html", "cache-control": "no-store" },
+  };
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -3145,7 +3642,11 @@ const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
       }
     );
   }
-  const account = Account_getFromStorage(user.id, user.email, user.storage);
+  const following = await new FollowDao(di).listFollowing(user.id);
+  const account = {
+    ...Account_getFromStorage(user.id, user.email, user.storage),
+    hasFriends: following.some((row) => row.status === "approved"),
+  };
   return ResponseUtils_json(200, event, { account, units: user.storage.settings.units });
 };
 
@@ -3251,6 +3752,38 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     statusCode: 200,
     body: renderPlannerHtml(di.fetch, initialProgram, account, storage, userAgent),
     headers: { "content-type": "text/html" },
+  };
+};
+
+const getFriendPlannerEndpoint = Endpoint.build("/planner/friend/:userId/:id");
+const getFriendPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getFriendPlannerEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { di, event } = payload;
+  const userResult = await getUserAccount(payload);
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const account = userResult.data.account;
+  const context = await FriendPrograms_editorContext(di, account.id, params.userId, params.id);
+  if (!context.success) {
+    return {
+      statusCode: context.error.status,
+      body: context.error.message,
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
+    };
+  }
+  return {
+    statusCode: 200,
+    body: renderFriendPlannerHtml(
+      di.fetch,
+      context.data.exported,
+      account,
+      context.data.friendTarget,
+      getUserAgent(event)
+    ),
+    headers: { "content-type": "text/html", "cache-control": "no-cache" },
   };
 };
 
@@ -3573,6 +4106,102 @@ const getUserDashboardsHandler: RouteHandler<
     }),
     headers: { "content-type": "text/html" },
   };
+};
+
+function friendsPageResponse(payload: IPayload, data: IFriendsPageData): APIGatewayProxyResult {
+  return {
+    statusCode: 200,
+    body: renderFriendsPageHtml(payload.di.fetch, data),
+    headers: { "content-type": "text/html" },
+  };
+}
+
+function friendsPageNotFound(): APIGatewayProxyResult {
+  return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html" } };
+}
+
+function isMobileRequest(payload: IPayload): boolean {
+  return Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+}
+
+const getUserFriendsEndpoint = Endpoint.build("/user/friends");
+const getUserFriendsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserFriendsEndpoint> = async ({
+  payload,
+}) => {
+  const userResult = await getUserAccount(payload);
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const { account, user } = userResult.data;
+  const follows = await Follows_load(payload.di, user.id);
+  return friendsPageResponse(payload, {
+    kind: "list",
+    isMobile: isMobileRequest(payload),
+    account,
+    now: Date.now(),
+    friends: FriendsWeb_rows(follows.following, await Follows_currentProgramNames(payload.di, follows.following)),
+  });
+};
+
+const getUserFriendWorkoutsEndpoint = Endpoint.build("/user/friends/:userId/workouts");
+const getUserFriendWorkoutsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUserFriendWorkoutsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const userResult = await getUserAccount(payload);
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const { account, user } = userResult.data;
+  const follows = await Follows_load(payload.di, user.id);
+  const friend = follows.following.find((f) => f.userId === params.userId);
+  if (friend == null) {
+    return friendsPageNotFound();
+  }
+  const feed = await Feed_load(payload.di, user.id, { owners: [friend.userId], limit: 20 });
+  return friendsPageResponse(payload, {
+    kind: "workouts",
+    isMobile: isMobileRequest(payload),
+    account,
+    now: Date.now(),
+    ownerId: friend.userId,
+    name: Follow_displayName(friend.nickname),
+    viewer: { userId: user.id, nickname: user.storage.settings.nickname },
+    settings: user.storage.settings,
+    feed,
+  });
+};
+
+const getUserFriendProgramsEndpoint = Endpoint.build("/user/friends/:userId/programs");
+const getUserFriendProgramsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUserFriendProgramsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const userResult = await getUserAccount(payload);
+  if (!userResult.success) {
+    return userResult.error;
+  }
+  const { account, user } = userResult.data;
+  const [follows, programs] = await Promise.all([
+    Follows_load(payload.di, user.id),
+    FriendPrograms_cards(payload.di, user.id, params.userId),
+  ]);
+  const friend = follows.following.find((f) => f.userId === params.userId);
+  if (friend == null || !programs.success) {
+    return friendsPageNotFound();
+  }
+  return friendsPageResponse(payload, {
+    kind: "programs",
+    isMobile: isMobileRequest(payload),
+    account,
+    now: Date.now(),
+    ownerId: friend.userId,
+    name: Follow_displayName(friend.nickname),
+    programs: programs.data.programs,
+    settings: programs.data.settings,
+  });
 };
 
 const getUserDashboardEndpoint = Endpoint.build("/user/d/:dashboardid");
@@ -4327,13 +4956,18 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postSync2Endpoint, postSync2Handler)
       .post(postDebugSessionEndpoint, postDebugSessionHandler)
       .post(postSetupTestAccountEndpoint, postSetupTestAccountHandler)
+      .post(postDevFriendPushEndpoint, postDevFriendPushHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getDebugInfoEndpoint, getDebugInfoHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
+      .get(getFriendPlannerEndpoint, getFriendPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)
       .get(getUserProgramEndpoint, getUserProgramHandler)
       .get(getUserDashboardsEndpoint, getUserDashboardsHandler)
+      .get(getUserFriendsEndpoint, getUserFriendsHandler)
+      .get(getUserFriendWorkoutsEndpoint, getUserFriendWorkoutsHandler)
+      .get(getUserFriendProgramsEndpoint, getUserFriendProgramsHandler)
       .get(getUserDashboardEndpoint, getUserDashboardHandler)
       .get(getUserAffiliatesEndpoint, getUserAffiliatesHandler)
       .get(getProgramRevisionsEndpoint, getProgramRevisionsHandler)
@@ -4398,10 +5032,36 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteApiKeyEndpoint, deleteApiKeyHandler)
       .post(postPushTokenEndpoint, postPushTokenHandler)
       .delete(deletePushTokenEndpoint, deletePushTokenHandler)
+      .post(postFollowInviteEndpoint, postFollowInviteHandler)
+      .get(getFollowInviteEndpoint, getFollowInviteHandler)
+      .post(postFollowInviteRequestEndpoint, postFollowInviteRequestHandler)
+      .get(getFollowsEndpoint, getFollowsHandler)
+      .post(postFollowApproveEndpoint, postFollowApproveHandler)
+      .delete(deleteFollowRequestEndpoint, deleteFollowRequestHandler)
+      .put(putFollowerPermissionsEndpoint, putFollowerPermissionsHandler)
+      .delete(deleteFollowingEndpoint, deleteFollowingHandler)
+      .delete(deleteFollowerEndpoint, deleteFollowerHandler)
+      .get(getFeedEndpoint, getFeedHandler)
+      .get(getFriendProgramsEndpoint, getFriendProgramsHandler)
+      .get(getFriendProgramEndpoint, getFriendProgramHandler)
+      .post(postFriendProgramEndpoint, postFriendProgramHandler)
+      .get(getProgramEditsEndpoint, getProgramEditsHandler)
+      .post(postProgramEditsSeenEndpoint, postProgramEditsSeenHandler)
+      .get(getProgramEditsForProgramEndpoint, getProgramEditsForProgramHandler)
+      .get(getOwnReactionsEndpoint, getOwnReactionsHandler)
+      .put(putReactionEndpoint, putReactionHandler)
+      .delete(deleteReactionEndpoint, deleteReactionHandler)
+      .get(getFollowInvitePageEndpoint, getFollowInvitePageHandler)
       .get(getV1HistoryEndpoint, getV1HistoryHandler)
       .post(postV1HistoryEndpoint, postV1HistoryHandler)
       .put(putV1HistoryEndpoint, putV1HistoryHandler)
       .delete(deleteV1HistoryEndpoint, deleteV1HistoryHandler)
+      .get(getV1FriendsEndpoint, getV1FriendsHandler)
+      .get(getV1FriendHistoryEndpoint, getV1FriendHistoryHandler)
+      .get(getV1FriendHistoryRecordEndpoint, getV1FriendHistoryRecordHandler)
+      .get(getV1FriendProgramsEndpoint, getV1FriendProgramsHandler)
+      .get(getV1FriendProgramEndpoint, getV1FriendProgramHandler)
+      .put(putV1FriendProgramEndpoint, putV1FriendProgramHandler)
       .get(getV1ProgramsEndpoint, getV1ProgramsHandler)
       .get(getV1ProgramEndpoint, getV1ProgramHandler)
       .post(postV1ProgramEndpoint, postV1ProgramHandler)

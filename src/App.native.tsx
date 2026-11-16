@@ -214,6 +214,8 @@ import { useOnloadModals } from "./navigation/useOnloadModals";
 import { SystemBars } from "react-native-edge-to-edge";
 import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
 import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
+import { FollowInviteLink_token } from "./models/followInviteLink";
+import { Dialog_alert } from "./utils/dialog";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
@@ -441,6 +443,10 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
   useEffect(() => {
     const handleLink = (url: string | null): void => {
       if (!url) {
+        return;
+      }
+      if (FollowInviteLink_token(url) != null) {
+        Dialog_alert("Update Liftosaur from the App Store to accept this invite.");
         return;
       }
       let parsed: URL;

@@ -159,6 +159,7 @@ const pageEntries = {
   program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
   programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
   dashboardsList: ["./src/dashboardsList.tsx", "./src/program.css", "./src/index.css"],
+  friends: ["./src/friends.tsx", "./src/page.css", "./src/index.css"],
   dashboardEditor: ["./src/dashboardEditor.tsx", "./src/program.css", "./src/index.css"],
   affiliatedashboard: ["./src/affiliatedashboard.tsx", "./src/affiliatedashboard.css", "./src/index.css"],
   affiliates: ["./src/affiliates.tsx", "./src/page.css", "./src/index.css"],

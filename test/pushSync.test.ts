@@ -7,6 +7,7 @@ import { MockSnsUtil } from "./utils/mockSnsUtil";
 import { IPushEndpointDao, PushEndpointDao, pushEndpointTableNames } from "../lambda/dao/pushEndpointDao";
 import {
   PushSync_buildMessage,
+  PushSync_buildSocialMessage,
   PushSync_notify,
   PushSync_register,
   PushSync_removeAllForUser,
@@ -17,6 +18,7 @@ import {
   PushSync_validateRegistration,
 } from "../lambda/utils/pushSync";
 import { PushPlatforms_arns } from "../lambda/utils/pushPlatforms";
+import { FriendPush_buildMessage, FriendPush_send } from "../lambda/utils/friendPush";
 
 function row(userId: string, deviceId: string, platform: "ios" | "android", endpointArn?: string): IPushEndpointDao {
   return { userId, deviceId, platform, endpointArn: endpointArn || `arn:${deviceId}`, ttl: 0 };
@@ -54,6 +56,68 @@ describe("PushSync_buildMessage", () => {
       fcmV1Message: { message: { data: { reason: "storage", originalId: "123" }, android: { priority: "high" } } },
     });
     expect(attributes).to.eql({});
+  });
+});
+
+describe("FriendPush_buildMessage", () => {
+  const content = {
+    title: "Anna reacted to your workout",
+    body: "GZCLP · Day 1",
+    collapseKey: "reactions-1000",
+    recipientId: "boris",
+    target: { screen: "workout" as const, historyRecordId: 1000 },
+  };
+
+  it("sends an alert that replaces the previous one for the same workout on iOS", () => {
+    const { message, attributes } = FriendPush_buildMessage("ios", "prod", content);
+    expect(JSON.parse(JSON.parse(message).APNS)).to.eql({
+      aps: { alert: { title: content.title, body: content.body }, sound: "default", "thread-id": "friends" },
+      reason: "friend",
+      recipientId: "boris",
+      target: "workout",
+      historyRecordId: "1000",
+    });
+    expect(attributes).to.eql({
+      "AWS.SNS.MOBILE.APNS.PUSH_TYPE": "alert",
+      "AWS.SNS.MOBILE.APNS.PRIORITY": "10",
+      "AWS.SNS.MOBILE.APNS.COLLAPSE_ID": "reactions-1000",
+    });
+  });
+
+  it("sends a data-only message with the tag on Android", () => {
+    const { message } = FriendPush_buildMessage("android", "prod", content);
+    expect(JSON.parse(JSON.parse(message).GCM).fcmV1Message.message.data).to.eql({
+      reason: "friend",
+      recipientId: "boris",
+      target: "workout",
+      historyRecordId: "1000",
+      title: content.title,
+      body: content.body,
+      tag: "reactions-1000",
+    });
+  });
+});
+
+describe("PushSync_buildSocialMessage", () => {
+  it("sends a background push with the social reason and no originalId", () => {
+    const ios = PushSync_buildSocialMessage("ios", "prod");
+    expect(JSON.parse(JSON.parse(ios.message).APNS)).to.eql({ aps: { "content-available": 1 }, reason: "social" });
+    expect(ios.attributes["AWS.SNS.MOBILE.APNS.PUSH_TYPE"]).to.equal("background");
+    const android = PushSync_buildSocialMessage("android", "prod");
+    expect(JSON.parse(JSON.parse(android.message).GCM).fcmV1Message.message.data).to.eql({ reason: "social" });
+  });
+});
+
+describe("FriendPush_send", () => {
+  it("drops an endpoint that is gone, and logs a publish failure without throwing", async () => {
+    const di = buildDi();
+    const dao = new PushEndpointDao(di);
+    await dao.put(row("boris", "ios_a", "ios", "arn:gone"));
+    await dao.put(row("boris", "ios_b", "ios", "arn:fail"));
+    di.sns.gone.add("arn:gone");
+    di.sns.failing.add("arn:fail");
+    await FriendPush_send(di, { kind: "followRequest", recipientId: "boris", actorId: "anna", requestId: "r1" });
+    expect((await dao.listByUserId("boris")).map((r) => r.deviceId)).to.eql(["ios_b"]);
   });
 });
 

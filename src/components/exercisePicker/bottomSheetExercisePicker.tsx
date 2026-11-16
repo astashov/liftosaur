@@ -1,4 +1,7 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
+import { LinkButton } from "../linkButton";
 import { BottomSheet } from "../bottomSheet";
 import { IEvaluatedProgram } from "../../models/program";
 import {
@@ -32,6 +35,7 @@ interface IExercisePickerContentProps {
   dispatch: ILensDispatch<IExercisePickerState>;
   evaluatedProgram?: IEvaluatedProgram;
   onClose: () => void;
+  customExercisesLockedReason?: string;
 }
 
 export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.Element {
@@ -68,6 +72,20 @@ export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.E
         dispatch={props.dispatch}
         onChangeSettings={props.onChangeSettings}
       />
+    );
+  } else if (currentScreen === "customExercise" && props.customExercisesLockedReason != null) {
+    return (
+      <View className="items-center gap-4 p-6">
+        <Text className="text-center text-text-secondary">{props.customExercisesLockedReason}</Text>
+        <LinkButton
+          name="custom-exercise-locked-back"
+          onClick={() =>
+            props.dispatch(lb<IExercisePickerState>().record(ExercisePickerBack_pop(state)), "Back from locked custom")
+          }
+        >
+          Back
+        </LinkButton>
+      </View>
     );
   } else if (currentScreen === "customExercise" && state.editCustomExercise != null) {
     const originalExercise = props.settings.exercises[state.editCustomExercise.id];

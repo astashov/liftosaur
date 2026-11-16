@@ -10,6 +10,7 @@ export type INativeEffect =
   | { type: "updateLiveActivity"; state: ILiveActivityState }
   | { type: "resumeWorkout"; reminder: number; isStart: boolean; hasSubscription: boolean }
   | { type: "pauseWorkout" }
+  | { type: "setWorkoutReminder"; reminder: number }
   | { type: "discardWorkout" };
 
 export interface INativeEffectBridges {
@@ -46,6 +47,9 @@ export function NativeEffects_apply(bridges: INativeEffectBridges, effects: read
         break;
       case "pauseWorkout":
         bridges.workout.pauseWorkout();
+        break;
+      case "setWorkoutReminder":
+        bridges.workout.setReminder(effect.reminder);
         break;
       case "discardWorkout":
         bridges.workout.discardWorkout();

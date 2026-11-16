@@ -88,15 +88,19 @@ function syntaxErrorDetails(errors: (LiftohistorySyntaxError | PlannerSyntaxErro
   });
 }
 
+export function ApiV1_dateFromEpoch(value: number): Date {
+  return new Date(value > 9999999999 ? value : value * 1000);
+}
+
 function parseDate(dateStr: string): string {
   const asNum = Number(dateStr);
   if (!isNaN(asNum) && asNum > 1000000000) {
-    return new Date(asNum > 9999999999 ? asNum : asNum * 1000).toISOString();
+    return ApiV1_dateFromEpoch(asNum).toISOString();
   }
   return new Date(dateStr).toISOString();
 }
 
-function validateProgramText(text: string, settings: ISettings): IApiError | undefined {
+export function ApiV1_validateProgramText(text: string, settings: ISettings): IApiError | undefined {
   const { evaluatedWeeks } = PlannerProgram_evaluateFull(text, settings);
   if (!evaluatedWeeks.success) {
     return {
@@ -347,7 +351,7 @@ export async function ApiV1_createProgram(
   di: IDI
 ): Promise<IApiResult<{ id: string; name: string; text: string }>> {
   const settings = user.storage.settings;
-  const validation = validateProgramText(text, settings);
+  const validation = ApiV1_validateProgramText(text, settings);
   if (validation) {
     return { success: false, error: validation };
   }
@@ -394,7 +398,7 @@ export async function ApiV1_updateProgram(
   di: IDI
 ): Promise<IApiResult<{ id: string; name: string; text: string; isCurrent: boolean }>> {
   const settings = user.storage.settings;
-  const validation = validateProgramText(text, settings);
+  const validation = ApiV1_validateProgramText(text, settings);
   if (validation) {
     return { success: false, error: validation };
   }

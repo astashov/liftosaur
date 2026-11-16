@@ -1,10 +1,18 @@
 import NativeLiftosaurTimer from "../specs/NativeLiftosaurTimer";
-import { INativeTimerStartParams, ITimerBridge } from "./timerBridge";
+import { INativeTimerStartParams, INotificationPermission, ITimerBridge } from "./timerBridge";
 
 export type { INativeTimerStartParams } from "./timerBridge";
 
 export class TimerBridge implements ITimerBridge {
   private readonly scheduledHandlers = new Set<() => void>();
+
+  public async getNotificationPermission(): Promise<INotificationPermission> {
+    return NativeLiftosaurTimer.getNotificationPermission().catch(() => "unavailable" as const);
+  }
+
+  public async requestNotificationPermission(): Promise<INotificationPermission> {
+    return NativeLiftosaurTimer.requestNotificationPermission().catch(() => "unavailable" as const);
+  }
 
   public startTimer(params: INativeTimerStartParams): void {
     NativeLiftosaurTimer.startTimer(params)

@@ -1,6 +1,19 @@
 import { IStorage } from "../types";
 import { IFieldVersion, isCollectionVersions, isFieldVersion, isVersionsObject } from "../models/versionTracker/types";
-import { VersionTrackerUtils_compareVersions } from "../models/versionTracker/utils";
+import {
+  VersionTrackerUtils_compareVersions,
+  VersionTrackerUtils_normalizeVersion,
+} from "../models/versionTracker/utils";
+
+export function FieldRevision_isSame(stored: IFieldVersion | undefined, base: IFieldVersion | undefined): boolean {
+  if (stored == null || base == null) {
+    return stored == null && base == null;
+  }
+  return (
+    VersionTrackerUtils_compareVersions(stored, base) === "equal" &&
+    VersionTrackerUtils_normalizeVersion(stored).t === VersionTrackerUtils_normalizeVersion(base).t
+  );
+}
 
 export function FieldRevision_isStale(stored: IFieldVersion | undefined, base: IFieldVersion | undefined): boolean {
   if (stored == null || base == null) {

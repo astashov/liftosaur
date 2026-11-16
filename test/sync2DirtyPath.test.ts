@@ -11,6 +11,7 @@ import { ILimitedUserDao, UserDao, userTableNames } from "../lambda/dao/userDao"
 import { IUserRowItem, UserRow_pack } from "../lambda/utils/userRow";
 import { IProgramRowItem } from "../lambda/utils/programRow";
 import { eventsTableNames } from "../lambda/dao/eventDao";
+import { reactionTableNames } from "../lambda/dao/reactionDao";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { LftS3Buckets } from "../lambda/dao/buckets";
 import { Storage_fillVersions, Storage_getDefault, Storage_updateVersions } from "../src/models/storage";
@@ -499,6 +500,37 @@ describe("/api/sync2 dirty branch", () => {
         values: { ":userId": userId },
       });
       expect(rows).to.eql([]);
+    });
+
+    it("a tombstone does not look up reactions", async () => {
+      await seedVersioned();
+      const versions = versioned._versions!;
+      const history = versions.history as ICollectionVersions;
+      const deletedAt = Date.now();
+      const { history: _h, programs: _p, stats: _s, dashboards: _d, ...partial } = versioned;
+      await di.dynamo.put({
+        tableName: userTableNames.prod.users,
+        item: {
+          id: userId,
+          email: "test@example.com",
+          createdAt: 1,
+          storage: {
+            ...partial,
+            _versions: { ...versions, history: { ...history, items: {}, deleted: { [RECORD_ID]: deletedAt } } },
+          },
+        },
+      });
+      const query = sinon.spy(di.dynamo, "query");
+      const json = await pull({
+        storageUpdate: {
+          ...emptyUpdate(),
+          storage: { history: [] },
+          versions: { history: { items: {}, deleted: { [RECORD_ID]: deletedAt } } },
+        },
+      });
+      expect(json.type).to.equal("dirty");
+      const reactionQueries = query.getCalls().filter((c) => c.args[0].tableName === reactionTableNames.prod.reactions);
+      expect(reactionQueries).to.eql([]);
     });
 
     it("a re-sent record still collapses two stored progress entries to one", async () => {

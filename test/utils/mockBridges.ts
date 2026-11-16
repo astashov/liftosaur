@@ -28,6 +28,14 @@ export class MockTimerBridge implements ITimerBridge {
 
   constructor(private readonly log: MockBridgeLog) {}
 
+  public async getNotificationPermission(): Promise<"granted"> {
+    return "granted";
+  }
+
+  public async requestNotificationPermission(): Promise<"granted"> {
+    return "granted";
+  }
+
   public startTimer(params: INativeTimerStartParams): void {
     this.log.record("timer", "startTimer", params);
     Promise.resolve().then(() => this.scheduledHandlers.forEach((h) => h()));
@@ -73,6 +81,10 @@ export class MockWorkoutBridge implements IWorkoutBridge {
 
   public resumeWorkout(opts: { reminder: number; isStart: boolean; hasSubscription: boolean }): void {
     this.log.record("workout", "resumeWorkout", opts);
+  }
+
+  public setReminder(reminder: number): void {
+    this.log.record("workout", "setReminder", { reminder });
   }
 
   public finishWorkout(): void {

@@ -1,8 +1,16 @@
-import { INativeTimerStartParams, ITimerBridge } from "./timerBridge";
+import { INativeTimerStartParams, INotificationPermission, ITimerBridge } from "./timerBridge";
 
 export type { INativeTimerStartParams } from "./timerBridge";
 
 export class TimerBridge implements ITimerBridge {
+  public async getNotificationPermission(): Promise<INotificationPermission> {
+    return "unavailable";
+  }
+
+  public async requestNotificationPermission(): Promise<INotificationPermission> {
+    return "unavailable";
+  }
+
   public startTimer(_params: INativeTimerStartParams): void {}
 
   public stopTimer(): void {}

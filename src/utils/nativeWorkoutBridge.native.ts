@@ -48,6 +48,13 @@ export class WorkoutBridge implements IWorkoutBridge {
     this.currentReminderDuration = opts.reminder > 0 ? opts.reminder : null;
   }
 
+  public setReminder(reminder: number): void {
+    this.currentReminderDuration = reminder > 0 ? reminder : null;
+    if (this.currentReminderDuration == null) {
+      this.timer.cancelReminder();
+    }
+  }
+
   public finishWorkout(): void {
     NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
     this.currentReminderDuration = null;

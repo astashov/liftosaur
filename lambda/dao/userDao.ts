@@ -1,7 +1,10 @@
+import { NativeAttributeValue } from "@aws-sdk/lib-dynamodb";
+import { DynamoUtil_sanitizeNumbers, IDynamoQueryPage } from "../utils/dynamo";
 import {
   IStorage,
   IHistoryRecord,
   IProgram,
+  IPlannerProgram,
   IDashboard,
   IWeight,
   ILength,
@@ -13,6 +16,8 @@ import {
   IStatsWeightValue,
   IStatsPercentageValue,
   IStatsHealthValue,
+  ISettings,
+  ISettingsNotifications,
 } from "../../src/types";
 import {
   Storage_get,
@@ -26,11 +31,16 @@ import {
   CollectionUtils_inGroupsOf,
   CollectionUtils_diffByKey,
   CollectionUtils_groupByKey,
+  CollectionUtils_compact,
 } from "../../src/utils/collection";
 import { ObjectUtils_keys, ObjectUtils_clone } from "../../src/utils/object";
 import { IDI } from "../utils/di";
 import { getLatestMigrationVersion } from "../../src/migrations/migrations";
 import { freeUsersTableNames } from "./freeUserDao";
+import { ReactionDao } from "./reactionDao";
+import { FollowDao } from "./followDao";
+import { FollowInviteDao } from "./followInviteDao";
+import { ProgramEditDao } from "./programEditDao";
 import { LogDao, logTableNames } from "./logDao";
 import { subscriptionDetailsTableNames } from "./subscriptionDetailsDao";
 import { IStorageUpdate2 } from "../../src/utils/sync";
@@ -112,6 +122,8 @@ export type IProgramRevision = {
   program: IProgram;
   userId: string;
   time: string;
+  editorId?: string;
+  before?: IPlannerProgram;
 };
 
 export type ILimitedUserDao = Omit<IUserDao, "storage"> & {
@@ -625,10 +637,13 @@ export class UserDao {
     });
   }
 
+  private userRowItem(user: ILimitedUserDao): IUserRowItem & { nickname?: string } {
+    return { ...UserRow_pack(user), nickname: user.storage.settings.nickname?.toLowerCase() };
+  }
+
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils_getEnv();
-    const item = { ...UserRow_pack(user), nickname: user.storage.settings.nickname?.toLowerCase() };
-    await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
+    await this.di.dynamo.put({ tableName: userTableNames[env].users, item: this.userRowItem(user) });
   }
 
   // New-account writes must be conditional: signup/signin endpoints accept a
@@ -636,8 +651,20 @@ export class UserDao {
   // put would let anyone overwrite an existing user row and take over that id
   public async create(user: ILimitedUserDao): Promise<boolean> {
     const env = Utils_getEnv();
-    const item = { ...UserRow_pack(user), nickname: user.storage.settings.nickname?.toLowerCase() };
+    const item = this.userRowItem(user);
     return this.di.dynamo.putIfNotExists({ tableName: userTableNames[env].users, item, partitionKey: "id" });
+  }
+
+  private nextStorage(
+    oldStorage: IPartialStorage,
+    buildNewStorage: (previous: IPartialStorage) => IPartialStorage,
+    deviceId: string
+  ): { storage: IPartialStorage; originalId: number } {
+    const newStorage = buildNewStorage(oldStorage);
+    const originalId = Date.now();
+    newStorage.originalId = originalId;
+    newStorage._versions = Storage_updateVersions(oldStorage, newStorage, deviceId);
+    return { storage: newStorage, originalId };
   }
 
   public async applyStorageUpdate(
@@ -646,13 +673,42 @@ export class UserDao {
     deviceId: string,
     sideEffects?: Promise<unknown>[]
   ): Promise<void> {
-    const oldStorage = user.storage;
-    const newStorage = buildNewStorage(oldStorage);
-    newStorage.originalId = Date.now();
-    newStorage._versions = Storage_updateVersions(oldStorage, newStorage, deviceId);
-    user.storage = newStorage;
+    const next = this.nextStorage(user.storage, buildNewStorage, deviceId);
+    user.storage = next.storage;
     await Promise.all([this.store(user), ...(sideEffects || [])]);
-    await PushSync_notify(this.di, user.id, deviceId, newStorage.originalId);
+    await PushSync_notify(this.di, user.id, deviceId, next.originalId);
+  }
+
+  public async applyStorageUpdateIfUnchanged(
+    user: ILimitedUserDao,
+    buildNewStorage: (oldStorage: IPartialStorage) => IPartialStorage,
+    deviceId: string,
+    sideEffects: () => Promise<unknown>[]
+  ): Promise<boolean> {
+    const loadedOriginalId = user.storage.originalId;
+    const next = this.nextStorage(user.storage, buildNewStorage, deviceId);
+    const updated = { ...user, storage: next.storage };
+    const attrs = { "#storage": "storage", "#originalId": "originalId" };
+    const env = Utils_getEnv();
+    const stored = await this.di.dynamo.transactWrite({
+      puts: [
+        {
+          tableName: userTableNames[env].users,
+          item: DynamoUtil_sanitizeNumbers(this.userRowItem(updated)),
+          condition:
+            loadedOriginalId != null
+              ? { expression: "#storage.#originalId = :originalId", attrs, values: { ":originalId": loadedOriginalId } }
+              : { expression: "attribute_not_exists(#storage.#originalId)", attrs },
+        },
+      ],
+    });
+    if (!stored) {
+      return false;
+    }
+    user.storage = updated.storage;
+    await Promise.all(sideEffects());
+    await PushSync_notify(this.di, user.id, deviceId, next.originalId);
+    return true;
   }
 
   public async getLimitedById(userId: string): Promise<ILimitedUserDao | undefined> {
@@ -672,6 +728,76 @@ export class UserDao {
       consistentRead: args?.consistentRead,
     });
     return items.map((item) => UserRow_unpack(item));
+  }
+
+  public async getSettingsByIds(userIds: string[]): Promise<{ id: string; settings: ISettings }[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { settings?: ISettings } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#settings",
+      attrs: { "#id": "id", "#storage": "storage", "#settings": "settings" },
+    });
+    return CollectionUtils_compact(
+      items.map((item) =>
+        item.storage?.settings != null ? { id: item.id, settings: item.storage.settings } : undefined
+      )
+    );
+  }
+
+  public async getNotificationPrefs(userId: string): Promise<ISettingsNotifications | undefined> {
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { settings?: Partial<ISettings> } }>({
+      tableName: userTableNames[Utils_getEnv()].users,
+      keys: [{ id: userId }],
+      projection: "#id, #storage.#settings.#notifications",
+      attrs: { "#id": "id", "#storage": "storage", "#settings": "settings", "#notifications": "notifications" },
+    });
+    return items[0]?.storage?.settings?.notifications;
+  }
+
+  public async getCurrentProgramIdsByIds(userIds: string[]): Promise<Partial<Record<string, string>>> {
+    if (userIds.length === 0) {
+      return {};
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { currentProgramId?: string } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#currentProgramId",
+      attrs: { "#id": "id", "#storage": "storage", "#currentProgramId": "currentProgramId" },
+    });
+    const result: Partial<Record<string, string>> = {};
+    for (const item of items) {
+      const programId = item.storage?.currentProgramId;
+      if (programId) {
+        result[item.id] = programId;
+      }
+    }
+    return result;
+  }
+
+  public async getNicknamesByIds(userIds: string[]): Promise<Partial<Record<string, string>>> {
+    if (userIds.length === 0) {
+      return {};
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { settings?: { nickname?: string } } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#settings.#nickname",
+      attrs: { "#id": "id", "#storage": "storage", "#settings": "settings", "#nickname": "nickname" },
+    });
+    const result: Partial<Record<string, string>> = {};
+    for (const item of items) {
+      const nickname = item.storage?.settings?.nickname?.trim();
+      if (nickname) {
+        result[item.id] = nickname;
+      }
+    }
+    return result;
   }
 
   public async getStatsFieldsByIds(userIds: string[]): Promise<IUserStatsFields[]> {
@@ -725,6 +851,40 @@ export class UserDao {
     } else {
       return undefined;
     }
+  }
+
+  public async queryHistoryPage(
+    userId: string,
+    args: { startDate?: string; endDate?: string; limit: number; startKey?: Record<string, NativeAttributeValue> }
+  ): Promise<IDynamoQueryPage<IHistoryRecord>> {
+    const env = Utils_getEnv();
+    const range =
+      args.startDate != null && args.endDate != null
+        ? " AND #date BETWEEN :startDate AND :endDate"
+        : args.startDate != null
+          ? " AND #date >= :startDate"
+          : args.endDate != null
+            ? " AND #date <= :endDate"
+            : "";
+    const page = await this.di.dynamo.queryPage<IHistoryRecord & { userId?: string }>({
+      tableName: userTableNames[env].historyRecords,
+      indexName: userTableNames[env].historyRecordsDate,
+      expression: `#userId = :userId${range}`,
+      attrs: { "#userId": "userId", ...(range !== "" ? { "#date": "date" } : {}) },
+      values: {
+        ":userId": userId,
+        ...(args.startDate != null ? { ":startDate": args.startDate } : {}),
+        ...(args.endDate != null ? { ":endDate": args.endDate } : {}),
+      },
+      scanIndexForward: false,
+      limit: args.limit,
+      exclusiveStartKey: args.startKey,
+    });
+    const items = page.items.map((r) => {
+      delete r.userId;
+      return r;
+    });
+    return { items, lastEvaluatedKey: page.lastEvaluatedKey };
   }
 
   public getHistoryByUserId(
@@ -982,6 +1142,10 @@ export class UserDao {
 
     const historyRecords = await this.getHistoryByUserId(userId);
     const historyRecordIds = Array.from(new Set(historyRecords.map((p) => p.id)));
+    await new ReactionDao(this.di).removeAllForUser(userId);
+    await new FollowDao(this.di).removeAllForUser(userId);
+    await new FollowInviteDao(this.di).removeAllForUser(userId);
+    await new ProgramEditDao(this.di).removeAllForUser(userId);
     if (historyRecordIds.length > 0) {
       await Promise.all(
         CollectionUtils_inGroupsOf(23, historyRecordIds).map((group) => {
@@ -1066,14 +1230,18 @@ export class UserDao {
     await Promise.all(programs.map((p) => this.saveProgramRevision(userId, p)));
   }
 
-  public async saveProgramRevision(userId: string, program: IProgram): Promise<void> {
+  public async saveProgramRevision(
+    userId: string,
+    program: IProgram,
+    meta: { editorId?: string; before?: IPlannerProgram } = {}
+  ): Promise<string | undefined> {
     if (program.planner == null) {
-      return;
+      return undefined;
     }
     const env = Utils_getEnv();
     const now = Date.now();
     const date = DateUtils_formatYYYYMMDDHHMM(now);
-    const programRevision: IProgramRevision = { program, userId, time: date };
+    const programRevision: IProgramRevision = { program, userId, time: date, ...meta };
     await this.di.s3.putObject({
       bucket: bucketNames[env].programs,
       key: `programs/${userId}/${program.id}/${date}.json`,
@@ -1090,6 +1258,7 @@ export class UserDao {
         });
       })
     );
+    return date;
   }
 
   public async listProgramRevisions(userId: string, programId: string): Promise<string[]> {

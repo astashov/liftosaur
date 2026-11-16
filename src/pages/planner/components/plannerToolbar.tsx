@@ -25,11 +25,23 @@ interface IPlannerToolbarProps {
   onPreview: () => void;
   onSave: () => void;
   onTogglePanel: () => void;
+  warning?: string;
 }
+
+export const PlannerToolbar_warningHeightPx = 28;
 
 export function PlannerToolbar(props: IPlannerToolbarProps): JSX.Element {
   return (
     <div className="sticky top-0 z-30 border-b bg-background-default border-border-prominent">
+      {props.warning != null && (
+        <div
+          className="flex items-center justify-center px-2 text-xs font-semibold text-center truncate border-b border-border-prominent text-text-error bg-background-lighterror"
+          style={{ height: PlannerToolbar_warningHeightPx }}
+          data-testid="planner-other-account-warning"
+        >
+          {props.warning}
+        </div>
+      )}
       <div className="flex items-center gap-2 px-2 mx-auto md:px-6 lg:px-24" style={{ minHeight: "3rem" }}>
         <div className="flex items-center">
           <ToolbarIconButton name="planner-undo" label="Undo" disabled={!props.canUndo} onClick={props.onUndo}>

@@ -89,6 +89,8 @@
     "error": { "light": "@colors.red.500", "dark": "@colors.redgray.700" },
     "lighterror": { "light": "@colors.red.50", "dark": "@colors.redgray.950" },
     "success": { "light": "@colors.green.50", "dark": "@colors.greengray.800" },
+    "successstrong": { "light": "@colors.green.200", "dark": "@colors.greengray.700" },
+    "errorstrong": { "light": "@colors.red.200", "dark": "@colors.redgray.700" },
     "darkgray": { "light": "@colors.lightgray.500", "dark": "@colors.lightgray.500" },
     "darkred": { "light": "@colors.red.600", "dark": "@colors.red.400" },
     "set": { "light": "@colors.purple.50", "dark": "@colors.darkgray.800" },

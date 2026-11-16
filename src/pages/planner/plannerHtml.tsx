@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
+import { IPlannerFriendTarget } from "./models/plannerProgramSave";
 import { IAccount } from "../../models/account";
 import { IPartialStorage } from "../../types";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
@@ -13,11 +14,12 @@ interface IProps {
   partialStorage?: IPartialStorage;
   client: Window["fetch"];
   revisions: string[];
+  friendTarget?: IPlannerFriendTarget;
 }
 
 export function PlannerHtml(props: IProps): JSX.Element {
   const { client, ...rawData } = props;
-  const data = { ...rawData, shouldSync: false };
+  const data = { ...rawData, shouldSync: props.friendTarget != null };
   const programName = data.initialProgram?.program?.name;
   const title =
     programName != null

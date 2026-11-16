@@ -27,8 +27,8 @@ export function PlannerSidePanelHost(props: {
   isAffiliateLink: boolean;
   isExportDisabled: boolean;
   dispatch: ILensDispatch<IPlannerState>;
-  onCopyLink: () => Promise<void>;
-  onExportImage: () => void;
+  onCopyLink?: () => Promise<void>;
+  onExportImage?: () => void;
   onVersions?: () => void;
   onEditSettings: () => void;
 }): JSX.Element {

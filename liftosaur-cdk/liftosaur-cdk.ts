@@ -265,6 +265,71 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const followsTable = new dynamodb.Table(this, `LftFollows${suffix}`, {
+      tableName: `lftFollows${suffix}`,
+      partitionKey: { name: "followerId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "followeeId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    followsTable.addGlobalSecondaryIndex({
+      indexName: `lftFollowsFollowee${suffix}`,
+      partitionKey: { name: "followeeId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "followerId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    followsTable.addGlobalSecondaryIndex({
+      indexName: `lftFollowsRequestId${suffix}`,
+      partitionKey: { name: "requestId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    const followInvitesTable = new dynamodb.Table(this, `LftFollowInvites${suffix}`, {
+      tableName: `lftFollowInvites${suffix}`,
+      partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    followInvitesTable.addGlobalSecondaryIndex({
+      indexName: `lftFollowInvitesInviterId${suffix}`,
+      partitionKey: { name: "inviterId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
+
+    const reactionsTable = new dynamodb.Table(this, `LftReactions${suffix}`, {
+      tableName: `lftReactions${suffix}`,
+      partitionKey: { name: "target", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "reactorId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    reactionsTable.addGlobalSecondaryIndex({
+      indexName: `lftReactionsReactorId${suffix}`,
+      partitionKey: { name: "reactorId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
+    reactionsTable.addGlobalSecondaryIndex({
+      indexName: `lftReactionsOwnerRecord${suffix}`,
+      partitionKey: { name: "ownerId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "recordId", type: dynamodb.AttributeType.NUMBER },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    const userProgramEditsTable = new dynamodb.Table(this, `LftUserProgramEdits${suffix}`, {
+      tableName: `lftUserProgramEdits${suffix}`,
+      partitionKey: { name: "ownerId", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    userProgramEditsTable.addGlobalSecondaryIndex({
+      indexName: `lftUserProgramEditsEditor${suffix}`,
+      partitionKey: { name: "editorId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.KEYS_ONLY,
+    });
+
     const oauthClientsTable = new dynamodb.Table(this, `LftOauthClients${suffix}`, {
       tableName: `lftOauthClients${suffix}`,
       partitionKey: { name: "clientId", type: dynamodb.AttributeType.STRING },
@@ -703,6 +768,10 @@ export class LiftosaurCdkStack extends cdk.Stack {
     couponsTable.grantReadWriteData(lambdaFunction);
     apiKeysTable.grantReadWriteData(lambdaFunction);
     pushEndpointsTable.grantReadWriteData(lambdaFunction);
+    followsTable.grantReadWriteData(lambdaFunction);
+    followInvitesTable.grantReadWriteData(lambdaFunction);
+    reactionsTable.grantReadWriteData(lambdaFunction);
+    userProgramEditsTable.grantReadWriteData(lambdaFunction);
     oauthClientsTable.grantReadWriteData(lambdaFunction);
     oauthAuthCodesTable.grantReadWriteData(lambdaFunction);
     oauthTokensTable.grantReadWriteData(lambdaFunction);

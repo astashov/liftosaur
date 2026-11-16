@@ -34,8 +34,8 @@ interface IPlannerSidePanelProps {
   isExportDisabled: boolean;
   dispatch: ILensDispatch<IPlannerState>;
   onTab: (tab: IPlannerSidePanelTab) => void;
-  onCopyLink: () => Promise<void>;
-  onExportImage: () => void;
+  onCopyLink?: () => Promise<void>;
+  onExportImage?: () => void;
   onVersions?: () => void;
   onEditSettings: () => void;
   onClearSelection: () => void;
@@ -53,6 +53,7 @@ export function PlannerSidePanel(props: IPlannerSidePanelProps): JSX.Element {
   const [isCopying, setIsCopying] = useState(false);
   const [collapsed, setCollapsed] = useState({ summary: false, stats: false });
   const linkColor = Tailwind_semantic().text.link;
+  const onCopyLink = props.onCopyLink;
 
   return (
     <div className="px-4 py-4 leading-snug md:px-5" data-testid="planner-side-panel">
@@ -85,21 +86,23 @@ export function PlannerSidePanel(props: IPlannerSidePanelProps): JSX.Element {
           </div>
         </div>
         <div className="flex flex-col items-start gap-2 mt-3">
-          <PanelLink
-            name="planner-copy-link"
-            disabled={isCopying}
-            onClick={async () => {
-              setIsCopying(true);
-              try {
-                await props.onCopyLink();
-              } finally {
-                setIsCopying(false);
-              }
-            }}
-            icon={<IconLink size={18} color={linkColor} />}
-          >
-            Copy program link
-          </PanelLink>
+          {onCopyLink && (
+            <PanelLink
+              name="planner-copy-link"
+              disabled={isCopying}
+              onClick={async () => {
+                setIsCopying(true);
+                try {
+                  await onCopyLink();
+                } finally {
+                  setIsCopying(false);
+                }
+              }}
+              icon={<IconLink size={18} color={linkColor} />}
+            >
+              Copy program link
+            </PanelLink>
+          )}
           {props.copiedUrl && (
             <div className="text-xs text-text-secondary">
               <div>Copied to clipboard{props.isAffiliateLink ? " as an affiliate link" : ""}:</div>
@@ -111,14 +114,16 @@ export function PlannerSidePanel(props: IPlannerSidePanelProps): JSX.Element {
               </div>
             </div>
           )}
-          <PanelLink
-            name="planner-export-image"
-            disabled={props.isExportDisabled}
-            onClick={props.onExportImage}
-            icon={<IconPicture size={18} color={linkColor} />}
-          >
-            Export program to image
-          </PanelLink>
+          {props.onExportImage && (
+            <PanelLink
+              name="planner-export-image"
+              disabled={props.isExportDisabled}
+              onClick={props.onExportImage}
+              icon={<IconPicture size={18} color={linkColor} />}
+            >
+              Export program to image
+            </PanelLink>
+          )}
           {props.onVersions && (
             <PanelLink
               name="show-revisions"

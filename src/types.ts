@@ -1445,6 +1445,25 @@ const _VSettingsTimersMatches: IEquals<v.InferOutput<typeof _VSettingsTimers>, I
 void _VSettingsTimersMatches;
 export const VSettingsTimers: v.GenericSchema<ISettingsTimers> = _VSettingsTimers;
 
+export interface ISettingsNotifications {
+  restTimer?: boolean;
+  reactions?: boolean;
+  friendRequests?: boolean;
+  programEdits?: boolean;
+}
+const _VSettingsNotifications = v.object({
+  restTimer: v.optional(v.boolean()),
+  reactions: v.optional(v.boolean()),
+  friendRequests: v.optional(v.boolean()),
+  programEdits: v.optional(v.boolean()),
+});
+const _VSettingsNotificationsMatches: IEquals<
+  v.InferOutput<typeof _VSettingsNotifications>,
+  ISettingsNotifications
+> = true;
+void _VSettingsNotificationsMatches;
+export const VSettingsNotifications: v.GenericSchema<ISettingsNotifications> = _VSettingsNotifications;
+
 export const VGraph = v.union([
   v.object({ vtype: v.literal("graph"), type: v.literal("exercise"), id: VExerciseId }),
   v.object({
@@ -1827,6 +1846,7 @@ export interface ISettings {
   googleHealthAnchor?: string;
   healthConfirmation?: boolean;
   ignoreDoNotDisturb?: boolean;
+  notifications?: ISettingsNotifications;
   currentGymId?: string;
   isPublicProfile?: boolean;
   nickname?: string;
@@ -1878,6 +1898,7 @@ const _VSettings = v.object({
   googleHealthAnchor: v.optional(v.string()),
   healthConfirmation: v.optional(v.boolean()),
   ignoreDoNotDisturb: v.optional(v.boolean()),
+  notifications: v.optional(VSettingsNotifications),
   currentGymId: v.optional(v.string()),
   isPublicProfile: v.optional(v.boolean()),
   nickname: v.optional(v.string()),
