@@ -99,6 +99,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               settings={props.settings}
               dispatch={props.dispatch}
               search={search}
+              programEdits={props.navCommon.programEdits}
             />
           ) : (
             <BuiltinProgramsList

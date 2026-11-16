@@ -72,8 +72,9 @@ import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subs
 import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
 import { Exercise_toKey } from "../models/exercise";
-import { INativeEffect, NativeEffects_withoutWatchWorkout } from "../models/nativeEffects";
+import { INativeEffect, NativeEffects_apply, NativeEffects_withoutWatchWorkout } from "../models/nativeEffects";
 import { History_resumeWorkout } from "../models/history";
+import { NotificationPrefs_reconcile, NotificationPrefs_reminder } from "../models/notificationPrefs";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { History_deleteRecords } from "../models/history";
@@ -88,6 +89,7 @@ import { PerfProbe_onAction } from "../utils/perfSetCompleteProbe";
 import { HermesProfile_captureOnce } from "../utils/hermesProfile";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 import { EquipmentUnits_follow } from "../models/equipmentUnits";
+import { SocialState_forAccount } from "../models/socialState";
 
 declare let __COMMIT_HASH__: string;
 
@@ -425,6 +427,19 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
           [lb<IState>().p("storage").p("settings").p("gyms").record(converted)],
           "Convert equipment to app units"
         );
+      }
+    },
+    (dispatch, action, oldState, newState) => {
+      if (oldState.storage.settings === newState.storage.settings) {
+        return;
+      }
+      const effects = NotificationPrefs_reconcile(
+        oldState.storage.settings,
+        newState.storage.settings,
+        Progress_getCurrentProgress(newState)
+      );
+      if (effects.length > 0) {
+        NativeEffects_apply(env, effects);
       }
     },
     (dispatch, action, oldState, newState) => {
@@ -828,9 +843,15 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
       ...state,
       user: { email: action.email, id: action.userId },
       storage: { ...state.storage, email: action.email },
+      social: SocialState_forAccount(state.social, action.userId),
     };
   } else if (action.type === "Logout") {
-    return { ...state, user: undefined, storage: { ...state.storage, email: undefined } };
+    return {
+      ...state,
+      user: undefined,
+      storage: { ...state.storage, email: undefined },
+      social: SocialState_forAccount(state.social, undefined),
+    };
   } else if (action.type === "StopTimer") {
     const progress = Progress_getProgress(state);
     if (progress != null) {
@@ -847,7 +868,7 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
       effects,
       progress,
       action.isPlayground,
-      state.storage.settings.timers.reminder,
+      NotificationPrefs_reminder(state.storage.settings),
       action.hasSubscription
     );
     return Progress_setProgress(state, { ...progress, intervals });

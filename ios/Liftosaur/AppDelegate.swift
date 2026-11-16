@@ -16,6 +16,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     LiftosaurEventReporterImpl.shared.registerWithMetricKit()
+    // Must be set before launch finishes, or iOS drops the tap that launched the app.
+    LiftosaurPushImpl.shared.installNotificationDelegate()
     _ = LiftosaurWorkoutMirroringImpl.shared
     // A launch from a watch message never reaches setEventEmitter, so the session is activated here.
     LiftosaurWatchImpl.shared.activateIfNeeded()

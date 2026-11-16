@@ -14,6 +14,7 @@ export interface IPushRegistrationState {
   lastPosted?: IPushPosted;
   syncing: boolean;
   pendingOriginalId?: number;
+  isSocialPending?: boolean;
   deliveries: string[];
 }
 
@@ -22,13 +23,14 @@ export type IPushRegistrationEvent =
   | { type: "identity"; identity: IPushIdentity | undefined }
   | { type: "posted"; posted: IPushPosted }
   | { type: "push"; originalId: number; localOriginalId: number | undefined; deliveryId: string }
+  | { type: "socialPush"; deliveryId: string }
   | { type: "syncDone"; localOriginalId: number | undefined }
   | { type: "signout" };
 
 export type IPushRegistrationEffect =
   | { type: "post"; registration: { deviceId: string; token: string } }
   | { type: "delete"; deviceId: string }
-  | { type: "sync"; originalId: number }
+  | { type: "sync"; originalId?: number }
   | { type: "complete"; deliveryIds: string[]; newData: boolean };
 
 export function PushRegistration_initial(): IPushRegistrationState {
@@ -65,16 +67,27 @@ export function PushRegistration_next(
         state: { ...state, syncing: true, deliveries: [event.deliveryId] },
         effects: [{ type: "sync", originalId: event.originalId }],
       };
+    case "socialPush":
+      if (state.syncing) {
+        return {
+          state: { ...state, isSocialPending: true, deliveries: [...state.deliveries, event.deliveryId] },
+          effects: [],
+        };
+      }
+      return {
+        state: { ...state, syncing: true, deliveries: [event.deliveryId] },
+        effects: [{ type: "sync" }],
+      };
     case "syncDone": {
       const pending = state.pendingOriginalId;
-      if (pending != null && pending !== event.localOriginalId) {
+      if (state.isSocialPending || (pending != null && pending !== event.localOriginalId)) {
         return {
-          state: { ...state, syncing: true, pendingOriginalId: undefined },
+          state: { ...state, syncing: true, pendingOriginalId: undefined, isSocialPending: false },
           effects: [{ type: "sync", originalId: pending }],
         };
       }
       return {
-        state: { ...state, syncing: false, pendingOriginalId: undefined, deliveries: [] },
+        state: { ...state, syncing: false, pendingOriginalId: undefined, isSocialPending: false, deliveries: [] },
         effects:
           state.deliveries.length > 0 ? [{ type: "complete", deliveryIds: state.deliveries, newData: true }] : [],
       };

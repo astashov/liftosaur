@@ -199,6 +199,9 @@ import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
 import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanup";
 import { navigateToModal } from "./navigation/navigationService";
+import { FollowInviteLink_token } from "./models/followInviteLink";
+import { OpenFollowInvite_open } from "./navigation/openFollowInvite";
+import { OpenNotification_open } from "./navigation/openNotification";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
 import { DeviceId_get } from "./utils/deviceId";
@@ -214,8 +217,6 @@ import { useOnloadModals } from "./navigation/useOnloadModals";
 import { SystemBars } from "react-native-edge-to-edge";
 import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
 import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
-import { FollowInviteLink_token } from "./models/followInviteLink";
-import { Dialog_alert } from "./utils/dialog";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
@@ -332,7 +333,16 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
     return env.push?.start({
       identity: PushRegistration_identityOf(stateRef.current),
       getLocalOriginalId: () => stateRef.current.storage.originalId,
-      onSync: (done) => dispatch(Thunk_sync2({ force: true, cb: done })),
+      onSync: (done) => {
+        dispatch(Thunk_sync2({ force: true, cb: done }));
+      },
+      onNotificationTap: (data) => {
+        dispatch(Thunk_sync2({ force: true }));
+        OpenNotification_open(data, () => stateRef.current.user?.id ?? stateRef.current.storage.tempUserId, dispatch);
+      },
+      onNotificationReceived: () => {
+        dispatch(Thunk_sync2({ force: true }));
+      },
     });
   }, [env]);
 
@@ -445,8 +455,9 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
       if (!url) {
         return;
       }
-      if (FollowInviteLink_token(url) != null) {
-        Dialog_alert("Update Liftosaur from the App Store to accept this invite.");
+      const followInviteToken = FollowInviteLink_token(url);
+      if (followInviteToken != null) {
+        OpenFollowInvite_open(followInviteToken);
         return;
       }
       let parsed: URL;

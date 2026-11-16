@@ -25,20 +25,23 @@ export function useThunkReducer<TState, TAction extends Record<string, unknown>,
 
   // Augmented dispatcher.
   const dispatch = useCallback(
-    (action: IGThunk<TState, TAction, TEnv> | TAction) => {
+    (action: IGThunk<TState, TAction, TEnv> | TAction): Promise<void> | undefined => {
       const oldState = state.current;
       if (typeof action === "function") {
-        (action(dispatch, getState, env) as Promise<void>).then(() => {
+        const result = action(dispatch, getState, env) as Promise<void>;
+        result.then(() => {
           for (const onAction of onActions) {
             onAction(dispatch, action, oldState, state.current);
           }
         });
+        return result;
       } else {
         const newState = reduce(action);
         setState(newState);
         for (const onAction of onActions) {
           onAction(dispatch, action, oldState, state.current);
         }
+        return undefined;
       }
     },
     [getState, setState, reduce]

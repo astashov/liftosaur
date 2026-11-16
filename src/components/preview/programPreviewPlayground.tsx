@@ -49,6 +49,7 @@ interface IProgramPreviewPlaygroundProps {
   program: IProgram;
   settings: ISettings;
   isPlayground: boolean;
+  isReadOnly?: boolean;
   scrollableTabsProps?: Partial<IScrollableTabsProps>;
   stats: IStats;
   hasNavbar?: boolean;
@@ -273,6 +274,7 @@ function PlaygroundWeekContent(p: IPlaygroundWeekContentProps): JSX.Element {
                 progress={d.progress}
                 settings={state.settings}
                 isPlayground={state.isPlayground}
+                isReadOnly={props.isReadOnly}
                 stats={props.stats}
                 onProgressChange={handleProgressChange}
                 onFinish={handleFinish}
@@ -523,6 +525,7 @@ function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Elemen
                   progress={d.progress}
                   settings={props.settings}
                   isPlayground={props.isPlayground}
+                  isReadOnly={props.isReadOnly}
                   stats={props.stats}
                   onProgressChange={handleProgressChange}
                   onFinish={handleFinish}

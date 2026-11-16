@@ -43,6 +43,8 @@ interface IProps {
   hasNavbar?: boolean;
   useNavModals?: boolean;
   headerContent?: ReactNode;
+  hideMuscles?: boolean;
+  isReadOnly?: boolean;
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
@@ -52,6 +54,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
   const isWeb = Platform.OS === "web";
   const headerContent = props.headerContent;
+  const hideMuscles = props.hideMuscles;
 
   const previewHeader = useMemo(
     () => (
@@ -74,20 +77,22 @@ export function ProgramPreview(props: IProps): JSX.Element {
                 </Text>
               )}
             </View>
-            <Pressable
-              data-testid="program-show-muscles"
-              testID="program-show-muscles"
-              className="p-2"
-              onPress={() => {
-                if (isWeb) {
-                  setMusclesModal({ type: "program" });
-                } else {
-                  navigateToModal("programPreviewMusclesModal", { type: "program" });
-                }
-              }}
-            >
-              <IconMuscles2 />
-            </Pressable>
+            {!hideMuscles && (
+              <Pressable
+                data-testid="program-show-muscles"
+                testID="program-show-muscles"
+                className="p-2"
+                onPress={() => {
+                  if (isWeb) {
+                    setMusclesModal({ type: "program" });
+                  } else {
+                    navigateToModal("programPreviewMusclesModal", { type: "program" });
+                  }
+                }}
+              >
+                <IconMuscles2 />
+              </Pressable>
+            )}
           </View>
           <View>
             {program.author && (
@@ -129,7 +134,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         </View>
       </View>
     ),
-    [headerContent, program, evaluatedProgram, settings, isWeb]
+    [headerContent, program, evaluatedProgram, settings, isWeb, hideMuscles]
   );
 
   if (!isWeb) {
@@ -142,6 +147,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         hasNavbar={props.hasNavbar}
         stats={props.stats}
         useNavModals={props.useNavModals}
+        isReadOnly={props.isReadOnly}
       />
     );
   }
@@ -156,6 +162,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         hasNavbar={props.hasNavbar}
         stats={props.stats}
         useNavModals={props.useNavModals}
+        isReadOnly={props.isReadOnly}
       />
       {musclesModal && (
         <ProgramPreviewMusclesModal

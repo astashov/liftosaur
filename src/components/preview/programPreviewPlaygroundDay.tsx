@@ -22,6 +22,7 @@ interface IProgramPreviewPlaygroundDayProps {
   weekIndex: number;
   dayIndex: number;
   isPlayground: boolean;
+  isReadOnly?: boolean;
   settings: ISettings;
   progress: IHistoryRecord;
   onProgressChange: (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void;
@@ -89,6 +90,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             dayIndex={props.day}
             progress={props.progress}
             isPlayground={props.isPlayground}
+            isReadOnly={props.isReadOnly}
             programExercise={programExercise}
             program={props.program}
             index={props.isPlayground ? index : i}

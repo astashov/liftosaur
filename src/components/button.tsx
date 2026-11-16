@@ -1,5 +1,6 @@
 import { JSX, ReactNode } from "react";
-import { GestureResponderEvent, Pressable } from "react-native";
+import { GestureResponderEvent, Pressable, View } from "react-native";
+import { IconSpinner } from "./icons/iconSpinner";
 import { Pressable as StickyPressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { useTrackClick } from "../utils/clickTracking";
@@ -21,6 +22,7 @@ interface IProps {
   onPress?: (e: GestureResponderEvent) => void;
   onClick?: (e: GestureResponderEvent) => void;
   disabled?: boolean;
+  isLoading?: boolean;
   className?: string;
   children?: ReactNode;
   testID?: string;
@@ -118,11 +120,20 @@ export function Button(props: IProps): JSX.Element {
       accessibilityLabel={accessibilityLabel}
       className={containerCn}
       onPress={onPress}
-      disabled={disabled}
+      disabled={disabled || props.isLoading}
       testID={testID}
       data-testid={testID}
     >
-      {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
+      {props.isLoading ? (
+        <View className="flex-row items-center gap-2">
+          <IconSpinner width={14} height={14} />
+          {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
+        </View>
+      ) : containsString(children) ? (
+        <Text className={textCn}>{children}</Text>
+      ) : (
+        children
+      )}
     </PressableComponent>
   );
 }

@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
-import { buildNavCommon } from "../utils";
+import { buildNavCommon, trackedSocial } from "../utils";
 import { ProgramHistoryView } from "../../components/programHistory";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { Program_getProgram } from "../../models/program";
@@ -59,6 +59,7 @@ export function NavScreenMain(): JSX.Element {
         subscription={untrack(state.storage.subscription)}
         dispatch={dispatch}
         initialHistoryRecordId={route.params?.historyRecordId}
+        social={trackedSocial(state)}
       />
     </View>
   );

@@ -277,6 +277,146 @@ DELETE /api/v1/history/:id
 }
 ```
 
+### List Friends
+
+```
+GET /api/v1/friends
+```
+
+Lists the people you follow in Liftosaur. These are the friends whose workouts you can read. `canSeeNotes` says whether that friend shares their workout notes with you. `canEditPrograms` says whether you can read and edit their programs.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "friends": [
+      {
+        "userId": "abc123",
+        "nickname": "Sam",
+        "canSeeNotes": false,
+        "canEditPrograms": true
+      }
+    ]
+  }
+}
+```
+
+### List a Friend's History
+
+```
+GET /api/v1/friends/:userId/history?startDate=2026-11-01&limit=50
+```
+
+Read-only. Returns a friend's workouts, newest first, in the same text format as your own history. Notes are included only if the friend shares them with you. A user you don't follow, or whose follow request is still pending, returns `404`.
+
+Query parameters (all optional):
+- `startDate` - ISO date or unix timestamp; workouts on or after it
+- `endDate` - ISO date or unix timestamp; workouts on or before it
+- `limit` - max records to return (default 50, max 100)
+- `cursor` - `nextCursor` from the previous response
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "records": [
+      {
+        "id": 1,
+        "text": "2026-11-10T10:00:00Z / program: \"GZCLP\" / day: 1 / duration: 3600s / exercises: {\n  Bench Press, Barbell / 2x5 185lb\n}"
+      }
+    ],
+    "nextCursor": "eyJpZCI6MSwiZGF0ZSI6IjIwMjYtMTEtMTBUMTA6MDA6MDAuMDAwWiJ9"
+  }
+}
+```
+
+`nextCursor` is absent on the last page.
+
+### Get a Friend's History Record
+
+```
+GET /api/v1/friends/:userId/history/:id
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "id": 1,
+    "text": "2026-11-10T10:00:00Z / program: \"GZCLP\" / day: 1 / exercises: {\n  Bench Press, Barbell / 2x5 185lb\n}"
+  }
+}
+```
+
+### List a Friend's Programs
+
+```
+GET /api/v1/friends/:userId/programs
+```
+
+Needs the friend to let you edit programs (`canEditPrograms`). Otherwise returns `404`.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "programs": [{ "id": "k3j2h1g0", "name": "5/3/1 BBB", "isCurrent": true }]
+  }
+}
+```
+
+### Get a Friend's Program
+
+```
+GET /api/v1/friends/:userId/programs/:id
+```
+
+Returns the program as Liftoscript text, plus `base`. Pass `base` back unchanged when you update the program.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "ownerId": "abc123",
+    "id": "k3j2h1g0",
+    "name": "5/3/1 BBB",
+    "isCurrent": true,
+    "text": "# Week 1\n## Day 1\nSquat / 3x5 / 225lb\n",
+    "base": "eyJ2IjoxLCJvd25lcklkIjoiYWJjMTIzIn0"
+  }
+}
+```
+
+### Update a Friend's Program
+
+```
+PUT /api/v1/friends/:userId/programs/:id
+```
+
+Needs the friend to let you edit programs (`canEditPrograms`). Replaces the full program text. The program name and the friend's next day stay as they are. The change reaches the friend's devices on their next sync and shows in their program history as your edit.
+
+**Request body:**
+
+```json
+{ "text": "# Week 1\n## Day 1\nSquat / 5x5 / 205lb\n", "base": "eyJ2IjoxLCJvd25lcklkIjoiYWJjMTIzIn0" }
+```
+
+**Response:**
+
+```json
+{ "data": { "ownerId": "abc123", "id": "k3j2h1g0", "base": "eyJ2IjoxLCJvd25lcklkIjoiYWJjMTIzIn1" } }
+```
+
+Use the returned `base` for the next update. A `409` means the program changed since you read it, often because your friend finished a workout. Read it again and redo the edit. A `422` means the text does not parse, with line and column details.
+
 ### Playground
 
 Simulate a workout without saving anything. Use this to test program logic and progressions before committing.

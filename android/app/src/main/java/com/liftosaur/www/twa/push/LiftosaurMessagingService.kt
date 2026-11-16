@@ -9,6 +9,11 @@ class LiftosaurMessagingService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        PushDispatcher.emitPush(message.data)
+        if (message.data["reason"] == FriendNotifications.REASON) {
+            FriendNotifications.post(applicationContext, message.data)
+            PushDispatcher.emitReceived(FriendNotifications.eventData(message.data))
+        } else {
+            PushDispatcher.emitPush(message.data)
+        }
     }
 }

@@ -184,6 +184,27 @@ describe("PushRegistration_next pushes", () => {
     const { effects } = run([push(6, 5, "d1"), { type: "syncDone", localOriginalId: 5 }, push(6, 5, "d2")]);
     expect(effects).to.eql(["sync:6", "complete:d1:new", "sync:6"]);
   });
+
+  it("syncs on a social push even when storage has not changed", () => {
+    const { effects } = run([
+      { type: "socialPush", deliveryId: "s1" },
+      { type: "syncDone", localOriginalId: 5 },
+    ]);
+    expect(effects).to.eql(["sync:undefined", "complete:s1:new"]);
+  });
+
+  it("runs one more sync for a social push that arrives during a sync", () => {
+    const { state, effects } = run([
+      push(6, 5, "d1"),
+      { type: "socialPush", deliveryId: "s1" },
+      { type: "socialPush", deliveryId: "s2" },
+      { type: "syncDone", localOriginalId: 6 },
+      { type: "syncDone", localOriginalId: 6 },
+    ]);
+    expect(effects).to.eql(["sync:6", "sync:undefined", "complete:d1+s1+s2:new"]);
+    expect(state.syncing).to.equal(false);
+    expect(state.isSocialPending).to.equal(false);
+  });
 });
 
 describe("PushRegistration_identityChanged", () => {

@@ -38,6 +38,7 @@ interface IProps {
   progress: IHistoryRecord;
   dayIndex: number;
   isPlayground: boolean;
+  isReadOnly?: boolean;
   index: number;
   staticState?: IProgramState;
   dispatch: IDispatch;
@@ -81,6 +82,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
       dayIndex={props.dayIndex}
       index={props.index}
       staticState={props.staticState}
+      isReadOnly={props.isReadOnly}
       dispatch={props.dispatch}
     />
   ) : (
@@ -89,6 +91,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
       programExercise={props.programExercise}
       settings={props.settings}
       index={props.index}
+      isReadOnly={props.isReadOnly}
       dispatch={props.dispatch}
     />
   );
@@ -99,6 +102,7 @@ interface IProgramPreviewHistoryRecordSetsProps {
   programExercise: IPlannerProgramExercise;
   settings: ISettings;
   index: number;
+  isReadOnly?: boolean;
   dispatch: IDispatch;
 }
 
@@ -115,13 +119,15 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
       testID={StringUtils_dashcase(exercise.name)}
     >
       <View className="flex-row items-center gap-2">
-        <PlaygroundExerciseTopBar
-          dispatch={props.dispatch}
-          index={props.index}
-          entry={props.entry}
-          programExercise={props.programExercise}
-          isPlayground={false}
-        />
+        {!props.isReadOnly && (
+          <PlaygroundExerciseTopBar
+            dispatch={props.dispatch}
+            index={props.index}
+            entry={props.entry}
+            programExercise={props.programExercise}
+            isPlayground={false}
+          />
+        )}
         <View className="w-scaled-10">
           <View className="p-1 rounded-lg bg-background-image">
             <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
@@ -156,6 +162,7 @@ interface IProgramPreviewPlaygroundProps {
   dayIndex: number;
   index: number;
   staticState?: IProgramState;
+  isReadOnly?: boolean;
   dispatch: IDispatch;
 }
 
@@ -182,6 +189,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           entry={props.entry}
           programExercise={props.programExercise}
           isPlayground={true}
+          isReadOnly={props.isReadOnly}
           xOffset={20}
         />
         <View className="flex-row items-center mx-4">
@@ -250,6 +258,7 @@ interface IPlaygroundExerciseTopBarProps {
   entry: IHistoryEntry;
   programExercise: IPlannerProgramExercise;
   isPlayground: boolean;
+  isReadOnly?: boolean;
   xOffset?: number;
 }
 
@@ -260,31 +269,33 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
       style={{ right: -12 + (props.xOffset ?? 0), top: -18 }}
     >
       <View className="flex-row items-center gap-2">
-        <Pressable
-          data-testid="program-preview-edit-exercise"
-          testID="program-preview-edit-exercise"
-          onPress={() => {
-            props.dispatch({
-              type: "UpdateProgress",
-              lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editModal").record(undefined)],
-              desc: "clear-edit-modal",
-            });
-            setTimeout(() => {
+        {!props.isReadOnly && (
+          <Pressable
+            data-testid="program-preview-edit-exercise"
+            testID="program-preview-edit-exercise"
+            onPress={() => {
               props.dispatch({
                 type: "UpdateProgress",
-                lensRecordings: [
-                  lb<IHistoryRecord>()
-                    .pi("ui", {})
-                    .p("editModal")
-                    .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
-                ],
-                desc: "open-edit-exercise-modal",
+                lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editModal").record(undefined)],
+                desc: "clear-edit-modal",
               });
-            }, 0);
-          }}
-        >
-          <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
-        </Pressable>
+              setTimeout(() => {
+                props.dispatch({
+                  type: "UpdateProgress",
+                  lensRecordings: [
+                    lb<IHistoryRecord>()
+                      .pi("ui", {})
+                      .p("editModal")
+                      .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
+                  ],
+                  desc: "open-edit-exercise-modal",
+                });
+              }, 0);
+            }}
+          >
+            <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
+          </Pressable>
+        )}
         {props.isPlayground && (
           <Pressable
             data-testid="program-preview-complete-exercise"

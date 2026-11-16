@@ -7,6 +7,10 @@ export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
   progress: { id?: number } | undefined;
   exerciseStats: undefined;
+  friendProfile: { userId: string };
+  feedFilter: undefined;
+  friendPrograms: { userId: string };
+  friendProgram: { userId: string; programId: string };
 };
 
 export type IOnboardingStackParamList = {
@@ -29,6 +33,7 @@ export type IProgramStackParamList = {
   programselect: undefined;
   programPreview: undefined;
   exerciseStats: undefined;
+  programEdits: { programId: string };
 };
 
 export type IWorkoutStackParamList = {
@@ -48,6 +53,7 @@ export type IMeStackParamList = {
   settings: undefined;
   account: undefined;
   timers: undefined;
+  notifications: undefined;
   plates: undefined;
   equipmentDetail: { gymId: string; equipmentId: string };
   gyms: undefined;
@@ -67,6 +73,15 @@ export type IMeStackParamList = {
   progress: { id?: number } | undefined;
   onerms: undefined;
   editProgram: { programId: string };
+  friends: undefined;
+  friendInvite: undefined;
+  followInvite: { token: string };
+  friendRequest: { requestId: string };
+  friendFollower: { userId: string };
+  friendProfile: { userId: string };
+  friendPrograms: { userId: string };
+  friendProgram: { userId: string; programId: string };
+  programEdits: { programId: string };
 };
 
 export type IRootTabParamList = {

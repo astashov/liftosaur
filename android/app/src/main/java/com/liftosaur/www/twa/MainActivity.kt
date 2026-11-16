@@ -9,6 +9,8 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.liftosaur.www.twa.liveactivity.LiveActivityEventDispatcher
 import com.liftosaur.www.twa.liveactivity.LiveUpdateActionReceiver
+import com.liftosaur.www.twa.push.FriendNotifications
+import com.liftosaur.www.twa.push.PushDispatcher
 import dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate
 
 class MainActivity : ReactActivity() {
@@ -35,6 +37,12 @@ class MainActivity : ReactActivity() {
 
   private fun handleLiveActivityIntent(intent: Intent?) {
     when (intent?.action) {
+      FriendNotifications.ACTION_OPEN -> {
+        intent.getStringExtra(FriendNotifications.EXTRA_DATA)?.let { PushDispatcher.emitTap(it) }
+        intent.removeExtra(FriendNotifications.EXTRA_DATA)
+        intent.action = null
+      }
+
       LiveUpdateActionReceiver.ACTION_OPEN_AND_COMPLETE_SET -> {
         val entryIndex = intent.getIntExtra(LiveUpdateActionReceiver.EXTRA_ENTRY_INDEX, -1)
         val setIndex = intent.getIntExtra(LiveUpdateActionReceiver.EXTRA_SET_INDEX, -1)

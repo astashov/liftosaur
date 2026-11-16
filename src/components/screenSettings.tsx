@@ -26,7 +26,6 @@ import { IconDiscord } from "./icons/iconDiscord";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
 import { navigateToModal } from "../navigation/navigationService";
-import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
 import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat } from "../models/stats";
@@ -75,7 +74,16 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItem
         shouldShowRightArrow={true}
         name="Program"
-        value={props.currentProgramName}
+        value={
+          props.navCommon.unseenProgramEdits ? (
+            <View className="flex-row items-center gap-2">
+              <Text className="text-text-secondary">{props.currentProgramName}</Text>
+              <View testID="program-edits-dot" className="w-2 h-2 rounded-full bg-background-error" />
+            </View>
+          ) : (
+            props.currentProgramName
+          )
+        }
         onClick={() => {
           props.dispatch(Thunk_pushScreen("programs"));
         }}
@@ -164,6 +172,24 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       )}
 
       <MenuItem
+        name="Friends"
+        value={
+          props.navCommon.pendingFollowRequests ? (
+            <View
+              testID="friends-pending-badge"
+              className="items-center justify-center h-5 px-2 rounded-full min-w-5 bg-background-error"
+            >
+              <Text className="text-xs font-semibold text-text-alwayswhite">
+                {props.navCommon.pendingFollowRequests}
+              </Text>
+            </View>
+          ) : undefined
+        }
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("friends"))}
+      />
+
+      <MenuItem
         name="API Keys"
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
@@ -209,6 +235,11 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         shouldShowRightArrow={true}
       />
       <MenuItem name="Timers" onClick={() => props.dispatch(Thunk_pushScreen("timers"))} shouldShowRightArrow={true} />
+      <MenuItem
+        name="Notifications"
+        onClick={() => props.dispatch(Thunk_pushScreen("notifications"))}
+        shouldShowRightArrow={true}
+      />
       {props.settings.gyms.length > 1 && (
         <MenuItemEditable
           type="select"
@@ -346,29 +377,6 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
               </View>
             </View>
           </MenuItemWrapper>
-          {Subscriptions_hasSubscription(props.subscription) && Platform.OS === "android" && (
-            <MenuItemEditable
-              type="boolean"
-              name="Ignore Do Not Disturb"
-              value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
-              nextLine={
-                <View className="mb-2" style={{ marginTop: -8 }}>
-                  <Text className="text-xs text-text-secondary">
-                    Push notification will make a sound even in Silent or Do Not Disturb mode
-                  </Text>
-                </View>
-              }
-              onChange={(newValue) => {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>()
-                    .p("ignoreDoNotDisturb")
-                    .record(newValue === "true"),
-                  desc: "Toggle ignore DND",
-                });
-              }}
-            />
-          )}
         </View>
       )}
       {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (

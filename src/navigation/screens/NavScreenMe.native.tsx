@@ -2,10 +2,11 @@ import React, { useMemo } from "react";
 import { View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
-import { buildNavCommon } from "../utils";
+import { buildNavCommon, programEditsOfExistingPrograms } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
+import { ScreenNotifications } from "../../components/screenNotifications";
 import { ScreenEquipment } from "../../components/screenEquipment";
 import { ScreenEquipmentDetail } from "../../components/screenEquipmentDetail";
 import { ScreenGyms as ScreenGymsComponent } from "../../components/screenGyms";
@@ -18,6 +19,7 @@ import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../compone
 import { ScreenSleepNutrition as ScreenSleepNutritionComponent } from "../../components/screenSleepNutrition";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
+import { SocialState_pendingRequestCount, SocialState_unseenProgramEdits } from "../../models/socialState";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
 import { ScreenRecentImports as ScreenRecentImportsComponent } from "../../components/screenRecentImports";
 import { ScreenImportPreview as ScreenImportPreviewComponent } from "../../components/screenImportPreview";
@@ -40,6 +42,8 @@ export function NavScreenSettings(): React.JSX.Element {
   const currentProgramId = state.storage.currentProgramId;
   const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
   const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
+  const pendingFollowRequests = SocialState_pendingRequestCount(state.social, state.user?.id);
+  const unseenProgramEdits = SocialState_unseenProgramEdits(programEditsOfExistingPrograms(state));
   const navCommon = useMemo(
     () => ({
       loading,
@@ -48,8 +52,10 @@ export function NavScreenSettings(): React.JSX.Element {
       isOngoingProgress,
       stats,
       userId: user?.id,
+      pendingFollowRequests,
+      unseenProgramEdits,
     }),
-    [loading, currentProgram, settings, isOngoingProgress, stats, user]
+    [loading, currentProgram, settings, isOngoingProgress, stats, user, pendingFollowRequests, unseenProgramEdits]
   );
   return (
     <View className="flex-1 bg-background-default">
@@ -87,6 +93,22 @@ export function NavScreenAccount(): React.JSX.Element {
           subscriptionStatus={state.subscriptionStatus}
           subscriptionStatusLoading={state.subscriptionStatusLoading}
           ownedLifetime={state.ownedLifetime}
+        />
+      </NavScreenContent>
+    </View>
+  );
+}
+
+export function NavScreenNotifications(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  return (
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenNotifications
+          dispatch={dispatch}
+          settings={untrack(state.storage.settings)}
+          subscription={untrack(state.storage.subscription)}
         />
       </NavScreenContent>
     </View>

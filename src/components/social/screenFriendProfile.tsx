@@ -1,0 +1,141 @@
+import { JSX, useCallback, useEffect, useMemo, useState } from "react";
+import { FeedMerge_dateHeaderKeys } from "../../models/feedMerge";
+import { DateUtils_formatYYYYMMDD } from "../../utils/date";
+import { View } from "react-native";
+import { LegendList } from "@legendapp/list";
+import { Text } from "../primitives/text";
+import { useNavOptions } from "../../navigation/useNavOptions";
+import { useNavIsScrolled } from "../../navigation/useNavIsScrolled";
+import { IDispatch } from "../../ducks/types";
+import { ISocialState } from "../../models/socialState";
+import { IFeedWorkout } from "../../models/feedWorkout";
+import { FeedWorkout_key } from "../../models/feedWorkout";
+import { ISettings } from "../../types";
+import { Thunk_loadFeed, Thunk_react, Thunk_unfollow } from "../../ducks/socialThunks";
+import { Thunk_pullScreen, Thunk_pushScreen } from "../../ducks/thunks";
+import { MenuItem } from "../menuItem";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { FeedWorkoutCard } from "./feedWorkoutCard";
+import { Avatar } from "./avatar";
+import { Button } from "../button";
+import { IconSpinner } from "../icons/iconSpinner";
+import { Dialog_confirm } from "../../utils/dialog";
+import { Follow_displayName } from "../../models/follow";
+
+interface IProps {
+  userId: string;
+  social?: ISocialState;
+  settings: ISettings;
+  dispatch: IDispatch;
+}
+
+export function ScreenFriendProfile(props: IProps): JSX.Element {
+  const [isUnfollowing, setIsUnfollowing] = useState(false);
+  const person = props.social?.follows?.following.find((f) => f.userId === props.userId);
+  const nickname = person?.nickname ?? props.social?.owners[props.userId]?.nickname;
+  useNavOptions({ navTitle: "Friend", navSubtitle: Follow_displayName(nickname) });
+  const onScroll = useNavIsScrolled();
+  const page = props.social?.pages[props.userId];
+  const socialWorkouts = props.social?.workouts;
+  const workouts = useMemo(
+    () => CollectionUtils_compact((page?.keys ?? []).map((key) => socialWorkouts?.[key])),
+    [page?.keys, socialWorkouts]
+  );
+
+  const dateHeaderKeys = useMemo(
+    () =>
+      FeedMerge_dateHeaderKeys(
+        workouts,
+        (w) => FeedWorkout_key(w.ownerId, w.recordId),
+        (w) => DateUtils_formatYYYYMMDD(w.date)
+      ),
+    [workouts]
+  );
+  const listExtraData = useMemo(
+    () => ({ reactions: props.social?.reactions, dateHeaderKeys }),
+    [props.social?.reactions, dateHeaderKeys]
+  );
+
+  useEffect(() => {
+    props.dispatch(Thunk_loadFeed(props.userId, true));
+  }, [props.userId]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: IFeedWorkout }) => (
+      <View className="mx-4 mb-6">
+        <FeedWorkoutCard
+          workout={item}
+          nickname={nickname}
+          reactions={props.social?.reactions[FeedWorkout_key(item.ownerId, item.recordId)]}
+          settings={props.settings}
+          showIdentity={false}
+          showDate={dateHeaderKeys.has(FeedWorkout_key(item.ownerId, item.recordId))}
+          onReact={(reaction) => props.dispatch(Thunk_react(item.ownerId, item.recordId, reaction))}
+        />
+      </View>
+    ),
+    [props.social?.reactions, props.settings, nickname, dateHeaderKeys]
+  );
+
+  const header = (
+    <View className="mb-4 border-b border-border-neutral">
+      <View className="flex-row items-center gap-3 px-4 pt-2 pb-4">
+        <Avatar nickname={nickname} size={56} />
+        <View className="flex-1">
+          <Text className="text-lg font-semibold">{Follow_displayName(nickname)}</Text>
+        </View>
+        <Button
+          kind="lightgrayv3"
+          buttonSize="md"
+          name="friend-unfollow"
+          data-testid="friend-unfollow"
+          testID="friend-unfollow"
+          isLoading={isUnfollowing}
+          onClick={async () => {
+            if (await Dialog_confirm(`Stop following ${nickname || "them"}?`)) {
+              setIsUnfollowing(true);
+              await props.dispatch(Thunk_unfollow(props.userId));
+              props.dispatch(Thunk_pullScreen());
+            }
+          }}
+        >
+          Unfollow
+        </Button>
+      </View>
+      {person?.permissions.programs && (
+        <View className="px-4">
+          <MenuItem
+            name="Programs"
+            isBorderless={true}
+            shouldShowRightArrow={true}
+            onClick={() => props.dispatch(Thunk_pushScreen("friendPrograms", { userId: props.userId }))}
+          />
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <View className="flex-1">
+      <LegendList
+        data={workouts}
+        renderItem={renderItem}
+        extraData={listExtraData}
+        onScroll={onScroll}
+        keyExtractor={(item: IFeedWorkout) => FeedWorkout_key(item.ownerId, item.recordId)}
+        estimatedItemSize={360}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          page?.isLoading || page == null ? (
+            <View className="items-center py-8">
+              <IconSpinner width={24} height={24} />
+            </View>
+          ) : (
+            <Text className="py-8 text-center text-text-secondary">No workouts yet.</Text>
+          )
+        }
+        onEndReached={() => props.dispatch(Thunk_loadFeed(props.userId, false))}
+      />
+    </View>
+  );
+}

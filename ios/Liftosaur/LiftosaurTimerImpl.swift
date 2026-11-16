@@ -460,7 +460,7 @@ import UserNotifications
       case .denied:
         completion("denied")
       case .notDetermined:
-        completion("denied")
+        completion("notDetermined")
       @unknown default:
         completion("denied")
       }

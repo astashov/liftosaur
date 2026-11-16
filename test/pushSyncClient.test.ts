@@ -230,4 +230,34 @@ describe("PushSyncClient", () => {
       clock.restore();
     }
   });
+
+  it("forwards a foreground friend notification only when the binary has the event", () => {
+    const received: unknown[] = [];
+    const modern = new FakeNative();
+    let handler: ((event: { data: string }) => void) | undefined;
+    const withEvent = Object.assign(modern, {
+      onNotificationReceived: (h: (event: { data: string }) => void) => {
+        handler = h;
+        return { remove: () => undefined };
+      },
+    });
+    new PushSyncClient(new FakeService() as unknown as Service, withEvent, "ios").start({
+      identity: undefined,
+      getLocalOriginalId: () => undefined,
+      onSync: () => undefined,
+      onNotificationReceived: (data) => received.push(data),
+    });
+    handler?.({ data: JSON.stringify({ reason: "friend", target: "workout" }) });
+    expect(received).to.eql([{ reason: "friend", target: "workout" }]);
+
+    const old = new PushSyncClient(new FakeService() as unknown as Service, new FakeNative(), "ios");
+    expect(() =>
+      old.start({
+        identity: undefined,
+        getLocalOriginalId: () => undefined,
+        onSync: () => undefined,
+        onNotificationReceived: (data) => received.push(data),
+      })
+    ).to.not.throw();
+  });
 });
