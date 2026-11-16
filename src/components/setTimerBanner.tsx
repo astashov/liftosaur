@@ -231,6 +231,7 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
             name="set-timer-stop-record"
             data-testid="set-timer-stop-record"
             kind="purple"
+            className="text-lg min-h-24"
             onPress={onStopAndRecord}
           >
             {stopLabel}
@@ -241,6 +242,7 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
             name="set-timer-log-keep"
             data-testid="set-timer-log-keep"
             kind="lightpurple"
+            className="text-base min-h-16"
             onPress={onLogKeepTiming}
           >
             Log {elapsedLabel}, keep timing
