@@ -1,12 +1,10 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Text } from "../primitives/text";
 import { useNavOptions } from "../../navigation/useNavOptions";
 import { IDispatch } from "../../ducks/types";
 import { ISocialState } from "../../models/socialState";
 import { Thunk_setFeedHiddenOwners } from "../../ducks/socialThunks";
-import { Thunk_pullScreen } from "../../ducks/thunks";
-import { Button } from "../button";
 import { Avatar } from "./avatar";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { Follow_displayName } from "../../models/follow";
@@ -20,11 +18,14 @@ interface IProps {
 
 export function ScreenFeedFilter(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Show in Feed" });
-  const [hidden, setHidden] = useState<string[]>(props.social?.hiddenOwners ?? []);
+  const hidden = props.social?.hiddenOwners ?? [];
   const people = [
     { userId: props.userId, nickname: props.nickname, label: "You" },
     ...(props.social?.follows?.following ?? []).map((f) => ({ ...f, label: Follow_displayName(f.nickname) })),
   ];
+  const setHidden = (hiddenOwners: string[]): void => {
+    props.dispatch(Thunk_setFeedHiddenOwners(hiddenOwners));
+  };
   const toggle = (userId: string): void => {
     setHidden(hidden.includes(userId) ? hidden.filter((id) => id !== userId) : [...hidden, userId]);
   };
@@ -58,21 +59,6 @@ export function ScreenFeedFilter(props: IProps): JSX.Element {
           );
         })}
       </ScrollView>
-      <View className="pt-2 pb-6 px-gutter">
-        <Button
-          kind="purple"
-          name="feed-filter-apply"
-          data-testid="feed-filter-apply"
-          testID="feed-filter-apply"
-          className="w-full"
-          onClick={() => {
-            props.dispatch(Thunk_setFeedHiddenOwners(hidden));
-            props.dispatch(Thunk_pullScreen());
-          }}
-        >
-          Apply
-        </Button>
-      </View>
     </View>
   );
 }
