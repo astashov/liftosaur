@@ -480,6 +480,9 @@ export function PlannerProgramExercise_numberOfSetsThisWeek(exerciseName: string
 }
 
 export function PlannerProgramExercise_getProgressScript(exercise: IPlannerProgramExercise): string | undefined {
+  if (exercise.progress?.type === "none") {
+    return undefined;
+  }
   return (
     exercise.progress?.script ??
     exercise.progress?.reuse?.exercise?.progress?.script ??

@@ -3130,4 +3130,36 @@ Squat / 3x8 / 100lb / progress: lp(5lb)
 Squat / 3x8 / 100lb`);
     });
   });
+
+  it("runs no progress for progress: none when the sets are reused from a dp exercise", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 / 100lb @8 / progress: dp(5lb, 8, 10)
+
+# Week 2
+## Day 1
+Squat / ...Squat[1:1] / progress: none
+`;
+    const settings = Settings_build();
+    const { program } = PlannerTestUtils_get(programText);
+    const historyRecord = Program_nextHistoryRecord(program, settings, Stats_getEmpty(), 2);
+    for (const set of historyRecord.entries[0].sets) {
+      set.completedReps = set.reps;
+      set.completedWeight = set.weight;
+      set.completedRpe = 6;
+      set.isCompleted = true;
+    }
+    const errors: string[] = [];
+    const { program: newProgram } = Program_runAllFinishDayScripts(
+      program,
+      historyRecord,
+      Stats_getEmpty(),
+      settings,
+      (message) => errors.push(message)
+    );
+    expect(errors).to.deep.equal([]);
+    expect(PlannerProgram_generateFullText(newProgram.planner?.weeks || [])).to.include(
+      "Squat / 3x8 / 100lb @8 / progress: dp(5lb, 8, 10)"
+    );
+  });
 });
