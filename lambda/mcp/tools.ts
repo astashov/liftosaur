@@ -430,12 +430,11 @@ const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   },
   {
     name: "update_friend_program",
-    description:
-      "Replace the full Liftoscript text of a friend's program. The friend must let the user edit programs (canEditPrograms in list_friends). The change goes to the friend's devices right away and shows in their program history as your edit. Requires base from get_friend_program. A conflict error means the program changed since you read it, often because the friend finished a workout: read it again with get_friend_program and redo the edit. Only the program text changes; the name and the current day stay as they are. Returns a new base for the next edit.",
+    description: `Replace the full Liftoscript text of a friend's program. Call this only when the user asks to change this friend's program. The friend must let the user edit programs (canEditPrograms in list_friends). The change goes to the friend's devices right away and shows in their program history as your edit. Requires base from get_friend_program. A conflict error means the program changed since you read it, often because the friend finished a workout: read it again with get_friend_program and redo the edit. Only the program text changes; the name and the current day stay as they are. Returns a new base for the next edit. ${FRIEND_TEXT_WARNING}`,
     annotations: {
       title: "Update friend's program",
       readOnlyHint: false,
-      destructiveHint: false,
+      destructiveHint: true,
       openWorldHint: false,
     },
     inputSchema: {
