@@ -17,6 +17,27 @@
 -->
 
 ---
+date: 2026-11-16
+title: Added Friends
+---
+
+You can now follow your friends' training in Liftosaur. Go to the **Me** -> **Friends**, and invite a friend. You can share a link, or show them a QR code to scan. Anyone with the link can ask to follow you for 7 days.
+
+Following is one-way. When someone asks to follow you, you approve the request and choose what they can see:
+
+* **Workouts** - exercises, sets, reps and weights. Always on.
+* **Exercise & workout notes** - the notes you write on exercises and workouts.
+* **See and edit my programs** - handy if a friend is your coach. They can open your programs and change them, and you'll see their changes under **Program edits** on the Program screen.
+
+Your friends' workouts show up in a feed on the **Home** tab. You can like their workouts.
+
+There's a new screen where you can control what notifications you get: **Me** -> **Notifications**.
+
+On the liftosaur.com site, there's a new Friends page, and you can see the list of friends there, and also edit their programs from there.
+
+You can also access your friends workouts and programs, and even edit your friends programs through MCP (if they allowed to do so via permissions)
+
+---
 date: 2026-11-11
 title: 📈 Graphs redesign - Dashboards!
 ---
