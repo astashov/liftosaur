@@ -64,6 +64,15 @@ export class CouponDao {
     return coupon;
   }
 
+  public async getAffiliateIds(): Promise<Set<string>> {
+    const env = Utils_getEnv();
+    const coupons = await this.di.dynamo.scan<ICouponDao>({
+      tableName: couponsTableNames[env].coupons,
+      filterExpression: "attribute_exists(affiliate)",
+    });
+    return new Set(coupons.map((c) => c.affiliate).filter((a): a is string => !!a));
+  }
+
   public async claim(coupon: ICouponDao): Promise<ICouponDao | undefined> {
     const env = Utils_getEnv();
     coupon.isClaimed = true;

@@ -759,6 +759,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
     paymentsTable.grantReadWriteData(reconcileLambdaFunction);
     subscriptionDetailsTable.grantReadWriteData(reconcileLambdaFunction);
     usersTable.grantReadData(reconcileLambdaFunction);
+    couponsTable.grantReadData(reconcileLambdaFunction);
+    affiliatesTable.grantReadWriteData(reconcileLambdaFunction);
     allSecrets.grantRead(reconcileLambdaFunction);
     statsBucket.grantReadWrite(reconcileLambdaFunction);
     eventsTable.grantReadWriteData(lambdaFunction);

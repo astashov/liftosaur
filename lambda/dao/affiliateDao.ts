@@ -2,18 +2,26 @@ import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { ILimitedUserDao, UserDao } from "./userDao";
 import { IPaymentDao, PaymentDao } from "./paymentDao";
+import type { IStorage } from "../../src/types";
 import { LogDao } from "./logDao";
 import {
   CollectionUtils_inGroupsOf,
   CollectionUtils_groupByKey,
   CollectionUtils_groupByKeyUniq,
-  CollectionUtils_sortByExpr,
   CollectionUtils_sortBy,
   CollectionUtils_sortByMultiple,
 } from "../../src/utils/collection";
 import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDashboardContent";
 import { PriceUtils_exchangeRate } from "../../src/utils/price";
 import { IPaymentMixEntry, IPaymentMixInput, PaymentMix_ofPayments } from "../utils/paymentMix";
+import {
+  AffiliateAttribution_first,
+  AffiliateAttribution_isEligiblePayment,
+  AffiliateAttribution_merge,
+  AffiliateAttribution_ofRows,
+  AffiliateAttribution_ofStorage,
+  IAffiliateAttributionEntry,
+} from "../utils/affiliateAttribution";
 
 const tableNames = {
   dev: {
@@ -59,14 +67,13 @@ export interface IAffiliateDashboardSummary {
 export class AffiliateDao {
   constructor(private readonly di: IDI) {}
 
-  public async getUserIds(affiliateId: string): Promise<string[]> {
+  public async getRows(affiliateId: string): Promise<IAffiliateDao[]> {
     const env = Utils_getEnv();
-    const result = await this.di.dynamo.query<IAffiliateDao>({
+    return this.di.dynamo.query<IAffiliateDao>({
       tableName: tableNames[env].affiliates,
       expression: "affiliateId = :affiliateId",
       values: { ":affiliateId": affiliateId },
     });
-    return result.map((r) => r.userId);
   }
 
   public async getAffiliatesForUser(userId: string): Promise<IAffiliateDao[]> {
@@ -102,6 +109,24 @@ export class AffiliateDao {
     return CollectionUtils_groupByKey(allResults, "userId");
   }
 
+  public async getAttributionEntries(
+    userIds: string[],
+    storageAffiliates?: Partial<Record<string, IStorage["affiliates"]>>
+  ): Promise<Partial<Record<string, IAffiliateAttributionEntry[]>>> {
+    const [userIdToRows, userIdToStorage] = await Promise.all([
+      this.getAffiliatesForUsers(userIds),
+      storageAffiliates ?? new UserDao(this.di).getStorageAffiliatesByIds(userIds),
+    ]);
+    const result: Partial<Record<string, IAffiliateAttributionEntry[]>> = {};
+    for (const userId of userIds) {
+      result[userId] = AffiliateAttribution_merge(
+        AffiliateAttribution_ofStorage(userIdToStorage[userId]),
+        AffiliateAttribution_ofRows(userIdToRows[userId] || [])
+      );
+    }
+    return result;
+  }
+
   public async put(items: { affiliateId: string; userId: string }[]): Promise<void> {
     if (items.length === 0) {
       return;
@@ -134,51 +159,35 @@ export class AffiliateDao {
     Array<{
       userId: string;
       user?: ILimitedUserDao;
-      affiliateTimestamp: number;
+      entry: IAffiliateAttributionEntry;
       isFirstAffiliate: boolean;
-      affiliateType?: "coupon" | "program";
     }>
   > {
-    const affiliatedUserIds = await this.getUserIds(affiliateId);
-
-    if (affiliatedUserIds.length === 0) {
+    const rows = await this.getRows(affiliateId);
+    if (rows.length === 0) {
       return [];
     }
 
-    const userDao = new UserDao(this.di);
-    const affiliatedUsers = await userDao.getLimitedByIds(affiliatedUserIds);
-    const restUserIds = affiliatedUserIds.filter((userId) => !affiliatedUsers.some((user) => user.id === userId));
-    const userIdToAffiliates = await this.getAffiliatesForUsers(restUserIds);
+    const affiliatedUserIds = rows.map((r) => r.userId);
+    const affiliatedUsers = await new UserDao(this.di).getLimitedByIds(affiliatedUserIds);
     const idToAffiliatedUser = CollectionUtils_groupByKeyUniq(affiliatedUsers, "id");
+    const storageAffiliates: Partial<Record<string, IStorage["affiliates"]>> = {};
+    for (const user of affiliatedUsers) {
+      storageAffiliates[user.id] = user.storage?.affiliates;
+    }
+    const userIdToEntries = await this.getAttributionEntries(affiliatedUserIds, storageAffiliates);
 
-    const users = affiliatedUserIds.map((userId) => {
+    return affiliatedUserIds.map((userId) => {
       const user = idToAffiliatedUser[userId];
-      if (user) {
-        const affiliates = user.storage?.affiliates || {};
-        const affiliateValue = affiliates[affiliateId];
-        const affiliateTimestamp =
-          (typeof affiliateValue === "number" ? affiliateValue : affiliates[affiliateId]?.timestamp) || 0;
-        const affiliateType = typeof affiliateValue === "number" ? "program" : affiliateValue?.type || "program";
-
-        const sortedAffiliates = Object.entries(affiliates).sort(
-          ([a, av], [b, bv]) =>
-            ((typeof av === "number" ? av : av?.timestamp) || 0) - ((typeof bv === "number" ? bv : bv?.timestamp) || 0)
-        );
-        const isFirstAffiliate = sortedAffiliates.length === 0 || sortedAffiliates[0][0] === affiliateId;
-
-        return { userId, user, affiliateTimestamp, isFirstAffiliate, affiliateType };
-      } else {
-        const affiliates = userIdToAffiliates[userId] || [];
-        const sortedAffiliates = CollectionUtils_sortByExpr(affiliates, (e) => e.timestamp || 0);
-        const currentAffiliate = sortedAffiliates.find((a) => a.affiliateId === affiliateId);
-        const affiliateTimestamp = currentAffiliate?.timestamp || 0;
-        const affiliateType = currentAffiliate?.type ?? "program";
-        const isFirstAffiliate = sortedAffiliates.length > 0 && sortedAffiliates[0].affiliateId === affiliateId;
-        return { userId, user: undefined, affiliateTimestamp, isFirstAffiliate, affiliateType };
-      }
+      const entries = userIdToEntries[userId] || [];
+      const entry = entries.find((e) => e.affiliateId === affiliateId) ?? {
+        affiliateId,
+        timestamp: 0,
+        type: "program" as const,
+      };
+      const isFirstAffiliate = AffiliateAttribution_first(entries)?.affiliateId === affiliateId;
+      return { userId, user, entry, isFirstAffiliate };
     });
-
-    return users;
   }
 
   private getDollarAmount(payment: IPaymentDao): number {
@@ -188,21 +197,14 @@ export class AffiliateDao {
 
   private async calculateUserRevenue(
     userId: string,
-    affiliateTimestamp: number,
+    entry: IAffiliateAttributionEntry,
     isFirstAffiliate: boolean
   ): Promise<{ userTotalRevenue: number; userMonthlyRevenue: number; eligiblePayments: IPaymentDao[] }> {
     const paymentDao = new PaymentDao(this.di);
-    const userPayments = await paymentDao.getByUserId(userId);
+    const userPayments = isFirstAffiliate ? await paymentDao.getByUserId(userId) : [];
     const currentMonthTs = new Date(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1).getTime();
 
-    const eligiblePayments = userPayments.filter(
-      (p) =>
-        p.subscriptionStartTimestamp != null &&
-        p.subscriptionStartTimestamp > affiliateTimestamp &&
-        isFirstAffiliate &&
-        p.paymentType !== "refund" &&
-        !p.isTest
-    );
+    const eligiblePayments = userPayments.filter((p) => AffiliateAttribution_isEligiblePayment(p, entry));
 
     const userTotalRevenue =
       eligiblePayments.reduce((sum, p) => {
@@ -223,7 +225,7 @@ export class AffiliateDao {
 
   private generateMonthlyPayments(
     allEligiblePayments: IPaymentDao[],
-    affiliateUsers: { affiliateTimestamp: number; affiliateType?: "coupon" | "program" }[]
+    affiliateUsers: { entry: IAffiliateAttributionEntry }[]
   ): IAffiliateMonthlyPayment[] {
     type IMonthAccumulator = {
       revenue: number;
@@ -253,9 +255,9 @@ export class AffiliateDao {
       });
     });
 
-    affiliateUsers.forEach(({ affiliateTimestamp, affiliateType }) => {
-      const month = ensureMonth(this.monthKeyFromTimestamp(affiliateTimestamp));
-      if (affiliateType === "coupon") {
+    affiliateUsers.forEach(({ entry }) => {
+      const month = ensureMonth(this.monthKeyFromTimestamp(entry.timestamp));
+      if (entry.type === "coupon") {
         month.couponUsers += 1;
       } else {
         month.programUsers += 1;
@@ -315,10 +317,11 @@ export class AffiliateDao {
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(
-        group.map(async ({ user, userId, affiliateTimestamp, isFirstAffiliate, affiliateType }) => {
+        group.map(async ({ user, userId, entry, isFirstAffiliate }) => {
+          const { timestamp: affiliateTimestamp, type: affiliateType } = entry;
           const { userTotalRevenue, userMonthlyRevenue, eligiblePayments } = await this.calculateUserRevenue(
             userId,
-            affiliateTimestamp,
+            entry,
             isFirstAffiliate
           );
 
@@ -379,8 +382,8 @@ export class AffiliateDao {
     const isFirstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
     const signedUpUsersCount = isFirstAffiliateUsers.filter(({ user }) => user != null).length;
     const paidUsers = affiliateData.filter((d) => d.isFirstAffiliate && d.isPaid).length;
-    const programUsers = isFirstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "program").length;
-    const couponUsers = isFirstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "coupon").length;
+    const programUsers = isFirstAffiliateUsers.filter(({ entry }) => entry.type === "program").length;
+    const couponUsers = isFirstAffiliateUsers.filter(({ entry }) => entry.type === "coupon").length;
 
     const summary = {
       totalUsers: isFirstAffiliateUsers.length,
@@ -424,8 +427,8 @@ export class AffiliateDao {
 
     const firstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
     const signedUpUsersCount = firstAffiliateUsers.filter(({ user }) => user != null).length;
-    const programUsers = firstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "program").length;
-    const couponUsers = firstAffiliateUsers.filter(({ affiliateType }) => affiliateType === "coupon").length;
+    const programUsers = firstAffiliateUsers.filter(({ entry }) => entry.type === "program").length;
+    const couponUsers = firstAffiliateUsers.filter(({ entry }) => entry.type === "coupon").length;
 
     let totalRevenue = 0;
     let monthlyRevenue = 0;
@@ -439,9 +442,9 @@ export class AffiliateDao {
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(
-        group.map(async ({ userId, affiliateTimestamp, isFirstAffiliate, affiliateType }) => {
-          const revenue = await this.calculateUserRevenue(userId, affiliateTimestamp, isFirstAffiliate);
-          return { ...revenue, affiliateType };
+        group.map(async ({ userId, entry, isFirstAffiliate }) => {
+          const revenue = await this.calculateUserRevenue(userId, entry, isFirstAffiliate);
+          return { ...revenue, affiliateType: entry.type };
         })
       );
 

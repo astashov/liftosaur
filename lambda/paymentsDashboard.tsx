@@ -1,16 +1,14 @@
 import { IPaymentDao } from "./dao/paymentDao";
 import { PaymentsDashboardHtml } from "../src/pages/paymentsDashboard/paymentsDashboardHtml";
 import { renderPage } from "./render";
+import type { IAffiliateAttributionEntry } from "./utils/affiliateAttribution";
 
 export interface IPaymentsDashboardData {
   date: string;
   payments: IPaymentDao[];
 }
 
-export interface IPaymentsDashboardUserAffiliate {
-  affiliateId: string;
-  timestamp: number;
-}
+export type IPaymentsDashboardUserAffiliate = IAffiliateAttributionEntry;
 
 export interface IPaymentsSummary {
   currencyTotals: Record<string, { total: number; refunds: number }>;

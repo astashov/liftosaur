@@ -123,6 +123,7 @@ import {
 import { ImportExporter_getExportedProgram } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
+import { AffiliateAttribution_first } from "./utils/affiliateAttribution";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import { renderUserAffiliatesHtml } from "./userAffiliates";
 import { renderUsersDashboardHtml } from "./usersDashboard";
@@ -3113,19 +3114,12 @@ async function buildPaymentsPage(di: IDI, before: number | undefined, months: nu
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const uniqueUserIds = Array.from(new Set(windowed.map((p) => p.userId)));
-  const affiliatesByUser = await new AffiliateDao(di).getAffiliatesForUsers(uniqueUserIds);
+  const entriesByUser = await new AffiliateDao(di).getAttributionEntries(uniqueUserIds);
   const userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>> = {};
   for (const userId of uniqueUserIds) {
-    const affiliates = affiliatesByUser[userId] || [];
-    let earliest: { affiliateId: string; timestamp: number } | undefined;
-    for (const a of affiliates) {
-      const ts = a.timestamp || 0;
-      if (!earliest || ts < earliest.timestamp) {
-        earliest = { affiliateId: a.affiliateId, timestamp: ts };
-      }
-    }
-    if (earliest) {
-      userAffiliates[userId] = earliest;
+    const first = AffiliateAttribution_first(entriesByUser[userId] || []);
+    if (first) {
+      userAffiliates[userId] = first;
     }
   }
 

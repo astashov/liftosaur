@@ -3,6 +3,7 @@ import { UserDao } from "../dao/userDao";
 import { PaymentDao } from "../dao/paymentDao";
 import { SubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
+import { ApplePaymentAttribution_apply } from "./applePaymentAttribution";
 
 export interface IAppleNotificationV2 {
   signedPayload: string;
@@ -20,6 +21,7 @@ export interface IAppleTransactionInfo {
   currency?: string;
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
   offerIdentifier?: string;
+  offerType?: number;
   environment?: "Sandbox" | "Production";
 }
 
@@ -75,6 +77,7 @@ export class AppleWebhookHandler {
 
       if (await paymentDao.doesExist(transactionInfo.transactionId)) {
         this.di.log.log(`Apple webhook: Payment with transaction ID ${transactionInfo.transactionId} already exists`);
+        await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo });
         return { status: "ok" };
       }
 
@@ -94,6 +97,7 @@ export class AppleWebhookHandler {
         ? (jwtVerifier.verifyJWT(payloadData.data.signedRenewalInfo) as IAppleRenewalInfo | null)
         : null;
       await this.updateSubscriptionStatus(userId, notificationType, transactionInfo, renewalInfo);
+      await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
 
       let paymentType: "purchase" | "renewal" | "refund";
 

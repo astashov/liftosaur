@@ -45,17 +45,30 @@ export class PaymentDao {
     });
   }
 
-  public async doesExist(transactionId: string): Promise<boolean> {
+  public async getByTransactionId(transactionId: string): Promise<IPaymentDao | undefined> {
     const env = Utils_getEnv();
-    const existingPayments = await this.di.dynamo.query<IPaymentDao>({
+    const payments = await this.di.dynamo.query<IPaymentDao>({
       tableName: tableNames[env].payments,
       indexName: `lftPaymentsTransactionId${env === "dev" ? "Dev" : ""}`,
       expression: "transactionId = :transactionId",
       values: { ":transactionId": transactionId },
       limit: 1,
     });
+    return payments[0];
+  }
 
-    return existingPayments.length > 0;
+  public async doesExist(transactionId: string): Promise<boolean> {
+    return (await this.getByTransactionId(transactionId)) != null;
+  }
+
+  public async setOfferIdentifier(payment: IPaymentDao, offerIdentifier: string): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.update({
+      tableName: tableNames[env].payments,
+      key: { userId: payment.userId, timestamp: payment.timestamp },
+      expression: "SET offerIdentifier = :offerIdentifier",
+      values: { ":offerIdentifier": offerIdentifier },
+    });
   }
 
   public async addIfNotExists(payment: IPaymentDao): Promise<boolean> {

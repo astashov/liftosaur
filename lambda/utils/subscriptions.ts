@@ -66,6 +66,7 @@ export interface IAppleTransaction {
   appTransactionId: string;
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
   offerIdentifier?: string;
+  offerType?: number;
 }
 
 interface IGoogleOrderInfo {
@@ -422,11 +423,33 @@ export class Subscriptions {
     }
   }
 
+  public async getAllAppleTransactions(originalTransactionId: string): Promise<IAppleTransaction[] | undefined> {
+    const jwtVerifier = new AppleJWTVerifier(this.log);
+    const transactions: IAppleTransaction[] = [];
+    let revision: string | undefined;
+    do {
+      const page = await this.getAppleTransactionHistory(originalTransactionId, revision);
+      if (!page) {
+        return undefined;
+      }
+      for (const signedTransaction of page.signedTransactions || []) {
+        const transaction = jwtVerifier.verifyJWT(signedTransaction) as IAppleTransaction | null;
+        if (transaction) {
+          transactions.push(transaction);
+        }
+      }
+      revision = page.hasMore ? page.revision : undefined;
+    } while (revision);
+    return transactions;
+  }
+
   public async getAppleTransactionHistory(
-    originalTransactionId: string
+    originalTransactionId: string,
+    revision?: string
   ): Promise<IAppleTransactionHistory | undefined> {
     try {
-      const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}`;
+      const query = revision ? `?revision=${encodeURIComponent(revision)}` : "";
+      const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}${query}`;
 
       const applePrivateKey = await this.secretsUtil.getApplePrivateKey();
       const appleKeyId = await this.secretsUtil.getAppleKeyId();

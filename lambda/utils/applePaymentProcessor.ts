@@ -4,6 +4,7 @@ import { IAppleTransaction, IAppleTransactionHistory, Subscriptions } from "./su
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import type { IAppleTransactionInfo } from "./appleWebhookHandler";
 import { CollectionUtils_sort } from "../../src/utils/collection";
+import { ApplePaymentAttribution_apply } from "./applePaymentAttribution";
 
 interface IAppleReceiptInfo {
   product_id: string;
@@ -27,12 +28,16 @@ export class ApplePaymentProcessor {
     isFreeTrialPayment: boolean;
     originalPurchaseDate?: number;
     isTest: boolean;
+    offerIdentifier?: string;
+    offerType?: number;
   }> {
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
     let originalPurchaseDate: number | undefined = undefined;
     let isTest = false;
+    let offerIdentifier: string | undefined = undefined;
+    let offerType: number | undefined = undefined;
 
     if (transactionHistory && transactionHistory.signedTransactions) {
       const jwtVerifier = new AppleJWTVerifier(this.di.log);
@@ -47,11 +52,13 @@ export class ApplePaymentProcessor {
           originalPurchaseDate = transaction.originalPurchaseDate;
           isFreeTrialPayment = transaction.offerDiscountType === "FREE_TRIAL";
           isTest = transaction.environment === "Sandbox";
+          offerIdentifier = transaction.offerIdentifier;
+          offerType = transaction.offerType;
           break;
         }
       }
     }
-    return { amount, currency, isFreeTrialPayment, originalPurchaseDate, isTest };
+    return { amount, currency, isFreeTrialPayment, originalPurchaseDate, isTest, offerIdentifier, offerType };
   }
 
   public async processReceiptPayment(userId: string, latestReceiptInfo?: IAppleReceiptInfo[]): Promise<void> {
@@ -83,6 +90,8 @@ export class ApplePaymentProcessor {
     let isFreeTrialPayment = false;
     let originalPurchaseDate: number | undefined = undefined;
     let isTest = false;
+    let offerIdentifier: string | undefined = undefined;
+    let offerType: number | undefined = undefined;
 
     if (latestReceipt.original_transaction_id) {
       this.di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
@@ -95,14 +104,17 @@ export class ApplePaymentProcessor {
       isFreeTrialPayment = result.isFreeTrialPayment;
       originalPurchaseDate = result.originalPurchaseDate;
       isTest = result.isTest;
+      offerIdentifier = result.offerIdentifier;
+      offerType = result.offerType;
     }
 
     const originalTransactionId = latestReceipt.original_transaction_id || "";
     const isPurchase = originalTransactionId === transactionId;
+    const timestamp = Number(latestReceipt.purchase_date_ms);
 
     await paymentDao.addIfNotExists({
       userId,
-      timestamp: Number(latestReceipt.purchase_date_ms),
+      timestamp,
       originalTransactionId,
       transactionId,
       productId: latestReceipt.product_id,
@@ -114,7 +126,12 @@ export class ApplePaymentProcessor {
       paymentType: isPurchase ? "purchase" : "renewal",
       isFreeTrialPayment,
       subscriptionStartTimestamp: originalPurchaseDate,
+      offerIdentifier,
       isTest,
+    });
+    await ApplePaymentAttribution_apply(this.di, {
+      transaction: { transactionId, purchaseDate: timestamp, offerIdentifier, offerType },
+      fallbackUserId: userId,
     });
   }
 
@@ -122,6 +139,7 @@ export class ApplePaymentProcessor {
     const paymentDao = new PaymentDao(this.di);
     if (await paymentDao.doesExist(transactionInfo.transactionId)) {
       this.di.log.log(`Apple JWS verification: Payment ${transactionInfo.transactionId} already exists`);
+      await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
       return;
     }
     const isPurchase = transactionInfo.originalTransactionId === transactionInfo.transactionId;
@@ -142,5 +160,6 @@ export class ApplePaymentProcessor {
       offerIdentifier: transactionInfo.offerIdentifier,
       isTest: transactionInfo.environment === "Sandbox",
     });
+    await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
   }
 }

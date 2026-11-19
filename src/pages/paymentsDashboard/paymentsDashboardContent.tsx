@@ -5,6 +5,7 @@ import {
   IPaymentsSummary,
 } from "../../../lambda/paymentsDashboard";
 import { IPaymentDao } from "../../../lambda/dao/paymentDao";
+import { AffiliateAttribution_isEligiblePayment } from "../../../lambda/utils/affiliateAttribution";
 import { StringUtils_truncate } from "../../utils/string";
 import { TimeUtils_formatUTCHHMM } from "../../utils/time";
 import { DateUtils_dayOfWeekStr, DateUtils_formatUTCYYYYMMDD, DateUtils_formatUTCYYYYMMDDHHMM } from "../../utils/date";
@@ -157,16 +158,7 @@ function getAttributedAffiliate(
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>
 ): IPaymentsDashboardUserAffiliate | undefined {
   const affiliate = userAffiliates[payment.userId];
-  if (!affiliate) {
-    return undefined;
-  }
-  if (payment.subscriptionStartTimestamp == null) {
-    return undefined;
-  }
-  if (payment.subscriptionStartTimestamp <= affiliate.timestamp) {
-    return undefined;
-  }
-  return affiliate;
+  return affiliate && AffiliateAttribution_isEligiblePayment(payment, affiliate) ? affiliate : undefined;
 }
 
 function getProductType(product: string): string {

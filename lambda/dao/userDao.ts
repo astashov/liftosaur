@@ -730,6 +730,24 @@ export class UserDao {
     return items.map((item) => UserRow_unpack(item));
   }
 
+  public async getStorageAffiliatesByIds(userIds: string[]): Promise<Partial<Record<string, IStorage["affiliates"]>>> {
+    if (userIds.length === 0) {
+      return {};
+    }
+    const env = Utils_getEnv();
+    const items = await this.di.dynamo.batchGet<{ id: string; storage?: { affiliates?: IStorage["affiliates"] } }>({
+      tableName: userTableNames[env].users,
+      keys: userIds.map((ui) => ({ id: ui })),
+      projection: "#id, #storage.#affiliates",
+      attrs: { "#id": "id", "#storage": "storage", "#affiliates": "affiliates" },
+    });
+    const result: Partial<Record<string, IStorage["affiliates"]>> = {};
+    for (const item of items) {
+      result[item.id] = item.storage?.affiliates;
+    }
+    return result;
+  }
+
   public async getSettingsByIds(userIds: string[]): Promise<{ id: string; settings: ISettings }[]> {
     if (userIds.length === 0) {
       return [];

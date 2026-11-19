@@ -7,6 +7,8 @@ import { IAppleTransaction, IAppleTransactionHistory, IGooglePaymentInfoV2, Subs
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import { UserDao, ILimitedUserDao } from "../dao/userDao";
 import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
+import { CouponDao } from "../dao/couponDao";
+import { ApplePaymentAttribution_apply } from "./applePaymentAttribution";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -243,6 +245,12 @@ export class PaymentReconciler {
       return true;
     });
 
+    let affiliateIds: ReadonlySet<string> | undefined;
+    try {
+      affiliateIds = await new CouponDao(this.di).getAffiliateIds();
+    } catch (error) {
+      result.errors.push(`Apple: affiliate ids unavailable, offer attribution skipped: ${error}`);
+    }
     const BATCH_SIZE = 10;
     for (let batchStart = 0; batchStart < uniqueSubscriptions.length; batchStart += BATCH_SIZE) {
       const batch = uniqueSubscriptions.slice(batchStart, batchStart + BATCH_SIZE);
@@ -251,7 +259,7 @@ export class PaymentReconciler {
       );
 
       const batchResults = await Promise.all(
-        batch.map((sub) => this.reconcileOneAppleSub(sub, appleToken, jwtVerifier, existingTxIds))
+        batch.map((sub) => this.reconcileOneAppleSub(sub, appleToken, jwtVerifier, existingTxIds, affiliateIds))
       );
 
       for (const br of batchResults) {
@@ -261,6 +269,7 @@ export class PaymentReconciler {
         if (br.error) {
           result.errors.push(br.error);
         }
+        result.errors.push(...br.attributionErrors);
       }
     }
   }
@@ -269,14 +278,22 @@ export class PaymentReconciler {
     sub: ISubscriptionDetailsDao,
     appleToken: string,
     jwtVerifier: AppleJWTVerifier,
-    existingTxIds: Set<string>
-  ): Promise<{ checked: number; added: number; error?: string }> {
+    existingTxIds: Set<string>,
+    affiliateIds: ReadonlySet<string> | undefined
+  ): Promise<{ checked: number; added: number; error?: string; attributionErrors: string[] }> {
     let checked = 0;
     let added = 0;
+    const attributionErrors: string[] = [];
+    const attribute = async (tx: IAppleTransaction): Promise<void> => {
+      const attributionError = await this.attributeAppleOffer(tx, sub.userId, affiliateIds);
+      if (attributionError) {
+        attributionErrors.push(attributionError);
+      }
+    };
     try {
       const allTransactions = await this.fetchAllAppleTransactions(sub.originalTransactionId!, appleToken);
       if (!allTransactions || allTransactions.length === 0) {
-        return { checked, added };
+        return { checked, added, attributionErrors };
       }
 
       for (const signedTx of allTransactions) {
@@ -286,6 +303,7 @@ export class PaymentReconciler {
           continue;
         }
         if (existingTxIds.has(tx.transactionId)) {
+          await attribute(tx);
           continue;
         }
         if ((tx.purchaseDate || 0) < PAYMENT_TRACKING_START) {
@@ -317,12 +335,29 @@ export class PaymentReconciler {
             isTest: tx.environment === "Sandbox",
           });
           this.di.log.log(`Reconciler: Added Apple payment ${tx.transactionId} for user ${sub.userId}`);
+          await attribute(tx);
         }
       }
     } catch (error) {
-      return { checked, added, error: `Apple ${sub.originalTransactionId}: ${error}` };
+      return { checked, added, error: `Apple ${sub.originalTransactionId}: ${error}`, attributionErrors };
     }
-    return { checked, added };
+    return { checked, added, attributionErrors };
+  }
+
+  private async attributeAppleOffer(
+    tx: IAppleTransaction,
+    userId: string,
+    affiliateIds: ReadonlySet<string> | undefined
+  ): Promise<string | undefined> {
+    if (this.dryRun || !affiliateIds || !tx.offerIdentifier) {
+      return undefined;
+    }
+    const attribution = await ApplePaymentAttribution_apply(this.di, {
+      transaction: tx,
+      fallbackUserId: userId,
+      affiliateIds,
+    });
+    return attribution.status === "failed" ? `Apple offer attribution failed for ${tx.transactionId}` : undefined;
   }
 
   private async generateAppleToken(): Promise<string | undefined> {
