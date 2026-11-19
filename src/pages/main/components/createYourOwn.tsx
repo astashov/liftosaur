@@ -106,7 +106,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
         <div className="mb-4 leading-relaxed">
           Change the sets, reps or weight or add "Bicep Curl /{" "}
           <span style={{ color: Tailwind_semantic().syntax.atom }}>3x10</span> /{" "}
-          <span style={{ color: Tailwind_semantic().syntax.atom }}>12</span>" on a new line.
+          <span style={{ color: Tailwind_semantic().syntax.atom }}>20lb</span>" on a new line.
         </div>
         <PlannerEditorView
           name="Exercises"
