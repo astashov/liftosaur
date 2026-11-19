@@ -81,6 +81,7 @@ import { NavModalSetTimerEdit } from "./modals/NavModalSetTimerEdit";
 import { NavModalRoundingInfo } from "./modals/NavModalRoundingInfo";
 import { NavModalDate } from "./modals/NavModalDate";
 import { NavModal1RM } from "./modals/NavModal1RM";
+import { NavModalUpdateProgramWeight } from "./modals/NavModalUpdateProgramWeight";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
 import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
@@ -396,6 +397,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="roundingInfoModal" component={NavModalRoundingInfo} />
             <RootStack.Screen name="dateModal" component={NavModalDate} />
             <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+            <RootStack.Screen name="updateProgramWeightModal" component={NavModalUpdateProgramWeight} />
             <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
             <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
             <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />

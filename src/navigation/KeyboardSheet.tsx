@@ -1,16 +1,18 @@
 import { JSX, ReactNode } from "react";
-import { Animated, useWindowDimensions, View } from "react-native";
+import { Animated, Platform, Pressable, useWindowDimensions, View } from "react-native";
 import { SheetScreenContainer } from "./SheetScreenContainer";
 import { TransparentModal } from "./TransparentModal";
 import { CustomKeyboardProvider } from "./CustomKeyboardContext";
 import { NavScreenScrollContext } from "./NavScreenScrollContext";
 import { useNavScreenScroll } from "./useNavScreenScroll";
 import { Text } from "../components/primitives/text";
+import { IconCloseCircleOutline } from "../components/icons/iconCloseCircleOutline";
 
 interface IProps {
   children: ReactNode;
   header?: string;
   footer?: ReactNode;
+  showCloseButton?: boolean;
   onClose: () => void;
 }
 
@@ -42,6 +44,17 @@ export function KeyboardSheet(props: IProps): JSX.Element {
             {props.header != null && (
               <View className="items-center py-4">
                 <Text className="text-base font-semibold">{props.header}</Text>
+                {props.showCloseButton && Platform.OS !== "web" && (
+                  <Pressable
+                    className="absolute top-0 bottom-0 right-0 justify-center px-4"
+                    testID="keyboard-sheet-close"
+                    data-testid="keyboard-sheet-close"
+                    hitSlop={8}
+                    onPress={props.onClose}
+                  >
+                    <IconCloseCircleOutline size={28} />
+                  </Pressable>
+                )}
               </View>
             )}
             {/* Alone among the sheet's children in being allowed to shrink, so this is what gives

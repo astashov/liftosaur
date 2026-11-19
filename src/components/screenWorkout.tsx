@@ -19,6 +19,7 @@ import { Thunk_updateLiveActivity, Thunk_deleteProgress, Thunk_pauseWorkout } fr
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
+import { IWeightDeviation } from "../models/weightDeviation";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { IWorkoutProgressView, WorkoutProgressView_next } from "../utils/workoutProgressView";
@@ -146,6 +147,16 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const dispatch = props.dispatch;
   const trackClick = useTrackClick();
   const isCurrent = Progress_isCurrent(progress);
+  const onUpdateProgramWeight = useCallback(
+    (programExerciseId: string, deviation: IWeightDeviation) => {
+      navigateToModal("updateProgramWeightModal", {
+        progressId: progress.id,
+        programExerciseId,
+        setId: deviation.setId,
+      });
+    },
+    [progress.id]
+  );
   const onDeletePress = useCallback(async (): Promise<void> => {
     const confirmed = await Dialog_confirm(
       `Are you sure you want to delete this ${isCurrent ? "ONGOING" : "PAST"} workout?`
@@ -276,6 +287,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         progress={progressView}
         dispatch={props.dispatch}
         renderHeaderMenu={renderHeaderMenu}
+        onUpdateProgramWeight={isCurrent ? onUpdateProgramWeight : undefined}
       />
     );
   } else {

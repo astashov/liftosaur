@@ -32,6 +32,7 @@ import { Weight_build } from "../models/weight";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
+import { IWeightDeviation } from "../models/weightDeviation";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -56,6 +57,7 @@ interface IWorkoutExerciseProps {
   settings: ISettings;
   dispatch: IDispatch;
   onTitleLayout?: (title: View) => void;
+  onUpdateProgramWeight?: (programExerciseId: string, deviation: IWeightDeviation) => void;
 }
 
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
@@ -184,6 +186,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           helps={props.helps}
           subscription={props.subscription}
           onTitleLayout={props.onTitleLayout}
+          onUpdateProgramWeight={props.onUpdateProgramWeight}
         />
       </PerfProbeSubtree>
       <Animated.View layout={WorkoutLayoutTransition}>

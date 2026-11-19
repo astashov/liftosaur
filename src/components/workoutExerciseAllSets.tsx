@@ -37,6 +37,8 @@ import { ProgressStateChanges, ProgressStateChangesView } from "./progressStateC
 import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 import { memo, useCallback, useMemo } from "react";
+import { IWeightDeviation, WeightDeviation_hint } from "../models/weightDeviation";
+import { WeightDeviationLine } from "./weightDeviationLine";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { useTrackClick } from "../utils/clickTracking";
 import { useRem } from "../utils/useRem";
@@ -63,6 +65,7 @@ interface IWorkoutExerciseAllSets {
   otherStates?: IByExercise<IProgramState>;
   settings: ISettings;
   dispatch: IDispatch;
+  onUpdateProgramWeight?: (programExerciseId: string, deviation: IWeightDeviation) => void;
 }
 
 export interface IWorkoutExerciseSetsExpansion {
@@ -101,6 +104,25 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
     Equipment_getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
   const lbEntry = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex), [props.entryIndex]);
+  const deviation = useMemo(
+    () =>
+      props.onUpdateProgramWeight != null
+        ? WeightDeviation_hint(props.entry, props.programExercise, props.settings)
+        : undefined,
+    [props.onUpdateProgramWeight, props.entry, props.programExercise, props.settings]
+  );
+  const onUpdateProgramWeight = props.onUpdateProgramWeight;
+  const programExerciseId = props.entry.programExerciseId;
+  const deviationLine = useMemo(
+    () =>
+      deviation != null && onUpdateProgramWeight != null && programExerciseId != null ? (
+        <WeightDeviationLine
+          deviation={deviation}
+          onPress={() => onUpdateProgramWeight(programExerciseId, deviation)}
+        />
+      ) : undefined,
+    [deviation, onUpdateProgramWeight, programExerciseId]
+  );
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const remValue = useRem();
   const rpeLabel = useMemo(() => {
@@ -268,10 +290,11 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         ))}
         {sets.map((set, i) => (
           <WorkoutExerciseSet
+            key={`workout-${set.id}-${i}`}
             isPlayground={props.isPlayground}
             isCurrentProgress={props.isCurrentProgress}
             type="workout"
-            key={`workout-${set.id}-${i}`}
+            footer={deviation?.setIndex === i ? deviationLine : undefined}
             isExpanded={expanded?.mode === "workout" && expanded.setIndex === i}
             onToggleExpand={expansion?.onToggle}
             onCompleteExpansion={expansion?.onComplete}

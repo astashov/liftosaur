@@ -67,7 +67,13 @@ import {
 } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { CollectionUtils_compact, CollectionUtils_setAt } from "../utils/collection";
+import { CollectionUtils_compact, CollectionUtils_setAt, CollectionUtils_setBy } from "../utils/collection";
+import {
+  IProgramWeightDraft,
+  IProgramWeightTab,
+  IProgramWeightTarget,
+  ProgramWeightScale_apply,
+} from "../models/programWeightScale";
 import { ImportExporter_exportStorage, ImportExporter_getExportedProgram } from "../lib/importexporter";
 import { Storage_mergeStorage, Storage_isChanged, Storage_get, Storage_setAffiliate } from "../models/storage";
 import { History_exportAsCSV, History_pauseWorkoutState } from "../models/history";
@@ -3231,5 +3237,37 @@ export function Thunk_openManageSubscriptions(): IThunk {
     } catch (e) {
       console.warn("IAP openManageSubscriptions failed", e);
     }
+  };
+}
+
+export function Thunk_updateProgramWeight(
+  target: IProgramWeightTarget,
+  tabs: IProgramWeightTab[],
+  draft: IProgramWeightDraft
+): IThunk {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const program = Program_getProgram(state, target.programId);
+    if (program == null) {
+      Dialog_alert("This program doesn't exist anymore.");
+      return;
+    }
+    const progress = Progress_getCurrentProgress(state);
+    const result = ProgramWeightScale_apply(program, progress, target, tabs, draft, state.storage.settings);
+    if ("error" in result) {
+      Dialog_alert(result.error);
+      return;
+    }
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("programs")
+          .recordModify((programs) => CollectionUtils_setBy(programs, "id", result.program.id, result.program)),
+        Progress_lbProgress(0).p("entries").i(result.entryIndex).record(result.entry),
+      ],
+      "Update program weights from workout"
+    );
   };
 }

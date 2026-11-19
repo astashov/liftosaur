@@ -72,6 +72,7 @@ import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { usePerfWhyRender } from "../utils/usePerfWhyRender";
+import { IWeightDeviation } from "../models/weightDeviation";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -92,6 +93,7 @@ interface IWorkoutExerciseCardProps {
   helps: string[];
   otherStates?: IByExercise<IProgramState>;
   onTitleLayout?: (title: View) => void;
+  onUpdateProgramWeight?: (programExerciseId: string, deviation: IWeightDeviation) => void;
 }
 
 type IKebabAction = "edit" | "swap" | "superset" | "notes" | "remove";
@@ -599,6 +601,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           settings={props.settings}
           dispatch={props.dispatch}
           subscription={props.subscription}
+          onUpdateProgramWeight={props.onUpdateProgramWeight}
         />
       </View>
     </View>

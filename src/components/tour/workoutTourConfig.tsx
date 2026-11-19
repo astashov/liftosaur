@@ -56,7 +56,8 @@ export const workoutTourConfig: ITourConfig = {
           </Text>
           <Text className={paraCn}>
             Changes you make during a workout (e.g. going heavier or less reps) are just for today - they don't change
-            the program.
+            the program. If you lift a different weight, tap <Text className="font-bold">Update program…</Text> under
+            the set to change the program too.
           </Text>
         </>
       ),

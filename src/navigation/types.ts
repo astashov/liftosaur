@@ -129,6 +129,7 @@ export type IRootStackParamList = {
   dateModal: { progressId: number };
   equipmentModal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
   rm1Modal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
+  updateProgramWeightModal: { progressId: number; programExerciseId: string; setId: string };
   supersetPickerModal: { progressId: number };
   playgroundEditModal:
     | { context: "playground"; weekIndex: number; dayIndex: number }

@@ -56,6 +56,7 @@ import {
 import { NavScreenScrollContext } from "../navigation/NavScreenScrollContext";
 import { WorkoutExercise } from "./workoutExercise";
 import { WorkoutExercisePager } from "./workoutExercisePager";
+import { IWeightDeviation } from "../models/weightDeviation";
 import { Scroller, IScrollerHandle } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { WorkoutStripReveal_offset } from "../utils/workoutStripReveal";
@@ -100,6 +101,7 @@ interface IWorkoutViewProps {
   settings: ISettings;
   dispatch: IDispatch;
   renderHeaderMenu?: (onOpenChange: (isOpen: boolean) => void) => ReactNode;
+  onUpdateProgramWeight?: (programExerciseId: string, deviation: IWeightDeviation) => void;
 }
 
 function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
@@ -330,6 +332,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                         settings={props.settings}
                         dispatch={dispatch}
                         onTitleLayout={onTitleLayout}
+                        onUpdateProgramWeight={props.onUpdateProgramWeight}
                       />
                     ))}
                   </WorkoutExercisePager>
@@ -370,6 +373,7 @@ interface IWorkoutExercisePageProps {
   settings: ISettings;
   dispatch: IDispatch;
   onTitleLayout?: (title: View) => void;
+  onUpdateProgramWeight?: (programExerciseId: string, deviation: IWeightDeviation) => void;
 }
 
 function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element {
@@ -412,6 +416,7 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
               settings={props.settings}
               dispatch={props.dispatch}
               onTitleLayout={props.isCurrentPage ? props.onTitleLayout : undefined}
+              onUpdateProgramWeight={props.onUpdateProgramWeight}
             />
           </WorkoutTabStopContext.Provider>
         ) : null}

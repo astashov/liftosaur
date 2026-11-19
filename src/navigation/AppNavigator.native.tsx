@@ -111,6 +111,7 @@ import { NavModalSetTimerEdit } from "./modals/NavModalSetTimerEdit";
 import { NavModalRoundingInfo } from "./modals/NavModalRoundingInfo";
 import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModal1RM } from "./modals/NavModal1RM";
+import { NavModalUpdateProgramWeight } from "./modals/NavModalUpdateProgramWeight";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
 import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
@@ -478,6 +479,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="stateVarsModal" component={NavModalStateVars} />
             <RootStack.Screen name="acrossProgramModal" component={NavModalAcrossProgram} />
             <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+            <RootStack.Screen name="updateProgramWeightModal" component={NavModalUpdateProgramWeight} />
             <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
           </RootStack.Group>
           <RootStack.Group

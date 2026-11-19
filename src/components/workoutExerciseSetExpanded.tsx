@@ -301,6 +301,7 @@ export function WorkoutExerciseSetExpanded(props: IWorkoutExerciseSetBodyProps):
             )}
           </View>
         </View>
+        {props.footer != null && <View style={{ paddingLeft: columnWidths.set }}>{props.footer}</View>}
       </View>
     </View>
   );

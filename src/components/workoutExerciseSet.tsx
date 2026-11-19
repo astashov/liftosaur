@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import { memo, useCallback, useMemo } from "react";
 import Animated, { LayoutAnimationConfig } from "react-native-reanimated";
 import { useExpandedRowRegistration, useRefocusAfterKeyboardComplete } from "./workoutCenterExpandedRow";
@@ -107,6 +107,7 @@ interface IWorkoutExerciseSet {
   onCompleteExpansion?: (mode: IProgressMode, setIndex: number) => void;
   previousLines?: IWorkoutSetPreviousLine[];
   onMenuOpenChange?: (isOpen: boolean) => void;
+  footer?: ReactNode;
   subscription?: ISubscription;
   isPlayground: boolean;
   entryIndex: number;
@@ -155,6 +156,7 @@ export interface IWorkoutExerciseSetBodyProps {
   onMenuOpenChange?: (isOpen: boolean) => void;
   platesLine?: IEquipmentLoadPicture;
   onOpenSubscription: () => void;
+  footer?: ReactNode;
 }
 
 function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
@@ -394,6 +396,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     onMenuOpenChange: props.onMenuOpenChange,
     platesLine,
     onOpenSubscription,
+    footer: props.footer,
   };
 
   const rowRef = useExpandedRowRegistration(entryIndex, !!props.isExpanded);

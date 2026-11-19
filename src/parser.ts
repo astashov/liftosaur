@@ -12,7 +12,7 @@ import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, IS
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IProgramMode } from "./models/program";
-import { ILiftoscriptEvaluatorUpdate, ILiftoscriptScalar } from "./liftoscriptEvaluator";
+import { IAssignmentOp, ILiftoscriptEvaluatorUpdate, ILiftoscriptScalar } from "./liftoscriptEvaluator";
 import { Dialog_alert } from "./utils/dialog";
 import memoize from "micro-memoize";
 
@@ -41,6 +41,10 @@ const validateLiftoscript = memoize(
 
 // The pass checks membership with `in`, which also sees inherited keys. A state variable named `__proto__`
 // gives the state a prototype, and then `Object.keys` no longer describes what `in` finds.
+function incAssignmentOp(value: string): IAssignmentOp | undefined {
+  return value === "+=" || value === "-=" || value === "*=" || value === "/=" ? value : undefined;
+}
+
 function hasOnlyOwnKeys(value: object): boolean {
   return Object.getPrototypeOf(value) === Object.prototype;
 }
@@ -182,6 +186,48 @@ export class ScriptRunner {
       return false;
     }
     return hasKeywordMemoized(script, name);
+  }
+
+  public static assignmentOps(script: string, variable: string): IAssignmentOp[] {
+    if (script.indexOf(variable) === -1) {
+      return [];
+    }
+    const ops: IAssignmentOp[] = [];
+    const cursor = parseLiftoscript(script).cursor();
+    do {
+      const node = cursor.node;
+      const isAssignment = node.type.name === NodeName.AssignmentExpression;
+      if (!isAssignment && node.type.name !== NodeName.IncAssignmentExpression) {
+        continue;
+      }
+      const target = node.firstChild;
+      const keyword = target?.type.name === NodeName.VariableExpression ? target.getChild(NodeName.Keyword) : null;
+      if (keyword == null || LiftoscriptEvaluator.getValue(script, keyword) !== variable) {
+        continue;
+      }
+      const opNode = node.getChild(NodeName.IncAssignment);
+      const op = isAssignment || opNode == null ? "=" : incAssignmentOp(LiftoscriptEvaluator.getValue(script, opNode));
+      if (op != null) {
+        ops.push(op);
+      }
+    } while (cursor.next());
+    return ops;
+  }
+
+  public static callsFunction(script: string, name: string): boolean {
+    if (script.indexOf(name) === -1) {
+      return false;
+    }
+    const cursor = parseLiftoscript(script).cursor();
+    do {
+      if (cursor.node.type.name === NodeName.BuiltinFunctionExpression) {
+        const keyword = cursor.node.getChild(NodeName.Keyword);
+        if (keyword != null && LiftoscriptEvaluator.getValue(script, keyword) === name) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
   }
 
   public static safe<T>(cb: () => T, errorMsg: (e: Error) => string, defaultValue: T, disabled?: boolean): T {
