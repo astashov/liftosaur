@@ -573,25 +573,13 @@ export class DynamoUtil implements IDynamoUtil {
     requestItems: NonNullable<BatchWriteCommandInput["RequestItems"]>,
     context: string
   ): Promise<void> {
-    const countRequests = (items: NonNullable<BatchWriteCommandInput["RequestItems"]>): number =>
-      Object.keys(items).reduce((sum, table) => sum + (items[table]?.length ?? 0), 0);
-
-    let pending = requestItems;
-    for (let attempt = 0; attempt < BATCH_MAX_ATTEMPTS; attempt += 1) {
-      const result = await this.dynamo.send(new BatchWriteCommand({ RequestItems: pending }));
-      const unprocessed = (result.UnprocessedItems ?? {}) as NonNullable<BatchWriteCommandInput["RequestItems"]>;
-      if (countRequests(unprocessed) === 0) {
-        return;
-      }
-      pending = unprocessed;
-      this.log.log(
-        `Dynamo batch write retry: ${context} - ${countRequests(pending)} unprocessed item(s), attempt ${attempt + 1}`
-      );
-      await new Promise((resolve) => setTimeout(resolve, batchBackoffMs(attempt)));
-    }
-    throw new Error(
-      `Dynamo batch write (${context}) left ${countRequests(pending)} unprocessed item(s) after ${BATCH_MAX_ATTEMPTS} attempts`
-    );
+    await DynamoUtil_sendBatchWriteWithRetry({
+      requestItems,
+      context,
+      log: this.log,
+      send: (items) => this.dynamo.send(new BatchWriteCommand({ RequestItems: items })),
+      sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+    });
   }
 
   // Like sendBatchWriteWithRetry, but for reads: BatchGetItem can return some keys in
@@ -607,7 +595,17 @@ export class DynamoUtil implements IDynamoUtil {
     const responses: Record<string, Record<string, NativeAttributeValue>[]> = {};
     let pending = requestItems;
     for (let attempt = 0; attempt < BATCH_MAX_ATTEMPTS; attempt += 1) {
-      const result = await this.dynamo.send(new BatchGetCommand({ RequestItems: pending }));
+      let result;
+      try {
+        result = await this.dynamo.send(new BatchGetCommand({ RequestItems: pending }));
+      } catch (e) {
+        if (!DynamoUtil_isThrottlingError(e) || attempt === BATCH_MAX_ATTEMPTS - 1) {
+          throw e;
+        }
+        this.log.log(`Dynamo batch get throttled: ${context} - ${countKeys(pending)} key(s), attempt ${attempt + 1}`);
+        await new Promise((resolve) => setTimeout(resolve, batchBackoffMs(attempt)));
+        continue;
+      }
       for (const table of Object.keys(result.Responses ?? {})) {
         responses[table] = (responses[table] ?? []).concat(result.Responses?.[table] ?? []);
       }
@@ -756,6 +754,59 @@ const BATCH_WRITE_CONCURRENCY = 8;
 function batchBackoffMs(attempt: number): number {
   const ceiling = Math.min(2000, 50 * Math.pow(2, attempt));
   return Math.floor(Math.random() * ceiling);
+}
+
+const THROTTLING_ERROR_NAMES = new Set([
+  "ThrottlingException",
+  "ProvisionedThroughputExceededException",
+  "RequestLimitExceeded",
+]);
+
+export function DynamoUtil_isThrottlingError(e: unknown): boolean {
+  return e instanceof Error && THROTTLING_ERROR_NAMES.has(e.name);
+}
+
+type IBatchWriteRequestItems = NonNullable<BatchWriteCommandInput["RequestItems"]>;
+
+function countBatchWriteRequests(items: IBatchWriteRequestItems): number {
+  return Object.keys(items).reduce((sum, table) => sum + (items[table]?.length ?? 0), 0);
+}
+
+// The SDK gives up on a hot partition key and throws ThrottlingException instead of returning
+// UnprocessedItems. A 684-workout import hit that on every sync2 and failed the request (2026-11-18).
+export async function DynamoUtil_sendBatchWriteWithRetry(args: {
+  requestItems: IBatchWriteRequestItems;
+  context: string;
+  log: ILogUtil;
+  send: (items: IBatchWriteRequestItems) => Promise<{ UnprocessedItems?: BatchWriteCommandInput["RequestItems"] }>;
+  sleep: (ms: number) => Promise<unknown>;
+}): Promise<void> {
+  const { context, log } = args;
+  let pending = args.requestItems;
+  for (let attempt = 0; attempt < BATCH_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const result = await args.send(pending);
+      const unprocessed: IBatchWriteRequestItems = result.UnprocessedItems ?? {};
+      if (countBatchWriteRequests(unprocessed) === 0) {
+        return;
+      }
+      pending = unprocessed;
+      log.log(
+        `Dynamo batch write retry: ${context} - ${countBatchWriteRequests(pending)} unprocessed item(s), attempt ${attempt + 1}`
+      );
+    } catch (e) {
+      if (!DynamoUtil_isThrottlingError(e) || attempt === BATCH_MAX_ATTEMPTS - 1) {
+        throw e;
+      }
+      log.log(
+        `Dynamo batch write throttled: ${context} - ${countBatchWriteRequests(pending)} item(s), attempt ${attempt + 1}`
+      );
+    }
+    await args.sleep(batchBackoffMs(attempt));
+  }
+  throw new Error(
+    `Dynamo batch write (${context}) left ${countBatchWriteRequests(pending)} unprocessed item(s) after ${BATCH_MAX_ATTEMPTS} attempts`
+  );
 }
 
 const SENSITIVE_LOG_KEYS = new Set(["passwordHash"]);
