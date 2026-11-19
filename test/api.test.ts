@@ -209,6 +209,14 @@ describe("API v1", () => {
       );
       expect(updateResult.statusCode).to.equal(200);
 
+      const getResult = await handler(
+        buildEvent("GET", `/api/v1/history/${recordId}`, { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(getResult.statusCode).to.equal(200);
+      expect(parseBody(getResult).data.id).to.equal(recordId);
+      expect(parseBody(getResult).data.text).to.contain("120lb");
+
       const deleteResult = await handler(
         buildEvent("DELETE", `/api/v1/history/${recordId}`, { headers: apiHeaders(apiKey) }),
         { getRemainingTimeInMillis: () => 10000 }
@@ -220,6 +228,12 @@ describe("API v1", () => {
         getRemainingTimeInMillis: () => 10000,
       });
       expect(parseBody(listAfter).data.records.length).to.equal(0);
+
+      const getAfter = await handler(
+        buildEvent("GET", `/api/v1/history/${recordId}`, { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(getAfter.statusCode).to.equal(404);
     });
 
     it("links history record to program when program name is provided", async () => {

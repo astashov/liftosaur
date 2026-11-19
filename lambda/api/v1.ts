@@ -4,6 +4,7 @@ import { IDI } from "../utils/di";
 import { withApiAuth, ResponseUtils_apiJson, apiError, IApiKeyAuthResult } from "../utils/apiKeyAuth";
 import {
   ApiV1_getHistory,
+  ApiV1_getHistoryRecord,
   ApiV1_createHistory,
   ApiV1_updateHistory,
   ApiV1_deleteHistory,
@@ -141,6 +142,18 @@ export const getV1HistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-get-history", async (auth) => {
     return resultToResponse(await ApiV1_getHistory(auth.userId, auth.user, params, di));
+  });
+};
+
+export const getV1HistoryRecordEndpoint = Endpoint.build("/api/v1/history/:id");
+export const getV1HistoryRecordHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1HistoryRecordEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-history-record", async (auth) => {
+    return resultToResponse(await ApiV1_getHistoryRecord(auth.userId, auth.user, parseInt(params.id, 10), di));
   });
 };
 

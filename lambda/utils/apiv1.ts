@@ -154,6 +154,22 @@ export async function ApiV1_getHistory(
   });
 }
 
+export async function ApiV1_getHistoryRecord(
+  userId: string,
+  user: ILimitedUserDao,
+  recordId: number,
+  di: IDI
+): Promise<IApiResult<{ id: number; text: string }>> {
+  if (!Number.isFinite(recordId)) {
+    return err(400, "invalid_input", "Invalid history record id");
+  }
+  const [record] = await new UserDao(di).getHistoryByUserId(userId, { ids: [recordId] });
+  if (record == null) {
+    return err(404, "not_found", "History record not found");
+  }
+  return ok({ id: record.id, text: LiftohistorySerializer_serialize(record, user.storage.settings) });
+}
+
 export async function ApiV1_createHistory(
   userId: string,
   user: ILimitedUserDao,

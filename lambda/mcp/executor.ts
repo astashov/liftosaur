@@ -2,6 +2,7 @@ import { ILimitedUserDao } from "../dao/userDao";
 import { IDI } from "../utils/di";
 import {
   ApiV1_getHistory,
+  ApiV1_getHistoryRecord,
   ApiV1_createHistory,
   ApiV1_updateHistory,
   ApiV1_deleteHistory,
@@ -228,18 +229,8 @@ export async function McpToolExecutor_execute(
         di
       );
 
-    case "get_history_record": {
-      const id = parseInt(args.id as string, 10);
-      const result = await ApiV1_getHistory(userId, user, { limit: "200" }, di);
-      if (!result.success) {
-        return result;
-      }
-      const record = result.data.records.find((r) => r.id === id);
-      if (!record) {
-        return err(404, "not_found", "History record not found");
-      }
-      return { success: true, data: record };
-    }
+    case "get_history_record":
+      return ApiV1_getHistoryRecord(userId, user, parseInt(args.id as string, 10), di);
 
     case "list_friends":
       return ApiV1_listFriends(userId, di);

@@ -216,6 +216,8 @@ import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import {
   getV1HistoryEndpoint,
   getV1HistoryHandler,
+  getV1HistoryRecordEndpoint,
+  getV1HistoryRecordHandler,
   postV1HistoryEndpoint,
   postV1HistoryHandler,
   putV1HistoryEndpoint,
@@ -5047,6 +5049,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteReactionEndpoint, deleteReactionHandler)
       .get(getFollowInvitePageEndpoint, getFollowInvitePageHandler)
       .get(getV1HistoryEndpoint, getV1HistoryHandler)
+      .get(getV1HistoryRecordEndpoint, getV1HistoryRecordHandler)
       .post(postV1HistoryEndpoint, postV1HistoryHandler)
       .put(putV1HistoryEndpoint, putV1HistoryHandler)
       .delete(deleteV1HistoryEndpoint, deleteV1HistoryHandler)
