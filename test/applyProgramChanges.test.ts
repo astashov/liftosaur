@@ -196,6 +196,15 @@ describe("Progress_applyProgramDay", () => {
     expect(newProgress.entries[0].sets.map((s) => s.timer)).to.eql([60, 180, 180]);
   });
 
+  it("keeps the current set variation of a reused exercise", () => {
+    const text = "# Week 1\n## Day 1\nSquat / 3x5 100lb / ! 2x2 120lb\nBench Press / ...Squat\n";
+    const progress = buildProgress(text);
+    expect(progress.entries[1].sets.map((s) => s.reps)).to.eql([2, 2]);
+
+    const newProgress = applyText(progress, text.replace("...Squat", "...Squat / 60s"));
+    expect(newProgress.entries[1].sets.map((s) => s.reps)).to.eql([2, 2]);
+  });
+
   it("applies changed set timer and askWeight", () => {
     const progress = buildProgress("# Week 1\n## Day 1\nPlank / 3x5 30s|60s / 100lb\n");
     expect(progress.entries[0].sets.map((s) => s.setTimer)).to.eql([30, 30, 30]);

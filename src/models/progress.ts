@@ -96,7 +96,6 @@ import {
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
-  PlannerProgramExercise_currentSetVariationIndex,
   PlannerProgramExercise_programWarmups,
 } from "../pages/planner/models/plannerProgramExercise";
 import { UidFactory_generateUid } from "../utils/generator";
@@ -2043,7 +2042,7 @@ export function Progress_applyProgramExercise(
   settings: ISettings,
   forceWarmupSets?: boolean
 ): IHistoryEntry {
-  const variationIndex = PlannerProgramExercise_currentSetVariationIndex(programExercise);
+  const variationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
   const programExerciseWarmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
 
