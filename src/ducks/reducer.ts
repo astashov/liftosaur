@@ -23,6 +23,7 @@ import {
   Progress_changeDate,
   Progress_stopTimer,
   Progress_getCurrentProgress,
+  Progress_daySetCounts,
   Progress_applyProgramDay,
   Progress_runInitialUpdateScripts,
   Progress_isSetTimerCheckDue,
@@ -357,6 +358,7 @@ export type IApplyProgramChangesToProgress = {
   // Set only where the program itself changed, which is the only place that can know what the day looked like
   // before. Without it the pass is value-only — see `Progress_applyProgramDay`.
   oldDayKeys?: string[];
+  oldSetCounts?: Partial<Record<string, number>>;
 };
 
 export type IUpdateProgressAction = {
@@ -494,10 +496,10 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
             oldProgram.planner != null && newProgram.planner != null
               ? ObjectUtils_isEqual(oldProgram.planner, newProgram.planner)
               : oldProgram.planner === newProgram.planner;
-          const oldDayKeys = isPlannerSame
-            ? undefined
-            : Program_getDayExerciseKeys(Program_evaluate(oldProgram, newState.storage.settings), progress.day);
-          dispatch({ type: "ApplyProgramChangesToProgress", oldDayKeys });
+          const oldEvaluated = isPlannerSame ? undefined : Program_evaluate(oldProgram, newState.storage.settings);
+          const oldDayKeys = oldEvaluated ? Program_getDayExerciseKeys(oldEvaluated, progress.day) : undefined;
+          const oldSetCounts = oldEvaluated ? Progress_daySetCounts(oldEvaluated, progress.day) : undefined;
+          dispatch({ type: "ApplyProgramChangesToProgress", oldDayKeys, oldSetCounts });
         }
       }
     },
@@ -906,6 +908,7 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
       let newProgress = Progress_applyProgramDay(progress, program, progress.day, state.storage.settings, {
         programExerciseIds: action.programExerciseIds,
         oldDayKeys: action.oldDayKeys,
+        oldSetCounts: action.oldSetCounts,
         stats: state.storage.stats,
       });
       newProgress = Progress_runInitialUpdateScripts(

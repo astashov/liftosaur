@@ -89,10 +89,15 @@ import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../ut
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment_getUnitForExerciseType } from "./equipment";
 import { IByTag, IByExercise } from "../pages/planner/plannerEvaluator";
-import { IPlannerProgramExercise, IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
+import {
+  IPlannerProgramExercise,
+  IPlannerProgramExerciseEvaluatedSet,
+  IPlannerProgramExerciseWithType,
+} from "../pages/planner/models/types";
 import {
   PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_getState,
+  PlannerProgramExercise_currentEvaluatedSetVariation,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
@@ -2035,50 +2040,111 @@ export function Progress_getDayData(progress: IHistoryRecord): IDayData {
   };
 }
 
+function programSetToProgressSet(
+  progressSet: ISet | undefined,
+  programSet: IPlannerProgramExerciseEvaluatedSet,
+  programSetIndex: number,
+  index: number,
+  programExercise: IPlannerProgramExerciseWithType,
+  settings: ISettings
+): ISet {
+  return {
+    ...progressSet,
+    id: progressSet?.id ?? UidFactory_generateUid(6),
+    vtype: "set",
+    index,
+    reps: programSet.maxrep,
+    minReps: programSet.minrep,
+    rpe: programSet.rpe,
+    isUnilateral: Exercise_getIsUnilateral(programExercise.exerciseType, settings),
+    originalWeight: programSet.weight,
+    weight: ProgramSet_getEvaluatedWeight(programSet, programExercise.exerciseType, settings),
+    isAmrap: programSet.isAmrap,
+    logRpe: programSet.logRpe,
+    label: programSet.label,
+    timer: programSet.timer,
+    setTimer: programSet.setTimer,
+    isOverflowSetTimer: programSet.isOverflowSetTimer,
+    auto: programSet.auto,
+    askWeight: programSet.askWeight,
+    programSetIndex,
+  };
+}
+
+function mergeSetsByPosition(
+  progressSets: ISet[],
+  programSets: IPlannerProgramExerciseEvaluatedSet[],
+  programExercise: IPlannerProgramExerciseWithType,
+  settings: ISettings
+): ISet[] {
+  const newSets: ISet[] = [];
+  for (let i = 0; i < Math.max(progressSets.length, programSets.length); i++) {
+    const progressSet: ISet | undefined = progressSets[i];
+    const programSet = programSets[i];
+    if (!!progressSet?.isCompleted) {
+      newSets.push(progressSet);
+    } else if (programSet != null) {
+      newSets.push(programSetToProgressSet(progressSet, programSet, i, newSets.length, programExercise, settings));
+    }
+  }
+  return newSets;
+}
+
+function mergeSetsByProgramSetIndex(
+  progressSets: ISet[],
+  programSets: IPlannerProgramExerciseEvaluatedSet[],
+  oldSetCount: number | undefined,
+  programExercise: IPlannerProgramExerciseWithType,
+  settings: ISettings
+): ISet[] {
+  const newSets: ISet[] = [];
+  for (const progressSet of progressSets) {
+    const programSetIndex = progressSet.programSetIndex!;
+    const programSet = programSets[programSetIndex];
+    if (progressSet.isCompleted) {
+      newSets.push({ ...progressSet, index: newSets.length });
+    } else if (programSet != null) {
+      newSets.push(
+        programSetToProgressSet(progressSet, programSet, programSetIndex, newSets.length, programExercise, settings)
+      );
+    }
+  }
+  const present = new Set(progressSets.map((s) => s.programSetIndex));
+  programSets.forEach((programSet, programSetIndex) => {
+    if (!present.has(programSetIndex) && programSetIndex >= (oldSetCount ?? 0)) {
+      newSets.push(
+        programSetToProgressSet(undefined, programSet, programSetIndex, newSets.length, programExercise, settings)
+      );
+    }
+  });
+  return newSets;
+}
+
+export function Progress_daySetCounts(program: IEvaluatedProgram, day: number): Partial<Record<string, number>> {
+  const counts: Partial<Record<string, number>> = {};
+  const programDay = Program_getProgramDay(program, day);
+  for (const exercise of programDay ? Program_getProgramDayUsedExercises(programDay) : []) {
+    counts[exercise.key] = PlannerProgramExercise_currentEvaluatedSetVariation(exercise)?.sets.length ?? 0;
+  }
+  return counts;
+}
+
 export function Progress_applyProgramExercise(
   progressEntry: IHistoryEntry | undefined,
   index: number,
   programExercise: IPlannerProgramExerciseWithType,
   settings: ISettings,
-  forceWarmupSets?: boolean
+  forceWarmupSets?: boolean,
+  oldSetCount?: number
 ): IHistoryEntry {
   const variationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
   const programExerciseWarmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
 
   if (progressEntry != null) {
-    const newSetsNum = Math.max(progressEntry.sets.length, sets.length);
-    const newSets: ISet[] = [];
-    for (let i = 0; i < newSetsNum; i++) {
-      const progressSet: ISet | undefined = progressEntry.sets[i] as ISet | undefined;
-      const programSet = sets[i];
-      if (!!progressSet?.isCompleted) {
-        newSets.push(progressSet);
-      } else if (programSet != null) {
-        const originalWeight = programSet.weight;
-        const weight = ProgramSet_getEvaluatedWeight(programSet, programExercise.exerciseType, settings);
-        newSets.push({
-          ...progressSet,
-          id: progressSet?.id ?? UidFactory_generateUid(6),
-          vtype: "set",
-          index: newSets.length,
-          reps: programSet.maxrep,
-          minReps: programSet.minrep,
-          rpe: programSet.rpe,
-          isUnilateral: Exercise_getIsUnilateral(programExercise.exerciseType, settings),
-          originalWeight,
-          weight,
-          isAmrap: programSet.isAmrap,
-          logRpe: programSet.logRpe,
-          label: programSet.label,
-          timer: programSet.timer,
-          setTimer: programSet.setTimer,
-          isOverflowSetTimer: programSet.isOverflowSetTimer,
-          auto: programSet.auto,
-          askWeight: programSet.askWeight,
-        });
-      }
-    }
+    const newSets = progressEntry.sets.every((s) => s.programSetIndex != null)
+      ? mergeSetsByProgramSetIndex(progressEntry.sets, sets, oldSetCount, programExercise, settings)
+      : mergeSetsByPosition(progressEntry.sets, sets, programExercise, settings);
     let newWarmupSets = progressEntry.warmupSets;
     if (progressEntry.warmupSets.every((w) => !w.isCompleted)) {
       const firstWeight = newSets[0]?.weight;
@@ -2124,6 +2190,7 @@ export function Progress_applyProgramExercise(
         isOverflowSetTimer: set.isOverflowSetTimer,
         auto: set.auto,
         askWeight: set.askWeight,
+        programSetIndex: i,
       };
     });
     const firstWeight = newSets[0]?.weight;
@@ -2156,6 +2223,9 @@ export interface IApplyProgramDayOptions {
   // the workout lacks was never added or was removed by the user is only answerable by diffing the two programs.
   // Absent (fresh boot, restore, non-program change) means no structural work.
   oldDayKeys?: string[];
+  // Per exercise key, how many sets the current variation had before the program changed. A program set missing
+  // from the workout is appended only at or past this count; below it, the user deleted it. Absent means append.
+  oldSetCounts?: Partial<Record<string, number>>;
   // Only read when inserting — a newly added exercise runs its update script the same way a freshly started
   // workout would, and that reads bodyweight.
   stats?: IStats;
@@ -2260,7 +2330,8 @@ export function Progress_applyProgramDay(
     if (!programExercise) {
       return entry;
     }
-    return Progress_applyProgramExercise(entry, index, programExercise, settings, false);
+    const oldSetCount = options?.oldSetCounts?.[entry.programExerciseId];
+    return Progress_applyProgramExercise(entry, index, programExercise, settings, false, oldSetCount);
   });
 
   return { ...reindexed, entries: newEntries };

@@ -8,7 +8,7 @@ import {
   Program_nextHistoryRecord,
   Program_nextHistoryRecordFromEvaluated,
 } from "../src/models/program";
-import { Progress_applyProgramDay, Progress_reindexEntries } from "../src/models/progress";
+import { Progress_applyProgramDay, Progress_daySetCounts, Progress_reindexEntries } from "../src/models/progress";
 import { History_createCustomEntry } from "../src/models/history";
 import { Stats_getEmpty } from "../src/models/stats";
 import { IExercisePickerState, IExerciseType, IHistoryRecord, ITimedSetSide } from "../src/types";
@@ -39,15 +39,22 @@ class Workout {
   // The program change, threaded exactly as the reducer will: the keys of the day as it was, plus the day as it
   // now is. `withOldKeys: false` is the fresh-boot case, where there is nothing to diff against.
   public edit(newText: string, options?: { withOldKeys?: boolean }): Workout {
-    const oldKeys = Program_getDayExerciseKeys(this.evaluate(this.text), this.progress.day);
+    const oldEvaluated = this.evaluate(this.text);
+    const oldKeys = Program_getDayExerciseKeys(oldEvaluated, this.progress.day);
+    const oldSetCounts = Progress_daySetCounts(oldEvaluated, this.progress.day);
     this.text = newText;
     this.progress = Progress_applyProgramDay(
       this.progress,
       this.evaluate(newText),
       this.progress.day,
       settings,
-      options?.withOldKeys === false ? {} : { oldDayKeys: oldKeys }
+      options?.withOldKeys === false ? {} : { oldDayKeys: oldKeys, oldSetCounts }
     );
+    return this;
+  }
+
+  public deleteSet(entryIndex: number, setIndex: number): Workout {
+    this.progress.entries[entryIndex].sets.splice(setIndex, 1);
     return this;
   }
 
@@ -194,6 +201,28 @@ describe("Progress_applyProgramDay", () => {
 
     const newProgress = applyText(progress, "# Week 1\n## Day 1\nSquat / 3x5 / 100lb / 180s\n");
     expect(newProgress.entries[0].sets.map((s) => s.timer)).to.eql([60, 180, 180]);
+  });
+
+  it("keeps a deleted middle set deleted and retargets the rest by their program set", () => {
+    const w = workout(day("Squat / 1x8 200lb, 1x8 180lb, 1x5 160lb")).deleteSet(0, 1).complete(0, 0);
+    w.edit(day("Squat / 1x8 170lb, 1x8 150lb, 1x5 135lb"));
+    const sets = w.progress.entries[0].sets;
+    expect(sets.map((s) => [s.reps, s.weight?.value, s.programSetIndex])).to.eql([
+      [8, 200, 0],
+      [5, 135, 2],
+    ]);
+  });
+
+  it("keeps a deleted last set deleted", () => {
+    const w = workout(day("Squat / 3x5 / 200lb")).deleteSet(0, 2);
+    w.edit(day("Squat / 3x5 / 170lb"));
+    expect(w.progress.entries[0].sets.map((s) => s.weight?.value)).to.eql([170, 170]);
+  });
+
+  it("appends a set the program added", () => {
+    const w = workout(day("Squat / 3x5 / 200lb")).complete(0, 0);
+    w.edit(day("Squat / 4x5 / 200lb"));
+    expect(w.progress.entries[0].sets.map((s) => s.programSetIndex)).to.eql([0, 1, 2, 3]);
   });
 
   it("keeps the current set variation of a reused exercise", () => {
