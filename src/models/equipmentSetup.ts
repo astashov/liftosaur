@@ -378,7 +378,7 @@ function typeErrors(setup: IEquipmentSetup): string[] {
       return [
         ...(setup.ranges.length === 0 && setup.values.length === 0 ? ["Add at least one weight."] : []),
         ...rangeErrors(setup.ranges),
-        ...(setup.values.some((v) => !isNumber(v) || v <= 0) ? ["Single weights must be above 0."] : []),
+        ...(setup.values.some((v) => !isNumber(v) || v < 0) ? ["Single weights can't be negative."] : []),
         ...countErrors(setup.addOn ?? [], "added plate"),
         ...combinationErrors(setup.addOn ?? [], "added plates"),
       ];

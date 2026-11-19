@@ -149,11 +149,13 @@ describe("EquipmentSetupEdit", () => {
   });
 
   it("adds and removes single weights, sorted and without duplicates", () => {
-    expect(EquipmentSetupEdit_addValue([10, 20], 15)).to.eql([10, 15, 20]);
+    expect(EquipmentSetupEdit_addValue([10, 20], 15, true)).to.eql([10, 15, 20]);
     const values = [10, 20];
-    expect(EquipmentSetupEdit_addValue(values, 20)).to.equal(values);
-    expect(EquipmentSetupEdit_addValue(values, 0)).to.equal(values);
-    expect(EquipmentSetupEdit_addValue(values, undefined)).to.equal(values);
+    expect(EquipmentSetupEdit_addValue(values, 20, true)).to.equal(values);
+    expect(EquipmentSetupEdit_addValue(values, 0, true)).to.eql([0, 10, 20]);
+    expect(EquipmentSetupEdit_addValue(values, 0, false)).to.equal(values);
+    expect(EquipmentSetupEdit_addValue(values, -5, true)).to.equal(values);
+    expect(EquipmentSetupEdit_addValue(values, undefined, true)).to.equal(values);
     expect(EquipmentSetupEdit_removeValue(values, 10)).to.eql([20]);
   });
 

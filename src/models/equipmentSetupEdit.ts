@@ -199,10 +199,10 @@ export function EquipmentSetupEdit_addWeight(
     return { ...setup, addOn: EquipmentSetupEdit_addPlates(setup.addOn ?? [], weight) };
   }
   if (list === "builtin" && setup.type === "stack") {
-    return { ...setup, builtin: EquipmentSetupEdit_addValue(setup.builtin ?? [], weight) };
+    return { ...setup, builtin: EquipmentSetupEdit_addValue(setup.builtin ?? [], weight, false) };
   }
   if (list === "values" && setup.type === "fixed") {
-    return { ...setup, values: EquipmentSetupEdit_addValue(setup.values, weight) };
+    return { ...setup, values: EquipmentSetupEdit_addValue(setup.values, weight, true) };
   }
   return setup;
 }
@@ -269,8 +269,13 @@ export function EquipmentSetupEdit_bodyweightHelp(
   return `${intro}${share} ${programWeight} ${unit} in a program means ${meaning}.`;
 }
 
-export function EquipmentSetupEdit_addValue(values: number[], value: number | undefined): number[] {
-  if (value == null || !(value > 0) || values.indexOf(value) !== -1) {
+export function EquipmentSetupEdit_addValue(
+  values: number[],
+  value: number | undefined,
+  isZeroAllowed: boolean
+): number[] {
+  const isAboveMinimum = value != null && (isZeroAllowed ? value >= 0 : value > 0);
+  if (value == null || !isAboveMinimum || values.indexOf(value) !== -1) {
     return values;
   }
   return [...values, value].sort((a, b) => a - b);
