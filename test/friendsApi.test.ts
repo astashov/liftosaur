@@ -447,7 +447,9 @@ describe("Friends API", () => {
     await call(event("PUT", "/api/reactions/boris/3000", "anna", { body: { reaction: "dino_pr" } }));
     const querySpy = sandbox.spy(di.dynamo, "query");
     const feed = body(await call(event("GET", "/api/feed", "anna"))).data;
-    const reactionQueries = querySpy.getCalls().filter((c) => c.args[0].tableName === reactionTableNames.prod.reactions);
+    const reactionQueries = querySpy
+      .getCalls()
+      .filter((c) => c.args[0].tableName === reactionTableNames.prod.reactions);
     expect(reactionQueries.length).to.equal(1);
     expect(feed.reactions["boris:1000"].counts).to.eql({ dino_fire: 1 });
     expect(feed.reactions["boris:2000"].total).to.equal(0);

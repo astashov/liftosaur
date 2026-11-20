@@ -79,7 +79,15 @@ function modelOf(layout: ILiftographLayout): IModel {
   for (const row of layout.rows) {
     pushGap(top, cursor, row.lines.first - 1);
     if (!row.isRow || row.openLine == null) {
-      top.push({ type: "row", index: row.index, isRow: false, head: [], headIsText: [], body: [slotPiece(row, 0)], close: [] });
+      top.push({
+        type: "row",
+        index: row.index,
+        isRow: false,
+        head: [],
+        headIsText: [],
+        body: [slotPiece(row, 0)],
+        close: [],
+      });
     } else {
       const body: IBodyPiece[] = [];
       let inner = row.openLine + 1;
@@ -201,7 +209,9 @@ function wrap(row: IRowPiece): void {
   row.isRow = true;
   row.head = ["row {"];
   row.headIsText = [false];
-  row.body = row.body.map((piece) => (piece.type === "slot" ? { ...piece, lines: reindent(piece.lines, ROW_INDENT) } : piece));
+  row.body = row.body.map((piece) =>
+    piece.type === "slot" ? { ...piece, lines: reindent(piece.lines, ROW_INDENT) } : piece
+  );
   row.close = ["}"];
 }
 
@@ -235,7 +245,14 @@ function newRow(piece: ISlotPiece, isRow: boolean): IRowPiece {
         body: [{ ...piece, lines: reindent(piece.lines, ROW_INDENT) }],
         close: ["}"],
       }
-    : { type: "row", isRow: false, head: [], headIsText: [], body: [{ ...piece, lines: reindent(piece.lines, "") }], close: [] };
+    : {
+        type: "row",
+        isRow: false,
+        head: [],
+        headIsText: [],
+        body: [{ ...piece, lines: reindent(piece.lines, "") }],
+        close: [],
+      };
 }
 
 function insertRowAt(model: IModel, at: number, row: IRowPiece): void {
@@ -415,7 +432,8 @@ export function LiftographLayoutEdit_insert(
   snippet: string
 ): IEither<string, string> {
   const item = LiftographDocument_parse(snippet).items[0];
-  const kind = item == null ? undefined : item.type === "widget" ? item.kind : item.type === "text" ? "text" : undefined;
+  const kind =
+    item == null ? undefined : item.type === "widget" ? item.kind : item.type === "text" ? "text" : undefined;
   if (kind == null) {
     return { success: false, error: "Nothing to insert" };
   }

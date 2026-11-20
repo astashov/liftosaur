@@ -18,7 +18,9 @@ function slotTexts(l: ILiftographLayout): string[][] {
 
 describe("LiftographLayout_build", () => {
   it("turns top-level items into one-slot rows and rows into slots", () => {
-    const l = layout("value / source: workout\n\nrow {\n  graph {\n    name: A / source: workout / y: volume\n  }\n  calendar\n}");
+    const l = layout(
+      "value / source: workout\n\nrow {\n  graph {\n    name: A / source: workout / y: volume\n  }\n  calendar\n}"
+    );
     expect(l.rows.map((r) => [r.isRow, r.slots.map((s) => s.kind)])).to.eql([
       [false, ["value"]],
       [true, ["graph", "calendar"]],
@@ -58,6 +60,8 @@ describe("LiftographLayout_fits", () => {
     expect(LiftographLayout_fits(["value"], 3)).to.equal(true);
     expect(LiftographLayout_fits(["graph"], 3)).to.equal(false);
     expect(LiftographLayout_fits(["text", "text", "text", "text", "text"])).to.equal(false);
-    expect(LiftographLayout_fitError(["muscles", "value", "value"])).to.equal("A muscles needs at least 1/2 of the row");
+    expect(LiftographLayout_fitError(["muscles", "value", "value"])).to.equal(
+      "A muscles needs at least 1/2 of the row"
+    );
   });
 });

@@ -50,9 +50,7 @@ test("tab walks reps, weight, check, then the next exercise", async ({ page }) =
 
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("entry-bent-over-row").getByTestId("set-completed").first()).toBeVisible();
-  await expect
-    .poll(() => focused(page))
-    .toEqual({ testId: "input-set-reps-field", entry: "entry-bent-over-row" });
+  await expect.poll(() => focused(page)).toEqual({ testId: "input-set-reps-field", entry: "entry-bent-over-row" });
 
   const walked: string[] = [];
   let landed: IFocused = { testId: null, entry: null };

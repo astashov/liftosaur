@@ -78,7 +78,9 @@ export function LiftographLayout_build(doc: ILiftographDocument): ILiftographLay
   const text = doc.text;
   const spans = doc.lines.map((line) => line.span);
   const lines = spans.map((span, i) =>
-    i + 1 < spans.length ? text.slice(span.from, spans[i + 1].from).replace(/\r?\n$/, "") : text.slice(span.from, span.to)
+    i + 1 < spans.length
+      ? text.slice(span.from, spans[i + 1].from).replace(/\r?\n$/, "")
+      : text.slice(span.from, span.to)
   );
   const eol = spans.length > 1 && text.slice(spans[0].from, spans[1].from).endsWith("\r\n") ? "\r\n" : "\n";
   const types = lineTypes(doc);
@@ -135,7 +137,8 @@ export function LiftographLayout_build(doc: ILiftographDocument): ILiftographLay
     const lineRange = range(item.span.from, item.span.to, item.caption);
     const slots = item.items.map(slotOf);
     const lastSlotLine = slots[slots.length - 1].lines.last;
-    const closeLine = lineRange.last > lastSlotLine && types[lineRange.last] === T.CloseLine ? lineRange.last : undefined;
+    const closeLine =
+      lineRange.last > lastSlotLine && types[lineRange.last] === T.CloseLine ? lineRange.last : undefined;
     return {
       index,
       isRow: true,
