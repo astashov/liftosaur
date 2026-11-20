@@ -6,6 +6,7 @@ import {
   PlaywrightUtils_typeKeyboard,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_selectOption,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
@@ -27,9 +28,10 @@ test("Basic Beginner Program", async ({ page }) => {
     .locator("[data-testid^=exercise-]:has-text('Bent Over Row')")
     .getByTestId("exercise-equipment-picker")
     .click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    "barbell"
+  );
   await page.waitForTimeout(1000);
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
@@ -44,9 +46,10 @@ test("Basic Beginner Program", async ({ page }) => {
   // Second exercise is successful
   await page.getByTestId("workout-tab-squat").click();
   await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    "barbell"
+  );
   await page.waitForTimeout(1000);
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
@@ -74,9 +77,10 @@ test("Basic Beginner Program", async ({ page }) => {
   // Second exercise is successful
   await page.getByTestId("workout-tab-deadlift").click();
   await page.locator("[data-testid^=exercise-]:has-text('Deadlift')").getByTestId("exercise-equipment-picker").click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    "barbell"
+  );
   await page.waitForTimeout(1000);
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
@@ -97,9 +101,10 @@ test("Basic Beginner Program", async ({ page }) => {
     .locator("[data-testid^=exercise-]:has-text('Overhead Press')")
     .getByTestId("exercise-equipment-picker")
     .click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    "barbell"
+  );
   await page.waitForTimeout(1000);
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 

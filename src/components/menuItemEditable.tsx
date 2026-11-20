@@ -1,12 +1,11 @@
 import React, { JSX, Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { MenuItemWrapper } from "./menuItem";
 import { StringUtils_dashcase } from "../utils/string";
-import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
 import { lg } from "../utils/posthog";
 import { MathUtils_normalizeNumStr } from "../utils/math";
 
-type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
+type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
 
 interface IMenuItemEditableValueProps {
   name: string;
@@ -36,11 +35,6 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   const [patternError, setPatternError] = useState<boolean>(false);
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-  let numberOfVisibleItems = Math.min(props.values?.length || 0, 4);
-  if (numberOfVisibleItems % 2 === 0) {
-    numberOfVisibleItems += 1;
-  }
   const onChange = (v?: string, e?: React.SyntheticEvent): void => {
     lg(`menu-item-edit-${StringUtils_dashcase(props.name)}`);
     if (props.onChange != null) {
@@ -49,15 +43,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   };
   return (
     <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
-      <label
-        className="flex flex-col flex-1 py-1 text-base"
-        onClick={(e) => {
-          const target = e.target as HTMLElement;
-          if (props.type === "select" && !target.classList.contains("scroll-barrel-item")) {
-            setIsExpanded(!isExpanded);
-          }
-        }}
-      >
+      <label className="flex flex-col flex-1 py-1 text-base">
         <div className="flex items-center flex-1">
           {props.prefix}
           {props.isNameHtml ? (
@@ -108,18 +94,6 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
         )}
       </label>
       {props.nextLine}
-      {props.type === "select" && (
-        <div className="text-base">
-          <ScrollBarrell
-            itemHeight={28}
-            numberOfVisibleItems={numberOfVisibleItems}
-            isExpanded={isExpanded}
-            values={props.values || []}
-            defaultSelectedValue={props.value}
-            onSelect={(v) => onChange(v)}
-          />
-        </div>
-      )}
     </MenuItemWrapper>
   );
 }
@@ -143,15 +117,20 @@ export function MenuItemValue(
       </select>
     );
   } else if (props.type === "select") {
-    const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
     return (
-      <div
+      <select
         data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-        className="flex-1 py-2 pl-2 text-right text-text-link"
-        style={{ minHeight: "2.5rem" }}
+        className="w-full py-2 pl-2 text-right bg-transparent appearance-none cursor-pointer text-text-link"
+        style={{ minHeight: "2.5rem", textAlignLast: "right" }}
+        value={props.value ?? undefined}
+        onChange={handleChange(props.onChange, props.setPatternError)}
       >
-        {keyValue && keyValue[1]}
-      </div>
+        {(props.values || []).map(([key, label]) => (
+          <option key={key} value={key}>
+            {label}
+          </option>
+        ))}
+      </select>
     );
   } else if (props.type === "text") {
     return (

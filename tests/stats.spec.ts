@@ -3,7 +3,7 @@ import {
   PlaywrightUtils_disableSubscriptions,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
-  PlaywrightUtils_selectFromBarrel,
+  PlaywrightUtils_selectMenuItem,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
@@ -61,12 +61,12 @@ test("enters stats and shows graphs", async ({ page }) => {
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("lb");
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("lb");
 
-  await PlaywrightUtils_selectFromBarrel(page, "type", "shoulders");
+  await PlaywrightUtils_selectMenuItem(page, "type", "shoulders");
   await expect(page.getByTestId("input-stats-value")).toHaveCount(1);
   await expect(page.getByTestId("input-stats-value").nth(0)).toHaveValue("20");
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("in");
 
-  await PlaywrightUtils_selectFromBarrel(page, "type", "left-forearm");
+  await PlaywrightUtils_selectMenuItem(page, "type", "left-forearm");
   await expect(page.getByTestId("input-stats-value")).toHaveCount(3);
   await expect(page.getByTestId("input-stats-value").nth(0)).toHaveValue("40");
   await expect(page.getByTestId("input-stats-value").nth(1)).toHaveValue("35");

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Locator, Page, expect } from "@playwright/test";
 import { localdomain, localport } from "../src/localdomain";
+import { StringUtils_dashcase } from "../src/utils/string";
 
 export const startpage = `https://${localdomain}.liftosaur.com:${localport}/app/`;
 
@@ -76,19 +77,19 @@ export async function PlaywrightUtils_select(page: Page, locator: Locator, name:
     .click();
 }
 
-// The barrel under `menu-item-<name>` is opened by tapping `menu-item-name-<name>`, but that tap
-// is a toggle, and the expanded state can survive navigating away and back (screens stay mounted).
-// Blindly tapping the label would then close the barrel and the item would never become visible.
-export async function PlaywrightUtils_selectFromBarrel(page: Page, name: string, value: string): Promise<void> {
-  const item = page.getByTestId(`menu-item-${name}`).getByTestId(`scroll-barrel-item-${value}`);
-  await expect(async () => {
-    if (!(await item.isVisible())) {
-      await page.getByTestId(`menu-item-name-${name}`).click();
-    }
-    await expect(item).toBeVisible({ timeout: 1000 });
-  }).toPass();
-  await item.scrollIntoViewIfNeeded();
-  await item.click();
+export async function PlaywrightUtils_selectOption(select: Locator, dashLabel: string): Promise<void> {
+  await expect(select).toBeVisible();
+  const labels = await select.locator("option").allTextContents();
+  const label = labels.find((l) => StringUtils_dashcase(l) === dashLabel);
+  if (label == null) {
+    throw new Error(`No option "${dashLabel}" in [${labels.join(", ")}]`);
+  }
+  await select.selectOption({ label });
+}
+
+export async function PlaywrightUtils_selectMenuItem(page: Page, name: string, dashLabel: string): Promise<void> {
+  const select = page.getByTestId(`menu-item-${name}`).getByTestId(`menu-item-value-${name}`);
+  await PlaywrightUtils_selectOption(select, dashLabel);
 }
 
 export async function PlaywrightUtils_swipeLeft(page: Page, locator: Locator): Promise<void> {

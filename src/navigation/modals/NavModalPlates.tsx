@@ -30,7 +30,7 @@ export function NavModalPlates(): JSX.Element {
   };
 
   return (
-    <ModalScreenContainer onClose={onClose}>
+    <ModalScreenContainer onClose={onClose} zIndex={70}>
       <FormSheet>
         <ModalPlatesContent
           units={data != null ? Equipment_setupOf(data, settings).unit : settings.units}

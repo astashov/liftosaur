@@ -26,7 +26,7 @@ export function NavModalNewEquipment(): JSX.Element {
     route.params?.gymId ?? settings.gyms.find((g) => g.id === state.selectedGymId)?.id ?? settings.gyms[0].id;
 
   return (
-    <ModalScreenContainer onClose={onClose}>
+    <ModalScreenContainer onClose={onClose} zIndex={70}>
       <FormSheet>
         <ModalNewEquipmentContent
           onClose={onClose}

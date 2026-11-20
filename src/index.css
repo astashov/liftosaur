@@ -408,36 +408,12 @@ input[type="checkbox"].checkbox {
   box-shadow: 0 0 4px rgba(255, 27, 27, 0.38);
 }
 
-.barrel-bg {
-  background: linear-gradient(
-    0deg,
-    rgb(255, 255, 255) 0px,
-    rgb(255, 255, 255) 5%,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0) 60%,
-    rgb(255, 255, 255) 95%,
-    rgb(255, 255, 255) 100%
-  );
-}
-
 .dark .footer-shadow {
   box-shadow: 0 0 4px 0 rgba(255, 255, 255, 0.2);
 }
 
 .dark .navbar-shadow {
   box-shadow: 0 0 4px rgba(255, 255, 255, 0.38);
-}
-
-.dark .barrel-bg {
-  background: linear-gradient(
-    0deg,
-    rgb(0, 0, 0) 0px,
-    rgb(0, 0, 0) 5%,
-    rgba(0, 0, 0, 0) 30%,
-    rgba(0, 0, 0, 0) 60%,
-    rgb(0, 0, 0) 95%,
-    rgb(0, 0, 0) 100%
-  );
 }
 
 .radio input[type="radio"] {

@@ -9,7 +9,7 @@ import { StringUtils_dashcase } from "../utils/string";
 import { MathUtils_normalizeNumStr } from "../utils/math";
 import { ActionSheet_show } from "../utils/actionSheet";
 
-type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
+type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select";
 
 interface IMenuItemEditableValueProps {
   name: string;
@@ -103,7 +103,7 @@ export function MenuItemValue(
     onInput?: (v: string) => void;
   } & IMenuItemEditableValueProps
 ): JSX.Element | null {
-  if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
+  if (props.type === "desktop-select" || props.type === "select") {
     const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
 
     const showPicker = (): void => {

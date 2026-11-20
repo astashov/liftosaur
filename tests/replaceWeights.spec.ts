@@ -7,6 +7,7 @@ import {
   PlaywrightUtils_disableTours,
   PlaywrightUtils_activeScreen,
   PlaywrightUtils_saveExerciseInSheet,
+  PlaywrightUtils_selectOption,
 } from "./playwrightUtils";
 
 test("replaces weights", async ({ page }) => {
@@ -39,9 +40,10 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-barbell").click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    "barbell"
+  );
   await page.waitForTimeout(1000);
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 

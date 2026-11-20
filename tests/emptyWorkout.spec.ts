@@ -4,6 +4,7 @@ import {
   PlaywrightUtils_typeKeyboard,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_selectOption,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
@@ -151,9 +152,7 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("change-next-day").click();
 
-  await page.getByTestId("menu-item-value-program").click();
-  await page.getByTestId("scroll-barrel-item-adhoccy").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-adhoccy").click();
+  await PlaywrightUtils_selectOption(page.getByTestId("menu-item-value-program"), "adhoccy");
   await page.waitForTimeout(1000);
   await page.getByTestId("menu-item-next-day-picker-1").click();
 

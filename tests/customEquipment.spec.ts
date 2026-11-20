@@ -7,6 +7,7 @@ import {
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
   PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_selectOption,
 } from "./playwrightUtils";
 
 async function fillNumber(page: Page, testId: string, value: string): Promise<void> {
@@ -14,9 +15,10 @@ async function fillNumber(page: Page, testId: string, value: string): Promise<vo
 }
 
 async function pickEquipment(page: Page, name: string): Promise<void> {
-  await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
-  await page.getByTestId(`scroll-barrel-item-${name}`).scrollIntoViewIfNeeded();
-  await page.getByTestId(`scroll-barrel-item-${name}`).click();
+  await PlaywrightUtils_selectOption(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment"),
+    name
+  );
   await page.waitForTimeout(500);
 }
 
@@ -69,7 +71,9 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("equipment-copy-this").click();
-  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("Bicep Curl");
+  await expect(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").locator("option:checked")
+  ).toHaveText("Bicep Curl");
   await fillNumber(page, "input-equipment-base-field", "0");
   await closeModal(page);
   await expect(page.getByTestId("set-plates-list")).toHaveText("10");
@@ -77,7 +81,9 @@ Bicep Curl / 1x5 20lb / warmup: none`
   await page.getByTestId("exercise-equipment-picker").click();
   await expect(page.getByTestId("equipment-remove")).toHaveText("Delete Bicep Curl");
   await page.getByTestId("equipment-remove").click();
-  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("Dumbbell");
+  await expect(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").locator("option:checked")
+  ).toHaveText("Dumbbell");
   await expect(page.getByTestId("equipment-remove")).toHaveText("Hide Dumbbell");
   await closeModal(page);
 
@@ -93,7 +99,9 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("exercise-equipment-picker").click();
-  await expect(page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment")).toHaveText("None");
+  await expect(
+    page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").locator("option:checked")
+  ).toHaveText("None");
 });
 
 test("bands equipment", async ({ page }) => {
@@ -107,9 +115,7 @@ test("bands equipment", async ({ page }) => {
   await page.getByTestId("menu-item-available-equipment").click();
   await page.getByRole("button", { name: "Add New Equipment Type" }).click();
   await page.getByTestId("equipment-name-input").fill("Loops");
-  await page.getByTestId("menu-item-value-type").click();
-  await page.getByTestId("scroll-barrel-item-bands").scrollIntoViewIfNeeded();
-  await page.getByTestId("scroll-barrel-item-bands").click();
+  await PlaywrightUtils_selectOption(page.getByTestId("menu-item-value-type"), "bands");
   await page.waitForTimeout(500);
   await page.getByTestId("add-equipment-submit").click();
   await expect(page.locator(`[data-testid="equipment-editor"]:visible`)).toHaveCount(1);
