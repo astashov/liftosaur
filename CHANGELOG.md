@@ -17,6 +17,19 @@
 -->
 
 ---
+date: 2026-11-19
+title: Set program weights to workout weights if they differ during workout
+---
+
+If you lift a different weight than the program says (e.g. 185 lb instead of 210 lb), the set now shows a line: **185 lb instead of 210 lb · Update program…**
+
+If was confusing, and also slightly inconvenient that changing the weight in a workout only affects that workout. Next time, the app would give you the program weight again. So now, if you want to preserve the workout weight in the program, you can tap **Update program…**.
+
+It opens a sheet with all the weights of that exercise in the program, grouped by weeks and days. The app scales them by the same ratio as your change, and rounds them to your plates. You can edit any of them. Tap **Apply**, and the app changes the weights in the program, and today's remaining sets use the new weights too.
+
+The line only shows up for sets with a fixed weight (like `3x5 210lb`), it doesn't show up for percentage of 1RMs - since you can easily just tweak 1RM.
+
+---
 date: 2026-11-16
 title: Added Friends
 ---
