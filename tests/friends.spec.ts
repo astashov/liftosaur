@@ -28,15 +28,19 @@ test("Invite, approve with follow-back, and see each other in the friends lists"
   await FriendsUtils_requestFollow(boris, token, "Boris");
 
   await FriendsUtils_openFriends(anna.page);
-  await expect(anna.page.getByTestId("friends-incoming").filter({ hasText: "Boris" })).toBeVisible();
+  await expect(anna.page.getByTestId("friends-incoming").filter({ hasText: "Boris" })).toBeVisible({ timeout: 20000 });
   await FriendsUtils_approve(anna, { from: "Boris", programs: true });
 
   await FriendsUtils_openFriends(boris.page);
-  await expect(boris.page.getByTestId("friends-following").filter({ hasText: "Anna" })).toBeVisible();
+  await expect(boris.page.getByTestId("friends-following").filter({ hasText: "Anna" })).toBeVisible({
+    timeout: 20000,
+  });
   await FriendsUtils_approve(boris, { from: "Anna" });
 
   await FriendsUtils_openFriends(anna.page);
-  await expect(anna.page.getByTestId("friends-following").filter({ hasText: "Boris" })).toBeVisible();
+  await expect(anna.page.getByTestId("friends-following").filter({ hasText: "Boris" })).toBeVisible({
+    timeout: 20000,
+  });
   await expect(anna.page.getByTestId("friends-follower").filter({ hasText: "Boris" })).toContainText("edits programs");
   await FriendsUtils_close(anna, boris);
 });

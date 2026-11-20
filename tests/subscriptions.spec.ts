@@ -37,7 +37,7 @@ test("subscriptions", async ({ page }) => {
   await PlaywrightUtils_disableTours(page);
   await page.getByTestId("footer-graphs").click();
   await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
-    "Select graphs you want to display"
+    "Your dashboard is empty"
   );
 
   const verifyResponse = page.waitForResponse("**/api/verifysubscriptionkey");
@@ -63,6 +63,6 @@ test("subscriptions", async ({ page }) => {
   await page.getByTestId("button-subscription-free").click();
   await page.getByTestId("footer-graphs").click();
   await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
-    "Select graphs you want to display"
+    "Your dashboard is empty"
   );
 });

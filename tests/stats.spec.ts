@@ -4,6 +4,7 @@ import {
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
   PlaywrightUtils_selectMenuItem,
+  PlaywrightUtils_setDashboardText,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
@@ -91,18 +92,12 @@ test("enters stats and shows graphs", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
-  await page.getByTestId("footer-graphs").click();
-  await page.getByTestId("graphs-modify").click();
+  await PlaywrightUtils_setDashboardText(
+    page,
+    ["graph {", "  name: Shoulders / source: stats(shoulders)", "}"].join("\n")
+  );
 
-  await expect(page.getByTestId("item-graph-bent-over-row")).toBeVisible();
-  await expect(page.getByTestId("menu-item-bodyweight")).toBeVisible();
-  await expect(page.getByTestId("menu-item-shoulders")).toBeVisible();
-  await expect(page.getByTestId("menu-item-left-forearm")).toBeVisible();
-  await expect(page.getByTestId("menu-item-neck")).toBeHidden();
-
-  await page.getByTestId("menu-item-shoulders").click();
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
-
-  await expect(page.getByTestId("graph")).toHaveCount(1);
-  await expect(page.getByTestId("graph").nth(0).locator("css=.u-title")).toHaveText("Shoulders");
+  await expect(page.getByTestId("dashboard-graph")).toHaveCount(1);
+  await expect(page.getByTestId("dashboard-graph-legend")).toHaveText("Shoulders");
+  await expect(page.getByTestId("dashboard-notice")).toHaveCount(0);
 });

@@ -6,6 +6,7 @@ import {
   PlaywrightUtils_finishExercise,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_setDashboardText,
 } from "./playwrightUtils";
 
 test("Muscle Groups", async ({ page }) => {
@@ -85,11 +86,24 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
     (window as any).state.storage.subscription.key = "test";
   });
 
-  await page.getByTestId("footer-graphs").click();
-  await page.getByTestId("graphs-modify").click();
-  await page.getByTestId("modal-graphs").getByText("Anterior Delts Weekly Volume").click();
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
-  await expect(page.getByTestId("graph-data")).toContainText("Anterior Delts Weekly Volume");
+  const anteriorDeltsId = await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: Record<string, { name?: string }> = (window as any).state.storage.settings.muscleGroups.data;
+    return Object.keys(data).find((key) => data[key].name === "Anterior Delts");
+  });
+  expect(anteriorDeltsId).toBeDefined();
+  await PlaywrightUtils_setDashboardText(
+    page,
+    [
+      "graph {",
+      `  name: Anterior Delts Weekly Sets / source: workout / y: muscleSets(${anteriorDeltsId}) / group: sum(1w)`,
+      "}",
+    ].join("\n")
+  );
+  await expect(page.getByTestId("dashboard-graph")).toHaveCount(1);
+  await expect(page.getByTestId("dashboard-graph-legend")).toHaveText("Anterior Delts Weekly Sets");
+  await expect(page.getByTestId("dashboard-graph")).not.toContainText("Unknown muscle group");
+  await expect(page.getByTestId("dashboard-notice")).toHaveCount(0);
 
   await page.getByTestId("footer-home").click();
   await page.getByTestId("toggle-week-insights").click();

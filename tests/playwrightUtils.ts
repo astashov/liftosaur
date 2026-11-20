@@ -157,6 +157,16 @@ export function PlaywrightUtils_typeCodeMirror(
   );
 }
 
+export async function PlaywrightUtils_setDashboardText(page: Page, text: string): Promise<void> {
+  await page.getByTestId("footer-graphs").click();
+  await page.getByTestId("dashboard-edit").and(page.locator(":visible")).click();
+  await page.getByTestId("dashboard-edit-mode-text").click();
+  await expect(page.getByTestId("dashboard-editor-code").locator("css=.cm-content")).toBeVisible();
+  await PlaywrightUtils_typeCodeMirror(page, "dashboard-editor-code", text);
+  await page.getByTestId("dashboard-edit-save").and(page.locator(":visible")).click();
+  await expect(page.getByTestId("dashboard-editor-code")).toBeHidden();
+}
+
 export async function PlaywrightUtils_type(value: string, locator: () => Locator): Promise<void> {
   await locator().clear();
   await expect(locator()).toHaveValue("");

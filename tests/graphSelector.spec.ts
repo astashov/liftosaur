@@ -5,6 +5,7 @@ import {
   PlaywrightUtils_finishExercise,
   PlaywrightUtils_selectBuiltin,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_setDashboardText,
 } from "./playwrightUtils";
 
 test("Graphs", async ({ page }) => {
@@ -16,51 +17,48 @@ test("Graphs", async ({ page }) => {
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-graphs").click();
 
-  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
-    "Select graphs you want to display"
-  );
-  await page.getByTestId("graphs-modify").click();
-  await expect(page.getByTestId("modal-graphs")).toContainText("You haven't tracked any workouts or measurements yet.");
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
+  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText("Your dashboard is empty");
 
   await page.getByTestId("footer-home").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  // Complete workout
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
-
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-graphs").click();
+  await page.getByTestId("dashboard-generate-starter").click();
 
-  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
-    "Select graphs you want to display"
+  await expect(page.getByTestId("dashboard-graph")).toHaveCount(1);
+  const legend = page.getByTestId("dashboard-graph").getByTestId("dashboard-graph-legend");
+  await expect(legend).toHaveCount(3);
+  await expect(legend.filter({ hasText: "Bent Over Row" })).toHaveCount(1);
+  await expect(legend.filter({ hasText: "Bench Press" })).toHaveCount(1);
+  await expect(legend.filter({ hasText: "Squat" })).toHaveCount(1);
+  await expect(page.getByTestId("dashboard-calendar")).toBeVisible();
+  await expect(page.getByTestId("dashboard-muscles")).toBeVisible();
+
+  await PlaywrightUtils_setDashboardText(
+    page,
+    [
+      "graph {",
+      "  name: Bench Press / source: exercise(Bench Press) / y: e1rm",
+      "}",
+      "",
+      "graph {",
+      "  name: Squat / source: exercise(Squat) / y: e1rm",
+      "}",
+    ].join("\n")
   );
 
-  await page.getByTestId("graphs-modify").click();
-
-  await page.getByTestId("item-graph-bent-over-row").click();
-  await page.getByTestId("item-graph-bench-press").click();
-
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
-
-  await expect(page.getByTestId("graph")).toHaveCount(2);
-  await expect(page.getByTestId("graph").nth(0).locator("css=.u-title")).toContainText("Bent Over Row");
-  await expect(page.getByTestId("graph").nth(1).locator("css=.u-title")).toContainText("Bench Press");
-
-  await page.getByTestId("graphs-modify").click();
-
-  await page.getByTestId("item-graph-exercise-bentoverrow_barbell").getByTestId("remove-graph").click();
-  await page.getByTestId("item-graph-squat").click();
-
-  await page.getByTestId("modal-close").and(page.locator(":visible")).click();
-
-  await expect(page.getByTestId("graph")).toHaveCount(2);
-  await expect(page.getByTestId("graph").nth(0).locator("css=.u-title")).toContainText("Bench Press");
-  await expect(page.getByTestId("graph").nth(1).locator("css=.u-title")).toContainText("Squat");
+  await expect(page.getByTestId("dashboard-graph")).toHaveCount(2);
+  await expect(page.getByTestId("dashboard-graph").nth(0).getByTestId("dashboard-graph-legend")).toHaveText(
+    "Bench Press"
+  );
+  await expect(page.getByTestId("dashboard-graph").nth(1).getByTestId("dashboard-graph-legend")).toHaveText("Squat");
+  await expect(page.getByTestId("dashboard-notice")).toHaveCount(0);
 });
