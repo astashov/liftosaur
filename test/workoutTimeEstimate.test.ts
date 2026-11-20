@@ -24,7 +24,7 @@ describe("WorkoutTimeEstimate_dayMs", () => {
     expect(WorkoutTimeEstimate_dayMs([{ sets: tabata }], { rest: 180 })).to.equal(4 * 60 * sec);
   });
 
-  it("rests only after each superset round when there is no superset timer", () => {
+  it("rests the workout timer after every superset set when there is no superset timer", () => {
     const ms = WorkoutTimeEstimate_dayMs(
       [
         { superset: "A", sets: [{ reps: 5 }, { reps: 5 }] },
@@ -32,9 +32,7 @@ describe("WorkoutTimeEstimate_dayMs", () => {
       ],
       { rest: 120 }
     );
-    const round = (20 + 35) * sec + (20 + 70 + 120) * sec;
-    const tail = (20 + 70 + 120) * sec;
-    expect(ms).to.equal(2 * round + tail);
+    expect(ms).to.equal(2 * (20 + 35 + 120) * sec + 3 * (20 + 70 + 120) * sec);
   });
 
   it("uses the superset timer between and after superset sets", () => {
@@ -46,6 +44,17 @@ describe("WorkoutTimeEstimate_dayMs", () => {
       { rest: 180, superset: 30 }
     );
     expect(ms).to.equal(2 * (20 + 35 + 30) * sec);
+  });
+
+  it("prefers the set timer over the superset timer for every superset member", () => {
+    const ms = WorkoutTimeEstimate_dayMs(
+      [
+        { superset: "A", sets: [{ reps: 5, timer: 180 }] },
+        { superset: "A", sets: [{ reps: 5, timer: 180 }] },
+      ],
+      { rest: 120, superset: 60 }
+    );
+    expect(ms).to.equal(2 * (20 + 35 + 180) * sec);
   });
 
   it("counts the work of a unilateral set once per side", () => {
@@ -76,7 +85,7 @@ describe("day approx time callers", () => {
   const text =
     "# Week 1\n## Day 1\nSquat / 3x5 / superset: A\nBench Press / 3x5 / superset: A\nPlank / 3x1 60s|30s\nLunge / 2x10 / 60s";
   const expected =
-    3 * ((20 + 35) * sec + (20 + 35 + 180) * sec) + 3 * (20 + 60 + 30) * sec + 2 * (20 + 2 * 70 + 60) * sec;
+    6 * (20 + 35 + 180) * sec + 3 * (20 + 60 + 30) * sec + 2 * (20 + 2 * 70 + 60) * sec;
 
   it("planner day time handles supersets, set timers and unilateral exercises", () => {
     const planner = { vtype: "planner" as const, name: "P", weeks: PlannerProgram_evaluateText(text) };
