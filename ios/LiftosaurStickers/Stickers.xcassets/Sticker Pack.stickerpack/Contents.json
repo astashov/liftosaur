@@ -1,0 +1,80 @@
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "grid-size" : "regular"
+  },
+  "stickers" : [
+    {
+      "filename" : "dino_flex.sticker"
+    },
+    {
+      "filename" : "dino_fire.sticker"
+    },
+    {
+      "filename" : "dino_pr.sticker"
+    },
+    {
+      "filename" : "dino_hype.sticker"
+    },
+    {
+      "filename" : "dino_heart.sticker"
+    },
+    {
+      "filename" : "dino_gomad.sticker"
+    },
+    {
+      "filename" : "dino_thumbsup.sticker"
+    },
+    {
+      "filename" : "dino_omg.sticker"
+    },
+    {
+      "filename" : "dino_hug2.sticker"
+    },
+    {
+      "filename" : "dino_hug.sticker"
+    },
+    {
+      "filename" : "dino_cry.sticker"
+    },
+    {
+      "filename" : "dino_zercher.sticker"
+    },
+    {
+      "filename" : "dino_pray.sticker"
+    },
+    {
+      "filename" : "dino_big_smile.sticker"
+    },
+    {
+      "filename" : "dino_old.sticker"
+    },
+    {
+      "filename" : "dino_old_gray.sticker"
+    },
+    {
+      "filename" : "dino_hmm_glasses.sticker"
+    },
+    {
+      "filename" : "dino_scream.sticker"
+    },
+    {
+      "filename" : "dino_think.sticker"
+    },
+    {
+      "filename" : "dino_facepalm.sticker"
+    },
+    {
+      "filename" : "dino_joy.sticker"
+    },
+    {
+      "filename" : "dino_based.sticker"
+    },
+    {
+      "filename" : "dino_this.sticker"
+    }
+  ]
+}
