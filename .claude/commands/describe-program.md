@@ -243,11 +243,17 @@ Do NOT add separate volume or duration sections — the app shows this data in w
 
 After static validation passes, use the Liftosaur MCP tools to simulate the program and verify progression logic works correctly.
 
-Use `mcp__claude_ai_Liftosaur__run_playground` to simulate workouts. Pass the Liftoscript code (everything inside the ```liftoscript code block) as `programText`. Test the following:
+Use `mcp__claude_ai_Liftosaur__run_playground` to simulate workouts. Pass the Liftoscript code (everything inside the ```liftoscript code block) as `programText`.
 
-1. **Basic workout simulation** — call with just `programText` to verify the first workout day renders correctly with the right exercises, sets, reps, and weights.
+The returned workout lists only exercises with at least one completed set. A call with no commands returns `exercises: {}`. To see an exercise's sets, reps and weights, send `complete_set(exercise, set)` for its sets.
+
+`week` is used only together with `day`. Without `day`, the playground simulates week 1, day 1.
+
+Test the following:
+
+1. **Basic workout simulation** — call with `programText` and `complete_set` for every set of the first day. Check the exercises, sets, reps and weights.
 2. **Multi-day check** — if the program has multiple days, test at least 2 different days by passing the `day` parameter.
-3. **Multi-week check** — if the program is multi-week (`isMultiweek: true`), test at least 2 different weeks by passing the `week` parameter to verify week-to-week variation.
+3. **Multi-week check** — if the program is multi-week (`isMultiweek: true`), test at least 2 different weeks, including the last week, by passing both `week` and `day`.
 4. **Progression test** — simulate completing a workout and finishing it to verify progression logic fires correctly:
    - Use `complete_set(exercise, set)` commands to mark all sets done for at least one key exercise
    - Use `finish_workout()` to trigger progression scripts
@@ -255,6 +261,68 @@ Use `mcp__claude_ai_Liftosaur__run_playground` to simulate workouts. Pass the Li
 5. **Failure path** — if the program has deload or failure logic, simulate a failed workout (e.g., use `change_reps` to set fewer reps than required) and `finish_workout()` to verify the deload/regression fires.
 
 If the playground reveals issues (wrong weights, progression not firing, incorrect sets), fix the Liftoscript code, re-run static validation, and re-test in the playground.
+
+## Verification Phase (Independent Reviewers)
+
+After static and playground validation pass, launch 3 reviewer subagents **in a single message** so they run in parallel. Each one reviews the saved file from scratch.
+
+### Rules for all reviewers
+
+- Give each reviewer the file path `programs/builtin/<program-id>.md` and the list of source URLs you used during research. Do NOT pass your own conclusions, summaries, or "I resolved X as Y" notes. A reviewer that is told the answer tends to confirm it.
+- Reviewers report only. They must NOT edit the file. You apply the fixes.
+- Every finding must have:
+  - **severity**: `high` (wrong fact, wrong number, broken progression), `medium` (misleading or incomplete), or `low` (style, minor improvement)
+  - **location**: the section heading, or the Liftoscript exercise and week/day
+  - **evidence**: a source URL with a short quote, a spreadsheet value next to the code value, a playground result, or the builtin program that does it better
+  - **fix**: the exact replacement text or code
+- Drop any finding that has no evidence.
+- Each reviewer ends with a findings list, or "No findings".
+- Tell every reviewer: the Liftoscript uses only built-in exercises from `llms/exercises.md`. When the original exercise has no built-in, the code uses the closest built-in instead. A substitution is not a finding by itself. Report it only when a closer built-in exists, when the substitute trains a different movement or muscle, or when the prose names the original without saying what the code uses.
+
+### Reviewer 1: Facts in the prose
+
+Prompt it to check every factual claim in the description and the FAQ against primary sources:
+- Author, creation year, original source URL, and the program's stated philosophy
+- Claims about who the program is for, its goal, and its history or versions
+- Claims in Pros & Cons, "What Next", and the FAQ answers
+- Every `[Program Name](/programs/<id>)` link points to an `id` that exists in `programs/builtin/`
+- The frontmatter values (`frequency`, `age`, `duration`, `goal`) are valid per `src/models/builtinPrograms.ts` and match the program
+
+It must fetch the original source itself, and find at least one source not in the list it was given (liftvault, Reddit via `npm run r ./lambda/scripts/fetch_reddit.ts <url>`, the author's book or site). Do NOT use WebFetch on reddit.com.
+
+### Reviewer 2: Program fidelity (exercises, sets, reps, weights, logic)
+
+Prompt it to compare the Liftoscript code against the original program and the spreadsheet:
+- Exercise selection and order per day, and that each exercise is the right built-in from `llms/exercises.md`
+- Sets, reps, percentages / RPE, AMRAP sets, and rest times for every week and day
+- Progression: increments, when it triggers, failure and deload rules, stage transitions
+- The prose matches the code. Every number in the text (increments, set counts, percentages, rest times, deload amounts) must equal the number in the code. Example bug: the text says "+5lb per session", the code says `10lb`.
+- Starting weights are sensible (see `startingWeightLb` in `src/models/exercise.ts`) when the program does not use 1RM % or RPE
+
+It must use `mcp__claude_ai_Liftosaur__run_playground` to check behaviour, not only read the code. Tell it that the output lists only exercises with completed sets, so each call needs `complete_set` commands, and that `week` needs `day`:
+- At least 2 days and, for multi-week programs, at least 2 weeks, including the last week
+- A successful `finish_workout()` for each progression type in the program, checking `updatedProgramText`
+- A failed workout (`change_reps` below target) when the program has failure or deload logic
+- For multi-day programs, a full week of finished workouts, to catch progression that runs once per day instead of once per week
+
+### Reviewer 3: Liftoscript best practices
+
+Prompt it to read `llms/liftoscript.md`, `llms/liftoscript_examples.md`, and 3-4 builtin programs in `programs/builtin/` with a similar structure (same progression type or same periodization). Then check the code for:
+- Templates and reuse (`...t1`, `used: none` templates) instead of repeated exercise blocks
+- `[1-N]` week ranges used for repetition, and no `[1,3,5]` used as week selection (commas are display order)
+- `dp()` with a single rep count in the set notation, never a rep range
+- `custom()` progressions that change `weights` in a multi-day program are guarded with `dayInWeek` or similar
+- Rest timers repeated in every week override that needs them
+- Built-in progression functions (`lp`, `dp`, `sum`) used where they fit, instead of a hand-written `custom()`
+- Correct superset syntax, and state variables named clearly
+- Anything a similar builtin program does more simply
+
+### Applying the findings
+
+1. Fix every `high` and `medium` finding. Fix `low` findings when the fix is clear. If two reviewers disagree, follow the source priority from Research Phase Step 4.
+2. Re-run static validation and the playground checks after any code change.
+3. If you fixed a `high` finding, re-run only the reviewer that raised it, once. Do not loop more than once.
+4. In your final report, list each finding and what you did with it (fixed, or skipped and why).
 
 ## Writing Style
 
@@ -275,12 +343,10 @@ Follow the full writing style guide in `.claude/skills/writing-style/SKILL.md`. 
 
 Before finishing, verify:
 - [ ] Liftoscript code validates successfully (no errors from validation script)
+- [ ] All 3 reviewers ran, and every `high` and `medium` finding is fixed
 - [ ] Every section has specific numbers, not vague descriptions
 - [ ] Pros and cons are concrete and actionable, not generic
 - [ ] Exercise selection explains WHY, not just WHAT (no sets/reps tables — the widget handles that)
 - [ ] Progressive overload section covers both success AND failure cases
 - [ ] The description would let someone understand the program's approach without reading any other source
 - [ ] All ambiguities from original sources have been resolved or explicitly called out
-- [ ] Numbers match across sources (sets/reps in Liftoscript match the spreadsheet)
-- [ ] All exercises used in Liftoscript are from the built-in list in `llms/exercises.md`
-- [ ] Liftoscript uses appropriate patterns (templates, reuse, dp/lp/custom) — compare with examples in `llms/liftoscript_examples.md`
