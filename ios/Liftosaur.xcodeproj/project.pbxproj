@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,6 +15,7 @@
 		2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */; };
 		2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */ = {isa = PBXBuildFile; fileRef = CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */; };
 		326EEB1E8DD314E2E32D357B /* RCTFastTextView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */; };
+		3A3E3DCD30B14A6D00D8EA72 /* LiftosaurStickers.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A3E3DC630B14A6B00D8EA72 /* LiftosaurStickers.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
 		3A6705F72FCD20D60023C017 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3A6705F62FCD20D60023C017 /* notification.m4r */; };
 		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
@@ -161,6 +162,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3A3E3DCB30B14A6D00D8EA72 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3A3E3DC530B14A6B00D8EA72;
+			remoteInfo = LiftosaurStickers;
+		};
 		3AACC5062FB2A15E001C68AA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
@@ -191,6 +199,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				3A3E3DCD30B14A6D00D8EA72 /* LiftosaurStickers.appex in Embed Foundation Extensions */,
 				3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -232,6 +241,7 @@
 		1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Iosevka-Regular.ttf"; path = "../assets/fonts/Iosevka-Regular.ttf"; sourceTree = "<group>"; };
 		2970733CBB5FA79134CD53EE /* FastTextShadowNode.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FastTextShadowNode.h; path = Liftosaur/FastText/FastTextShadowNode.h; sourceTree = "<group>"; };
 		2E2DCE34013D967839DD9676 /* RCTFastTextRegistrar.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTFastTextRegistrar.h; path = Liftosaur/FastText/RCTFastTextRegistrar.h; sourceTree = "<group>"; };
+		3A3E3DC630B14A6B00D8EA72 /* LiftosaurStickers.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurStickers.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3A6705F62FCD20D60023C017 /* notification.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = notification.m4r; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -373,6 +383,20 @@
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurShare.h; path = Liftosaur/RCTLiftosaurShare.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3A3E3DD030B14A6D00D8EA72 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3A3E3DC530B14A6B00D8EA72 /* LiftosaurStickers */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3A3E3DD030B14A6D00D8EA72 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiftosaurStickers; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
@@ -643,6 +667,7 @@
 				C0FF1C00000000000000A002 /* LiftosaurWatchComplication */,
 				3AACC6162FB355BA001C68AA /* Shared */,
 				3AACC5402FB2C92F001C68AA /* Fonts */,
+				3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -660,6 +685,7 @@
 				3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */,
 				3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */,
 				C0FF1C00000000000000A001 /* LiftosaurWatchComplication.appex */,
+				3A3E3DC630B14A6B00D8EA72 /* LiftosaurStickers.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -708,6 +734,7 @@
 			dependencies = (
 				3AACC5072FB2A15E001C68AA /* PBXTargetDependency */,
 				3AACC5C52FB351D0001C68AA /* PBXTargetDependency */,
+				3A3E3DCC30B14A6D00D8EA72 /* PBXTargetDependency */,
 			);
 			name = Liftosaur;
 			packageProductDependencies = (
@@ -716,6 +743,26 @@
 			productName = Liftosaur;
 			productReference = 13B07F961A680F5B00A75B9A /* Liftosaur.app */;
 			productType = "com.apple.product-type.application";
+		};
+		3A3E3DC530B14A6B00D8EA72 /* LiftosaurStickers */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3A3E3DD130B14A6D00D8EA72 /* Build configuration list for PBXNativeTarget "LiftosaurStickers" */;
+			buildPhases = (
+				3A3E3DC430B14A6B00D8EA72 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */,
+			);
+			name = LiftosaurStickers;
+			packageProductDependencies = (
+			);
+			productName = LiftosaurStickers;
+			productReference = 3A3E3DC630B14A6B00D8EA72 /* LiftosaurStickers.appex */;
+			productType = "com.apple.product-type.app-extension.messages-sticker-pack";
 		};
 		3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */ = {
 			isa = PBXNativeTarget;
@@ -786,6 +833,9 @@
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
 					};
+					3A3E3DC530B14A6B00D8EA72 = {
+						CreatedOnToolsVersion = 27.2;
+					};
 					3AACC4F62FB2A15D001C68AA = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -807,8 +857,8 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
-				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
+				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -818,6 +868,7 @@
 				3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */,
 				3AACC5BB2FB351CF001C68AA /* LiftosaurWatch */,
 				C0FF1C00000000000000E001 /* LiftosaurWatchComplication */,
+				3A3E3DC530B14A6B00D8EA72 /* LiftosaurStickers */,
 			);
 		};
 /* End PBXProject section */
@@ -855,6 +906,13 @@
 				3AACC5632FB2C941001C68AA /* Poppins-LightItalic.ttf in Resources */,
 				3AACC5642FB2C941001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */,
 				95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3A3E3DC430B14A6B00D8EA72 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,9 +991,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -987,9 +1049,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1133,6 +1199,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3A3E3DCC30B14A6D00D8EA72 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3A3E3DC530B14A6B00D8EA72 /* LiftosaurStickers */;
+			targetProxy = 3A3E3DCB30B14A6D00D8EA72 /* PBXContainerItemProxy */;
+		};
 		3AACC5072FB2A15E001C68AA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */;
@@ -1168,7 +1239,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1202,7 +1273,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -1216,6 +1287,74 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		3A3E3DCE30B14A6D00D8EA72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurStickers/Info.plist;
+				INFOPLIST_KEY_NSStickerSharingLevel = OS;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 127;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.LiftosaurStickers;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3A3E3DCF30B14A6D00D8EA72 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurStickers/Info.plist;
+				INFOPLIST_KEY_NSStickerSharingLevel = OS;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 127;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.LiftosaurStickers;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -1249,7 +1388,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "-DWIDGET_EXTENSION -D EXPO_CONFIGURATION_DEBUG";
@@ -1298,7 +1437,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "-DWIDGET_EXTENSION -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.LiftosaurWorkoutWidgetExtension;
@@ -1345,7 +1484,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
@@ -1398,7 +1537,7 @@
 					"@executable_path/Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp;
@@ -1655,7 +1794,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp.complications;
@@ -1701,7 +1840,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 126;
+				MARKETING_VERSION = 127;
 				MTL_FAST_MATH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp.complications;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1724,6 +1863,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3A3E3DD130B14A6D00D8EA72 /* Build configuration list for PBXNativeTarget "LiftosaurStickers" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3A3E3DCE30B14A6D00D8EA72 /* Debug */,
+				3A3E3DCF30B14A6D00D8EA72 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -1767,11 +1915,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};
-		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */ = {
+		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/Runestone;
 		};
