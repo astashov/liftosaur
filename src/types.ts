@@ -295,7 +295,7 @@ export const statsHealthDef = ["sleep", "calories", "protein"] as const;
 export const VUnit = v.picklist(units);
 export type IUnit = v.InferOutput<typeof VUnit>;
 
-export const rm1Formulas = ["rts", "epley", "brzycki"] as const;
+export const rm1Formulas = ["rts", "epley", "brzycki", "lombardi"] as const;
 export const VRm1Formula = v.picklist(rm1Formulas);
 export type I1RMFormula = v.InferOutput<typeof VRm1Formula>;
 

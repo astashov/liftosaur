@@ -1415,7 +1415,7 @@ return multiplier of 0.6, i.e. you probably would be able to lift 60% of your 1R
 state.weight * rpeMultiplier(13, 9);
 ```
 
-First argument is the number of reps (1-30), second - the RPE value (1-10). It uses the user's 1RM formula setting (RTS by default, or Epley, or Brzycki), so a shared program gives slightly different numbers to users with different settings.
+First argument is the number of reps (1-30), second - the RPE value (1-10). It uses the user's 1RM formula setting (RTS by default, or Epley, Brzycki or Lombardi), so a shared program gives slightly different numbers to users with different settings.
 
 #### `floor`
 
@@ -1515,7 +1515,7 @@ This will set 6 reps, 50lb, non-AMRAP, @8 RPE (without logging RPE) to sets from
 
 #### `calculate1RM`
 
-Estimates 1 Rep Max from a weight and number of reps, using the user's 1RM formula setting (RTS by default, or Epley, or Brzycki). `calculateTrainingMax` uses the same setting.
+Estimates 1 Rep Max from a weight and number of reps, using the user's 1RM formula setting (RTS by default, or Epley, Brzycki or Lombardi). `calculateTrainingMax` uses the same setting.
 
 ```javascript
 var.estimated = calculate1RM(completedWeights[1], completedReps[1]);

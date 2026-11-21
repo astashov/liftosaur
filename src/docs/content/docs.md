@@ -268,7 +268,7 @@ There are some built-in functions you can use in the expressions. They are:
 
 #### `calculateTrainingMax`
 
-Used for calculating the training max, which is 90% of 1 rep max. 1 rep max is calculated by the formula picked in Settings → 1RM Formula: RTS by default, or [Epley or Brzycki](https://en.wikipedia.org/wiki/One-repetition_maximum). So a shared program gives slightly different numbers to users with different settings. Mostly useful for 5/3/1 variations.
+Used for calculating the training max, which is 90% of 1 rep max. 1 rep max is calculated by the formula picked in Settings → 1RM Formula: RTS by default, or [Epley, Brzycki or Lombardi](https://en.wikipedia.org/wiki/One-repetition_maximum). So a shared program gives slightly different numbers to users with different settings. Mostly useful for 5/3/1 variations.
 
 ```javascript
 state.nextWeight = calculateTrainingMax(150lb, 5);

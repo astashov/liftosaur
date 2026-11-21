@@ -190,8 +190,15 @@ describe("Weight", () => {
       expect(Weight_rpeMultiplier(5, 10, "brzycki")).to.be.closeTo(0.889, 0.001);
     });
 
-    it("counts reps in reserve as extra reps for Epley and Brzycki", () => {
-      for (const formula of ["epley", "brzycki"] as const) {
+    it("gives the plain Lombardi values at RPE 10", () => {
+      expect(Weight_rpeMultiplier(1, 10, "lombardi")).to.equal(1);
+      expect(Weight_rpeMultiplier(5, 10, "lombardi")).to.be.closeTo(0.851, 0.001);
+      expect(Weight_rpeMultiplier(10, 10, "lombardi")).to.be.closeTo(0.794, 0.001);
+      expect(Weight_rpeMultiplier(30, 10, "lombardi")).to.be.closeTo(0.712, 0.001);
+    });
+
+    it("counts reps in reserve as extra reps for Epley, Brzycki and Lombardi", () => {
+      for (const formula of ["epley", "brzycki", "lombardi"] as const) {
         expect(Weight_rpeMultiplier(8, 8, formula)).to.equal(Weight_rpeMultiplier(10, 10, formula));
       }
     });
@@ -202,7 +209,7 @@ describe("Weight", () => {
     });
 
     it("falls with every extra rep up to 30 and stays positive", () => {
-      for (const formula of ["rts", "epley"] as const) {
+      for (const formula of ["rts", "epley", "lombardi"] as const) {
         for (const rpe of [1, 5, 6.5, 8, 10]) {
           for (let reps = 2; reps <= 30; reps += 1) {
             const prev = Weight_rpeMultiplier(reps - 1, rpe, formula);

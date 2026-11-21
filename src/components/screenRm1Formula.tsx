@@ -38,7 +38,8 @@ export function ScreenRm1Formula(props: IProps): JSX.Element {
       ))}
       <Text className="pt-4 text-xs text-text-secondary">
         Used for weights of RPE sets, estimated 1RMs in history and graphs, and the rpeMultiplier(), calculate1RM() and
-        calculateTrainingMax() functions in Liftoscript. Reps in reserve count as extra reps for Epley and Brzycki.
+        calculateTrainingMax() functions in Liftoscript. Reps in reserve count as extra reps for Epley, Brzycki and
+        Lombardi.
       </Text>
     </View>
   );

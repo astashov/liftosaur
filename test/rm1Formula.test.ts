@@ -30,6 +30,11 @@ describe("Rm1Formula", () => {
       { reps: 10, pct: 75 },
       { reps: 15, pct: 61 },
     ]);
+    expect(Rm1Formula_preview("lombardi")).to.eql([
+      { reps: 5, pct: 85 },
+      { reps: 10, pct: 79 },
+      { reps: 15, pct: 76 },
+    ]);
   });
 
   it("writes the preview as one line", () => {

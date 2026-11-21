@@ -15,6 +15,8 @@ export function Rm1Formula_name(formula: I1RMFormula): string {
       return "Epley";
     case "brzycki":
       return "Brzycki";
+    case "lombardi":
+      return "Lombardi";
   }
 }
 

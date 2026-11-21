@@ -612,6 +612,8 @@ export function Weight_rpeMultiplier(reps: number, rpe: number, formula: I1RMFor
       return 1 / (1 + repsToFailure / 30);
     case "brzycki":
       return (37 - Math.min(repsToFailure, BRZYCKI_MAX_REPS)) / 36;
+    case "lombardi":
+      return Math.pow(repsToFailure, -0.1);
   }
 }
 

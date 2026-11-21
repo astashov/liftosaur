@@ -18,7 +18,7 @@
 
 ---
 date: 2026-11-21
-title: Choose your 1RM formula - RTS, Epley or Brzycki
+title: Choose your 1RM formula - RTS, Epley, Brzycki or Lombardi
 ---
 
 You can now pick the formula Liftosaur uses to convert between reps, RPE and % of 1RM. Go to **Me** -> **Settings** -> **1RM Formula**.
@@ -26,6 +26,7 @@ You can now pick the formula Liftosaur uses to convert between reps, RPE and % o
 * **RTS (Tuchscherer)** - the default, same as before. Based on Mike Tuchscherer's RPE chart.
 * **Epley** - a classic formula. It gives heavier weights on high-rep sets: 67% of 1RM for 15 reps, vs 60% with RTS.
 * **Brzycki** - another classic. Up to 15 reps it's within 2% of RTS, and it drops faster after that.
+* **Lombardi** - the most generous on high-rep sets: 76% of 1RM for 15 reps.
 
 ---
 date: 2026-11-19
