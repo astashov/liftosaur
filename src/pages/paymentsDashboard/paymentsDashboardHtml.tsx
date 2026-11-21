@@ -11,6 +11,7 @@ export interface IPaymentsDashboardHtmlProps {
   paymentsData: IPaymentsDashboardData[];
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
   summary: IPaymentsSummary;
+  serverTimestamp: number;
   apiKey: string;
   client: Window["fetch"];
   nextBefore: number;
