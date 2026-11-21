@@ -268,23 +268,23 @@ There are some built-in functions you can use in the expressions. They are:
 
 #### `calculateTrainingMax`
 
-Used for calculating the training max, which is 90% of 1 rep max. 1 rep max is calculated by the [Epley formula](https://en.wikipedia.org/wiki/One-repetition_maximum). Mostly useful for 5/3/1 variations.
+Used for calculating the training max, which is 90% of 1 rep max. 1 rep max is calculated by the formula picked in Settings → 1RM Formula: RTS by default, or [Epley or Brzycki](https://en.wikipedia.org/wiki/One-repetition_maximum). So a shared program gives slightly different numbers to users with different settings. Mostly useful for 5/3/1 variations.
 
 ```javascript
 state.nextWeight = calculateTrainingMax(150lb, 5);
 ```
 
-It would assign `155lb` to `state.nextWeight`. First argument is the weight you used for a lift, and the second argument is the number of reps you were able to do with that weight.
+With the default RTS formula it would assign `156lb` to `state.nextWeight`. First argument is the weight you used for a lift, and the second argument is the number of reps you were able to do with that weight.
 
 #### `calculate1RM`
 
-This function operates identically to `calculateTrainingMax`, but it abstains from applying the percentage operation. It is also calculated according to the [Epley formula](https://en.wikipedia.org/wiki/One-repetition_maximum).
+This function operates identically to `calculateTrainingMax`, but it abstains from applying the percentage operation. It uses the same 1RM formula setting.
 
 ```javascript
 state.nextWeight = calculate1RM(150lb, 5);
 ```
 
-It would assign `175lb` to `state.nextWeight`. The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
+With the default RTS formula it would assign `173.35lb` to `state.nextWeight` (`175lb` with Epley). The function refrains from any additional rounding and provides the unadjusted one-repetition maximum, allowing the user to make any further modifications as required.
 
 #### `increment`
 
@@ -313,7 +313,7 @@ return multiplier of 0.6, i.e. you probably would be able to lift 60% of your 1R
 state.weight * rpeMultiplier(13, 9);
 ```
 
-First argument is the number of reps (1-24), second - the RPE value (1-10).
+First argument is the number of reps (1-30), second - the RPE value (1-10). It uses the 1RM formula picked in Settings → 1RM Formula (RTS by default).
 
 #### `floor`
 

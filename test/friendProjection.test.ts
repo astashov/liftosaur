@@ -38,6 +38,14 @@ describe("FriendProjection_settings", () => {
     expect(projected.gyms).to.deep.equal(Settings_build("kg").gyms);
   });
 
+  it("shows the 1RM formula, which the owner's 1RMs depend on", () => {
+    const projected = FriendProjection_settings(
+      { ...ownerSettings(), rm1formula: "brzycki" },
+      Follow_defaultPermissions
+    );
+    expect(projected.rm1formula).to.equal("brzycki");
+  });
+
   it("drops stored fields the map does not know", () => {
     const stored = { ...ownerSettings(), legacySecret: "SECRET" };
     const projected = FriendProjection_settings(stored, Follow_defaultPermissions);

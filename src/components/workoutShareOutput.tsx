@@ -11,6 +11,7 @@ import {
   History_totalRecordReps,
   History_totalRecordSets,
 } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { TimeUtils_formatHHMM } from "../utils/time";
 import { ObjectUtils_keys } from "../utils/object";
 import { StringUtils_pluralize } from "../utils/string";
@@ -29,7 +30,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
   if (!record) {
     return <View />;
   }
-  const allPrs = History_getPersonalRecords(props.history);
+  const allPrs = History_getPersonalRecords(props.history, Rm1Formula_fromSettings(settings));
   const recordPrs = allPrs[record.id] ?? {};
   const numberOfRecordPrs = ObjectUtils_keys(recordPrs).length;
   const entries = record.entries.filter((e) => e.sets.filter((s) => (s.completedReps ?? 0) > 0).length > 0);

@@ -47,6 +47,7 @@ import {
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { History_buildPrevExerciseData, IPrevExerciseData } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { Exercise_get, Exercise_nameWithEquipment, Exercise_toKey } from "../models/exercise";
 import {
   IWorkoutStripLabelFadeRange,
@@ -226,9 +227,10 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   // A string keeps its identity when a set completion rebuilds `entries` with the same exercises.
   const exerciseKeysJoined = progressEntries.map((entry) => Exercise_toKey(entry.exercise)).join("\n");
   const exerciseKeys = useMemo(() => new Set(exerciseKeysJoined.split("\n")), [exerciseKeysJoined]);
+  const formula = Rm1Formula_fromSettings(props.settings);
   const prevExerciseData = useMemo(
-    () => History_buildPrevExerciseData(props.history, props.progress.startTime, sameDay, exerciseKeys),
-    [props.history, props.progress.startTime, sameDay, exerciseKeys]
+    () => History_buildPrevExerciseData(props.history, props.progress.startTime, formula, sameDay, exerciseKeys),
+    [props.history, props.progress.startTime, formula, sameDay, exerciseKeys]
   );
   const isCurrentProgress = Progress_isCurrent(props.progress);
   const titleNodeRef = useRef<View | null>(null);

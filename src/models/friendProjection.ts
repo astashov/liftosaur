@@ -87,6 +87,7 @@ const settingsFields: IFriendFieldMap<ISettings> = {
   alwaysOnDisplay: "private",
   vibration: "private",
   startWeekFromMonday: "private",
+  rm1formula: "public",
   textSize: "private",
   starredExercises: "private",
   recentExercises: "private",

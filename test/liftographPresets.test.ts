@@ -117,12 +117,12 @@ describe("Liftograph presets", () => {
       return set != null ? [Weight_convertTo(set.completedWeight ?? set.weight!, "lb").value] : [];
     });
     const expectedE1rm = squatEntries.flatMap((entry) => {
-      const set = History_getMax1RMSet(entry.sets);
+      const set = History_getMax1RMSet(entry.sets, "rts");
       if (set == null) {
         return [];
       }
       const weight = Weight_convertTo(set.completedWeight ?? set.weight!, "lb");
-      return [Weight_getOneRepMax(weight, set.completedReps || 0, set.completedRpe ?? set.rpe ?? 10).value];
+      return [Weight_getOneRepMax(weight, set.completedReps || 0, "rts", set.completedRpe ?? set.rpe ?? 10).value];
     });
     expect(emissions(maxWeight).map((e) => e.y)).to.deep.equal(expectedMax);
     expect(emissions(e1rm).map((e) => e.y)).to.deep.equal(expectedE1rm);
@@ -133,10 +133,10 @@ describe("Liftograph presets", () => {
     const [e1rm] = seriesOf("graph {\n  name: B / source: exercise(Squat) / y: e1rm\n}");
     const rows = LiftographRows_build(e1rm.source, [record], fxStats(), settings);
     const fold = LiftographFold_run(e1rm, rows, LiftographFold_context(settings, fxStats()));
-    const best = History_getMax1RMSet(record.entries[0].sets);
+    const best = History_getMax1RMSet(record.entries[0].sets, "rts");
     expect(best?.completedRepsLeft).to.equal(8);
     expect(fold.emissions.map((e) => e.y)).to.deep.equal([
-      Weight_getOneRepMax({ value: 100, unit: "lb" }, 8, 10).value,
+      Weight_getOneRepMax({ value: 100, unit: "lb" }, 8, "rts", 10).value,
     ]);
   });
 

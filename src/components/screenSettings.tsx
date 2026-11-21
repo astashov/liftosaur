@@ -10,6 +10,7 @@ import {
   Thunk_exportProgramsToText,
 } from "../ducks/thunks";
 import { MenuItemEditable } from "./menuItemEditable";
+import { Rm1Formula_fromSettings, Rm1Formula_name } from "../models/rm1Formula";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
@@ -235,6 +236,12 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         shouldShowRightArrow={true}
       />
       <MenuItem name="Timers" onClick={() => props.dispatch(Thunk_pushScreen("timers"))} shouldShowRightArrow={true} />
+      <MenuItem
+        name="1RM Formula"
+        value={Rm1Formula_name(Rm1Formula_fromSettings(props.settings))}
+        onClick={() => props.dispatch(Thunk_pushScreen("rm1Formula"))}
+        shouldShowRightArrow={true}
+      />
       <MenuItem
         name="Notifications"
         onClick={() => props.dispatch(Thunk_pushScreen("notifications"))}

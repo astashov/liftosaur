@@ -13,6 +13,7 @@ export type IScreenData =
   | { name: "settings"; params?: Record<string, never> }
   | { name: "account"; params?: Record<string, never> }
   | { name: "timers"; params?: Record<string, never> }
+  | { name: "rm1Formula"; params?: Record<string, never> }
   | { name: "notifications"; params?: Record<string, never> }
   | { name: "plates"; params?: Record<string, never> }
   | { name: "equipmentDetail"; params: { gymId: string; equipmentId: string } }
@@ -102,6 +103,9 @@ export function Screen_tab(screen: IScreen): ITab {
       return "me";
     }
     case "timers": {
+      return "me";
+    }
+    case "rm1Formula": {
       return "me";
     }
     case "notifications": {

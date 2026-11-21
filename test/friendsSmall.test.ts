@@ -220,4 +220,12 @@ describe("FriendProgram_previewSettings", () => {
     expect(settings.exerciseData.squat_barbell?.rm1?.value).to.equal(180);
     expect(settings.theme).to.equal("dark");
   });
+
+  it("uses the owner's 1RM formula with the owner's 1RMs, even when the viewer picked another", () => {
+    const viewer = { ...Settings_build("lb"), rm1formula: "epley" as const };
+    expect(
+      FriendProgram_previewSettings(viewer, { ...Settings_build("lb"), rm1formula: "brzycki" }).rm1formula
+    ).to.equal("brzycki");
+    expect(FriendProgram_previewSettings(viewer, Settings_build("lb")).rm1formula).to.equal(undefined);
+  });
 });

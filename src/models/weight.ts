@@ -1,6 +1,7 @@
 import { CollectionUtils_sort } from "../utils/collection";
 
-import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType, IEquipmentSetup } from "../types";
+import { IWeight, IUnit, ISettings, IPlate, IPercentage, IExerciseType, IEquipmentSetup, I1RMFormula } from "../types";
+import { Rm1Formula_fromSettings } from "./rm1Formula";
 import { n, MathUtils_roundTo005, MathUtils_round, MathUtils_roundFloat, MathUtils_roundTo000005 } from "../utils/math";
 import {
   Equipment_getUnitOrDefaultForExerciseType,
@@ -29,8 +30,8 @@ export function Weight_display(weight: IWeight | IPercentage | number, withUnit:
   }
 }
 
-export function Weight_rpePct(reps: number, rpe: number): IPercentage {
-  return Weight_buildPct(MathUtils_roundTo005(Weight_rpeMultiplier(reps, rpe) * 100));
+export function Weight_rpePct(reps: number, rpe: number, formula: I1RMFormula): IPercentage {
+  return Weight_buildPct(MathUtils_roundTo005(Weight_rpeMultiplier(reps, rpe, formula) * 100));
 }
 
 export function Weight_evaluateWeight(
@@ -223,28 +224,29 @@ export function Weight_decrement(weight: IWeight, settings: ISettings, exerciseT
   return stepWeight(weight, settings, exerciseType, -1);
 }
 
-export function Weight_getOneRepMax(weight: IWeight, reps: number, rpe?: number): IWeight {
+export function Weight_getOneRepMax(weight: IWeight, reps: number, formula: I1RMFormula, rpe?: number): IWeight {
   if (reps === 0) {
     return Weight_build(0, weight.unit);
   } else if (reps === 1) {
     return weight;
   } else {
-    return Weight_roundTo005(Weight_divide(weight, Weight_rpeMultiplier(reps, rpe ?? 10)));
+    return Weight_roundTo005(Weight_divide(weight, Weight_rpeMultiplier(reps, rpe ?? 10, formula)));
   }
 }
 
-export function Weight_getNRepMax(oneRepMax: IWeight, reps: number): IWeight {
+export function Weight_getNRepMax(oneRepMax: IWeight, reps: number, formula: I1RMFormula): IWeight {
   if (reps === 0) {
     return Weight_build(0, oneRepMax.unit);
   } else if (reps === 1) {
     return oneRepMax;
   } else {
-    return Weight_roundTo005(Weight_multiply(oneRepMax, Weight_rpeMultiplier(reps, 10)));
+    return Weight_roundTo005(Weight_multiply(oneRepMax, Weight_rpeMultiplier(reps, 10, formula)));
   }
 }
 
 export function Weight_getTrainingMax(weight: IWeight, reps: number, settings: ISettings): IWeight {
-  return Weight_round(Weight_multiply(Weight_getOneRepMax(weight, reps), 0.9), settings, weight.unit);
+  const oneRepMax = Weight_getOneRepMax(weight, reps, Rm1Formula_fromSettings(settings));
+  return Weight_round(Weight_multiply(oneRepMax, 0.9), settings, weight.unit);
 }
 
 export function Weight_platesWeight(plates: IPlate[]): IWeight {
@@ -587,25 +589,50 @@ export function Weight_calculateRepMax(
   knownRpe: number,
   knownWeight: number,
   targetReps: number,
-  targetRpe: number
+  targetRpe: number,
+  formula: I1RMFormula
 ): number {
-  const knownRpeMultiplier = Weight_rpeMultiplier(knownReps, knownRpe);
+  const knownRpeMultiplier = Weight_rpeMultiplier(knownReps, knownRpe, formula);
   const onerm = knownWeight / knownRpeMultiplier;
-  const targetRpeMultiplier = Weight_rpeMultiplier(targetReps, targetRpe);
+  const targetRpeMultiplier = Weight_rpeMultiplier(targetReps, targetRpe, formula);
   return Math.round(onerm * targetRpeMultiplier);
 }
 
-export function Weight_rpeMultiplier(reps: number, rpe: number): number {
+export function Weight_rpeMultiplier(reps: number, rpe: number, formula: I1RMFormula): number {
   if (reps === 1 && rpe === 10) {
     return 1;
   }
-  reps = Math.max(Math.min(reps, 24), 1);
+  reps = Math.max(Math.min(reps, MAX_RPE_REPS), 1);
   rpe = Math.max(Math.min(rpe, 10), 1);
-
-  const x = 10.0 - rpe + (reps - 1);
-  if (x >= 16) {
-    return 0.5;
+  const repsToFailure = reps + 10 - rpe;
+  switch (formula) {
+    case "rts":
+      return Weight_rtsMultiplier(reps, rpe);
+    case "epley":
+      return 1 / (1 + repsToFailure / 30);
+    case "brzycki":
+      return (37 - Math.min(repsToFailure, BRZYCKI_MAX_REPS)) / 36;
   }
+}
+
+function Weight_rtsMultiplier(reps: number, rpe: number): number {
+  const x = 10.0 - rpe + (reps - 1);
+  // The RTS chart covers 1-12 reps at RPE 6-10 (x <= 15). Its straight-line fit reaches 0 at x ≈ 37.
+  if (x >= RTS_CHART_EDGE) {
+    return Weight_rtsChartFit(RTS_CHART_EDGE) * Weight_epleyRatio(RTS_CHART_EDGE, x);
+  }
+  return Weight_rtsChartFit(x);
+}
+
+const MAX_RPE_REPS = 30;
+const BRZYCKI_MAX_REPS = 30;
+const RTS_CHART_EDGE = 16;
+
+function Weight_epleyRatio(fromX: number, toX: number): number {
+  return (30 + fromX + 1) / (30 + toX + 1);
+}
+
+function Weight_rtsChartFit(x: number): number {
   // The formula is taken from
   // https://gitlab.com/openpowerlifting/plsource/-/blob/ba5194be6daa08d082bb1b7959d6f47b82e7802c/static/rpe-calc/index.html#L224
   const intersection = 2.92;

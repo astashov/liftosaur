@@ -23,6 +23,7 @@ import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { History_getHistoryRecordsForTimerange, History_getHomeAggregates } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { WeekInsights } from "./weekInsights";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
@@ -60,8 +61,13 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
   const aggregates = useTimedMemo(
     "programHistory.aggregates",
-    () => History_getHomeAggregates(props.history, !!props.settings.startWeekFromMonday),
-    [props.history, props.settings.startWeekFromMonday]
+    () =>
+      History_getHomeAggregates(
+        props.history,
+        !!props.settings.startWeekFromMonday,
+        Rm1Formula_fromSettings(props.settings)
+      ),
+    [props.history, props.settings.startWeekFromMonday, props.settings.rm1formula]
   );
   const { sortedHistoryDesc, weeksData, prs } = aggregates;
   const { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord } = weeksData;

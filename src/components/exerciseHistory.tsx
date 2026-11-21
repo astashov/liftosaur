@@ -20,6 +20,7 @@ import {
 } from "../models/exercise";
 import { Reps_volume } from "../models/set";
 import { History_getPersonalRecords, IPersonalRecords } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { ObjectUtils_keys } from "../utils/object";
 import { HistoryRecordSetsView } from "./historyRecordSets";
 import { FastText } from "./primitives/fastText";
@@ -52,7 +53,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
     () => Exercise_get(props.exerciseType, props.settings.exercises),
     [props.exerciseType, props.settings.exercises]
   );
-  const allPrs = useMemo(() => History_getPersonalRecords(props.history), [props.history]);
+  const formula = Rm1Formula_fromSettings(props.settings);
+  const allPrs = useMemo(() => History_getPersonalRecords(props.history, formula), [props.history, formula]);
   const [showFilters, setShowFilters] = useState(false);
   const { hideWithoutExerciseNotes, hideWithoutWorkoutNotes, ascendingSort } = props.settings.exerciseStatsSettings;
   const history = useMemo(() => {

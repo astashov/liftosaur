@@ -14,6 +14,7 @@ import {
   History_collectMuscleGroups,
   History_workoutTime,
 } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { Button } from "./button";
 import { Weight_display } from "../models/weight";
 import { Confetti } from "./confetti";
@@ -70,7 +71,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
     return <></>;
   }
 
-  const allPrs = History_getPersonalRecords(props.history);
+  const allPrs = History_getPersonalRecords(props.history, Rm1Formula_fromSettings(props.settings));
   const totalWeight = History_totalRecordWeight(record, props.settings);
 
   const startedEntries = History_getStartedEntries(record);

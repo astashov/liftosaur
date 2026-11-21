@@ -75,7 +75,8 @@ import {
 } from "../types";
 import { INativeEffect } from "./nativeEffects";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { IPercentage, IScriptErrorHandler, ITimedSetSide } from "../types";
+import { I1RMFormula, IPercentage, IScriptErrorHandler, ITimedSetSide } from "../types";
+import { Rm1Formula_fromSettings } from "./rm1Formula";
 import { TimedSet_open, TimedSet_recordedFor } from "./timedSet";
 import {
   History_workoutTime,
@@ -352,12 +353,12 @@ export function Progress_createScriptFunctions(settings: ISettings): IProgressSc
       return Weight_getTrainingMax(toWeight(weight), reps || 0, settings);
     },
     calculate1RM: ([weight, reps]) => {
-      return Weight_getOneRepMax(toWeight(weight), reps);
+      return Weight_getOneRepMax(toWeight(weight), reps, Rm1Formula_fromSettings(settings));
     },
     rpeMultiplier: ([repsRaw, rpeRaw]) => {
       const reps = Weight_is(repsRaw) ? repsRaw.value : repsRaw;
       const rpe = rpeRaw == null ? 10 : Weight_is(rpeRaw) ? rpeRaw.value : rpeRaw;
-      return Weight_rpeMultiplier(reps, rpe);
+      return Weight_rpeMultiplier(reps, rpe, Rm1Formula_fromSettings(settings));
     },
     floor: ([num]) => applyRounding(num, Math.floor),
     ceil: ([num]) => applyRounding(num, Math.ceil),
@@ -1773,7 +1774,11 @@ export function Progress_isEligibleForInferredWeight(set: ISet): boolean {
 // round trip below only cancels its own error near the rep range it was estimated from, and an e1RM
 // extrapolated from a 15-rep accessory is meaningless far away from 15. Warmups are not considered —
 // they would drag the estimate down.
-function findSwapSourceSet(prevEntry: IHistoryEntry | undefined, targetReps: number): ISet | undefined {
+function findSwapSourceSet(
+  prevEntry: IHistoryEntry | undefined,
+  targetReps: number,
+  formula: I1RMFormula
+): ISet | undefined {
   let best: ISet | undefined;
   let bestDistance = Infinity;
   let bestOnerm: IWeight | undefined;
@@ -1784,7 +1789,7 @@ function findSwapSourceSet(prevEntry: IHistoryEntry | undefined, targetReps: num
       continue;
     }
     const distance = Math.abs(reps - targetReps);
-    const onerm = Weight_getOneRepMax(weight, reps, set.completedRpe ?? set.rpe);
+    const onerm = Weight_getOneRepMax(weight, reps, formula, set.completedRpe ?? set.rpe);
     if (distance < bestDistance || (distance === bestDistance && (bestOnerm == null || Weight_gt(onerm, bestOnerm)))) {
       best = set;
       bestDistance = distance;
@@ -1807,19 +1812,21 @@ function swapDerivedWeight(
 ): IWeight {
   const targetReps = set.reps ?? 1;
   const targetRpe = set.rpe ?? 10;
-  const source = findSwapSourceSet(prevEntry, targetReps);
+  const formula = Rm1Formula_fromSettings(settings);
+  const source = findSwapSourceSet(prevEntry, targetReps, formula);
   const sourceWeight = source?.completedWeight ?? source?.weight;
   const sourceReps = source?.completedReps ?? source?.reps;
   if (sourceWeight == null || sourceReps == null) {
     // No history for this exercise, so fall back to its 1RM — explicit if the user set one, the
     // exercise DB's starting weight otherwise. That is already what a percentage-based set does on
     // a swap, so the no-history case behaves the same for both kinds of program.
-    return Weight_evaluateWeight(Weight_rpePct(targetReps, targetRpe), exerciseType, settings);
+    return Weight_evaluateWeight(Weight_rpePct(targetReps, targetRpe, formula), exerciseType, settings);
   }
   // Defaulting the source RPE to the *target's* rather than to 10 is what makes the two multipliers
   // cancel for the many programs that carry no RPE at all, so equal reps hand back the same weight.
   const sourceRpe = source?.completedRpe ?? source?.rpe ?? targetRpe;
-  const ratio = Weight_rpeMultiplier(targetReps, targetRpe) / Weight_rpeMultiplier(sourceReps, sourceRpe);
+  const ratio =
+    Weight_rpeMultiplier(targetReps, targetRpe, formula) / Weight_rpeMultiplier(sourceReps, sourceRpe, formula);
   return Weight_multiply(sourceWeight, ratio);
 }
 
@@ -1856,7 +1863,8 @@ export function Progress_updateSetWeights(
       return set;
     }
     if (Progress_isEligibleForInferredWeight(set) || Weight_isPct(set.originalWeight)) {
-      const originalWeight = set.originalWeight ?? Weight_rpePct(set.reps ?? 1, set.rpe ?? 10);
+      const originalWeight =
+        set.originalWeight ?? Weight_rpePct(set.reps ?? 1, set.rpe ?? 10, Rm1Formula_fromSettings(settings));
       const evaluatedWeight = Weight_evaluateWeight(originalWeight, exerciseType, settings);
       const weight = Weight_roundConvertTo(evaluatedWeight, settings, unit, exerciseType);
       return { ...set, weight };

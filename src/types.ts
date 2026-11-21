@@ -295,6 +295,10 @@ export const statsHealthDef = ["sleep", "calories", "protein"] as const;
 export const VUnit = v.picklist(units);
 export type IUnit = v.InferOutput<typeof VUnit>;
 
+export const rm1Formulas = ["rts", "epley", "brzycki"] as const;
+export const VRm1Formula = v.picklist(rm1Formulas);
+export type I1RMFormula = v.InferOutput<typeof VRm1Formula>;
+
 export const VPercentageUnit = v.picklist(percentageUnits);
 export type IPercentageUnit = v.InferOutput<typeof VPercentageUnit>;
 
@@ -1853,6 +1857,7 @@ export interface ISettings {
   alwaysOnDisplay?: boolean;
   vibration?: boolean;
   startWeekFromMonday?: boolean;
+  rm1formula?: I1RMFormula;
   textSize?: number;
   starredExercises?: Record<string, boolean | undefined>;
   recentExercises?: Partial<Record<string, string[]>>;
@@ -1905,6 +1910,7 @@ const _VSettings = v.object({
   alwaysOnDisplay: v.optional(v.boolean()),
   vibration: v.optional(v.boolean()),
   startWeekFromMonday: v.optional(v.boolean()),
+  rm1formula: v.optional(VRm1Formula),
   textSize: v.optional(v.number()),
   starredExercises: v.optional(v.record(VExerciseId, v.optional(v.boolean()))),
   recentExercises: v.optional(v.record(VExerciseId, v.optional(v.array(VExerciseId)))),

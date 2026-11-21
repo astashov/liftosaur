@@ -6,6 +6,8 @@ import { buildNavCommon, programEditsOfExistingPrograms } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
+import { ScreenRm1Formula } from "../../components/screenRm1Formula";
+import { Rm1Formula_fromSettings } from "../../models/rm1Formula";
 import { ScreenNotifications } from "../../components/screenNotifications";
 import { ScreenEquipment } from "../../components/screenEquipment";
 import { ScreenEquipmentDetail } from "../../components/screenEquipmentDetail";
@@ -127,6 +129,18 @@ export function NavScreenTimers(): React.JSX.Element {
           dispatch={dispatch}
           timers={untrack(state.storage.settings.timers)}
         />
+      </NavScreenContent>
+    </View>
+  );
+}
+
+export function NavScreenRm1Formula(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  return (
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenRm1Formula dispatch={dispatch} formula={Rm1Formula_fromSettings(state.storage.settings)} />
       </NavScreenContent>
     </View>
   );

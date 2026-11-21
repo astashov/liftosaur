@@ -12,7 +12,8 @@ import {
   Exercise_toExternalUrl,
 } from "../../../models/exercise";
 import { Weight_rpeMultiplier } from "../../../models/weight";
-import { ISettings } from "../../../types";
+import { Rm1Formula_fromSettings } from "../../../models/rm1Formula";
+import { I1RMFormula, ISettings } from "../../../types";
 import {
   PlannerProgramExercise_numberOfSets,
   PlannerProgramExercise_numberOfSetsThisWeek,
@@ -67,8 +68,9 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
     .map((w) => Muscle_getMuscleGroupName(w, props.settings))
     .filter((w) => targetMuscleGroups.indexOf(w) === -1);
 
-  const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
-  const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
+  const formula = Rm1Formula_fromSettings(props.settings);
+  const intensityGraphData = getIntensityPerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name, formula);
+  const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name, formula);
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
   const rem = useRem();
@@ -221,7 +223,8 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
 function getIntensityPerWeeks(
   evaluatedWeeks: IPlannerEvalResult[][],
   dayIndex: number,
-  exerciseName: string
+  exerciseName: string,
+  formula: I1RMFormula
 ): [number[], number[]] {
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
@@ -237,7 +240,7 @@ function getIntensityPerWeeks(
     const weights = PlannerProgramExercise_sets(exercise).map((s) => {
       const weight = s.percentage
         ? s.percentage * 100
-        : Weight_rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10) * 100;
+        : Weight_rpeMultiplier(s.repRange?.maxrep ?? 1, s.rpe ?? 10, formula) * 100;
       return Number(weight.toFixed(2));
     });
     data[0].push(weekIndex + 1);
@@ -249,7 +252,8 @@ function getIntensityPerWeeks(
 function getVolumePerWeeks(
   evaluatedWeeks: IPlannerEvalResult[][],
   dayIndex: number,
-  exerciseName: string
+  exerciseName: string,
+  formula: I1RMFormula
 ): [number[], number[]] {
   const data: [number[], number[]] = [[], []];
   for (let weekIndex = 0; weekIndex < evaluatedWeeks.length; weekIndex++) {
@@ -269,7 +273,7 @@ function getVolumePerWeeks(
             return acc;
           }
           const reps = s.repRange.maxrep ?? 0;
-          const weight = s.percentage ? s.percentage * 100 : Weight_rpeMultiplier(reps, s.rpe ?? 10) * 100;
+          const weight = s.percentage ? s.percentage * 100 : Weight_rpeMultiplier(reps, s.rpe ?? 10, formula) * 100;
           return acc + s.repRange.numberOfSets * weight * reps;
         }, 0)
         .toFixed(2)

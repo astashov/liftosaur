@@ -291,9 +291,6 @@
     "decision-in-view:useCallback#1": "predates the rule",
     "long-view": "predates the rule"
   },
-  "src/pages/planner/components/plannerExerciseStats.tsx": {
-    "decision-in-view:anonymous#1": "predates the rule"
-  },
   "src/pages/planner/components/plannerExerciseStatsFull.tsx": {
     "decision-in-view:anonymous#1": "predates the rule"
   },

@@ -238,6 +238,7 @@ import {
 } from "./ducks/thunks";
 import { PushRegistration_identityOf } from "./utils/pushRegistration";
 import { History_getHomeAggregates } from "./models/history";
+import { Rm1Formula_fromSettings } from "./models/rm1Formula";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling, PerfFrameSampler_flush } from "./utils/perfFrameCallback";
 import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
@@ -380,7 +381,7 @@ export function AppRoot(props: { initialState: IState; env: IEnv }): React.JSX.E
       return undefined;
     }
     const handle = InteractionManager.runAfterInteractions(() => {
-      History_getHomeAggregates(history, !!settings.startWeekFromMonday);
+      History_getHomeAggregates(history, !!settings.startWeekFromMonday, Rm1Formula_fromSettings(settings));
     });
     return () => handle.cancel();
   }, [state.storage.history, state.storage.settings]);
@@ -776,7 +777,11 @@ export function App(): React.JSX.Element {
       Theme_apply(state.storage.settings.theme);
       TextSize_apply(TextSize_resolve(state.storage.settings));
       if (state.storage.history.length > 0) {
-        History_getHomeAggregates(state.storage.history, !!state.storage.settings.startWeekFromMonday);
+        History_getHomeAggregates(
+          state.storage.history,
+          !!state.storage.settings.startWeekFromMonday,
+          Rm1Formula_fromSettings(state.storage.settings)
+        );
       }
       setInitialState(state);
     }

@@ -2,12 +2,13 @@ import { JSX, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Weight_calculateRepMax } from "../models/weight";
-import { IUnit } from "../types";
+import { I1RMFormula, IUnit } from "../types";
 import { Button } from "./button";
 import { Input } from "./input";
 
 interface IRepMaxCalculatorProps {
   unit: IUnit;
+  formula: I1RMFormula;
   backLabel: string;
   onSelect: (weight?: number) => void;
 }
@@ -26,11 +27,12 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
   }
 
   const weight = Weight_calculateRepMax(
-    parseAndClamp(knownReps, "int", 1, 24),
+    parseAndClamp(knownReps, "int", 1, 30),
     parseAndClamp(knownRpe, "float", 1, 10),
     parseAndClamp(knownWeight, "float", 1, 9999),
-    parseAndClamp(targetReps, "int", 1, 24),
-    parseAndClamp(targetRpe, "float", 1, 10)
+    parseAndClamp(targetReps, "int", 1, 30),
+    parseAndClamp(targetRpe, "float", 1, 10),
+    props.formula
   );
 
   return (
@@ -48,7 +50,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             value={knownReps}
             maxLength={2}
             min={1}
-            max={24}
+            max={30}
             changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
@@ -111,7 +113,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             value={targetReps}
             label="Reps"
             min={1}
-            max={24}
+            max={30}
             changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {

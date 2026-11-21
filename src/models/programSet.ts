@@ -1,5 +1,6 @@
 import { IPlannerProgramExerciseEvaluatedSet } from "../pages/planner/models/types";
 import { IExerciseType, IProgramSet, ISettings, IWeight } from "../types";
+import { Rm1Formula_fromSettings } from "./rm1Formula";
 import { Equipment_getUnitOrDefaultForExerciseType } from "./equipment";
 import { Weight_evaluateWeight, Weight_rpePct, Weight_roundConvertTo } from "./weight";
 
@@ -40,7 +41,11 @@ export function ProgramSet_getEvaluatedWeight(
   const evaluatedWeight = originalWeight
     ? Weight_evaluateWeight(originalWeight, exerciseType, settings)
     : ProgramSet_isEligibleForInferredWeight(programSet) && programSet.maxrep != null && programSet.rpe != null
-      ? Weight_evaluateWeight(Weight_rpePct(programSet.maxrep, programSet.rpe), exerciseType, settings)
+      ? Weight_evaluateWeight(
+          Weight_rpePct(programSet.maxrep, programSet.rpe, Rm1Formula_fromSettings(settings)),
+          exerciseType,
+          settings
+        )
       : undefined;
   return evaluatedWeight ? Weight_roundConvertTo(evaluatedWeight, settings, unit, exerciseType) : undefined;
 }

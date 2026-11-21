@@ -1,4 +1,5 @@
 import { Weight_add, Weight_build, Weight_lt } from "../models/weight";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { ISettings, IWeight } from "../types";
 import type { ILiftographFoldContext } from "./liftographFold";
 import {
@@ -68,7 +69,11 @@ export const liftographPresets: Record<ILiftographPresetName, ILiftographPreset>
     script: () => "point(max(e1rm))",
     evaluate: (row, context) =>
       row.type === "exercise"
-        ? maxWeight(row.entry.sets.map((set) => LiftographMeasures_setE1rm(set, context.settings.units)))
+        ? maxWeight(
+            row.entry.sets.map((set) =>
+              LiftographMeasures_setE1rm(set, context.settings.units, Rm1Formula_fromSettings(context.settings))
+            )
+          )
         : undefined,
   },
   volume: {

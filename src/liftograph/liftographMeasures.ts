@@ -2,7 +2,17 @@ import { History_entryMuscleGroups } from "../models/history";
 import { Exercise_getVolumeMultiplier } from "../models/exercise";
 import { Reps_avgUnilateralCompletedReps, Reps_volume } from "../models/set";
 import { Weight_build, Weight_convertTo, Weight_getOneRepMax, Weight_multiply } from "../models/weight";
-import { IHistoryEntry, IHistoryRecord, IScreenMuscle, ISet, ISettings, IStats, IUnit, IWeight } from "../types";
+import {
+  I1RMFormula,
+  IHistoryEntry,
+  IHistoryRecord,
+  IScreenMuscle,
+  ISet,
+  ISettings,
+  IStats,
+  IUnit,
+  IWeight,
+} from "../types";
 
 export interface ILiftographBodyweightPoint {
   ts: number;
@@ -17,7 +27,7 @@ export function LiftographMeasures_setWeight(set: ISet): IWeight | undefined {
   return isFinished(set) ? (set.completedWeight ?? set.weight) : undefined;
 }
 
-export function LiftographMeasures_setE1rm(set: ISet, unit: IUnit): IWeight | undefined {
+export function LiftographMeasures_setE1rm(set: ISet, unit: IUnit, formula: I1RMFormula): IWeight | undefined {
   const weight = LiftographMeasures_setWeight(set);
   if (weight == null) {
     return undefined;
@@ -25,6 +35,7 @@ export function LiftographMeasures_setE1rm(set: ISet, unit: IUnit): IWeight | un
   return Weight_getOneRepMax(
     Weight_convertTo(weight, unit),
     Reps_avgUnilateralCompletedReps(set) || 0,
+    formula,
     set.completedRpe ?? set.rpe ?? 10
   );
 }

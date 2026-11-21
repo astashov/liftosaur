@@ -8,6 +8,8 @@ import { ScreenSettings as ScreenSettingsComponent } from "../../components/scre
 import { ScreenAccount as ScreenAccountComponent } from "../../components/screenAccount";
 import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screenApiKeys";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
+import { ScreenRm1Formula } from "../../components/screenRm1Formula";
+import { Rm1Formula_fromSettings } from "../../models/rm1Formula";
 import { ScreenNotifications } from "../../components/screenNotifications";
 import { ScreenEquipment } from "../../components/screenEquipment";
 import { ScreenEquipmentDetail } from "../../components/screenEquipmentDetail";
@@ -111,6 +113,15 @@ export function NavScreenTimers(): JSX.Element {
   return (
     <NavScreenContent>
       <ScreenTimersComponent navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />
+    </NavScreenContent>
+  );
+}
+
+export function NavScreenRm1Formula(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  return (
+    <NavScreenContent>
+      <ScreenRm1Formula dispatch={dispatch} formula={Rm1Formula_fromSettings(state.storage.settings)} />
     </NavScreenContent>
   );
 }

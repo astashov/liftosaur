@@ -128,7 +128,7 @@ export function PlannerProgramExercise_programWarmups(
         value = ws.weight;
       }
       if (value == null) {
-        value = MathUtils_roundTo0005(Weight_rpeMultiplier(ws.reps, 4));
+        value = MathUtils_roundTo0005(Weight_rpeMultiplier(ws.reps, 4, "rts"));
       }
       sets.push({
         reps: ws.reps,
@@ -285,7 +285,7 @@ export function PlannerProgramExercise_warmupSetsToDisplaySets(
           ? `${set.percentage}%`
           : set.weight?.value != null
             ? set.weight.value.toString()
-            : `${Math.round(Weight_rpeMultiplier(set.reps, 10) * 100)}%`;
+            : `${Math.round(Weight_rpeMultiplier(set.reps, 10, "rts") * 100)}%`;
       displaySets.push({
         reps: `${set.reps}`,
         weight: weight,

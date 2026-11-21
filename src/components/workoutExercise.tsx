@@ -16,6 +16,7 @@ import {
   History_collect1RMPersonalRecord,
   IPrevExerciseData,
 } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { useDashboardEvaluation } from "./dashboard/dashboardEvaluation";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -124,6 +125,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
 
   // PRs feed only the (already deferred) graphs/PRs block, and the per-record 1RM math is the
   // expensive part — so defer it and run it over the already-filtered slice, not all history.
+  const formula = Rm1Formula_fromSettings(props.settings);
   const [{ maxWeight, maxWeightHistoryRecord }, { max1RM, max1RMHistoryRecord, max1RMSet }] = useMemo(() => {
     if (!isHeavyContentReady) {
       const zero = Weight_build(0, props.settings.units);
@@ -134,9 +136,9 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
     }
     return Collector.build(history)
       .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
-      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings.units))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings.units, formula))
       .run();
-  }, [isHeavyContentReady, history, exerciseType, props.settings.units]);
+  }, [isHeavyContentReady, history, exerciseType, props.settings.units, formula]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
 

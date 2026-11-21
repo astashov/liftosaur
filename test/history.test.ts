@@ -108,7 +108,7 @@ describe("History", () => {
         buildRecord(now - 3 * day, [buildEntry(squat, true)]),
         buildRecord(now - 1 * day, [buildEntry(bench, true)]),
       ];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 3 * day);
       expect(data[Exercise_toKey(squat)].count).to.eql(2);
       expect(data[Exercise_toKey(bench)].count).to.eql(1);
@@ -119,7 +119,7 @@ describe("History", () => {
         buildRecord(now - 5 * day, [buildEntry(squat, true)]),
         buildRecord(now + 1 * day, [buildEntry(squat, true)]),
       ];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 5 * day);
       expect(data[Exercise_toKey(squat)].count).to.eql(2);
     });
@@ -159,7 +159,7 @@ describe("History", () => {
           { ...buildEntry(squat, true), sets: [{ ...heavy, id: "f", completedWeight: { value: 300, unit: "lb" } }] },
         ]),
       ];
-      const data = History_buildPrevExerciseData(history, now)[Exercise_toKey(squat)];
+      const data = History_buildPrevExerciseData(history, now, "rts")[Exercise_toKey(squat)];
       expect(data.bestByReps[5]?.set.id).to.eql("h2");
       expect(data.bestByReps[5]?.timestamp).to.eql(now - 3 * day);
       expect(data.bestByReps[8]?.set.id).to.eql("a1");
@@ -180,7 +180,7 @@ describe("History", () => {
         completedWeight: { value: 200, unit: "lb" },
       };
       const history = [buildRecord(now - 1 * day, [{ ...buildEntry(squat, true), sets: [unilateral] }])];
-      const data = History_buildPrevExerciseData(history, now)[Exercise_toKey(squat)];
+      const data = History_buildPrevExerciseData(history, now, "rts")[Exercise_toKey(squat)];
       expect(data.bestByReps[3]?.set.id).to.eql("u");
       expect(data.bestByReps[8]).to.eql(undefined);
     });
@@ -190,7 +190,7 @@ describe("History", () => {
         buildRecord(now - 5 * day, [buildEntry(squat, true)]),
         buildRecord(now - 1 * day, [buildEntry(squat, false)]),
       ];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 5 * day);
     });
 
@@ -199,7 +199,7 @@ describe("History", () => {
         buildRecord(now - 5 * day, [{ ...buildEntry(squat, false), warmupSets: [buildSet(true)] }]),
         buildRecord(now - 1 * day, [{ ...buildEntry(squat, true), warmupSets: [buildSet(false)] }]),
       ];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].lastWarmupEntryTimestamp).to.eql(now - 5 * day);
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 1 * day);
     });
@@ -209,19 +209,20 @@ describe("History", () => {
         buildRecord(now - 70 * day, [buildEntry(squat, true, "old note")]),
         buildRecord(now - 10 * day, [buildEntry(squat, true, "recent note")]),
       ];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].lastNote).to.eql("recent note");
 
       const onlyOld = History_buildPrevExerciseData(
         [buildRecord(now - 70 * day, [buildEntry(squat, true, "old note")])],
-        now
+        now,
+        "rts"
       );
       expect(onlyOld[Exercise_toKey(squat)].lastNote).to.eql(undefined);
     });
 
     it("counts a record once even if the exercise appears in multiple entries", () => {
       const history = [buildRecord(now - 5 * day, [buildEntry(squat, true), buildEntry(squat, true)])];
-      const data = History_buildPrevExerciseData(history, now);
+      const data = History_buildPrevExerciseData(history, now, "rts");
       expect(data[Exercise_toKey(squat)].count).to.eql(1);
     });
 
@@ -233,7 +234,7 @@ describe("History", () => {
         { ...buildRecord(now - 1 * day, [buildEntry(squat, false)]), day: 8, week: 3, dayInWeek: 2 },
       ];
       const sameDay = { programId: "p", day: 8, week: 3, dayInWeek: 2 };
-      const data = History_buildPrevExerciseData(history, now, sameDay);
+      const data = History_buildPrevExerciseData(history, now, "rts", sameDay);
       expect(data[Exercise_toKey(squat)].lastEntryTimestamp).to.eql(now - 3 * day);
       expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 30 * day);
     });
@@ -245,9 +246,9 @@ describe("History", () => {
         { ...buildRecord(now - 2 * day, [buildEntry(squat, true)]), day: 5, programId: "other" },
         { ...buildRecord(now + 1 * day, [buildEntry(squat, true)]), day: 5 },
       ];
-      const data = History_buildPrevExerciseData(history, now, { programId: "p", day: 5, week: 2, dayInWeek: 2 });
+      const data = History_buildPrevExerciseData(history, now, "rts", { programId: "p", day: 5, week: 2, dayInWeek: 2 });
       expect(data[Exercise_toKey(squat)].sameDayTimestamp).to.eql(now - 7 * day);
-      const without = History_buildPrevExerciseData(history, now);
+      const without = History_buildPrevExerciseData(history, now, "rts");
       expect(without[Exercise_toKey(squat)].sameDayEntry).to.eql(undefined);
     });
 
@@ -260,9 +261,9 @@ describe("History", () => {
         buildRecord(now + 1 * day, [buildEntry(squat, true)]),
       ];
       const sameDay = { programId: "p", day: 1 };
-      const full = History_buildPrevExerciseData(history, now, sameDay);
+      const full = History_buildPrevExerciseData(history, now, "rts", sameDay);
       const onlyKeys = new Set([Exercise_toKey(squat), Exercise_toKey(bench)]);
-      const limited = History_buildPrevExerciseData(history, now, sameDay, onlyKeys);
+      const limited = History_buildPrevExerciseData(history, now, "rts", sameDay, onlyKeys);
 
       expect(Object.keys(limited).sort()).to.eql([...onlyKeys].sort());
       expect(limited[Exercise_toKey(deadlift)]).to.eql(undefined);

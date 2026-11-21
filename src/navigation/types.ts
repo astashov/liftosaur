@@ -53,6 +53,7 @@ export type IMeStackParamList = {
   settings: undefined;
   account: undefined;
   timers: undefined;
+  rm1Formula: undefined;
   notifications: undefined;
   plates: undefined;
   equipmentDetail: { gymId: string; equipmentId: string };

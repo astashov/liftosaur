@@ -33,6 +33,7 @@ import {
   IHistoryRecord,
   ISet,
   IExerciseType,
+  I1RMFormula,
   IUnit,
   IWeight,
   ISettings,
@@ -235,8 +236,8 @@ export function History_getMaxWeightSetFromEntry(entry: IHistoryEntry): ISet | u
   return History_getMaxWeightSet(entry.sets);
 }
 
-export function History_getMax1RMSetFromEntry(entry: IHistoryEntry): ISet | undefined {
-  return History_getMax1RMSet(entry.sets);
+export function History_getMax1RMSetFromEntry(entry: IHistoryEntry, formula: I1RMFormula): ISet | undefined {
+  return History_getMax1RMSet(entry.sets, formula);
 }
 
 // A tie goes to more reps, then to the earlier set, as in the stable sort this replaced.
@@ -270,11 +271,12 @@ export function History_getMaxWeightSet(sets: ISet[]): ISet | undefined {
   return History_maxSetBy(sets, (set) => set.completedWeight ?? set.weight ?? Weight_build(0, "lb"));
 }
 
-export function History_getMax1RMSet(sets: ISet[]): ISet | undefined {
+export function History_getMax1RMSet(sets: ISet[], formula: I1RMFormula): ISet | undefined {
   return History_maxSetBy(sets, (set) =>
     Weight_getOneRepMax(
       set.completedWeight ?? set.weight ?? Weight_build(0, "lb"),
       Reps_avgUnilateralCompletedReps(set) || 0,
+      formula,
       set.completedRpe ?? set.rpe ?? 10
     )
   );
@@ -481,8 +483,8 @@ export interface IPrevBestSet {
   timestamp: number;
 }
 
-function History_amrapScore(set: ISet, weight: IWeight, reps: number): number {
-  return Weight_convertTo(Weight_getOneRepMax(weight, reps, set.completedRpe), "lb").value;
+function History_amrapScore(set: ISet, weight: IWeight, reps: number, formula: I1RMFormula): number {
+  return Weight_convertTo(Weight_getOneRepMax(weight, reps, formula, set.completedRpe), "lb").value;
 }
 
 function History_bothSidesReps(set: ISet): number | undefined {
@@ -492,7 +494,7 @@ function History_bothSidesReps(set: ISet): number | undefined {
   return Math.min(set.completedReps, set.completedRepsLeft);
 }
 
-function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number): void {
+function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number, formula: I1RMFormula): void {
   const weight = set.completedWeight;
   const reps = History_bothSidesReps(set);
   if (!set.isCompleted || weight == null || reps == null || reps <= 0) {
@@ -512,10 +514,10 @@ function History_recordBestSets(data: IPrevExerciseData, set: ISet, time: number
     const amrap = data.bestAmrap;
     const amrapWeight = amrap?.set.completedWeight;
     const amrapReps = amrap?.set.completedReps;
-    const score = History_amrapScore(set, weight, reps);
+    const score = History_amrapScore(set, weight, reps, formula);
     const amrapScore =
       amrap != null && amrapWeight != null && amrapReps != null
-        ? History_amrapScore(amrap.set, amrapWeight, amrapReps)
+        ? History_amrapScore(amrap.set, amrapWeight, amrapReps, formula)
         : undefined;
     if (amrapScore == null || score > amrapScore || (score === amrapScore && amrap != null && time > amrap.timestamp)) {
       data.bestAmrap = { set, timestamp: time };
@@ -545,6 +547,7 @@ function History_isSameProgramDay(record: IHistoryRecord, sameDay: IPrevExercise
 export function History_buildPrevExerciseData(
   history: IHistoryRecord[],
   beforeTime: number,
+  formula: I1RMFormula,
   sameDay?: IPrevExerciseSameDay,
   onlyKeys?: ReadonlySet<string>
 ): Record<string, IPrevExerciseData> {
@@ -596,7 +599,7 @@ export function History_buildPrevExerciseData(
       }
       if (isBefore) {
         for (const set of entry.sets) {
-          History_recordBestSets(data, set, time);
+          History_recordBestSets(data, set, time, formula);
         }
       }
       if (
@@ -663,7 +666,8 @@ export function History_collectWeightPersonalRecord(
 
 export function History_collect1RMPersonalRecord(
   exerciseType: IExerciseType,
-  unit: IUnit
+  unit: IUnit,
+  formula: I1RMFormula
 ): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
   return {
     fn: (acc, hr) => {
@@ -671,7 +675,7 @@ export function History_collect1RMPersonalRecord(
       const allSets = entries.flatMap((e) => e.sets);
       const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
         s,
-        Weight_getOneRepMax(s.completedWeight ?? s.weight ?? Weight_build(0, unit), s.completedReps || 0),
+        Weight_getOneRepMax(s.completedWeight ?? s.weight ?? Weight_build(0, unit), s.completedReps || 0, formula),
       ]);
       const max1RM = CollectionUtils_sort(all1RMs, (a, b) => Weight_compare(b[1], a[1]))[0];
       if (max1RM != null && Weight_gt(max1RM[1], acc.max1RM)) {
@@ -1057,7 +1061,7 @@ export const History_getDateToHistory = memoize(
 );
 
 export const History_getPersonalRecords = memoize(
-  (history: IHistoryRecord[]): IPersonalRecords => {
+  (history: IHistoryRecord[], formula: I1RMFormula): IPersonalRecords => {
     const result: IPersonalRecords = {};
     const sortedHistory = CollectionUtils_sortByExpr(history, (hr) => hr.endTime ?? hr.startTime);
     const max1RMSets: Partial<Record<string, ISet | undefined>> = {};
@@ -1080,11 +1084,12 @@ export const History_getPersonalRecords = memoize(
           result[record.id]![key]!.maxWeightSet = thisMaxWeightSet;
         }
 
-        const thisMax1RMSet = History_getMax1RMSetFromEntry(entry);
+        const thisMax1RMSet = History_getMax1RMSetFromEntry(entry, formula);
         const thisMax1RM = thisMax1RMSet
           ? Weight_getOneRepMax(
               thisMax1RMSet.completedWeight ?? thisMax1RMSet.weight ?? Weight_build(0, "lb"),
               Reps_avgUnilateralCompletedReps(thisMax1RMSet) || 0,
+              formula,
               thisMax1RMSet.completedRpe ?? thisMax1RMSet.rpe
             )
           : undefined;
@@ -1093,6 +1098,7 @@ export const History_getPersonalRecords = memoize(
           ? Weight_getOneRepMax(
               lastMax1RMSet.completedWeight ?? lastMax1RMSet.weight ?? Weight_build(0, "lb"),
               lastMax1RMSet ? Reps_avgUnilateralCompletedReps(lastMax1RMSet) || 0 : 0,
+              formula,
               lastMax1RMSet.completedRpe ?? lastMax1RMSet.rpe
             )
           : undefined;
@@ -1150,12 +1156,12 @@ export interface IHomeAggregates {
 }
 
 export const History_getHomeAggregates = memoize(
-  (history: IHistoryRecord[], startWeekFromMonday: boolean): IHomeAggregates => {
+  (history: IHistoryRecord[], startWeekFromMonday: boolean, formula: I1RMFormula): IHomeAggregates => {
     const sortedHistoryDesc = CollectionUtils_sort(history, (a, b) => {
       return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
     });
     const weeksData = buildHomeWeekData(sortedHistoryDesc, startWeekFromMonday);
-    const prs = History_getPersonalRecords(history);
+    const prs = History_getPersonalRecords(history, formula);
     return { sortedHistoryDesc, weeksData, prs };
   },
   { maxSize: 3 }

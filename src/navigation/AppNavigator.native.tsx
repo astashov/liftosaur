@@ -58,6 +58,7 @@ import {
   NavScreenSettings,
   NavScreenAccount,
   NavScreenTimers,
+  NavScreenRm1Formula,
   NavScreenNotifications,
   NavScreenPlates,
   NavScreenEquipmentDetail,
@@ -375,6 +376,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="settings" component={NavScreenSettings} />
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />
+      <MeStack.Screen name="rm1Formula" component={NavScreenRm1Formula} />
       <MeStack.Screen name="notifications" component={NavScreenNotifications} />
       <MeStack.Screen name="plates" component={NavScreenPlates} />
       <MeStack.Screen name="equipmentDetail" component={NavScreenEquipmentDetail} />

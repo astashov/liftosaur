@@ -25,6 +25,7 @@ const oneRmOf = (s: ISet): IWeight =>
   Weight_getOneRepMax(
     s.completedWeight ?? s.weight ?? Weight_build(0, "lb"),
     Reps_avgUnilateralCompletedReps(s) || 0,
+    "rts",
     s.completedRpe ?? s.rpe ?? 10
   );
 
@@ -56,7 +57,7 @@ describe("History max set", () => {
   it("returns undefined when no set has completed reps", () => {
     const sets = [makeSet("a", 100, undefined), makeSet("b", 100, 0)];
     expect(History_getMaxWeightSet(sets)).to.equal(undefined);
-    expect(History_getMax1RMSet(sets)).to.equal(undefined);
+    expect(History_getMax1RMSet(sets, "rts")).to.equal(undefined);
   });
 
   it("prefers more reps when the weight ties", () => {
@@ -67,7 +68,7 @@ describe("History max set", () => {
   it("keeps the earlier set when weight and reps both tie", () => {
     const sets = [makeSet("a", 100, 5), makeSet("b", 100, 5)];
     expect(History_getMaxWeightSet(sets)?.id).to.equal("a");
-    expect(History_getMax1RMSet(sets)?.id).to.equal("a");
+    expect(History_getMax1RMSet(sets, "rts")?.id).to.equal("a");
   });
 
   it("matches the sort it replaced on randomized sets", () => {
@@ -82,7 +83,7 @@ describe("History max set", () => {
         sets.push(makeSet(`s${i}`, weight, reps, rpe));
       }
       expect(History_getMaxWeightSet(sets), `weight, trial ${trial}`).to.equal(sortedFirst(sets, weightOf));
-      expect(History_getMax1RMSet(sets), `1RM, trial ${trial}`).to.equal(sortedFirst(sets, oneRmOf));
+      expect(History_getMax1RMSet(sets, "rts"), `1RM, trial ${trial}`).to.equal(sortedFirst(sets, oneRmOf));
     }
   });
 });

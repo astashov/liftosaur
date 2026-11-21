@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { ISettings, ISet, IExerciseType } from "../types";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { n } from "../utils/math";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { FastText } from "./primitives/fastText";
@@ -172,7 +173,7 @@ interface IRpeWeightHintProps {
 
 export function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
   const cls = StyledText_cls(useRem());
-  const multiplier = Weight_rpeMultiplier(props.reps, props.rpe);
+  const multiplier = Weight_rpeMultiplier(props.reps, props.rpe, Rm1Formula_fromSettings(props.settings));
   const onerm = Exercise_onerm(props.exerciseType, props.settings);
   const weight = Weight_multiply(onerm, multiplier);
   const builder = new StyledText();
@@ -368,7 +369,7 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   if (weight == null || Weight_isPct(weight) || reps == null) {
     return <Text className={sizeClass}>Unknown</Text>;
   }
-  const e1RM = Weight_getOneRepMax(weight, reps, rpe);
+  const e1RM = Weight_getOneRepMax(weight, reps, Rm1Formula_fromSettings(props.settings), rpe);
   const built = new StyledText().add(n(e1RM.value), cls("font-semibold")).add(e1RM.unit, cls("text-xs")).build();
   return (
     <FastText

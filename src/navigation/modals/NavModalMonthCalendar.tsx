@@ -5,6 +5,7 @@ import { SheetScreenContainer } from "../SheetScreenContainer";
 import { TransparentModal } from "../TransparentModal";
 import { BottomSheetMonthCalendarContent } from "../../components/bottomSheetMonthCalendar";
 import { History_getPersonalRecords } from "../../models/history";
+import { Rm1Formula_fromSettings } from "../../models/rm1Formula";
 import { CollectionUtils_sort } from "../../utils/collection";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -20,7 +21,7 @@ export function NavModalMonthCalendar(): JSX.Element {
       CollectionUtils_sort(state.storage.history, (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [state.storage.history]
   );
-  const prs = History_getPersonalRecords(sortedHistory);
+  const prs = History_getPersonalRecords(sortedHistory, Rm1Formula_fromSettings(state.storage.settings));
 
   const startWeekFromMonday = state.storage.settings.startWeekFromMonday;
   const firstDayOfWeeks = useMemo(() => {

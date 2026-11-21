@@ -199,6 +199,7 @@ export function Settings_webEditorInitial(
     exerciseData: { ...settings.exerciseData, ...stored?.exerciseData },
     workoutSettings: { ...settings.workoutSettings, ...stored?.workoutSettings },
     starredExercises: stored?.starredExercises,
+    rm1formula: stored?.rm1formula,
   };
 }
 

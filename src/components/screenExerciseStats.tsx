@@ -10,6 +10,7 @@ import {
   History_collectWeightPersonalRecord,
   History_collect1RMPersonalRecord,
 } from "../models/history";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { useNavOptions } from "../navigation/useNavOptions";
 import {
   IExercise,
@@ -75,14 +76,15 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   );
 
   const units = settings.units;
+  const formula = Rm1Formula_fromSettings(settings);
   const collectorResult = useMemo(() => {
     const historyCollector = Collector.build(rawHistory)
       .addFn(History_collectAllUsedExerciseTypes())
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectWeightPersonalRecord(exerciseType, units))
-      .addFn(History_collect1RMPersonalRecord(exerciseType, units));
+      .addFn(History_collect1RMPersonalRecord(exerciseType, units, formula));
     return historyCollector.run();
-  }, [rawHistory, exerciseType, units]);
+  }, [rawHistory, exerciseType, units, formula]);
 
   const [
     _exerciseTypes,

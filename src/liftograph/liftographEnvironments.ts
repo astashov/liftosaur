@@ -1,6 +1,7 @@
 import { ILiftoscriptEnvironment } from "../liftoscriptEnvironment";
 import { IScriptFnName, IScriptStaticType } from "../liftoscriptFns";
 import { Exercise_fullName, Exercise_get, Exercise_toKey } from "../models/exercise";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { Weight_add, Weight_build, Weight_is } from "../models/weight";
 import { IHistoryEntry, IHistoryRecord, ISet, ISettings, IWeight } from "../types";
 import {
@@ -126,10 +127,11 @@ function setBindings(
   ts: number
 ): ILiftographSetBindings {
   const unit = context.settings.units;
+  const formula = Rm1Formula_fromSettings(context.settings);
   return {
     weights: sets.map((set) => set.weight),
     completedWeights: sets.map((set) => LiftographMeasures_setWeight(set)),
-    e1rm: sets.map((set) => LiftographMeasures_setE1rm(set, unit)),
+    e1rm: sets.map((set) => LiftographMeasures_setE1rm(set, unit, formula)),
     reps: sets.map((set) => set.reps),
     minReps: sets.map((set) => set.minReps ?? set.reps),
     completedReps: sets.map((set) => set.completedReps),

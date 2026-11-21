@@ -49,6 +49,7 @@ export function FriendProgram_previewSettings(viewer: ISettings, owner: ISetting
     muscleGroups: owner.muscleGroups,
     exercises: { ...viewer.exercises, ...owner.exercises },
     exerciseData: owner.exerciseData,
+    rm1formula: owner.rm1formula,
   };
 }
 

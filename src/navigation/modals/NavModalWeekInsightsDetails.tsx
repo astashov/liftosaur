@@ -5,6 +5,7 @@ import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { WeekInsightsDetails } from "../../components/weekInsights";
 import { History_getPersonalRecords } from "../../models/history";
+import { Rm1Formula_fromSettings } from "../../models/rm1Formula";
 import { CollectionUtils_sort } from "../../utils/collection";
 import { getWeekHistory } from "../../components/programHistory";
 import { WeekInsightsUtils_calculateSetResults } from "../../utils/weekInsightsUtils";
@@ -27,7 +28,7 @@ export function NavModalWeekInsightsDetails(): JSX.Element {
       CollectionUtils_sort(state.storage.history, (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
     [state.storage.history]
   );
-  const prs = History_getPersonalRecords(sortedHistory);
+  const prs = History_getPersonalRecords(sortedHistory, Rm1Formula_fromSettings(settings));
   const thisWeekHistory = getWeekHistory(sortedHistory, selectedFirstDayOfWeek, settings.startWeekFromMonday);
   const setResults = WeekInsightsUtils_calculateSetResults(thisWeekHistory, settings);
 

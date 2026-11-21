@@ -19,7 +19,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
   const [rpe, setRpe] = useState<number | undefined>(10);
   const weight =
     knownReps != null && knownWeight != null && reps
-      ? Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, reps, rpe ?? 10)
+      ? Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, reps, rpe ?? 10, "rts")
       : undefined;
 
   useEffect(() => {
@@ -80,11 +80,11 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 testID="known-reps-input"
                 data-name="known-reps-input"
                 min={1}
-                max={24}
+                max={30}
                 step={1}
                 className="w-10 outline-none no-arrows"
                 onUpdate={(newValue) => {
-                  setKnownReps(MathUtils_clamp(newValue, 1, 24));
+                  setKnownReps(MathUtils_clamp(newValue, 1, 30));
                 }}
               />
             </div>
@@ -142,11 +142,11 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 testID="reps-input"
                 data-name="reps-input"
                 min={1}
-                max={24}
+                max={30}
                 step={1}
                 className="w-10 outline-none no-arrows"
                 onUpdate={(newValue) => {
-                  setReps(MathUtils_clamp(newValue, 1, 24));
+                  setReps(MathUtils_clamp(newValue, 1, 30));
                 }}
               />
             </div>
@@ -219,7 +219,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
             <ul>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
                 if (r !== reps) {
-                  const w = Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
+                  const w = Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10, "rts");
                   return (
                     <li key={r}>
                       {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}
@@ -239,7 +239,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
           </div>
           <ul>
             {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
-              const w = (Weight_rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
+              const w = (Weight_rpeMultiplier(r, rpe ?? 10, "rts") * 100).toFixed(0);
               return (
                 <li key={r}>
                   {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}

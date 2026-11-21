@@ -1,7 +1,13 @@
 import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
-import { Weight_build, Weight_calculatePlates, Weight_platesWeight, Weight_strictParse } from "../src/models/weight";
+import {
+  Weight_build,
+  Weight_calculatePlates,
+  Weight_platesWeight,
+  Weight_rpeMultiplier,
+  Weight_strictParse,
+} from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
 import { Exercise_toKey } from "../src/models/exercise";
 
@@ -157,6 +163,64 @@ describe("Weight", () => {
         { weight: Weight_build(5, "lb"), num: 2 },
       ];
       expect(Weight_platesWeight(plates)).to.eql(Weight_build(170, "lb"));
+    });
+  });
+
+  describe(".rpeMultiplier()", () => {
+    it("matches the RTS chart inside it", () => {
+      expect(Weight_rpeMultiplier(1, 10, "rts")).to.equal(1);
+      expect(Weight_rpeMultiplier(12, 10, "rts")).to.be.closeTo(0.68, 0.001);
+      expect(Weight_rpeMultiplier(12, 6, "rts")).to.be.closeTo(0.575, 0.001);
+    });
+
+    it("tells RPEs apart on high-rep sets past the chart", () => {
+      expect(Weight_rpeMultiplier(15, 8, "rts")).to.be.closeTo(0.548, 0.001);
+      expect(Weight_rpeMultiplier(15, 7, "rts")).to.be.closeTo(0.537, 0.001);
+      expect(Weight_rpeMultiplier(15, 5, "rts")).to.be.closeTo(0.515, 0.001);
+      expect(Weight_rpeMultiplier(21, 6, "rts")).to.be.closeTo(0.468, 0.001);
+      expect(Weight_rpeMultiplier(30, 10, "rts")).to.be.closeTo(0.429, 0.001);
+    });
+
+    it("gives the plain Epley and Brzycki values at RPE 10", () => {
+      for (const formula of ["epley", "brzycki"] as const) {
+        expect(Weight_rpeMultiplier(1, 10, formula)).to.equal(1);
+        expect(Weight_rpeMultiplier(10, 10, formula)).to.be.closeTo(0.75, 0.0001);
+      }
+      expect(Weight_rpeMultiplier(5, 10, "epley")).to.be.closeTo(0.857, 0.001);
+      expect(Weight_rpeMultiplier(5, 10, "brzycki")).to.be.closeTo(0.889, 0.001);
+    });
+
+    it("counts reps in reserve as extra reps for Epley and Brzycki", () => {
+      for (const formula of ["epley", "brzycki"] as const) {
+        expect(Weight_rpeMultiplier(8, 8, formula)).to.equal(Weight_rpeMultiplier(10, 10, formula));
+      }
+    });
+
+    it("stops Brzycki at 30 reps to failure", () => {
+      expect(Weight_rpeMultiplier(30, 10, "brzycki")).to.be.closeTo(0.194, 0.001);
+      expect(Weight_rpeMultiplier(25, 5, "brzycki")).to.equal(Weight_rpeMultiplier(30, 10, "brzycki"));
+    });
+
+    it("falls with every extra rep up to 30 and stays positive", () => {
+      for (const formula of ["rts", "epley"] as const) {
+        for (const rpe of [1, 5, 6.5, 8, 10]) {
+          for (let reps = 2; reps <= 30; reps += 1) {
+            const prev = Weight_rpeMultiplier(reps - 1, rpe, formula);
+            const next = Weight_rpeMultiplier(reps, rpe, formula);
+            expect(next, `${formula} ${reps}@${rpe}`).to.be.lessThan(prev);
+            expect(next, `${formula} ${reps}@${rpe}`).to.be.greaterThan(0);
+          }
+        }
+        expect(Weight_rpeMultiplier(40, 10, formula)).to.equal(Weight_rpeMultiplier(30, 10, formula));
+      }
+      for (const rpe of [1, 5, 6.5, 8, 10]) {
+        for (let reps = 2; reps <= 30; reps += 1) {
+          const prev = Weight_rpeMultiplier(reps - 1, rpe, "brzycki");
+          const next = Weight_rpeMultiplier(reps, rpe, "brzycki");
+          expect(next, `brzycki ${reps}@${rpe}`).to.be.at.most(prev);
+          expect(next, `brzycki ${reps}@${rpe}`).to.be.greaterThan(0);
+        }
+      }
     });
   });
 

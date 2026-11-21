@@ -283,6 +283,12 @@ describe("web editor settings", () => {
       expect(result.workoutSettings.pickerSort).to.equal("similar_muscles");
     });
 
+    it("loads the stored 1RM formula, so playground weights match the app", () => {
+      const stored = { ...Settings_build(), rm1formula: "epley" as const };
+      expect(Settings_webEditorInitial(stored, undefined).rm1formula).to.equal("epley");
+      expect(Settings_webEditorInitial(Settings_build(), undefined).rm1formula).to.equal(undefined);
+    });
+
     it("loads the stored starred exercises", () => {
       const stored = { ...Settings_build(), starredExercises: { squat: true } };
       expect(Settings_webEditorInitial(stored, undefined).starredExercises).to.deep.equal({ squat: true });

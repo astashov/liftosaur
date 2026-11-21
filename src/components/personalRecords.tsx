@@ -5,6 +5,7 @@ import { Exercise_fromKey, Exercise_get } from "../models/exercise";
 import { Weight_display, Weight_build, Weight_getOneRepMax } from "../models/weight";
 import { History_getNumberOfPersonalRecords } from "../models/history";
 import { ISettings, ISet, IHistoryRecord } from "../types";
+import { Rm1Formula_fromSettings } from "../models/rm1Formula";
 import { ObjectUtils_keys } from "../utils/object";
 import { StringUtils_pluralize } from "../utils/string";
 import { IPersonalRecords } from "../models/history";
@@ -105,12 +106,14 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                 const estimated1RM = Weight_getOneRepMax(
                   item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units),
                   Reps_avgUnilateralCompletedReps(item.set) || 0,
+                  Rm1Formula_fromSettings(props.settings),
                   item.set.completedRpe ?? item.set.rpe
                 );
                 const previous1RM = item.prev
                   ? Weight_getOneRepMax(
                       item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units),
                       Reps_avgUnilateralCompletedReps(item.prev) || 0,
+                      Rm1Formula_fromSettings(props.settings),
                       item.prev.completedRpe ?? item.prev.rpe
                     )
                   : undefined;

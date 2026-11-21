@@ -1,4 +1,5 @@
-import { IDashboard, IExerciseType, IHistoryEntry, IHistoryRecord, ISet, ISettings } from "../types";
+import { I1RMFormula, IDashboard, IExerciseType, IHistoryEntry, IHistoryRecord, ISet, ISettings } from "../types";
+import { Rm1Formula_fromSettings } from "./rm1Formula";
 import { Weight_build, Weight_convertTo, Weight_getOneRepMax } from "./weight";
 import {
   equipmentName,
@@ -41,10 +42,10 @@ function weightedSets(entry: IHistoryEntry): ISet[] {
   return entry.sets.filter((set) => !!set.isCompleted && (set.completedWeight?.value ?? 0) > 0);
 }
 
-function e1rmLb(sets: ISet[]): number {
+function e1rmLb(sets: ISet[], formula: I1RMFormula): number {
   return sets.reduce((max, set) => {
     const weight = set.completedWeight ?? Weight_build(0, "lb");
-    const oneRm = Weight_getOneRepMax(weight, set.completedReps ?? 0, set.completedRpe);
+    const oneRm = Weight_getOneRepMax(weight, set.completedReps ?? 0, formula, set.completedRpe);
     return Math.max(max, Weight_convertTo(oneRm, "lb").value);
   }, 0);
 }
@@ -86,6 +87,7 @@ function bump(counts: Map<string, ILiftCount>, exerciseType: IExerciseType, rank
 
 function historyLifts(history: IHistoryRecord[], settings: ISettings, now: number): IExerciseType[] {
   const counts = new Map<string, ILiftCount>();
+  const formula = Rm1Formula_fromSettings(settings);
   const recent = history
     .filter((record) => now - record.startTime <= HISTORY_WINDOW_MS)
     .sort((a, b) => b.startTime - a.startTime);
@@ -96,7 +98,7 @@ function historyLifts(history: IHistoryRecord[], settings: ISettings, now: numbe
       const sets = weightedSets(entry);
       if (!seen.has(key) && isLift(entry.exercise, settings) && sets.length > 0) {
         seen.add(key);
-        bump(counts, entry.exercise, rank, e1rmLb(sets));
+        bump(counts, entry.exercise, rank, e1rmLb(sets, formula));
       }
     }
   });
