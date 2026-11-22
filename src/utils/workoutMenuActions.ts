@@ -1,4 +1,4 @@
-export type IWorkoutMenuAction = "editDay" | "muscles" | "notes" | "share" | "createProgramDay" | "tour" | "delete";
+export type IWorkoutMenuAction = "editDay" | "muscles" | "notes" | "share" | "createProgramDay" | "tour" | "cancel" | "delete";
 
 export interface IWorkoutMenuActionsArgs {
   isCurrent: boolean;
@@ -23,6 +23,6 @@ export function WorkoutMenuActions_list(args: IWorkoutMenuActionsArgs): IWorkout
     actions.push("createProgramDay");
   }
   actions.push("tour");
-  actions.push("delete");
+  actions.push(args.isCurrent ? "cancel" : "delete");
   return actions;
 }

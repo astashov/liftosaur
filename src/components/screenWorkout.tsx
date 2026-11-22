@@ -15,7 +15,7 @@ import { WorkoutHeartRate } from "./workoutHeartRate";
 import { Workout } from "./workout";
 import { WorkoutFinishButton } from "./workoutFinishButton";
 import { WorkoutMenu } from "./workoutMenu";
-import { Thunk_updateLiveActivity, Thunk_deleteProgress, Thunk_pauseWorkout } from "../ducks/thunks";
+import { Thunk_updateLiveActivity, Thunk_deleteProgress, Thunk_cancelProgress, Thunk_pauseWorkout } from "../ducks/thunks";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
@@ -170,6 +170,14 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     trackClick("workout-delete");
     onDeletePress().catch(() => undefined);
   }, [onDeletePress, trackClick]);
+  const onCancelPressHandler = useCallback(() => {
+    trackClick("workout-cancel");
+    Dialog_confirm("Cancel this unfinished workout? Completed history and the scheduled next workout will be preserved.")
+      .then((confirmed) => {
+        if (confirmed) dispatch(Thunk_cancelProgress());
+      })
+      .catch(() => undefined);
+  }, [dispatch, trackClick]);
 
   const onTitleClick = useCallback(() => {
     trackClick("workout-change-date");
@@ -255,11 +263,12 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         dispatch={dispatch}
         onShare={onShare}
         onConvertToProgram={onConvertToProgram}
+        onCancel={onCancelPressHandler}
         onDelete={onDeletePressHandler}
         onOpenChange={onOpenChange}
       />
     ),
-    [settings, dispatch, evaluatedProgram, props.allPrograms, onShare, onConvertToProgram, onDeletePressHandler]
+    [settings, dispatch, evaluatedProgram, props.allPrograms, onShare, onConvertToProgram, onCancelPressHandler, onDeletePressHandler]
   );
   const progressViewRef = useRef<IWorkoutProgressView | undefined>(undefined);
   const progressView = WorkoutProgressView_next(progressViewRef.current, progress);

@@ -22,6 +22,7 @@ interface IWorkoutMenuProps {
   dispatch: IDispatch;
   onShare: () => void;
   onConvertToProgram: () => void;
+  onCancel: () => void;
   onDelete: () => void;
   onOpenChange?: (isOpen: boolean) => void;
 }
@@ -33,11 +34,12 @@ const labels: Record<IWorkoutMenuAction, string> = {
   share: "Share",
   createProgramDay: "Create Program Day",
   tour: "Show Tour",
+  cancel: "Cancel Unfinished Workout",
   delete: "Delete Workout",
 };
 
 function WorkoutMenuInner(props: IWorkoutMenuProps): JSX.Element {
-  const { progress, program, allPrograms, dispatch, onShare, onConvertToProgram, onDelete } = props;
+  const { progress, program, allPrograms, dispatch, onShare, onConvertToProgram, onCancel, onDelete } = props;
   const showWorkoutNotes = !!props.settings.workoutSettings.showWorkoutNotes;
   const trackClick = useTrackClick();
   const currentProgram = allPrograms.find((p) => p.id === program?.id);
@@ -92,6 +94,10 @@ function WorkoutMenuInner(props: IWorkoutMenuProps): JSX.Element {
         trackClick("workout-delete");
         onDelete();
       },
+      cancel: () => {
+        trackClick("workout-cancel");
+        onCancel();
+      },
     }),
     [
       trackClick,
@@ -102,6 +108,7 @@ function WorkoutMenuInner(props: IWorkoutMenuProps): JSX.Element {
       showWorkoutNotes,
       onShare,
       onConvertToProgram,
+      onCancel,
       onDelete,
     ]
   );

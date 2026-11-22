@@ -1721,6 +1721,14 @@ export function Thunk_deleteProgress(id: number): IThunk {
   };
 }
 
+export function Thunk_cancelProgress(): IThunk {
+  return async (dispatch) => {
+    dispatch({ type: "CancelProgress" });
+    const { navigateTo } = await getNavigationService();
+    navigateTo("main", undefined, { tab: "home" });
+  };
+}
+
 export function Thunk_fetchPrograms(): IThunk {
   return async (dispatch, getState, env) => {
     const result = await load(dispatch, "Loading programs", async () => {
