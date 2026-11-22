@@ -7,6 +7,7 @@ import {
   IProgramState,
   IProgramStateMetadata,
   IShortDayData,
+  IWarmupSchemeSet,
 } from "../../../types";
 import { IPlannerSyntaxPointer, PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { SyntaxNode } from "@lezer/common";
@@ -64,6 +65,7 @@ export type IPlannerProgramExercise = {
   setVariations: IPlannerProgramExerciseSetVariation[];
   exerciseVariations: IPlannerProgramExerciseVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
+  resolvedWarmups?: IPlannerResolvedWarmups;
   descriptions: IProgramExerciseDescriptions;
   globals: IPlannerProgramExerciseGlobals;
   progress?: IProgramExerciseProgress;
@@ -125,12 +127,13 @@ export interface IPlannerProgramExerciseSet {
   askWeight?: boolean;
 }
 
-export interface IPlannerProgramExerciseWarmupSet {
+export interface IPlannerProgramExerciseWarmupSet extends IWarmupSchemeSet {
   type: "warmup";
-  numberOfSets: number;
-  reps: number;
-  percentage?: number;
-  weight?: IWeight;
+}
+
+export interface IPlannerResolvedWarmups {
+  sets: IPlannerProgramExerciseWarmupSet[];
+  source: { key: string; dayData: Required<IDayData> };
 }
 
 export interface IPlannerProgramExerciseSuperset {

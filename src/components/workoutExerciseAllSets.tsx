@@ -25,6 +25,7 @@ import { updateProgress } from "../models/state";
 import { lb, LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet, computeSetColumnWidths } from "./workoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "../models/set";
+import { WarmupScheme_addSet } from "../models/warmupScheme";
 import { n } from "../utils/math";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { IconPlus2 } from "./icons/iconPlus2";
@@ -54,6 +55,7 @@ interface IWorkoutExerciseAllSets {
   entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
+  lastWarmupSets?: ISet[];
   helps?: string[];
   stats: IStats;
   expansion?: IWorkoutExerciseSetsExpansion;
@@ -193,10 +195,9 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   );
   const onAddWarmupSet = useCallback(() => {
     trackClick("workout-add-warmup-set");
-    const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
     updateProgress(
       dispatch,
-      [lbWarmupSets.recordModify((s) => Reps_addSet(s, unilateral, undefined, true))],
+      [lbWarmupSets.recordModify((s) => WarmupScheme_addSet(s, exerciseType, settings))],
       "add-warmupset"
     );
   }, [dispatch, exerciseType, lbWarmupSets, settings, trackClick]);
@@ -271,6 +272,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             exerciseType={props.exerciseType}
             programExercise={props.programExercise}
             otherStates={props.otherStates}
+            lastSet={props.lastWarmupSets?.[i]}
             subscription={props.subscription}
             lbSets={props.lbWarmupSets}
             lbSet={lbWarmupSetByIndex[i]}

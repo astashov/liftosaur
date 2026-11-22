@@ -281,14 +281,43 @@ By default, it will add some warmups, but if you want to change that, you can us
 Squat / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
 ```
 
-Syntax is very similar to the regular sets x reps, but you cannot specify timer and RPE there. Also, percentages are not
-1RM percentages, but percentages of the weight of the first set. 
+Syntax is very similar to the regular sets x reps. Percentages are not 1RM percentages, but percentages of the weight of the first working set. `0%` means the empty bar. You can't specify RPE there.
+
+You can give each warmup set its own rest time. A warmup set without one uses the warmup rest timer from Settings:
+
+```liftoscript
+Squat / 5x5 / warmup: 1x5 50% 30s, 1x3 80% 90s
+```
 
 If you don't want warmups at all, you can specify `warmup: none`:
 
 ```liftoscript
 Squat / 5x5 / warmup: none
 ```
+
+If an exercise has no `warmup:` anywhere in the program, it uses the default warmups you set for that exercise on its Exercise Stats screen, or the built-in ones. On that screen each default warmup set can have a "Skip if ≤" weight. The set is skipped when the first working set weighs that much or less, the way the built-in warmups skip the light sets on light days. A program's `warmup:` has no such limit.
+
+#### Warmups in different weeks and days
+
+A `warmup:` applies to later weeks too, the same way descriptions do. An instance without its own `warmup:` takes the warmups of the same exercise on the same day in the nearest earlier week:
+
+```liftoscript
+# Week 1
+## Day 1
+Squat / 3x5 / 200lb / warmup: 1x5 50%, 1x3 80%
+
+# Week 2
+## Day 1
+// Gets 1x5 50%, 1x3 80% from Week 1
+Squat / 3x5 / 210lb
+
+# Week 3
+## Day 1
+// A deload. Week 4 gets no warmups too, until a week sets them again
+Squat / 3x5 / 150lb / warmup: none
+```
+
+If no earlier week has a `warmup:` for that day, the exercise uses the first `warmup:` it has anywhere in the program. So if Week 1 has no `warmup:` and Week 3 has `warmup: none`, Week 1 gets no warmups either. To have warmups in Week 1, write them there.
 
 ### Supersets
 

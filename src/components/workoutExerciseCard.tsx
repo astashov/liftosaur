@@ -594,6 +594,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           onTargetClick={onTargetClick}
           otherStates={props.otherStates}
           lastSets={lastHistoryEntry?.sets}
+          lastWarmupSets={props.prevData?.lastWarmupEntry?.warmupSets}
           lbSets={lbSets}
           lbWarmupSets={lbWarmupSets}
           exerciseType={exerciseType}

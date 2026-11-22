@@ -16,15 +16,7 @@ import {
 import { n } from "../utils/math";
 import { Dialog_alert } from "../utils/dialog";
 import { ObjectUtils_isEqual, ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
-import {
-  Weight_eqNull,
-  Weight_eq,
-  Weight_zero,
-  Weight_print,
-  Weight_buildPct,
-  Weight_build,
-  Weight_printNull,
-} from "./weight";
+import { Weight_eqNull, Weight_eq, Weight_zero, Weight_print, Weight_buildPct, Weight_printNull } from "./weight";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_getOnlyChangedState,
@@ -60,7 +52,7 @@ interface IPlannerToProgram2Globals {
 
 type IDereuseDecision = "sets" | "weight" | "rpe" | "timer" | "setTimer" | "progress" | "update";
 
-type IShareablePropertyName = "progress" | "update" | "warmup" | "id";
+type IShareablePropertyName = "progress" | "update" | "id";
 interface IPropertyCandidate {
   location: string;
   exercise: IPlannerProgramExercise;
@@ -361,7 +353,7 @@ export class ProgramToPlanner {
     groupedTopLineMap: IPlannerTopLineItem[][][][],
     opts: IPlannerToProgramConvertOpts
   ): IPropertyTargets {
-    const candidates: IPropertyCandidates = { progress: {}, update: {}, warmup: {}, id: {} };
+    const candidates: IPropertyCandidates = { progress: {}, update: {}, id: {} };
     PP_iterateTopLineExercises(groupedTopLineMap, (line, weekIndex, dayInWeekIndex, dayIndex) => {
       const value = this.getRenamedValue(opts, line, weekIndex, dayInWeekIndex);
       const exercise = Program_getProgramExercise(dayIndex + 1, this.program, value);
@@ -395,13 +387,6 @@ export class ProgramToPlanner {
           isOrigin: exercise.points.updatePoint != null && !exercise.isRepeat,
         });
       }
-      if (exercise.warmupSets != null) {
-        this.addPropertyCandidate(candidates.warmup, exercise.key, {
-          location,
-          exercise,
-          isOrigin: exercise.points.warmupPoint != null && !exercise.isRepeat,
-        });
-      }
       if ((exercise.tags || []).length > 0) {
         this.addPropertyCandidate(candidates.id, exercise.key, {
           location,
@@ -410,7 +395,7 @@ export class ProgramToPlanner {
         });
       }
     });
-    const targets: IPropertyTargets = { progress: {}, update: {}, warmup: {}, id: {} };
+    const targets: IPropertyTargets = { progress: {}, update: {}, id: {} };
     for (const property of ObjectUtils_keys(candidates)) {
       for (const key of ObjectUtils_keys(candidates[property])) {
         const list = candidates[property][key];
@@ -456,7 +441,6 @@ export class ProgramToPlanner {
     let dayIndex = 0;
     const addedProgressMap: Record<string, boolean> = {};
     const addedUpdateMap: Record<string, boolean> = {};
-    const addedWarmupsMap: Record<string, boolean> = {};
     const addedIdMap: Record<string, boolean> = {};
 
     for (let weekIndex = 0; weekIndex < this.program.weeks.length; weekIndex += 1) {
@@ -633,16 +617,9 @@ export class ProgramToPlanner {
                   }
                 }
 
-                const warmupSource =
-                  !addedWarmupsMap[key] && evalExercise?.warmupSets
-                    ? this.getPropertySource(propertyTargets, "warmup", key, weekIndex, dayInWeekIndex, evalExercise)
-                    : undefined;
-                if (warmupSource != null) {
-                  const warmupSets = this.getWarmupSets(warmupSource);
-                  if (warmupSets != null) {
-                    plannerExercise += ` / warmup: ${warmupSets}`;
-                    addedWarmupsMap[key] = true;
-                  }
+                const warmupSets = this.getWarmupSets(evalExercise);
+                if (warmupSets != null) {
+                  plannerExercise += ` / warmup: ${warmupSets}`;
                 }
 
                 // Printed at the instance the author wrote it on, like the other shared properties.
@@ -1104,9 +1081,15 @@ export class ProgramToPlanner {
       for (const group of groups) {
         const first = group[0];
         const length = group[1];
-        const weight =
-          first.weight ?? (first.percentage != null ? Weight_buildPct(first.percentage) : Weight_build(0, "lb"));
-        strs.push(`${length}x${first.reps} ${Weight_print(weight)}`);
+        const weight = first.weight ?? (first.percentage != null ? Weight_buildPct(first.percentage) : undefined);
+        const parts = [`${length}x${first.reps}`];
+        if (weight != null) {
+          parts.push(Weight_print(weight));
+        }
+        if (first.timer != null) {
+          parts.push(`${first.timer}s`);
+        }
+        strs.push(parts.join(" "));
       }
       return strs.length === 0 ? "none" : strs.join(", ");
     }
@@ -1176,7 +1159,8 @@ export class ProgramToPlanner {
   }
 
   private warmupSetToKey(set: IPlannerProgramExerciseWarmupSet): string {
-    return `${set.reps}-${Weight_print(set.weight || set.percentage || 0)}`;
+    const weight = set.weight != null ? Weight_print(set.weight) : set.percentage != null ? `${set.percentage}%` : "";
+    return `${set.reps}-${weight}-${set.timer ?? ""}`;
   }
 
   private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {

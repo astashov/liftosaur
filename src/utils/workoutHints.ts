@@ -1,9 +1,14 @@
-export type IWorkoutHintId = "workout-reorder" | "workout-target-switch" | "workout-set-expand";
+export type IWorkoutHintId =
+  | "workout-reorder"
+  | "workout-target-switch"
+  | "workout-set-expand"
+  | "default-warmup-swipe-delete";
 
 const usesToLearn: Record<IWorkoutHintId, number> = {
   "workout-reorder": 2,
   "workout-target-switch": 1,
   "workout-set-expand": 2,
+  "default-warmup-swipe-delete": 2,
 };
 
 export function WorkoutHints_isLearned(helps: string[], id: IWorkoutHintId): boolean {

@@ -32,7 +32,16 @@ export type ILiftographSetBindings = {
   bodyweight: IWeight | undefined;
 };
 
-export type ILiftographExerciseBindings = ILiftographSetBindings & { exercise: string; rm1: IWeight | undefined };
+export type ILiftographWarmupBindings = {
+  warmupWeights: (IWeight | undefined)[];
+  warmupReps: (number | undefined)[];
+  completedWarmupWeights: (IWeight | undefined)[];
+  completedWarmupReps: (number | undefined)[];
+  completedNumberOfWarmupSets: number;
+};
+
+export type ILiftographExerciseBindings = ILiftographSetBindings &
+  ILiftographWarmupBindings & { exercise: string; rm1: IWeight | undefined };
 
 export type ILiftographWorkoutBindings = ILiftographSetBindings & { duration: number | undefined; exercises: number };
 
@@ -81,11 +90,21 @@ const setTypes: Record<string, IScriptStaticType> = {
   bodyweight: "weight",
 };
 
+const warmupIndexable = ["warmupWeights", "warmupReps", "completedWarmupWeights", "completedWarmupReps"];
+
+const warmupTypes: Record<string, IScriptStaticType> = {
+  warmupWeights: "array",
+  warmupReps: "array",
+  completedWarmupWeights: "array",
+  completedWarmupReps: "array",
+  completedNumberOfWarmupSets: "number",
+};
+
 export const LiftographEnvironment_exercise: ILiftoscriptEnvironment = {
   id: "dashboard-exercise",
   fnNames: new Set<IScriptFnName>([...commonFnNames, "isExercise", "isProgramExercise", "programState"]),
-  indexableBindings: new Set(setIndexable),
-  bindingTypes: { ...setTypes, exercise: "string", rm1: "weight" },
+  indexableBindings: new Set([...setIndexable, ...warmupIndexable]),
+  bindingTypes: { ...setTypes, ...warmupTypes, exercise: "string", rm1: "weight" },
   loopStepBudget: LOOP_STEP_BUDGET,
 };
 
@@ -169,6 +188,11 @@ export function LiftographEnvironment_bindings(
     const exercise = Exercise_get(entry.exercise, context.settings.exercises);
     return {
       ...setBindings(entry.sets, record, LiftographMeasures_entryVolume(entry, context.settings), context, row.ts),
+      warmupWeights: entry.warmupSets.map((set) => set.weight),
+      warmupReps: entry.warmupSets.map((set) => set.reps),
+      completedWarmupWeights: entry.warmupSets.map((set) => LiftographMeasures_setWeight(set)),
+      completedWarmupReps: entry.warmupSets.map((set) => set.completedReps),
+      completedNumberOfWarmupSets: entry.warmupSets.filter((set) => set.isCompleted).length,
       exercise: Exercise_fullName(exercise, context.settings, LiftographEnvironment_entryLabel(entry)),
       rm1: Weight_is(rm1) ? rm1 : undefined,
     };

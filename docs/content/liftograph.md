@@ -419,6 +419,7 @@ What you can read in an `exercise` record:
 - `completedWeights`, `weights` and `e1rm`: one weight per set.
 - `completedReps`, `reps`, `minReps`, `completedRPE` and `RPE`: one value per set.
 - `numberOfSets`, `completedNumberOfSets`, `volume`, `bodyweight` and `rm1`.
+- `completedWarmupWeights`, `warmupWeights`, `completedWarmupReps` and `warmupReps`: one value per warmup set, with their own numbering. `completedNumberOfWarmupSets` counts the finished ones. The working-set values above never include warmups.
 - `day`, `week` and `dayInWeek`: where the workout was in the program.
 - `exercise`: the name of the exercise. `isExercise("Squat")` and `isProgramExercise("t1: Squat")` check it.
 - `programState("rm1")`: a program state variable, as it was saved with that workout.

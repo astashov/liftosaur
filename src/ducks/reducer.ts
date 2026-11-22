@@ -917,7 +917,8 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
         progress.day,
         program,
         state.storage.settings,
-        state.storage.stats
+        state.storage.stats,
+        progress
       );
 
       return {

@@ -330,6 +330,10 @@ export function Reps_group(sets: ISet[], isNext?: boolean): ISet[][] {
   );
 }
 
+export function Reps_displayWeight(set: ISet): IWeight | undefined {
+  return set.completedWeight ?? set.weight;
+}
+
 export function Reps_findNextSet(entry: IHistoryEntry): ISet | undefined {
   return [...entry.warmupSets, ...entry.sets].filter((s) => !s.isCompleted)[0];
 }

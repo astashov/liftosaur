@@ -3,7 +3,6 @@ import {
   warmupValues,
   Exercise_eq,
   Exercise_getIsUnilateral,
-  Exercise_getWarmupSets,
   Exercise_toKey,
   Exercise_onerm,
   Exercise_findById,
@@ -98,9 +97,10 @@ import {
 } from "../pages/planner/plannerEvaluator";
 import { PlannerKey_fromFullName } from "../pages/planner/plannerKey";
 import { PP_iterate2, PP_iterate } from "./pp";
+import { WarmupScheme_build } from "./warmupScheme";
 import {
   PlannerProgramExercise_currentEvaluatedSetVariation,
-  PlannerProgramExercise_programWarmups,
+  PlannerProgramExercise_warmups,
   PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_currentExerciseVariationIndex,
@@ -294,7 +294,7 @@ export function Program_nextHistoryEntry(
 ): IHistoryEntry {
   const exercise = programExercise.exerciseType;
   const programSets = PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets;
-  const warmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
+  const warmupSets = PlannerProgramExercise_warmups(programExercise);
   const sets: ISet[] = [];
   for (let i = 0; i < programSets.length; i++) {
     const programSet = programSets[i];
@@ -332,7 +332,7 @@ export function Program_nextHistoryEntry(
     programExerciseId: programExercise.key,
     sets,
     superset: programExercise.superset?.name,
-    warmupSets: Exercise_getWarmupSets(exercise, sets[0]?.weight, settings, warmupSets),
+    warmupSets: WarmupScheme_build(exercise, sets[0]?.weight, settings, warmupSets),
   };
   try {
     return Progress_runUpdateScriptForEntry(entry, dayData, programExercise, program.states, -1, settings, stats);

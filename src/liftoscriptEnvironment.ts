@@ -76,6 +76,11 @@ export const LiftoscriptEnvironment_progress: ILiftoscriptEnvironment = {
     "amraps",
     "logrpes",
     "askweights",
+    "warmupWeights",
+    "warmupReps",
+    "warmupTimers",
+    "completedWarmupWeights",
+    "completedWarmupReps",
   ]),
   bindingTypes: LiftoscriptFns_staticTypesOf(VScriptBindings.entries),
 };

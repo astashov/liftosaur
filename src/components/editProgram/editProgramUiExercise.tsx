@@ -20,10 +20,10 @@ import { lb } from "lens-shmens";
 import {
   PlannerProgramExercise_repeatToRangeStr,
   PlannerProgramExercise_warmups,
-  PlannerProgramExercise_defaultWarmups,
   PlannerProgramExercise_warmupSetsToDisplaySets,
   PlannerProgramExercise_currentExerciseVariationIndex,
 } from "../../pages/planner/models/plannerProgramExercise";
+import { ExerciseWarmupDefaults_displaySets } from "../../models/exerciseWarmupDefaults";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
 import { IconTrash } from "../icons/iconTrash";
@@ -259,7 +259,7 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
   const exerciseType = exercise != null ? { id: exercise.id, equipment: props.plannerExercise.equipment } : undefined;
   const warmupSets =
     PlannerProgramExercise_warmups(plannerExercise) ||
-    (exercise != null ? PlannerProgramExercise_defaultWarmups(exercise, props.settings) : []);
+    (exerciseType != null ? ExerciseWarmupDefaults_displaySets(exerciseType, props.settings) : []);
   const displayWarmupSets = PlannerProgramExercise_warmupSetsToDisplaySets(warmupSets);
   const reusingSets = plannerExercise.reuse?.fullName;
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");

@@ -19,6 +19,7 @@ import { IPlannerProgram, ISettings, IStats } from "../src/types";
 import { Settings_build } from "../src/models/settings";
 import { EquipmentLegacyDefaults_all } from "../src/models/equipmentLegacyDefaults";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
+import { PlannerEvaluator_getFullEvaluatedWeeks } from "../src/pages/planner/plannerEvaluator";
 import { Weight_build } from "../src/models/weight";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { Stats_getEmpty } from "../src/models/stats";
@@ -3161,5 +3162,235 @@ Squat / ...Squat[1:1] / progress: none
     expect(PlannerProgram_generateFullText(newProgram.planner?.weeks || [])).to.include(
       "Squat / 3x8 / 100lb @8 / progress: dp(5lb, 8, 10)"
     );
+  });
+});
+
+describe("Planner warmup syntax", () => {
+  function roundTrip(text: string): string {
+    const settings = Settings_build();
+    const { program } = PlannerTestUtils_get(text);
+    return PlannerProgram_generateFullText(
+      new ProgramToPlanner(Program_evaluate(program, settings), settings).convertToPlanner().weeks
+    );
+  }
+
+  function errorOf(text: string): string {
+    const { evaluatedWeeks } = PlannerEvaluator_getFullEvaluatedWeeks(text, Settings_build());
+    return evaluatedWeeks.success ? "" : evaluatedWeeks.error.message;
+  }
+
+  it("gives each warmup set its own rest time", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50% 30s, 1x3 80% 90s`;
+    const { program } = PlannerTestUtils_get(text);
+    const record = Program_nextHistoryRecord(program, Settings_build(), Stats_getEmpty());
+    expect(record.entries[0].warmupSets.map((s) => s.timer)).to.eql([30, 90]);
+    expect(roundTrip(text)).to.contain("warmup: 1x5 50% 30s, 1x3 80% 90s");
+  });
+
+  it("keeps groups with different rest times apart when printing", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50% 30s, 1x5 50% 60s`;
+    expect(roundTrip(text)).to.contain("warmup: 1x5 50% 30s, 1x5 50% 60s");
+  });
+
+  it("prints a warmup with no weight without a made-up 0lb", () => {
+    expect(roundTrip(`# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5`)).to.contain("warmup: 1x5\n");
+  });
+
+  it("rejects a warmup set with only a rest time", () => {
+    expect(errorOf(`# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 30s`)).to.contain("A warmup set needs reps");
+  });
+
+  it("rejects a warmup set with two weights or two rest times", () => {
+    expect(errorOf(`# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50% 60%`)).to.contain("only one reps");
+    expect(errorOf(`# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50% 30s 60s`)).to.contain("only one reps");
+  });
+});
+
+describe("Planner warmups per week and day", () => {
+  function warmupsOnDay(text: string, day: number, entryIndex: number = 0): string[] {
+    const { program } = PlannerTestUtils_get(text);
+    const record = Program_nextHistoryRecord(program, Settings_build(), Stats_getEmpty(), day);
+    return record.entries[entryIndex].warmupSets.map((s) => `${s.reps}x${s.weight?.value}`);
+  }
+
+  function roundTrip(text: string): string {
+    const settings = Settings_build();
+    const { program } = PlannerTestUtils_get(text);
+    return PlannerProgram_generateFullText(
+      new ProgramToPlanner(Program_evaluate(program, settings), settings).convertToPlanner().weeks
+    );
+  }
+
+  const fourWeeks = `# Week 1
+## Day 1
+Squat / 3x5 200lb / warmup: 1x5 50%
+
+# Week 2
+## Day 1
+Squat / 3x5 200lb
+
+# Week 3
+## Day 1
+Squat / 3x5 200lb / warmup: none
+
+# Week 4
+## Day 1
+Squat / 3x5 200lb
+`;
+
+  it("no longer rejects different warmups in different weeks", () => {
+    const { evaluatedWeeks } = PlannerEvaluator_getFullEvaluatedWeeks(fourWeeks, Settings_build());
+    expect(evaluatedWeeks.success).to.equal(true);
+  });
+
+  it("carries a warmup forward until the next definition", () => {
+    expect(warmupsOnDay(fourWeeks, 1)).to.eql(["5x100"]);
+    expect(warmupsOnDay(fourWeeks, 2)).to.eql(["5x100"]);
+    expect(warmupsOnDay(fourWeeks, 3)).to.eql([]);
+    expect(warmupsOnDay(fourWeeks, 4)).to.eql([]);
+  });
+
+  it("lets the first definition reach back to earlier weeks", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb\n\n# Week 2\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 40%\n`;
+    expect(warmupsOnDay(text, 1)).to.eql(["5x80"]);
+  });
+
+  it("lets a later none reach back too, which is today's behavior", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb\n\n# Week 2\n## Day 1\nSquat / 3x5 200lb / warmup: none\n`;
+    expect(warmupsOnDay(text, 1)).to.eql([]);
+  });
+
+  it("inherits by day slot, so a light day does not take the heavy day's warmups", () => {
+    const text = `# Week 1
+## Day 1
+Squat / 3x5 200lb / warmup: 1x5 50%
+## Day 2
+Squat / 3x5 200lb / warmup: 1x5 30%
+
+# Week 2
+## Day 1
+Squat / 3x5 200lb
+## Day 2
+Squat / 3x5 200lb
+`;
+    expect(warmupsOnDay(text, 3)).to.eql(["5x100"]);
+    expect(warmupsOnDay(text, 4)).to.eql(["5x60"]);
+  });
+
+  it("takes warmups from a template when the exercise defines none", () => {
+    const text = `# Week 1\n## Day 1\nt1 / used: none / 3x5 200lb / warmup: 1x5 40%\nSquat / ...t1\n`;
+    expect(warmupsOnDay(text, 1)).to.eql(["5x80"]);
+  });
+
+  it("carries a template's warmups into later weeks of the same day", () => {
+    const text = `# Week 1
+## Day 1
+t1 / used: none / 3x5 200lb / warmup: 1x5 40%
+Squat / ...t1
+
+# Week 2
+## Day 1
+Squat / 3x5 200lb
+`;
+    expect(warmupsOnDay(text, 2)).to.eql(["5x80"]);
+  });
+
+  it("uses the built-in ramp when no line has a warmup", () => {
+    expect(warmupsOnDay(`# Week 1\n## Day 1\nSquat / 3x5 200lb\n`, 1)).to.eql(["5x60", "5x100", "5x160"]);
+  });
+
+  it("gives a day with no earlier week the first definition from another day", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50%\n## Day 2\nSquat / 3x5 200lb\n`;
+    expect(warmupsOnDay(text, 2)).to.eql(["5x100"]);
+  });
+
+  it("takes no warmups from a template that says none", () => {
+    const text = `# Week 1\n## Day 1\nt1 / used: none / 3x5 200lb / warmup: none\nSquat / ...t1\n`;
+    expect(warmupsOnDay(text, 1)).to.eql([]);
+  });
+
+  it("prefers the line's own warmup over its template's", () => {
+    const text = `# Week 1\n## Day 1\nt1 / used: none / 3x5 200lb / warmup: 1x5 40%\nSquat / ...t1 / warmup: 1x5 30%\n`;
+    expect(warmupsOnDay(text, 1)).to.eql(["5x60"]);
+  });
+
+  it("takes warmups from a plain exercise it reuses", () => {
+    const text = `# Week 1\n## Day 1\nSquat / 3x5 200lb / warmup: 1x5 50%\nFront Squat / ...Squat\n`;
+    expect(warmupsOnDay(text, 1, 1)).to.eql(["5x100"]);
+  });
+
+  it("keeps a labelled exercise's warmups apart from the unlabelled one", () => {
+    const text = `# Week 1\n## Day 1\nmain: Squat / 3x5 200lb / warmup: 1x5 50%\nSquat / 3x5 200lb\n`;
+    expect(warmupsOnDay(text, 1, 0)).to.eql(["5x100"]);
+    expect(warmupsOnDay(text, 1, 1)).to.eql(["5x60", "5x100", "5x160"]);
+  });
+
+  it("keeps a template's warmup on the template line through a round trip", () => {
+    const lines = roundTrip(`# Week 1
+## Day 1
+t1 / used: none / 3x5 200lb / warmup: 1x5 40%
+Squat / ...t1
+
+# Week 2
+## Day 1
+t1 / used: none / 3x5 200lb
+Squat / ...t1
+`)
+      .split("\n")
+      .filter((line) => line.includes("warmup"));
+    expect(lines).to.eql(["t1 / used: none / 3x5 / 200lb / warmup: 1x5 40%"]);
+  });
+
+  it("prefers this line's template over an earlier week's warmups", () => {
+    const text = `# Week 1
+## Day 1
+t1 / used: none / 3x5 200lb / warmup: 1x5 40%
+Squat / ...t1
+
+# Week 2
+## Day 1
+t2 / used: none / 3x5 200lb / warmup: 1x5 60%
+Squat / ...t2
+`;
+    expect(warmupsOnDay(text, 2)).to.eql(["5x120"]);
+  });
+
+  it("records the line each instance inherits from", () => {
+    const { program } = PlannerTestUtils_get(fourWeeks);
+    const evaluated = Program_evaluate(program, Settings_build());
+    const sources = evaluated.weeks.map((w) => w.days[0].exercises[0].resolvedWarmups?.source.dayData.week);
+    expect(sources).to.eql([1, 1, 3, 3]);
+  });
+
+  it("prints warmup: only on the lines that wrote one", () => {
+    const lines = roundTrip(fourWeeks)
+      .split("\n")
+      .filter((line) => line.startsWith("Squat"));
+    expect(lines).to.eql([
+      "Squat / 3x5 / 200lb / warmup: 1x5 50%",
+      "Squat / 3x5 / 200lb",
+      "Squat / 3x5 / 200lb / warmup: none",
+      "Squat / 3x5 / 200lb",
+    ]);
+  });
+
+  it("keeps a week's own warmup override when the other weeks repeat", () => {
+    const text = `# Week 1
+## Day 1
+Squat[1-4] / 3x5 200lb / warmup: 1x5 50%
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+Squat / 3x5 200lb / warmup: none
+
+# Week 4
+## Day 1
+`;
+    expect(warmupsOnDay(text, 3)).to.eql([]);
+    expect(warmupsOnDay(text, 4)).to.eql(["5x100"]);
+    expect(roundTrip(text)).to.contain("warmup: none");
   });
 });

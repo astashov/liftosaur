@@ -11,8 +11,8 @@ import {
   Exercise_findIdByName,
   Exercise_findByNameAndEquipment,
   Exercise_resolveNameAndEquipment,
-  Exercise_getWarmupSets,
 } from "../src/models/exercise";
+import { WarmupScheme_prescribe } from "../src/models/warmupScheme";
 import {
   IAllCustomExercises,
   ICustomExercise,
@@ -261,7 +261,8 @@ describe("Exercise — warmup rounding", () => {
     sets: IProgramExerciseWarmupSet[],
     exerciseType: IExerciseType = squat
   ): number[] {
-    return Exercise_getWarmupSets(exerciseType, working, settings, sets).map((s) => s.weight!.value);
+    const rows = sets.map((s) => ({ reps: s.reps, value: s.value }));
+    return WarmupScheme_prescribe(rows, working, exerciseType, settings).map((p) => p.weight.value);
   }
 
   it("uses only the warmup plates", () => {

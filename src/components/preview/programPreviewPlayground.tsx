@@ -105,7 +105,8 @@ export function playgroundOnProgramChange(
                   day.day,
                   newEvaluatedProgram,
                   state.settings,
-                  stats
+                  stats,
+                  day.progress
                 );
                 return {
                   ...day,
@@ -143,7 +144,8 @@ export function playgroundOnSettingsChange(
                   day.day,
                   evaluatedProgram,
                   newSettings,
-                  stats
+                  stats,
+                  day.progress
                 );
                 return {
                   ...day,

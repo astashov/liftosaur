@@ -1959,6 +1959,50 @@ describe("MCP", () => {
       expect(negative.volumeMultiplier).to.equal(1);
     });
 
+    it("sets, keeps and clears default warmups", async () => {
+      const set = toolData(
+        await callTool("set_exercise_data", {
+          key: "squat_barbell",
+          warmups: [
+            { reps: 5, percentage: 50, timer: 30 },
+            { numberOfSets: 2, reps: 3, weight: "135lb" },
+          ],
+        })
+      );
+      expect(set.warmups).to.eql([
+        { numberOfSets: 1, reps: 5, percentage: 50, timer: 30 },
+        { numberOfSets: 2, reps: 3, weight: "135lb" },
+      ]);
+
+      const kept = toolData(await callTool("set_exercise_data", { key: "squat_barbell", notes: "depth" }));
+      expect(kept.warmups).to.have.length(2);
+
+      const none = toolData(await callTool("set_exercise_data", { key: "squat_barbell", warmups: [] }));
+      expect(none.warmups).to.eql([]);
+
+      const builtin = toolData(await callTool("set_exercise_data", { key: "squat_barbell", warmups: null }));
+      expect(builtin.warmups).to.equal(undefined);
+    });
+
+    it("sets a warmup threshold", async () => {
+      const set = toolData(
+        await callTool("set_exercise_data", {
+          key: "squat_barbell",
+          warmups: [{ reps: 5, percentage: 30, threshold: "120lb" }],
+        })
+      );
+      expect(set.warmups).to.eql([{ numberOfSets: 1, reps: 5, percentage: 30, threshold: "120lb" }]);
+    });
+
+    it("rejects a warmup set with both a weight and a percentage", async () => {
+      const res = await callTool("set_exercise_data", {
+        key: "squat_barbell",
+        warmups: [{ reps: 5, weight: "45lb", percentage: 80 }],
+      });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("not both");
+    });
+
     it("rejects an unknown exercise key", async () => {
       const res = await callTool("set_exercise_data", { key: "notARealExercise", rm1: "100lb" });
       expect(res.isError).to.equal(true);

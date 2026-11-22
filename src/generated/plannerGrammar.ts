@@ -17,7 +17,7 @@ ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay | 
 ReuseSectionWithWeekDay { ReuseSection WeekDay? }
 ReuseSection { "..." ExerciseName }
 ExerciseSet { (Rpe | SetTimer | Timer | Auto | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel | AskWeight)+ }
-WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
+WarmupExerciseSet { (WarmupSetPart | Weight | Percentage | Timer)+ }
 Superset { SupersetKeyword ":" ExerciseName }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets | None ) }
 ExercisePropertyName { Keyword }

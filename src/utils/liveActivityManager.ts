@@ -3,7 +3,7 @@ import { ExerciseImageUtils_url } from "../models/exerciseImage";
 import { Program_evaluate, Program_getProgramExercise } from "../models/program";
 import { ProgramExercise_hasUserPromptedVars } from "../models/programExercise";
 import { Progress_shouldShowAmrapModal, Progress_getNextEntry, Progress_getActiveSetTimer } from "../models/progress";
-import { Reps_setsStatus, Reps_findNextSetIndex } from "../models/set";
+import { Reps_setsStatus, Reps_findNextSetIndex, Reps_displayWeight } from "../models/set";
 import { Weight_realizeLoad, Weight_print } from "../models/weight";
 import { EquipmentLoadText_line } from "../models/equipmentLoadText";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
@@ -52,7 +52,7 @@ export function LiveActivityManager_getLiveActivityEntry(
     return undefined;
   }
   const isNextSetWarmup = setIndex < entry.warmupSets.length;
-  const weightForPlates = set.completedWeight ?? set.weight;
+  const weightForPlates = Reps_displayWeight(set);
   const load = weightForPlates
     ? Weight_realizeLoad(weightForPlates, settings, entry.exercise, isNextSetWarmup)
     : undefined;
@@ -75,7 +75,7 @@ export function LiveActivityManager_getLiveActivityEntry(
     isUnilateral && set.completedRepsLeft != null
       ? `${set.completedRepsLeft}/${set.completedReps ?? set.reps ?? 0}`
       : (set.completedReps ?? set.reps);
-  const currentWeight = set.completedWeight ?? set.weight;
+  const currentWeight = Reps_displayWeight(set);
   const state: ILiveActivityEntry = {
     exerciseName: Exercise_fullName(exercise, settings),
     exerciseImageUrl,

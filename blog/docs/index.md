@@ -235,8 +235,7 @@ By default, it will add some warmups, but if you want to change that, you can us
 Squat / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
 {% endplannercode %}
 
-Syntax is very similar to the regular sets x reps, but you cannot specify timer and RPE there. Also, percentages are not
-1RM percentages, but percentages of the weight of the first set. 
+Syntax is very similar to the regular sets x reps. Percentages are not 1RM percentages, but percentages of the weight of the first working set. You can give each warmup set its own rest time, like `1x5 50% 30s`, but you can't specify RPE there. A `warmup:` also applies to the same day in later weeks, until another `warmup:` replaces it.
 
 If you don't want warmups at all, you can specify `warmup: none`:
 

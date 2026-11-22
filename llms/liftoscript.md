@@ -259,14 +259,43 @@ By default, it will add some warmups, but if you want to change that, you can us
 Squat / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
 ```
 
-Syntax is very similar to the regular sets x reps, but you cannot specify timer and RPE there. Also, percentages are not
-1RM percentages, but percentages of the weight of the first set. 
+Syntax is very similar to the regular sets x reps. Percentages are not 1RM percentages, but percentages of the weight of the first working set. `0%` means the empty bar. You can't specify RPE there.
+
+You can give each warmup set its own rest time. A warmup set without one uses the warmup rest timer from Settings:
+
+```
+Squat / 5x5 / warmup: 1x5 50% 30s, 1x3 80% 90s
+```
 
 If you don't want warmups at all, you can specify `warmup: none`:
 
 ```
 Squat / 5x5 / warmup: none
 ```
+
+If an exercise has no `warmup:` anywhere in the program, it uses the default warmups you set for that exercise on its Exercise Stats screen, or the built-in ones. On that screen each default warmup set can have a "Skip if ≤" weight. The set is skipped when the first working set weighs that much or less, the way the built-in warmups skip the light sets on light days. A program's `warmup:` has no such limit.
+
+#### Warmups in different weeks and days
+
+A `warmup:` applies to later weeks too, the same way descriptions do. An instance without its own `warmup:` takes the warmups of the same exercise on the same day in the nearest earlier week:
+
+```
+# Week 1
+## Day 1
+Squat / 3x5 / 200lb / warmup: 1x5 50%, 1x3 80%
+
+# Week 2
+## Day 1
+// Gets 1x5 50%, 1x3 80% from Week 1
+Squat / 3x5 / 210lb
+
+# Week 3
+## Day 1
+// A deload. Week 4 gets no warmups too, until a week sets them again
+Squat / 3x5 / 150lb / warmup: none
+```
+
+If no earlier week has a `warmup:` for that day, the exercise uses the first `warmup:` it has anywhere in the program. So if Week 1 has no `warmup:` and Week 3 has `warmup: none`, Week 1 gets no warmups either. To have warmups in Week 1, write them there.
 
 ### Progressive overload
 
@@ -722,6 +751,10 @@ This is the list of available variables you can get values from in your `progres
 - `amraps[n]` - whether the set is AMRAP, `1` for AMRAP, `0` for not AMRAP
 - `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
 - `askweights[n]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
+- `warmupWeights[n]`, `warmupReps[n]`, `warmupTimers[n]` - weight, reps and rest time of an N warmup set
+- `completedWarmupWeights[n]`, `completedWarmupReps[n]` - what the user did on an N warmup set
+- `numberOfWarmupSets` - how many warmup sets the exercise has
+- `completedNumberOfWarmupSets` - how many warmup sets are completed
 
 And this is the list of available variables you can change (assign new values):
 
@@ -988,6 +1021,8 @@ So, the list of variables you can get values from is pretty much the same:
 - `amraps`
 - `logrpes`
 - `askweights`
+- `warmupWeights`, `warmupReps`, `warmupTimers`, `numberOfWarmupSets`
+- `completedWarmupWeights`, `completedWarmupReps`, `completedNumberOfWarmupSets`
 - `setIndex` - index of a set that was tapped (it's 0 for the initial run - before completing any sets)
 
 But assigning new values is only allowed to the following:
@@ -1002,6 +1037,25 @@ But assigning new values is only allowed to the following:
 - `amraps`
 - `logrpes`
 - `askweights`
+- `warmupWeights`
+- `warmupReps`
+- `warmupTimers`
+- `numberOfWarmupSets`
+
+Warmup changes only affect the current workout, and only `update` scripts can make them. A percentage assigned to `warmupWeights` is a percentage of `rm1`, the same as for `weights`. This is different from `warmup:` in the program text, where it's a percentage of the first working set. For example, a heavy single at 90% of 1RM and no warmups on a deload week:
+
+```javascript
+update: custom() {~
+  if (setIndex == 0) {
+    warmupWeights[numberOfWarmupSets] = 90%
+    if (week == 4) {
+      numberOfWarmupSets = 0
+    }
+  }
+~}
+```
+
+Like working sets, completed warmup sets are never changed or removed. When the first working weight changes at the start of a workout, the app rebuilds the warmups from the scheme, unless the script wrote any warmup variable.
 
 So, to change the 2nd set, you do `weights[2] = 60lb`, and to change all sets, you do `weights = 50lb`.
 You **cannot** change the sets that already completed, if you try that, it'd be ignored.
@@ -1362,6 +1416,10 @@ You cannot assign values to them, but you can use their values. They are:
 - `amraps[n]` - whether the set is AMRAP, `1` for AMRAP, `0` for not AMRAP
 - `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
 - `askweights[n]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
+- `warmupWeights[n]`, `warmupReps[n]`, `warmupTimers[n]` - weight, reps and rest time of an N warmup set.
+- `completedWarmupWeights[n]`, `completedWarmupReps[n]` - completed weight and reps of an N warmup set.
+- `numberOfWarmupSets` - how many warmup sets the exercise has.
+- `completedNumberOfWarmupSets` - how many warmup sets are completed.
 
 #### For `update: custom()`:
 

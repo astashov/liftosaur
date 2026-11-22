@@ -12,6 +12,7 @@ import {
   LiftoscriptFns_isValidArg,
   LiftoscriptFns_acceptsTypeAt,
   LiftoscriptFns_bindingStaticType,
+  LiftoscriptFns_writableWarmupBindings,
   liftoscriptGapAwareFnNames,
 } from "./liftoscriptFns";
 import {
@@ -115,6 +116,8 @@ export class LiftoscriptSyntaxError extends SyntaxError {
   }
 }
 
+const DEFAULT_WARMUP_REPS = 5;
+
 function getChildren(node: SyntaxNode): SyntaxNode[] {
   const cur = node.cursor();
   const result: SyntaxNode[] = [];
@@ -213,6 +216,11 @@ export class LiftoscriptEvaluator {
   private readonly vars: Record<string, ILiftoscriptVarValue | ILiftoscriptGap> = {};
   private loopSteps = 0;
   public readonly updates: ILiftoscriptEvaluatorUpdate[] = [];
+  private wroteWarmups = false;
+
+  public get didWriteWarmups(): boolean {
+    return this.wroteWarmups;
+  }
 
   constructor(
     script: string,
@@ -553,6 +561,18 @@ export class LiftoscriptEvaluator {
         const target = getChildren(cursor.node)[0];
         const name = target != null ? this.getValue(target) : "";
         this.error(`Cannot assign to '${name}'`, target ?? cursor.node, { type: "readonlyVariable", data: { name } });
+      } else if (
+        this.mode === "planner" &&
+        (cursor.node.type.name === NodeName.AssignmentExpression ||
+          cursor.node.type.name === NodeName.IncAssignmentExpression) &&
+        this.warmupWriteName(getChildren(cursor.node)[0]) != null
+      ) {
+        const target = getChildren(cursor.node)[0];
+        const name = this.warmupWriteName(target) ?? "";
+        this.error(`'${name}' can only be changed in update scripts`, target, {
+          type: "readonlyVariable",
+          data: { name },
+        });
       } else if (cursor.node.type.name === NodeName.ForExpression) {
         const variableNode = cursor.node.getChild(NodeName.Variable);
         if (variableNode != null) {
@@ -579,12 +599,13 @@ export class LiftoscriptEvaluator {
                   "askweights",
                   "amraps",
                   "logrpes",
+                  ...LiftoscriptFns_writableWarmupBindings,
                 ].indexOf(name) === -1
               ) {
                 this.error(`Cannot assign to '${name}'`, variableNode, { type: "readonlyVariable", data: { name } });
               }
               const indexExprs = variableNode.getChildren(NodeName.VariableIndex);
-              if (name === "numberOfSets" && indexExprs.length > 0) {
+              if ((name === "numberOfSets" || name === "numberOfWarmupSets") && indexExprs.length > 0) {
                 this.error(`${name} is not an array`, variableNode, { type: "notAnArray", data: { name } });
               } else if (indexExprs.length > 1) {
                 this.error(`Can't assign to set variations, weeks or days here`, variableNode, {
@@ -626,6 +647,15 @@ export class LiftoscriptEvaluator {
         }
       }
     } while (cursor.next());
+  }
+
+  private warmupWriteName(target: SyntaxNode | undefined): string | undefined {
+    if (target?.type.name !== NodeName.VariableExpression) {
+      return undefined;
+    }
+    const nameNode = target.getChild(NodeName.Keyword);
+    const name = nameNode != null ? this.getValue(nameNode) : undefined;
+    return LiftoscriptFns_writableWarmupBindings.find((binding) => binding === name);
   }
 
   private isDashboardWritable(target: SyntaxNode | undefined): boolean {
@@ -683,6 +713,65 @@ export class LiftoscriptEvaluator {
     const v = this.rejectString(this.evaluate(expr), expr, "a number or weight");
     const v1 = Array.isArray(v) ? v[0] : v;
     return Weight_is(v1) || Weight_isPct(v1) ? v1 : typeof v1 === "number" ? v1 : v1 ? 1 : 0;
+  }
+
+  private changeNumberOfWarmupSets(expression: SyntaxNode, op: IAssignmentOp): number {
+    this.wroteWarmups = true;
+    const b = this.bindings;
+    const lastCompleted = b.isWarmupCompleted.lastIndexOf(1);
+    const wanted = Math.round(MathUtils_applyOp(b.numberOfWarmupSets, this.evaluateToNumber(expression), op));
+    const count = Math.max(wanted, lastCompleted + 1, 0);
+    const old = b.warmupWeights.length;
+    b.warmupWeights = b.warmupWeights.slice(0, count);
+    b.warmupReps = b.warmupReps.slice(0, count);
+    b.warmupTimers = b.warmupTimers.slice(0, count);
+    b.completedWarmupWeights = b.completedWarmupWeights.slice(0, count);
+    b.completedWarmupReps = b.completedWarmupReps.slice(0, count);
+    b.isWarmupCompleted = b.isWarmupCompleted.slice(0, count);
+    for (let i = old; i < count; i += 1) {
+      b.warmupWeights[i] = b.warmupWeights[old - 1] ?? Weight_build(0, this.unit);
+      b.warmupReps[i] = b.warmupReps[old - 1] ?? DEFAULT_WARMUP_REPS;
+      b.warmupTimers[i] = b.warmupTimers[old - 1];
+      b.completedWarmupWeights[i] = undefined;
+      b.completedWarmupReps[i] = undefined;
+      b.isWarmupCompleted[i] = 0;
+    }
+    b.numberOfWarmupSets = count;
+    return count;
+  }
+
+  private changeWarmupBinding(
+    key: "warmupWeights" | "warmupReps" | "warmupTimers",
+    expression: SyntaxNode,
+    indexExprs: SyntaxNode[],
+    op: IAssignmentOp
+  ): number | IWeight | IPercentage {
+    this.wroteWarmups = true;
+    const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
+    if (indexes.length > 1) {
+      this.error(`${key} can only have 1 value inside []`, expression, {
+        type: "tooManyIndexes",
+        data: { key, max: 1 },
+      });
+    }
+    const [setIndex] = this.normalizeTarget(this.calculateIndexValues(indexes), 1);
+    const b = this.bindings;
+    let value: number | IWeight | IPercentage = 0;
+    for (let i = 0; i < b.numberOfWarmupSets; i += 1) {
+      if (b.isWarmupCompleted[i] || (setIndex !== "*" && setIndex !== i + 1)) {
+        continue;
+      }
+      if (key === "warmupWeights") {
+        const evaluated = this.evaluateToNumberOrWeightOrPercentage(expression);
+        const newValue = Weight_applyOp(b.rm1, b.warmupWeights[i] ?? Weight_build(0, this.unit), evaluated, op);
+        value = Weight_convertToWeight(b.rm1, newValue, this.unit);
+        b.warmupWeights[i] = value;
+      } else {
+        value = Math.max(0, MathUtils_applyOp(b[key][i] ?? 0, this.evaluateToNumber(expression), op));
+        b[key][i] = key === "warmupReps" ? Math.round(value) : value;
+      }
+    }
+    return value;
   }
 
   private changeNumberOfSets(expression: SyntaxNode, op: IAssignmentOp): number | IWeight | IPercentage {
@@ -1198,6 +1287,13 @@ export class LiftoscriptEvaluator {
           return this.recordVariableUpdate(variable, expression, indexExprs, "=");
         } else if (this.mode === "update" && variable === "numberOfSets") {
           return this.changeNumberOfSets(expression, "=");
+        } else if (this.mode === "update" && variable === "numberOfWarmupSets") {
+          return this.changeNumberOfWarmupSets(expression, "=");
+        } else if (
+          this.mode === "update" &&
+          (variable === "warmupWeights" || variable === "warmupReps" || variable === "warmupTimers")
+        ) {
+          return this.changeWarmupBinding(variable, expression, indexExprs, "=");
         } else if (
           this.mode === "update" &&
           (variable === "reps" ||
@@ -1354,6 +1450,23 @@ export class LiftoscriptEvaluator {
             });
           }
           return this.changeNumberOfSets(expression, op);
+        } else if (
+          this.mode === "update" &&
+          (variable === "numberOfWarmupSets" ||
+            variable === "warmupWeights" ||
+            variable === "warmupReps" ||
+            variable === "warmupTimers")
+        ) {
+          const op = this.getValue(incAssignmentExpr);
+          if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {
+            this.error(`Unknown operator ${op} after ${variable}`, incAssignmentExpr, {
+              type: "unknownAssignmentOperator",
+              data: { op, variable },
+            });
+          }
+          return variable === "numberOfWarmupSets"
+            ? this.changeNumberOfWarmupSets(expression, op)
+            : this.changeWarmupBinding(variable, expression, indexExprs, op);
         } else if (
           this.mode === "update" &&
           (variable === "reps" ||

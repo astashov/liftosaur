@@ -282,28 +282,31 @@ export class PlannerExerciseEvaluator {
   private evaluateWarmupSet(expr: SyntaxNode): IPlannerProgramExerciseWarmupSet {
     if (expr.type.name === PlannerNodeName.WarmupExerciseSet) {
       const setPartNodes = expr.getChildren(PlannerNodeName.WarmupSetPart);
+      const percentageNodes = expr.getChildren(PlannerNodeName.Percentage);
+      const weightNodes = expr.getChildren(PlannerNodeName.Weight);
+      const timerNodes = expr.getChildren(PlannerNodeName.Timer);
+      if (setPartNodes.length > 1 || weightNodes.length + percentageNodes.length > 1 || timerNodes.length > 1) {
+        this.error("A warmup set can have only one reps, one weight and one rest time", expr, {
+          type: "invalidWarmupSet",
+          data: { reason: "duplicatePart" },
+        });
+      }
+      if (setPartNodes.length === 0 && weightNodes.length === 0 && percentageNodes.length === 0) {
+        this.error("A warmup set needs reps", expr, { type: "invalidWarmupSet", data: { reason: "noReps" } });
+      }
       const setParts = setPartNodes.map((setPartNode) => this.getValue(setPartNode)).join("");
       const { numberOfSets, reps } = this.getWarmupReps(setParts);
-      const percentageNode = expr.getChild(PlannerNodeName.Percentage);
-      const weightNode = expr.getChild(PlannerNodeName.Weight);
       const percentage =
-        percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace("%", ""));
-      const weight = this.getWeight(weightNode);
-      if (percentage) {
-        return {
-          type: "warmup",
-          reps,
-          numberOfSets,
-          percentage,
-        };
-      } else {
-        return {
-          type: "warmup",
-          reps,
-          numberOfSets,
-          weight: weight!,
-        };
-      }
+        percentageNodes[0] == null ? undefined : parseFloat(this.getValue(percentageNodes[0]).replace("%", ""));
+      const weight = this.getWeight(weightNodes[0]);
+      const timer = timerNodes[0] == null ? undefined : parseInt(this.getValue(timerNodes[0]).replace("s", ""), 10);
+      return {
+        type: "warmup",
+        reps,
+        numberOfSets,
+        ...(percentage != null ? { percentage } : weight != null ? { weight } : {}),
+        ...(timer != null ? { timer } : {}),
+      };
     } else {
       assert(PlannerNodeName.ExerciseSection);
     }
@@ -1386,7 +1389,7 @@ export class PlannerExerciseEvaluator {
               const none = properties.getChild(PlannerNodeName.None);
               return none != null;
             }
-            return false;
+            return propertyName === "warmup";
           })
           .map((section) => this.getValueTrim(section).trim())
           .join(" / ");

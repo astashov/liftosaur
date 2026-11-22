@@ -2,12 +2,17 @@ import {
   Exercise_onerm,
   Exercise_get,
   Exercise_getIsUnilateral,
-  Exercise_getWarmupSets,
   Exercise_toKey,
   Exercise_eq,
   Exercise_fullName,
 } from "./exercise";
-import { Reps_findNextEntryAndSet, Reps_isEmptyOrFinished, Reps_isCompleted, Reps_isEmpty } from "./set";
+import {
+  Reps_findNextEntryAndSet,
+  Reps_isEmptyOrFinished,
+  Reps_isCompleted,
+  Reps_isEmpty,
+  Reps_displayWeight,
+} from "./set";
 import {
   Weight_build,
   Weight_buildAny,
@@ -31,6 +36,7 @@ import {
   Weight_rpePct,
   Weight_evaluateWeight,
   Weight_op,
+  Weight_roundWarmup,
 } from "./weight";
 import { EquipmentLoadText_line } from "./equipmentLoadText";
 import { DateUtils_fromYYYYMMDD, DateUtils_fromYYYYMMDDStr } from "../utils/date";
@@ -71,7 +77,7 @@ import {
   IStats,
   IProgram,
   IStorage,
-  IProgramExerciseWarmupSet,
+  IWarmupSchemeSet,
 } from "../types";
 import { INativeEffect } from "./nativeEffects";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
@@ -88,7 +94,7 @@ import {
 import { WorkoutOutcome_add } from "./workoutOutcome";
 import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
-import { Equipment_getUnitForExerciseType } from "./equipment";
+import { Equipment_getUnitForExerciseType, Equipment_getUnitOrDefaultForExerciseType } from "./equipment";
 import { IByTag, IByExercise } from "../pages/planner/plannerEvaluator";
 import {
   IPlannerProgramExercise,
@@ -102,8 +108,10 @@ import {
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
   PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
-  PlannerProgramExercise_programWarmups,
+  PlannerProgramExercise_warmups,
 } from "../pages/planner/models/plannerProgramExercise";
+import { WarmupScheme_build, WarmupScheme_reconcile } from "./warmupScheme";
+import { RestTimer_forSet } from "./restTimer";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
 import { Stats_getCurrentMovingAverageBodyweight, Stats_getEmpty } from "./stats";
@@ -261,6 +269,30 @@ export function Progress_createEmptyScriptBindings(
     bodyweight: Weight_build(0, settings.units),
     setIndex: 1,
     rm1,
+    ...Progress_emptyWarmupBindings(),
+  };
+}
+
+export function Progress_emptyWarmupBindings(): Pick<
+  IScriptBindings,
+  | "warmupWeights"
+  | "warmupReps"
+  | "warmupTimers"
+  | "numberOfWarmupSets"
+  | "completedWarmupWeights"
+  | "completedWarmupReps"
+  | "completedNumberOfWarmupSets"
+  | "isWarmupCompleted"
+> {
+  return {
+    warmupWeights: [],
+    warmupReps: [],
+    warmupTimers: [],
+    numberOfWarmupSets: 0,
+    completedWarmupWeights: [],
+    completedWarmupReps: [],
+    completedNumberOfWarmupSets: 0,
+    isWarmupCompleted: [],
   };
 }
 
@@ -296,6 +328,16 @@ export function Progress_createScriptBindings(
     bindings.completedSetTimeLeft.push(set.completedSetTimerLeft);
     bindings.isCompleted.push(set.isCompleted ? 1 : 0);
   }
+  for (const set of entry.warmupSets) {
+    bindings.warmupWeights.push(set.weight);
+    bindings.warmupReps.push(set.reps);
+    bindings.warmupTimers.push(set.timer);
+    bindings.completedWarmupWeights.push(set.completedWeight);
+    bindings.completedWarmupReps.push(set.completedReps);
+    bindings.isWarmupCompleted.push(set.isCompleted ? 1 : 0);
+  }
+  bindings.numberOfWarmupSets = entry.warmupSets.length;
+  bindings.completedNumberOfWarmupSets = entry.warmupSets.filter((s) => s.isCompleted).length;
   bindings.w = bindings.weights;
   bindings.r = bindings.reps;
   bindings.cr = bindings.completedReps;
@@ -437,14 +479,15 @@ export function Progress_scheduleTimerNotification(
     const exercise = Exercise_get(nextEntry.exercise, settings.exercises);
     if (exercise) {
       subtitleHeader = "Next Set";
+      const weight = Reps_displayWeight(aSet);
       subtitle = CollectionUtils_compact([
         exercise.name,
         aSet.reps != null ? `${aSet.reps}${aSet.isAmrap ? "+" : ""} reps` : undefined,
-        aSet.weight != null ? Weight_display(aSet.weight) : undefined,
+        weight != null ? Weight_display(weight) : undefined,
       ]).join(", ");
-      if (aSet.weight != null) {
+      if (weight != null) {
         const isWarmup = nextEntry.warmupSets.indexOf(aSet) !== -1;
-        const load = Weight_realizeLoad(aSet.weight, settings, nextEntry.exercise, isWarmup);
+        const load = Weight_realizeLoad(weight, settings, nextEntry.exercise, isWarmup);
         const loadText = EquipmentLoadText_line(load);
         bodyHeader = "Plates per side";
         body = loadText !== "" ? loadText : "None";
@@ -486,14 +529,8 @@ export function Progress_startTimer(
   if (!isAdjusting && (!set || !set.isCompleted)) {
     return progress;
   }
-  if (timer == null && Progress_isCurrent(progress) && mode === "workout") {
-    timer = entry?.sets[setIndex]?.timer;
-  }
   if (timer == null) {
-    timer =
-      mode === "workout" && entry.superset != null && settings.timers.superset != null
-        ? settings.timers.superset
-        : settings.timers[mode] || undefined;
+    timer = RestTimer_forSet(Progress_isCurrent(progress) ? set : undefined, mode, entry.superset != null, settings);
   }
   if (!timer) {
     return {
@@ -920,14 +957,37 @@ export function Progress_runUpdateScriptForEntry(
   otherStates: IByTag<IProgramState>,
   setIndex: number,
   settings: ISettings,
-  stats: IStats
+  stats: IStats,
+  baselineEntry?: IHistoryEntry
 ): IHistoryEntry {
+  const result = runUpdateScript(entry, dayData, programExercise, otherStates, setIndex, settings, stats);
+  if (setIndex !== -1 || result.entry.changed) {
+    return result.entry;
+  }
+  return WarmupScheme_reconcile(
+    baselineEntry ?? entry,
+    result.entry,
+    PlannerProgramExercise_warmups(programExercise),
+    settings,
+    result.didWriteWarmups
+  );
+}
+
+function runUpdateScript(
+  entry: IHistoryEntry,
+  dayData: IDayData,
+  programExercise: IPlannerProgramExercise,
+  otherStates: IByTag<IProgramState>,
+  setIndex: number,
+  settings: ISettings,
+  stats: IStats
+): { entry: IHistoryEntry; didWriteWarmups: boolean } {
   if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
-    return entry;
+    return { entry, didWriteWarmups: false };
   }
   const script = PlannerProgramExercise_getUpdateScript(programExercise);
   if (!script) {
-    return entry;
+    return { entry, didWriteWarmups: false };
   }
   const exercise = programExercise.exerciseType;
   const state = ObjectUtils_clone(PlannerProgramExercise_getState(programExercise));
@@ -961,8 +1021,12 @@ export function Progress_runUpdateScriptForEntry(
     fnContext
   );
   runner.execute();
-  const { updatePrints, ...newEntry } = Progress_applyBindings(entry, bindings, settings);
-  return { ...newEntry, state: { ...newEntry.state, ...state }, updatePrintLines: fnContext.prints };
+  const didWriteWarmups = runner.didWriteWarmups;
+  const { updatePrints, ...newEntry } = Progress_applyBindings(entry, bindings, settings, didWriteWarmups);
+  return {
+    entry: { ...newEntry, state: { ...newEntry.state, ...state }, updatePrintLines: fnContext.prints },
+    didWriteWarmups,
+  };
 }
 
 export function Progress_runInitialUpdateScripts(
@@ -971,7 +1035,8 @@ export function Progress_runInitialUpdateScripts(
   day: number,
   program: IEvaluatedProgram,
   settings: ISettings,
-  stats: IStats
+  stats: IStats,
+  baseline?: IHistoryRecord
 ): IHistoryRecord {
   const programDay = Program_getProgramDay(program, day);
   if (!programDay) {
@@ -998,7 +1063,8 @@ export function Progress_runInitialUpdateScripts(
           program.states,
           -1,
           settings,
-          stats
+          stats,
+          baseline?.entries.find((e) => e.programExerciseId === entry.programExerciseId)
         );
       } catch (error) {
         const e = error as Error;
@@ -1051,10 +1117,43 @@ export function Progress_runUpdateScript(
   return progress;
 }
 
+function warmupSetsFromBindings(
+  oldEntry: IHistoryEntry,
+  firstWorkingWeight: IWeight | undefined,
+  bindings: IScriptBindings,
+  settings: ISettings
+): ISet[] {
+  const unit = Equipment_getUnitOrDefaultForExerciseType(settings, oldEntry.exercise);
+  const isUnilateral = Exercise_getIsUnilateral(oldEntry.exercise, settings);
+  const sets: ISet[] = [];
+  for (let index = 0; index < bindings.numberOfWarmupSets; index += 1) {
+    const old = oldEntry.warmupSets[index];
+    if (old?.isCompleted) {
+      sets.push(old);
+      continue;
+    }
+    const originalWeight = bindings.warmupWeights[index];
+    const timer = bindings.warmupTimers[index];
+    sets.push({
+      ...(old ?? { vtype: "set", id: UidFactory_generateUid(6), isUnilateral, isCompleted: false }),
+      index,
+      reps: bindings.warmupReps[index],
+      originalWeight,
+      weight:
+        originalWeight != null
+          ? Weight_roundWarmup(originalWeight, settings, unit, oldEntry.exercise, firstWorkingWeight)
+          : undefined,
+      timer: timer != null && timer >= 0 ? timer : undefined,
+    });
+  }
+  return sets;
+}
+
 export function Progress_applyBindings(
   oldEntry: IHistoryEntry,
   bindings: IScriptBindings,
-  settings: ISettings
+  settings: ISettings,
+  didWriteWarmups: boolean = false
 ): IHistoryEntry {
   const keys = [
     "RPE",
@@ -1126,6 +1225,9 @@ export function Progress_applyBindings(
         }
       }
     }
+  }
+  if (didWriteWarmups) {
+    entry.warmupSets = warmupSetsFromBindings(oldEntry, entry.sets[0]?.weight, bindings, settings);
   }
   return entry;
 }
@@ -1838,10 +1940,10 @@ export function Progress_programWarmupsForExerciseType(
   evaluatedProgram: IEvaluatedProgram | undefined,
   exerciseType: IExerciseType,
   settings: ISettings
-): IProgramExerciseWarmupSet[] | undefined {
+): IWarmupSchemeSet[] | undefined {
   for (const programExercise of evaluatedProgram ? Program_getAllProgramExercisesWithType(evaluatedProgram) : []) {
     if (Exercise_eq(programExercise.exerciseType, exerciseType)) {
-      const warmups = PlannerProgramExercise_programWarmups(programExercise, settings);
+      const warmups = PlannerProgramExercise_warmups(programExercise);
       if (warmups != null) {
         return warmups;
       }
@@ -1855,7 +1957,7 @@ export function Progress_updateSetWeights(
   exerciseType: IExerciseType,
   settings: ISettings,
   prevEntry?: IHistoryEntry,
-  programWarmups?: IProgramExerciseWarmupSet[]
+  programWarmups?: IWarmupSchemeSet[]
 ): IHistoryEntry {
   const unit = Equipment_getUnitForExerciseType(settings, exerciseType) ?? settings.units;
   const newSets = entry.sets.map((set) => {
@@ -1889,7 +1991,7 @@ export function Progress_updateSetWeights(
   const hasCompletedWarmup = entry.warmupSets.some((set) => set.isCompleted);
   const warmupSets = hasCompletedWarmup
     ? entry.warmupSets
-    : Exercise_getWarmupSets(exerciseType, newSets[0]?.weight, settings, programWarmups);
+    : WarmupScheme_build(exerciseType, newSets[0]?.weight, settings, programWarmups, entry.warmupSets);
   return { ...entry, sets: newSets, warmupSets };
 }
 
@@ -2147,7 +2249,7 @@ export function Progress_applyProgramExercise(
 ): IHistoryEntry {
   const variationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const sets = programExercise.evaluatedSetVariations[variationIndex].sets;
-  const programExerciseWarmupSets = PlannerProgramExercise_programWarmups(programExercise, settings);
+  const programExerciseWarmupSets = PlannerProgramExercise_warmups(programExercise);
 
   if (progressEntry != null) {
     const newSets = progressEntry.sets.every((s) => s.programSetIndex != null)
@@ -2158,14 +2260,16 @@ export function Progress_applyProgramExercise(
       const firstWeight = newSets[0]?.weight;
       forceWarmupSets = forceWarmupSets || Reps_isEmpty(newSets);
       if (forceWarmupSets) {
-        const generated =
+        newWarmupSets =
           firstWeight != null
-            ? Exercise_getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
+            ? WarmupScheme_build(
+                programExercise.exerciseType,
+                firstWeight,
+                settings,
+                programExerciseWarmupSets,
+                progressEntry.warmupSets
+              )
             : [];
-        newWarmupSets = generated.map((ws, i) => ({
-          ...ws,
-          id: progressEntry.warmupSets[i]?.id ?? ws.id,
-        }));
       } else {
         newWarmupSets = progressEntry.warmupSets;
       }
@@ -2212,7 +2316,7 @@ export function Progress_applyProgramExercise(
       sets: newSets,
       warmupSets:
         firstWeight != null
-          ? Exercise_getWarmupSets(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
+          ? WarmupScheme_build(programExercise.exerciseType, firstWeight, settings, programExerciseWarmupSets)
           : [],
     };
   }

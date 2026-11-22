@@ -683,6 +683,38 @@ const _VProgramExerciseWarmupSetMatches: IEquals<
 void _VProgramExerciseWarmupSetMatches;
 export const VProgramExerciseWarmupSet: v.GenericSchema<IProgramExerciseWarmupSet> = _VProgramExerciseWarmupSet;
 
+export interface IWarmupSchemeSet {
+  numberOfSets: number;
+  reps: number;
+  percentage?: number;
+  weight?: IWeight;
+  timer?: number;
+}
+const _VWarmupSchemeSet = v.object({
+  numberOfSets: v.number(),
+  reps: v.number(),
+  percentage: v.optional(v.number()),
+  weight: v.optional(VWeight),
+  timer: v.optional(v.number()),
+});
+const _VWarmupSchemeSetMatches: IEquals<v.InferOutput<typeof _VWarmupSchemeSet>, IWarmupSchemeSet> = true;
+void _VWarmupSchemeSetMatches;
+export const VWarmupSchemeSet: v.GenericSchema<IWarmupSchemeSet> = _VWarmupSchemeSet;
+
+export interface IExerciseWarmupDefaultSet extends IWarmupSchemeSet {
+  threshold?: IWeight;
+}
+const _VExerciseWarmupDefaultSet = v.object({
+  ..._VWarmupSchemeSet.entries,
+  threshold: v.optional(VWeight),
+});
+const _VExerciseWarmupDefaultSetMatches: IEquals<
+  v.InferOutput<typeof _VExerciseWarmupDefaultSet>,
+  IExerciseWarmupDefaultSet
+> = true;
+void _VExerciseWarmupDefaultSetMatches;
+export const VExerciseWarmupDefaultSet: v.GenericSchema<IExerciseWarmupDefaultSet> = _VExerciseWarmupDefaultSet;
+
 export interface IProgramExerciseReuseLogic {
   selected?: string;
   states: Record<string, IProgramState>;
@@ -1703,6 +1735,7 @@ export interface IExerciseDataValue {
   muscleMultipliers?: Record<string, number | undefined>;
   isUnilateral?: boolean;
   volumeMultiplier?: number;
+  warmups?: IExerciseWarmupDefaultSet[];
 }
 const _VExerciseDataValue = v.object({
   rm1: v.optional(VWeight),
@@ -1712,6 +1745,7 @@ const _VExerciseDataValue = v.object({
   muscleMultipliers: v.optional(v.record(v.string(), v.optional(v.number()))),
   isUnilateral: v.optional(v.boolean()),
   volumeMultiplier: v.optional(v.number()),
+  warmups: v.optional(v.array(VExerciseWarmupDefaultSet)),
 });
 const _VExerciseDataValueMatches: IEquals<v.InferOutput<typeof _VExerciseDataValue>, IExerciseDataValue> = true;
 void _VExerciseDataValueMatches;

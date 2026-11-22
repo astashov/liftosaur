@@ -22,6 +22,10 @@ const MAX_ROUNDING = 1000;
 const MAX_MUSCLE_MULTIPLIERS = 100;
 const MIN_VOLUME_MULTIPLIER = 1;
 const MAX_VOLUME_MULTIPLIER = 10;
+const MAX_WARMUP_SETS = 20;
+const MAX_WARMUP_REPS = 100;
+const MAX_WARMUP_PERCENTAGE = 200;
+const MAX_WARMUP_TIMER = 3600;
 
 // `null` clears the field (reverts it to the computed default); `undefined`/absent keeps the current value.
 function nullable<TOutput>(schema: v.GenericSchema<unknown, TOutput>): v.GenericSchema<unknown, TOutput | null> {
@@ -80,6 +84,29 @@ const VExerciseDataUpdateInput = v.object({
       )
     )
   ),
+  warmups: v.optional(
+    nullable(
+      v.pipe(
+        v.array(
+          v.pipe(
+            v.object({
+              numberOfSets: v.optional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(MAX_WARMUP_SETS)), 1),
+              reps: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(MAX_WARMUP_REPS)),
+              weight: v.optional(VWeightString),
+              percentage: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(MAX_WARMUP_PERCENTAGE))),
+              timer: v.optional(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(MAX_WARMUP_TIMER))),
+              threshold: v.optional(VWeightString),
+            }),
+            v.check(
+              (set) => set.weight == null || set.percentage == null,
+              "A warmup set takes a weight or a percentage, not both"
+            )
+          )
+        ),
+        v.maxLength(MAX_WARMUP_SETS)
+      )
+    )
+  ),
 });
 
 export type IExerciseDataUpdateInput = v.InferOutput<typeof VExerciseDataUpdateInput>;
@@ -97,6 +124,7 @@ const EXERCISE_DATA_FIELD_POLICY = {
   muscleMultipliers: "writable",
   isUnilateral: "writable",
   volumeMultiplier: "writable",
+  warmups: "writable",
 } as const satisfies Record<keyof IExerciseDataValue, IExerciseDataFieldPolicy>;
 
 export type IWritableExerciseDataField = {
@@ -224,6 +252,7 @@ function applyExerciseDataInput(
     muscleMultipliers: resolve(input.muscleMultipliers, base.muscleMultipliers as Record<string, number> | undefined),
     isUnilateral: resolve(input.isUnilateral, base.isUnilateral),
     volumeMultiplier: resolve(input.volumeMultiplier, base.volumeMultiplier),
+    warmups: resolve(input.warmups, base.warmups),
   };
 
   // Drop undefined keys so cleared fields don't linger as `key: undefined` in storage.
@@ -253,6 +282,14 @@ interface IExerciseDataResponse {
   muscleMultipliers?: Record<string, number | undefined>;
   isUnilateral?: boolean;
   volumeMultiplier?: number;
+  warmups?: {
+    numberOfSets: number;
+    reps: number;
+    weight?: string;
+    percentage?: number;
+    timer?: number;
+    threshold?: string;
+  }[];
 }
 
 function formatEquipmentOverride(
@@ -292,6 +329,14 @@ function formatExerciseData(key: string, d: IExerciseDataValue, settings: ISetti
     muscleMultipliers: d.muscleMultipliers,
     isUnilateral: d.isUnilateral,
     volumeMultiplier: d.volumeMultiplier,
+    warmups: d.warmups?.map((set) => ({
+      numberOfSets: set.numberOfSets,
+      reps: set.reps,
+      weight: set.weight != null ? Weight_print(set.weight) : undefined,
+      percentage: set.percentage,
+      timer: set.timer,
+      threshold: set.threshold != null ? Weight_print(set.threshold) : undefined,
+    })),
   };
 }
 

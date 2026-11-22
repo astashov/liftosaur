@@ -284,6 +284,23 @@ const EXERCISE_DATA_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
     description:
       "Multiplier applied to this exercise's volume/total-weight (not to prescribed weights), clamped to 1-10. Set to 2 for exercises loaded with two dumbbells simultaneously (e.g. dumbbell shoulder press), where the displayed weight is per-dumbbell. null clears the override.",
   },
+  warmups: {
+    type: ["array", "null"],
+    description:
+      'The user\'s default warmups for this exercise, used when a program has no `warmup:` for it. Each item is a group of identical warmup sets: numberOfSets (default 1), reps, then either weight (a string like "45lb") or percentage (of the first working set, e.g. 50), and an optional timer in seconds for the rest after each set. An optional threshold (a string like "120lb") skips the set when the first working set weighs that much or less. [] means no warmups. null reverts to the built-in warmups.',
+    items: {
+      type: "object",
+      properties: {
+        numberOfSets: { type: "integer" },
+        reps: { type: "integer" },
+        weight: { type: "string" },
+        percentage: { type: "number" },
+        timer: { type: "integer" },
+        threshold: { type: "string" },
+      },
+      required: ["reps"],
+    },
+  },
 };
 
 const FRIEND_TEXT_WARNING =

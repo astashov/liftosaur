@@ -1,6 +1,6 @@
 import "./models/state";
 import { ScriptRunner } from "./parser";
-import { IScriptBindings, Progress_createScriptFunctions } from "./models/progress";
+import { IScriptBindings, Progress_createScriptFunctions, Progress_emptyWarmupBindings } from "./models/progress";
 import { Settings_build } from "./models/settings";
 import { Weight_build } from "./models/weight";
 
@@ -58,6 +58,7 @@ const bindings: IScriptBindings = {
   numberOfSets: 3,
   completedNumberOfSets: 3,
   setIndex: 1,
+  ...Progress_emptyWarmupBindings(),
   setVariationIndex: 1,
   exerciseVariationIndex: 1,
   bodyweight: Weight_build(0, "lb"),

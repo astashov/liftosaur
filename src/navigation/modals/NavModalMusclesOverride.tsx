@@ -16,7 +16,7 @@ import { LinkButton } from "../../components/linkButton";
 import { ISettings } from "../../types";
 import { updateSettings } from "../../models/state";
 import { lb } from "lens-shmens";
-import { Exercise_get, Exercise_toKey } from "../../models/exercise";
+import { Exercise_clearMuscleMultipliers, Exercise_get, Exercise_toKey } from "../../models/exercise";
 import { ObjectUtils_clone, ObjectUtils_isEqual } from "../../utils/object";
 import { useModal } from "../ModalStateContext";
 import { CollectionUtils_sort } from "../../utils/collection";
@@ -56,9 +56,9 @@ export function NavModalMusclesOverride(): JSX.Element {
       muscleMultipliers[mm.muscle] = getMultiplierValue(mm.multiplier);
     }
     const exerciseData = settings.exerciseData;
-    const newExerciseData = ObjectUtils_clone(exerciseData);
+    let newExerciseData = ObjectUtils_clone(exerciseData);
     if (ObjectUtils_isEqual(muscleMultipliers, getDefaultMusclesAndMultipliersAsObject(exercise, settings))) {
-      delete newExerciseData[Exercise_toKey(exercise)];
+      newExerciseData = Exercise_clearMuscleMultipliers(exerciseData, exercise);
     } else {
       const ed = newExerciseData[Exercise_toKey(exercise)] || {};
       ed.muscleMultipliers = muscleMultipliers;

@@ -912,6 +912,12 @@ Bench Press / 3x3
       expect(result.error).to.contain("share one warmup");
     });
 
+    it("still labels apart when each line writes its own warmup", () => {
+      const text = `# W1\n## D1\nSquat / 3x5 100lb / warmup: 1x5 30%\n\n## D2\nSquat / 3x5 200lb / warmup: 1x5 45lb\n`;
+      const result = PlannerStructure_moveExerciseToDay(plannerOf(text), 0, "Squat", 1, undefined, Settings_build());
+      expect(result.success, !result.success ? result.error : "").to.equal(true);
+    });
+
     it("still labels apart when each line already says everything for itself", () => {
       // Both lines carry their own `...t1`, so the split costs nothing — which is what a
       // template-driven program looks like, and the reason this isn't a blanket ban on the feature.

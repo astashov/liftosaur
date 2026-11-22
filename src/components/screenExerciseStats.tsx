@@ -39,6 +39,7 @@ import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 import { GroupHeader } from "./groupHeader";
+import { ExerciseWarmupDefaultsEditor } from "./exerciseWarmupDefaultsEditor";
 import { StringUtils_capitalize } from "../utils/string";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigateToModal } from "../navigation/navigationService";
@@ -208,6 +209,8 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         dispatch={dispatch}
         show1RM={true}
       />
+
+      <ExerciseWarmupDefaultsEditor exerciseType={exerciseType} settings={settings} dispatch={dispatch} />
 
       <View data-testid="exercise-stats-image" testID="exercise-stats-image">
         <ExerciseImage settings={settings} key={exerciseKey} exerciseType={exerciseType} size="large" />

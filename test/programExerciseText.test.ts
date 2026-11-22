@@ -278,6 +278,25 @@ Squat / 3x8 90lb
       expect(shared.every((s) => s.owners[0].dayData.week === 1)).to.eql(true);
     });
 
+    it("points a warmup at the nearest earlier definition, not the first one", () => {
+      const { program } = PlannerTestUtils_get(`# Week 1
+## Day 1
+Squat / 5x5 100lb / warmup: 2x5 45lb
+
+# Week 2
+## Day 1
+Squat / 5x5 100lb / warmup: none
+
+# Week 3
+## Day 1
+Squat / 3x8 90lb
+`);
+      const shared = sharedOf(program, declarationOf(program, "squat_barbell", 3));
+      expect(shared.map((s) => [s.property, s.text, s.owners.map((o) => o.dayData.week)])).to.eql([
+        ["warmup", "warmup: none", [2]],
+      ]);
+    });
+
     it("reports nothing on the week that declares them", () => {
       const { program } = PlannerTestUtils_get(multiweek);
       expect(sharedOf(program, declarationOf(program, "squat_barbell", 1))).to.eql([]);

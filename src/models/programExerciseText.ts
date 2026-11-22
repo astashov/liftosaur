@@ -92,9 +92,10 @@ export function ProgramExerciseText_blurb(planner: IPlannerProgram, declaration:
 // deliberately not surfaced: `used: none` marks an exercise as a template that appears in no
 // workout, so it barely coexists with real instances, and it carries no value to edit from
 // another week — a caption about it would be unactionable noise.
-export const ProgramExerciseText_sharedProperties: string[] = PlannerEvaluator_hoistedProperties.filter(
-  (property) => property !== "used"
-);
+export const ProgramExerciseText_sharedProperties: string[] = [
+  "warmup",
+  ...PlannerEvaluator_hoistedProperties.filter((property) => property !== "used"),
+];
 
 interface IExerciseSection {
   property: string;
@@ -198,6 +199,24 @@ export interface IProgramExerciseSharedRange {
   end: number;
 }
 
+function warmupSourceOf(
+  allExercises: IPlannerProgramExercise[],
+  declaration: IPlannerProgramExercise
+): IPlannerProgramExercise | undefined {
+  const source = declaration.resolvedWarmups?.source;
+  if (source == null || source.key !== declaration.key) {
+    return undefined;
+  }
+  const owner = allExercises.find(
+    (e) =>
+      e.key === source.key &&
+      !e.isRepeat &&
+      e.dayData.week === source.dayData.week &&
+      e.dayData.dayInWeek === source.dayData.dayInWeek
+  );
+  return owner != null && !isSameDeclaration(owner, declaration) ? owner : undefined;
+}
+
 // Which shared properties govern this declaration without being written on it, and which line
 // does hold each. Only other declarations of the same key count: an exercise that inherits
 // `progress` through `...reuse` gets it from a different key entirely, and rewriting that from
@@ -212,12 +231,19 @@ export function ProgramExerciseText_sharedSections(
     return [];
   }
   const found: IProgramExerciseSharedSection[] = [];
-  for (const sibling of Program_getAllProgramExercises(evaluatedProgram)) {
+  const allExercises = Program_getAllProgramExercises(evaluatedProgram);
+  const warmupSource = missing.includes("warmup") ? warmupSourceOf(allExercises, declaration) : undefined;
+  const warmupSection =
+    warmupSource != null ? exerciseSections(warmupSource.text).find((s) => s.property === "warmup") : undefined;
+  if (warmupSource != null && warmupSection != null) {
+    found.push({ property: "warmup", text: warmupSection.text, owners: [warmupSource] });
+  }
+  for (const sibling of allExercises) {
     if (sibling.key !== declaration.key || sibling.isRepeat || isSameDeclaration(sibling, declaration)) {
       continue;
     }
     for (const section of exerciseSections(sibling.text)) {
-      if (!missing.includes(section.property) || !isSharedDeclaration(section)) {
+      if (section.property === "warmup" || !missing.includes(section.property) || !isSharedDeclaration(section)) {
         continue;
       }
       const existing = found.find((f) => f.property === section.property);

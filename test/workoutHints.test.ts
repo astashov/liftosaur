@@ -29,6 +29,13 @@ describe("WorkoutHints", () => {
     expect(WorkoutHints_isLearned(once, "workout-set-expand")).to.eql(false);
   });
 
+  it("learns the default warmup swipe-to-delete hint after two swipes", () => {
+    const once = WorkoutHints_recordUse([], "default-warmup-swipe-delete", "a");
+    expect(WorkoutHints_isLearned(once, "default-warmup-swipe-delete")).to.eql(false);
+    const twice = WorkoutHints_recordUse(once, "default-warmup-swipe-delete", "b");
+    expect(WorkoutHints_isLearned(twice, "default-warmup-swipe-delete")).to.eql(true);
+  });
+
   it("returns the same array once learned", () => {
     const helps = ["workout-set-expand.a", "workout-set-expand.b", "workout-set-expand"];
     expect(WorkoutHints_recordUse(helps, "workout-set-expand", "c")).to.equal(helps);

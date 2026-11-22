@@ -9,6 +9,7 @@ import {
   Exercise_defaultSynergistMuscleMultipliers,
   Exercise_toKey,
   Exercise_get,
+  Exercise_clearMuscleMultipliers,
 } from "../models/exercise";
 import { IExerciseType, IMuscle, IMuscleMultiplier, ISettings } from "../types";
 import { Button } from "./button";
@@ -107,15 +108,15 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
       muscleMultipliers[mm.muscle] = getMultiplierValue(mm.multiplier);
     }
     const exerciseData = props.settings.exerciseData;
-    const newExerciseData = ObjectUtils_clone(exerciseData);
     if (ObjectUtils_isEqual(muscleMultipliers, getDefaultMusclesAndMultipliersAsObject(exercise, props.settings))) {
-      delete newExerciseData[Exercise_toKey(exercise)];
+      props.onNewExerciseData(Exercise_clearMuscleMultipliers(exerciseData, exercise));
     } else {
+      const newExerciseData = ObjectUtils_clone(exerciseData);
       const ed = newExerciseData[Exercise_toKey(exercise)] || {};
       ed.muscleMultipliers = muscleMultipliers;
       newExerciseData[Exercise_toKey(exercise)] = ed;
+      props.onNewExerciseData(newExerciseData);
     }
-    props.onNewExerciseData(newExerciseData);
     props.onClose();
   };
 

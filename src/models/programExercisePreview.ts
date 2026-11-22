@@ -126,9 +126,6 @@ function applySharedChanges(
   own: IPlannerProgramExercise,
   changes: ISharedChanges
 ): void {
-  if (changes.warmups) {
-    instance.warmupSets = own.warmupSets;
-  }
   if (changes.progress) {
     instance.progress = own.progress;
   }
@@ -156,6 +153,14 @@ function instanceAt(
   key: string
 ): IPlannerProgramExercise | undefined {
   return evaluated.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1]?.exercises.find((e) => e.key === key);
+}
+
+function warmupLineOf(
+  evaluated: IEvaluatedProgram,
+  tapped: IPlannerProgramExercise
+): IPlannerProgramExercise | undefined {
+  const source = tapped.resolvedWarmups?.source;
+  return source != null && source.key === tapped.key ? instanceAt(evaluated, source.dayData, source.key) : undefined;
 }
 
 export function ProgramExercisePreview_apply(
@@ -195,11 +200,20 @@ export function ProgramExercisePreview_apply(
     // splits the repeat rather than pinning this week's sets onto it.
     const tappedResolution = tapped.evaluatedSetVariations;
     const changes = sharedChanges(tapped, own);
+    const warmupLine = warmupLineOf(evaluated, tapped) ?? declaration;
+    const warmupWeeks = new Set(ProgramRewrite_repeatWeeks(evaluated, warmupLine.dayData, warmupLine.fullName));
     PP_iterate2(evaluated.weeks, (instance, weekIndex, dayInWeekIndex) => {
       if (instance.key !== target.key) {
         return;
       }
       applySharedChanges(instance, own, changes);
+      const isWarmupLine =
+        warmupWeeks.has(weekIndex + 1) &&
+        dayInWeekIndex + 1 === warmupLine.dayData.dayInWeek &&
+        (weekIndex + 1 === warmupLine.dayData.week || instance.isRepeat);
+      if (changes.warmups && isWarmupLine) {
+        instance.warmupSets = own.warmupSets;
+      }
       const isSibling = weeks.has(weekIndex + 1) && dayInWeekIndex + 1 === declaration.dayData.dayInWeek;
       if (isSibling && ObjectUtils_isEqual(instance.evaluatedSetVariations, tappedResolution)) {
         applyOwn(instance, own);

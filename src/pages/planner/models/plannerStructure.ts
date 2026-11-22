@@ -13,6 +13,7 @@ import { PlannerDocument_blockSpans } from "./plannerDocument";
 import {
   PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_getUpdateScript,
+  PlannerProgramExercise_warmups,
 } from "./plannerProgramExercise";
 import { IPlannerProgramExercise } from "./types";
 import { StringUtils_unindent } from "../../../utils/string";
@@ -874,9 +875,6 @@ function describeBreak(planner: IPlannerProgram, outcome: IDayOutcome, settings:
       return `${where} would end up with two of ${name ?? "the same exercise"}. Give one of them a label to tell them apart.`;
     }
     case "conflictingProperty": {
-      // Both are the 1-based `dayData` the evaluator was handed. Its own message adds one to the
-      // first of them, which reads a week late; the details are the numbers themselves, so this
-      // doesn't inherit that.
       const first = placeOf(planner, details.data.a);
       const second = placeOf(planner, details.data.b);
       const between = first != null && second != null ? ` — one in ${first}, another in ${second}` : "";
@@ -1381,7 +1379,6 @@ function labelApart(
 interface IHoistedSummary {
   progress: string;
   update: string;
-  warmup: string;
   used: string;
 }
 
@@ -1389,25 +1386,26 @@ function hoistedSummary(exercise: IPlannerProgramExercise): IHoistedSummary {
   return {
     progress: `${exercise.progress?.type ?? "-"}/${PlannerProgramExercise_getProgressScript(exercise) ?? "-"}`,
     update: `${exercise.update?.type ?? "-"}/${PlannerProgramExercise_getUpdateScript(exercise) ?? "-"}`,
-    warmup: JSON.stringify(exercise.warmupSets ?? null),
     used: exercise.notused ? "none" : "-",
   };
 }
 
-function summaryForKey(planner: IPlannerProgram, key: string, settings: ISettings): IHoistedSummary | undefined {
+function instancesForKey(planner: IPlannerProgram, key: string, settings: ISettings): IPlannerProgramExercise[] {
   const { evaluatedWeeks } = PlannerProgram_evaluate(planner, settings);
+  const instances: IPlannerProgramExercise[] = [];
   for (const week of evaluatedWeeks) {
     for (const day of week) {
-      if (!day.success) {
-        continue;
-      }
-      const exercise = day.data.find((e) => e.key === key);
+      const exercise = day.success ? day.data.find((e) => e.key === key) : undefined;
       if (exercise != null) {
-        return hoistedSummary(exercise);
+        instances.push(exercise);
       }
     }
   }
-  return undefined;
+  return instances;
+}
+
+function warmupsOf(exercise: IPlannerProgramExercise): string {
+  return JSON.stringify(PlannerProgramExercise_warmups(exercise) ?? null);
 }
 
 // Labelling two same-named exercises apart makes them two keys, and a property written on only one
@@ -1426,15 +1424,22 @@ function strandedByLabelling(
   relabels: { oldFullName: string; newFullName: string }[],
   settings: ISettings
 ): string | undefined {
-  const properties: (keyof IHoistedSummary)[] = ["progress", "update", "warmup", "used"];
+  const properties: (keyof IHoistedSummary)[] = ["progress", "update", "used"];
   for (const relabel of relabels) {
-    const wanted = summaryForKey(before, exerciseKey(relabel.oldFullName, settings), settings);
-    if (wanted == null) {
+    const wantedInstances = instancesForKey(before, exerciseKey(relabel.oldFullName, settings), settings);
+    if (wantedInstances.length === 0) {
       continue;
     }
+    const wanted = hoistedSummary(wantedInstances[0]);
+    const wantedWarmups = new Set(wantedInstances.map(warmupsOf));
     for (const fullName of [relabel.newFullName, relabel.oldFullName]) {
-      const got = summaryForKey(after, exerciseKey(fullName, settings), settings);
-      const lost = got == null ? undefined : properties.find((property) => got[property] !== wanted[property]);
+      const gotInstances = instancesForKey(after, exerciseKey(fullName, settings), settings);
+      const got = gotInstances.length > 0 ? hoistedSummary(gotInstances[0]) : undefined;
+      const lostWarmup = gotInstances.some((instance) => !wantedWarmups.has(warmupsOf(instance)));
+      const lost =
+        got == null
+          ? undefined
+          : (properties.find((property) => got[property] !== wanted[property]) ?? (lostWarmup ? "warmup" : undefined));
       if (lost != null) {
         return (
           `Both copies of ${relabel.oldFullName} share one ${lost}, and it is written on only one of their lines. ` +

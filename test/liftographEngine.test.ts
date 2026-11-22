@@ -11,6 +11,12 @@ import { ILiftographWidget } from "../src/liftograph/liftographCompile";
 import { LiftographSeriesEval_compile, LiftographSeriesEval_create } from "../src/liftograph/liftographSeriesEval";
 import { ILiftographSeriesPoints, ILiftographValueResult } from "../src/liftograph/liftographShape";
 import { fxDay, fxEntry, fxRecord, fxSet, fxSettings, fxStats } from "./liftographFixtures";
+import {
+  ILiftographExerciseBindings,
+  LiftographEnvironment_bindings,
+  LiftographEnvironment_exercise,
+  LiftographEnvironment_workout,
+} from "../src/liftograph/liftographEnvironments";
 
 const settings = fxSettings();
 
@@ -149,5 +155,27 @@ describe("LiftographSeriesEval_compile", () => {
       LiftographSeriesEval_compile(evaluation, `value / source: workout / range: ${n}w`);
     }
     expect(LiftographSeriesEval_compile(evaluation, "value / source: workout")).to.not.equal(first);
+  });
+});
+
+describe("Liftograph warmup bindings", () => {
+  const entry = { ...fxEntry("squat", [fxSet(200, 5)]), warmupSets: [fxSet(95, 5), fxSet(135, 3)] };
+  const record = fxRecord(fxDay(2026, 3, 2), [entry]);
+  const context = { settings, bodyweights: [] };
+
+  it("gives exercise rows their warmups, indexed apart from the working sets", () => {
+    const bindings = LiftographEnvironment_bindings(
+      { type: "exercise", id: "a", ts: record.startTime, record, entry },
+      context
+    ) as ILiftographExerciseBindings;
+    expect(bindings.completedWarmupWeights.map((w) => w?.value)).to.eql([95, 135]);
+    expect(bindings.completedWarmupReps).to.eql([5, 3]);
+    expect(bindings.completedNumberOfWarmupSets).to.equal(2);
+    expect(bindings.completedWeights.map((w) => w?.value)).to.eql([200]);
+  });
+
+  it("does not offer warmup arrays to workout rows", () => {
+    expect(LiftographEnvironment_workout.indexableBindings.has("warmupWeights")).to.equal(false);
+    expect(LiftographEnvironment_exercise.indexableBindings.has("warmupWeights")).to.equal(true);
   });
 });

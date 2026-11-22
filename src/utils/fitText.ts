@@ -4,6 +4,10 @@
 const CHAR_WIDTH_EM = 0.62;
 const MIN_RATIO = 0.6;
 
+export function FitText_width(text: string, fontSize: number): number {
+  return text.length * CHAR_WIDTH_EM * fontSize;
+}
+
 export function FitText_fontSize(text: string, availableWidth: number, baseFontSize: number): number {
   if (!text || availableWidth <= 0) {
     return baseFontSize;

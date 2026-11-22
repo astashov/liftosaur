@@ -1,11 +1,10 @@
 import { ObjectUtils_keys, ObjectUtils_values, ObjectUtils_filter } from "../utils/object";
-import { Weight_build, Weight_gt, Weight_multiply, Weight_roundWarmup, Weight_convertTo } from "./weight";
+import { Weight_build, Weight_convertTo } from "./weight";
 import {
   IExerciseId,
   IEquipment,
   IBarKey,
   IWeight,
-  ISet,
   IExerciseType,
   equipments,
   ISettings,
@@ -4236,54 +4235,6 @@ export function warmupValues(units: IUnit): Partial<Record<number, IProgramExerc
   };
 }
 
-function warmup45(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
-  return warmup(warmupValues(settings.units)[45] || [])(weight, settings, exerciseType);
-}
-
-function warmup95(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
-  return warmup(warmupValues(settings.units)[95] || [])(weight, settings, exerciseType);
-}
-
-function warmup10(weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] {
-  return warmup(warmupValues(settings.units)[10] || [])(weight, settings, exerciseType);
-}
-
-function warmup(
-  programExerciseWarmupSets: IProgramExerciseWarmupSet[],
-  shouldSkipThreshold: boolean = false
-): (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType) => ISet[] {
-  return (weight: IWeight | undefined, settings: ISettings, exerciseType?: IExerciseType): ISet[] => {
-    let index = 0;
-    return programExerciseWarmupSets.reduce<ISet[]>((memo, programExerciseWarmupSet) => {
-      if (shouldSkipThreshold || (weight != null && Weight_gt(weight, programExerciseWarmupSet.threshold))) {
-        const value = programExerciseWarmupSet.value;
-        const unit = Equipment_getUnitOrDefaultForExerciseType(settings, exerciseType);
-        const isLessAssistance = typeof value === "number" && weight != null && weight.value < 0 && value < 1;
-        if ((typeof value !== "number" || weight != null) && !isLessAssistance) {
-          const warmupWeight = typeof value === "number" ? Weight_multiply(weight!, value) : value;
-          const roundedWeight = Weight_roundWarmup(warmupWeight, settings, unit, exerciseType, weight);
-          memo.push({
-            vtype: "set",
-            index,
-            id: UidFactory_generateUid(6),
-            reps: programExerciseWarmupSet.reps,
-            isUnilateral: exerciseType ? Exercise_getIsUnilateral(exerciseType, settings) : false,
-            weight: roundedWeight,
-            originalWeight: warmupWeight,
-            isCompleted: false,
-          });
-          index += 1;
-        }
-      }
-      return memo;
-    }, []);
-  };
-}
-
-function warmupEmpty(weight: IWeight | undefined): ISet[] {
-  return [];
-}
-
 function maybeGetExercise(id: IExerciseId, customExercises: IAllCustomExercises): IExercise | undefined {
   const custom = customExercises[id];
   return custom != null
@@ -4826,28 +4777,6 @@ export function Exercise_filterExercisesByNameAndType(
   return allExercises;
 }
 
-export function Exercise_getWarmupSets(
-  exercise: IExerciseType,
-  weight: IWeight | undefined,
-  settings: ISettings,
-  programExerciseWarmupSets?: IProgramExerciseWarmupSet[]
-): ISet[] {
-  const ex = Exercise_get(exercise, settings.exercises);
-  if (programExerciseWarmupSets != null) {
-    return warmup(programExerciseWarmupSets, true)(weight, settings, exercise);
-  } else {
-    let warmupSets = warmupEmpty(weight);
-    if (ex.defaultWarmup === 10) {
-      warmupSets = warmup10(weight, settings, exercise);
-    } else if (ex.defaultWarmup === 45) {
-      warmupSets = warmup45(weight, settings, exercise);
-    } else if (ex.defaultWarmup === 95) {
-      warmupSets = warmup95(weight, settings, exercise);
-    }
-    return warmupSets;
-  }
-}
-
 export function Exercise_defaultTargetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
   const customExercise = settings.exercises[type.id];
   if (customExercise) {
@@ -4982,6 +4911,19 @@ export function Exercise_synergistMusclesGroups(type: IExerciseType, settings: I
 
 export function Exercise_toKey(type: IExerciseType): string {
   return `${type.id}${type.equipment ? `_${type.equipment}` : ""}`;
+}
+
+export function Exercise_clearMuscleMultipliers(
+  exerciseData: ISettings["exerciseData"],
+  exerciseType: IExerciseType
+): ISettings["exerciseData"] {
+  const key = Exercise_toKey(exerciseType);
+  const { [key]: current, ...rest } = exerciseData;
+  if (current == null) {
+    return exerciseData;
+  }
+  const { muscleMultipliers, ...remaining } = current;
+  return Object.keys(remaining).length === 0 ? rest : { ...rest, [key]: remaining };
 }
 
 export function Exercise_fromKey(type: string): IExerciseType {

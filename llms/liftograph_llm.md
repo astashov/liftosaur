@@ -211,6 +211,7 @@ Names in an `exercise` row:
 - `completedWeights`, `weights`, `e1rm`: weight per set.
 - `completedReps`, `reps`, `minReps`, `completedRPE`, `RPE`: per set.
 - `numberOfSets`, `completedNumberOfSets`, `volume`, `bodyweight`, `rm1`.
+- `completedWarmupWeights`, `warmupWeights`, `completedWarmupReps`, `warmupReps`: per warmup set, indexed apart from the working sets. `completedNumberOfWarmupSets`. Working-set names above never include warmups.
 - `day`, `week`, `dayInWeek`: the program position of the workout.
 - `exercise`: the entry's name as text. `isExercise("Squat")` and `isProgramExercise("t1: Squat")` test it.
 - `programState("rm1")`: a program state variable saved with the entry.

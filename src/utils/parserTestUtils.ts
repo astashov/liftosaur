@@ -1,4 +1,9 @@
-import { IScriptBindings, IScriptFnContext, Progress_createScriptFunctions } from "../models/progress";
+import {
+  IScriptBindings,
+  IScriptFnContext,
+  Progress_createScriptFunctions,
+  Progress_emptyWarmupBindings,
+} from "../models/progress";
 import { Settings_build } from "../models/settings";
 import { Weight_build } from "../models/weight";
 import { ScriptRunner } from "../parser";
@@ -45,6 +50,7 @@ export function ParserTestUtils_bdgs(args: {
     numberOfSets: args.results.length,
     completedNumberOfSets: completedReps.filter((cr) => cr != null).length,
     setIndex: 1,
+    ...Progress_emptyWarmupBindings(),
     setVariationIndex: 1,
     exerciseVariationIndex: 1,
     descriptionIndex: 1,
@@ -124,6 +130,7 @@ export const ParserTestUtils_defaultBindings: IScriptBindings = {
   numberOfSets: 3,
   completedNumberOfSets: 3,
   setIndex: 1,
+  ...Progress_emptyWarmupBindings(),
   setVariationIndex: 1,
   exerciseVariationIndex: 1,
   bodyweight: Weight_build(0, "lb"),

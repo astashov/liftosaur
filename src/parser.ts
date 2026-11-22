@@ -73,6 +73,7 @@ export class ScriptRunner {
   private readonly units: IUnit;
   private readonly context: IScriptFnContext;
   private updates: ILiftoscriptEvaluatorUpdate[] = [];
+  private wroteWarmups = false;
 
   constructor(
     script: string,
@@ -265,12 +266,17 @@ export class ScriptRunner {
     }
     const output = this.convertResult(type, result);
     this.updates = liftoscriptEvaluator.updates;
+    this.wroteWarmups = liftoscriptEvaluator.didWriteWarmups;
 
     return output;
   }
 
   public getUpdates(): ILiftoscriptEvaluatorUpdate[] {
     return this.updates;
+  }
+
+  public get didWriteWarmups(): boolean {
+    return this.wroteWarmups;
   }
 
   private convertResult(

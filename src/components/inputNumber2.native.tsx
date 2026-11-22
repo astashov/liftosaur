@@ -18,7 +18,7 @@ import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { useModal } from "../navigation/ModalStateContext";
 import { useRem } from "../utils/useRem";
-import { FitText_fontSize } from "../utils/fitText";
+import { FitText_fontSize, FitText_width } from "../utils/fitText";
 import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import {
   IKeyboardConfig,
@@ -541,7 +541,9 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     [props.fill]
   );
   const baseFontSize = ((isLarge ? 32 : 14) * remValue) / 16;
-  const availableTextWidth = props.autowidth || fieldWidth === 0 ? 0 : fieldWidth - 6;
+  const unitSuffix = props.showUnitInside && props.selectedUnit && props.value != null ? ` ${props.selectedUnit}` : "";
+  const unitWidth = FitText_width(unitSuffix, (12 * remValue) / 16);
+  const availableTextWidth = props.autowidth || fieldWidth === 0 ? 0 : Math.max(1, fieldWidth - 6 - unitWidth);
   const fontStyleFor = useCallback(
     (text: string) => {
       const fontSize = FitText_fontSize(text, availableTextWidth, baseFontSize);

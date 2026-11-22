@@ -98,7 +98,11 @@ Squat / 5x5 / warmup: 1x5 45lb, 1x3 135lb, 1x1 80%
 Lateral Raise / 3x15 / warmup: none
 ```
 
-Default warmups auto-added unless overridden. Warmup percentages are % of first working set weight (not 1RM). Use `warmup: none` for isolation/bodyweight exercises.
+Default warmups auto-added unless overridden (the user can set their own per-exercise defaults). Warmup percentages are % of first working set weight (not 1RM); `0%` is the empty bar. Use `warmup: none` for isolation/bodyweight exercises. A rest time per warmup set is allowed: `warmup: 1x5 50% 30s, 1x3 80% 90s`.
+
+A `warmup:` carries to later weeks on the same day until another `warmup:` replaces it, so a deload week can write `warmup: none` and the next week can write the ramp again. If no earlier week has one for that day, the first `warmup:` in the program applies.
+
+In `update:` scripts, `warmupWeights`, `warmupReps`, `warmupTimers` and `numberOfWarmupSets` can be changed for the current workout. A percentage there is % of `rm1`. `progress:` scripts can only read them, plus `completedWarmupWeights`, `completedWarmupReps` and `completedNumberOfWarmupSets`.
 
 ## Comments and Descriptions
 

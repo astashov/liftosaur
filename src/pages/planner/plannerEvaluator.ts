@@ -10,7 +10,7 @@ import {
 } from "./plannerExerciseEvaluator";
 import {
   IPlannerProgramExercise,
-  IPlannerProgramExerciseWarmupSet,
+  IPlannerResolvedWarmups,
   IPlannerProgramReuse,
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
@@ -48,7 +48,6 @@ interface IPlannerEvalMetadata {
     id: IByExercise<{ property: number[]; dayData: Required<IDayData> }>;
     progress: IByExercise<{ property: IProgramExerciseProgress; dayData: Required<IDayData> }>;
     update: IByExercise<{ property: IProgramExerciseUpdate; dayData: Required<IDayData> }>;
-    warmup: IByExercise<{ warmupSets: IPlannerProgramExerciseWarmupSet[]; dayData: Required<IDayData> }>;
   };
 }
 
@@ -91,7 +90,7 @@ export function PlannerEvaluator_fillInMetadata(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `Same property 'id' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
-          `week ${existingTags.dayData.week + 1}, day ${existingTags.dayData.dayInWeek + 1} ` +
+          `week ${existingTags.dayData.week}, day ${existingTags.dayData.dayInWeek} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
         point,
         {
@@ -117,7 +116,7 @@ export function PlannerEvaluator_fillInMetadata(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `Same property 'progress' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
-          `week ${existingProgress.dayData.week + 1}, day ${existingProgress.dayData.dayInWeek + 1} ` +
+          `week ${existingProgress.dayData.week}, day ${existingProgress.dayData.dayInWeek} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
         point,
         {
@@ -140,7 +139,7 @@ export function PlannerEvaluator_fillInMetadata(
       throw PlannerSyntaxError.fromPoint(
         exercise.fullName,
         `Same property 'update' is specified with different arguments in multiple weeks/days for exercise '${exercise.name}': both in ` +
-          `week ${existingUpdate.dayData.week + 1}, day ${existingUpdate.dayData.dayInWeek + 1} ` +
+          `week ${existingUpdate.dayData.week}, day ${existingUpdate.dayData.dayInWeek} ` +
           `and week ${dayData.week}, day ${dayData.dayInWeek}`,
         point,
         {
@@ -156,27 +155,6 @@ export function PlannerEvaluator_fillInMetadata(
   }
   if (exercise.notused) {
     metadata.notused.add(exercise.key);
-  }
-  if (exercise.warmupSets != null) {
-    const scheme = JSON.stringify(exercise.warmupSets);
-    const ws = metadata.properties.warmup[exercise.key];
-    if (ws != null && JSON.stringify(ws.warmupSets) !== scheme) {
-      throw PlannerSyntaxError.fromPoint(
-        exercise.fullName,
-        `Different warmup sets are specified in multiple weeks/days for exercise '${exercise.name}': both in ` +
-          `week ${ws.dayData.week + 1}, day ${ws.dayData.dayInWeek + 1} ` +
-          `and week ${dayData.week}, day ${dayData.dayInWeek}`,
-        exercise.points.warmupPoint || exercise.points.fullName,
-        {
-          type: "conflictingProperty",
-          data: { property: "warmup", exercise: exercise.name, a: ws.dayData, b: dayData },
-        }
-      );
-    }
-    metadata.properties.warmup[exercise.key] = {
-      warmupSets: exercise.warmupSets,
-      dayData,
-    };
   }
   PlannerEvaluator_setByWeekDayExercise(
     metadata.byWeekDayExercise,
@@ -224,7 +202,7 @@ export function PlannerEvaluator_getPerDayEvaluatedWeeks(
     byWeekDayExercise: {},
     fullNames: new Set(),
     notused: new Set(),
-    properties: { progress: {}, update: {}, warmup: {}, id: {} },
+    properties: { progress: {}, update: {}, id: {} },
   };
   const evaluatedWeeks: IPlannerEvalResult[][] = plannerProgram.weeks.map((week, weekIndex) => {
     return week.days.map((day, dayInWeekIndex) => {
@@ -286,7 +264,7 @@ export function PlannerEvaluator_getFullEvaluatedWeeks(
     byWeekDayExercise: {},
     fullNames: new Set(),
     notused: new Set(),
-    properties: { progress: {}, update: {}, warmup: {}, id: {} },
+    properties: { progress: {}, update: {}, id: {} },
   };
   const evaluator = new PlannerExerciseEvaluator(fullProgramText, settings, "full");
   const tree = plannerExerciseParser.parse(fullProgramText);
@@ -648,7 +626,7 @@ export function PlannerEvaluator_fillDescriptionReuses(
 // `id` is deliberately absent. It is checked for consistency across days (see the conflict check
 // on metadata.properties.id above) but its value is never propagated, so a declaration without
 // `id:` really does evaluate with no tags.
-export const PlannerEvaluator_hoistedProperties = ["warmup", "progress", "update", "used"] as const;
+export const PlannerEvaluator_hoistedProperties = ["progress", "update", "used"] as const;
 
 export function PlannerEvaluator_fillSingleProperties(
   exercise: IPlannerProgramExercise,
@@ -667,10 +645,6 @@ export function PlannerEvaluator_fillSingleProperties(
 
   if (metadata.properties.update[exercise.key] != null && !exercise.update) {
     exercise.update = metadata.properties.update[exercise.key].property;
-  }
-
-  if (metadata.properties.warmup[exercise.key] != null) {
-    exercise.warmupSets = metadata.properties.warmup[exercise.key].warmupSets;
   }
 }
 
@@ -1005,6 +979,8 @@ export function PlannerEvaluator_postProcess(
     }
   );
 
+  PlannerEvaluator_resolveWarmups(evaluatedWeeks);
+
   // Its own pass: reuses are wired in document order, so an exercise's chain is only complete
   // once every exercise has been through the pass above.
   PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, _dayInWeekIndex, _dayIndex, _index, exercise) => {
@@ -1145,6 +1121,72 @@ export function PlannerEvaluator_evaluateFull(
     }
   }
   return { evaluatedWeeks, exerciseFullNames: Array.from(metadata.fullNames) };
+}
+
+function warmupSourceDayData(
+  evaluatedWeeks: IPlannerEvalResult[][],
+  dayInWeekIndex: number,
+  exercise: IPlannerProgramExercise
+): Required<IDayData> {
+  if (!exercise.isRepeat) {
+    return exercise.dayData;
+  }
+  for (const week of evaluatedWeeks) {
+    const day = week[dayInWeekIndex];
+    const original = day?.success
+      ? day.data.find((e) => e.key === exercise.key && !e.isRepeat && e.points === exercise.points)
+      : undefined;
+    if (original != null) {
+      return original.dayData;
+    }
+  }
+  return exercise.dayData;
+}
+
+function earlierSlotInstances(
+  evaluatedWeeks: IPlannerEvalResult[][],
+  exercise: IPlannerProgramExercise
+): IPlannerProgramExercise[] {
+  const instances: IPlannerProgramExercise[] = [];
+  for (let i = exercise.dayData.week - 2; i >= 0; i -= 1) {
+    const day = evaluatedWeeks[i]?.[exercise.dayData.dayInWeek - 1];
+    const instance = day?.success ? day.data.find((e) => e.key === exercise.key) : undefined;
+    if (instance != null) {
+      instances.push(instance);
+    }
+  }
+  return instances;
+}
+
+export function PlannerEvaluator_resolveWarmups(evaluatedWeeks: IPlannerEvalResult[][]): void {
+  const firstDefinition: Record<string, IPlannerResolvedWarmups> = {};
+  PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, dayInWeekIndex, _dayIndex, _index, exercise) => {
+    exercise.resolvedWarmups = undefined;
+    if (exercise.warmupSets != null) {
+      const dayData = warmupSourceDayData(evaluatedWeeks, dayInWeekIndex, exercise);
+      exercise.resolvedWarmups = { sets: exercise.warmupSets, source: { key: exercise.key, dayData } };
+      firstDefinition[exercise.key] = firstDefinition[exercise.key] ?? exercise.resolvedWarmups;
+    }
+  });
+  const visited = new Set<IPlannerProgramExercise>();
+  const resolve = (exercise: IPlannerProgramExercise): IPlannerResolvedWarmups | undefined => {
+    if (exercise.resolvedWarmups != null || visited.has(exercise)) {
+      return exercise.resolvedWarmups;
+    }
+    visited.add(exercise);
+    const template = exercise.reuse?.exercise;
+    exercise.resolvedWarmups =
+      (template != null ? resolve(template) : undefined) ??
+      earlierSlotInstances(evaluatedWeeks, exercise).reduce<IPlannerResolvedWarmups | undefined>(
+        (found, instance) => found ?? resolve(instance),
+        undefined
+      ) ??
+      firstDefinition[exercise.key];
+    return exercise.resolvedWarmups;
+  };
+  PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, _dayInWeekIndex, _dayIndex, _index, exercise) => {
+    resolve(exercise);
+  });
 }
 
 export function PlannerEvaluator_findLastWeekExercise(

@@ -28,7 +28,6 @@ import {
   IDayData,
   IHistoryEntry,
   IPercentage,
-  IProgramExerciseWarmupSet,
   IProgramState,
   IProgramStateMetadata,
   ISettings,
@@ -37,13 +36,10 @@ import {
 import {
   equipmentName,
   IExercise,
-  warmupValues,
   Exercise_findByName,
   Exercise_get,
   Exercise_fullName,
 } from "../../../models/exercise";
-import { ProgramExercise_groupWarmupsSets } from "../../../models/programExercise";
-import { MathUtils_roundTo0005 } from "../../../utils/math";
 import { UidFactory_generateUid } from "../../../utils/generator";
 import { PlannerKey_fromExerciseType } from "../plannerKey";
 import { CollectionUtils_compact, CollectionUtils_groupByExpr } from "../../../utils/collection";
@@ -109,35 +105,7 @@ export function PlannerProgramExercise_setVariations(
 export function PlannerProgramExercise_warmups(
   exercise: IPlannerProgramExercise
 ): IPlannerProgramExerciseWarmupSet[] | undefined {
-  return exercise.warmupSets || exercise.reuse?.exercise?.warmupSets;
-}
-
-export function PlannerProgramExercise_programWarmups(
-  exercise: IPlannerProgramExercise,
-  settings: ISettings
-): IProgramExerciseWarmupSet[] | undefined {
-  const exerciseWarmups = PlannerProgramExercise_warmups(exercise);
-  if (exerciseWarmups == null) {
-    return undefined;
-  }
-  const sets: IProgramExerciseWarmupSet[] = [];
-  for (const ws of exerciseWarmups) {
-    for (let i = 0; i < ws.numberOfSets; i += 1) {
-      let value: IWeight | number | undefined = ws.percentage ? ws.percentage / 100 : undefined;
-      if (value == null) {
-        value = ws.weight;
-      }
-      if (value == null) {
-        value = MathUtils_roundTo0005(Weight_rpeMultiplier(ws.reps, 4, "rts"));
-      }
-      sets.push({
-        reps: ws.reps,
-        value,
-        threshold: Weight_build(0, settings.units),
-      });
-    }
-  }
-  return sets;
+  return exercise.resolvedWarmups?.sets ?? exercise.warmupSets ?? exercise.reuse?.exercise?.warmupSets;
 }
 
 export function PlannerProgramExercise_toUsed(
@@ -233,28 +201,6 @@ export function PlannerProgramExercise_sets(
       : (set.askWeight ?? reusedGlobals.askWeight));
     return set;
   });
-}
-
-export function PlannerProgramExercise_defaultWarmups(
-  exercise: IExercise,
-  settings: ISettings
-): IPlannerProgramExerciseWarmupSet[] {
-  const warmupSets = (exercise?.defaultWarmup && warmupValues(settings.units)[exercise.defaultWarmup]) || [];
-  const result: IPlannerProgramExerciseWarmupSet[] = [];
-  if (warmupSets) {
-    const groups = ProgramExercise_groupWarmupsSets(warmupSets);
-    for (const group of groups) {
-      const first = group[0];
-      const length = group[1];
-      result.push({
-        type: "warmup",
-        numberOfSets: length,
-        reps: first.reps,
-        percentage: typeof first.value === "number" ? first.value * 100 : first.value.value,
-      });
-    }
-  }
-  return result;
 }
 
 export function PlannerProgramExercise_repeatToRangeStr(plannerExercise: IPlannerProgramExercise): string {
@@ -882,7 +828,7 @@ export function PlannerProgramExercise_createExerciseFromEntry(
   const groupedWarmupSets = CollectionUtils_compact(
     ObjectUtils_values(
       CollectionUtils_groupByExpr(entry.warmupSets, (set) => {
-        return `${set.completedReps ?? set.reps}-${(set.completedWeight ?? set.weight ?? { value: "" }).value}`;
+        return `${set.completedReps ?? set.reps}-${(set.completedWeight ?? set.weight ?? { value: "" }).value}-${set.timer ?? ""}`;
       })
     )
   );
@@ -911,6 +857,7 @@ export function PlannerProgramExercise_createExerciseFromEntry(
       numberOfSets: group.length,
       reps: group[0]?.completedReps ?? group[0]?.reps ?? 1,
       weight: group[0]?.completedWeight ?? group[0]?.weight,
+      timer: group[0]?.timer,
     })),
     descriptions: { values: [] },
     globals: {},

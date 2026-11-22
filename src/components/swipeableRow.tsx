@@ -14,6 +14,7 @@ interface ISwipeableRowProps {
   initiateTreshold: number;
   scrollThreshold: number;
   showHint?: boolean;
+  onOpen?: () => void;
 }
 
 export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
@@ -29,6 +30,7 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
   const translateXRef = useRef(0);
   const moveRef = useRef<HTMLDivElement | null>(null);
   const onPointerDownProp = props.onPointerDown;
+  const onOpenProp = props.onOpen;
 
   const updateTranslate = useCallback((value: number): void => {
     translateXRef.current = value;
@@ -97,13 +99,14 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     if (!isOpen.current && current < -openThreshold) {
       updateTranslate(-width);
       isOpen.current = true;
+      onOpenProp?.();
     } else if (isOpen.current && current > -closeThreshold) {
       updateTranslate(0);
       isOpen.current = false;
     } else {
       updateTranslate(isOpen.current ? -width : 0);
     }
-  }, [openThreshold, closeThreshold, width, updateTranslate]);
+  }, [openThreshold, closeThreshold, width, updateTranslate, onOpenProp]);
 
   useEffect(() => {
     const el = moveRef.current;

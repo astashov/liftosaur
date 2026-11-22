@@ -19,6 +19,7 @@ interface ISwipeableRowProps {
   initiateTreshold: number;
   scrollThreshold: number;
   showHint?: boolean;
+  onOpen?: () => void;
 }
 
 export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
@@ -39,6 +40,10 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     props.onPointerDown?.();
   }, [props.onPointerDown]);
 
+  const fireOpen = useCallback(() => {
+    props.onOpen?.();
+  }, [props.onOpen]);
+
   let pan = Gesture.Pan()
     .activeOffsetX([-props.initiateTreshold, props.initiateTreshold])
     .failOffsetY([-props.scrollThreshold, props.scrollThreshold])
@@ -55,6 +60,9 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
       if (!isOpen.value && translateX.value < -openThreshold) {
         translateX.value = withSpring(-width, springConfig);
         isOpen.value = true;
+        if (props.onOpen) {
+          runOnJS(fireOpen)();
+        }
       } else if (isOpen.value && translateX.value > -closeThreshold) {
         translateX.value = withSpring(0, springConfig);
         isOpen.value = false;

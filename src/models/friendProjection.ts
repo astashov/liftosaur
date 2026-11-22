@@ -37,6 +37,7 @@ const exerciseDataFields: IFriendFieldMap<IExerciseDataValue> = {
   muscleMultipliers: "public",
   isUnilateral: "public",
   volumeMultiplier: "public",
+  warmups: "public",
 };
 
 function projectExerciseData(

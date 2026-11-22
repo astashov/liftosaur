@@ -43,7 +43,22 @@ export const VScriptBindings = v.object({
   bodyweight: VWeight,
   descriptionIndex: v.number(),
   setIndex: v.number(),
+  warmupWeights: optionalWeights,
+  warmupReps: optionalNumbers,
+  warmupTimers: optionalNumbers,
+  numberOfWarmupSets: v.number(),
+  completedWarmupWeights: optionalWeights,
+  completedWarmupReps: optionalNumbers,
+  completedNumberOfWarmupSets: v.number(),
+  isWarmupCompleted: v.array(v.picklist([0, 1])),
 });
+
+export const LiftoscriptFns_writableWarmupBindings = [
+  "warmupWeights",
+  "warmupReps",
+  "warmupTimers",
+  "numberOfWarmupSets",
+] as const;
 
 export type IScriptBindings = v.InferOutput<typeof VScriptBindings>;
 

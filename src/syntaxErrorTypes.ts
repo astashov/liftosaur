@@ -77,6 +77,7 @@ export type IPlannerErrorDetails = (
   | { type: "unknownIdType"; data: { name: string } }
   | { type: "invalidTags" }
   | { type: "labelTooLong"; data: { max: number } }
+  | { type: "invalidWarmupSet"; data: { reason: "noReps" | "duplicatePart" } }
   | { type: "weeksNotAllowedInDayMode" }
   | { type: "daysNotAllowedInDayMode" }
   | { type: "dayWithoutWeek" }

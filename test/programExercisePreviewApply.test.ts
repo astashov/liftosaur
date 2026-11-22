@@ -142,6 +142,32 @@ T1: Squat / ...t1 / warmup: 2x5 45%
     );
   });
 
+  it("writes a changed warmup on the line a later week inherits it from", () => {
+    const text = `# Week 1
+## Day 1
+t1 / used: none / 5x3 / 150lb
+T1: Squat / ...t1 / warmup: 2x5 45%
+
+# Week 2
+## Day 1
+t1 / used: none / 5x3 / 150lb
+T1: Squat / ...t1
+
+# Week 3
+## Day 1
+t1 / used: none / 5x3 / 150lb
+T1: Squat / ...t1 / warmup: none
+`;
+    const opened = open(text, "T1: Squat", 2);
+    expect(opened.panel).to.equal("T1: Squat / 5x3 / 150lb / warmup: 2x5 45%");
+    const result = apply(opened, "T1: Squat / 5x3 / 150lb / warmup: 2x5 50%");
+    const planner = plannerOf(result);
+    expect(dayText(planner, 1, 1)).to.contain("T1: Squat / ...t1 / warmup: 2x5 50%");
+    expect(dayText(planner, 2, 1)).to.contain("T1: Squat / ...t1");
+    expect(dayText(planner, 2, 1)).to.not.contain("warmup");
+    expect(dayText(planner, 3, 1)).to.contain("warmup: none");
+  });
+
   it("writes a changed inherited progress as an override on this line", () => {
     const opened = open(reuseProgram, "T1: Squat");
     const result = apply(opened, "T1: Squat / 5x3 / 6x2 / 10x1 / 150lb / progress: lp(10lb)");

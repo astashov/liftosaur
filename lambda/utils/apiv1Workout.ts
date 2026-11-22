@@ -44,6 +44,7 @@ import { Weight_print, Weight_parsePct, Weight_realizeLoad, Weight_loadPlates } 
 import { IEquipmentLoadInstruction } from "../../src/models/equipmentLoadSolver";
 import { Exercise_get, Exercise_toKey, Exercise_getIsUnilateral } from "../../src/models/exercise";
 import { ExerciseImageUtils_url } from "../../src/models/exerciseImage";
+import { RestTimer_forSet } from "../../src/models/restTimer";
 import {
   PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_currentDescription,
@@ -220,21 +221,8 @@ interface IWorkoutCtx {
   progress: IHistoryRecord;
 }
 
-// Mirrors the fallback chain in Progress_startTimer (progress.ts:438-447) so a client never has to know it:
-// a warmup set always takes the warmup default, and a working set takes its own timer, then the superset default
-// when it's in a superset, then the workout default. Returning the raw `set.timer` would hand back `null` for
-// every program that doesn't set one explicitly — which is exactly the gap this API was asked to close.
 function resolveTimer(set: ISet, settings: ISettings, isWarmup: boolean, isSuperset: boolean): number | null {
-  if (isWarmup) {
-    return settings.timers.warmup ?? null;
-  }
-  if (set.timer != null) {
-    return set.timer;
-  }
-  if (isSuperset && settings.timers.superset != null) {
-    return settings.timers.superset;
-  }
-  return settings.timers.workout ?? null;
+  return RestTimer_forSet(set, isWarmup ? "warmup" : "workout", isSuperset, settings) ?? null;
 }
 
 function serializeSet(
