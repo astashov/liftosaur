@@ -17,6 +17,35 @@
 -->
 
 ---
+date: 2026-11-23
+title: Big warmups rework
+---
+
+Warmups got a big rework:
+
+There were always some **Default warmups per exercise.**, but they were hidden. From now on, you can see and change them. Go to **Exercise Stats** screen - there's **Default Warmups** section, where you can either fully disable them for this exercise, or change the default.
+
+You can specify **Different warmups in different weeks.** in your program now. `warmup:` now works like descriptions. It applies to later weeks on the same day, until the next `warmup:` changes it. So a deload week can turn warmups off, and the next week brings them back:
+
+```liftoscript
+# Week 1
+## Day 1
+Squat / 3x5 / 200lb / warmup: 1x5 45lb, 1x3 135lb
+
+# Week 4
+## Day 1
+Squat / 3x5 / 150lb / warmup: none
+
+# Week 5
+## Day 1
+Squat / 3x5 / 210lb / warmup: 1x5 45lb, 1x3 135lb
+```
+
+**Rest time per warmup set.**: Add it after the weight: `warmup: 1x5 50% 30s, 1x3 80% 90s`.
+
+**Warmups in scripts.** `update:` scripts can change warmups with `warmupWeights`, `warmupReps`, `warmupTimers` and `numberOfWarmupSets`, e.g. drop them on a deload week. `progress:` scripts and dashboards can read them.
+
+---
 date: 2026-11-21
 title: Choose your 1RM formula - RTS, Epley, Brzycki or Lombardi
 ---
