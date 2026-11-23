@@ -23,6 +23,9 @@ export function WorkoutMenuActions_list(args: IWorkoutMenuActionsArgs): IWorkout
     actions.push("createProgramDay");
   }
   actions.push("tour");
-  actions.push(args.isCurrent ? "cancel" : "delete");
+  if (args.isCurrent) {
+    actions.push("cancel");
+  }
+  actions.push("delete");
   return actions;
 }
