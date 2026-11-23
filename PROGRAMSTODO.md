@@ -13,7 +13,6 @@ Simple Jack'd |-| 100 - 1/5
 5/3/1 BBB Beefcake |-| 70 - 1/5
 5/3/1 Boring But Strong |-| 70 - 1/5
 Brendan Tietz Program |-| 70 - 1/5
-Dark Horse (Brian Alsruhe) |-| 60 - 1/5
 Frankoman Dumbbell Split |-| 40 - 2/5
 Mag/Ort Deadlift Program |-| 30 - 1/5
 Deathbench |-| 30 - 1/5
