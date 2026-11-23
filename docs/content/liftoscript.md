@@ -142,6 +142,8 @@ Plank / 2x1 30s|60s, 1x1 30s+|60s
 
 The target and the recorded set timer are available in `progress` and `update` blocks as the `setTime` and `completedSetTime` arrays (e.g. `setTime[1] += 5`, or `setTime[1] = completedSetTime[1] + 5`).
 
+On a unilateral exercise the clock runs once per side, and `completedSetTime[n]` is the right side. The left side is `completedSetTimeLeft[n]`, matching how `completedReps` and `completedRepsLeft` already split.
+
 There's also an `auto` keyword - when present, the workout automatically advances to the next set after the rest timer ends. Combined with set timers, this lets you build circuits like **EMOM** or **Tabata**:
 
 ```liftoscript
@@ -749,7 +751,10 @@ This is the list of available variables you can get values from in your `progres
 - `completedRepsLeft[n]` - number of completed reps for the left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
-- `timers[n]` - if the exercise sets have explicit timer set up - value of that timer
+- `timers[n]` - if the exercise sets have explicit rest timer set up - value of that timer
+- `setTime[n]` - if the exercise sets have an active set timer (`60s|30s`) - the target value of that timer
+- `completedSetTime[n]` - the actual recorded duration of the set timer for an N set (the right side, on a unilateral exercise)
+- `completedSetTimeLeft[n]` - the recorded duration of the left side, on a unilateral exercise
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `bodyweight` - user's current bodyweight.
 - `day` - current day number, starting from 1.
@@ -759,6 +764,7 @@ This is the list of available variables you can get values from in your `progres
 - `numberOfSets` or `ns` - how many sets were in the exercise (could be changed by adding/removing sets during workout).
 - `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
+- `exerciseVariationIndex` - current exercise variation index (see below about exercise variations)
 - `descriptionIndex` - current description index
 - `amraps[n]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
 - `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
@@ -773,6 +779,7 @@ The weights/reps/RPE and timers:
 - `minReps`
 - `RPE`
 - `timers`
+- `setTime`
 - `amraps`
 - `logrpes`
 - `askweights`
@@ -967,6 +974,9 @@ So, the list of variables you can get values from is pretty much the same:
 - `RPE`
 - `completedRPE`
 - `timers`
+- `setTime`
+- `completedSetTime`
+- `completedSetTimeLeft`
 - `rm1`
 - `bodyweight`
 - `day`
@@ -976,6 +986,7 @@ So, the list of variables you can get values from is pretty much the same:
 - `numberOfSets`
 - `completedNumberOfSets`
 - `setVariationIndex`
+- `exerciseVariationIndex`
 - `descriptionIndex`
 - `amraps`
 - `logrpes`
@@ -989,6 +1000,7 @@ But assigning new values is only allowed to the following:
 - `minReps`
 - `RPE`
 - `timers`
+- `setTime`
 - `numberOfSets`
 - `amraps`
 - `logrpes`
@@ -1335,7 +1347,10 @@ You cannot assign values to them, but you can use their values. They are:
 - `completedRepsLeft[n]` - number of completed reps for a left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
-- `timers[n]` - if the exercise sets have explicit timer set up - value of that timer.
+- `timers[n]` - if the exercise sets have explicit rest timer set up - value of that timer.
+- `setTime[n]` - if the exercise sets have an active set timer (`60s|30s`) - the target value of that timer.
+- `completedSetTime[n]` - the actual recorded duration of the set timer for an N set (the right side, on a unilateral exercise).
+- `completedSetTimeLeft[n]` - the recorded duration of the left side, on a unilateral exercise.
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
 - `bodyweight` - user's current bodyweight.
 - `day` - current day number, starting from 1.
@@ -1365,7 +1380,8 @@ You assign new values to them.
 - `reps[week:day:setvariation:set]` - number of reps for a set.
 - `minReps[week:day:setvariation:set]` - minimum reps for a set (for rep ranges).
 - `RPE[week:day:setvariation:set]` - RPE that's required for a set.
-- `timers[week:day:setvariation:set]` - timer that's assigned for a set.
+- `timers[week:day:setvariation:set]` - rest timer that's assigned for a set.
+- `setTime[week:day:setvariation:set]` - active set timer that's assigned for a set.
 - `amraps[week:day:setvariation:set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
 - `logrpes[week:day:setvariation:set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
 - `askweights[week:day:setvariation:set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
@@ -1381,7 +1397,8 @@ You assign new values to them.
 - `reps[set]` - number of reps for a set.
 - `minReps[set]` - minimum reps for a set (for rep ranges).
 - `RPE[set]` - RPE that's required for a set.
-- `timers[set]` - timer that's assigned for a set.
+- `timers[set]` - rest timer that's assigned for a set.
+- `setTime[set]` - active set timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
 - `numberOfSets` - number of sets for the exercise in this workout
 - `amraps[set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP

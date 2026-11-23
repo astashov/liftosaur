@@ -284,7 +284,8 @@ Script goes between `{~` and `~}`. Runs after workout finishes.
 - `RPE[n]`, `completedRPE[n]` - prescribed/actual RPE
 - `timers[n]` - rest timer
 - `setTime[n]` - active set timer target (the `60s` in `60s|30s`)
-- `completedSetTime[n]` - actual recorded set-timer duration
+- `completedSetTime[n]` - actual recorded set-timer duration (right side on unilateral)
+- `completedSetTimeLeft[n]` - recorded left-side duration on unilateral
 - `amraps[n]` - whether set is AMRAP (`1` or `0`)
 - `logrpes[n]` - whether to log RPE (`1` or `0`)
 - `askweights[n]` - whether to ask user for weight (`1` or `0`)
@@ -411,7 +412,7 @@ Bench Press / 3x8 / update: custom() {~
 ~}
 ```
 
-Extra read var: `setIndex` (0 = initial run before any sets). Writable: `weights[set]`, `reps[set]`, `minReps[set]`, `RPE[set]`, `timers[set]`, `numberOfSets`, `amraps[set]`, `logrpes[set]`, `askweights[set]` (no week/day targeting). Cannot modify already-completed sets.
+Extra read var: `setIndex` (0 = initial run before any sets). Writable: `weights[set]`, `reps[set]`, `minReps[set]`, `RPE[set]`, `timers[set]`, `setTime[set]`, `numberOfSets`, `amraps[set]`, `logrpes[set]`, `askweights[set]` (no week/day targeting). Cannot modify already-completed sets.
 
 You can specify both `update: custom()` and any `progress:` on the same exercise.
 
