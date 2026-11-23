@@ -27,11 +27,11 @@ import {
   SyncTestUtils_completeCurrentProgramRepsActions,
   SyncTestUtils_finishWorkout,
 } from "./utils/syncTestUtils";
-import { Progress_getProgress } from "../src/models/progress";
+import { Progress_addExercise, Progress_changeExercise, Progress_getProgress } from "../src/models/progress";
 import { Program_exportProgram } from "../src/models/program";
 import { ObjectUtils_clone } from "../src/utils/object";
 import { IEnv, IState, updateState } from "../src/models/state";
-import { IAction } from "../src/ducks/reducer";
+import { IAction, defaultOnActions } from "../src/ducks/reducer";
 import { History_deleteRecords } from "../src/models/history";
 import { ICollectionVersions } from "../src/models/versionTracker";
 
@@ -380,6 +380,94 @@ describe("sync", () => {
       ];
       expect(completedSets1).to.eql(expectedSets);
       expect(completedSets2).to.eql(expectedSets);
+    });
+  });
+
+  describe("swap then re-add the original exercise", () => {
+    it("keeps both entries and their sets through a sync", async () => {
+      const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
+      const other = MockReducer.clone(mockReducer, "web_456", env);
+      await SyncTestUtils_startWorkout(mockReducer);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      const original = Progress_getProgress(mockReducer.state)!.entries[0].exercise;
+      await mockReducer.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          Progress_changeExercise(
+            ds,
+            mockReducer.state.storage.settings,
+            mockReducer.state.storage.history,
+            undefined,
+            0,
+            { id: "deadlift", equipment: "barbell" },
+            0,
+            false
+          )
+        ),
+        {
+          type: "UpdateProgress",
+          lensRecordings: [
+            lb<IHistoryRecord>().p("entries").i(0).p("sets").i(0).p("completedReps").record(5),
+            lb<IHistoryRecord>().p("entries").i(0).p("sets").i(0).p("isCompleted").record(true),
+          ],
+          desc: "Log the swapped exercise",
+        },
+      ]);
+      const entryCount = Progress_getProgress(mockReducer.state)!.entries.length;
+      await mockReducer.run([SyncTestUtils_mockDispatch((ds) => Progress_addExercise(ds, original, entryCount))]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      await other.run([Thunk_sync2({ force: true })]);
+
+      for (const device of [mockReducer, other]) {
+        const entries = Progress_getProgress(device.state)!.entries;
+        expect(entries.map((e) => e.exercise.id)).to.eql(["deadlift", "benchPress", "squat", original.id]);
+        expect(new Set(entries.map((e) => e.id)).size).to.equal(entries.length);
+        expect(entries[0].sets[0].completedReps).to.equal(5);
+      }
+    });
+  });
+
+  describe("program edit on another device during a workout", () => {
+    it("adds the new program exercise to the workout once", async () => {
+      const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
+      const other = MockReducer.clone(mockReducer, "web_456", env);
+      for (const device of [mockReducer, other]) {
+        device.onActions.push(...defaultOnActions(env).slice(1));
+      }
+      await SyncTestUtils_startWorkout(mockReducer);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      await other.run([Thunk_sync2({ force: true })]);
+      const programId = other.state.storage.currentProgramId!;
+      await other.run([
+        SyncTestUtils_mockDispatch((ds) =>
+          updateState(
+            ds,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("programs")
+                .findBy("id", programId)
+                .pi("planner")
+                .p("weeks")
+                .i(0)
+                .p("days")
+                .i(0)
+                .p("exerciseText")
+                .recordModify((text) => `${text}\nBicep Curl, Dumbbell / 3x10 / 20lb`),
+            ],
+            "add curl"
+          )
+        ),
+      ]);
+      await mockReducer.run(SyncTestUtils_completeCurrentProgramRepsActions(mockReducer.state, [[5]]));
+      await other.run([Thunk_sync2({ force: true })]);
+      await mockReducer.run([Thunk_sync2({ force: true })]);
+      await other.run([Thunk_sync2({ force: true })]);
+
+      for (const device of [mockReducer, other]) {
+        const entries = Progress_getProgress(device.state)!.entries;
+        expect(entries.map((e) => e.exercise.id)).to.eql(["bentOverRow", "benchPress", "squat", "bicepCurl"]);
+        expect(entries[0].sets[0].completedReps).to.equal(5);
+      }
     });
   });
 

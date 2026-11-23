@@ -12,7 +12,8 @@ import {
   Exercise_targetMuscles,
   Exercise_synergistMuscles,
 } from "./exercise";
-import { Progress_getEntryId, Progress_isCurrent } from "./progress";
+import { Progress_isCurrent } from "./progress";
+import { UidFactory_generateUid } from "../utils/generator";
 import { CollectionUtils_sort, CollectionUtils_sortByExpr } from "../utils/collection";
 
 import {
@@ -104,7 +105,7 @@ export function History_deleteRecords(storage: IStorage, ids: number[]): IStorag
 export function History_createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
   return {
     vtype: "history_entry",
-    id: Progress_getEntryId(exerciseType),
+    id: UidFactory_generateUid(8),
     index,
     exercise: exerciseType,
     sets: [],

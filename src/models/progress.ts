@@ -1952,9 +1952,9 @@ export function Progress_remapProgramExerciseId(
 // invalidates all of them at once — a rest timer or an open AMRAP prompt would silently retarget a different
 // exercise. Anything whose entry is gone is cleared rather than left pointing at whoever moved into that slot.
 //
-// Matched by object identity, not by `entry.id`: ids are derived from the exercise
-// (`Progress_getEntryId`), so a program Squat and an ad-hoc Squat carry the same one, and a lookup would
-// hand a timer to the wrong entry. Callers therefore have to pass through the *same* entry objects for
+// Matched by object identity, not by `entry.id`: program entries derive the id from the exercise
+// (`Progress_getEntryId`), and records from older builds did so for ad-hoc entries too, so two entries can
+// share one, and a lookup would hand a timer to the wrong entry. Callers therefore have to pass through the *same* entry objects for
 // everything that survived — which is what reconciling by filter/splice/sort already does.
 export function Progress_reindexEntries(progress: IHistoryRecord, newEntries: IHistoryEntry[]): IHistoryRecord {
   const newIndexOf = new Map<IHistoryEntry, number>(newEntries.map((e, i) => [e, i]));

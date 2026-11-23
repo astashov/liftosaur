@@ -581,11 +581,10 @@ describe("Progress_reindexEntries - review findings", () => {
   };
 
   it("tells two entries of the same exercise apart", () => {
-    // Entry ids come from the exercise, so a program Squat and an ad-hoc Squat carry the same one. Matching by
-    // id would hand the timer to whichever the lookup happened to keep.
+    // Records from builds before random entry ids derived the id from the exercise, so a program Squat and an
+    // ad-hoc Squat carry the same one. Matching by id would hand the timer to whichever the lookup kept.
     const base = threeEntries();
-    const adhocSquat = History_createCustomEntry(base.entries[0].exercise, 3);
-    expect(adhocSquat.id).to.eql(base.entries[0].id);
+    const adhocSquat = { ...History_createCustomEntry(base.entries[0].exercise, 3), id: base.entries[0].id };
     const progress: IHistoryRecord = {
       ...base,
       entries: [...base.entries, adhocSquat],

@@ -33,6 +33,7 @@ import { buildCustomDispatch } from "../../ducks/types";
 import { Thunk_postevent } from "../../ducks/thunks";
 import { ICustomExercise, IExercisePickerSelectedExercise, IHistoryRecord } from "../../types";
 import { lb } from "lens-shmens";
+import { UidFactory_generateUid } from "../../utils/generator";
 import type { IRootStackParamList } from "../types";
 import type { IExercisePickerSettings } from "../../components/exercisePicker/exercisePickerSettings";
 
@@ -157,7 +158,10 @@ export function NavModalExercisePicker(): JSX.Element {
                         statsRef.current,
                         currentSettings
                       );
-                      return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
+                      return [...entries, { ...nextHistoryEntry, id: UidFactory_generateUid(8) }].map((e, i) => ({
+                        ...e,
+                        index: i,
+                      }));
                     }),
                   lb<IHistoryRecord>().p("currentEntryIndex").record(newEntryIndex),
                 ],
