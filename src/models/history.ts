@@ -155,6 +155,7 @@ export function History_finishProgramDay(
             entry,
             settings,
             programExercise,
+            progress.startTime,
             program,
             stats,
             progress.userPromptedStateVars?.[entry.programExerciseId ?? ""],
@@ -187,6 +188,7 @@ function History_buildProgressSnapshot(
   entry: IHistoryEntry,
   settings: ISettings,
   programExercise: IPlannerProgramExercise,
+  startTime: number,
   program?: IEvaluatedProgram,
   stats?: IStats,
   userPromptedStateVars?: IProgramState,
@@ -201,6 +203,7 @@ function History_buildProgressSnapshot(
       programExercise,
       program,
       stats,
+      startTime,
       userPromptedStateVars
     );
     if (changes) {

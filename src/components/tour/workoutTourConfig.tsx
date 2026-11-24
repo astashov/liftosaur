@@ -220,6 +220,7 @@ export const workoutTourConfig: ITourConfig = {
           program.states,
           programExercise,
           state.storage.stats,
+          progress.startTime,
           userPromptedStateVars
         );
         if (result.success) {

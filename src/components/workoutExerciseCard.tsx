@@ -84,6 +84,7 @@ interface IWorkoutExerciseCardProps {
   progressId: number;
   supersetEntry?: IHistoryEntry;
   progressUserPromptedStateVars?: Partial<Record<string, IProgramState>>;
+  progressStartTime: number;
   isCurrentProgress: boolean;
   stats: IStats;
   settings: ISettings;
@@ -589,6 +590,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           userPromptedStateVars={
             programExercise ? props.progressUserPromptedStateVars?.[programExercise.key] : undefined
           }
+          startTime={props.progressStartTime}
           programExercise={programExercise}
           entryIndex={props.entryIndex}
           onTargetClick={onTargetClick}

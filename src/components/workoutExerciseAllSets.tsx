@@ -62,6 +62,7 @@ interface IWorkoutExerciseAllSets {
   onTargetClick?: () => void;
   subscription?: ISubscription;
   userPromptedStateVars?: IProgramState;
+  startTime: number;
   program?: IEvaluatedProgram;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -337,6 +338,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
               stats={props.stats}
               program={props.program}
               userPromptedStateVars={props.userPromptedStateVars}
+              startTime={props.startTime}
               onSuppressProgress={onSuppressProgress}
             />
           </View>

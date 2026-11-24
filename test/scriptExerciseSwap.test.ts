@@ -47,7 +47,8 @@ describe("scripts after swapping the exercise during a workout", () => {
       settings,
       programExercise,
       evaluated,
-      stats
+      stats,
+      0
     );
     expect(changes?.diffVars).to.eql({ weights: "+= 10lb" });
     expect(changes?.prints).to.eql(["t1: Front Squat"]);
@@ -60,7 +61,8 @@ describe("scripts after swapping the exercise during a workout", () => {
       programExercise.dayData,
       swappedEntry,
       settings,
-      stats
+      stats,
+      0
     );
     expect(result.success).to.equal(true);
     const weightUpdates = result.success ? result.data.updates.filter((u) => u.type === "weights") : [];
@@ -75,7 +77,8 @@ describe("scripts after swapping the exercise during a workout", () => {
       evaluated.states,
       0,
       settings,
-      stats
+      stats,
+      0
     );
     expect(updated.updatePrintLines).to.eql(["true, t1: Front Squat"]);
   });
@@ -87,7 +90,8 @@ describe("scripts after swapping the exercise during a workout", () => {
       settings,
       programExercise,
       evaluated,
-      stats
+      stats,
+      0
     );
     expect(changes?.diffVars).to.eql({});
     expect(changes?.prints).to.eql(["t1: Squat"]);

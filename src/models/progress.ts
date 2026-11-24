@@ -131,6 +131,12 @@ import {
 import deepmerge from "deepmerge";
 import { NotificationPrefs_isOn, NotificationPrefs_reminder } from "./notificationPrefs";
 import { Dialog_alert } from "../utils/dialog";
+import {
+  ILiftoscriptRandomState,
+  LiftoscriptRandom_init,
+  LiftoscriptRandom_int,
+  LiftoscriptRandom_seed,
+} from "../liftoscriptRandom";
 
 export type { IScriptBindings } from "../liftoscriptFns";
 
@@ -140,6 +146,7 @@ export interface IScriptFnContext {
   exerciseType?: IExerciseType;
   entryExercise?: IExerciseType;
   programExerciseKey?: string;
+  random?: ILiftoscriptRandomState;
 }
 
 export function Progress_scriptExerciseContext(
@@ -405,6 +412,10 @@ export function Progress_createScriptFunctions(settings: ISettings): IProgressSc
     floor: ([num]) => applyRounding(num, Math.floor),
     ceil: ([num]) => applyRounding(num, Math.ceil),
     round: ([num]) => applyRounding(num, Math.round),
+    random: ([lo, hi], context) => {
+      context.random ??= LiftoscriptRandom_init(0);
+      return LiftoscriptRandom_int(context.random, lo, hi);
+    },
     sum: (args) => sum(args),
     min: (args) => min(args),
     max: (args) => max(args),
@@ -958,9 +969,10 @@ export function Progress_runUpdateScriptForEntry(
   setIndex: number,
   settings: ISettings,
   stats: IStats,
+  startTime: number,
   baselineEntry?: IHistoryEntry
 ): IHistoryEntry {
-  const result = runUpdateScript(entry, dayData, programExercise, otherStates, setIndex, settings, stats);
+  const result = runUpdateScript(entry, dayData, programExercise, otherStates, setIndex, settings, stats, startTime);
   if (setIndex !== -1 || result.entry.changed) {
     return result.entry;
   }
@@ -980,7 +992,8 @@ function runUpdateScript(
   otherStates: IByTag<IProgramState>,
   setIndex: number,
   settings: ISettings,
-  stats: IStats
+  stats: IStats,
+  startTime: number
 ): { entry: IHistoryEntry; didWriteWarmups: boolean } {
   if (setIndex !== -1 && !entry?.sets[setIndex]?.isCompleted) {
     return { entry, didWriteWarmups: false };
@@ -1011,6 +1024,9 @@ function runUpdateScript(
     ...Progress_scriptExerciseContext(entry, programExercise),
     unit: settings.units,
     prints: [],
+    random: LiftoscriptRandom_init(
+      LiftoscriptRandom_seed(startTime, programExercise.key, { kind: "update", setIndex })
+    ),
   };
   const runner = new ScriptRunner(
     script,
@@ -1064,6 +1080,7 @@ export function Progress_runInitialUpdateScripts(
           -1,
           settings,
           stats,
+          aProgress.startTime,
           baseline?.entries.find((e) => e.programExerciseId === entry.programExerciseId)
         );
       } catch (error) {
@@ -1100,7 +1117,8 @@ export function Progress_runUpdateScript(
       otherStates,
       setIndex,
       settings,
-      stats
+      stats,
+      aProgress.startTime
     );
   } catch (error) {
     const e = error as Error;
@@ -2386,7 +2404,11 @@ function reconcileStructure(
         break;
       }
     }
-    entries.splice(at, 0, Program_nextHistoryEntry(program, dayData, at, exercise, stats, settings));
+    entries.splice(
+      at,
+      0,
+      Program_nextHistoryEntry(program, dayData, at, exercise, stats, settings, progress.startTime)
+    );
   }
 
   const commonBefore = oldDayKeys.filter((key) => newDayKeys.indexOf(key) !== -1);

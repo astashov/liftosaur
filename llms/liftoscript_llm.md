@@ -365,6 +365,7 @@ for (var.i in completedReps) {
 
 #### Built-in Functions
 - `floor(x)`, `ceil(x)`, `round(x)` - rounding
+- `random(min, max)` - random whole number, both bounds included, whole-number args only; same workout → same numbers, new number on each call. In `progress`, `reps[i] = x` writes don't change later `reps[i]` reads, so shuffle sets in `update` with `if (setIndex == 0)`
 - `sum(array)` - sum all values: `sum(completedReps)`
 - `min(array)`, `max(array)` - min/max of array
 - `rpeMultiplier(reps, rpe)` - returns 1RM multiplier

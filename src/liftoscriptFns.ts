@@ -127,6 +127,13 @@ export const liftoscriptFnSignatures = {
     args: [{ name: "value", schema: scalar, hint: "a number, weight or percentage" }],
     returns: scalar,
   },
+  random: {
+    args: [
+      { name: "min", schema: v.pipe(v.number(), v.integer()), hint: "a whole number" },
+      { name: "max", schema: v.pipe(v.number(), v.integer()), hint: "a whole number" },
+    ],
+    returns: v.number(),
+  },
   sum: {
     variadic: { schema: aggregatable, hint: "numbers, weights, percentages or arrays of them" },
     returns: scalar,

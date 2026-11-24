@@ -239,6 +239,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             entryIndex={props.index}
             otherStates={props.program.states}
             userPromptedStateVars={props.progress.userPromptedStateVars?.[props.programExercise.key]}
+            startTime={props.progress.startTime}
             exerciseType={props.entry.exercise}
             lbSets={lb<IHistoryRecord>().p("entries").i(props.index).p("sets")}
             lbWarmupSets={lb<IHistoryRecord>().p("entries").i(props.index).p("warmupSets")}

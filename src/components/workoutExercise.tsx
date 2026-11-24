@@ -183,6 +183,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           progressId={props.progressId}
           supersetEntry={props.supersetEntry}
           progressUserPromptedStateVars={props.userPromptedStateVars}
+          progressStartTime={props.progressStartTime}
           isCurrentProgress={props.isCurrentProgress}
           showHelp={props.showHelp}
           helps={props.helps}

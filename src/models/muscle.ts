@@ -351,7 +351,7 @@ export function Muscle_getUnifiedPointsForExercise(
   const exercisePoints: IExercisePointsColl = {};
 
   const id = Exercise_toKey(programExercise.exerciseType);
-  const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
+  const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings, 0);
   const { screenTargetMuscles, screenSynergistMuscles } = Muscle_screenMusclesByRole(
     programExercise.exerciseType,
     settings
@@ -403,7 +403,7 @@ export function Muscle_getPointsForExercise(
   };
 
   const id = Exercise_toKey(programExercise.exerciseType);
-  const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings);
+  const historyEntry = Program_nextHistoryEntry(program, dayData, 0, programExercise, stats, settings, 0);
   const synergistMuscleGroupToMultiplier = Exercise_synergistMusclesGroupMultipliers(
     programExercise.exerciseType,
     settings

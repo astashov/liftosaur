@@ -156,7 +156,8 @@ export function NavModalExercisePicker(): JSX.Element {
                         entries.length,
                         { ...programExercise, exerciseType: exercise.exerciseType },
                         statsRef.current,
-                        currentSettings
+                        currentSettings,
+                        currentProgress.startTime
                       );
                       return [...entries, { ...nextHistoryEntry, id: UidFactory_generateUid(8) }].map((e, i) => ({
                         ...e,
@@ -174,7 +175,8 @@ export function NavModalExercisePicker(): JSX.Element {
                 currentPickerState.entryIndex,
                 { ...programExercise, exerciseType: exercise.exerciseType },
                 statsRef.current,
-                currentSettings
+                currentSettings,
+                currentProgress.startTime
               );
               updateProgress(
                 dispatch,

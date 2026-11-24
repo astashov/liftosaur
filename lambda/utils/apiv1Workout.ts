@@ -722,7 +722,7 @@ async function buildNextWorkout(
   userId: string,
   user: ILimitedUserDao,
   di: IDI,
-  input: { programId?: string; week?: number; dayInWeek?: number }
+  input: { programId?: string; week?: number; dayInWeek?: number; startTime?: number }
 ): Promise<
   IApiResult<{ progress: IHistoryRecord; evaluated: IEvaluatedProgram; program: IProgram; settings: ISettings }>
 > {
@@ -749,7 +749,7 @@ async function buildNextWorkout(
     }
   }
 
-  const progress = Program_nextHistoryRecordFromEvaluated(evaluated, settings, stats, dayIndex);
+  const progress = Program_nextHistoryRecordFromEvaluated(evaluated, settings, stats, dayIndex, input.startTime);
   return ok({ progress, evaluated, program, settings });
 }
 
@@ -771,7 +771,7 @@ export async function ApiV1_startWorkout(
   }
   const { programId, week, dayInWeek, startTime } = parsed.output;
 
-  const built = await buildNextWorkout(userId, user, di, { programId, week, dayInWeek });
+  const built = await buildNextWorkout(userId, user, di, { programId, week, dayInWeek, startTime });
   if (!built.success) {
     return built;
   }

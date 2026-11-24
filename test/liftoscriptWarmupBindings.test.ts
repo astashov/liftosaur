@@ -121,7 +121,8 @@ Squat / 3x5 150lb
         evaluated.states,
         0,
         settings,
-        Stats_getEmpty()
+        Stats_getEmpty(),
+        record.startTime
       );
       return { ...record, entries: [updated] };
     }

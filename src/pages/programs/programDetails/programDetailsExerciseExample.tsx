@@ -68,7 +68,8 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
             weekIndex,
             programExercise,
             Stats_getEmpty(),
-            settings
+            settings,
+            0
           )
         : {
             vtype: "history_entry",

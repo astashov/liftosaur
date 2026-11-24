@@ -21,6 +21,7 @@ interface IProps {
   programExercise: IPlannerProgramExercise;
   program: IEvaluatedProgram;
   stats: IStats;
+  startTime: number;
   userPromptedStateVars?: IProgramState;
   onSuppressProgress?: (isSuppressed: boolean) => void;
   forceShow?: boolean;
@@ -37,6 +38,7 @@ function ProgressStateChangesInner(props: IProps): JSX.Element | null {
         props.programExercise,
         props.program,
         props.stats,
+        props.startTime,
         props.userPromptedStateVars
       )
     : undefined;

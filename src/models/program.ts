@@ -115,6 +115,7 @@ import { Service } from "../api/service";
 import { EditProgram_initPlannerState } from "./editProgram";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
 import { Stats_getCurrentMovingAverageBodyweight } from "./stats";
+import { LiftoscriptRandom_init, LiftoscriptRandom_seed } from "../liftoscriptRandom";
 
 declare let __HOST__: string;
 
@@ -290,7 +291,8 @@ export function Program_nextHistoryEntry(
   index: number,
   programExercise: IPlannerProgramExerciseWithType,
   stats: IStats,
-  settings: ISettings
+  settings: ISettings,
+  startTime: number
 ): IHistoryEntry {
   const exercise = programExercise.exerciseType;
   const programSets = PlannerProgramExercise_currentEvaluatedSetVariation(programExercise)?.sets;
@@ -335,7 +337,16 @@ export function Program_nextHistoryEntry(
     warmupSets: WarmupScheme_build(exercise, sets[0]?.weight, settings, warmupSets),
   };
   try {
-    return Progress_runUpdateScriptForEntry(entry, dayData, programExercise, program.states, -1, settings, stats);
+    return Progress_runUpdateScriptForEntry(
+      entry,
+      dayData,
+      programExercise,
+      program.states,
+      -1,
+      settings,
+      stats,
+      startTime
+    );
   } catch (error) {
     console.error(error);
     return entry;
@@ -393,17 +404,18 @@ export function Program_nextHistoryRecordFromEvaluated(
   program: IEvaluatedProgram,
   settings: ISettings,
   stats: IStats,
-  dayIndex?: number
+  dayIndex?: number,
+  startTime: number = Date.now()
 ): IHistoryRecord {
   const day = Math.max(1, Math.min(Program_numberOfDays(program), Math.max(1, (dayIndex || program.nextDay) ?? 0)));
   const dayData = Program_getDayData(program, day);
   const { week, dayInWeek } = dayData;
 
   const fullDayName = Program_getDayName(program, day);
-  const now = Date.now();
+  const now = startTime;
   const sortedDayExercises = Program_getDayExercisesInOrder(program, day);
   const entries = sortedDayExercises.map((exercise, i) => {
-    return Program_nextHistoryEntry(program, dayData, i, exercise, stats, settings);
+    return Program_nextHistoryEntry(program, dayData, i, exercise, stats, settings, startTime);
   });
   return {
     vtype: "progress",
@@ -469,6 +481,7 @@ export function Program_runExerciseFinishDayScript(
   otherStates: IByExercise<IProgramState>,
   programExercise: IPlannerProgramExercise,
   stats: IStats,
+  startTime: number,
   userPromptedStateVars?: IProgramState
 ): IEither<
   {
@@ -505,6 +518,7 @@ export function Program_runExerciseFinishDayScript(
     ...Progress_scriptExerciseContext(entry, programExercise),
     unit: settings.units,
     prints: [],
+    random: LiftoscriptRandom_init(LiftoscriptRandom_seed(startTime, programExercise.key, { kind: "finish" })),
   };
   try {
     const runner = new ScriptRunner(
@@ -536,6 +550,7 @@ export function Program_runFinishDayScript(
   entry: IHistoryEntry,
   settings: ISettings,
   stats: IStats,
+  startTime: number,
   userPromptedStateVars?: IProgramState
 ): IEither<
   {
@@ -584,6 +599,7 @@ export function Program_runFinishDayScript(
         ...Progress_scriptExerciseContext(entry, programExercise),
         unit: settings.units,
         prints: [],
+        random: LiftoscriptRandom_init(LiftoscriptRandom_seed(startTime, programExercise.key, { kind: "finish" })),
       }
     );
     runner.execute();
@@ -696,6 +712,7 @@ export function Program_runAllFinishDayScripts(
           entry,
           settings,
           stats,
+          progress.startTime,
           progress.userPromptedStateVars?.[programExercise.key]
         );
         if (newStateResult.success) {
@@ -1678,6 +1695,7 @@ export function Program_computeProgressStateChanges(
   programExercise: IPlannerProgramExercise,
   program: IEvaluatedProgram,
   stats: IStats,
+  startTime: number,
   userPromptedStateVars?: IProgramState
 ): IProgressStateChanges | undefined {
   const state = PlannerProgramExercise_getState(programExercise);
@@ -1689,6 +1707,7 @@ export function Program_computeProgressStateChanges(
     program.states,
     programExercise,
     stats,
+    startTime,
     userPromptedStateVars
   );
   if (!result.success) {

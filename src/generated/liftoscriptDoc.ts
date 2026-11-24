@@ -1514,6 +1514,33 @@ state.nextWeight = round(152.4lb);
 state.reps = round(2.7);
 \`\`\`
 
+#### \`random\`
+
+Returns a random whole number between \`min\` and \`max\`, both included. Both arguments must be whole numbers.
+
+\`\`\`javascript
+state.target = random(8, 12);
+\`\`\`
+
+Each call returns a new number, also inside a loop. The numbers come from the workout itself, so the same workout always gives the same numbers - on the phone, on the watch, and in the preview under the exercise. A new workout gives new numbers.
+
+In a \`progress\` script, \`reps = random(2, 11)\` picks one number and gives it to all sets. In an \`update\` script, it picks a new number for each set that isn't completed yet.
+
+To shuffle the sets, do it in an \`update\` script at the start of the workout. A \`progress\` script can't do it: there, a change to \`reps[2]\` only applies to the next workout, so reading \`reps[2]\` again in the same script still returns the old value. This one shuffles the sets once, when the workout starts (a "deck of cards" workout):
+
+\`\`\`javascript
+Push Up / 1x8, 1x10, 1x2, 1x9, 1x7, 1x11 / update: custom() {~
+  if (setIndex == 0) {
+    for (var.i in reps) {
+      var.j = random(var.i, numberOfSets)
+      var.card = reps[var.i]
+      reps[var.i] = reps[var.j]
+      reps[var.j] = var.card
+    }
+  }
+~}
+\`\`\`
+
 #### \`sum\`
 
 Sums all values. Accepts any combination of arrays, individual numbers, and weights as arguments.
