@@ -118,6 +118,7 @@ Pay special attention to:
 - How percentages, rest times, and weights are specified
 - **Rest timers are NOT inherited across weeks.** If a template defines `/ 120s`, every week override must also include `/ 120s` or the timer will be lost for that week.
 - Starting weights: If the program uses 1RM percentages or RPE targets, use those notations. Otherwise, ALWAYS set a default starting weight for every exercise. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
+- Bodyweight exercises (crunches, pull-ups, dips, push-ups, planks): write `0lb` on each exercise line, even when its template already has `0lb`. Without a weight, the app asks the user to enter one.
 
 #### 3c. Output Format
 
