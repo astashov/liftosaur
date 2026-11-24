@@ -1176,12 +1176,12 @@ export function PlannerEvaluator_resolveWarmups(evaluatedWeeks: IPlannerEvalResu
     visited.add(exercise);
     const template = exercise.reuse?.exercise;
     exercise.resolvedWarmups =
-      (template != null ? resolve(template) : undefined) ??
       earlierSlotInstances(evaluatedWeeks, exercise).reduce<IPlannerResolvedWarmups | undefined>(
         (found, instance) => found ?? resolve(instance),
         undefined
       ) ??
-      firstDefinition[exercise.key];
+      firstDefinition[exercise.key] ??
+      (template != null ? resolve(template) : undefined);
     return exercise.resolvedWarmups;
   };
   PlannerEvaluator_iterateOverExercises(evaluatedWeeks, (_weekIndex, _dayInWeekIndex, _dayIndex, _index, exercise) => {

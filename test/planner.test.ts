@@ -3341,7 +3341,7 @@ Squat / ...t1
     expect(lines).to.eql(["t1 / used: none / 3x5 / 200lb / warmup: 1x5 40%"]);
   });
 
-  it("prefers this line's template over an earlier week's warmups", () => {
+  it("prefers an earlier week's warmups over this line's template", () => {
     const text = `# Week 1
 ## Day 1
 t1 / used: none / 3x5 200lb / warmup: 1x5 40%
@@ -3352,7 +3352,23 @@ Squat / ...t1
 t2 / used: none / 3x5 200lb / warmup: 1x5 60%
 Squat / ...t2
 `;
-    expect(warmupsOnDay(text, 2)).to.eql(["5x120"]);
+    expect(warmupsOnDay(text, 2)).to.eql(["5x80"]);
+  });
+
+  it("keeps week 1 warmups when the shared template says none", () => {
+    const text = `# Week 1
+## Day 1
+Squat / ...t1 / 3x5 200lb / warmup: 1x5 50%
+Bench Press / ...t1 / 3x5 100lb
+
+# Week 2
+## Day 1
+t1[1-2] / used: none / 3x5 100lb / warmup: none
+Squat / ...t1 / 3x5 200lb
+Bench Press / ...t1 / 3x5 100lb
+`;
+    expect(warmupsOnDay(text, 2, 0)).to.eql(["5x100"]);
+    expect(warmupsOnDay(text, 2, 1)).to.eql([]);
   });
 
   it("records the line each instance inherits from", () => {
