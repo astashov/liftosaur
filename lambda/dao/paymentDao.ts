@@ -28,6 +28,7 @@ export interface IPaymentDao {
   // Play Console license-tester / test purchase. Stored, but hidden from the payments dashboard and
   // excluded from affiliate revenue so test purchases don't pollute reporting or affiliate payouts.
   isTest?: boolean;
+  inAppOwnershipType?: string;
 }
 
 export class PaymentDao {
@@ -59,6 +60,16 @@ export class PaymentDao {
 
   public async doesExist(transactionId: string): Promise<boolean> {
     return (await this.getByTransactionId(transactionId)) != null;
+  }
+
+  public async setOwnershipType(payment: IPaymentDao, inAppOwnershipType: string): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.update({
+      tableName: tableNames[env].payments,
+      key: { userId: payment.userId, timestamp: payment.timestamp },
+      expression: "SET inAppOwnershipType = :inAppOwnershipType",
+      values: { ":inAppOwnershipType": inAppOwnershipType },
+    });
   }
 
   public async setOfferIdentifier(payment: IPaymentDao, offerIdentifier: string): Promise<void> {

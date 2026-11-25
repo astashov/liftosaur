@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import JWT from "jsonwebtoken";
 import { IDI } from "./di";
 import { SubscriptionDetailsDao, ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
-import { PaymentDao } from "../dao/paymentDao";
+import { IPaymentDao, PaymentDao } from "../dao/paymentDao";
 import { IAppleTransaction, IAppleTransactionHistory, IGooglePaymentInfoV2, Subscriptions } from "./subscriptions";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import { UserDao, ILimitedUserDao } from "../dao/userDao";
@@ -85,7 +85,8 @@ export class PaymentReconciler {
     const appleSubscriptions = allSubscriptionDetails.filter((s) => s.type === "apple" && s.originalTransactionId);
     const googleSubscriptions = allSubscriptionDetails.filter((s) => s.type === "google" && s.originalTransactionId);
 
-    await this.reconcileApple(appleSubscriptions, existingTxIds, result);
+    const existingByTxId = new Map(allPayments.map((p) => [p.transactionId, p]));
+    await this.reconcileApple(appleSubscriptions, existingByTxId, result);
     await this.reconcileGoogle(googleSubscriptions, existingTxIds, result);
 
     this.di.log.log("Reconciler: Reconciliation complete", JSON.stringify(result));
@@ -224,7 +225,7 @@ export class PaymentReconciler {
 
   private async reconcileApple(
     subscriptions: ISubscriptionDetailsDao[],
-    existingTxIds: Set<string>,
+    existingByTxId: ReadonlyMap<string, IPaymentDao>,
     result: IReconciliationResult
   ): Promise<void> {
     this.di.log.log(`Reconciler: Reconciling ${subscriptions.length} Apple subscriptions`);
@@ -259,7 +260,7 @@ export class PaymentReconciler {
       );
 
       const batchResults = await Promise.all(
-        batch.map((sub) => this.reconcileOneAppleSub(sub, appleToken, jwtVerifier, existingTxIds, affiliateIds))
+        batch.map((sub) => this.reconcileOneAppleSub(sub, appleToken, jwtVerifier, existingByTxId, affiliateIds))
       );
 
       for (const br of batchResults) {
@@ -278,7 +279,7 @@ export class PaymentReconciler {
     sub: ISubscriptionDetailsDao,
     appleToken: string,
     jwtVerifier: AppleJWTVerifier,
-    existingTxIds: Set<string>,
+    existingByTxId: ReadonlyMap<string, IPaymentDao>,
     affiliateIds: ReadonlySet<string> | undefined
   ): Promise<{ checked: number; added: number; error?: string; attributionErrors: string[] }> {
     let checked = 0;
@@ -302,7 +303,11 @@ export class PaymentReconciler {
         if (!tx) {
           continue;
         }
-        if (existingTxIds.has(tx.transactionId)) {
+        const existing = existingByTxId.get(tx.transactionId);
+        if (existing) {
+          if (!this.dryRun && !existing.inAppOwnershipType && tx.inAppOwnershipType) {
+            await this.paymentDao.setOwnershipType(existing, tx.inAppOwnershipType);
+          }
           await attribute(tx);
           continue;
         }
@@ -333,6 +338,7 @@ export class PaymentReconciler {
             subscriptionStartTimestamp: tx.originalPurchaseDate,
             offerIdentifier: tx.offerIdentifier,
             isTest: tx.environment === "Sandbox",
+            inAppOwnershipType: tx.inAppOwnershipType,
           });
           this.di.log.log(`Reconciler: Added Apple payment ${tx.transactionId} for user ${sub.userId}`);
           await attribute(tx);

@@ -22,6 +22,7 @@ export interface IAppleTransactionInfo {
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
   offerIdentifier?: string;
   offerType?: number;
+  inAppOwnershipType?: string;
   environment?: "Sandbox" | "Production";
 }
 
@@ -146,6 +147,7 @@ export class AppleWebhookHandler {
         subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
         offerIdentifier: transactionInfo.offerIdentifier,
         isTest: transactionInfo.environment === "Sandbox",
+        inAppOwnershipType: transactionInfo.inAppOwnershipType,
       });
 
       this.di.log.log(

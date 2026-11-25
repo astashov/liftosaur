@@ -1,6 +1,7 @@
 import type { IAffiliateData } from "../../src/types";
 import type { IAffiliateDao } from "../dao/affiliateDao";
 import type { IPaymentDao } from "../dao/paymentDao";
+import { PaymentRevenue_isCounted } from "./paymentRevenue";
 
 export interface IAffiliateAttributionEntry {
   affiliateId: string;
@@ -63,7 +64,7 @@ export function AffiliateAttribution_isEligiblePayment(
   payment: IPaymentDao,
   entry: IAffiliateAttributionEntry
 ): boolean {
-  if (payment.paymentType === "refund" || payment.isTest) {
+  if (payment.paymentType === "refund" || !PaymentRevenue_isCounted(payment)) {
     return false;
   }
   if (entry.type === "coupon") {

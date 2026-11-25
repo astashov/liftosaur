@@ -124,6 +124,7 @@ import { ImportExporter_getExportedProgram } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
 import { AffiliateAttribution_first } from "./utils/affiliateAttribution";
+import { PaymentRevenue_isCounted } from "./utils/paymentRevenue";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import { renderUserAffiliatesHtml } from "./userAffiliates";
 import { renderUsersDashboardHtml } from "./usersDashboard";
@@ -3088,7 +3089,7 @@ interface IPaymentsPage {
 }
 
 async function buildPaymentsPage(di: IDI, before: number | undefined, months: number): Promise<IPaymentsPage> {
-  const allPayments = (await new PaymentDao(di).getAllPayments()).filter((p) => !p.isTest);
+  const allPayments = (await new PaymentDao(di).getAllPayments()).filter(PaymentRevenue_isCounted);
   const summary = computePaymentsSummary([{ date: "all", payments: allPayments }]);
 
   const start =

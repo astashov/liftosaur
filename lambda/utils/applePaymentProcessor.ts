@@ -11,6 +11,7 @@ interface IAppleReceiptInfo {
   purchase_date_ms: string;
   original_transaction_id?: string;
   transaction_id?: string;
+  in_app_ownership_type?: string;
 }
 
 export class ApplePaymentProcessor {
@@ -128,9 +129,16 @@ export class ApplePaymentProcessor {
       subscriptionStartTimestamp: originalPurchaseDate,
       offerIdentifier,
       isTest,
+      inAppOwnershipType: latestReceipt.in_app_ownership_type,
     });
     await ApplePaymentAttribution_apply(this.di, {
-      transaction: { transactionId, purchaseDate: timestamp, offerIdentifier, offerType },
+      transaction: {
+        transactionId,
+        purchaseDate: timestamp,
+        offerIdentifier,
+        offerType,
+        inAppOwnershipType: latestReceipt.in_app_ownership_type,
+      },
       fallbackUserId: userId,
     });
   }
@@ -159,6 +167,7 @@ export class ApplePaymentProcessor {
       subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
       offerIdentifier: transactionInfo.offerIdentifier,
       isTest: transactionInfo.environment === "Sandbox",
+      inAppOwnershipType: transactionInfo.inAppOwnershipType,
     });
     await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
   }

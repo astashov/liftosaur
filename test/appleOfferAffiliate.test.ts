@@ -65,6 +65,23 @@ describe("AppleOfferAffiliate_plan", () => {
     ).to.equal(undefined);
   });
 
+  it("writes no row for a family-shared transaction or payment", () => {
+    expect(
+      AppleOfferAffiliate_plan({
+        transaction: { ...brickTx, inAppOwnershipType: "FAMILY_SHARED" },
+        fallbackUserId: "member",
+        affiliateIds,
+      }).affiliateRow
+    ).to.equal(undefined);
+    expect(
+      AppleOfferAffiliate_plan({
+        transaction: brickTx,
+        payment: { userId: "member", offerIdentifier: "brick", inAppOwnershipType: "FAMILY_SHARED" },
+        affiliateIds,
+      }).affiliateRow
+    ).to.equal(undefined);
+  });
+
   it("writes no row without an owner", () => {
     expect(AppleOfferAffiliate_plan({ transaction: brickTx, affiliateIds }).affiliateRow).to.equal(undefined);
   });

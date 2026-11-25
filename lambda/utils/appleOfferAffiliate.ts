@@ -1,4 +1,5 @@
 import type { IPaymentDao } from "../dao/paymentDao";
+import { PaymentRevenue_FAMILY_SHARED, PaymentRevenue_isCounted } from "./paymentRevenue";
 
 export const AppleOfferAffiliate_OFFER_CODE_TYPE = 3;
 
@@ -13,6 +14,7 @@ export interface IAppleOfferTransaction extends IAppleOfferFields {
   transactionId: string;
   purchaseDate: number;
   environment?: string;
+  inAppOwnershipType?: string;
 }
 
 export interface IAppleOfferAttributionPlan {
@@ -37,7 +39,7 @@ export function AppleOfferAffiliate_resolve(
 
 export function AppleOfferAffiliate_plan(args: {
   transaction: IAppleOfferTransaction;
-  payment?: Pick<IPaymentDao, "userId" | "offerIdentifier" | "isTest">;
+  payment?: Pick<IPaymentDao, "userId" | "offerIdentifier" | "isTest" | "inAppOwnershipType">;
   fallbackUserId?: string;
   affiliateIds: ReadonlySet<string>;
 }): IAppleOfferAttributionPlan {
@@ -47,10 +49,13 @@ export function AppleOfferAffiliate_plan(args: {
     return {};
   }
   const offerIdentifierToSet = payment && !payment.offerIdentifier ? offerIdentifier : undefined;
-  const isTest = transaction.environment === "Sandbox" || !!payment?.isTest;
+  const isExcluded =
+    transaction.environment === "Sandbox" ||
+    transaction.inAppOwnershipType === PaymentRevenue_FAMILY_SHARED ||
+    (payment != null && !PaymentRevenue_isCounted(payment));
   const userId = payment?.userId ?? args.fallbackUserId;
   const affiliateId = AppleOfferAffiliate_resolve(transaction, args.affiliateIds);
-  if (isTest || !userId || !affiliateId) {
+  if (isExcluded || !userId || !affiliateId) {
     return { offerIdentifierToSet };
   }
   return {

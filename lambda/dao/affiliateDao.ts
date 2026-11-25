@@ -135,6 +135,11 @@ export class AffiliateDao {
     await this.di.dynamo.batchPut({ tableName: tableNames[env].affiliates, items });
   }
 
+  public async removeRow(affiliateId: string, userId: string): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.remove({ tableName: tableNames[env].affiliates, key: { affiliateId, userId } });
+  }
+
   public async putIfNotExists(
     items: { affiliateId: string; userId: string; timestamp?: number; type: "coupon" | "program" }[]
   ): Promise<void> {

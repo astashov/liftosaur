@@ -111,6 +111,15 @@ describe("AffiliateAttribution_isEligiblePayment", () => {
       .false;
   });
 
+  it("never credits a family-shared copy of the organizer's payment", () => {
+    expect(
+      AffiliateAttribution_isEligiblePayment(payment({ inAppOwnershipType: "FAMILY_SHARED", timestamp: 2000 }), coupon)
+    ).to.be.false;
+    expect(
+      AffiliateAttribution_isEligiblePayment(payment({ inAppOwnershipType: "PURCHASED", timestamp: 2000 }), coupon)
+    ).to.be.true;
+  });
+
   it("never credits refunds or test purchases", () => {
     expect(AffiliateAttribution_isEligiblePayment(payment({ paymentType: "refund", timestamp: 2000 }), coupon)).to.be
       .false;
