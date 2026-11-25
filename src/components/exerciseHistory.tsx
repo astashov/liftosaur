@@ -192,8 +192,8 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
   const trackClick = useTrackClick();
   const onClick = useCallback(() => {
     trackClick("exercise-history-record", undefined, { source });
-    dispatch(Thunk_editHistoryRecord(historyRecord));
-  }, [dispatch, historyRecord, trackClick, source]);
+    dispatch(Thunk_editHistoryRecord(historyRecord, fullExercise));
+  }, [dispatch, historyRecord, fullExercise, trackClick, source]);
   return (
     <MenuItemWrapper onClick={onClick} name={`${historyRecord.startTime}`}>
       <View className="py-2">

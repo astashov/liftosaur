@@ -2,7 +2,7 @@ import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { IHistoryRecord, ISet, ISettings, IWeight } from "../types";
+import { IExerciseType, IHistoryRecord, ISet, ISettings, IWeight } from "../types";
 import { Weight_display, Weight_convertTo, Weight_build } from "../models/weight";
 import { DateUtils_format } from "../utils/date";
 import { GroupHeader } from "./groupHeader";
@@ -11,6 +11,7 @@ import { Thunk_editHistoryRecord } from "../ducks/thunks";
 import { useTrackClick } from "../utils/clickTracking";
 
 interface IExerciseAllTimePRsProps {
+  exerciseType: IExerciseType;
   settings: ISettings;
   dispatch: IDispatch;
   maxWeight?: { weight: IWeight; historyRecord?: IHistoryRecord };
@@ -35,7 +36,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           onClick={() => {
             trackClick("exercise-pr-record");
             if (maxWeight.historyRecord) {
-              props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord));
+              props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord, props.exerciseType));
             }
           }}
           value={
@@ -60,7 +61,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           onClick={() => {
             trackClick("exercise-pr-record");
             if (max1RM.historyRecord) {
-              props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord));
+              props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord, props.exerciseType));
             }
           }}
           name="Max 1RM"

@@ -231,6 +231,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
             {showPrs && (
               <View className="mx-4 mt-2">
                 <ExerciseAllTimePRs
+                  exerciseType={exerciseType}
                   maxWeight={maxWeightProp}
                   max1RM={max1RMProp}
                   settings={props.settings}

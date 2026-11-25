@@ -37,7 +37,10 @@ function GraphExerciseInner(props: IGraphExerciseProps): JSX.Element {
     [exercise, settings.exercises, selectedType]
   );
   const onChartInteract = useCallback(() => onInteract?.("manipulate"), [onInteract]);
-  const onOpenRecord = useCallback((record: IHistoryRecord) => dispatch?.(Thunk_editHistoryRecord(record)), [dispatch]);
+  const onOpenRecord = useCallback(
+    (record: IHistoryRecord) => dispatch?.(Thunk_editHistoryRecord(record, exercise)),
+    [dispatch, exercise]
+  );
 
   return (
     <View testID="graph" data-testid="graph">

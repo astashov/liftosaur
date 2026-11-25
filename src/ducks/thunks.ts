@@ -1662,9 +1662,9 @@ export function Thunk_confirmScreenLeave(screen: IScreenData, action: Navigation
   };
 }
 
-export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
+export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord, exerciseType?: IExerciseType): IThunk {
   return async (dispatch) => {
-    dispatch({ type: "EditHistoryRecord", historyRecord });
+    dispatch({ type: "EditHistoryRecord", historyRecord, exerciseType });
     const { navigateTo } = await getNavigationService();
     navigateTo("progress", { id: historyRecord.id });
   };

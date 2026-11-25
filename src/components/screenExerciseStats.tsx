@@ -232,7 +232,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       )}
       {showPrs && (
         <View className="mt-8">
-          <ExerciseAllTimePRs maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
+          <ExerciseAllTimePRs exerciseType={exerciseType} maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
         </View>
       )}
       <ExerciseHistory

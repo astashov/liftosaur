@@ -45,6 +45,7 @@ import {
   IProgressMode,
   ISettings,
   IHistoryRecord,
+  IExerciseType,
   IPercentage,
   IProgramState,
   ISubscription,
@@ -78,7 +79,7 @@ import { History_resumeWorkout } from "../models/history";
 import { NotificationPrefs_reconcile, NotificationPrefs_reminder } from "../models/notificationPrefs";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { History_deleteRecords } from "../models/history";
+import { History_deleteRecords, History_openAtExercise } from "../models/history";
 import { WorkoutOutcome_add, WorkoutOutcome_healthSaves } from "../models/workoutOutcome";
 import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
@@ -340,6 +341,7 @@ export type IReplaceStateAction = {
 export type IEditHistoryRecordAction = {
   type: "EditHistoryRecord";
   historyRecord: IHistoryRecord;
+  exerciseType?: IExerciseType;
 };
 
 export type IStopTimer = {
@@ -776,7 +778,10 @@ export const reducer: IEffectfulReducer = (state, action, effects): IState => {
   } else if (action.type === "EditHistoryRecord") {
     return {
       ...state,
-      progress: { ...state.progress, [action.historyRecord.id]: { ...action.historyRecord, ui: {} } },
+      progress: {
+        ...state.progress,
+        [action.historyRecord.id]: { ...History_openAtExercise(action.historyRecord, action.exerciseType), ui: {} },
+      },
     };
   } else if (action.type === "FinishProgramDayAction") {
     const progress = Progress_getProgressById(state, action.id);

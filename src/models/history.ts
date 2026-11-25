@@ -102,6 +102,12 @@ export function History_deleteRecords(storage: IStorage, ids: number[]): IStorag
   return { ...storage, history: storage.history.filter((h) => !idSet.has(h.id)) };
 }
 
+export function History_openAtExercise(record: IHistoryRecord, exerciseType?: IExerciseType): IHistoryRecord {
+  const entryIndex =
+    exerciseType != null ? record.entries.findIndex((e) => Exercise_eq(e.exercise, exerciseType)) : -1;
+  return entryIndex === -1 ? record : { ...record, currentEntryIndex: entryIndex };
+}
+
 export function History_createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
   return {
     vtype: "history_entry",
