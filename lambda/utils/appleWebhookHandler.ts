@@ -4,6 +4,7 @@ import { PaymentDao } from "../dao/paymentDao";
 import { SubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import { ApplePaymentAttribution_apply } from "./applePaymentAttribution";
+import { AppleOfferAffiliate_renewalOffer } from "./appleOfferAffiliate";
 
 export interface IAppleNotificationV2 {
   signedPayload: string;
@@ -28,6 +29,7 @@ export interface IAppleTransactionInfo {
 
 interface IApplePayloadData {
   notificationType: string;
+  signedDate?: number;
   data?: {
     signedTransactionInfo?: string;
     signedRenewalInfo?: string;
@@ -36,6 +38,8 @@ interface IApplePayloadData {
 
 interface IAppleRenewalInfo {
   autoRenewStatus?: number;
+  offerIdentifier?: string;
+  offerType?: number;
 }
 
 export class AppleWebhookHandler {
@@ -74,11 +78,21 @@ export class AppleWebhookHandler {
         this.di.log.log("Apple webhook: Failed to verify transaction info JWT");
         return { status: "ok" };
       }
+      const notificationType = payloadData.notificationType;
+      const renewalInfo = payloadData.data.signedRenewalInfo
+        ? (jwtVerifier.verifyJWT(payloadData.data.signedRenewalInfo) as IAppleRenewalInfo | null)
+        : null;
+      const renewalOffer = AppleOfferAffiliate_renewalOffer({
+        notificationType,
+        transaction: transactionInfo,
+        renewal: renewalInfo,
+        signedDate: payloadData.signedDate,
+      });
       const paymentDao = new PaymentDao(this.di);
 
       if (await paymentDao.doesExist(transactionInfo.transactionId)) {
         this.di.log.log(`Apple webhook: Payment with transaction ID ${transactionInfo.transactionId} already exists`);
-        await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo });
+        await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, renewalOffer });
         return { status: "ok" };
       }
 
@@ -92,13 +106,12 @@ export class AppleWebhookHandler {
         return { status: "ok" };
       }
 
-      const notificationType = payloadData.notificationType;
-
-      const renewalInfo = payloadData.data.signedRenewalInfo
-        ? (jwtVerifier.verifyJWT(payloadData.data.signedRenewalInfo) as IAppleRenewalInfo | null)
-        : null;
       await this.updateSubscriptionStatus(userId, notificationType, transactionInfo, renewalInfo);
-      await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
+      await ApplePaymentAttribution_apply(this.di, {
+        transaction: transactionInfo,
+        fallbackUserId: userId,
+        renewalOffer,
+      });
 
       let paymentType: "purchase" | "renewal" | "refund";
 

@@ -142,13 +142,13 @@ export class AffiliateDao {
 
   public async putIfNotExists(
     items: { affiliateId: string; userId: string; timestamp?: number; type: "coupon" | "program" }[]
-  ): Promise<void> {
+  ): Promise<number> {
     if (items.length === 0) {
-      return;
+      return 0;
     }
     const env = Utils_getEnv();
 
-    await Promise.all(
+    const inserted = await Promise.all(
       items.map((item) =>
         this.di.dynamo.putIfNotExists({
           tableName: tableNames[env].affiliates,
@@ -158,6 +158,7 @@ export class AffiliateDao {
         })
       )
     );
+    return inserted.filter((wasInserted) => wasInserted).length;
   }
 
   private async getAffiliatedUsers(affiliateId: string): Promise<
