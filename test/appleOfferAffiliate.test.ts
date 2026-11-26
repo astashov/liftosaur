@@ -2,9 +2,11 @@ import "mocha";
 import { expect } from "chai";
 import {
   AppleOfferAffiliate_OFFER_CODE_TYPE,
+  AppleOfferAffiliate_needsRenewalLookup,
   AppleOfferAffiliate_plan,
   AppleOfferAffiliate_renewalOffer,
   AppleOfferAffiliate_resolve,
+  AppleOfferAffiliate_trialRenewalOffer,
 } from "../lambda/utils/appleOfferAffiliate";
 
 const affiliateIds = new Set(["brick", "military", "thanks26"]);
@@ -56,6 +58,30 @@ describe("AppleOfferAffiliate_renewalOffer", () => {
     expect(AppleOfferAffiliate_renewalOffer({ notificationType: "SUBSCRIBED", transaction: trialTx })).to.equal(
       undefined
     );
+  });
+});
+
+describe("AppleOfferAffiliate_needsRenewalLookup", () => {
+  it("looks up a production trial without an offer code", () => {
+    expect(AppleOfferAffiliate_needsRenewalLookup(trialTx)).to.equal(true);
+  });
+
+  it("skips paid, coded, sandbox and family-shared transactions", () => {
+    expect(AppleOfferAffiliate_needsRenewalLookup(brickTx)).to.equal(false);
+    expect(AppleOfferAffiliate_needsRenewalLookup({ ...trialTx, offerType: undefined })).to.equal(false);
+    expect(AppleOfferAffiliate_needsRenewalLookup({ ...trialTx, offerIdentifier: "thanks26" })).to.equal(false);
+    expect(AppleOfferAffiliate_needsRenewalLookup({ ...trialTx, environment: "Sandbox" })).to.equal(false);
+    expect(AppleOfferAffiliate_needsRenewalLookup({ ...trialTx, inAppOwnershipType: "FAMILY_SHARED" })).to.equal(false);
+  });
+});
+
+describe("AppleOfferAffiliate_trialRenewalOffer", () => {
+  it("dates the renewal offer at the trial start", () => {
+    expect(
+      AppleOfferAffiliate_trialRenewalOffer(trialTx, { offerIdentifier: "thanks26", offerType: offerCode })
+    ).to.deep.equal(thanksRenewal);
+    expect(AppleOfferAffiliate_trialRenewalOffer(trialTx, {})).to.equal(undefined);
+    expect(AppleOfferAffiliate_trialRenewalOffer(trialTx, undefined)).to.equal(undefined);
   });
 });
 

@@ -2,6 +2,7 @@ import type { IPaymentDao } from "../dao/paymentDao";
 import { PaymentRevenue_FAMILY_SHARED, PaymentRevenue_isCounted } from "./paymentRevenue";
 
 export const AppleOfferAffiliate_OFFER_CODE_TYPE = 3;
+export const AppleOfferAffiliate_INTRO_OFFER_TYPE = 1;
 
 const MONTHLY_SUFFIX = "-monthly";
 
@@ -52,14 +53,37 @@ export function AppleOfferAffiliate_renewalOffer(args: {
   if (!renewal?.offerIdentifier) {
     return undefined;
   }
-  const offer = { offerIdentifier: renewal.offerIdentifier, offerType: renewal.offerType };
   if (args.notificationType === "SUBSCRIBED") {
-    return { ...offer, redeemedAt: args.transaction.purchaseDate };
+    return AppleOfferAffiliate_trialRenewalOffer(args.transaction, renewal);
   }
   if (args.notificationType === "OFFER_REDEEMED" && args.signedDate != null) {
-    return { ...offer, redeemedAt: args.signedDate };
+    return { offerIdentifier: renewal.offerIdentifier, offerType: renewal.offerType, redeemedAt: args.signedDate };
   }
   return undefined;
+}
+
+export function AppleOfferAffiliate_trialRenewalOffer(
+  transaction: { purchaseDate: number },
+  renewal?: IAppleOfferFields | null
+): IAppleRenewalOffer | undefined {
+  if (!renewal?.offerIdentifier) {
+    return undefined;
+  }
+  return {
+    offerIdentifier: renewal.offerIdentifier,
+    offerType: renewal.offerType,
+    redeemedAt: transaction.purchaseDate,
+  };
+}
+
+// Apple sends SUBSCRIBED seconds before the app verifies, so the webhook finds no user and skips the renewal offer.
+export function AppleOfferAffiliate_needsRenewalLookup(transaction: IAppleOfferTransaction): boolean {
+  return (
+    transaction.offerType === AppleOfferAffiliate_INTRO_OFFER_TYPE &&
+    !transaction.offerIdentifier &&
+    transaction.environment !== "Sandbox" &&
+    transaction.inAppOwnershipType !== PaymentRevenue_FAMILY_SHARED
+  );
 }
 
 export function AppleOfferAffiliate_plan(args: {

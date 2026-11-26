@@ -11,6 +11,12 @@ import { FreeUserDao } from "../dao/freeUserDao";
 import { IDI } from "./di";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import type { IAppleTransactionInfo } from "./appleWebhookHandler";
+import type { IAppleOfferFields } from "./appleOfferAffiliate";
+import {
+  AppleSubscriptionStatus_select,
+  IAppleSubscriptionStatusEntry,
+  IAppleSubscriptionStatusResponse,
+} from "./appleSubscriptionStatus";
 
 export const APPLE_PRODUCT_IDS = [
   "com.liftosaur.subscription.ios_montly",
@@ -45,6 +51,9 @@ export interface IAppleTransactionHistory {
   hasMore?: boolean;
   revision?: string;
 }
+
+// /api/verifyapplereceipt waits for this call, and the entitlement is already saved by then.
+const APPLE_STATUS_TIMEOUT_MS = 3000;
 
 export interface IAppleTransaction {
   transactionId: string;
@@ -451,33 +460,9 @@ export class Subscriptions {
       const query = revision ? `?revision=${encodeURIComponent(revision)}` : "";
       const url = `https://api.storekit.itunes.apple.com/inApps/v1/history/${originalTransactionId}${query}`;
 
-      const applePrivateKey = await this.secretsUtil.getApplePrivateKey();
-      const appleKeyId = await this.secretsUtil.getAppleKeyId();
-      const appleIssuerId = await this.secretsUtil.getAppleIssuerId();
-
-      const now = Math.floor(Date.now() / 1000);
-      const token = JWT.sign(
-        {
-          iss: appleIssuerId,
-          aud: "appstoreconnect-v1",
-          iat: now,
-          exp: now + 1200,
-          bid: "com.liftosaur.www",
-        },
-        applePrivateKey,
-        {
-          algorithm: "ES256",
-          header: {
-            kid: appleKeyId,
-            typ: "JWT",
-            alg: "ES256",
-          },
-        }
-      );
-
       const response = await fetch(url, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${await this.appleApiToken()}`,
           "User-Agent": "Liftosaur/1.0",
         },
       });
@@ -493,6 +478,61 @@ export class Subscriptions {
       this.log.log(`Error getting Apple transaction history for ${originalTransactionId}:`, error);
       return undefined;
     }
+  }
+
+  public async getAppleSubscriptionStatus(
+    originalTransactionId: string
+  ): Promise<IAppleSubscriptionStatusEntry | undefined> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), APPLE_STATUS_TIMEOUT_MS);
+    try {
+      const url = `https://api.storekit.itunes.apple.com/inApps/v1/subscriptions/${originalTransactionId}`;
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${await this.appleApiToken()}`,
+          "User-Agent": "Liftosaur/1.0",
+        },
+        signal: controller.signal,
+      });
+      if (!response.ok) {
+        this.log.log(`Failed to get Apple subscription status for ${originalTransactionId}: ${response.status}`);
+        return undefined;
+      }
+      const json: IAppleSubscriptionStatusResponse = await response.json();
+      return AppleSubscriptionStatus_select(json, originalTransactionId);
+    } catch (error) {
+      this.log.log(`Error getting Apple subscription status for ${originalTransactionId}:`, error);
+      return undefined;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  public async getAppleRenewalOffer(originalTransactionId: string): Promise<IAppleOfferFields | undefined> {
+    const entry = await this.getAppleSubscriptionStatus(originalTransactionId);
+    if (!entry?.signedRenewalInfo) {
+      return undefined;
+    }
+    const renewal = new AppleJWTVerifier(this.log).verifyJWT(entry.signedRenewalInfo) as IAppleOfferFields | null;
+    return renewal ? { offerIdentifier: renewal.offerIdentifier, offerType: renewal.offerType } : undefined;
+  }
+
+  private async appleApiToken(): Promise<string> {
+    const now = Math.floor(Date.now() / 1000);
+    return JWT.sign(
+      {
+        iss: await this.secretsUtil.getAppleIssuerId(),
+        aud: "appstoreconnect-v1",
+        iat: now,
+        exp: now + 1200,
+        bid: "com.liftosaur.www",
+      },
+      await this.secretsUtil.getApplePrivateKey(),
+      {
+        algorithm: "ES256",
+        header: { kid: await this.secretsUtil.getAppleKeyId(), typ: "JWT", alg: "ES256" },
+      }
+    );
   }
 
   public getAppleVerificationInfo(

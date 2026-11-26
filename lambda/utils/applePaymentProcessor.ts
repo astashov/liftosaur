@@ -5,10 +5,17 @@ import { AppleJWTVerifier } from "./appleJwtVerifier";
 import type { IAppleTransactionInfo } from "./appleWebhookHandler";
 import { CollectionUtils_sort } from "../../src/utils/collection";
 import { ApplePaymentAttribution_apply } from "./applePaymentAttribution";
+import {
+  AppleOfferAffiliate_INTRO_OFFER_TYPE,
+  AppleOfferAffiliate_needsRenewalLookup,
+  AppleOfferAffiliate_trialRenewalOffer,
+  IAppleOfferTransaction,
+} from "./appleOfferAffiliate";
 
 interface IAppleReceiptInfo {
   product_id: string;
   purchase_date_ms: string;
+  is_trial_period?: "true" | "false";
   original_transaction_id?: string;
   transaction_id?: string;
   in_app_ownership_type?: string;
@@ -83,6 +90,17 @@ export class ApplePaymentProcessor {
     }
     if (await paymentDao.doesExist(transactionId)) {
       this.di.log.log(`Apple verification: Payment with transaction ID ${transactionId} already exists`);
+      const isTrial = latestReceipt.is_trial_period === "true";
+      await this.attribute(
+        {
+          transactionId,
+          purchaseDate: Number(latestReceipt.purchase_date_ms),
+          offerType: isTrial ? AppleOfferAffiliate_INTRO_OFFER_TYPE : undefined,
+          inAppOwnershipType: latestReceipt.in_app_ownership_type,
+        },
+        userId,
+        latestReceipt.original_transaction_id
+      );
       return;
     }
 
@@ -131,15 +149,31 @@ export class ApplePaymentProcessor {
       isTest,
       inAppOwnershipType: latestReceipt.in_app_ownership_type,
     });
+    const transaction: IAppleOfferTransaction = {
+      transactionId,
+      purchaseDate: timestamp,
+      offerIdentifier,
+      offerType,
+      environment: isTest ? "Sandbox" : undefined,
+      inAppOwnershipType: latestReceipt.in_app_ownership_type,
+    };
+    await this.attribute(transaction, userId, originalTransactionId);
+  }
+
+  // Runs on every verification, not only for new payments, so a failed Apple lookup is retried on the next app launch.
+  private async attribute(
+    transaction: IAppleOfferTransaction,
+    userId: string,
+    originalTransactionId: string | undefined
+  ): Promise<void> {
+    const renewal =
+      originalTransactionId && AppleOfferAffiliate_needsRenewalLookup(transaction)
+        ? await this.subscriptions.getAppleRenewalOffer(originalTransactionId)
+        : undefined;
     await ApplePaymentAttribution_apply(this.di, {
-      transaction: {
-        transactionId,
-        purchaseDate: timestamp,
-        offerIdentifier,
-        offerType,
-        inAppOwnershipType: latestReceipt.in_app_ownership_type,
-      },
+      transaction,
       fallbackUserId: userId,
+      renewalOffer: AppleOfferAffiliate_trialRenewalOffer(transaction, renewal),
     });
   }
 
@@ -147,7 +181,7 @@ export class ApplePaymentProcessor {
     const paymentDao = new PaymentDao(this.di);
     if (await paymentDao.doesExist(transactionInfo.transactionId)) {
       this.di.log.log(`Apple JWS verification: Payment ${transactionInfo.transactionId} already exists`);
-      await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
+      await this.attribute(transactionInfo, userId, transactionInfo.originalTransactionId);
       return;
     }
     const isPurchase = transactionInfo.originalTransactionId === transactionInfo.transactionId;
@@ -169,6 +203,6 @@ export class ApplePaymentProcessor {
       isTest: transactionInfo.environment === "Sandbox",
       inAppOwnershipType: transactionInfo.inAppOwnershipType,
     });
-    await ApplePaymentAttribution_apply(this.di, { transaction: transactionInfo, fallbackUserId: userId });
+    await this.attribute(transactionInfo, userId, transactionInfo.originalTransactionId);
   }
 }
