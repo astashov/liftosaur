@@ -12,6 +12,7 @@ import Reanimated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardActiveId } from "../navigation/CustomKeyboardContext";
 import { useActiveSheet } from "../navigation/ActiveSheetHeightContext";
+import { useSystemKeyboardHeight } from "../utils/useSystemKeyboardHeight";
 import { useTrackedState } from "../navigation/TrackedStateContext";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
@@ -94,14 +95,19 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const trackClick = useTrackClick();
   const insets = useSafeAreaInsets();
   const keyboardActiveId = useCustomKeyboardActiveId();
+  const systemKeyboardHeight = useSystemKeyboardHeight();
   const { height: windowHeight } = useWindowDimensions();
   const activeSheet = useActiveSheet();
   const expandedSpacing = useRem() >= TEXT_SIZE_MAX ? 4 : 8;
   const remScale = useRemScale();
   const activeSheetHeight = activeSheet.height;
-  // When the custom keyboard is open, the timer is shown inside it (see KeyboardRestTimer), so hide
-  // the floating one here. We keep it mounted (not returning null) so the completion chirp still fires.
-  const hideTimer = activeSheet.hidesFloatingUi || activeSheetHeight > windowHeight * 0.5 || keyboardActiveId != null;
+  // The custom keyboard shows the timer inside it (see KeyboardRestTimer). The system keyboard pushes an
+  // open sheet up over the floating timer. Stay mounted in both cases so the completion chirp still fires.
+  const hideTimer =
+    activeSheet.hidesFloatingUi ||
+    activeSheetHeight > windowHeight * 0.5 ||
+    keyboardActiveId != null ||
+    systemKeyboardHeight > 0;
   const baseBottom = insets.bottom + 80;
   const targetBottom = Math.max(baseBottom, activeSheetHeight > 0 ? activeSheetHeight + 16 : 0);
   const animatedTargetBottom = useRef(new Animated.Value(targetBottom)).current;
