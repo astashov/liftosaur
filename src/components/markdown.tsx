@@ -37,6 +37,7 @@ interface IProps {
   truncate?: number;
   directivesData?: IMarkdownDirectivesData;
   isHtmlDisabled?: boolean;
+  withAnchors?: boolean;
 }
 
 export function Markdown(props: IProps): JSX.Element {
@@ -45,7 +46,7 @@ export function Markdown(props: IProps): JSX.Element {
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
   const preprocessed = preprocessDirectives(stringValue, props.directivesData);
   const value = typeof preprocessed === "string" ? preprocessed : String(preprocessed ?? "");
-  const result = MarkdownHtml_render(value, !!props.isHtmlDisabled);
+  const result = MarkdownHtml_render(value, !!props.isHtmlDisabled, !!props.withAnchors);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
     className += ` line-clamp-${props.truncate}`;
@@ -59,7 +60,8 @@ export function Markdown(props: IProps): JSX.Element {
     }
     if (container) {
       for (const element of Array.from(container.querySelectorAll("a"))) {
-        if (!(element.getAttribute("href") || "").startsWith("/")) {
+        const href = element.getAttribute("href") || "";
+        if (!href.startsWith("/") && !href.startsWith("#")) {
           element.setAttribute("target", "_blank");
         }
       }

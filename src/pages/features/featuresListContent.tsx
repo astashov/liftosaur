@@ -1,15 +1,11 @@
 import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
-import { FeatureImages_size, IFeatureImageSizes } from "./featureImages";
+import { DocImages_size, DocImages_url, IDocImageSizes } from "../../utils/docImages";
 import { FeatureCategories_group } from "./featureCategories";
 
 export interface IFeaturesListContentProps {
   features: IDocIndexEntry[];
-  sizes: IFeatureImageSizes;
-}
-
-export function Features_screenshotUrl(featureId: string, name: string): string {
-  return `/images/features/${featureId}/${name}.webp`;
+  sizes: IDocImageSizes;
 }
 
 export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Element {
@@ -47,10 +43,10 @@ export function FeaturesListContent(props: IFeaturesListContentProps): JSX.Eleme
                   <span className="shrink-0 w-[72px] overflow-hidden rounded-xl border-[3px] border-[#111] bg-[#111]">
                     <img
                       className="block w-full h-auto rounded-[9px]"
-                      src={Features_screenshotUrl(feature.id, feature.screenshots[0])}
+                      src={DocImages_url("features", feature.id, feature.screenshots[0])}
                       alt={feature.title}
-                      width={FeatureImages_size(props.sizes, feature.id, feature.screenshots[0])?.width}
-                      height={FeatureImages_size(props.sizes, feature.id, feature.screenshots[0])?.height}
+                      width={DocImages_size(props.sizes, feature.id, feature.screenshots[0])?.width}
+                      height={DocImages_size(props.sizes, feature.id, feature.screenshots[0])?.height}
                       loading="lazy"
                       decoding="async"
                     />

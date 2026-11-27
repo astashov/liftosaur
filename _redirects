@@ -29,6 +29,8 @@
 /docs/:id https://api3.liftosaur.com/docs/:id  200
 /features https://api3.liftosaur.com/features  200
 /features/:id https://api3.liftosaur.com/features/:id  200
+/compare https://api3.liftosaur.com/compare  200
+/compare/:id https://api3.liftosaur.com/compare/:id  200
 /login https://api3.liftosaur.com/login  200
 /exercises https://api3.liftosaur.com/exercises  200
 /exercises/:id https://api3.liftosaur.com/exercises/:id  200

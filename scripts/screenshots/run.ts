@@ -16,7 +16,7 @@ import {
 import { IWatchStep, WatchFlow_parse } from "./watchFlow";
 import { ScreenshotsAccounts_open } from "./accounts";
 import { ScreenshotsAccountStorage_email } from "./accountStorage";
-import { FeatureImages_key, IFeatureImageSizes } from "../../src/pages/features/featureImages";
+import { DocImages_key, IDocImageSizes } from "../../src/utils/docImages";
 
 const root = path.resolve(__dirname, "../..");
 const flowsDir = path.join(root, "screenshots/flows");
@@ -448,14 +448,14 @@ function findScreenshots(dir: string, prefix: string): Record<string, IShot[]> {
   return found;
 }
 
-async function collect(key: string, shots: IShot[], sizes: IFeatureImageSizes): Promise<number> {
+async function collect(key: string, shots: IShot[], sizes: IDocImageSizes): Promise<number> {
   const { prefix, flow } = ScreenshotsPlan_splitRunKey(key);
   const target = path.join(outDir, flow);
   fs.mkdirSync(target, { recursive: true });
   for (const file of fs.readdirSync(target)) {
     if (ScreenshotsPlan_ownsFile(prefix, file)) {
       fs.rmSync(path.join(target, file));
-      delete sizes[FeatureImages_key(flow, path.basename(file, ".webp"))];
+      delete sizes[DocImages_key(flow, path.basename(file, ".webp"))];
     }
   }
   for (const shot of shots) {
@@ -463,16 +463,16 @@ async function collect(key: string, shots: IShot[], sizes: IFeatureImageSizes): 
       .resize({ width: imageWidth, withoutEnlargement: true })
       .webp({ quality: 85 })
       .toFile(path.join(target, `${shot.name}.webp`));
-    sizes[FeatureImages_key(flow, shot.name)] = { width: info.width, height: info.height };
+    sizes[DocImages_key(flow, shot.name)] = { width: info.width, height: info.height };
   }
   return shots.length;
 }
 
-function readSizes(): IFeatureImageSizes {
+function readSizes(): IDocImageSizes {
   return fs.existsSync(sizesFile) ? JSON.parse(fs.readFileSync(sizesFile, "utf8")) : {};
 }
 
-function writeSizes(sizes: IFeatureImageSizes): void {
+function writeSizes(sizes: IDocImageSizes): void {
   const sorted = Object.fromEntries(
     Object.keys(sizes)
       .sort()

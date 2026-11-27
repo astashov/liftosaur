@@ -200,6 +200,10 @@ import { renderDocDetailsHtml } from "./docDetails";
 import { renderAllFeaturesHtml } from "./allFeatures";
 import { renderFeatureDetailsHtml } from "./featureDetails";
 import { DocDao } from "./dao/docDao";
+import { renderAllCompareHtml } from "./allCompare";
+import { renderCompareDetailsHtml } from "./compareDetails";
+import { DocSectionRoutes_detailsResult, DocSectionRoutes_html } from "./docSectionRoutes";
+import { DocImages_sizesFor } from "../src/utils/docImages";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils_toWord } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
@@ -3534,16 +3538,8 @@ const getAllDocsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 }) => {
   const { di } = payload;
   const isLoggedIn = getIsLoggedIn(payload.event);
-  const dao = new DocDao();
-  const docs = dao.getIndex();
-  return {
-    statusCode: 200,
-    body: renderAllDocsHtml(di.fetch, docs, isLoggedIn),
-    headers: {
-      "content-type": "text/html",
-      "cache-control": "public, s-maxage=86400, max-age=0",
-    },
-  };
+  const dao = new DocDao("content");
+  return DocSectionRoutes_html(renderAllDocsHtml(di.fetch, dao.getIndex(), isLoggedIn));
 };
 
 const getDocDetailsEndpoint = Endpoint.build("/doc/:id");
@@ -3552,25 +3548,10 @@ const getDocDetailsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   match: { params },
 }) => {
   const { di } = payload;
-  const dao = new DocDao();
-  const result = dao.getById(params.id);
-  if (result != null) {
-    const isLoggedIn = getIsLoggedIn(payload.event);
-    return {
-      statusCode: 200,
-      body: renderDocDetailsHtml(di.fetch, result.indexEntry, result.detail.content, isLoggedIn),
-      headers: {
-        "content-type": "text/html",
-        "cache-control": "public, s-maxage=86400, max-age=0",
-      },
-    };
-  } else {
-    return {
-      statusCode: 404,
-      body: "Not Found",
-      headers: { "content-type": "text/html", "cache-control": "no-cache" },
-    };
-  }
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  return DocSectionRoutes_detailsResult("content", params.id, (article) =>
+    renderDocDetailsHtml(di.fetch, article.indexEntry, article.detail.content, isLoggedIn)
+  );
 };
 
 const getAllFeaturesEndpoint = Endpoint.build("/features");
@@ -3580,14 +3561,7 @@ const getAllFeaturesHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   const { di } = payload;
   const isLoggedIn = getIsLoggedIn(payload.event);
   const dao = new DocDao("features");
-  return {
-    statusCode: 200,
-    body: renderAllFeaturesHtml(di.fetch, dao.getIndex(), dao.getScreenshotSizes(), isLoggedIn),
-    headers: {
-      "content-type": "text/html",
-      "cache-control": "public, s-maxage=86400, max-age=0",
-    },
-  };
+  return DocSectionRoutes_html(renderAllFeaturesHtml(di.fetch, dao.getIndex(), dao.getScreenshotSizes(), isLoggedIn));
 };
 
 const getFeatureDetailsEndpoint = Endpoint.build("/features/:id");
@@ -3597,30 +3571,35 @@ const getFeatureDetailsHandler: RouteHandler<
   typeof getFeatureDetailsEndpoint
 > = async ({ payload, match: { params } }) => {
   const { di } = payload;
-  const dao = new DocDao("features");
-  const result = dao.getById(params.id);
-  if (result == null) {
-    return {
-      statusCode: 404,
-      body: "Not Found",
-      headers: { "content-type": "text/html", "cache-control": "no-cache" },
-    };
-  }
   const isLoggedIn = getIsLoggedIn(payload.event);
-  return {
-    statusCode: 200,
-    body: renderFeatureDetailsHtml(
-      di.fetch,
-      result.indexEntry,
-      result.detail.content,
-      dao.getScreenshotSizes(),
-      isLoggedIn
-    ),
-    headers: {
-      "content-type": "text/html",
-      "cache-control": "public, s-maxage=86400, max-age=0",
-    },
-  };
+  return DocSectionRoutes_detailsResult("features", params.id, (article, dao) =>
+    renderFeatureDetailsHtml(di.fetch, article.indexEntry, article.detail.content, dao.getScreenshotSizes(), isLoggedIn)
+  );
+};
+
+const getAllCompareEndpoint = Endpoint.build("/compare");
+const getAllCompareHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllCompareEndpoint> = async ({
+  payload,
+}) => {
+  const { di } = payload;
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  const dao = new DocDao("compare");
+  return DocSectionRoutes_html(renderAllCompareHtml(di.fetch, dao.getIndex(), isLoggedIn));
+};
+
+const getCompareDetailsEndpoint = Endpoint.build("/compare/:id");
+const getCompareDetailsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getCompareDetailsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  return DocSectionRoutes_detailsResult("compare", params.id, (article, dao) => {
+    const content = article.detail.content;
+    const sizes = DocImages_sizesFor("compare", content, dao.getScreenshotSizes());
+    return renderCompareDetailsHtml(di.fetch, article.indexEntry, content, sizes, isLoggedIn);
+  });
 };
 
 const getUserContextEndpoint = Endpoint.build("/api/usercontext");
@@ -5001,6 +4980,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getDocDetailsEndpoint, getDocDetailsHandler)
       .get(getAllFeaturesEndpoint, getAllFeaturesHandler)
       .get(getFeatureDetailsEndpoint, getFeatureDetailsHandler)
+      .get(getAllCompareEndpoint, getAllCompareHandler)
+      .get(getCompareDetailsEndpoint, getCompareDetailsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramPreviewEndpoint, getProgramPreviewHandler)

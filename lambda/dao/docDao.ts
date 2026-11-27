@@ -1,10 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { IDocIndexEntry } from "../../src/models/doc";
+import { IDocCollection, IDocIndexEntry } from "../../src/models/doc";
 import { IDocDetail, parseDocMarkdown } from "../../src/utils/docUtils";
-import { IFeatureImageSizes } from "../../src/pages/features/featureImages";
-
-export type IDocCollection = "content" | "features";
+import { IDocImageSizes } from "../../src/utils/docImages";
 
 export class DocDao {
   private readonly docsDir: string;
@@ -29,7 +27,7 @@ export class DocDao {
     return entries;
   }
 
-  public getScreenshotSizes(): IFeatureImageSizes {
+  public getScreenshotSizes(): IDocImageSizes {
     const filePath = path.join(this.docsDir, "screenshots.json");
     return fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath, "utf8")) : {};
   }

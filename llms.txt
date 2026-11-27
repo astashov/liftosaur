@@ -58,6 +58,7 @@ Deadlift / 1x5 / 185lb / progress: custom(failures: 0) {~
 - [Import and export](https://www.liftosaur.com/features/import-export): Hevy import, the history CSV format, backups
 - [Sync and offline](https://www.liftosaur.com/features/sync-and-offline)
 - [All features](https://www.liftosaur.com/features)
+- [Best app for GZCLP](https://www.liftosaur.com/compare/gzclp-apps): 19 workout apps tested with GZCLP, with what each app does after a failed T1 set
 - [Progressions](https://www.liftosaur.com/features/progressions): how automatic progression works
 - [Premium](https://www.liftosaur.com/features/premium): what is free and what Premium unlocks
 - [Built-in programs](https://www.liftosaur.com/features/built-in-programs): the program library and its filters

@@ -2,11 +2,11 @@ import type { JSX } from "react";
 import { IJsonLd, Page } from "../../components/page";
 import { IDocIndexEntry } from "../../models/doc";
 import { FeaturesListContent } from "./featuresListContent";
-import { IFeatureImageSizes } from "./featureImages";
+import { IDocImageSizes } from "../../utils/docImages";
 
 interface IProps {
   features: IDocIndexEntry[];
-  sizes: IFeatureImageSizes;
+  sizes: IDocImageSizes;
   client: Window["fetch"];
   isLoggedIn?: boolean;
 }

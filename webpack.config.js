@@ -150,6 +150,8 @@ const pageEntries = {
   docdetails: ["./src/docDetails.tsx", "./src/programDetails.css", "./src/index.css"],
   allfeatures: ["./src/allFeatures.tsx", "./src/features.css", "./src/index.css"],
   featuredetails: ["./src/featureDetails.tsx", "./src/features.css", "./src/programDetails.css", "./src/index.css"],
+  allcompare: ["./src/allCompare.tsx", "./src/index.css"],
+  comparedetails: ["./src/compareDetails.tsx", "./src/compare.css", "./src/programDetails.css", "./src/index.css"],
   allprograms: ["./src/allPrograms.tsx", "./src/index.css"],
   record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
   user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
@@ -485,6 +487,14 @@ const mainConfig = {
         secure: false,
       },
       "/features/*": {
+        target: localapi,
+        secure: false,
+      },
+      "/compare": {
+        target: localapi,
+        secure: false,
+      },
+      "/compare/*": {
         target: localapi,
         secure: false,
       },

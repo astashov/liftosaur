@@ -1,39 +1,24 @@
 import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
 import { Markdown } from "../../components/markdown";
-import { Features_screenshotUrl } from "./featuresListContent";
-import {
-  FeatureImages_altText,
-  FeatureImages_inlineHtml,
-  FeatureImages_size,
-  IFeatureImageSizes,
-} from "./featureImages";
+import { DocArticle } from "../../components/docArticle";
+import { DocSections_all } from "../../models/docSections";
+import { DocImages_inlineHtml, DocImages_size, DocImages_url, IDocImageSizes } from "../../utils/docImages";
+import { FeatureImages_altText } from "./featureImages";
 
 export interface IFeatureDetailsContentProps {
   feature: IDocIndexEntry;
   content: string;
-  sizes: IFeatureImageSizes;
+  sizes: IDocImageSizes;
 }
 
 export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.Element {
   const { feature, sizes } = props;
-  const content = FeatureImages_inlineHtml(props.content, sizes);
+  const content = DocImages_inlineHtml("features", props.content, sizes);
   const headerShots = feature.headerScreenshots === false ? [] : (feature.screenshots ?? []);
 
   return (
-    <section className="px-4 py-8 mx-auto" style={{ maxWidth: 800 }}>
-      <nav className="pt-2 pb-2 text-xs text-text-secondary" aria-label="Breadcrumb">
-        <a href="/" className="underline hover:text-text-primary">
-          Home
-        </a>
-        <span className="mx-1">/</span>
-        <a href="/features" className="underline hover:text-text-primary">
-          Features
-        </a>
-        <span className="mx-1">/</span>
-        <span className="text-text-primary">{feature.title}</span>
-      </nav>
-      <h1 className="mb-2 text-3xl font-bold">{feature.title}</h1>
+    <DocArticle section={DocSections_all.features} entry={feature} headingClassName="mb-2 text-3xl font-bold">
       {feature.shortDescription && <p className="mb-6 text-lg text-text-secondary">{feature.shortDescription}</p>}
       {headerShots.length > 0 && (
         <div className="flex flex-wrap justify-center gap-5 pt-2 pb-5 mb-2">
@@ -44,10 +29,10 @@ export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.E
             >
               <img
                 className="block w-full h-auto rounded-[26px]"
-                src={Features_screenshotUrl(feature.id, name)}
+                src={DocImages_url("features", feature.id, name)}
                 alt={FeatureImages_altText(feature.title, feature.id, name)}
-                width={FeatureImages_size(sizes, feature.id, name)?.width}
-                height={FeatureImages_size(sizes, feature.id, name)?.height}
+                width={DocImages_size(sizes, feature.id, name)?.width}
+                height={DocImages_size(sizes, feature.id, name)?.height}
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchPriority={index === 0 ? "high" : undefined}
                 decoding="async"
@@ -56,7 +41,7 @@ export function FeatureDetailsContent(props: IFeatureDetailsContentProps): JSX.E
           ))}
         </div>
       )}
-      <Markdown className="program-details-description feature-body" value={content} />
-    </section>
+      <Markdown className="program-details-description feature-body" value={content} withAnchors />
+    </DocArticle>
   );
 }

@@ -1,7 +1,8 @@
 import type { JSX } from "react";
-import { IJsonLd, Page } from "../../components/page";
+import { DocArticlePage } from "../../components/docArticlePage";
 import { IDocIndexEntry } from "../../models/doc";
-import { DocDetailsContent } from "./docDetailsContent";
+import { DocSections_all } from "../../models/docSections";
+import { DocDetailsContent, IDocDetailsContentProps } from "./docDetailsContent";
 
 interface IProps {
   doc: IDocIndexEntry;
@@ -12,48 +13,17 @@ interface IProps {
 
 export function DocDetailsHtml(props: IProps): JSX.Element {
   const { client, isLoggedIn, ...data } = props;
-  const { doc } = props;
-  const title = `${doc.title} - Liftosaur Documentation`;
-  const url = `https://www.liftosaur.com/doc/${doc.id}`;
-  const description = doc.shortDescription || `${doc.title} - Liftosaur documentation.`;
-
-  const jsonLd: IJsonLd[] = [
-    {
-      type: "Article",
-      headline: doc.title,
-      description,
-      mainEntityOfPage: url,
-      ...(doc.datePublished ? { datePublished: doc.datePublished } : {}),
-      ...(doc.dateModified ? { dateModified: doc.dateModified } : {}),
-    },
-    {
-      type: "BreadcrumbList",
-      items: [
-        { name: "Home", url: "https://www.liftosaur.com" },
-        { name: "Documentation", url: "https://www.liftosaur.com/doc" },
-        { name: doc.title },
-      ],
-    },
-  ];
-
   return (
-    <Page
-      css={["docdetails"]}
-      js={["docdetails"]}
-      maxWidth={1200}
-      title={title}
-      canonical={url}
-      isLoggedIn={!!isLoggedIn}
-      description={description}
-      ogDescription={description}
-      ogUrl={url}
-      jsonLd={jsonLd}
+    <DocArticlePage<IDocDetailsContentProps>
+      section={DocSections_all.doc}
+      entry={props.doc}
       data={data}
       client={client}
+      isLoggedIn={isLoggedIn}
+      bundle="docdetails"
       preloadMono
-      url="/doc"
     >
       <DocDetailsContent {...data} />
-    </Page>
+    </DocArticlePage>
   );
 }

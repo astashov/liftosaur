@@ -70,6 +70,8 @@ Once you can do 25 reps or more - add 5lb to the weight.
 
 Again, this is a brief overview. For comprehensive information and details, please read the [original post with the GZCL applications](https://swoleateveryheight.blogspot.com/2016/02/gzcl-applications-adaptations.html).
 
+Running GZCLP in another app? We tested 19 workout apps with it and wrote down what each one does after a failed T1 set: [best app for GZCLP](/compare/gzclp-apps).
+
 <!-- faq -->
 
 ### Is GZCLP good for beginners?

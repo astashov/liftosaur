@@ -1,3 +1,5 @@
+export type IDocCollection = "content" | "features" | "compare";
+
 export interface IDocIndexEntry {
   id: string;
   title: string;
@@ -8,4 +10,5 @@ export interface IDocIndexEntry {
   dateModified?: string;
   screenshots?: string[];
   headerScreenshots?: boolean;
+  cover?: string;
 }

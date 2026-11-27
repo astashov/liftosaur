@@ -10,6 +10,7 @@
 /docs/*
 !/docs/content/
 !/docs/features/
+!/docs/compare/
 /cypress/videos
 /cypress/screenshots
 /backup

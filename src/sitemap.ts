@@ -5,36 +5,24 @@ import { Exercise_allExpanded, Exercise_toKey } from "./models/exercise";
 import { buildExerciseUrl } from "./pages/exercise/exerciseContent";
 import { MathUtils_toWord } from "./utils/math";
 import { parseDocMarkdown } from "./utils/docUtils";
+import { DocSections_all, DocSections_articleUrl } from "./models/docSections";
 const blogposts = JSON.parse(fs.readFileSync("blog/blog-posts.json", { encoding: "utf-8" }));
 const programIndex: { id: string; dateModified?: string }[] = JSON.parse(
   fs.readFileSync("programdata/index.json", { encoding: "utf-8" })
 );
-const docsContentDir = path.resolve("docs/content");
-const docEntries = fs.existsSync(docsContentDir)
-  ? fs
-      .readdirSync(docsContentDir)
-      .filter((f) => f.endsWith(".md"))
-      .map((f) => {
-        const raw = fs.readFileSync(path.join(docsContentDir, f), "utf8");
-        const { indexEntry } = parseDocMarkdown(raw);
-        const lastmod = getGitLastModified(path.join("docs/content", f));
-        return { id: indexEntry.id, lastmod: indexEntry.dateModified || lastmod };
-      })
-  : [];
-
-const featuresDir = path.resolve("docs/features");
-const featureEntries = fs.existsSync(featuresDir)
-  ? fs
-      .readdirSync(featuresDir)
-      .filter((f) => f.endsWith(".md"))
-      .map((f) => {
-        const { indexEntry } = parseDocMarkdown(fs.readFileSync(path.join(featuresDir, f), "utf8"));
-        return {
-          id: indexEntry.id,
-          lastmod: indexEntry.dateModified || getGitLastModified(path.join("docs/features", f)),
-        };
-      })
-  : [];
+const docSectionEntries = Object.values(DocSections_all).flatMap((section) => {
+  const dir = path.join("docs", section.collection);
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".md"))
+    .map((f) => {
+      const { indexEntry } = parseDocMarkdown(fs.readFileSync(path.join(dir, f), "utf8"));
+      return { section, id: indexEntry.id, lastmod: indexEntry.dateModified || getGitLastModified(path.join(dir, f)) };
+    });
+});
 
 function getGitLastModified(filePath: string): string | undefined {
   try {
@@ -55,6 +43,7 @@ const urls: ISitemapUrl[] = [
   { loc: "https://www.liftosaur.com/app" },
   { loc: "https://www.liftosaur.com/doc" },
   { loc: "https://www.liftosaur.com/features" },
+  { loc: "https://www.liftosaur.com/compare" },
   { loc: "https://www.liftosaur.com/blog" },
   { loc: "https://www.liftosaur.com/exercises" },
   { loc: "https://www.liftosaur.com/planner" },
@@ -73,12 +62,8 @@ const urls: ISitemapUrl[] = [
     loc: `https://www.liftosaur.com/programs/${entry.id}`,
     ...(entry.dateModified ? { lastmod: entry.dateModified } : {}),
   })),
-  ...docEntries.map((entry) => ({
-    loc: `https://www.liftosaur.com/doc/${entry.id}`,
-    ...(entry.lastmod ? { lastmod: entry.lastmod } : {}),
-  })),
-  ...featureEntries.map((entry) => ({
-    loc: `https://www.liftosaur.com/features/${entry.id}`,
+  ...docSectionEntries.map((entry) => ({
+    loc: DocSections_articleUrl(entry.section, entry.id),
     ...(entry.lastmod ? { lastmod: entry.lastmod } : {}),
   })),
   ...Exercise_allExpanded({}).map((e) => {

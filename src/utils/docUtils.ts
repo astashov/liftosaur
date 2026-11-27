@@ -27,6 +27,9 @@ export function parseDocMarkdown(raw: string): { indexEntry: IDocIndexEntry; det
   if (Array.isArray(fm.screenshots)) {
     entry.screenshots = fm.screenshots.map(String);
   }
+  if (fm.cover != null) {
+    entry.cover = String(fm.cover);
+  }
   if (fm.headerScreenshots != null) {
     entry.headerScreenshots = fm.headerScreenshots !== false;
   }

@@ -1060,6 +1060,28 @@ export class LiftosaurCdkStack extends cdk.Stack {
       ],
     };
 
+    const lambdaPageBehavior: cloudfront.BehaviorOptions = {
+      origin: apiOrigin,
+      cachePolicy: programsCachePolicy,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      functionAssociations: [
+        {
+          function: programsCacheKey,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+        },
+      ],
+    };
+
+    const lambdaPageSections = ["/programs", "/doc", "/features", "/compare"];
+    const lambdaPageBehaviors: Record<string, cloudfront.BehaviorOptions> = Object.fromEntries(
+      lambdaPageSections.flatMap((path) => [
+        [path, lambdaPageBehavior],
+        [`${path}/*`, lambdaPageBehavior],
+      ])
+    );
+
     const geoOriginRequestPolicy = new cloudfront.OriginRequestPolicy(this, `LftGeoOriginRequestPolicy${suffix}`, {
       originRequestPolicyName: `LftGeoOriginRequestPolicy${suffix}`,
       headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList("CloudFront-Viewer-Country", "Origin"),
@@ -1085,32 +1107,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         ],
       },
       additionalBehaviors: {
-        "/programs": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
-        "/programs/*": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
+        ...lambdaPageBehaviors,
         "/": cachedPageWithDeviceBehavior,
         "/about": cachedPageWithDeviceBehavior,
         "/main": cachedPageWithDeviceBehavior,
@@ -1214,58 +1211,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
           functionAssociations: [
             {
               function: docsRedirect,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
-        "/doc": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
-        "/doc/*": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
-        "/features": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
-              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-            },
-          ],
-        },
-        "/features/*": {
-          origin: apiOrigin,
-          cachePolicy: programsCachePolicy,
-          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-          functionAssociations: [
-            {
-              function: programsCacheKey,
               eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
             },
           ],
