@@ -58,6 +58,7 @@ android/app/*.keystore
 
 # Claude Code local settings (personal overrides)
 .claude/settings.local.json
+CLAUDE.local.md
 
 # Claude Code temp files
 .tmp/

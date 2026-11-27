@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -385,7 +385,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		3A3E3DD030B14A6D00D8EA72 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		3A3E3DD030B14A6D00D8EA72 /* Exceptions for "LiftosaurStickers" folder in "LiftosaurStickers" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -395,7 +395,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (3A3E3DD030B14A6D00D8EA72 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = LiftosaurStickers; sourceTree = "<group>"; };
+		3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3A3E3DD030B14A6D00D8EA72 /* Exceptions for "LiftosaurStickers" folder in "LiftosaurStickers" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = LiftosaurStickers;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -758,8 +769,6 @@
 				3A3E3DC730B14A6B00D8EA72 /* LiftosaurStickers */,
 			);
 			name = LiftosaurStickers;
-			packageProductDependencies = (
-			);
 			productName = LiftosaurStickers;
 			productReference = 3A3E3DC630B14A6B00D8EA72 /* LiftosaurStickers.appex */;
 			productType = "com.apple.product-type.app-extension.messages-sticker-pack";
@@ -857,8 +866,8 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
-				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
+				ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -991,13 +1000,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1049,13 +1054,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1915,11 +1916,11 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};
-		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Packages/Runestone" */ = {
+		ED17A00000000000000000D3 /* XCLocalSwiftPackageReference "Runestone" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/Runestone;
 		};
