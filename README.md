@@ -116,3 +116,9 @@ Then, run `npm cdk-deploy`, that should create 2 environments - one for prod, on
 # Contributing
 
 If you want to propose a feature, or found a bug - [create an issue](https://github.com/astashov/liftosaur/issues) on Github.
+
+## Contributing Exercises
+
+Contribution of exercises may be made by forking this repository, making updates, and opening a PR with your additions. The Exercise must be added to the exercises constant, and the exercise metadata must be added to the metadata constant. Exercise entries in the constants must be in alphabetical order and be entirely populated. The order of attributes should follow the existing order for other exercises.
+
+Exercise naming is somewhat subjective and ambiguous, so to facilitate effective communication exercise contributions must be accompanied by either a link to the illustration from gymvisual.com (to be purchased and incorporated by the maintainer) or an affirmation that no illustration is available from gymvisual.com and an alternate site demonstrating the exercise. The illustration should be included as part of the text in the PR.
